@@ -1,138 +1,160 @@
-# libultraship — resource system and OTR archives
+# libultraship — resource system and archives
 
-> **Pinned:** libultraship tag **1.4.2**
-> (`1ca7d0fa78013e49450a4a9881236a19a6600d64`, 2024-08-01). Authored
-> 2026-09-01, iteration 1 of the reference crawl
+> **Pinned:** libultraship **1.3.1-399**
+> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20). Updated
+> 2026-09-01, iteration 14 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
+> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
+> NEWER than tag 1.4.2 despite the smaller number.
 
-## OTR = MPQ at this tag
+## `.o2r` (zip) is the format now; MPQ is opt-in
 
-Archives are **StormLib MPQ files** with an `.otr` extension (the
-`.o2r`/ZIP era comes much later). StormLib 9.24 is vendored and linked
-**PUBLIC**, and `src/resource/Archive.h:14` includes `<StormLib.h>`
-directly, so StormLib's `HANDLE`/`DWORD` types leak to every consumer
-via `include/libultraship/classes.h`.
+The default archive is **zip via libzip** with an `.o2r` extension.
+MPQ/`.otr` sits behind `INCLUDE_MPQ_SUPPORT` (**default OFF**,
+`CMakeLists.txt:27`) — a stock build has no StormLib and **cannot open
+`.otr` files** (they fall through to "unrecognized extension, trying
+o2r" and fail). StormLib (v9.25 + local patch) no longer leaks into
+consumers: `OtrArchive.h` is wrapped whole in `#ifdef
+INCLUDE_MPQ_SUPPORT` and is the only StormLib includer.
 
 ## The classes
 
-- **`LUS::Archive`** (`src/resource/Archive.h:20`) — owns the MPQ
-  handles, serves raw bytes. One `std::mutex` taken around *each
-  individual* StormLib call (`Archive.cpp:93-135`) — serializes StormLib
-  but open→read→close is not atomic as a sequence; `mHashes`/
-  `mMpqHandles` are mutated without the lock (construction-time only).
-- **`LUS::File`** (`src/resource/File.h:10`) — `Parent`
-  (`shared_ptr<Archive>`), `Path`, `Buffer`, `IsLoaded`.
-- **`LUS::IResource` / `Resource<T>`** (`src/resource/Resource.h:19`,
-  `:38`) — typed payload holder + `ResourceInitData` (path, endianness,
-  type FourCC, version, id, isCustom). `gAltAssetPrefix = "alt/"` at
-  `Resource.h:21`.
-- **`LUS::ResourceLoader`** (`src/resource/ResourceLoader.h:12`) —
-  factory registry (three parallel maps; **no mutex**, and
-  `mFactories[type]` on the load path inserts null entries for unknown
-  types from worker threads — an unsynchronized mutation).
-- **`LUS::ResourceManager`** (`src/resource/ResourceManager.h:19`) —
-  cache + `BS::thread_pool` (`hardware_concurrency − reserved − 1`,
-  min 1; hard 1 on Switch/WiiU). If the archive failed to load, the pool
-  is **paused forever** (`ResourceManager.cpp:92`) and blocking loads
-  hang.
+- **`Ship::Archive`** (`include/ship/resource/archive/Archive.h:20`) —
+  now an abstract base (pure-virtual `Open/Close/LoadFile/WriteFile`)
+  with three backends:
+  - `O2rArchive` (libzip, one `zip_t*`) — **no thread safety**: every
+    resource worker calls `zip_fopen_index`/`zip_fread` on the shared
+    handle with no mutex (the 1.4.2 per-call StormLib mutex was dropped
+    with no replacement). Also `Open` uses `ZIP_CREATE`
+    (`O2rArchive.cpp:70`) — a typo'd path silently creates an empty
+    archive instead of failing.
+  - `OtrArchive` (StormLib, conditional) — **read-only**; `WriteFile`
+    logs "use an o2r instead". The `(listfile)` CRC-map code survives
+    here, `\r`-trim bug included (`OtrArchive.cpp:90`). `Open`
+    null-derefs on a listfile-less MPQ (`:82-86`).
+  - `FolderArchive` — a plain directory on disk (replaces the old
+    `_DEBUG` `TestData/` override, which is gone).
+- **`Ship::ArchiveManager`**
+  (`include/ship/resource/archive/ArchiveManager.h:16`) — NEW; owns the
+  archives plus global tables `mHashes` (CRC64→path), `mFileToArchive`,
+  `mGameVersions`/`mValidGameVersions`.
+- **`Ship::ResourceLoader`** — one factory map keyed by
+  `ResourceFactoryKey{format, type, version}`
+  (`include/ship/resource/ResourceLoader.h:12-28`) + a name→FourCC map.
+  Registration rejects conflicts/duplicates; the 1.4.2
+  null-insertion-from-worker-threads bug is fixed (lookup is
+  `contains()`-then-`[]`).
+- **`Ship::ResourceManager`** — cache + `BS::thread_pool` (priority +
+  pause enabled via `#define`s before the include). The
+  paused-forever-on-failed-archive behavior survives
+  (`ResourceManager.cpp:58-61`, comment now explicit) but is normally
+  unreachable: `Context::InitResourceManager` fails hard instead
+  (`architecture-overview.md`).
 
 ## Archive mounting and layering
 
-`Archive::LoadMainMPQ` (`Archive.cpp:411`): scan `mMainPath` for
-`*.otr` (or take an explicit list) → first candidate whose `version`
-member validates becomes the main MPQ → every remaining candidate is
-layered as a patch. `LoadPatchMPQs` (`:357`) then scans the patches dir
-(default `<appdir>/mods`, `src/Context.cpp:188`) for `.otr` **and**
-`.mpq`. Layering is StormLib-native `SFileOpenPatchArchive`
-(`Archive.cpp:525`) — patched files shadow base files transparently;
-precedence is application order. A patch with no `version` member is
-applied anyway (INFO log only, `:518`).
+`Context::InitResourceManager` reads `Game.Main Archive` (default = app
+dir) and `Game.Patches Archive` (default `<appdir>/mods`)
+(`Context.cpp:206-207`) and passes both as one flat `archivePaths` list
+— **no main/patch distinction exists below that point**.
 
-The `version` member: 1 byte endianness + uint32 game-version hash,
-checked against `validHashes` (`ProcessOtrVersion`). Known hashes are
-**OoT ROM CRCs** in `GameVersions.h` — SoH residue. Since 1.3.0 an
-empty `validHashes` list skips the version-file check entirely (an
-archive with no `version` member is then accepted), while game-version
-tracking still records whatever versions it finds.
+`ArchiveManager::GetArchiveListInPaths` (`ArchiveManager.cpp:208-239`):
+each directory contributes its `.otr/.zip/.mpq/.o2r` files; a directory
+containing **none** is mounted itself as a `FolderArchive` (`:225-227`).
+Extension dispatch in `AddArchive` (`:241-264`): `.o2r`/`.zip` → O2r;
+`.otr`/`.mpq` → Otr only if MPQ support; `""` → Folder; unknown → warn
+and try O2r.
 
-**Name lookup:** MPQ paths are the keys; `GenerateCrcMap` (`:377`) reads
-the `(listfile)` and stores `~CRC64(line)` → path. **Bug:** it
-unconditionally strips the last character of every line "to trim `\r`"
-(`:386`) — LF-only or final lines lose a real character and hash wrong.
+**Layering is last-writer-wins**, not StormLib patching:
+`mFileToArchive[hash] = archive` just overwrites (`:287`). Since
+`directory_iterator` order is unspecified (`:215`), **mod precedence
+within a directory is filesystem-order dependent** — no deterministic
+rule. NEW live-mutation API: `WriteFile`, `RemoveArchive`,
+`SetArchives` → `ResetVirtualFileSystem()` (full unload/reload). The
+1.4.2 tooling API (`CreateArchive`/`AddFile`/…) is gone. Caveats:
+`WriteFile` rebuilds file tables but **not** the resource cache (stale
+resources survive); `ResetVirtualFileSystem` re-validates and can
+silently drop version-invalid archives.
 
-**Debug override:** under `_DEBUG`, `TestData/<path>` on disk shadows
-the archive (`Archive.cpp:80-91`).
+**Game-version validation:** the `version` member (1 byte endianness +
+uint32 hash) is read in `Archive::Load()`; a mismatch warns and unloads
+(`Archive.cpp:42-54`). Empty valid-set accepts everything; a missing
+`version` member is accepted. **`GameVersions.h` is gone** — valid
+hashes are a `std::unordered_set<uint32_t>` the port passes to
+`CreateInstance`. Read surface: `GetGameVersions()` → bridge
+`ResourceGetGameVersions`.
 
 ## Load pipeline (bytes → typed resource)
 
-1. `ResourceManager::LoadResource(path)` → `LoadResourceAsync(...).get()`
-   (`ResourceManager.cpp:189-190`); async submits `LoadResourceProcess`
-   to the pool (priority jobs use `submit_front`). Fast3D calls
-   `LoadResourceProcess` directly for synchronous loads
-   (`gfx_pc.cpp:2396` etc.).
-2. `LoadResourceProcess` (`:71`): strip `"__OTR__"` prefix; if alt
-   assets are enabled and the path isn't already alt, try
-   `"alt/" + path` first (the HD-texture-pack mechanism); consult the
-   cache; else `Archive::LoadFile` for raw bytes. The alt switch was a
-   raw `gAltAssets` CVar read per load until 1.4.2 backported
-   `ResourceManager::mAltAssetsEnabled` (`Set/IsAltAssetsEnabled`)
-   from 2.0.
-3. `ResourceLoader::LoadResource` (`ResourceLoader.cpp:46`) reads byte 0:
-   - `'<'` → **XML resource**: tinyxml2 parse (no error checking —
-     `:75` OTRTODO; malformed doc null-derefs), root element name picks
-     the factory, always `IsCustom = true`.
-   - else → **64-byte OTR binary header**: endianness(1) + isCustom(1) +
-     pad(2) + type FourCC(4) + version(4) + id(8) + unnamed(4) +
-     ROM CRC(8, discarded) + ROM enum(4, discarded) + reserved to 64.
-4. Factory dispatches on version to a `ResourceVersionFactory` whose
-   `ParseFileBinary` fills the typed payload.
-5. Result (or `NotFound`) lands in the cache.
+1. `LoadResource` still routes through the pool
+   (`LoadResourceAsync(..., highest).get()`); Fast3D still calls
+   `LoadResourceProcess` directly (`src/fast/interpreter.cpp:2513` etc.).
+2. **NEW: `.meta` JSON sidecars come first.** `ResourceLoader::
+   LoadResource` (`ResourceLoader.cpp:188-231`) tries `<path>.meta` —
+   keys `path` (redirect to a different real file!), `format`
+   (`"XML"`), `type` (name), `version`. Only without a `.meta` does the
+   legacy first-byte sniff run (`'<'` → XML, else 64-byte binary
+   header). `.meta` files are hidden from the index (`Archive::
+   IndexFile` strips the suffix, `Archive.cpp:109-116`).
+3. Binary header: `OTR_HEADER_SIZE 64` now in `Archive.h:15`; the ROM
+   CRC/enum reads are commented out; **the header is sliced off the
+   buffer before the factory sees it** (`ResourceLoader.cpp:113-116`) —
+   factories no longer skip it themselves.
+4. XML parses now check `xmlReader->Error()` (the 1.4.2 OTRTODO is
+   fixed) — but `ReadResourceInitDataXml` still null-derefs on an
+   empty-but-valid doc (`:291-293`).
 
-## Types and factories at this tag
+## Types and factories — LUS registers almost nothing
 
-`ResourceType` (`src/resource/ResourceType.h`) declares 6 generic types
-with factories — **Texture (V0+V1), Vertex (the only one with an XML
-path), DisplayList, Matrix, Array, Blob** — registered in
-`ResourceLoader.cpp:25-32`; plus 15 `SOH_*` FourCCs with **no factories
-in LUS** (games register their own) and an explicitly `(UNUSED)`
-`Archive` type. DisplayList's binary parser understands the 128-bit OTR
-opcodes (`G_SETTIMG_OTR_HASH` etc., `DisplayListFactory.cpp:68-74`);
-its XML parser is ~900 lines of GBI command names (1.0.1 added
-`Grayscale`/`SetGrayscaleColor`).
+`Ship::ResourceType` is down to **Blob, Json, Shader**
+(`include/ship/resource/ResourceType.h:5-11`).
+`RegisterGlobalResourceFactories` registers **Json + Shader only**
+(`ResourceLoader.cpp:24-29`) — `Blob`'s factory exists but is
+registered by nobody (loading an OBLB fails). GuiTexture (GTEX) and
+Font (FONT) register lazily at GUI init. The six graphics types moved
+to **`Fast::ResourceType`** — DisplayList, Light (NEW), Matrix,
+Texture, Vertex (`include/fast/resource/ResourceType.h`) — classes and
+factories ship in-tree but **the port must register them**
+(`RegisterResourceFactory` has exactly 3 call sites, all engine-side).
+`Array` and the 15 `SOH_*` FourCCs are gone. Vertex AND DisplayList
+both have XML paths now.
 
 ## Caching and lifetime
 
-- Cache = `unordered_map<string, variant<ResourceLoadError,
-  shared_ptr<IResource>>>` — **everything loads forever**; the header
-  comment says so ("the entire ROM is 64MB"). No eviction. Negative
-  results are cached and never invalidated.
-- Resources do **not** keep the Archive alive (the `File` is dropped
-  after parsing).
-- Dirty flag = soft invalidation: next load re-parses and replaces the
-  entry. `UnloadResource` erases outside the destructor to avoid
-  deadlock (destructors may load resources, `:321-323`).
-- Alt (`alt/…`) and base occupy separate cache keys.
-- Archive write APIs (`CreateArchive`/`AddFile`/`RemoveFile`/
-  `RenameFile`) exist for external tooling, have zero in-repo callers,
-  and do NOT invalidate the resource cache (TODOs at `:229`, `:245`).
+- Cache key is no longer a bare string:
+  **`ResourceIdentifier{Path, Owner, Parent-archive}`** with a
+  precomputed hash (`ResourceManager.h:33-52`) — the same path from two
+  archives (or owners) is two entries.
+- Still `variant<ResourceLoadError, shared_ptr<IResource>>`, still no
+  eviction, failure still memoized (`NotFound`).
+- NEW `ResourceFilter{IncludeMasks, ExcludeMasks, Owner, Parent}` for
+  bulk ops; `FindLoadedFiles` is gone — `DirtyResources`/
+  `UnloadResources` iterate `ArchiveManager::ListFiles` instead.
+- Alt assets: `gAltAssetPrefix` is a static on `IResource`; **no
+  `gAltAssets` CVar read anywhere** — the port drives
+  `ResourceManager::Set/IsAltAssetsEnabled`. Alt tried in both
+  `LoadResourceProcess` and `CheckCache`, with a new already-failed-alt
+  short-circuit.
 
-## Verified dead code and bugs (1.0.0)
+## Verified bugs at this pin
 
-- `ResourceClearCache` — declared (`resourcebridge.h:47`), **never
-  defined**: calling it fails to link.
-- `Texture` payload allocated `new uint8_t[n]`, freed with scalar
-  `delete` (`type/Texture.cpp:17`) — UB.
-- `FindLoadedFiles` iterates the cache with no lock
-  (`ResourceManager.cpp:277`) — races worker inserts;
-  `DirtyDirectory`/`UnloadDirectory` ride on it.
-- `LoadResourceProcess` drops `loadExact` when recursing after
-  `__OTR__` strip (`:75`); the async path forwards it — the two
-  disagree.
-- `ResourceLoadDirectoryAsync` discards its futures
-  (`resourcebridge.cpp:154`).
-- Listfile `\r` trim bug (above); `SFileCheckWildCard` hand-redeclared
-  (`ResourceManager.cpp:13`); `#undef _DLL` at the top of the public
-  `Archive.h`; informational logs at `SPDLOG_ERROR` severity
-  (`Archive.cpp:365`, `:418`); `use_count() <= 0` guard that can never
-  fire (`ResourceManager.cpp:229`).
+- `ResourceClearCache` still declared, never defined
+  (`resourcebridge.h:44`) — link error if called.
+- **Unlocked cache write on the not-found path**:
+  `mResourceCache[identifier] = NotFound` at `ResourceManager.cpp:144`
+  with no lock — the old `FindLoadedFiles` race reincarnated.
+- `UnloadResource`: TOCTOU (`contains` outside the lock, `:399`) and
+  always returns 0 (`ret` never assigned).
+- `LoadResourceProcess` still drops `loadExact` on the `__OTR__`-strip
+  recursion (`:101`); the async path forwards it.
+- `ResourceLoadDirectoryAsync` still discards futures
+  (`resourcebridge.cpp:122-124`).
+- `use_count() <= 0` dead guard (`ResourceManager.cpp:286`);
+  `#undef _DLL` moved into the three archive headers;
+  `ReadResourceInitDataPng` declared, never defined;
+  `ArchiveManager::AddGameVersion` dead; `Config::mIsNewInstance`
+  write-only.
+- FIXED since 1.4.2: Texture scalar-`delete` (now `delete[]`,
+  `src/fast/resource/type/Texture.cpp:17`); `SFileCheckWildCard`
+  redeclaration (glob is `ship/utils/glob.h`); mount logs at ERROR
+  severity (now INFO/WARN).

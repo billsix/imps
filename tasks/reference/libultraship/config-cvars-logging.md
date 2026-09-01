@@ -1,101 +1,91 @@
 # libultraship — config, console variables, logging
 
-> **Pinned:** libultraship tag **1.4.2**
-> (`1ca7d0fa78013e49450a4a9881236a19a6600d64`, 2024-08-01). Authored
-> 2026-09-01, iteration 1 of the reference crawl
+> **Pinned:** libultraship **1.3.1-399**
+> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20). Updated
+> 2026-09-01, iteration 14 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
+> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
+> NEWER than tag 1.4.2 despite the smaller number.
 
 ## Config — JSON settings file
 
-`LUS::Config` (`src/config/Config.h:11`): nlohmann JSON, pretty-printed,
-at app-dir-relative path chosen by the game via
-`Context::CreateInstance`. App dir since 1.2.0: `$SHIP_HOME` if set;
-under a `NON_PORTABLE` build, the per-user config directory from
-`SDL_GetPrefPath(appName)`; else `"."` (portable, next to the exe).
-1.2.0 also stopped log-spamming default config values (#314).
+`Ship::Config` (`include/ship/config/Config.h`): nlohmann JSON,
+`dump(4)` pretty-printed, at the port-chosen app-dir-relative path.
+App dir: `SHIP_HOME` (honored on **Apple/Linux only** —
+`Context.cpp:471-485`), `NON_PORTABLE` → `SDL_GetPrefPath`, else `"."`.
 
-Implementation model worth knowing: it keeps BOTH a nested and a
-flattened JSON; **writes** go to the flattened form via JSON-pointer
-keys (`"Window.Backend.Id"` → `/Window/Backend/Id`), **reads** call
-`Nested()`, which **unflattens the entire document on every single
-get** (`Config.cpp:46`) — startup does many full unflattens. The dotted
-path walk also *keeps the current subtree* when a component is missing
-instead of returning null, so partially-missing keys can return the
-wrong node.
+The dual nested/flattened model survives with both 1.4.2 defects:
+**`Nested()` still unflattens the whole document on every get**
+(`Config.cpp:47`), and the dotted-path walk still keeps the current
+subtree when a component is missing (`:49-56`) — partially-missing keys
+can return the wrong node. Fresh-install nuance: `Reload` leaves
+`mNestedJson` null, but `ConsoleVariable::Load`'s index into it is now
+benign (nlohmann promotes null to object, iterates zero times); the
+old `ControlDeck::LoadSettings` co-victim no longer exists.
 
-Default handling changed in 1.1.0: `Context::CreateDefaultSettings`
-(which bulk-seeded 640×480 @(100,100), F11 fullscreen key, etc. — and
-whose seeded `Window.GfxBackend`/`GfxApi` keys never matched what
-`GetWindowBackend` reads) was REMOVED; defaults now come from the
-fallback arguments at each read site. In its place, 1.1.0 adds **config
-migrations**: `ConfigVersionUpdater` (`src/config/Config.h`) — subclass
-it, implement `Update(Config*)`, register via
-`RegisterConfigVersionUpdater`, and `RunVersionUpdates()` applies each
-updater whose version exceeds the file's `ConfigVersion` key, bumping
-the key as it goes.
+NEW API since 1.4.2: `Erase`, `EraseBlock`, `SetBlock`, `Copy`,
+`Contains`, `GetNestedJson` — note `SetBlock`/`EraseBlock` each call
+`Save()` internally, so a block write hits disk immediately.
+`GetArray`/`SetArray` still dead (zero callers).
 
-**Fresh-install bug:** with no config file, `Reload` returns early and
-`mNestedJson` stays null; `ConsoleVariable::Load` and
-`ControlDeck::LoadSettings` immediately index into it.
+**`ConfigVersionUpdater` survives unchanged in shape** — but the
+registration method is now **`RegisterVersionUpdater`** (the `Config`
+infix is gone; the doxygen at `Config.h:20` still cites the old name —
+an upstream doc bug). Zero updaters registered inside LUS; purely a
+port hook. Migration at read: a config carrying `"pulse"` as audio
+backend is rewritten to SDL (`Config.cpp:240-241`).
 
-Audio/window backend persistence lives here too
-(`Window.AudioBackend` = "wasapi"/"pulse"/"sdl";
-`Window.Backend.Id`+`.Name`). `GetArray`/`SetArray` are protected
-templates with zero callers — dead.
+## CVars — union storage, build-time-configurable names
 
-## Console variables (CVars) — present at 1.0.0
+`CVar` is now a tagged **union** of
+`Integer/Float/String(char*)/Color/Color24`
+(`include/ship/config/ConsoleVariable.h:13-27`), strings manual
+`strdup`/`free`. Persistence unchanged (`CVars.<name>` in the config
+JSON, colors exploded into `.R/.G/.B/.A` + `.Type`).
 
-`LUS::ConsoleVariable` (`src/config/ConsoleVariable.h:23`): a
-`map<string, shared_ptr<CVar>>` where `CVar` is a fat struct holding
-all five types (`Integer, Float, String, Color(RGBA), Color24(RGB)`).
-Get/Set/Register triples per type; `Register*` = set-if-absent
-(Color24 handling had save/load bugs until a 1.3.0 fix).
+**The biggest config-side surprise: CVar names are CMake macros.**
+`cmake/cvars.cmake` defines 22 cache variables pushed as
+`add_compile_definitions` string macros — `CVAR_VSYNC_ENABLED`
+(= `"gVsyncEnabled"`), `CVAR_MSAA_VALUE`, `CVAR_INTERNAL_RESOLUTION`,
+`CVAR_Z_FIGHTING_MODE`, `CVAR_AUDIO_CHANNELS_SETTING`, … plus two
+**prefixes** concatenated at use sites: `CVAR_PREFIX_CONTROLLERS`
+(`"gControllers"`) and `CVAR_PREFIX_ADVANCED_RESOLUTION`
+(`"gAdvancedResolution"`). Consequences: a port can rename every engine
+CVar from CMake, and **grepping the source for `"gStatsEnabled"` finds
+nothing** — grep for the macro. `gAltAssets` is gone from the library
+entirely (`resource-system.md`).
 
-Persistence: `Save()` writes every CVar under `CVars.<name>` into the
-Config JSON (colors exploded into `.R/.G/.B/.A/.Type` sub-keys);
-`Load()` walks `CVars` recursively. A **legacy migration** reads a
-pre-JSON `cvars.cfg` (key=value, `#RRGGBBAA` colors) and deletes it
-after import (`ConsoleVariable.cpp:262-309`).
+C bridge additions vs 1.4.2: `CVarClearBlock`, `CVarCopy`, and
+`CVarExists` — **which is declared but never defined** (link error;
+`consolevariablebridge.h:33`). `CVarGet` returning the
+`shared_ptr<Ship::CVar>` remains C++-only.
 
-The C bridge (`CVarGetInteger/Float/String/Color/Color24`, the Set/
-Register triples, `CVarClear`, `CVarLoad`, `CVarSave`) is the busiest
-game-facing API in LUS — see `bridge-api.md`. `CVarGet` (returning the
-`shared_ptr<CVar>`) is C++-only.
+**Union bugs at this pin:** `SetString`/`CopyVariable` test-and-`free()`
+the `String` member after setting `Type` — if the CVar previously held
+a number/color, that `free()` runs on reinterpreted value bits
+(`ConsoleVariable.cpp:117-121`, `:228-232`). `LoadLegacy` double-strdups
+and leaks (`:370`).
 
-CVar names observed in-library at this tag (all game-namespace `g*`):
-`gAltAssets`, `gSimulatedInputLag`, `gOpenMenuBar`, `gControlNav`,
-`gEnableMultiViewports`, `gTextureFilter`, `gLowResMode`,
-`gStatsEnabled`, `gControllerConfigurationEnabled`, `gConsoleEnabled`,
-`gSdlWindowedFullscreen`, `gSwitchPerfMode` — the CVAR_PREFIX macro
-system of later versions does not exist yet.
+## Logging — spdlog, split sync/async
 
-## Logging — spdlog 1.11.0, async
+`Context::InitLogging` (`src/ship/Context.cpp:97-167`):
 
-Wired in `Context::InitLogging` (`src/Context.cpp:100-175`):
-
-- Async logger, thread pool (8192, 1 thread), overflow policy
-  **block**; registered as spdlog's default logger.
-- Sinks: stdout color (skipped on release Win32/WiiU; on debug Win32 it
-  `AllocConsole()`s and re-points stdio), rotating file at
-  `logs/<Name>.log` (10 MB × 10, name = the game's name passed to
-  `CreateInstance`).
-- Pattern `[%Y-%m-%d %H:%M:%S.%e] [%@] [%l] %v`.
-- `spdlog::shutdown()` runs last in `~Context` — the reason the
-  destructor nulls subsystems in explicit order.
-
-C shim for game code: `luslog(file, line, level, msg)` and
-`lusprintf(file, line, level, fmt, ...)` (`src/log/luslog.cpp`) +
-`LUSLOG_TRACE..CRITICAL` macros. Levels cast raw to
-`spdlog::level_enum`. Bug: `lusprintf` never calls `va_end`.
+- **Log levels are now parameters** with defaults — debug builds
+  `spdlog::level::debug`, release `warn` (`include/ship/Context.h:70-71`).
+- **Debug builds get a plain synchronous logger** (`"multi_sink"`,
+  `flush_on(trace)`); release gets the async logger (overflow block,
+  `flush_on(info)`). `init_thread_pool(8192, 1)` still runs
+  unconditionally even in debug where nothing uses it.
+- Sinks unchanged: stdout color (debug Win32 re-points stdio via
+  `AllocConsole`), rotating `logs/<Name>.log` 10 MB × 10. Same pattern.
+  `spdlog::shutdown()` still last in `~Context`.
+- The C shim lives at `src/libultraship/log/luslog.cpp`; `lusprintf`
+  **still never calls `va_end`** (`:15-22`).
 
 ## Console (command registry)
 
-`LUS::Console` (`src/debug/Console.h:31`) — commands =
-`function<int32_t(shared_ptr<Console>, vector<string> args, string*
-output)>` with typed argument metadata. `Run()` splits on spaces.
-**`Console::Init()` is empty**; every built-in command (`bind`,
-`bind-toggle`, `binding-clear` since 1.4.0, `help`, `clear`, `set`,
-`get`) is registered by the
-GUI's `ConsoleWindow` (`src/window/gui/ConsoleWindow.cpp:231-243`) —
-no GUI, no commands.
+`Console::Init()` is still empty (`src/ship/debug/Console.cpp:14-15`);
+all commands come from the GUI's `ConsoleWindow::InitElement`
+(`ConsoleWindow.cpp:304-317`) — no GUI, no commands. Command set:
+`set`, `get`, `help`, `clear`, `bind`, `bind-toggle`, **`unbind`**
+(replacing 1.4.0's `binding-clear`).

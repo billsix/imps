@@ -169,9 +169,20 @@ the previous pin's checkpoint (close cousins, ~90 commits apart at most).
 (Ocarina's old fork once pinned `f30fe0ed` / 1.3.1-463 — rolled back, used
 by nothing; deliberately not an iteration.)
 
-- [ ] `e0c1b1fc` (1.3.1-399, 2026-02-20) — Ghostship's pin (old fork;
-      when the SuperMario64 project lands at its new GitHub-develop pin,
-      append that pin's LUS submodule SHA as a further iteration)
+- [x] `e0c1b1fc` (1.3.1-399, 2026-02-20) — Ghostship's pin (old fork) —
+      iteration 14, 2026-09-01: full 8-doc rewrite (o2r/libzip default +
+      MPQ opt-in, Ship::/Fast::/LUS:: three-tree split, FetchContent
+      deps, Context injection-point API, per-ucode dispatch tables,
+      Prism archive-loaded shaders, controller rework, CoreAudio/Null +
+      5.1, thick libultra shims). Delta baselined on the 1.4.2
+      checkpoint via 3 parallel readers cross-checked against the old
+      fork's doc set at /foo/opt/n64/libultraship/tasks/reference/
+      (which proved ~95% accurate for this pin — it was written against
+      it; ~10 anchor/claim errors found and not carried over).
+- [ ] `c151cc91` (1.3.1-544) — Ghostship's NEW pin (the SuperMario64
+      project's current GitHub-develop checkout) — appended per the
+      note above; walk it after the other three consumer pins to keep
+      date order.
 - [ ] `7f2baa10` (1.3.1-397, 2026-02-27) — MajorasMask's pin (later date
       despite the smaller describe-count; dates, not counts, order these)
 - [ ] `2917d0f4` (1.3.1-482, 2026-07-29) — BanjoKazooie's pin

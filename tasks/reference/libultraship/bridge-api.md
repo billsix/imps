@@ -1,95 +1,92 @@
 # libultraship — the bridge API (game-facing surface)
 
-> **Pinned:** libultraship tag **1.4.2**
-> (`1ca7d0fa78013e49450a4a9881236a19a6600d64`, 2024-08-01). Authored
-> 2026-09-01, iteration 1 of the reference crawl
+> **Pinned:** libultraship **1.3.1-399**
+> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20). Updated
+> 2026-09-01, iteration 14 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
+> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
+> NEWER than tag 1.4.2 despite the smaller number.
 
-The README's stated API contract: *"every C linkage function, variable,
-struct, class, public class method, or enum included from
-`libultraship.h`"* — semantic versioning promised over exactly this
-surface. `include/libultraship/bridge.h` pulls the six bridge headers
-from `src/public/bridge/`; everything routes through
-`Context::GetInstance()`.
+`include/libultraship/bridge.h` now pulls **eight** headers (was six):
+resource, audio, controller, window, consolevariable, crashhandler,
+**gfxdebugger** (new), **gfx** (new). Headers at
+`include/libultraship/bridge/`, impls at `src/libultraship/bridge/`.
+Still plain `extern "C"`, still inline forwards through
+`Context::GetInstance()`. **Guarding is uneven**: audiobridge
+null-checks throughout; windowbridge and most others dereference
+unguarded — bridges crash rather than no-op when a subsystem is absent.
+
+## Gfx bridge (`gfxbridge.h`) — NEW
+
+`GfxSetNativeDimensions(w,h)`, `GfxGetPixelDepthPrepare(x,y)`,
+`GfxGetPixelDepth(x,y)`. Absorbed the pixel-depth pair from the window
+bridge. The two depth functions cast-and-check;
+**`GfxSetNativeDimensions` derefs the window cast AND the interpreter
+weak_ptr unguarded** (`gfxbridge.cpp:9-15`) — two crash sites in six
+lines if the window isn't a `Fast3dWindow`.
+
+## GfxDebugger bridge (`gfxdebuggerbridge.h`) — NEW
+
+`GfxDebuggerRequestDebugging`, `GfxDebuggerIsDebugging`,
+`GfxDebuggerIsDebuggingRequested`, `GfxDebuggerDebugDisplayList(void*)`.
+
+## Window bridge (`windowbridge.h`)
+
+`WindowIsRunning` (**the port's main-loop condition** — replaces the
+deleted `Window::MainLoop`), `WindowGetWidth/Height/AspectRatio`,
+NEW `WindowGetPosX/PosY`, NEW `WindowIsFullscreen`. Pixel-depth moved
+to gfxbridge. Zero null guards on all seven.
 
 ## Resource bridge (`resourcebridge.h`)
 
-C++-only overloads above the `extern "C"` block:
-`ResourceLoad(const char*)` / `ResourceLoad(uint64_t crc)` (+ templated
-casting forms) returning `shared_ptr<LUS::IResource>`.
-
-C linkage — by-name and by-CRC pairs throughout:
-`ResourceGetCrcByName`, `ResourceGetNameByCrc`,
-`ResourceGetSizeByName/Crc`, `ResourceGetIsCustomByName/Crc`,
-`ResourceGetDataByName/Crc`, `ResourceGetTexWidthByName/Crc`,
-`ResourceGetTexHeightByName/Crc`, `ResourceGetTexSizeByName/Crc`,
-`ResourceLoadDirectory` (blocking) / `ResourceLoadDirectoryAsync`
-(**discards its futures**), `ResourceDirtyDirectory`,
-`ResourceDirtyByName/Crc`, `ResourceUnloadByName/Crc`,
-`ResourceUnloadDirectory`, `ResourceGetGameVersions`,
-`ResourceHasGameVersion`, `ResourceDoesOtrFileExist`, and
-**`ResourceClearCache` — declared but NEVER DEFINED** (link error if
-called). Tex getters return `-1`-ish sentinels on miss (into unsigned
-types). CRC = `CRC64` from vendored StrHash64.
+The by-name/by-CRC pair set survives; NEW `IsResourceManagerLoaded()`;
+**REMOVED `ResourceDoesOtrFileExist`**. `ResourceLoad(...)` overloads +
+templated forms remain C++-only. `ResourceLoadDirectoryAsync` is a bare
+void forward (futures still not surfaced).
+**`ResourceClearCache` is still declared and still never defined**
+(`resourcebridge.h:44`) — it has survived the entire tree
+reorganization unimplemented.
 
 ## CVar bridge (`consolevariablebridge.h`)
 
-`CVarGetInteger/Float/String/Color/Color24`,
-`CVarSetInteger/Float/String/Color/Color24`,
-`CVarRegisterInteger/Float/String/Color/Color24`, `CVarClear`,
-`CVarLoad`, `CVarSave`. C++-only: `CVarGet` →
-`shared_ptr<LUS::CVar>`. (Color = RGBA `Color_RGBA8`; Color24 = RGB.)
+The Get/Set/Register triples, `CVarClear`, `CVarLoad`, `CVarSave`
+survive; NEW `CVarClearBlock`, `CVarCopy`, and **`CVarExists` —
+declared, never defined** (second dangling symbol; link error if
+called). `CVarGet` → `shared_ptr<Ship::CVar>` still C++-only. Note the
+header includes the C++-tree `ship/config/ConsoleVariable.h`.
 
 ## Audio bridge (`audiobridge.h`)
 
 `AudioPlayerBuffered`, `AudioPlayerGetDesiredBuffered`,
-`AudioPlayerPlayFrame(const uint8_t*, size_t)`. Push-only model — see
-`audio-and-libultra-shims.md`.
+`AudioPlayerPlayFrame`; NEW `Get/SetAudioChannels`,
+`GetNumAudioChannels` (5.1 support). The **one** bridge that guards
+throughout (null player → safe defaults). Header includes the C++
+`ship/audio/AudioChannelsSetting.h`.
 
 ## Controller bridge (`controllerbridge.h`)
 
-`ControllerBlockGameInput(uint16_t mask)`,
-`ControllerUnblockGameInput(uint16_t mask)`. **That is all** — no
-rumble, LED, mapping, or scan bridge; those are C++-API-only
-(`ControlDeck`/`Controller`), and nothing bridges backend selection.
+Still just `ControllerBlockGameInput`/`UnblockGameInput`. No
+rumble/LED/mapping/backend bridge — but rumble no longer needs one:
+stock `osMotorStart/Stop` works via the libultra shim
+(`audio-and-libultra-shims.md`). LED still C++-only, and nothing in
+LUS drives it.
 
-## Window bridge (`windowbridge.h`)
+## Crash handler bridge
 
-`WindowGetWidth`, `WindowGetHeight`, `WindowGetAspectRatio`,
-`WindowGetPixelDepthPrepare(float,float)`,
-`WindowGetPixelDepth(float,float)`. Five trivial forwards — the whole
-C graphics-window surface. (The real graphics API — `gfx_run` and
-friends — is NOT in the bridge; consumers include
-`graphic/Fast3D/gfx_pc.h` directly. See `fast3d-renderer.md` §API.)
-
-## Crash handler bridge (`crashhandlerbridge.h`)
-
-`CrashHandlerRegisterCallback(CrashHandlerCallback)` — the game appends
-its own state dump into the crash report. (The callback typedef is
-duplicated inside and outside namespace `LUS` — benign.)
+One function, `CrashHandlerRegisterCallback`; the duplicated-typedef
+quirk is gone (declared once, outside any namespace).
 
 ## Logging shim (`luslog.h`)
 
-`luslog(file, line, level, msg)`, `lusprintf(file, line, level, fmt,
-...)`, macros `LUSLOG_TRACE/DEBUG/INFO/WARN/ERROR/CRITICAL`.
-
-## libultra shims (`src/public/libultra/os.h` + undeclared extras)
-
-Declared: `osContInit`, `osContStartReadData` (stub),
-`osContGetReadData`, `osGetTime`, `osGetCount`. Defined but
-**undeclared in any header**: `osCreateMesgQueue`, `osSendMesg`,
-`osRecvMesg` (non-blocking ring buffers), `__osMaxControllers`.
-Details and the long not-implemented list:
-`audio-and-libultra-shims.md`.
+Unchanged surface; impl moved to `src/libultraship/log/luslog.cpp`;
+`lusprintf` still missing `va_end`.
 
 ## C++ class surface (`classes.h`)
 
-~30 headers from `src/` re-exported wholesale (`Context`, `Window`,
-`Gui`, `ResourceManager`, `Archive`, `ControlDeck`, controllers, audio,
-binarytools, …) — and since `src/` is a PUBLIC include dir, consumers
-can include anything anyway. One boundary leak compiles only via
-transitive luck: `ResourceManager.h` includes the thread-pool header
-from a PRIVATE include dir (a second — `FileHelper.h`/`PathHelper.h`
-including PRIVATE-linked ZAPDUtils — was resolved by 1.0.1 making
-ZAPDUtils PUBLIC).
+`include/libultraship/classes.h:4-37` re-exports ~26 headers, all
+`ship/`-prefixed, with platform guards; NEW entries: `OtrArchive.h`
+(expands to nothing without MPQ support), `O2rArchive.h`,
+`ArchiveManager.h`. **This list now actually matters** — `src/` no
+longer contains headers, so `classes.h` + the `include/` tree really
+are the surface. No events/scripting bridges at this pin (later-line
+features).

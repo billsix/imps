@@ -1,130 +1,142 @@
 # libultraship — windowing, GUI, and input
 
-> **Pinned:** libultraship tag **1.4.2**
-> (`1ca7d0fa78013e49450a4a9881236a19a6600d64`, 2024-08-01). Authored
-> 2026-09-01, iteration 1 of the reference crawl
+> **Pinned:** libultraship **1.3.1-399**
+> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20). Updated
+> 2026-09-01, iteration 14 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
+> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
+> NEWER than tag 1.4.2 despite the smaller number.
 
 ## Window layer
 
-`LUS::Window` (`src/window/Window.h:16`) is a thin facade over a
-`GfxRenderingAPI*` + `GfxWindowManagerAPI*` pair plus a
-`shared_ptr<Gui>`. Backend enum: `DX11, DX12, GLX_OPENGL, SDL_OPENGL,
-SDL_METAL, GX2` (`Window.h`) — of which **DX12 and GLX_OPENGL are never
-offered** (D3D12 is compiled out; GLX's code was deleted outright in
-1.2.0, though its enum value lingers — see `build-system.md`).
-Availability (`Window.cpp:77-90`): DX11 on Win32, SDL_METAL on Apple iff
-`Metal_IsSupported()`, GX2 on Wii U, else SDL_OPENGL.
+`Ship::Window` (`include/ship/window/Window.h:27`) is now a **pure
+abstract base** (~30 pure virtuals: init/frame/events/geometry/mouse/
+fullscreen/`IsRunning`/`GetKeyName`), holding `mGui` and a deliberate
+hard `shared_ptr<Config>` (the Context singleton is gone by the time
+the destructor saves window state — comment at `:94-95`). The one
+concrete implementation is **`Fast::Fast3dWindow : Ship::Window`**
+(`include/fast/Fast3dWindow.h:10`), which owns the `GfxRenderingAPI*` /
+`GfxWindowBackend*` pair + the `Interpreter`, and adds
+`SetRendererUCode`, `SetTextureFilter`, `SetTargetFps`,
+`DrawAndRunGraphicsCommands`, `GetInterpreterWeak`. **The port
+constructs the window and passes it to `Context::CreateInstance`** —
+`InitWindow` fails on null. `Window::MainLoop` is gone; the port loops
+on the `WindowIsRunning()` bridge.
 
-**Selection is config-driven and unvalidated** — `Window.Backend.Id`
-from config is range-checked against the enum, not the availability
-list; a stale value hits the `default:` in `InitWindowManager`
-(`Window.cpp:273`) leaving **null API pointers** that `gfx_init`
-dereferences. (The related seeded-keys mismatch died with
-`CreateDefaultSettings`' removal in 1.1.0 — see
-`config-cvars-logging.md`.)
+Backend enum is now `enum class WindowBackend { FAST3D_DXGI_DX11,
+FAST3D_SDL_OPENGL, FAST3D_SDL_METAL }` (`Window.h:13`) — DX12/GLX/GX2
+values deleted. Selection is availability-validated now
+(`Window.cpp:74-84`, `Config::GetWindowBackend` falls back sanely) —
+the 1.4.2 null-deref is fixed except one residual: on **iOS**,
+SDL_OPENGL is advertised but its `InitWindowManager` case is compiled
+out (`ENABLE_OPENGL` undefined there), so selecting it still leaves
+null API pointers (`Fast3dWindow.cpp:36` vs `:136`,
+`src/CMakeLists.txt:143` vs `:171-173`).
 
-SDL specifics (`gfx_sdl2.cpp`): GL 4.1 core on macOS / 2.1 on Switch;
-fullscreen = `SDL_WINDOW_FULLSCREEN_DESKTOP` unless CVar
-`gSdlWindowedFullscreen`, made multi-monitor aware in 1.2.1 (detects
-the display in use, `SDL_SetWindowDisplayMode`, warns when the window
-is off every display); frame pacing = `nanosleep` timer (default 60
-FPS) then `SDL_GL_SwapWindow` — called **even under Metal** (Metal
-presents its own drawable; the SDL backend is only partly Metal-aware).
-F11 toggles fullscreen (config key `Shortcuts.Fullscreen`; the
-default was F9 in 1.0.0 — 1.0.1 changed both the handler and the
-seeded default). Steam Deck
-gamescope is sniffed from `/etc/os-release` and forces 1280×800
-fullscreen (`Window.cpp:44-63`). Window size/position persist to config
-on fullscreen toggles and at Context destruction.
+SDL specifics: GL 4.1 core forward-compat on Apple only; windowed
+fullscreen via `CVAR_SDL_WINDOWED_FULLSCREEN` —
+`SupportsWindowedFullscreen()` is now **OpenGL-only, never Apple**
+(`Fast3dWindow.cpp:288-297`); `nanosleep`/waitable-timer pacer then
+`SDL_GL_SwapWindow` — still called even under Metal. Steam Deck
+gamescope sniff moved to `Fast3dWindow::Init` (`:56-72`) and now also
+forces `gameMode` on Android/iOS. Shortcuts: fullscreen default **F11**,
+NEW mouse-capture default **F2** (`:89-92`).
 
-## GUI layer (ImGui, docking branch, vendored 1.89.3-WIP)
+## GUI layer (ImGui v1.91.9b-docking, FetchContent + patch)
 
-`LUS::Gui` (`src/window/gui/Gui.h:57`), owned by `Window`.
-**Initialized by the graphics backend, not by Window** — `gfx_sdl2.cpp:366`,
-`gfx_direct3d11.cpp:390`, `gfx_wiiu.cpp:310` each call
-`GetGui()->Init(window_impl)` from inside their `init()`.
+`Ship::Gui`, still owned by Window, still **initialized by the graphics
+backend from inside its `Init()`** (`gfx_sdl2.cpp:422`,
+`gfx_direct3d11.cpp:283`). **Not renderer-agnostic despite the split**:
+`Gui::Init` hard-`dynamic_pointer_cast`s the window to
+`Fast::Fast3dWindow` with no null check (`Gui.cpp:151`, duplicated at
+`:154`) and holds a `weak_ptr<Fast::Interpreter>` — a non-Fast3D
+`Window` subclass null-derefs here.
 
-- Per-backend ImGui wiring: SDL2+OpenGL3 (GLSL `#version 120` except
-  `410 core` on Apple), SDL2+Metal, Win32+DX11, WiiU+GX2. Viewports
-  (multi-window) enabled when supported + `gEnableMultiViewports`.
-- **Registration model:** `GuiElement` base (`InitElement`/
-  `DrawElement`/`UpdateElement`), `GuiWindow` adds a name; windows
-  register by name via `Gui::AddGuiWindow`. Visibility round-trips
-  through a console variable per element
-  (`SyncVisibilityConsoleVariable`). Built-ins constructed in `Gui`'s
-  ctor: Stats (`gStatsEnabled`), Input Editor
-  (`gControllerConfigurationEnabled`), Console (`gConsoleEnabled`).
-- **Menu bar is a single slot** the game supplies (`Gui::SetMenuBar`);
-  F1 (or gamepad Back with `gControlNav`) toggles it. No default menu
-  exists.
-- **The GUI drives the game's render resolution**: `Gui::DrawMenu`
-  writes `gfx_current_dimensions` / `gfx_current_game_window_viewport`
-  from the ImGui content region and applies `gLowResMode`. It opens
-  `ImGui::Begin("Main Game")` and deliberately leaves it open;
-  `Gui::StartFrame` composites the rendered game as an `ImGui::Image`
-  and closes it. There is no ImGui-less mode.
-- 1.2.2 added Advanced Resolution Mode controls to the GUI (the
-  `gAdvancedResolution` family driving internal-resolution scaling);
-  1.3.0 extended them, fixed keyboard-resize handling, improved
-  Windows SDL frame pacing, and fixed SDL button-release masking;
-  1.3.1 fixed an Input Editor overflow and >100% DPI cropping.
-- Overlays (`GameOverlay` — CVar watches + fading notifications, fonts
-  from the OTR) and `InputViewer` are separate objects drawn after the
-  registered windows, not GuiElements.
-- GUI textures go through Fast3D, not ImGui: `Gui::LoadTexture` (stb) /
-  `LoadGuiTexture` (LUS Texture resource) — both acknowledged leaks.
-  Since 1.2.1 `LoadGuiTexture` routes through the resource system's
-  alt/HD path, so GUI icons honor HD texture packs.
-- Ctrl+R (Cmd+R) dispatches the console `reset` command.
+- Class tree: `GuiElement` → `{GuiWindow, GuiMenuBar}`; hooks are
+  `InitElement`/`DrawElement`/`UpdateElement`; window visibility still
+  CVar-backed.
+- **Two menu slots now**: `SetMenuBar` (a `GuiMenuBar`; F1 or
+  gamepad-Back toggles) and `SetMenu` (a full-screen `GuiWindow`; Esc
+  toggles). There is no `Ship::Menu` class. Ctrl/Cmd+R still dispatches
+  console `reset`.
+- **Five default windows** constructed in the `Gui` ctor
+  (`Gui.cpp:58-87`), each pre-emptable by name: Stats, Input Editor
+  (1409 lines), `SDLAddRemoveDeviceEventHandler`, Console,
+  GfxDebuggerWindow (namespace `LUS`).
+- **Controller hotplug rides the GUI**: `SDLAddRemoveDeviceEventHandler`
+  is a GuiWindow that draws nothing — its `UpdateElement` pumps
+  SDL_CONTROLLERDEVICEADDED/REMOVED into
+  `ConnectedPhysicalDeviceManager`. Remove it and hotplug dies.
+- `GameOverlay` drawn from inside `DrawGame`; **`InputViewer` no longer
+  exists**.
+- GUI textures still route through Fast3D; NEW `GuiTexture` resource
+  type + `LoadTextureFromRawImage/Resource` (the HEAD commit);
+  `UnloadTexture` exists, the remaining leak is acknowledged in place
+  (`Gui.cpp:255`).
+- The GUI computes the game viewport/resolution (`CalculateGameViewport`,
+  `Gui.cpp:654-698`) and composites the game FB as an `ImGui::Image` in
+  `DrawGame` (`:709-761`) — balanced Begin/End now; still no
+  ImGui-less mode.
+- **Mouse is first-class**: Window pure-virtuals for pos/delta/wheel/
+  capture; `Gui::HandleMouseCapture` + cursor auto-hide ticks.
 
-## Controller / input stack
+## Controller / input — total rewrite (nothing of 1.4.2 survives)
 
-`LUS::ControlDeck` (`src/controller/ControlDeck.h`) manages devices and
-4 ports; `LUS::Controller` is the abstract device
-(`src/controller/Controller.h:36`) with `SDLController`,
-`KeyboardController`, `DummyController` (+ WiiU pair on `__WIIU__`).
+`DeviceProfile`, `SDLController`/`KeyboardController`/`DummyController`,
+the `GetNumDevices()-2` index, `AXIS_SCANCODE_BIT`, `BTN_MODIFIER1/2` —
+all gone. The new ownership tree:
 
-- **Scan order is load-bearing**: SDL gamecontrollers, then an "Auto"
-  dummy, then the keyboard, then a "Disconnected" dummy **last**
-  (`ControlDeck.cpp:32-78`). The window layer reaches the keyboard by
-  the fragile index `GetNumDevices() - 2` (`Window.cpp:151` etc.).
-  Port 0 defaults to device 0; an "Auto"-bound port reads **every**
-  device (`:94-104`).
-- **Mapping model:** per-(device,port) `DeviceProfile` with
-  `map<deviceButtonId, n64Bitmask>`; the bitmask set extends real N64
-  with `BTN_MODIFIER1/2`, stick and virtual-stick bits above 0xFFFF
-  (stripped by the `& 0xFFFF` before reaching the game —
-  `Controller.cpp:153`). Axes encode as `axis|AXIS_SCANCODE_BIT`
-  (negated for the negative direction). Sticks: circular deadzone →
-  octagonal gate (`16.0/69.0` slope math) → optional notch snapping;
-  range ±85 (`MAX_AXIS_RANGE`).
-- **Extended `OSContPad`**: floats `gyro_x/y` and `right_stick_x/y`
-  beyond the real N64 struct
-  (`include/libultraship/libultra/controller.h:121-130` — its offset
-  comments and `// size = 0x24` are stale/wrong).
-- 1.2.0 niceties: the Input Editor gained a live joystick preview
-  (#324); display/multi-monitor handling improved (#326); a DXGI
-  window-position type-conversion bug was fixed (#322); the cursor now
-  shows when starting fullscreen with the menubar open (#318).
-- Input lag simulation: a 6-deep pad buffer indexed by
-  `gSimulatedInputLag` — but the buffer is **per device, not per
-  port**, so "Auto" multi-port reads share one delay line.
-- Rumble/LED/gyro exist on the device classes (`SDL_GameControllerRumble`
-  etc.) but **nothing in LUS calls SetRumble/SetLedColor and no C
-  bridge exists** — the game must drive them via C++.
-- Input blocking: `ControllerBlockGameInput`/`Unblock` (C bridge) plus
-  automatic blocks — controllers when the menu + `gControlNav` are
-  active, keyboard when ImGui wants capture; blocked devices still tick
-  so state stays fresh.
+```
+ControlDeck → ControlPort[n] → Controller
+                                 ├─ ControllerButton / 2× ControllerStick
+                                 ├─ ControllerGyro / ControllerRumble / ControllerLED
+                                 └─ …each holding typed ControllerMappings
+```
 
-## Verified bugs at this tag
+- Mapping matrix under
+  `src/ship/controller/controldevice/controller/mapping/`: sources
+  keyboard/mouse/SDL × targets Button/AxisDirection/Gyro/Rumble/LED,
+  plus factories (~40 files). NEW `physicaldevice/` layer:
+  `ConnectedPhysicalDeviceManager` (per-port device sets + ignore
+  lists), `PhysicalDeviceType {Keyboard, Mouse, SDLGamepad}`.
+- **Abstract/concrete split**: `Ship::ControlDeck::WriteToPad` and
+  `Ship::Controller::ReadToPad` are pure virtual; **LUS ships the
+  concrete N64-shaped `LUS::ControlDeck`** (final,
+  default-constructible, `MAXCONTROLLERS` ports, 14 N64 button names —
+  `include/libultraship/controller/controldeck/ControlDeck.h:14-29`).
+  A port passes `make_shared<LUS::ControlDeck>()` into
+  `InitControlDeck`.
+- `ControlDeck::Init` forces port 0 connected and applies default
+  keyboard+mouse+gamepad mappings if unconfigured
+  (`ControlDeck.cpp:25-41`). Keyboard/mouse are **event-driven** via
+  `Fast3dWindow::Key*/MouseButton*` → `ProcessKeyboardEvent/
+  ProcessMouseButtonEvent`; wheel via a `WheelHandler` singleton pumped
+  in `WriteToOSContPad`.
+- Stick math unchanged in substance (circular deadzone → `16.0/69.0`
+  octagonal gate → notch snapping) but per-stick per-port CVars
+  (`Controllers.Port%d.<Stick>.…`, defaults 100/20/0), and the **right
+  stick is first-class**.
+- `OSContPad` still extended (gyro + right stick), offset comments and
+  `// size = 0x24` still wrong (`controller.h:96-107`).
+- **Rumble now works through plain `osMotorStart/Stop`**
+  (`os.cpp:88-97`) — no C++ needed. LED mappings are configurable but
+  nothing in LUS triggers color changes and there is still no LED
+  bridge.
+- Input-lag simulation: the 6-deep buffer is now per-`Controller` =
+  per-port — the 1.4.2 shared-delay-line bug is fixed by construction
+  (`Controller.cpp:26-74`).
+- Input blocking unchanged: ref-counted blockers + the two bridge
+  functions.
 
-- (1.0.0's `SaveSettings` double-increment — only slots 0 and 2
-  persisting — was fixed in 1.0.1; all four slots now save.)
-- `SDLController::mSupportsGyro` read uninitialized when the device
-  failed to open (`SDLController.cpp:21-33`).
-- The `TARGET_WEB` block in `SDLController::ReadDevice` references
-  `AxisValue` vs local `axisValue` — would not compile if enabled.
-- Backend-selection null-deref path (above).
+## Verified bugs at this pin
+
+- iOS backend-selection residual null-deref (above).
+- `Gui::Init` duplicated interpreter grab (`Gui.cpp:151`, `:154`) and
+  unguarded cast (above).
+- **Uninitialized `SDL_Renderer* mRenderer`** read under OpenGL:
+  assigned only on the Metal path (`gfx_sdl2.cpp:406`) but
+  `SDL_RenderSetVSync(mRenderer, …)` runs whenever the vsync CVar
+  changes (`:692`) — indeterminate pointer on GL builds.
+- 1.4.2's `SDLController` bugs (uninitialized `mSupportsGyro`,
+  non-compiling `TARGET_WEB` block, `SaveSettings` double-increment):
+  all moot — the classes were deleted in the rework.

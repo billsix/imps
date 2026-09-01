@@ -1,126 +1,130 @@
 # libultraship — architecture overview
 
-> **Pinned:** libultraship tag **1.4.2**
-> (`1ca7d0fa78013e49450a4a9881236a19a6600d64`, 2024-08-01). Authored
-> 2026-09-01 as iteration 1 of the reference crawl
+> **Pinned:** libultraship **1.3.1-399**
+> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20 — the old
+> Ghostship fork's submodule pin; first stop of the consumer-pin leg).
+> Updated 2026-09-01 as iteration 14 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above — if they
-> differ, the crawl has advanced and this doc state describes an older
-> tag (each tag's state is a separate imps commit).
+> differ, the crawl has advanced (each iteration is a separate imps
+> commit; `git log` on this file is the time axis).
+>
+> **Version-number trap:** `1.3.1-399` is `git describe` from the last
+> tag on THIS line — which is ~18 months **newer** than tag `1.4.2`
+> (2024-08). The 1.4.x tags are a different, older release line. Do not
+> order these docs' history by version string.
 
-**What LUS is at this pin:** a static C++20 library (`libultraship.a`) that
-gives an N64 decompilation "somewhere to run" — a Fast3D display-list
-renderer with pluggable graphics backends, an MPQ-based (`.otr`) asset
-archive + typed resource system, SDL-based audio/input, an ImGui overlay
-shell, JSON config + CVars, spdlog logging, and a very thin slice of
-libultra OS shims. It is consumed by `add_subdirectory` only (no
-install/export rules) and was freshly de-branded from Ship of Harkinian
-(the "LUS of Harkinian" comment at `src/resource/ResourceType.h:18` and
-OoT-only CRCs in `src/resource/GameVersions.h` are leftovers).
-Namespace: `LUS`. No version constant exists in code — the tag is the
-only version identifier.
+**What LUS is at this pin:** a static C++20 library (`libultraship.a`)
+that gives an N64 decompilation "somewhere to run" — a Fast3D
+display-list interpreter (`Fast::Interpreter`) with per-microcode
+dispatch and Prism-templated shaders, a **zip-based (`.o2r`)** archive +
+typed resource system (MPQ/`.otr` is opt-in and off by default), SDL
+audio/input with a fully reworked controller stack, an ImGui overlay
+shell, JSON config + CVars (names now CMake-overridable macros), spdlog
+logging, and a much thicker libultra shim slice (VI timing, PI DMA,
+EEPROM, rumble). Still `add_subdirectory`-only (no install/export, no
+tests, no version constant in code).
 
-## The three-layer picture
+## The three trees, three namespaces
 
-1. **`include/libultraship/`** — the nominal public surface:
-   `libultraship.h` pulls `libultra.h` (27 reimplemented N64 SDK
-   headers), `bridge.h` (C-linkage bridges), `color.h`, `luslog.h`, and
-   (C++ only) `classes.h`. Mostly forwarding shims into `src/` — the
-   boundary is a naming convention, not an enforcement, because `src/`
-   itself is a PUBLIC include dir (`src/CMakeLists.txt:355`).
-2. **`src/public/`** — the game-facing C-linkage layer: `bridge/` (six
-   bridge headers) and `libultra/os.cpp` (the shims). See
-   `bridge-api.md`.
-3. **`src/` subsystems** — `Context` (the root), `resource/`,
-   `graphic/Fast3D/`, `window/` (+ `window/gui/`), `audio/`,
-   `controller/`, `config/`, `debug/`, `log/`, `utils/`, `port/`
-   (Switch/Wii U only).
+The 1.4.2-era flat `LUS::` + `src/graphic/Fast3D/` + `src/public/`
+layout is gone. Headers all live under `include/` (zero `.h` under
+`src/`), split three ways, all compiled into the **one** static target
+(`src/CMakeLists.txt:3`):
 
-## `LUS::Context` — the root singleton
+| Tree | Namespace | Contents |
+|---|---|---|
+| `include/ship/` + `src/ship/` | `Ship::` (191 files) | the game-agnostic engine: `Context`, `resource/`, `config/`, `debug/`, `window/` (+gui), `controller/`, `audio/`, `utils/` |
+| `include/fast/` + `src/fast/` | `Fast::` (42 files) | the Fast3D renderer: `interpreter.cpp`, `Fast3dWindow`, `backends/`, graphics resource types, `shaders/` (Prism templates) |
+| `include/libultraship/` + `src/libultraship/` | `LUS::` (8 decls) | the concrete N64-shaped layer: libultra shims (8 files), C `bridge/`, `LUS::ControlDeck`/`LUS::Controller`, `log/luslog.cpp` |
 
-`src/Context.h:19`; a **weak_ptr-held singleton** (`src/Context.cpp:17`),
-not a leaked global: `CreateInstance(name, shortName, configFilePath,
-otrFiles, validHashes, reservedThreadCount)` (`src/Context.cpp:39`)
-creates it once and **returns the shared_ptr the game must keep alive**
-— dropping it destroys everything. `GetInstance()` = `mContext.lock()`.
-Since 1.3.0 there is also `CreateUninitializedInstance(name, shortName,
-configFilePath)` — same singleton wiring but skipping `Init()`, so a
-game can drive subsystem initialization itself.
+The pattern: **`Ship::` is abstract and game-agnostic; `LUS::` is the
+concrete N64 implementation on top.** `LUS::ControlDeck` and
+`Ship::ControlDeck` are both real, different classes — mechanical
+`LUS::`→`Ship::` renames are mostly right and occasionally very wrong.
+The include/src boundary is now real, not advisory (though `src/` is
+still a PUBLIC include dir, it exposes no headers any more).
 
-**Init order** (`Context::Init`): logging → config → console
-variables → resource manager → control deck → crash handler → console →
-window → audio. (Until 1.0.1 a bulk default-settings seeding step ran
-after the resource manager; 1.1.0 removed it in favor of per-read
-fallbacks + the `ConfigVersionUpdater` migration system — see
-`config-cvars-logging.md`.) Notes:
+## `Ship::Context` — the root singleton
 
-- `InitResourceManager` (`:185`) reads `Game.Main Archive` /
-  `Game.Patches Archive` from config; a missing OTR shows a message box
-  and **continues booting** with the resource thread pool permanently
-  paused (`src/resource/ResourceManager.cpp:92` — "Nothing ever
-  unpauses the thread pool"), so later blocking loads hang rather than
-  fail fast.
-- `InitControlDeck` (`:212`) only **constructs** the deck; device
-  scanning happens when the game calls `osContInit()`
-  (`src/public/libultra/os.cpp:27`).
-- Destruction (`~Context`, `src/Context.cpp:23-37`) tears down in
-  explicit reverse order so `spdlog::shutdown()` runs last; window size
-  is saved to config on the way out.
+Still a **weak_ptr-held singleton** (`src/ship/Context.cpp:27-31`), not
+a Component tree (that comes later on this line). The creation API grew:
 
-## The integration pattern (how a game consumes LUS at this tag)
+```
+CreateInstance(name, shortName, configFilePath,
+               archivePaths = {}, validHashes = {}, reservedThreadCount = 1,
+               audioSettings = {}, window = nullptr, controlDeck = nullptr)
+```
 
-No sample exists in-tree; the pattern read off the code:
+(`include/ship/Context.h:33-39`.) `otrFiles` became `archivePaths`; the
+three trailing params are new — and the last two are **injection
+points, not conveniences**: `InitWindow`/`InitControlDeck` FAIL on null
+(`src/ship/Context.cpp:312-327`, `:234-247`). `Ship::Window` is pure
+abstract; the port passes a `Fast::Fast3dWindow` (or its own subclass)
+and typically a `std::make_shared<LUS::ControlDeck>()`. 1.4.2-era code
+calling the old 6-arg form compiles (defaults) and then dies at runtime
+with "Failed to initialize window."
+`CreateUninitializedInstance(name, shortName, configFilePath)` still
+exists (`Context.h:40-41`) for hand-driving the `Init*` methods.
 
-1. `add_subdirectory(libultraship)`, link target `libultraship`.
-2. Hold `Context::CreateInstance(...)`'s return value for the process
-   lifetime.
-3. Call `osContInit()` (finishes controller setup) and per-frame
-   `osContGetReadData()` (`src/public/libultra/os.cpp:31`, `:60`).
-4. Register game resource factories via
-   `ResourceLoader::RegisterResourceFactory` — LUS ships only the six
-   generic types; the 15 `SOH_*` enum entries have no factories here.
-5. Provide a menu bar via `Gui::SetMenuBar` and windows via
-   `Gui::AddGuiWindow`.
-6. Run `Window::MainLoop(gameIter)`; per frame the game calls
-   `gfx_start_frame()` → build display list → `gfx_run(cmds, ...)` →
-   `gfx_end_frame()` (contract in `src/graphic/Fast3D/README.md`, which
-   is otherwise stale upstream text).
-7. Push audio each frame via `AudioPlayerPlayFrame` — LUS never calls
-   it itself; the game owns audio cadence.
+**Init order** (`Context::Init`, `src/ship/Context.cpp:91-94`, a
+short-circuiting `&&` chain): logging → config → console variables →
+resource manager → control deck → crash handler → console → window →
+audio → **gfx debugger** → **file-drop manager** (last two are new).
+Each `Init*` is idempotent (already-non-null → return true).
 
-Env vars / locations (reworked in 1.2.0): the bundle path is now the
-executable's own directory via `/proc/self/exe` (the `SHIP_BIN_DIR` env
-var was removed); the data dir still honors `SHIP_HOME` (SoH branding
-that survived the de-branding), then under the new `NON_PORTABLE`
-build the user config directory via `SDL_GetPrefPath(appName)`, else
-`"."`. A `LocateFileAcrossAppDirs` helper searches both.
+- **Missing archive is now fatal**: `InitResourceManager` shows the
+  message box and returns **false** (`:220-229`), short-circuiting the
+  chain so `CreateInstance` returns `nullptr` (`:58-63`). The 1.4.2
+  "boots with a permanently paused thread pool" hazard is narrowed to
+  the opt-in `allowEmptyPaths=true` path (the pause itself survives,
+  `src/ship/resource/ResourceManager.cpp:58-60`).
+- Destruction still tears down in explicit reverse order so
+  `spdlog::shutdown()` runs last — but `~Context` calls
+  `GetWindow()->SaveWindowToConfig()` **unguarded** (`:35`): an
+  uninitialized-instance consumer that never reached `InitWindow`
+  null-derefs on teardown. `mGfxDebugger`/`mFileDropMgr` are not
+  explicitly nulled, so they destruct *after* `spdlog::shutdown()`.
 
-## The seams a port crosses
+## The integration pattern at this pin
 
-- **Graphics/asset seam:** the display list may reference assets by
-  CRC64 hash or file path via OTR-specific GBI opcodes; the interpreter
-  resolves them through the resource system (and self-modifies the
-  display list with resolved pointers). See `fast3d-renderer.md` §OTR
-  opcodes.
-- **Bridge seam:** C-linkage functions for resources, audio, controller
-  blocking, window metrics, CVars, crash callback (`bridge-api.md`).
-- **libultra seam:** only controller init/read, `osGetTime`/`osGetCount`
-  (wall-clock, NOT N64 counter units), and non-blocking message queues
-  exist. **No threads, no rumble shim, no interrupts** — see
-  `audio-and-libultra-shims.md`.
+1. `add_subdirectory(libultraship)`, link `libultraship`; include
+   `include/libultraship/libultraship.h`.
+2. Construct a `Fast::Fast3dWindow` + `LUS::ControlDeck`, pass both to
+   `CreateInstance` (or use `CreateUninitializedInstance` and drive
+   `Init*` yourself — what Ghostship does). Hold the returned
+   `shared_ptr` for process lifetime.
+3. Register game resource factories — **LUS registers almost none
+   itself**: Json + Shader at startup, GuiTexture + Font at GUI init.
+   The `Fast::` graphics factories (Texture, Vertex, DisplayList,
+   Matrix, Light) ship in-tree but the **port must register them**
+   (`resource-system.md`).
+4. `Gui::SetMenuBar` / `Gui::AddGuiWindow` as before (plus a new
+   full-screen `SetMenu` slot).
+5. **`Window::MainLoop` no longer exists.** The port owns the loop,
+   conditioned on the `WindowIsRunning()` bridge, and calls
+   `Fast3dWindow::DrawAndRunGraphicsCommands(Gfx*, mtxReplacements)`
+   once per frame — the `mtxReplacements` map is the
+   frame-interpolation injection point (`fast3d-renderer.md`).
+6. Audio is still push-only via `AudioPlayerPlayFrame`; sample rate and
+   channel layout now come from the `AudioSettings` struct.
 
-## What does NOT exist yet at this pin (verified absences)
+App dirs: `SHIP_HOME` honored on Apple/Linux only; `NON_PORTABLE` →
+`SDL_GetPrefPath`; else `"."` (`src/ship/Context.cpp:471-499`).
+`LocateFileAcrossAppDirs` survives (`include/ship/Context.h:46`).
 
-- No thread shims (`osCreateThread` etc.) — types only.
-- No Vulkan backend; D3D12 and GLX code exist but are compiled out
-  (flags never defined — see `build-system.md`).
-- No SDL3, no GLFW; SDL2 + DXGI only.
-- No install/export/package config; no tests of any kind.
-- No `.gitmodules` — every dependency is a hand-vendored source copy.
-- No mod-manifest system — only MPQ patch-archive scanning plus the
-  `alt/` prefix CVar (`resource-system.md`).
-- Metal IS present already (often assumed later), as is Wii U
-  (`CMAKE_SYSTEM_NAME` = `CafeOS`) and Switch support.
+## What does NOT exist at this pin (verified absences)
+
+- No thread shims — `osCreateThread` etc. grep to zero; only the
+  `OSThread` ABI struct in `thread.h`.
+- No Vulkan; **D3D12 and GLX are deleted outright** (no dead files —
+  only a never-defined `ENABLE_DX12` macro in 7 `#if` guards).
+- **Switch and Wii U are gone** (zero `__SWITCH__`/`__WIIU__` hits);
+  Android and iOS took their place (`src/ship/port/mobile/`).
+- No events bus, no scripting, no keystore, no Component/Tickable
+  framework, no tests — those belong to later commits on this line.
+- No `.gitmodules` — but now because everything is **FetchContent**,
+  not vendored (`build-system.md`).
 
 ## Sibling docs
 

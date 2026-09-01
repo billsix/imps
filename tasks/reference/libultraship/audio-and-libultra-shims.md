@@ -1,94 +1,80 @@
 # libultraship — audio backends and libultra OS shims
 
-> **Pinned:** libultraship tag **1.4.2**
-> (`1ca7d0fa78013e49450a4a9881236a19a6600d64`, 2024-08-01). Authored
-> 2026-09-01, iteration 1 of the reference crawl
+> **Pinned:** libultraship **1.3.1-399**
+> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20). Updated
+> 2026-09-01, iteration 14 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
+> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
+> NEWER than tag 1.4.2 despite the smaller number.
 
 ## Audio
 
-`LUS::Audio` (owner/selector) + `LUS::AudioPlayer` (abstract base,
-`src/audio/AudioPlayer.h:7`) with exactly three backends: **SDL** (queue
-API, always built), **WASAPI** (`_WIN32`), **PulseAudio**
-(`__linux__`/`__BSD__` — but the *selector* uses `__linux` only, so BSD
-compiles the class and can never pick it). No ALSA, CoreAudio, OpenAL,
-or null player; macOS/consoles fall through to SDL. (1.4.0 added a
-Switch fix reinitializing audio after suspend/resume.)
+`AudioBackend { WASAPI, SDL, COREAUDIO, NUL }`
+(`include/ship/audio/Audio.h:9`). **PulseAudio is deleted** (configs
+carrying `"pulse"` migrate to SDL at read); **CoreAudio and a Null
+player are new**. Selection (`Audio.cpp:16-41`): WASAPI on `_WIN32`,
+CoreAudio on `__APPLE__`, SDL always, default → Null. The 1.4.2
+double-player leak is **fixed** — the fallback is now a clean
+`if (!Init()) SetCurrentAudioBackend(NUL)` — but that means a bad
+device **degrades to silence with nothing surfaced**. Linux is
+SDL-only. `SetCurrentAudioBackend` still does a full `Config::Save()`
+on every call, startup included (`:67-68`).
 
-**The model is push-only — there is no audio callback.** The game
-pushes PCM (S16 stereo, sample rate **hard-coded 44100** at
-`AudioPlayer.h:20`) via the C bridge and polls fill level; nothing in
-LUS ever generates or requests audio:
+**Sample rate is no longer hard-coded**: `AudioSettings { SampleRate =
+44100, SampleLength = 1024, DesiredBuffered = 2480, ChannelSetting =
+audioStereo }` (`include/ship/audio/AudioPlayer.h:11-16`), threaded
+`CreateInstance` → `InitAudio` → each player; runtime setters exist.
+The 2480 magic number is now just the default.
 
-- `AudioPlayerBuffered()` / `AudioPlayerGetDesiredBuffered()` /
-  `AudioPlayerPlayFrame(buf, len)` (`src/public/bridge/audiobridge.cpp`).
-- Desired-buffered is the magic **2480 frames** in all three backends.
-- SDL: `SDL_QueueAudio`, drops the frame wholesale above 6000 queued
-  frames. WASAPI: shared-mode render client, lazy `Start()` after 1500
-  frames, re-inits on default-device change (`IMMNotificationClient`).
-- Pulse: a synchronous `pa_mainloop` — `Play()` and `Buffered()` both
-  **block** iterating the loop; buffer attrs derive from N64 constants
-  `SAMPLES_HIGH 752`/`SAMPLES_LOW 720`; the stream is literally named
-  `"zelda"` (`PulseAudioPlayer.cpp:103`).
+**NEW: 5.1 surround.** `AudioChannelsSetting` stereo / matrix-5.1
+(through a `SoundMatrixDecoder`) / raw-5.1; runtime channel switching
+reinitializes the device without restart (`AudioPlayer.cpp:79-107`,
+`Audio.cpp:77-85`).
 
-**Verified bug:** `Audio::InitAudioPlayer`'s fallback path
-(`Audio.cpp:29-37`) recursively creates a working SDL player via
-`SetAudioBackend(SDL)`, then falls through and creates a **second** one,
-leaking the first SDL audio device (no destructor closes it). Also:
-`SetAudioBackend` does a full `Config::Save()` on every call, including
-during startup.
+Push-only is unchanged — no callback, LUS never requests audio;
+interleaved S16. Back-pressure is per-backend now: SDL drops the frame
+above 6000 queued; CoreAudio uses 6000 as its ring size; **WASAPI has
+no 6000 constant** — it clamps to device-buffer free space. Latent
+hazard: `AudioPlayer::~AudioPlayer()` is **non-virtual** — safe today
+only because players are made via `make_shared<Concrete>`.
 
-## libultra shims — a very thin slice
+## libultra shims — no longer "a very thin slice"
 
-**Everything lives in one file:** `src/public/libultra/os.cpp`. The 27
-headers under `include/libultraship/libultra/` define types and macros,
-but almost nothing has an implementation:
+Now **8 files** at `src/libultraship/libultra/`: `os.cpp os_cache.cpp
+os_eeprom.cpp os_mesg.cpp os_pi.cpp os_time.cpp(empty!) os_vi.cpp
+os_vm.cpp`.
 
-| Implemented | Behavior |
+| Area | Behavior at this pin |
 |---|---|
-| `osContInit` | `SDL_Init(SDL_INIT_GAMECONTROLLER)` (**exit(1) on failure**), loads `gamecontrollerdb.txt`, then `ControlDeck::Init` — this is what finishes controller setup, not `Context` |
-| `osContStartReadData` | **stub, returns 0** |
-| `osContGetReadData` | zeroes 4 pads, `ControlDeck::WriteToPad` |
-| `osGetTime` | `steady_clock` raw ticks — **not** N64 counter units |
-| `osGetCount` | `steady_clock` **milliseconds** as uint32 |
-| `osCreateMesgQueue` / `osSendMesg` / `osRecvMesg` | ring buffer; **never blocks** — `OS_MESG_BLOCK` accepted and ignored; returns −1 on full/empty. The thread-wait fields in `OSMesgQueue` are never touched |
+| `osContInit` | new signature `(OSMesgQueue*, uint8_t* bits, OSContStatus*)`; loads `gamecontrollerdb.txt`, `SDL_Init(GAMECONTROLLER)` — **still `exit(EXIT_FAILURE)` on failure** (`os.cpp:29`) — then `ControlDeck::Init` |
+| `osContStartReadData` / `osContGetReadData` | still stub-0 / zero-fill + `WriteToPad` |
+| `osGetTime` / `osGetCount` | **CHANGED — now real N64 46.875 MHz cycle units** via a `std::ratio<3000,64>` duration (`os.cpp:5-8`, `:54-64`). A port compensating for 1.4.2's raw-ticks/milliseconds is now wrong by a large constant factor. `osSetTime` is new |
+| **Rumble** | **implemented**: `__osMotorAccess` → `GetRumble()->Start/StopRumble` (`os.cpp:88-102`) — stock `osMotorStart/Stop` just works |
+| Message queues | now declared in `message.h`; `osJamMesg`/`osSetEventMesg` added — but **the block flag is still ignored, never blocks**, −1 on full/empty (`os_mesg.cpp:15,39`). The complete-looking API invites the wrong assumption |
+| **VI** (new) | `osCreateViManager` installs a 16 ms `SDL_AddTimer` posting `OS_EVENT_VI`; other setters no-op; framebuffer getters return nullptr (`os_vi.cpp`) |
+| **PI/DMA** (new) | `osPiStartDma` is a **plain unclamped `memcpy`** (`os_pi.cpp:18`) — a decomp trusting SDK bounds behavior gets memory corruption, not an error |
+| **EEPROM** (new) | full 512-byte `default.sav` read/write via the app dir (`os_eeprom.cpp`) |
+| Cache / VM (new) | all no-ops; `osVirtualToPhysical` = identity |
+| **Threads** | **still absent** — zero `osCreateThread` etc.; `thread.h` has only the ABI struct |
 
-The message-queue trio is **not declared in any header** (`os.h`
-declares only the five others) — consumers declare them or use their
-own prototypes.
+**Declared-but-undefined** (link error if called): `osContGetStatus`,
+`osAiSetFrequency` (declared **twice**, `os.h:140`+`:144`), `osViFade`,
+`osViRepeatLine`. **Defined-but-undeclared** (a C port writes its own
+prototype): `osViGetNext/CurrentFramebuffer`, `osVirtualToPhysical`,
+`osMapTLB`, `osPiReadIo/WriteIo`. The AI shims `osAiGetLength`/
+`osAiSetNextBuffer` are `// TODO` stubs returning 0.
 
-**Not implemented at all** (types/macros only, or declared with no
-definition — a consuming game must supply or avoid them):
+## Support layers
 
-- **Threads**: no `osCreateThread`/`osStartThread`/scheduler of any
-  kind. LUS 1.0.0 assumes the game flattened its threading.
-- **Rumble pak**: `motor.h` declares `__osMotorAccess`/`osMotorInit`
-  (and macros `osMotorStart/Stop` onto them) with **no definition**.
-- Interrupt masks (`osSetIntMask` etc.), `osPfs*`, `osVi*`, `osPi*`,
-  `osSpTask*`, `osEeprom*` — headers only.
-
-## Support layers (config/log details in `config-cvars-logging.md`)
-
-- `src/debug/Console` — a command **registry** only: `Console::Init()`
-  is an empty function; the actual commands (`bind`, `help`, `set`,
-  `get`, …) are registered by the GUI's ConsoleWindow — a GUI-less
-  consumer gets an empty console.
-- `src/debug/CrashHandler` — signal/SEH handlers with
-  backtrace+demangle (Linux) / DbgHelp StackWalk (Windows), a 32 KB
-  fixed buffer, and a game-supplied callback
-  (`CrashHandlerRegisterCallback`). Quirks: it tries to catch
-  **SIGKILL** (always fails silently); `AppendStrTrunc` over-reads its
-  source inside a signal handler.
-- `src/utils/` — `Math::clamp`, `splitText` (**unusable**: declaration
-  and definition have different signatures — const-ref vs by-value —
-  so any caller gets a link error; zero callers today), `stox.cpp`
-  (safe string→num wrappers, **entirely unused**), macOS folder
-  helper, `binarytools/` (BinaryReader/Writer, MemoryStream,
-  endianness).
-- `src/port/` — **empty on desktop**; Switch (`SwitchImpl`, overclock
-  profiles keyed by `gSwitchPerfMode`) and Wii U (`WiiUImpl`, WPAD/VPAD
-  drivers). (1.0.0's Wii U compile-breaker — both controller files
-  included a nonexistent `menu/ImGuiImpl.h` — was fixed in 1.0.1.) Also `Switch::PrintErrorMessageToScreen` indexes
-  `RandomTexts[rand() % 25]` into a 16-entry array (with a
-  missing-comma string concatenation inside it).
+- Threading is flat: `BS::thread_pool` is a direct `ResourceManager`
+  member; the only background timer is the 16 ms VI SDL timer. No
+  `ThreadPool` component (that's a later-line thing).
+- `Console::Init()` still empty — commands come from the GUI
+  (`config-cvars-logging.md`).
+- `src/ship/utils/`: `splitText` decl/def signature mismatch **still**
+  a link error for any caller (`Utils.h:18` vs `Utils.cpp:26`, which
+  also puts default args on the definition); `stox.cpp` still entirely
+  unused; `glob.c` vendored from the Linux kernel.
+- Switch/Wii U port layers deleted (with their bugs);
+  `src/ship/port/mobile/MobileImpl.cpp` is the only port dir
+  (android/iOS).

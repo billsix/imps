@@ -1,7 +1,7 @@
 # libultraship — Fast3D renderer
 
-> **Pinned:** libultraship tag **1.3.2**
-> (`9509806ae3ca6e35882fb976de70c5bde471b8f5`, 2023-11-13). Authored
+> **Pinned:** libultraship tag **1.3.3**
+> (`f717dd265aff2eff359de26915d8ad4e498ffdaf`, 2023-11-15). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -63,7 +63,8 @@ already at 1.0.0), **GX2** (Wii U), and D3D12 **compiled out**
 (`GfxWindowManagerAPI`): **SDL2** (serves both GL and Metal), **DXGI**
 (the only real frame pacer — vsync statistics, frame dropping by
 returning false from `start_frame`; vsync handling reworked in 1.0.1,
-and the 1.3.0 keyboard-resize change partially reverted in 1.3.2),
+and the 1.3.0 keyboard-resize change partially reverted in 1.3.2;
+1.3.3 fixed a missing switch break there that caused input lag),
 Wii U shim. GLX was compiled-out dead code until its deletion in 1.2.0
 (which also improved the SDL pacing timer, #325). No Vulkan, no GLFW.
 

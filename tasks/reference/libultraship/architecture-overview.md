@@ -1,7 +1,7 @@
 # libultraship — architecture overview
 
-> **Pinned:** libultraship tag **1.3.2**
-> (`9509806ae3ca6e35882fb976de70c5bde471b8f5`, 2023-11-13). Authored
+> **Pinned:** libultraship tag **1.3.3**
+> (`f717dd265aff2eff359de26915d8ad4e498ffdaf`, 2023-11-15). Authored
 > 2026-09-01 as iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above — if they

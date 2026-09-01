@@ -143,7 +143,8 @@ set changes, anything surprising).
       into the consumer line, not at this tag.
 - [x] 1.3.2 — DONE 2026-09-01 (one commit: partial revert of the 1.3.0
       keyboard-resize change in the DXGI backend).
-- [ ] 1.3.3 — delta (2023-11)
+- [x] 1.3.3 — DONE 2026-09-01 (one commit: missing switch `break` in
+      gfx_dxgi that caused input lag).
 - [ ] 1.4.0 — delta (2023-11)
 - [ ] 1.4.1 — delta (2023-12)
 - [ ] 1.4.2 — delta (2024-08; newest tag)

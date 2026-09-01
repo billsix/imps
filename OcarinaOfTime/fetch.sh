@@ -15,11 +15,11 @@ UPSTREAM=https://github.com/HarbourMasters/Shipwright.git
 
 # The pinned base commit: tip of upstream's 'develop' branch as of
 # 2026-09-01 (git describe: 9.2.3-421-gacdbc651d).
-SHIPWRIGHT_SHA=acdbc651d4b11e29518442d6875a3ec181414cfc
+PIN_SHA=acdbc651d4b11e29518442d6875a3ec181414cfc
 
 if [ ! -d Shipwright ]; then
     git clone "$UPSTREAM" Shipwright
 fi
 
-git -C Shipwright checkout "$SHIPWRIGHT_SHA"
+git -C Shipwright checkout "$PIN_SHA"
 git -C Shipwright submodule update --init --recursive

@@ -77,9 +77,10 @@ docs namespaced per project as above, archives under `tasks/archive/`.
   upstream, apply the existing series onto the new commit (`git am --3way`
   on a branch at the candidate SHA), resolve conflicts, check for
   non-textual breakage (e.g. upstream-added references to symbols the
-  series renames), build and run, then update `SHIPWRIGHT_SHA` in
-  `fetch.sh`, regenerate the patches, and refresh the pin references and
-  provenance banners in the docs — one unit, staged together.
+  series renames), build and run, then update the `PIN_SHA` in `fetch.sh`
+  (the variable is named `PIN_SHA` in every project), regenerate the
+  patches, and refresh the pin references and provenance banners in the
+  docs — one unit, staged together.
 
 ## Rules
 
@@ -111,3 +112,11 @@ docs namespaced per project as above, archives under `tasks/archive/`.
   `OcarinaOfTime/CLAUDE.md` + `tasks/reference/ocarina/` per the
   documentation structure above (stale fork-era claims fixed or bannered
   in the move); its submodule-pin changes were dropped as obsolete.
+- `MajorasMask/` — 2 Ship 2 Harkinian
+  (https://github.com/HarbourMasters/2ship2harkinian), pinned at
+  `04a1a4319` (tip of `develop`, 2026-05-31; submodules libultraship +
+  ZAPDTR + OTRExporter — pre-torch pipeline). Details:
+  `MajorasMask/CLAUDE.md`. Status: one code patch (64-bit audio/scheduler
+  fixes, a strong upstream-submission candidate), exported verbatim from
+  the maintainer's old `fedora44Fixes` fork branch and verified
+  byte-identical on apply; build verification pending.

@@ -43,5 +43,8 @@ cd OcarinaOfTime
   (verified 2026-09-01). One code patch (decomp renames), ported from my
   old fork; the fork's docs now live in `OcarinaOfTime/CLAUDE.md` and
   `tasks/reference/ocarina/`.
+- **MajorasMask** — one code patch (64-bit audio/scheduler fixes) exported
+  from my old `fedora44Fixes` fork branch, verified to apply byte-identical
+  on the pin. Build verification pending.
 - **Planned:** more projects (the Majora's Mask, Super Mario 64, and
   Banjo-Kazooie ports); podman container builds alongside the host builds.

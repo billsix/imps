@@ -1,0 +1,353 @@
+From dab560f97e5280da10342117b998bef4e6b3d9cc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 16 Jun 2026 00:04:58 -0400
+Subject: [PATCH] Fix silent SFX and several 64-bit-host audio crashes (non-PIE
+ builds)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+These fixes come from getting audio working on a native Linux build
+(Fedora 44, gcc-16). Two things to flag up front for reviewers:
+
+- The **unfixed code builds and runs in CI (Ubuntu 22.04, gcc-12) with working
+  audio.** That initially looked like a compiler/toolchain problem. It is not —
+  none of these changes depend on the compiler version. They are 64-bit-host
+  portability bugs, plus one latent bug that CI happens to mask via memory
+  layout (explained below). Several are present in `develop` for *any* 64-bit
+  build.
+- We've tried to be explicit about what we **verified** vs. what is a
+  **stopgap** or an **inspection-only** finding, and to defer to maintainers
+  where the proper fix is in an area we're less familiar with (the asset
+  pipeline). Where we're confident, we say so; where we're not, we say that too.
+
+`AudioPlayback_ProcessNotes` had a port guard:
+
+    if ((uintptr_t)playbackState->parentLayer < 0x7FFFFFFF) { continue; }
+
+Its intent — skip layer pointers "below where N64 RAM would be" (valid N64
+pointers are >= 0x80000000) — is reasonable on the console. On a 64-bit host it
+misfires in a **layout-dependent** way: `SequenceLayer`s are sub-allocated from
+`gAudioHeap`, a static array, so a PIE/ASLR build places them above 2 GB (guard
+harmless), but a non-PIE build places them below (~0x02dc9268 on the build where
+we saw this) — and the guard then skips **every note's playback update**. The
+ADSR envelope never advances past INITIAL, note volume stays 0, and sound
+effects play at zero amplitude. Removing the guard restored SFX; verified by ear
+and by tracing that the envelope now advances to its target. OoT/SoH has no
+equivalent check, and NO_LAYER is already handled just above.
+
+This is also why CI "works": a PIE build keeps the audio heap above 2 GB and
+never trips the guard. Same latent bug, masked by layout — not a compiler issue.
+
+Honest caveats: (a) if this guard was protecting against something we couldn't
+reproduce, a narrower validity check may be preferable to outright removal;
+(b) we did **not** fully characterize why music was less affected than SFX under
+the bug — the fix is verified regardless, but that asymmetry is an open question.
+
+`osRecvMesg` copies a full `OSMesg` (8 bytes on a 64-bit host — it holds a
+`void*`). Several call sites received into a 4-byte `u32`, overflowing the
+stack; `AudioLoad_ProcessScriptLoads` was an observed crash. Fixed by receiving
+into an `OSMesg` and reading `.data32`. (Maintainers: other `osRecvMesg` sites
+may share this narrower-than-`OSMesg` pattern — a sweep would be worthwhile.)
+
+- `sched.c`: read scheduler messages via the 64-bit `.ptr` union member instead
+  of `.data32`, which truncates the `OSScMsg` pointer on a 64-bit host.
+- `z_scene.c`: widen a truncated object segment address from `u32` to
+  `uintptr_t`.
+
+We found these by inspection rather than a reproduced crash, but the truncation
+is unambiguous on a 64-bit host.
+
+- `synthesis.c`: clamp `numSamplesUntilEnd` to `>= 0`. We saw crashes where a
+  reused note carried a stale `samplePosInt` past a new (shorter) sample's end,
+  making this negative and cascading into a software-RSP DMEM overflow (seen
+  under ASan). The clamp prevents that, but it is a **guard, not a fix**: our
+  best guess is `samplePosInt` should be reset on note reuse, and it is possible
+  this was a downstream symptom that no longer triggers after fix #1 — we have
+  not re-verified. (An in-code comment also records a tempting *wrong* fix to
+  avoid.)
+- `AudioSampleFactory.cpp` + `AudioSample.h`: initialize `AdpcmLoop.sampleEnd`
+  (offset 0x0C). The `.o2r`/ZAPD don't carry this field because OoT/sm64's audio
+  engines never read it — it's MM-specific (only the `count==2` "loop N then
+  stop" path uses it). For MM it was left uninitialized and crashed `count==2`
+  samples (read as poison -> out-of-bounds). As a **format-compatible stopgap**
+  we set it to the loop end (exact for one-shots, possibly short for `count==2`
+  with a tail). The correct fix — extracting the real value from the ROM (ZAPD +
+  OTRExporter + a resource-version bump, then re-extract) — belongs to the asset
+  pipeline; we defer to maintainers on the format/version conventions.
+
+- Sweep remaining `osRecvMesg` call sites for the 8-vs-4-byte receive-buffer bug.
+- Find the real cause of the `samplePosInt` overshoot (reset on reuse?) and
+  determine whether the clamp is still needed after fix #1.
+- Extract the real `AdpcmLoop.sampleEnd` through the asset pipeline (a V2 -> V3
+  resource bump) so MM `count==2` samples get their true tail length, replacing
+  the stopgap.
+- Decide whether removing the `parentLayer` guard should instead be a narrower
+  validity check.
+
+These changes are logically separable — (1) the SFX fix, (2) the osRecvMesg
+crashes, (3) the pointer-width fixes, (4) the two stopgaps — and could be split
+into multiple commits if preferred. Squashed here for review.
+---
+ .../resource/importer/AudioSampleFactory.cpp  | 15 +++++++++++++
+ mm/2s2h/resource/type/AudioSample.h           |  8 ++++++-
+ mm/src/audio/lib/load.c                       | 18 ++++++++++-----
+ mm/src/audio/lib/playback.c                   | 19 +++++++++++-----
+ mm/src/audio/lib/synthesis.c                  | 22 ++++++++++++++++++-
+ mm/src/audio/lib/thread.c                     | 11 +++++-----
+ mm/src/code/sched.c                           |  8 +++++--
+ mm/src/code/z_scene.c                         |  7 +++---
+ 8 files changed, 84 insertions(+), 24 deletions(-)
+
+diff --git a/mm/2s2h/resource/importer/AudioSampleFactory.cpp b/mm/2s2h/resource/importer/AudioSampleFactory.cpp
+index 2263dced2..fdaaf2092 100644
+--- a/mm/2s2h/resource/importer/AudioSampleFactory.cpp
++++ b/mm/2s2h/resource/importer/AudioSampleFactory.cpp
+@@ -216,6 +216,20 @@ ResourceFactoryBinaryAudioSampleV2::ReadResource(std::shared_ptr<Ship::File> fil
+     audioSample->loop.end = reader->ReadUInt32();
+     audioSample->loop.count = reader->ReadUInt32();
+ 
++    // 2S2H [Port] AdpcmLoop.sampleEnd (offset 0x0C, the clip's total s16-sample count) isn't
++    // carried by the .o2r, and isn't extracted by ZAPD. As far as we can tell that's because the
++    // OTR pipeline was authored for OoT, whose audio engine never reads this field (sm64's doesn't
++    // either — it names 0x0C `pad`). MM is the exception: its count==2 "loop N times then stop"
++    // path in synthesis.c reads it. So for MM the field was left uninitialized, which on the build
++    // where we hit this read as poison (0xBEC0FEBE) -> huge sampleEndPos -> out-of-bounds sample
++    // read -> crash. As a minimal, format-compatible stopgap we initialize it to the loop end:
++    // exact for one-shots, and a safe (possibly slightly short) value for count==2 samples. The
++    // proper fix — extracting the real 0x0C from the ROM (ZAPD ZAudio + OTRExporter + a
++    // resource-version bump, then re-extract) — really belongs to whoever maintains the asset
++    // pipeline; it's the only way to recover the true tail length for count==2 samples, and we'd
++    // defer to the maintainers on the format/version conventions for it.
++    audioSample->loop.sampleEnd = audioSample->loop.end;
++
+     // This always seems to be 16. Can it be removed in V3?
+     uint32_t loopStateCount = reader->ReadUInt32();
+     for (int i = 0; i < 16; i++) {
+@@ -263,6 +277,7 @@ ResourceFactoryXMLAudioSampleV0::ReadResource(std::shared_ptr<Ship::File> file,
+         audioSample->loop.start = loopRoot->UnsignedAttribute("Start");
+         audioSample->loop.end = loopRoot->UnsignedAttribute("End");
+         audioSample->loop.count = loopRoot->UnsignedAttribute("Count");
++        audioSample->loop.sampleEnd = audioSample->loop.end; // 2S2H [Port]: see binary path above
+         tinyxml2::XMLElement* predictor = loopRoot->FirstChildElement("Predictor");
+         while (predictor != nullptr) {
+             audioSample->loop.state[i++] = predictor->IntAttribute("State");
+diff --git a/mm/2s2h/resource/type/AudioSample.h b/mm/2s2h/resource/type/AudioSample.h
+index a3b24f778..0c8b33b1d 100644
+--- a/mm/2s2h/resource/type/AudioSample.h
++++ b/mm/2s2h/resource/type/AudioSample.h
+@@ -9,7 +9,13 @@ typedef struct {
+     /* 0x00 */ u32 start;
+     /* 0x04 */ u32 end;
+     /* 0x08 */ u32 count;
+-    /* 0x0C */ char unk_0C[0x4];
++    /* 0x0C */ u32 sampleEnd; // 2S2H [Port] Total s16-samples in the clip. Only MM's count==2 &&
++                              // stopLoop path (synthesis.c) reads this; OoT/SoH never do (this was
++                              // `char unk_0C[0x4]` there, matching the decomp). Leaving it unset
++                              // crashed count==2 samples on our build (uninitialized -> poison
++                              // 0xBEC0FEBE -> OOB read). It's initialized in AudioSampleFactory as a
++                              // stopgap; the .o2r/ZAPD don't carry the real value yet — see that
++                              // file for what a proper extraction would involve.
+     /* 0x10 */ s16 state[16]; // only exists if count != 0. 8-byte aligned
+ } AdpcmLoop;                  // size = 0x30 (or 0x10)
+ 
+diff --git a/mm/src/audio/lib/load.c b/mm/src/audio/lib/load.c
+index 6e3b1b9ec..0f88da43f 100644
+--- a/mm/src/audio/lib/load.c
++++ b/mm/src/audio/lib/load.c
+@@ -1932,6 +1932,7 @@ s32 AudioLoad_ProcessSamplePreloads(s32 resetStatus) {
+     Sample* sample;
+     AudioPreloadReq* preload;
+     u32 preloadIndex;
++    OSMesg preloadMsg; // OSMesg is 8 bytes on host; must not receive into a 4-byte u32
+     u32 key;
+     u32 nChunks;
+     s32 pad;
+@@ -1939,16 +1940,16 @@ s32 AudioLoad_ProcessSamplePreloads(s32 resetStatus) {
+     if (gAudioCtx.preloadSampleStackTop > 0) {
+         if (resetStatus != 0) {
+             // Clear result queue and preload stack and return.
+-            osRecvMesg(&gAudioCtx.preloadSampleQueue, (OSMesg*)&preloadIndex, OS_MESG_NOBLOCK);
++            osRecvMesg(&gAudioCtx.preloadSampleQueue, &preloadMsg, OS_MESG_NOBLOCK);
+             gAudioCtx.preloadSampleStackTop = 0;
+             return false;
+         }
+-        if (osRecvMesg(&gAudioCtx.preloadSampleQueue, (OSMesg*)&preloadIndex, OS_MESG_NOBLOCK) == -1) {
++        if (osRecvMesg(&gAudioCtx.preloadSampleQueue, &preloadMsg, OS_MESG_NOBLOCK) == -1) {
+             // Previous preload is not done yet.
+             return false;
+         }
+ 
+-        preloadIndex >>= 24;
++        preloadIndex = preloadMsg.data32 >> 24;
+         preload = &gAudioCtx.preloadSampleStack[preloadIndex];
+ 
+         if (preload->isFree == false) {
+@@ -2247,11 +2248,16 @@ void AudioLoad_ScriptLoad(s32 tableType, s32 id, s8* isDone) {
+ 
+ void AudioLoad_ProcessScriptLoads(void) {
+     u32 temp;
+-    u32 sp20;
++    // 2S2H [Port] OSMesg is 8 bytes on a 64-bit host (it holds a void*); osRecvMesg copies a
++    // full OSMesg, so the receive buffer must be an OSMesg — receiving into a 4-byte u32 (the old
++    // `(OSMesg*)&sp20`) overflows the stack. This was an observed crash. Note for maintainers:
++    // the same "osRecvMesg into a narrower-than-OSMesg local" pattern may exist at other call
++    // sites; a sweep of osRecvMesg usages for this would be worthwhile.
++    OSMesg sp20;
+     s8* isDone;
+ 
+-    if (osRecvMesg(&sScriptLoadQueue, (OSMesg*)&sp20, OS_MESG_NOBLOCK) != -1) {
+-        temp = sp20 >> 24;
++    if (osRecvMesg(&sScriptLoadQueue, &sp20, OS_MESG_NOBLOCK) != -1) {
++        temp = sp20.data32 >> 24;
+         isDone = sScriptLoadDonePointers[temp];
+         if (isDone != NULL) {
+             *isDone = false;
+diff --git a/mm/src/audio/lib/playback.c b/mm/src/audio/lib/playback.c
+index 377e04780..0876367ff 100644
+--- a/mm/src/audio/lib/playback.c
++++ b/mm/src/audio/lib/playback.c
+@@ -197,12 +197,19 @@ void AudioPlayback_ProcessNotes(void) {
+         playbackState = &note->playbackState;
+         if (playbackState->parentLayer != NO_LAYER) {
+ 
+-            // OTRTODO: This skips playback if the pointer is below where memory on the N64 normally would be.
+-            // This does not translate well to modern platforms and how they map memory.
+-            // Considering that this check is not present in OoT/SoH, we may be able to remove this altogether.
+-            if ((uintptr_t)playbackState->parentLayer < 0x7FFFFFFF) {
+-                continue;
+-            }
++            // 2S2H [Port] Removed the original guard that stood here:
++            //     if ((uintptr_t)playbackState->parentLayer < 0x7FFFFFFF) { continue; }
++            // Its intent (skip "below where N64 RAM would be" pointers) is reasonable on the
++            // N64, where valid pointers are >= 0x80000000. On a 64-bit host it appears to
++            // misfire in a layout-dependent way: SequenceLayers come from gAudioHeap (a static
++            // array), so a PIE/ASLR build places them high and the guard is harmless, but a
++            // non-PIE build places them low (~0x02dc9268 on the build where we saw this) and the
++            // guard then skips EVERY note's playback update. The ADSR envelope never leaves
++            // INITIAL, `current` stays 0, and all SFX play at zero volume (a silent "click").
++            // OoT/SoH has no equivalent check and NO_LAYER is already handled just above, so
++            // removing it was the smallest change that restored SFX here. If this was guarding
++            // against something we didn't reproduce, a narrower validity check may be preferable
++            // — we couldn't find what it protected against.
+ 
+             if ((note != playbackState->parentLayer->note) && (playbackState->status == PLAYBACK_STATUS_0)) {
+                 playbackState->adsr.action.s.release = true;
+diff --git a/mm/src/audio/lib/synthesis.c b/mm/src/audio/lib/synthesis.c
+index c78a043b3..824fcb29d 100644
+--- a/mm/src/audio/lib/synthesis.c
++++ b/mm/src/audio/lib/synthesis.c
+@@ -1047,9 +1047,29 @@ Acmd* AudioSynth_ProcessSample(s32 noteIndex, NoteSampleState* sampleState, Note
+                 loopToPoint = false;
+                 dmemUncompressedAddrOffset2 = 0;
+ 
+-                numFirstFrameSamplesToIgnore = synthState->samplePosInt & 0xF;
+                 numSamplesUntilEnd = sampleEndPos - synthState->samplePosInt;
+ 
++                // 2S2H [Port] Defensive guard — a stopgap, not a root-cause fix. We saw crashes
++                // where a note reused for a new (shorter) sample carried a stale samplePosInt past
++                // the new sample's end, making numSamplesUntilEnd negative; that cascades
++                // (numSamplesInFirstFrame negative -> numSamplesProcessed runs away ->
++                // numSamplesToDecode explodes) until the software-RSP mixer writes past its DMEM
++                // scratch buffer (a global-buffer-overflow, seen under ASan in aADPCMdecImpl).
++                // Clamping keeps it in-bounds. We are not certain of the underlying cause: our best
++                // guess is that samplePosInt isn't reset when a note is reused, so a fuller fix
++                // probably belongs there (resetting position/state on the reuse path) rather than
++                // here. It is also possible this was a downstream symptom of another bug and no
++                // longer triggers — we have not re-verified it since. One thing we did learn the
++                // hard way and want to pass on: do NOT try to "fix" this by copying the whole
++                // note->sampleState into the per-update list in AudioSynth_SyncSampleStates — that
++                // list is filled field-by-field by AudioPlayback (volumes, pan, gain, frequency,
++                // ...), so a wholesale copy clobbers it and silences all audio.
++                if (numSamplesUntilEnd < 0) {
++                    numSamplesUntilEnd = 0;
++                }
++
++                numFirstFrameSamplesToIgnore = synthState->samplePosInt & 0xF;
++
+                 // Calculate number of samples to process this loop
+                 numSamplesToProcess = numSamplesToLoadAdj - numSamplesProcessed;
+ 
+diff --git a/mm/src/audio/lib/thread.c b/mm/src/audio/lib/thread.c
+index 4128ffc0b..7c5c2fe7e 100644
+--- a/mm/src/audio/lib/thread.c
++++ b/mm/src/audio/lib/thread.c
+@@ -486,15 +486,16 @@ void AudioThread_ProcessCmds(u32 msg) {
+ }
+ 
+ u32 AudioThread_GetExternalLoadQueueMsg(u32* retMsg) {
+-    u32 msg;
++    OSMesg msg; // 2S2H [Port] OSMesg is 8 bytes on a 64-bit host; receiving into a 4-byte u32
++                // overflows the stack (same pattern as the AudioLoad_ProcessScriptLoads fix).
+ 
+-    if (osRecvMesg(&gAudioCtx.externalLoadQueue, (OSMesg*)&msg, OS_MESG_NOBLOCK) == -1) {
++    if (osRecvMesg(&gAudioCtx.externalLoadQueue, &msg, OS_MESG_NOBLOCK) == -1) {
+         *retMsg = 0;
+         return 0;
+     }
+ 
+-    *retMsg = msg & 0xFFFFFF;
+-    return msg >> 0x18;
++    *retMsg = msg.data32 & 0xFFFFFF;
++    return msg.data32 >> 0x18;
+ }
+ 
+ u8* AudioThread_GetFontsForSequence(s32 seqId, u32* outNumFonts, u8* buff) {
+@@ -522,7 +523,7 @@ s32 func_80193C5C(void) {
+ void AudioThread_WaitForAudioResetQueueP(void) {
+     // macro?
+     // clang-format off
+-    s32 chk = -1; s32 msg; do {} while (osRecvMesg(gAudioCtx.audioResetQueueP, (OSMesg*)&msg, OS_MESG_NOBLOCK) != chk);
++    s32 chk = -1; OSMesg msg; do {} while (osRecvMesg(gAudioCtx.audioResetQueueP, &msg, OS_MESG_NOBLOCK) != chk);
+     // clang-format on
+ }
+ 
+diff --git a/mm/src/code/sched.c b/mm/src/code/sched.c
+index 3d4d15c55..0f01a753e 100644
+--- a/mm/src/code/sched.c
++++ b/mm/src/code/sched.c
+@@ -591,8 +591,12 @@ void Sched_ThreadEntry(void* arg) {
+                 Sched_HandleRDPDone(sched);
+                 continue;
+         }
+-        // Check if it's a message from the IrqMgr
+-        switch (((OSScMsg*)msg.data32)->type) {
++        // Check if it's a message from the IrqMgr.
++        // 2S2H [Port] These messages are sent as OSScMsg pointers (OS_MESG_PTR), so read the
++        // 64-bit .ptr union member, not .data32, which truncates the pointer on a 64-bit host.
++        // (We found this by inspection rather than a reproduced crash, but the truncation is
++        // unambiguous; it matches the standard pointer-width adjustment used elsewhere in the port.)
++        switch (((OSScMsg*)msg.ptr)->type) {
+             case OS_SC_RETRACE_MSG:
+                 Sched_HandleRetrace(sched);
+                 continue;
+diff --git a/mm/src/code/z_scene.c b/mm/src/code/z_scene.c
+index 52def8ff0..bb5fa5a9d 100644
+--- a/mm/src/code/z_scene.c
++++ b/mm/src/code/z_scene.c
+@@ -142,7 +142,9 @@ void Object_LoadAll(ObjectContext* objectCtx) {
+ }
+ 
+ void* func_8012F73C(ObjectContext* objectCtx, s32 slot, s16 id) {
+-    u32 addr;
++    uintptr_t addr; // 2S2H [Port] was u32, which truncates the 64-bit host `segment` pointer below
++                    // (`addr = (uintptr_t)...segment + vromSize`). Found by inspection; pointer-width
++                    // adjustment consistent with the rest of the port.
+     uintptr_t vromSize;
+     RomFile* fileTableEntry;
+ 
+@@ -152,8 +154,7 @@ void* func_8012F73C(ObjectContext* objectCtx, s32 slot, s16 id) {
+     fileTableEntry = &gObjectTable[id];
+     vromSize = fileTableEntry->vromEnd - fileTableEntry->vromStart;
+ 
+-    // TODO: UB to cast void to u32
+-    addr = ((u32)objectCtx->slots[slot].segment) + vromSize;
++    addr = ((uintptr_t)objectCtx->slots[slot].segment) + vromSize;
+     addr = ALIGN16(addr);
+ 
+     return (void*)addr;
+
+base-commit: 04a1a43197f067afd60a9043512755edc14f4f19
+-- 
+2.55.0
+

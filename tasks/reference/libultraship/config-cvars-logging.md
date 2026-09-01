@@ -1,89 +1,73 @@
 # libultraship — config, console variables, logging
 
-> **Pinned:** libultraship **1.3.1-486**
-> (`62e973aeb4a53ad4d22bb91e2d9373ecdfcd246c`, 2026-08-15 —
-> OcarinaOfTime's pin; 4 commits past 1.3.1-482).
-> Updated 2026-09-01, iteration 17 of the reference crawl
-> (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
-> NEWER than the 1.4.x tags despite the smaller number.
+> **Pinned:** libultraship **1.3.1-544**
+> (`c151cc913dfcdcfbeffd0a1b50d26f4c620a5634`, 2026-07-16 — Ghostship's
+> pin; **KiritoDv FORK branch** = 1.3.1-463 + 81 fork commits; mainline
+> 464–486 absent). Updated 2026-09-01, iteration 18 (final) of the
+> reference crawl (`crawl.md`). Re-sync
+> check: compare `PIN_SHA` in `libultraship/fetch.sh`.
 
-## Config — JSON settings file
+## Config — 463 shapes throughout
 
-`Ship::Config`: nlohmann JSON, `dump(4)`, port-chosen app-dir path.
-App dir: `SHIP_HOME` Apple/Linux only (`Context.cpp:553-572`),
-`NON_PORTABLE` → `SDL_GetPrefPath`, else `"."`.
+`Nested()` unflattens the whole doc per get (`Config.cpp:44`);
+missing-component walk keeps the subtree (`:46-52`); hardened `Reload`
+(`:204-211`); `SetBlock`/`EraseBlock` self-`Save()` (`:131-186`);
+`GetArray`/`SetArray` dead (`:220-229`); `mIsNewInstance` write-only;
+doxygen still cites the nonexistent `RegisterConfigVersionUpdater`
+(`Config.h:19` vs `:188`). Backend persistence on `Ship::Audio`
+(pulse→SDL migration `Audio.cpp:75-78`) and `Ship::Window`
+(`Window.cpp:125-135`). The Keystore's `"Keystore"` node is the one
+non-obvious config consumer (`Keystore.cpp:59-88`).
 
-- The dual nested/flattened model survives with both defects:
-  **`Nested()` unflattens the whole document on every get**
-  (`Config.cpp:44`) and the dotted-path walk keeps the current subtree
-  on a missing component (`:46-52`).
-- **`Reload` hardened**: both JSONs pre-initialized to empty objects,
-  parse failures logged (`Config.cpp:204-212`) — the old
-  "fresh install leaves `mNestedJson` null" nuance is obsolete.
-- **Backend persistence moved OUT of Config (#1097)**: audio backend
-  get/set (and the `"pulse"`→SDL migration) now live on `Ship::Audio`
-  (`Audio.cpp:66-105`, migration `:75-78`); window-backend persistence
-  on `Ship::Window` (`Window.cpp:70`, `:125-126`). Config no longer
-  knows about backends.
-- **NEW consumer of the config file: the Keystore** (scripting builds)
-  — trusted ed25519 keys persist under a top-level `"Keystore"` node
-  (`Keystore.cpp:59-86`; see `resource-system.md`).
-- `SetBlock`/`EraseBlock` still `Save()` internally
-  (`Config.cpp:131-186`); `GetArray`/`SetArray` still dead;
-  `mIsNewInstance` still write-only. `RegisterVersionUpdater` is the
-  method (`Config.h:188`); the doxygen still cites the nonexistent
-  `RegisterConfigVersionUpdater` (`Config.h:19`).
+**App dir** (`Context.cpp:520-569`): Android external storage →
+**fork-new `__EMSCRIPTEN__` `"/storage"`** (`:528-530`) → iOS
+`$HOME/Documents` → Apple/Linux `SHIP_HOME` (with `~` expansion) →
+`NON_PORTABLE` `SDL_GetPrefPath` — which reads
+`GetInstance()->mShortName` (the mainline #1170 undefined-symbol fix is
+absent) → `"."`. The fork also redirects the iOS bundle path through
+`FolderManager` (`:462-467`).
 
 ## CVars
 
-- Union storage unchanged, **and its bugs survive**: `SetString`/
-  `CopyVariable` set `Type` then `free()` the possibly-reinterpreted
-  `String` bits (`ConsoleVariable.cpp:117-121`, `:228-232`);
-  `LoadLegacy` double-`strdup` leak (`:370`).
-- **Lookup is allocation-free (#1022)**: transparent hash/equal
-  (`TransparentStringHash`, `ConsoleVariable.h:199-211`) — `Get(const
-  char*)` builds no temporary string.
-- `cmake/cvars.cmake` is now **24 macros**; new:
-  `CVAR_ALLOW_BACKGROUND_INPUTS` (`gAllowBackgroundInputs`, used in
-  `Fast3dGui.cpp:92,100` + `gfx_dxgi.cpp:513`) and
-  `CVAR_SCRIPT_SAFE_LEVEL` (`gScriptSafeLevel` — **zero code
-  references** at this pin). Grep for macros, not name literals.
-- Bridge: `CVarClearBlock`/`CVarCopy` defined
-  (`consolevariablebridge.cpp:73,77`); **`CVarExists` still declared,
-  never defined** (`consolevariablebridge.h:138`) — link error, now
-  even exported.
+- Union bugs intact: `SetString`/`CopyVariable` set `Type` then free
+  possibly-reinterpreted `String` bits (`ConsoleVariable.cpp:117-121`,
+  `:220-232`); `LoadLegacy` double-`strdup` leak (`:370`). Transparent
+  hash lookup present (`ConsoleVariable.h:199-211`).
+- `cmake/cvars.cmake` = **23 macros** (byte-identical to mainline 486;
+  the earlier "24" was a miscount). `CVAR_SCRIPT_SAFE_LEVEL` still has
+  zero code references.
+- **NEW fork namespaces, not in cvars.cmake** — grep for the literal
+  prefixes: `gShaderSettings.<pack>.<var>` (shader-pack tweakables,
+  `interpreter.cpp:4777-4784`), `gEnhancements.Graphics.DitherNoise`
+  (default 0), `gEnhancements.Graphics.AsyncTextureLoad`,
+  `gEnhancements.Graphics.TextureUploadBudget` (default 1/frame),
+  `gMipDebug`, `TextureReplacementDebug` — see `fast3d-renderer.md`.
+- Bridge: **`CVarExists` still declared, never defined**
+  (`consolevariablebridge.h:138`); `CVarClearBlock`/`CVarCopy` defined.
 
-## Logging
+## Logging — REVERTED to the pre-#1103 shape
 
-`Context::InitLogging`:
+`spdlog::init_thread_pool(8192, 1)` (`Context.cpp:122`) and the
+release async logger **uses the global pool** (`:170-171`) — the
+mainline Context-owned `mLogThreadPool` does not exist here. Debug =
+sync `"multi_sink"` flush-on-trace (`:166-168`); release = async
+overflow-block flush-on-info; rotation 10 MB × 10 (`:163`); level
+parameters default debug/warn (`Context.h:192-193`); the console-sink
+level set is **commented out** (`:158`). Teardown: `~Context` ends
+with `spdlog::shutdown()` (`:60`) after an unguarded
+`GetWindow()->SaveWindowToConfig()` (`:40`) and `GetConfig()->Save()`
+(`:58`) — early-destroy crashes live in those derefs, not in the
+mainline `mLogger->flush()`. `lusprintf` still never calls `va_end`
+(`luslog.cpp:15-22`).
 
-- Levels still parameters (debug/warn defaults,
-  `include/ship/Context.h:196-197`); debug = synchronous `"multi_sink"`
-  flush-on-trace (`Context.cpp:172-174`); release = async
-  overflow-block flush-on-info — now fed by a **Context-owned**
-  `mLogThreadPool` (`:176-178`) instead of the global spdlog pool. Yet
-  `spdlog::init_thread_pool(8192, 1)` **still runs unconditionally**
-  (`:128`), so the global pool is now unused in *both* build types.
-- Console sink level explicit (`:163`); sinks/pattern/rotation
-  unchanged (10 MB × 10, `:167`).
-- **Teardown reworked (#1103)**: no `spdlog::shutdown()`; `~Context`
-  tears members down explicitly, then `mLogger->flush(); mLogger =
-  nullptr;` — an **unconditional deref**: a Context destroyed before
-  `InitLogging` crashes (`Context.cpp:64-68`).
-- `lusprintf` still never calls `va_end`
-  (`src/libultraship/log/luslog.cpp:15-22`).
+## Console
 
-## Console (command registry)
+`Init()` empty (`Console.cpp:15-16`); `Run` single-find (`:30-52`);
+`GetCommand` throws `std::out_of_range` (`:71-77`); all 7 commands
+(`set get help clear unbind bind bind-toggle`) registered by
+`ConsoleWindow::InitElement` (`ConsoleWindow.cpp:304-317`).
 
-`Console::Init()` still empty (`Console.cpp:15-16`); all 7 commands
-(`set get help clear unbind bind bind-toggle`) still registered by the
-GUI's `ConsoleWindow::InitElement` (`ConsoleWindow.cpp:304-321`).
-Internals cleaned (#1067): `Run` single-`find`, no `CommandEntry` copy
-(`Console.cpp:38-45`); **`GetCommand` now throws `std::out_of_range`**
-instead of default-inserting (`:70-76`).
+## Test coverage
 
-## Test coverage note
-
-The new gtest suite covers **none** of Config, CVars, Console, or
-logging (`tests/` covers utils/resource/events/audio-decoder).
+The (463-identical) gtest suite still covers **none** of Config,
+CVars, Console, or logging.

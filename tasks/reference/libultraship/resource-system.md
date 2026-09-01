@@ -1,139 +1,98 @@
 # libultraship — resource system and archives
 
-> **Pinned:** libultraship **1.3.1-486**
-> (`62e973aeb4a53ad4d22bb91e2d9373ecdfcd246c`, 2026-08-15 —
-> OcarinaOfTime's pin; 4 commits past 1.3.1-482).
-> Updated 2026-09-01, iteration 17 of the reference crawl
-> (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
-> NEWER than the 1.4.x tags despite the smaller number.
+> **Pinned:** libultraship **1.3.1-544**
+> (`c151cc913dfcdcfbeffd0a1b50d26f4c620a5634`, 2026-07-16 — Ghostship's
+> pin; **KiritoDv FORK branch** = 1.3.1-463 + 81 fork commits; mainline
+> 464–486 absent). Updated 2026-09-01, iteration 18 (final) of the
+> reference crawl (`crawl.md`). Re-sync
+> check: compare `PIN_SHA` in `libultraship/fetch.sh`.
+>
+> Scoping fact: outside `ScriptLoader` and 11 lines of `Context.cpp`,
+> the entire resource/config core is **byte-identical to mainline
+> 1.3.1-463** — the fork's 81 commits are graphics, scripting plumbing,
+> and CI.
 
-## `.o2r` (zip) default; MPQ opt-in — unchanged
+## `.o2r` default; MPQ opt-in — unchanged
 
-`INCLUDE_MPQ_SUPPORT` default OFF (`CMakeLists.txt:41`); a stock build
-cannot open `.otr`. StormLib confined to the conditional `OtrArchive`.
+`INCLUDE_MPQ_SUPPORT` OFF (`CMakeLists.txt:41`).
 
-## The classes
+## The classes (463 shapes)
 
-- **`Ship::Archive`** (abstract base, `include/ship/resource/archive/Archive.h:59`)
-  with `O2rArchive` / `OtrArchive` (MPQ-gated, read-only) /
-  `FolderArchive`.
-  - **The O2r thread-safety gap is FIXED (#1050)**: reads check out a
-    handle from a mutex-guarded **pool** (`GetZipHandle`/
-    `ReleaseZipHandle`, `O2rArchive.cpp:18-35`; `mPoolMutex`/
-    `mZipArchivePool`, `O2rArchive.h:79-80`), opening a fresh
-    `zip_open(ZIP_RDONLY)` on pool miss; `Close`/`WriteFile` drain the
-    pool. Caveat: handles opened while the file changes on disk are
-    only invalidated by `WriteFile`'s own drain.
-  - `Open` still uses `ZIP_CREATE` (`O2rArchive.cpp:98`, also on
-    reopen `:184`) — a typo'd path still silently creates an empty
-    archive. OtrArchive still null-derefs on a listfile-less MPQ and
-    still has the `\r`-trim off-by-one (`OtrArchive.cpp:82-90`).
-  - **NEW: `Archive::Load` parses a `manifest.json`**
-    (`Archive.cpp:58-95`): name/author/version/website/description/
-    license, `code_version`, `game_version` (also sets+validates the
-    game version), `main`, `binaries`, `dependencies`, `checksum`,
-    `signature`, `public_key` — exposed via `GetManifest()`,
-    `IsSigned()`, `IsChecksumValid()`. Parsing is unconditional; only
-    validation is scripting-gated:
-  - **NEW: signing/trust chain (`ENABLE_SCRIPTING` only, #1068/#1095).**
-    `Archive::Validate()` (`Archive.cpp:183-291`): BLAKE2b-64 checksum
-    over sorted `path||bytes` of every file, then ed25519 signature
-    check against every **Keystore** key (monocypher). Unknown public
-    key → `ArchiveManager`'s `UntrustedArchiveHandler` callback decides
-    (typedef `ArchiveManager.h:27`); accepted keys are added to the
-    keystore. `Ship::Keystore` (`include/ship/security/`) persists keys
-    **inside the config JSON** under a top-level `"Keystore"` node
-    (`Keystore.cpp:59-86`). All compiled out in a default build.
-- **`Ship::ArchiveManager`** (class now at `ArchiveManager.h:41`) —
-  owns archives + the global CRC64 tables. `WriteFile` now only updates
-  the tables (`ArchiveManager.cpp:156-159`); the reopen/re-index moved
-  into `O2rArchive::WriteFile`. Still does **not** touch the resource
-  cache (stale resources survive a write).
-- **`Ship::ResourceLoader`** — one factory map keyed
-  `{format, type, version}`; registers **Json + Shader only**
-  (`ResourceLoader.cpp:25-28`); GTEX lazy at `Gui.cpp:109`, FONT at
-  `GameOverlay.cpp:160`; the `Fast::` graphics factories are still the
-  **port's** to register; **Blob's factory still registered by
-  nobody**.
-- **`Ship::ResourceManager`** — cache + thread pool; the
-  paused-forever-on-failed-archive behavior survives
-  (`ResourceManager.cpp:63-66`), normally unreachable (Context fails
-  hard first).
+- `Ship::Archive` + `O2rArchive` / `OtrArchive` / `FolderArchive`. The
+  **O2r handle pool** is present (#1050 predates the branch —
+  `O2rArchive.cpp:18-35`, drains `:131-138`, `:173-179`); `ZIP_CREATE`
+  still silently creates on a typo'd path (`:98`, `:184`); OtrArchive
+  listfile null-deref + `\r`-trim off-by-one (`OtrArchive.cpp:81-88`).
+- **`manifest.json`** parsed in `Archive::Load` (`Archive.cpp:58-95`)
+  incl. an `icon` field (`:63`) the earlier iterations missed;
+  `Validate()` (BLAKE2b + ed25519 vs keystore,
+  `UntrustedArchiveHandler`) wholly `#ifdef ENABLE_SCRIPTING`
+  (`:183-291`). Error string says "metadata.json" (`:93`). Keystore
+  persists under the config JSON's `"Keystore"` node
+  (`Keystore.cpp:59-88`); the ctor loads config keys then the
+  **embedded defaults** generated by the new C++ keygen host tool
+  (`Keystore.cpp:12-17`, `build-system.md`).
+- `ArchiveManager`: last-writer-wins layering with filesystem-order
+  directories (`ArchiveManager.cpp:284`, `:212`); `WriteFile` updates
+  tables only, never the resource cache (`:153-164`);
+  `AddGameVersion` dead (`:126-128`).
+- `ResourceLoader` registers **Json + Shader only**
+  (`ResourceLoader.cpp:25-28`); GTEX at `Gui.cpp:100-102`, FONT at
+  `GameOverlay.cpp:160`; Fast graphics factories the port's job; Blob
+  registered by nobody.
 
-## Mounting, layering, versions — unchanged mechanics
+## `.meta` — REVERTED to the pre-#1168 shape
 
-`Game.Main Archive` + `Game.Patches Archive` → one flat path list
-(`Context.cpp:234-235`); per-directory archive collection with the
-FolderArchive fallback (`ArchiveManager.cpp:205-236`); extension
-dispatch (`:238-261`); **layering is last-writer-wins**
-(`mFileToArchive[hash] = archive`, `:284`). The doxygen now *claims*
-"most recently added takes precedence" (`ArchiveManager.h:33-35`) — but
-within one directory the order is still unspecified
-`directory_iterator` (`:212`), i.e. **still filesystem-order
-dependent**, now with an upstream determinism claim it doesn't have.
-Game-version validation unchanged (warn + unload; empty set accepts
-all; `ArchiveManager.cpp:295-297`).
+The mainline archive-priority rework is absent. `Archive::IndexFile`
+is the old **suffix-stripper** — `foo.meta` is indexed only under
+`foo` (`Archive.cpp:174-181`); no archive priorities, no
+`ResolveMetaAlias`. `ResourceLoader::LoadResource` concatenates
+`path + ".meta"` and tries it (`ResourceLoader.cpp:192-198`); the
+pre-#1168 consequences hold: hash-indexed lookups of the literal
+`.meta` name miss (and pollute `mFileToArchive` with a null entry,
+`ArchiveManager.cpp:51`), meta-only resources never reach the loader
+(`ResourceManager.cpp:153-157`), and a mod's `.meta` can shadow a
+lower archive's real asset.
 
-## Load pipeline
+## Fork additions touching resources (all Fast3D-side consumers)
 
-1. **`.meta` resolution reworked by archive priority (#1168, new in
-   this 4-commit step)**: `IndexFile` now indexes every file under its
-   **literal** name — a real `foo` and its `foo.meta` are distinct
-   entries (the old suffix-stripping/hiding is gone). Archives carry a
-   load-order priority (`Archive::Get/SetPriority`,
-   `ArchiveManager::GetFilePriority`); `ResourceLoader::
-   ResolveMetaAlias` picks the **higher-priority provider** between
-   the real file and any `.meta` alias target (ties go to the alias),
-   fixing both a mod's `.meta` shadowing a lower archive's real asset
-   and the cross-game case. Meta-only resources now reach the loader
-   (`LoadResourceProcess` bails only when neither exists). Else the
-   legacy sniff (`'<'` → XML, else 64-byte binary header,
-   `OTR_HEADER_SIZE` at `Archive.h:16`).
-2. **Header slicing replaced by zero-copy offset (#1027)**: `File`
-   gained `BufferOffset` (`File.h:61`); `CreateBinaryReader` builds
-   `MemoryStream(Buffer, BufferOffset)` (`ResourceLoader.cpp:120-125`).
-   Factories still never see the header — same contract, no copy.
-3. XML error-checked but `ReadResourceInitDataXml` still null-derefs on
-   an empty-but-valid doc (`:288-290`).
+- **`manifest.json` grew a `"shaders"` section** — parsed NOT by
+  `Archive` but by `Interpreter::LoadPostPassManifest`
+  (`interpreter.cpp:4583-4645`, lazy at `:6736-6738`): schema
+  `"shaders": { "passes": [{"shader", "enabled"}], "materials":
+  [{"dlist", "shader", "enabled"}] }`; pack name = manifest `"name"`
+  (fallback archive path). Feeds the postprocess/material-shader
+  system (`fast3d-renderer.md`).
+- **Shader settings as a dynamic CVar namespace**:
+  `gShaderSettings.<pack>.<var>` (`ShaderSettingCVarKey`,
+  `interpreter.cpp:4777-4784`) — not in `cvars.cmake`; surfaced by the
+  new `ShaderSettingsWindow`.
+- Shader resources load with `loadExact=false` in all four backends.
+- **Script compile cache** (`ScriptLoader::GetCachePath`, keyed
+  manifest-checksum + codeVersion + buildOptions,
+  `ScriptLoader.cpp:87-134`, hit-check `:186-196`) — **dormant**:
+  `mCacheDir` empty by default and nothing in-tree sets it.
 
-## Caching and lifetime
+## Caching and lifetime (463 shapes)
 
-- `ResourceIdentifier{Path, Owner, Parent}` + precomputed hash; move
-  constructor added (#1022, `ResourceManager.cpp:29-32`); no eviction;
-  failure memoized.
-- **NEW `ResourceManager::WriteResource` (#1013)**
-  (`ResourceManager.cpp:429-450`): resolves the owning archive, writes
-  via `ArchiveManager::WriteFile`, optionally unloads the cached
-  resource. C++-only, no bridge.
-- **NEW `ResourceManager::CacheExternalResource`**
-  (`ResourceManager.cpp:424-427`, locked) — the port injects a resource
-  under a path (used by GUI textures).
-- **NEW Fast3D-side memoization (#1175)**:
-  `Interpreter::ResolveResourceCached` memoizes `LoadResourceProcess`
-  hits keyed by display-list pointer, **off by default**
-  (`interpreter.h:511`); only hits memoized (so
-  `CacheExternalResource` still lands); cleared with the texture cache.
-- Alt assets: still `Set/IsAltAssetsEnabled`
-  (`ResourceManager.cpp:457-463`), no `gAltAssets` CVar anywhere.
-- Perf churn that nets to zero: #989 (cache-lookup change) was fully
-  reverted by #1028.
+`ResourceIdentifier{Path, Owner, Parent}`; no eviction; failure
+memoized; `WriteResource` present (`ResourceManager.cpp:424-445`).
+**Absent vs mainline 486**: `CacheExternalResource` (ports cannot
+inject resources here) and the Fast3D `ResolveResourceCached`
+memoization. Alt assets: `Set/IsAltAssetsEnabled`
+(`:452-458`) — though the fork's renderer resolves vanilla-vs-`alt/`
+by explicit path itself for HD textures (`fast3d-renderer.md`).
 
 ## Verified bugs at this pin
 
-- `ResourceClearCache` **still declared, never defined**
-  (`resourcebridge.h:136`) — and now even `API_EXPORT`ed.
-- **Unlocked cache write on the not-found path still there**
-  (`ResourceManager.cpp:156`, outside the `:168` lock).
-- `UnloadResource` TOCTOU + always-returns-0 still there
-  (`:410-417`).
-- `loadExact` still dropped on the sync `__OTR__`-strip recursion
-  (`:106`, now an explicit `false`); the async recursion additionally
-  drops `initData` (`:204`).
-- `ResourceLoadDirectoryAsync` still discards futures
-  (`resourcebridge.cpp:124-126`).
-- `use_count() <= 0` dead guard (`:298`); `ReadResourceInitDataPng`
-  declared-never-defined (`ResourceLoader.h:150`);
-  `ArchiveManager::AddGameVersion` dead (`ArchiveManager.cpp:126`);
-  `Config::mIsNewInstance` write-only.
-- FIXED since 397: the O2r shared-handle races (#1050, above).
+- `ResourceClearCache` declared+exported, never defined
+  (`resourcebridge.h:136`).
+- Unlocked NotFound cache write (`ResourceManager.cpp:156`);
+  `UnloadResource` TOCTOU + returns 0 (`:409-417`); `loadExact`
+  dropped on the sync `__OTR__` recursion (`:106`), async drops
+  `initData` (`:204`); futures discarded
+  (`resourcebridge.cpp:122-124`); `use_count() <= 0` dead guard
+  (`:298`); XML empty-doc null-deref (`ResourceLoader.cpp:287-289`);
+  `ReadResourceInitDataPng` never defined (`ResourceLoader.h:150`);
+  paused-forever pool (`ResourceManager.cpp:63-66`).
+- The `.meta` hash-table pollution above (reverted-in).

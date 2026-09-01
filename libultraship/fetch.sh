@@ -13,9 +13,11 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/Kenix3/libultraship
 
-# Crawl position: 1.3.1-486 (2026-08-15, OcarinaOfTime's submodule pin;
-# 4 commits past 1.3.1-482) — iteration 17 of the reference crawl.
-PIN_SHA=62e973aeb4a53ad4d22bb91e2d9373ecdfcd246c
+# Crawl position: 1.3.1-544 (2026-07-16, Ghostship's submodule pin —
+# a KiritoDv FORK branch: 1.3.1-463 + 81 fork commits, NOT mainline;
+# fetch it from the game's submodule if absent upstream) — iteration
+# 18 of the reference crawl; see tasks/reference/libultraship/crawl.md.
+PIN_SHA=c151cc913dfcdcfbeffd0a1b50d26f4c620a5634
 
 if [ ! -d libultraship ]; then
     git clone "$UPSTREAM" libultraship

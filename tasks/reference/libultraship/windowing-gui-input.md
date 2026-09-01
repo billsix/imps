@@ -1,125 +1,81 @@
 # libultraship — windowing, GUI, and input
 
-> **Pinned:** libultraship **1.3.1-486**
-> (`62e973aeb4a53ad4d22bb91e2d9373ecdfcd246c`, 2026-08-15 —
-> OcarinaOfTime's pin; 4 commits past 1.3.1-482).
-> Updated 2026-09-01, iteration 17 of the reference crawl
-> (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
-> NEWER than the 1.4.x tags despite the smaller number.
+> **Pinned:** libultraship **1.3.1-544**
+> (`c151cc913dfcdcfbeffd0a1b50d26f4c620a5634`, 2026-07-16 — Ghostship's
+> pin; **KiritoDv FORK branch** = 1.3.1-463 + 81 fork commits; mainline
+> 464–486 absent). Updated 2026-09-01, iteration 18 (final) of the
+> reference crawl (`crawl.md`). Re-sync
+> check: compare `PIN_SHA` in `libultraship/fetch.sh`.
 
 ## Window layer
 
-`Ship::Window` is still the pure abstract base and `Fast::Fast3dWindow`
-the one concrete implementation; the port constructs it and passes it
-to `Context::CreateInstance` (fails on null); no `MainLoop` — the port
-loops on `WindowIsRunning()`.
+`Ship::Window` abstract + `Fast::Fast3dWindow` concrete, ctor
+`(gui, mouseStateManager)`, id-typed backends on ship / enum on fast —
+all the pre-463 structure holds (`Window.h:75`, `:206-284`;
+`MouseStateManager` `Window.h:264-290`, `FastMouseStateManager` in
+fast; `StartFrame` per frame `Fast3dWindow.cpp:228`).
 
-- **Window ctor now takes `(gui, mouseStateManager)`**
-  (`Window.h:59-75`): mouse capture/visibility moved into a
-  **`MouseStateManager`** abstraction (#1009,
-  `include/ship/window/MouseStateManager.h:15` — `StartFrame`,
-  auto-capture, forced visibility, capture override);
-  `Fast::FastMouseStateManager` adds a cursor-hide timer keyed to
-  target FPS. Frame flow calls `GetMouseStateManager()->StartFrame()`
-  (`Fast3dWindow.cpp:206`).
-- **Backend selection is id-typed in ship, enum in fast** (#1097):
-  `Ship::Window` traffics in `int32_t` backend ids
-  (`Window.h:206-291`); the (now plain) `enum WindowBackend` lives in
-  `include/fast/Fast3dWindow.h:22`. Availability declared in the
-  `Fast3dWindow` ctor via `AddAvailableWindowBackend`
-  (`Fast3dWindow.cpp:31-40`); pairing in `InitWindowManager`
-  (`:136-162`). Window-backend persistence moved from Config onto
-  `Ship::Window` (`Window.cpp:70`, `:125-126`).
-- **iOS residual null-deref persists**: SDL_OPENGL advertised
-  unconditionally (`Fast3dWindow.cpp:40`) but its case is compiled out
-  on iOS (`ENABLE_OPENGL` undefined there, `src/CMakeLists.txt:177-215`)
-  → both API pointers stay null past an `SPDLOG_ERROR` (`:158-160`).
-- SDL specifics unchanged: F11 fullscreen / F2 mouse-capture
-  (`Fast3dWindow.cpp:101-105`); Steam Deck sniff + Android/iOS
-  `gameMode` (`:63-79`); `SupportsWindowedFullscreen` OpenGL-only,
-  never Apple (`:301-312`). NEW: `EnableSRGBMode` (`:169`),
-  `GetCurrentRefreshRate` (`:295`); DirectX gets a **WARP software
-  fallback** (#967, `gfx_dxgi.cpp:1047`); macOS Metal resize crash
-  fixed (#970, `gfx_sdl2.cpp:641-647`); GL state-switching reduced via
-  caching (#982); `sysctl kern.clockrate` pacing calibration for
-  OpenBSD/macOS (#1023, `gfx_sdl2.cpp:365-368`).
-- The GfxDebugger moved INTO `Fast3dWindow` (`Fast3dWindow.cpp:104-105`)
-  — no longer a Context subsystem.
+- **Backend enum gains Vulkan**: `FAST3D_DXGI_DX11=1, FAST3D_SDL_OPENGL
+  =2, FAST3D_SDL_METAL=3, FAST3D_SDL_VULKAN=4`
+  (`include/fast/Fast3dWindow.h:22-27`). Availability
+  (`Fast3dWindow.cpp:35-50`): DX11 on `_WIN32`, Metal on Apple +
+  `Metal_IsSupported()`, Vulkan under `ENABLE_VULKAN` +
+  `Vulkan_IsSupported()`, and **OpenGL now behind `#ifdef
+  ENABLE_OPENGL`** — the long-standing iOS
+  advertise-but-compiled-out null-deref is **FIXED** here.
+- **Occlusion skip (NEW)**: `GfxWindowBackend::IsWindowVisible()`
+  (default true, `gfx_window_manager_api.h:32-36`);
+  `DrawAndRunGraphicsCommands` skips render+present and sleeps 8 ms
+  when occluded (`Fast3dWindow.cpp:216-226`) — Metal's `nextDrawable`
+  otherwise stalls ~1 s/frame. macOS occlusion via `isWindowOccluded`
+  (`include/ship/utils/macUtils.h`). Related: a focus-loss lag fix.
+- F11/F2 shortcuts (`Fast3dWindow.cpp:106-110`); Steam-Deck/gameMode
+  sniff (`:72-96`); `SupportsWindowedFullscreen` GL-only never-Apple
+  (`:323-333`); `GetCurrentRefreshRate` (`:317`); GfxDebugger
+  constructed in `Fast3dWindow::Init` (`:112-113`). **`EnableSRGBMode`
+  is REMOVED** (SRGB became a registrable post-pass —
+  `fast3d-renderer.md`).
+- `DrawAndRunGraphicsCommands` now also takes a `dlReplacements` map
+  (`Fast3dWindow.cpp:207`).
 
-## GUI layer — `Ship::Gui` is now renderer-agnostic
+## GUI layer
 
-**The 397 "Gui hard-casts to Fast3dWindow" bug cluster is fixed by
-restructuring**: `Ship::Gui` (`Gui.cpp` shrank to 421 lines, zero
-Fast3D references) exposes virtual hooks — `ImGuiBackendInit/Shutdown`,
-`ImGuiWMInit/Shutdown/NewFrame`, `ImGuiRenderDrawData`, `DrawGame`,
-`CalculateGameViewport`, `RefreshImGuiGamepads`, `SupportsViewports`
-(`Gui.h:80-224`) — implemented by **`Fast::Fast3dGui : Ship::Gui`**
-(`src/fast/Fast3dGui.cpp`, 773 lines), which grabs the interpreter
-weak_ptr **once** in `ImGuiWMInit` (`Fast3dGui.cpp:143`; cast still
-unguarded but only `Fast3dWindow` constructs it,
-`Fast3dWindow.cpp:47`). Window backends call
-`Fast3dGui::Init(GuiWindowInitData)` (`gfx_sdl2.cpp:440-441`);
-`GuiWindowInitData` moved to `Fast3dGui.h:28-49` (vestigial Gx2 arm
-included).
+`Ship::Gui` renderer-agnostic + `Fast::Fast3dGui` (816 lines) — the
+pre-463 split holds; interpreter grabbed once in `ImGuiWMInit`, still
+an unguarded deref but intra-family (`Fast3dGui.cpp:122-124`).
 
-- **Default windows: 5 → 4** (`Gui.cpp:23-52`): Stats,
-  `SDLAddRemoveDeviceEventHandler`, Console, **FileBrowser** (NEW,
-  #1139 — ImGui fallback file dialog). **InputEditorWindow and
-  GfxDebuggerWindow are no longer auto-constructed** — both moved to
-  the `libultraship/` tree and the port opts in via the `guiWindows`
-  ctor argument (`classes.h` no longer re-exports InputEditorWindow.h).
-- Two menu slots (`SetMenuBar`/`SetMenu`, `Gui.h:123-132`); F1 /
-  gamepad-Back toggles (`Gui.cpp:19-20`).
-- **Hotplug still rides the GUI**: `SDLAddRemoveDeviceEventHandler`
-  pumps SDL device events (`SDLAddRemoveDeviceEventHandler.cpp:23-33`)
-  — and now also refreshes the **ImGui gamepad backend binding**
-  (#1112/#1138: `RefreshImGuiGamepads` →
-  `ImGui_ImplSDL2_SetGamepadMode(AutoAll)`, `Fast3dGui.cpp:242-248`,
-  re-invoked on hotplug).
-- **GUI still owns the render resolution, no headless mode**:
-  `CalculateGameViewport` writes `interpreter->mCurDimensions`
-  (Advanced Resolution + low-res overrides) — now
-  `Fast3dGui.cpp:306-360`; `DrawGame` composites the game FB
-  (`:362-420`).
-- GUI textures: `Fast3dGui::LoadGuiTexture` handles NEW
-  `Palette4bpp` with a `palettePath` (#1157, `Fast3dGui.cpp:578-620`);
-  `LoadTextureFromResource` present (`:566`).
-- NEW: background-inputs toggle (#994, `CVAR_ALLOW_BACKGROUND_INPUTS`,
-  default on — SDL hint at `Fast3dGui.cpp:92-101`; DXGI blocks game
-  input on focus loss, `gfx_dxgi.cpp:506-514`). StatsWindow uses a
-  fixed-width format so its rendered size is stable (#1020).
-- The shipped `EventDebuggerWindow` is instantiated by nobody — port
-  opt-in (`architecture-overview.md`).
+- **Default windows: THREE** (`Gui.cpp:23-45`): Stats,
+  `SDLAddRemoveDeviceEventHandler`, Console. Mainline's **FileBrowser
+  (#1139) is absent**; InputEditor/GfxDebugger port-opt-in as before.
+  The fork's `ShaderSettingsWindow` ships but is also **port opt-in**
+  (nothing auto-constructs it).
+- **`RefreshImGuiGamepads` (#1112/#1138) absent** — hotplug still
+  pumps SDL device events through the GUI but does NOT rebind ImGui's
+  gamepad backend.
+- **Palette4bpp GUI textures (#1157) absent** — `LoadGuiTexture`
+  rejects palette types (`Fast3dGui.cpp:674-678`); no `palettePath`.
+- GUI still owns the render resolution (writes `mCurDimensions`,
+  `Fast3dGui.cpp:410-441`); still no headless mode; two menu slots +
+  F1/Esc as before; background-inputs CVar honored (`:129-131`).
+- `Fast3dGui::LoadTextureFromResource` still leaks GPU textures by
+  design (TODO at `Fast3dGui.cpp:657`).
 
 ## Controller / input
 
-Ownership tree unchanged (ControlDeck → ControlPort → Controller →
-Button/Stick/Gyro/Rumble/LED → typed mappings; `physicaldevice/`
-layer). Deltas:
-
-- **Concrete layer restructured**: `Ship::Controller::ReadToPad` pure
-  virtual (`Controller.h:117`); the concrete **`LUS::Controller`**
-  implements `ReadToOSContPad` including the per-controller (= per-port)
-  6-deep input-lag buffer (`src/libultraship/controller/.../Controller.cpp:40-72`).
-  `LUS::ControlDeck` constructs its own ports and takes injectable
-  `ControllerDefaultMappings` + a button-name map
-  (`ControlDeck.cpp:11-47`; the 14 N64 names are now the ctor default
-  argument).
-- SDL game-controller init moved to `Context::InitControlDeck`
-  (non-fatal) — see `architecture-overview.md`; `osContInit` shrank
-  accordingly.
-- Keyboard/mouse still event-driven (`ProcessKeyboardEvent`/
-  `ProcessMouseButtonEvent`, `ControlDeck.cpp:43-62`); wheel via
-  `WheelHandler`; stick math unchanged; `OSContPad` offsets still
-  wrong; rumble via `osMotorStart/Stop` macros over `__osMotorAccess`
-  (`motor.h:9-10`, `os.cpp:75-84`); LED still driven by nothing;
-  input blocking unchanged.
+Pre-463 structure throughout: ControlDeck → ControlPort →
+`LUS::Controller` (per-port 6-deep input-lag buffer), mapping matrix +
+`physicaldevice/` layer, event-driven keyboard/mouse, `WheelHandler`,
+stick math, wrong `OSContPad` offsets, rumble via
+`osMotorStart/Stop`, LED driven by nothing, ref-counted input
+blocking. **Reverted vs mainline**: SDL game-controller init is back
+inside `osContInit` with `exit(EXIT_FAILURE)` on failure
+(`os.cpp:15-36`) — the non-fatal `InitControlDeck` move was #1103.
 
 ## Verified bugs at this pin
 
-- iOS backend-selection residual (above).
-- Uninitialized `SDL_Renderer* mRenderer` under GL (`gfx_sdl.h:58` vs
-  `gfx_sdl2.cpp:426`/`:746`) — see `fast3d-renderer.md`.
-- FIXED since 397: the `Gui::Init` duplicated grab + hard-cast cluster
-  (restructured away — single grab, `Fast3dGui.cpp:143`).
+- Uninitialized `SDL_Renderer* mRenderer` under GL/Vulkan
+  (`gfx_sdl.h:59`, `gfx_sdl2.cpp:480`/`:823`).
+- SDL `GetTime()` 0.0; `SDL_GL_SwapWindow` unconditional even under
+  Metal/Vulkan (`gfx_sdl2.cpp:827-835`).
+- FIXED here: the iOS backend-selection null-deref (guarded
+  advertisement, above).

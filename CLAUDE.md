@@ -109,14 +109,14 @@ operation in the agent contract below). The pairs:
 
 | Derived artifact (imps) | Source of truth (in the checkout) | Drift notes |
 |---|---|---|
-| `<Project>/Dockerfile` | the upstream CI workflow's Linux job (Shipwright: `generate-builds.yml`; 2ship/Lighthouse/Ghostship: `main.yml` build-linux) | from-source lib versions (SDL 2.30.3, tinyxml2 10.0.0, libzip 1.10.1), base-OS choice, build flags — all hand-copied. Where a deps list exists as a FILE it is bind-mounted at image build (2ship `apt-deps.txt`, Shipwright `linux-build-deps/apt.txt`) and stays auto-current; the inline extras and steps do not. Also: runner images pre-provide tools a bare base lacks (modern cmake on 22.04 → the Kitware block; python3) — CI won't notice those needs changing, we must. |
-| `<Project>/installdependencies.sh` | `docs/BUILDING.md` Fedora section (Lighthouse/2ship/Ghostship) or `linux-build-deps/dnf.txt` (Shipwright) | list is inlined by design (works before first fetch) — re-diff against the doc at every pin bump. Two lines are OURS via patches (banjo SDL2_net = patch 0001; mario libshaderc = patch 0004): derive from the PATCHED doc, and if upstream merges those patches, the doc and script converge on their own. |
+| `<Project>/Dockerfile` | the upstream CI workflow's Linux job (Shipwright: `generate-builds.yml`; 2ship/Lighthouse/Ghostship: `main.yml` build-linux) | from-source lib versions (SDL 2.30.3, tinyxml2 10.0.0, libzip 1.10.1), base-OS choice, build flags — all hand-copied. Where a deps list exists as a FILE it is bind-mounted at image build (2ship `apt-deps.txt`, Shipwright `linux-build-deps/apt.txt`) and stays auto-current; the inline extras and steps do not. Also: runner images pre-provide tools a bare base lacks (modern cmake on 22.04 and ≥3.30 on 24.04 → the Kitware blocks; python3; imagemagick for SoH's configure-time AppImage icon; noble's shaderc/spirv-tools ABI skew → the libshaderc_shared.so symlink) — CI won't notice those needs changing, we must. |
+| `<Project>/installdependencies.sh` | `docs/BUILDING.md` Fedora section (Lighthouse/2ship/Ghostship) or `linux-build-deps/dnf.txt` (Shipwright) | list is inlined by design (works before first fetch) — re-diff against the doc at every pin bump. Some lines are OURS via patches (banjo SDL2_net = patch 0001; mario libshaderc = patch 0004; mm audio libs ogg/vorbis/opus/opusfile = patch 0002): derive from the PATCHED doc, and if upstream merges those patches, the doc and script converge on their own. |
 | `<Project>/build.sh` + `Makefile` build targets | upstream CMake target names and flags (`GenerateSohOtr` / `Generate2ShipOtr` / `GeneratePortO2R`, `BUILD_REMOTE_CONTROL`, `cpack -G External`, Ghostship's `.tcc` dir) | target names have changed across pins before (ocarina's ZAPDTR→torch restructure); check them each bump. |
 | `patches/*.patch` | upstream code itself | the core case — covered by the pin-bump rebase procedure. |
 | `tasks/reference/<project>/` docs | the pinned source | covered by per-doc provenance banners. |
 | pin comments in `fetch.sh` (date, describe, "tip of develop") | the `PIN_SHA` itself | update the prose when updating the SHA. |
 | per-project `CLAUDE.md` facts (submodule SHAs, patch lists, gotchas) | the checkout + `patches/` | re-verify at every pin bump and series change. |
-| `libultraship/fetch.sh` `PIN_SHA` | the crawl checklist position in `tasks/libultraship-reference-docs.md` | the two advance together, one commit per iteration. |
+| `libultraship/fetch.sh` `PIN_SHA` | the crawl iteration log in `tasks/reference/libultraship/crawl.md` | the two advance together, one commit per iteration; check fork topology (`git merge-base`) before assuming a new pin descends from the documented one. |
 | the FUTURE upstream-container-CI patches (`tasks/*-upstream-container-ci.md`) | both the Dockerfile AND the workflow | double-derived; their acceptance strategy requires re-checking fidelity against whatever CI looks like at submission time. |
 
 ## Working on a project — agent contract
@@ -172,15 +172,21 @@ operation in the agent contract below). The pairs:
   `OcarinaOfTime/CLAUDE.md` + `tasks/reference/ocarina/` per the
   documentation structure above (stale fork-era claims fixed or bannered
   in the move); its submodule-pin changes were dropped as obsolete.
+  Also carries a podman build (`Dockerfile` ubuntu-22.04 CI mirror +
+  `Makefile` → `out/soh.appimage`, verified nested 2026-09-01; the
+  maintainer's on-host run is the closing check) and a
+  container-verified `installdependencies.sh`.
 - `MajorasMask/` — 2 Ship 2 Harkinian
   (https://github.com/HarbourMasters/2ship2harkinian), pinned at
   `04a1a4319` (tip of `develop`, 2026-05-31; submodules libultraship +
   ZAPDTR + OTRExporter — pre-torch pipeline). Details:
-  `MajorasMask/CLAUDE.md`. Status: one code patch (64-bit audio/scheduler
-  fixes, a strong upstream-submission candidate), exported verbatim from
+  `MajorasMask/CLAUDE.md`. Status: two patches — the 64-bit audio/scheduler
+  fixes (a strong upstream-submission candidate), exported verbatim from
   the maintainer's old `fedora44Fixes` fork branch and verified
-  byte-identical on apply; patched tree **build- and run-verified on the
-  maintainer's host 2026-09-01**. Also carries a
+  byte-identical on apply, plus a BUILDING.md fix adding the four
+  required audio libraries (upstream candidate, found 2026-09-01 by the
+  install-script container verification); patched tree **build- and
+  run-verified on the maintainer's host 2026-09-01**. Also carries a
   podman build (`Dockerfile` + `Makefile` → AppImage), ported from the old
   fork's `podmanBuildAppImage` branch as native imps files — the first
   container build in imps.
@@ -200,7 +206,10 @@ operation in the agent contract below). The pairs:
   fork's doc set migrated to `tasks/reference/mario64/` (bannered — the
   events restructure postdates them) and its cheat-idea task stubs to
   `tasks/mario64-*.md`; the messy `bill` branch history was deliberately
-  not ported.
+  not ported. Also carries a podman build (`Dockerfile` ubuntu-24.04 CI
+  mirror + `Makefile` → `out/ghostship.appimage`, verified nested
+  2026-09-01; the maintainer's on-host run is the closing check) and a
+  container-verified `installdependencies.sh`.
 - `BanjoKazooie/` — Lighthouse
   (https://github.com/HarbourMasters/Lighthouse), pinned at `6d30df9a`
   (tip of `develop`, 2026-09-01, just past the 1.0.0 release; submodules

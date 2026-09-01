@@ -1,6 +1,10 @@
 # libultraship: per-tag reference documentation crawl
 
-**Status:** proposed — needs go-ahead
+**Status:** done — all 18 iterations complete 2026-09-01 (13 release
+tags + 5 consumer pins, per-iteration commits authorized for the
+2026-09-01 work session). The standing protocol + iteration log were
+harvested to `tasks/reference/libultraship/crawl.md`, which is what a
+future pin bump reopens. Archived same day.
 **Priority:** 3
 **Difficulty:** 8
 
@@ -179,10 +183,16 @@ by nothing; deliberately not an iteration.)
       fork's doc set at /foo/opt/n64/libultraship/tasks/reference/
       (which proved ~95% accurate for this pin — it was written against
       it; ~10 anchor/claim errors found and not carried over).
-- [ ] `c151cc91` (1.3.1-544) — Ghostship's NEW pin (the SuperMario64
-      project's current GitHub-develop checkout) — appended per the
-      note above; walk it after the other three consumer pins to keep
-      date order.
+- [x] `c151cc91` (1.3.1-544) — Ghostship's NEW pin — iteration 18
+      (final), 2026-09-01 (3 parallel delta readers). SURPRISE: it is a
+      **KiritoDv fork branch** (1.3.1-463 + 81 fork commits), not
+      mainline — mainline 464-486 is absent (Context GetRawInstance,
+      .meta priorities, several audio/texture fixes all revert to older
+      shapes) while the fork adds a Vulkan backend, GPU-side T&L,
+      postprocessing/material shaders, native+auto mipmapping, async HD
+      textures, a python-free build, and portable bundled TCC. The
+      fork-topology check (`git merge-base` before assuming descent) is
+      now part of the standing protocol.
 - [x] `7f2baa10` (1.3.1-397, 2026-02-28) — MajorasMask's pin —
       iteration 15, 2026-09-01: tiny cousin delta vs 399 (shared base
       `0b76d895`): PLUS the WASAPI mutex race fix (#1001), MINUS the

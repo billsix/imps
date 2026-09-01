@@ -13,7 +13,7 @@ Human-facing build steps: [`docs/building.md`](../../docs/building.md).*
 
 The build is **CMake-driven** (`CMakeLists.txt`, ~700 lines). The shipping launcher pair
 `build.sh` + `run.sh` lives **one dir up** at `/foo/opt/n64/mario64/`. Per the root
-`CLAUDE.md`, **Claude does not build/run** here — Bill builds on his Fedora host outside the
+`CLAUDE.md`, **Claude does not build/run** here — the maintainer (William Emerison Six <billsix@gmail.com>) builds on their Fedora host outside the
 sandbox; edits are handed back with a "try this" prompt.
 
 ## The executable

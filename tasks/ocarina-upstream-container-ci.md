@@ -24,8 +24,7 @@ the goal.
 
 - Upstream CI file: `Shipwright/.github/workflows/generate-builds.yml` — the Linux job runs on ubuntu-22.04. Scope is
   the **Linux job only**; Windows/macOS/Switch jobs stay untouched.
-- The imps Dockerfile this would upstream: tasked this same batch (`ocarina-podman-appimage-build.md`). This task depends
-  on that Dockerfile existing and being verified; sequence after it.
+- The imps Dockerfile this would upstream: **shipped and host-verified** (`OcarinaOfTime/Dockerfile`); its build task is archived at `tasks/archive/ocarina/2026/09/01/ocarina-podman-appimage-build.md`.
 - **The patch adds three in-repo files:**
   - a **`Makefile`** — the full imps target set (`image`, `build`,
     `appimage`, `image-export`/`image-import`, `shell`, `run`, `clean`,

@@ -124,7 +124,7 @@ Three mechanisms (same family as the siblings):
 ## Provenance / fork facts
 
 - Upstream is HarbourMasters/Lighthouse (lead Malkierian); the port tag `1.0.0` released
-  2026-07-31. Bill's fork is the **`bill`** branch (`origin` = a Pi mirror). The delta over
+  2026-07-31. The fork of the maintainer (William Emerison Six <billsix@gmail.com>) is the **`bill`** branch (`origin` = a Pi mirror). The delta over
   `develop` is tiny (docs + this reference set); the substantive engineering is upstream.
 - Bootstrap milestones are legible in git history (`git log --reverse`): early commits are decomp
   progress (`core2/gczoombox.c done`, `code_87E30.c progress`, `80%`), consistent with a

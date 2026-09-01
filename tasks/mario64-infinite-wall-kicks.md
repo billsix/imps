@@ -22,7 +22,7 @@ single wall indefinitely).
      wall-kick gate so a listener can keep the window open / re-arm the kick.
    - Feasibility + risks (does freely re-kicking the same wall gain unbounded height? intended?).
 2. (Define after step 1.)
-3. Hand to Bill to build/run.
+3. Hand to the maintainer (William Emerison Six <billsix@gmail.com>) to build/run.
 
 ## Feasibility hints (verify in step 1)
 - SM64 doesn't cap the *count* of wall kicks directly; the gate is the **`wallKickTimer` window**

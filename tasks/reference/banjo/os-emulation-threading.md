@@ -179,7 +179,7 @@ the tick. So a "freeze" is observable and diagnosable, not a black box.
 
 ## 64-bit-host portability hazards (`OSMesg` width, pointer-range guards)
 
-The sibling MM port (2ship2harkinian, Bill's `fedora44Fixes`, commit `dab560f97` "Fix silent
+The sibling MM port (2ship2harkinian, the `fedora44Fixes` branch of the maintainer (William Emerison Six <billsix@gmail.com>), commit `dab560f97` "Fix silent
 SFX and several 64-bit-host audio crashes") documents a bug class that **builds clean and only
 crashes at runtime on a 64-bit host** — directly relevant because Lighthouse reimplements the
 message queues. The classes and Lighthouse's status (verified 2026-07-31):

@@ -11,7 +11,7 @@ It is the map; the four companion docs are the territory:*
 *[decomp-map.md](decomp-map.md) · [port-layer.md](port-layer.md) ·
 [libultraship-integration.md](libultraship-integration.md) ·
 [asset-pipeline.md](asset-pipeline.md) · [build-system.md](build-system.md).*
-*Bill's fork-specific workflow + gameplay gotchas live in the root
+*The maintainer's fork-specific workflow + gameplay gotchas live in the root
 [`CLAUDE.md`](../../CLAUDE.md); this doc is the architecture underneath them.*
 
 ## What Ghostship is
@@ -136,7 +136,7 @@ These are the crux; everything else is detail.
 ## Provenance / fork facts
 
 - Upstream is HarbourMasters/Ghostship, lead dev Lywx/KiritoDv (`git shortlog`: KiritoDv
-  367 commits). Bill's fork is the **`bill`** branch (`origin`/`bills` remotes on a Pi).
+  367 commits). The fork of the maintainer (William Emerison Six <billsix@gmail.com>) is the **`bill`** branch (`origin`/`bills` remotes on a Pi).
 - The fork is **small and surgical**: 11 commits over the `develop` merge-base, 12 files —
   9 in `src/game/` (fly/jump/no-hurt/no-skybox cheats), 1 menu file, the root `CLAUDE.md`,
   and `docs/plans/cheats-and-menu-enhancements.md`. `git diff $(git merge-base develop bill)..bill`

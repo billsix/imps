@@ -1,13 +1,14 @@
 # OcarinaOfTime: podman AppImage build like MajorasMask's
 
-**Status:** implemented — verified nested through `make appimage`
-(out/soh.appimage, 32 MB, patched tree); awaiting the maintainer's
-on-host run. Note (2026-09-01 evening): his first HOST build of the
-sibling mario64 project failed on the sandbox's `:Z`-poisoned SELinux
-labels (see that task) — fixed host-wide via `restorecon -R` + a `:z`
-launcher, so this project's host run should be unaffected now. Ocarina's
+**Status:** DONE — host-confirmed 2026-09-01 (William Emerison Six
+<billsix@gmail.com>): `make appimage` produces `out/soh.appimage`
+(32 MB, verified nested) and the AppImage was built AND run on the host
+— full pipeline closed. The SELinux bind-mount failure that hit the
+sibling projects was fixed durably by switching the Dockerfile's
+apt-list step from `RUN --mount=type=bind` to `COPY` (applied across all
+four Dockerfiles; master CLAUDE.md drift table). Ocarina's
 checkout has NO submodule build-pollution (its older LUS doesn't build
-into the source tree — checked). Archive when the host run passes. Outcome details in
+into the source tree — checked). Outcome details in
 `OcarinaOfTime/CLAUDE.md` ("Podman build") incl. three
 runner-pre-provides gaps found: Kitware cmake (jammy 3.22 < 3.26),
 python3, imagemagick (configure-time AppImage icon).

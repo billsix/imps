@@ -21,7 +21,7 @@ oot's function at `0x800A9F30`. oot has named most of the game. Cross-reference 
 - **BUT oot leaves a LOT of symbols address-named too.** When it does, an LLM/descriptive name is legitimate —
   just mark it as ours (see provenance convention). Roughly ~2/3 of what we hit had no oot name.
 
-## Provenance-comment convention (Bill's request)
+## Provenance-comment convention (the maintainer's request)
 Every renamed symbol gets a **greppable** comment directly above its definition, in one of two forms:
 - `// LLM generated name (HIGH|GUESS), was <addr>: <reason from the code>` — our deduction (oot has no name).
 - `// Name from zeldaret/oot <file> (was <addr>): <reason>. [oot: <url>]` — authoritative upstream name.
@@ -31,7 +31,7 @@ are trivially strippable before upstreaming. Never let both markers land on one 
 confirmed against oot, upgrade the LLM comment to the oot form (swap marker, append the URL).
 
 ## The safe-rename mechanic
-A rename must be **total** (def + every reference) and behavior-preserving. Do NOT rely on a build (Bill
+A rename must be **total** (def + every reference) and behavior-preserving. Do NOT rely on a build (the maintainer (William Emerison Six <billsix@gmail.com>)
 builds/runs separately; our renames are grep-complete, not build-verified).
 - Global word-boundary replace scoped to **`soh/src` + `soh/soh` + `soh/include`** (the last is easy to
   forget — see gotcha). `sed 's/\bOLD\b/NEW/g'` on the files `git grep -lwI OLD` returns.
@@ -64,7 +64,7 @@ builds/runs separately; our renames are grep-complete, not build-verified).
   `sys_freeze.c` + `sys_debug_controller.c`).
 - **Adopting an oot name that clashes with an existing SoH name.** e.g. oot's `Message_StartOcarina` needs
   SoH's *existing* `Message_StartOcarina` (= oot `Message_StartOcarinaImpl`) renamed first — a broad change to
-  a widely-called symbol. Defer such multi-step realignments to Bill rather than doing them unverified.
+  a widely-called symbol. Defer such multi-step realignments to the maintainer rather than doing them unverified.
   Same shape blocked `TransitionUnk_Start`→`TransitionUnk_Update` (the Update name was already taken).
 - **Mirrored-name file pairs.** Two files whose functions map onto the same names can't both be non-static in
   C. The rumble pair resolved via oot: high-level `z_rumble.c` owns bare `Rumble_Update/Init/Destroy`;
@@ -83,7 +83,7 @@ rename scope covering `soh/soh` catches these automatically; always keep it in s
 3. Apply centrally with the safe-rename mechanic (keeps consistency + the savestate/scope guards in one place).
 4. Annotate with the provenance convention.
 5. Log the batch + any held/deferred items + questions in the task doc.
-6. Hand to Bill to build + run (the only real verification).
+6. Hand to the maintainer to build + run (the only real verification).
 
 ## Status at this stopping point (2026-07-31)
 Done: **18/19 `code_<addr>.c` files renamed** (only `code_800FBCE0.c`, RCP, left — oot leaves its 2 funcs

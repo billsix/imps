@@ -1,7 +1,7 @@
 # Decomp: name the un-named functions & de-disassemble the ugly C
 
 **Status:** proposed — ongoing/long-running; done in batches (one `code_*` file / cluster at a time).
-**Workflow:** Claude edits; **Bill builds + runs** (needed to capture runtime logs *and* to verify
+**Workflow:** Claude edits; **the maintainer builds + runs** (needed to capture runtime logs *and* to verify
 behavior is unchanged). Shipwright's build is heavy — batch small so each verify is worth it.
 **Priority (William Emerison Six <billsix@gmail.com>, 2026-07-31): renaming files and functions is MORE important than de-obfuscating the
 C.** Do the renames thoroughly and completely; treat the readability rewrites (goal 3) as secondary —
@@ -9,17 +9,17 @@ only when trivially safe and quick, otherwise skip them. A file/function with a 
 body is a win; don't hold up a rename batch on a risky readability rewrite.
 
 ## STOPPING POINT — resume here (2026-07-31, session end)
-Stopped at a clean milestone (Bill's call); task stays **open** — the bulk of the renaming remains.
+Stopped at a clean milestone (the maintainer's call); task stays **open** — the bulk of the renaming remains.
 - **Done:** 18/19 `code_<addr>.c` files renamed (only `code_800FBCE0.c` left — RCP, oot leaves it
   address-named too); ~206 symbols renamed and cross-checked against zeldaret/oot (65 oot-cited, 141
   marked LLM because oot leaves them address-named). That's the `code_` files + every file that had only
-  1–2 un-named funcs. All grep-complete, **NOT build-verified** — Bill's build is the gate.
+  1–2 un-named funcs. All grep-complete, **NOT build-verified** — the maintainer's build is the gate.
 - **Remaining:** **~3,988 un-named `func_` defs across ~175 denser files** (3+ un-named funcs each) +
   the whole **de-obfuscation goal (goal 3, untouched)** + the open questions below.
 - **How to resume:** read **[`tasks/reference/ocarina/decomp-renaming.md`](reference/ocarina/decomp-renaming.md)** first
   (the method, the oot cross-referencing oracle, the gotchas, the naming decisions), then re-run the
   survey (per-file un-named-func count, smallest first) and continue the batch loop.
-- **Discretion-flags for Bill to eyeball** (in the review-pass log below): `Math_FMod` not renamed to
+- **Discretion-flags for the maintainer to eyeball** (in the review-pass log below): `Math_FMod` not renamed to
   oot's `fmodf` (libc clash); `TransitionUnk_Start` left (Update name taken); full `Message_StartOcarina`
   oot alignment deferred (touches a widely-called existing symbol).
 
@@ -55,7 +55,7 @@ Orientation: `tasks/reference/ocarina/decomp-map.md` (where OoT gameplay systems
    (and upstream SoH) naming where you're confident** — much of OoT has been named upstream — but
    verify against the actual body; don't blind-copy.
 2. **Runtime logging when static analysis is inconclusive.** Add a *temporary* log at function entry
-   (name, args, a call counter, caller) gated behind a debug toggle, then **ask Bill to run the game
+   (name, args, a call counter, caller) gated behind a debug toggle, then **ask the maintainer to run the game
    and exercise the relevant scene/actor** (these `code_` segments are gameplay code — collision,
    actors, etc.). Analyze the captured log (when/how often called, arg values, call sites) to infer
    purpose. *Confirm the exact log call on first use* — pick whatever SoH routes to its console/log
@@ -67,11 +67,11 @@ Orientation: `tasks/reference/ocarina/decomp-map.md` (where OoT gameplay systems
 5. **Readability pass** (optional per function, when it's disassembly-shaped): rewrite to idiomatic C,
    behavior-preserving.
 6. **Remove the temporary logging** once named.
-7. **Hand the batch to Bill to build + run** — confirms it links and that behavior is unchanged.
+7. **Hand the batch to the maintainer to build + run** — confirms it links and that behavior is unchanged.
 
 ## Guardrails (important — OoT has more name-based indirection than SM64)
 - **Behavior-preserving is the hard rule.** Renames must be total; readability rewrites must not
-  change behavior. When unsure, leave it. Verify by Bill's build + in-game check.
+  change behavior. When unsure, leave it. Verify by the maintainer's build + in-game check.
 - **Check for externally-fixed references before renaming.** OoT wires functions through tables and
   the DMA/overlay system: gamestate `init/destroy` pointers, actor overlay `ActorInit`/`ActorDB`
   entries, function-pointer tables, and possibly `spec`/dmadata/`.s` references. `git grep` the symbol
@@ -81,7 +81,7 @@ Orientation: `tasks/reference/ocarina/decomp-map.md` (where OoT gameplay systems
 - **Temporary logging is scaffolding** — track what you add (here + a code comment) and remove it
   before the batch is done.
 - **Batch small and reviewable** — one `code_*` file (or a related cluster) per batch. Shipwright's
-  build is slow; make each Bill-verify count. Log progress below so a later session resumes cold.
+  build is slow; make each the maintainer-verify count. Log progress below so a later session resumes cold.
 - **This is stock SoH** (`bill` == upstream `develop`) — clean renames here are the kind of thing SoH
   upstream accepts, so keep changes tidy/upstreamable, and don't tangle a rename batch with unrelated
   edits.
@@ -90,7 +90,7 @@ Orientation: `tasks/reference/ocarina/decomp-map.md` (where OoT gameplay systems
 Shipwright compiles the decomp via a **`GLOB_RECURSE src/*.{c,h}`** (`soh/CMakeLists.txt:188`, see
 `tasks/reference/ocarina/build-system.md`), so a source file has **no explicit entry in CMake** — a
 `git mv soh/src/code/code_XXXX.c soh/src/code/<newname>.c` is picked up automatically **on the next
-CMake re-configure** (the glob isn't `CONFIGURE_DEPENDS`, so a bare `--build` won't notice; Bill
+CMake re-configure** (the glob isn't `CONFIGURE_DEPENDS`, so a bare `--build` won't notice; the maintainer
 re-runs cmake). "Update the build system appropriately" therefore means: **`git mv` the file, then
 verify nothing references the old name** — `git grep code_XXXX` across `.c/.h/.spec/.inc/.txt` and
 CMake (a matching header, an `#include`, a dmadata/spec/linker reference, a per-file property). If a
@@ -100,13 +100,13 @@ references, so it's usually just the `git mv` + a re-configure.
 ## Suggested order
 Start with a **small, gameplay-observable `code_*` file with typed signatures** (e.g.
 `code_800430A0.c` — collision-context functions, 105 lines) to establish the static-analysis +
-runtime-logging round-trip with Bill, then work through the rest of `soh/src/code/code_*.c`, then the
+runtime-logging round-trip with the maintainer, then work through the rest of `soh/src/code/code_*.c`, then the
 broader hotspots.
 
 ## Tooling / method notes
 - **Safe rename** = global word-boundary replace across `soh/src` (catches `.c/.h/.inc`) + a
   collision check (skip if the new name already exists) + verify 0 old refs remain. Renames are
-  **grep-complete but NOT build-verified** (Bill asleep) — Bill should do a build pass to confirm.
+  **grep-complete but NOT build-verified** (the maintainer asleep) — the maintainer should do a build pass to confirm.
 - File renames are `git mv` (Shipwright globs `soh/src`, so the build picks them up on re-configure).
 
 ## Progress log
@@ -123,7 +123,7 @@ broader hotspots.
     file `code_800D31A0`→`debug_ctrlr2.c` with `func_800D31A0`→`Debug_Freeze` (prints "Freeze!!",
     hangs — no callers found, possibly unused/ptr-referenced), `func_800D31F0`→
     `Debug_UpdateCtrlr2Valid`, `func_800D3210`→`Debug_ClearCtrlr2Valid` (both called per-frame from
-    `graph.c`). — Bill: sanity-check these medium ones.
+    `graph.c`). — the maintainer: sanity-check these medium ones.
 
 - **2026-07-31 batch 1b — `code_800F7260.c` → `audio_sfx.c`** (OoT SFX subsystem, ~95%
   already named). Grep-complete, 0 residual. HIGH: `func_800F8884`→`Audio_RemoveSoundBankEntriesByPos`,
@@ -135,7 +135,7 @@ broader hotspots.
 
 - **2026-07-31 batch 2 — 8 more `code_*` files, 33 symbols.** All renames global word-boundary
   across `soh/src`+`soh/soh` (C++ port layer callers included, e.g. AudioEditor.cpp), collision-
-  checked, 0 residual old refs. **Not build-verified (Bill asleep).**
+  checked, 0 residual old refs. **Not build-verified (the maintainer asleep).**
   - **`code_800F9280.c` → `audio_seq.c`** (sequence-command layer). HIGH: `func_800F9474`→
     `Audio_StopSequence`, `func_800FA0B4`→`Audio_GetActiveSeqId`, `func_800FA11C`→
     `Audio_IsSeqCmdNotQueued`, `func_800FA174`→`Audio_ResetSequenceRequests`, `func_800FA3DC`→
@@ -167,7 +167,7 @@ broader hotspots.
     dead, see Q5); `D_801755D0` (custom audio update hook — cross-file global with a savestate `_copy`
     field, same entanglement class as `D_801333F0`, see Q3). Prefix decision (a vs b) → Q6.
   - **`code_800430A0.c`** (DynaPoly carried-actor transforms) — **functions renamed, FILE name HELD**
-    (Q7: these live inside `z_actor.c` upstream — merge back vs new file is a Bill call). HIGH
+    (Q7: these live inside `z_actor.c` upstream — merge back vs new file is a the maintainer call). HIGH
     behavior: `func_800430A0`→`DynaPoly_TransformCarriedActorPos`, `func_800432A0`→
     `DynaPoly_RotateCarriedActor`, `func_80043334`→`DynaPoly_SetStandingActorFlags`, `func_800433A4`→
     `DynaPoly_UpdateCarriedActor` (exact OoT spellings unverified — descriptive names).
@@ -180,7 +180,7 @@ broader hotspots.
   - Also repointed 3 stale filename cross-reference comments (in `audio_general.c`, `audio_seq.c`,
     `audio_sfx.c`) to the new filenames.
 
-- **4 `code_*` files deliberately HELD (need a Bill decision or an oot checkout):**
+- **4 `code_*` files deliberately HELD (need a the maintainer decision or an oot checkout):**
   `code_800430A0.c` (Q7 file name), `code_800A9F30.c` + `code_800D2E30.c` (**rumble collision** —
   the two files mirror each other's `Rumble_Update`/`Init`/`Destroy` names, which can't both be
   non-static in C; needs zeldaret/oot to assign, Q9), `code_800FBCE0.c` (**RCP status/halt** — new
@@ -190,7 +190,7 @@ broader hotspots.
 - **2026-07-31 batch 3 — "straggler" sweep: ~70 symbols across ~35 files** (files that had only
   1–2 un-named `func_`/`D_` symbols, found via a per-file def-count survey). All renames global
   word-boundary across `soh/src`+`soh/soh`, collision-checked (file-local statics scoped to their one
-  file to avoid false trips), 0 residual. **Not build-verified (Bill asleep).** Method: OoT actor files
+  file to avoid false trips), 0 residual. **Not build-verified (the maintainer asleep).** Method: OoT actor files
   have rigid `ActorInit` + action-func-table structure, so a lone straggler's role is deducible from
   named context + callers. Analyzers fanned out; applied centrally.
   - **Actor overlays (all file-local, HIGH unless noted):** `ArrowFire/Ice/Light_ApproachTrailPos`
@@ -243,7 +243,7 @@ broader hotspots.
   greppable comment at its DEFINITION recording that the name is machine-generated and WHY it was chosen:
   `// LLM generated name (HIGH|GUESS), was <old_addr>: <reason from the code>`. The literal marker
   **`LLM generated name`** makes them trivial to audit (`git grep 'LLM generated name'`) or strip before
-  upstreaming (`sed`). Placed on HIGH and GUESS alike (Bill's choice), so the whole rename surface is
+  upstreaming (`sed`). Placed on HIGH and GUESS alike (the maintainer's choice), so the whole rename surface is
   reviewable. Manifest of all 191 renames + def-files lives in the session scratchpad; the annotation
   was applied by a fan-out over the definition files.
 
@@ -269,7 +269,7 @@ broader hotspots.
     `Audio_UpdateRiverSoundVolumes`) + corrected `Audio_PlaySfxSwordCharge`→**`Audio_PlaySwordChargeSfx`**
     (oot word order). Everything else in that file stays address-named because oot does too. Source:
     github.com/zeldaret/oot `src/audio/game/general.c`.
-  - **RCP file `code_800FBCE0.c` LEFT AS-IS (Q10, Bill: use discretion).** `func_800FBCE0`/`func_800FBFD8` are address-named in
+  - **RCP file `code_800FBCE0.c` LEFT AS-IS (Q10, the maintainer: use discretion).** `func_800FBCE0`/`func_800FBFD8` are address-named in
     oot as well — no canonical name to pull.
 
 - **2026-07-31 full oot review pass (William Emerison Six <billsix@gmail.com>: check all work vs zeldaret/oot, fix/enrich, use discretion).**
@@ -293,7 +293,7 @@ broader hotspots.
     flag is actually oot's `disableSunsSong`. Fixed the pair to `Message_StartOcarinaSunsSongDisabled` (oot,
     cited) / `Message_StartOcarinaSunsSongEnabled` (func_8010BD58). Also `sTransUnkTestDList`→
     `sTransUnkBackgroundDL` (oot: it's the background DL, not a "test" list).
-  - **DECISIONS / flags for Bill (discretion used — you may want to review):**
+  - **DECISIONS / flags for the maintainer (discretion used — you may want to review):**
     1. **`Math_FMod` kept, NOT renamed to oot's `fmodf`** — oot names it `fmodf` (src/libc/fmodf.c), but in a
        PC port that would **clash with the system libc `fmodf`**. Left `Math_FMod`, comment notes the clash.
     2. **`TransitionUnk_Start` (func_800B23E8) left as-is** — oot says this empty stub fills the *Update* slot,

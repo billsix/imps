@@ -128,7 +128,7 @@ void push_frame() {            // one game tick, on the tick thread
 
 ## Provenance / fork facts
 
-- Upstream HarbourMasters/Lighthouse; Bill's fork is the **`bill`** branch (Pi-mirror `origin`).
+- Upstream HarbourMasters/Lighthouse; the fork of the maintainer (William Emerison Six <billsix@gmail.com>) is the **`bill`** branch (Pi-mirror `origin`).
   The fork delta over `develop` is small (docs + this reference set); the engineering is upstream.
 - Bootstrap history (`git log --reverse`) is decomp-first (`core2/gczoombox.c done`, `code_87E30.c
   progress`, `80%`) — a reverse-engineering effort that grew a port layer on top.

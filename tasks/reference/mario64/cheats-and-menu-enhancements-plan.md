@@ -17,7 +17,7 @@ move down to *Shipped* once they land on the `bill` branch.
 Ghostship's menu (the ImGui overlay reachable with Esc, defined in
 `src/port/ui/GhostshipMenu*.cpp`) exposes runtime toggles backed by
 **CVars**, the libultraship key/value system persisted in
-`Ghostship.cfg.json`. Bill is using this fork to add gameplay cheats and
+`Ghostship.cfg.json`. The maintainer is using this fork to add gameplay cheats and
 visual toggles, one per session, following a fixed recipe (see
 `CLAUDE.md` → "Adding a cheat or enhancement").
 
@@ -137,7 +137,7 @@ Giant in any level. Most of the work landed in a single session
   (model, hitbox, ledge-grab, camera distance, animation overrides).
 - `mario_size_speed_factor()` — *speed* scale: Tiny=3.0, Regular=1.0,
   Giant=0.5. **Intentionally inverted** from the visual factor —
-  Bill's call: "Tiny zooms, Giant lumbers." Used for forward velocity
+  The maintainer's call: "Tiny zooms, Giant lumbers." Used for forward velocity
   caps, accel curves, walk-anim cadence, and speed gates that need
   to track the cap.
 
@@ -167,7 +167,7 @@ When dialing the dropdown, only these two functions change.
 - **Long jump (Z+A)** — trigger gate (`mario_actions_moving.c:1466`),
   forward-velocity cap (`mario.c:884`), and isSlow threshold
   (`mario.c:879`) all scaled by speed factor. Dive distance
-  proportional to size. Fixed Bill's "z jump forward not registering"
+  proportional to size. Fixed the maintainer's "z jump forward not registering"
   for Tiny when speeds were originally inverted.
 - **Ledge grab** — `check_ledge_grab` (`mario_step.c:368`) scales
   the three magic numbers (60 lateral, 160 search start, 100
@@ -188,7 +188,7 @@ When dialing the dropdown, only these two functions change.
   Splash + ripple via `m->particleFlags |= PARTICLE_IDLE_WATER_WAVE
   | PARTICLE_WATER_SPLASH` (self-throttled by `oActiveParticleFlags`).
 
-**Open subtasks (deferred — Bill's call to revisit):**
+**Open subtasks (deferred — the maintainer's call to revisit):**
 
 - [ ] **Step / ceiling-clearance constants don't scale.** ~6
   magic-number sites in `mario_step.c` (160 / 150 / 100 / 30) still
@@ -203,7 +203,7 @@ When dialing the dropdown, only these two functions change.
   kick (`mario_actions_moving.c:1473`), the high-vel triple-jump
   branch (`mario.c:1064`), and ~7 other `forwardVel > 10|16|20` gates
   still use vanilla constants. Means Giant (slow) can't slide-kick or
-  trigger the high-vel triple-jump branch. Note-only per Bill.
+  trigger the high-vel triple-jump branch. Note-only per the maintainer (William Emerison Six <billsix@gmail.com>).
 - [ ] **Tiny's running anim flips upside-down at full water-running
   speed.** Walking and slow running on water look correct after the
   +5 lift; the flip only shows up at top speed. Likely candidates:
@@ -220,7 +220,7 @@ When dialing the dropdown, only these two functions change.
 - **Decomp-vs-port boundary.** Every cheat above pokes a CVar read
   directly into a decomp `.c` file. That's how upstream Ghostship does
   it — there's no "patch in port code only" abstraction. Match the
-  pattern; don't try to reroute through a hook unless Bill asks.
+  pattern; don't try to reroute through a hook unless the maintainer asks.
 - **Menu grouping.** All cheat checkboxes currently live in the same
   *Cheats* `WIDGET_SEPARATOR_TEXT` block. If the list grows past ~6–8,
   consider splitting into sub-groups (Mario / Camera / Enemies / …)
@@ -229,6 +229,6 @@ When dialing the dropdown, only these two functions change.
   (`AlwaysFlyTripleJump`, not `AFTJ`). Tooltips are full sentences with a
   trailing period.
 - **`develop` rebase.** The shipped commits are `bill`-branch only and
-  haven't been PR'd upstream. If/when Bill wants to upstream, expect to
+  haven't been PR'd upstream. If/when the maintainer wants to upstream, expect to
   squash these into one cheat-per-commit history; the "see if this
   works" / "updated" / "try for z jump" intermediates won't survive.

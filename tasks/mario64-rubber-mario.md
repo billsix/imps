@@ -26,7 +26,7 @@ scale vertical). Repeated bounces decay by 0.8× each time until he comes to res
    - Feasibility + risks (fall-damage lands, attack lands, ground pounds, min-speed threshold so he
      eventually rests, not bouncing forever on tiny drops).
 2. (Define after step 1.)
-3. Hand to Bill to build/run.
+3. Hand to the maintainer (William Emerison Six <billsix@gmail.com>) to build/run.
 
 ## Feasibility hints (verify in step 1)
 - "Following trajectory physics would dictate" = **keep horizontal velocity**, only reflect the

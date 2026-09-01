@@ -1,7 +1,7 @@
 # Endless Stairs "wall-kick unlock" — joke cheat
 
 **Status:** proposed — **investigation DONE (step 1 complete, see Findings).** Feasible; exactly one small
-cheat-agnostic decomp edit + two event listeners. **No implementation until Bill reviews these findings,
+cheat-agnostic decomp edit + two event listeners. **No implementation until the maintainer (William Emerison Six <billsix@gmail.com>) reviews these findings,
 commits the updated task, and gives the go-ahead.**
 **CVar (proposed):** `CVAR_CHEAT("EndlessStairsWallKickUnlock")` — a checkbox.
 **Hard requirement:** implement via the port **EventSystem** — a listener gated on the CVar, **not**
@@ -106,10 +106,10 @@ event (already finite — harmless).
 1. ~~Investigate feasibility & mechanism (step 1).~~ — findings above.
 2. **Implement**: the wall-kick-count event/listener + the stairs-bypass event/listener + a
    "Endless Stairs Wall-Kick Unlock" checkbox in the cheats menu.
-3. **Hand to Bill to build + run** (Bill runs the game; verify the staircase both loops before 3
+3. **Hand to the maintainer to build + run** (the maintainer runs the game; verify the staircase both loops before 3
    wall kicks and becomes finite after).
 
-## Open questions (for Bill, after investigation)
+## Open questions (for the maintainer, after investigation)
 1. **Count scope:** any 3 wall kicks *anywhere/anytime* in the session (crude, easiest — recommended
    for the joke), or only while in the castle / on/near the stairs? Recommend anywhere.
 2. **Persistence:** does the "unlocked" state persist for the whole session once earned, or reset each

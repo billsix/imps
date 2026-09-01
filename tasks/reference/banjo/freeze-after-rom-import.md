@@ -9,7 +9,7 @@
 
 ## RESOLUTION (root cause + fix)
 
-**Root cause (a 64-bit OSMesg-union bug — Bill was right):** hardware events are posted to thread5
+**Root cause (a 64-bit OSMesg-union bug — the maintainer was right):** hardware events are posted to thread5
 with `OS_MESG_32(code)`, which sets the union's `.data32` but leaves the **high 4 bytes of the
 8-byte `OSMesg` uninitialized (garbage)**. thread5's event-vs-task discriminator was
 `if ((uintptr_t)msg.ptr < 100)` — it read all 8 bytes. When an event's garbage high bytes came up
@@ -24,12 +24,12 @@ non-PIE MM signature.
 pointers on `msg.data32` (the event code, immune to the garbage high bytes) instead of the full
 `(uintptr_t)msg.ptr`. Event codes are 3–13 (`< 100`); task submissions carry a real pointer whose
 low 32 bits are always large, so they still fall to the task branch. Verified: `handleSPEvent`
-went 0 → 121 calls, watchdog stalls 0, and Bill confirmed the game runs on real hardware.
+went 0 → 121 calls, watchdog stalls 0, and the maintainer confirmed the game runs on real hardware.
 
 **Diagnosis path:** reliable headless repro → gdb read (valid pointers, ruled out truncation) →
 SP-event-flow instrumentation (thread5 *receives* SP but never dispatches it) → logged the ptr HIGH
 bytes (SP=garbage, DP=0). The audio "flood" (283 `startNextAudio` spins) was the symptom of the
-stranded yield; audio-task preemption was the trigger — matching Bill's MM audio-root intuition,
+stranded yield; audio-task preemption was the trigger — matching the maintainer's MM audio-root intuition,
 but the actual defect was the OSMesg-union high-byte garbage.
 
 **Also fixed this session:** bug #2 (version-incompatible re-extract dialog) via
@@ -37,7 +37,7 @@ but the actual defect was the OSMesg-union high-byte garbage.
 runClaudeInContainer Dockerfile. Follow-up worth considering: fix `OS_MESG_32` itself (LUS) to zero
 the union, so no other consumer can be bitten by the garbage high bytes.
 
-**Repo:** github.com/HarbourMasters/Lighthouse (Bill's `bill` fork). Reference set:
+**Repo:** github.com/HarbourMasters/Lighthouse (the maintainer's `bill` fork). Reference set:
 [`tasks/reference/`](./) — start with
 [`os-emulation-threading.md`](reference/os-emulation-threading.md).
 
@@ -45,11 +45,11 @@ the union, so no other consumer can be bitten by the garbage high bytes.
 
 Lighthouse builds and runs; the ROM-import/extraction UI works; **immediately after the ROM is
 imported (the `Create()` → `core1_init()` → first-`mainLoop()` boundary) the game freezes.**
-Observed on Bill's Fedora host. Not a build failure — a runtime hang.
+Observed on the maintainer's Fedora host. Not a build failure — a runtime hang.
 
 ## Hypotheses (ranked)
 
-1. **64-bit-host `osRecvMesg` buffer bug (Bill's strong prior).** In the sibling MM port this
+1. **64-bit-host `osRecvMesg` buffer bug (the maintainer's strong prior).** In the sibling MM port this
    class — `OSMesg` is 8 bytes on a 64-bit host, received into a 4-byte buffer → overflow → runtime
    crash — took weeks to find (2ship2harkinian `dab560f97`). A first grep of Lighthouse's decomp
    suggested it already avoids the 4-byte pattern (real receives use `OSMesg`/`NULL`/8-byte ptr),
@@ -81,7 +81,7 @@ Observed on Bill's Fedora host. Not a build failure — a runtime hang.
 - ROM: `/foo/opt/n64/n64roms/BanjoKazooie/ROMF.z64` (US rev0, SHA-1 `1fe1632…5d7a`).
 - Build here needs `-DUSE_NETWORKING=OFF`; `ExtractAssets` needs `baserom.z64` in the repo root.
 - PIE note: the MM layout-dependent bugs only bit non-PIE builds. Lighthouse sets no explicit PIE
-  flag (Fedora default = PIE). If Bill's affected build is non-PIE, match that here.
+  flag (Fedora default = PIE). If the maintainer's affected build is non-PIE, match that here.
 
 ## Findings log
 
@@ -120,7 +120,7 @@ unwound); the ThreadWatchdog dump is the real oracle here.
 
 ### 2026-08-01: SECOND, EARLIER failure reported by William Emerison Six <billsix@gmail.com> — version-incompatible → crash
 
-Bill on his host: "incompatible… would ask to reimport the rom… then crapped out." This is the
+The maintainer on their host: "incompatible… would ask to reimport the rom… then crapped out." This is the
 **version handshake** (`portArchiveVersionMatch`, `Engine.cpp:155`, `// TODO: port archive
 versioning`) firing on a stale o2r vs a freshly-rebuilt binary → offers re-extract → **crashes on
 that path**. Distinct from the freeze above (you only reach the freeze with matching archives).
@@ -129,7 +129,7 @@ re-extract. Root-cause the crash separately.
 
 ### 2026-08-01: OSMesg receive sweep (thorough) + ASAN to settle it empirically
 
-Bill pushed back: before the OS_RCP fix, does the 64-bit `OSMesg` bug still need fixing?
+The maintainer pushed back: before the OS_RCP fix, does the 64-bit `OSMesg` bug still need fixing?
 Re-checked EXHAUSTIVELY — every non-NULL `osRecvMesg` receive buffer in core1/core2/boot:
 - `graphics_thread.c:487` (thread5 loop — the deadlock path): `OSMesg msg` (8B) ✓, and reads
   `.data32`/`.ptr` correctly with a `[port]` comment (the authors already applied the MM fix).
@@ -140,11 +140,11 @@ ASAN (catches an overflow hiding in a struct/indirect path that a grep can't see
 
 **ASAN build was itself broken on GCC/Fedora — a real project bug.** `CMakeLists.txt:91` linked
 `-static-libsan` (a Clang spelling); GCC wants `-static-libasan`, and Fedora ships NO static asan
-runtime (only `libasan.so.8`). So `ENABLE_ASAN` fails to build on Bill's own platform ("unrecognized
-option -static-libsan", dies building bundled zlib). **Temporary [port/debug] edit** (per Bill's
+runtime (only `libasan.so.8`). So `ENABLE_ASAN` fails to build on the maintainer's own platform ("unrecognized
+option -static-libsan", dies building bundled zlib). **Temporary [port/debug] edit** (per the maintainer's
 standing sanitizer-build-aid arrangement): link the shared libasan on GCC, keep `-static-libsan`
 only for non-GNU. Marked `# [port/debug]` at CMakeLists.txt:91. **Worth keeping as a real fix — flag
-to Bill.** (If not kept, revert by task end.)
+to the maintainer.** (If not kept, revert by task end.)
 
 ### 2026-08-01: root cause CONFIRMED by reading the full thread5 state machine; fix under test
 
@@ -197,11 +197,11 @@ OS_EVENT_SP; single-slot sPendingTask). Real fix needs: gfx task rendered EXACTL
 reaching game-tick with bit30 still set. Candidate directions: (a) don't yield gfx for audio at all
 (port audio doesn't use the RSP — `thread5_startNextAudioTask:385`); (b) distinguish gfx-SP from
 audio-SP so completions aren't conflated. **Needs runtime instrumentation of the SP/DP/task
-sequence, or Bill's MM RCP fix shape.** Repro is now cheap, so iteration is viable.
+sequence, or the maintainer's MM RCP fix shape.** Repro is now cheap, so iteration is viable.
 
 ### 2026-08-01: exhaustive OSMesg audit (William Emerison Six <billsix@gmail.com>: "#1 priority, it literally was the osmesg thing")
 
-Bill is confident the MM fix was the 64-bit OSMesg issue and directed a full replication for this
+The maintainer is confident the MM fix was the 64-bit OSMesg issue and directed a full replication for this
 project. Did the exhaustive MM-style sweep of EVERY message send/recv/construction on the paths
 that matter (gfx / audio / vimgr / RCP):
 - **Every `osRecvMesg` with a non-NULL buffer (5 total):** `graphics_thread.c:487` (`OSMesg msg`),
@@ -216,11 +216,11 @@ that matter (gfx / audio / vimgr / RCP):
 
 **Finding: the Banjo/Lighthouse port authors ALREADY applied the MM OSMesg fix** — the 8-byte union
 is handled correctly everywhere, with `[port]` comments proving it. The specific MM
-receive-overflow / pointer-truncation bug is NOT present here to re-fix. Reconciliation with Bill's
+receive-overflow / pointer-truncation bug is NOT present here to re-fix. Reconciliation with the maintainer's
 certainty: the *scenario* is identical to MM (an audio task preempting the in-flight gfx task), but
 because OSMesg is already correct here, that scenario manifests as the **RCP SP/DP task-handoff
 race** (see above) rather than memory corruption. ASAN also ran memory-clean through boot.
-**Open: need Bill to point at the specific MM commit/symbol if a concrete analog is still expected.**
+**Open: need the maintainer to point at the specific MM commit/symbol if a concrete analog is still expected.**
 
 ### 2026-08-01: bug #2 real fix APPLIED
 
@@ -264,7 +264,7 @@ That handshake both (a) synchronizes tick↔window on the DL and (b) sequences t
 `sMesgQueue2` → game-tick. The freeze is that handshake deadlocking (SP events conflated/dropped;
 `sYieldPending` stranded; in the taskQ-full variant the yield-SP jam is dropped because event jams
 are NOBLOCK). Pointers are all valid (not 64-bit). **The fix must repair the SP/DP sequencing, not
-bypass the yield.** Per Bill's MM experience the real root may be audio-side (excess audio-task /
+bypass the yield.** Per the maintainer's MM experience the real root may be audio-side (excess audio-task /
 SP generation flooding the handshake — "augmented sound generation"); worth checking the audio
 task rate + the M_AUDTASK SP-jam path next. Repro is cheap; instrument the SP/DP/yield sequence.
 
@@ -272,5 +272,5 @@ task rate + the M_AUDTASK SP-jam path next. Repro is cheap; instrument the SP/DP
 
 1. **Graphics/VI-sync freeze after successful import** — localized above; likely `OS_RCP.cpp`
    yield/resume dropping the SP task. (The original reported symptom.)
-2. **Version-incompatible → re-extract path crashes** — Bill's host symptom; the `// TODO: port
+2. **Version-incompatible → re-extract path crashes** — the maintainer's host symptom; the `// TODO: port
    archive versioning` path.

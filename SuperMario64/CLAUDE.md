@@ -99,7 +99,7 @@ verified against the ported branch.
 
 ## Podman build (Dockerfile + Makefile)
 
-Created 2026-09-01 per `../tasks/mario64-podman-appimage-build.md`, on
+Created 2026-09-01 per `../tasks/archive/mario64/2026/09/01/mario64-podman-appimage-build.md`, on
 the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
 CI's build-linux job (`.github/workflows/main.yml` at the pin,
 `ubuntu-latest` resolved to **24.04**): CI's apt line verbatim

@@ -24,8 +24,7 @@ the goal.
 
 - Upstream CI file: `Ghostship/.github/workflows/main.yml` — the build-linux job runs on ubuntu-latest, cpack -G External. Scope is
   the **Linux job only**; Windows/macOS/Switch jobs stay untouched.
-- The imps Dockerfile this would upstream: tasked this same batch (`mario64-podman-appimage-build.md`). This task depends
-  on that Dockerfile existing and being verified; sequence after it.
+- The imps Dockerfile this would upstream: **shipped and host-verified** (`SuperMario64/Dockerfile`); its build task is archived at `tasks/archive/mario64/2026/09/01/mario64-podman-appimage-build.md`.
 - **The patch adds three in-repo files:**
   - a **`Makefile`** — the full imps target set (`image`, `build`,
     `appimage`, `image-export`/`image-import`, `shell`, `run`, `clean`,

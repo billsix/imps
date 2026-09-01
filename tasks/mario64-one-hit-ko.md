@@ -26,7 +26,7 @@ in one hit, *not* Mario one-shotting enemies). A hardcore/permadeath-style diffi
      only "real" hits? Pin the rule in step 1.
 2. (Define after step 1: the `PlayerHealthChange` listener that zeroes health on damage; the menu
    checkbox.)
-3. Hand to Bill to build/run.
+3. Hand to the maintainer to build/run.
 
 ## Feasibility hints (verify in step 1)
 - `PlayerHealthChange` is the natural hook and is already wired (`PortEnhancements.cpp:56`,

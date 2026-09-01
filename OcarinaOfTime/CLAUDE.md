@@ -92,7 +92,7 @@ the working tree shows a newer pin, so read it via git history
 
 ## Podman build (Dockerfile + Makefile)
 
-Created 2026-09-01 per `../tasks/ocarina-podman-appimage-build.md`, on
+Created 2026-09-01 per `../tasks/archive/ocarina/2026/09/01/ocarina-podman-appimage-build.md`, on
 the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
 CI's linux job (`.github/workflows/generate-builds.yml` at the pin,
 **ubuntu-22.04**): the apt list is **`COPY`d from the checkout's

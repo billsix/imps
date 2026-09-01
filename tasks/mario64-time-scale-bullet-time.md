@@ -46,7 +46,7 @@ look odd. The slider makes it recoverable.
 ## Plan
 1. ~~Research feasibility & design.~~ **Done — see above.** (Pending the questions below.)
 2. **Implement** the event + fire site + listener + menu as designed above.
-3. **Hand to Bill to build/run.**
+3. **Hand to the maintainer (William Emerison Six <billsix@gmail.com>) to build/run.**
 
 ## Open questions (confirm before implementing)
 1. **Choppy MVP OK?** Frame-skip is easy and correct but looks **steppy** (not smooth); true smooth

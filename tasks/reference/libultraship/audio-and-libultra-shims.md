@@ -1,9 +1,9 @@
 # libultraship — audio backends and libultra OS shims
 
-> **Pinned:** libultraship **1.3.1-482**
-> (`2917d0f4fe62c579174561dcd34f327c9410bb72`, 2026-07-29 —
-> BanjoKazooie's pin; direct descendant of 1.3.1-397, 85 commits).
-> Updated 2026-09-01, iteration 16 of the reference crawl
+> **Pinned:** libultraship **1.3.1-486**
+> (`62e973aeb4a53ad4d22bb91e2d9373ecdfcd246c`, 2026-08-15 —
+> OcarinaOfTime's pin; 4 commits past 1.3.1-482).
+> Updated 2026-09-01, iteration 17 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
 > NEWER than the 1.4.x tags despite the smaller number.
@@ -27,11 +27,14 @@ unchanged; push-only, no callback. Deltas:
   (HRESULT) → `HResultException` (`ship/utils/HResultException.h`),
   silent catches now `SPDLOG_ERROR`. The #1001 mutex race fix is
   retained (this pin descends from 397).
+- **`~AudioPlayer` is now `virtual` (#1212, this 4-commit step)** —
+  the long-standing latent hazard retires; the same fix makes
+  `~WasapiAudioPlayer` call `DoClose()` (stop stream, release
+  client), curing a WASAPI hang on teardown.
 - Still true: `SetCurrentAudioBackend` does a full `Config::Save()` on
   every call, startup included (`Audio.cpp:107-126`); back-pressure
   per-backend (SDL drops >6000 queued, CoreAudio 6000-ring, WASAPI
-  clamps to device buffer); **`~AudioPlayer` still non-virtual**
-  (`AudioPlayer.h:41`).
+  clamps to device buffer).
 
 ## libultra shims
 

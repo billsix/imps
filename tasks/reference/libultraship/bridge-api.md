@@ -1,9 +1,9 @@
 # libultraship — the bridge API (game-facing surface)
 
-> **Pinned:** libultraship **1.3.1-482**
-> (`2917d0f4fe62c579174561dcd34f327c9410bb72`, 2026-07-29 —
-> BanjoKazooie's pin; direct descendant of 1.3.1-397, 85 commits).
-> Updated 2026-09-01, iteration 16 of the reference crawl
+> **Pinned:** libultraship **1.3.1-486**
+> (`62e973aeb4a53ad4d22bb91e2d9373ecdfcd246c`, 2026-08-15 —
+> OcarinaOfTime's pin; 4 commits past 1.3.1-482).
+> Updated 2026-09-01, iteration 17 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
 > NEWER than the 1.4.x tags despite the smaller number.

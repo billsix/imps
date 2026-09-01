@@ -1,9 +1,9 @@
 # libultraship — Fast3D renderer
 
-> **Pinned:** libultraship **1.3.1-482**
-> (`2917d0f4fe62c579174561dcd34f327c9410bb72`, 2026-07-29 —
-> BanjoKazooie's pin; direct descendant of 1.3.1-397, 85 commits).
-> Updated 2026-09-01, iteration 16 of the reference crawl
+> **Pinned:** libultraship **1.3.1-486**
+> (`62e973aeb4a53ad4d22bb91e2d9373ecdfcd246c`, 2026-08-15 —
+> OcarinaOfTime's pin; 4 commits past 1.3.1-482).
+> Updated 2026-09-01, iteration 17 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
 > NEWER than the 1.4.x tags despite the smaller number.
@@ -120,9 +120,14 @@ rects `:3053-3056`; 320×240 `interpreter.h:25-26`; `MAX_LIGHTS 32`.
   block-load reshape for giant-line uploads (#1172/#1143,
   `:1233-1252`); wrap-period clamping of over-loaded masked textures
   (#1151, `:2023-2032`); clamp gating to mipmap-like/CLAMP/HD cases
-  (#1090/#1118, `:2017-2041`); address filtering before deref (#1042,
-  `gfx_check_image_signature` `:3466-3487`); null guards on every
-  `ImportTexture*` (#1008).
+  (#1090/#1118), the mipmap heuristic now unified into one
+  `IsPyramidLike` helper (#1239, this 4-commit step: loaded >
+  rendered and < 1.625×, alt-asset scales normalized); address
+  filtering before deref (#1042, `gfx_check_image_signature`) — the
+  low-address rejection now also exempts in-module pointers on
+  non-Windows via dladdr-style lookup (#1176: a non-PIE build's
+  static font TLUT was wrongly skipped as an unresolved segment
+  address); null guards on every `ImportTexture*` (#1008).
 - Decode buffer is now member `mTexUploadBuffer` (`interpreter.h:514`),
   freed in `Destroy()` (`:4993-4995`).
 - Opt-in resolve memoization (#1175): `ResolveResourceCached`

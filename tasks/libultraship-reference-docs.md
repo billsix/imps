@@ -202,7 +202,14 @@ by nothing; deliberately not an iteration.)
       handle pooling (#1050); osPiStartDma clamped via opt-in
       AudioDmaRegistry (#1035); OpenBSD support; NullAudioPlayer spin
       fix. Bugs fixed/carried tracked per-doc
-- [ ] `62e973ae` (1.3.1-486, ~2026-08) — OcarinaOfTime's pin
+- [x] `62e973ae` (1.3.1-486, 2026-08-15) — OcarinaOfTime's pin —
+      iteration 17, 2026-09-01: 4 commits past 482, all verified directly:
+      .meta aliases resolved by archive priority (#1168 — literal-name
+      indexing, priority-ranked real-vs-alias choice); ~AudioPlayer made
+      virtual + WASAPI teardown hang fixed (#1212 — retires the
+      documented non-virtual-destructor hazard); SETTIMG low-address
+      guard exempts in-module pointers on non-Windows (#1176); unified
+      IsPyramidLike clamp heuristic (#1239)
 
 ## Open questions
 

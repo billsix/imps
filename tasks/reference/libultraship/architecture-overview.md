@@ -1,9 +1,9 @@
 # libultraship — architecture overview
 
-> **Pinned:** libultraship **1.3.1-482**
-> (`2917d0f4fe62c579174561dcd34f327c9410bb72`, 2026-07-29 —
-> BanjoKazooie's submodule pin; a direct descendant of iteration 15's
-> 1.3.1-397, 85 commits later). Updated 2026-09-01 as iteration 16 of
+> **Pinned:** libultraship **1.3.1-486**
+> (`62e973aeb4a53ad4d22bb91e2d9373ecdfcd246c`, 2026-08-15 —
+> OcarinaOfTime's submodule pin; 4 commits past iteration 16's
+> 1.3.1-482). Updated 2026-09-01 as iteration 17 of
 > the reference crawl (`../../libultraship-reference-docs.md`).
 > Re-sync check: compare `PIN_SHA` in `libultraship/fetch.sh` with the
 > SHA above — if they differ, the crawl has advanced (each iteration is

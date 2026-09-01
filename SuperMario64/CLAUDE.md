@@ -18,6 +18,9 @@ cheat ships with upstream and needs no patch.
 
 ## Scripts
 
+- `./installdependencies.sh` — dnf install of the Fedora build deps
+  (inline list; run once, as root). Verified 2026-09-01 in a fresh
+  fedora:44 container: script + full configure + o2r + build all green.
 - `./fetch.sh` — clone if missing, checkout the pin, init submodules.
 - `./apply.sh` — `git am` the series (refuses unless HEAD is at the pin).
 - `./build.sh` — cmake+ninja → `bldInstall/`; skips the ROM-needing
@@ -65,6 +68,16 @@ verified against the ported branch.
 
 - Submodules at the pin: **libultraship `c151cc91` (1.3.1-544)** — the
   newest LUS of any imps project — and Torch `4c8ef537` (v1.0.0-409).
+  **Caveat (found 2026-09-01 by the LUS crawl): `c151cc91` is a KiritoDv
+  FORK branch of LUS, not Kenix3 mainline** — branch point `f30fe0ed`
+  (1.3.1-463) + 81 fork commits (Vulkan backend, GPU-side T&L,
+  postprocessing/multipass shaders, RT64 mipmapping, async texture
+  loading, web/emscripten). The ~23 mainline commits after the branch
+  point (Context `GetRawInstance` rework, `.meta` priority resolution,
+  several audio/texture fixes) are absent from it. The crawl's docs at
+  `../tasks/reference/libultraship/` cover this pin as iteration 18 —
+  the **current working-tree state** of that doc set (the crawl's final
+  stop), so no git-history digging is needed for this project.
 - The events layer is documented upstream in `src/port/events/EVENTS.md`
   — read it before adding cheats; a new cheat is: DEFINE_EVENT (or reuse
   one), CALL_EVENT at the game-code seam, REGISTER_EVENT +
@@ -83,6 +96,34 @@ verified against the ported branch.
 - The binary's rpath bakes the absolute build-time path to `libtcc.so`
   (in `Ghostship/libultraship/`) — `run.sh` sets `LD_LIBRARY_PATH` so a
   binary built at one mount path runs at another.
+
+## Podman build (Dockerfile + Makefile)
+
+Created 2026-09-01 per `../tasks/mario64-podman-appimage-build.md`, on
+the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
+CI's build-linux job (`.github/workflows/main.yml` at the pin,
+`ubuntu-latest` resolved to **24.04**): CI's apt line verbatim
+(including the Vulkan set — libvulkan/libshaderc/glslang/spirv-tools),
+python deps **bind-mounted from the checkout's
+`libultraship/requirements.txt`** (pip `--break-system-packages` for
+noble's PEP668), SDL 2.30.3 / tinyxml2 10.0.0 / libzip 1.10.1 from
+source. `GeneratePortO2R` runs in-container; the `appimage` target also
+copies `build-cmake/.tcc` to `out/.tcc` (CI ships it beside the
+AppImage and hard-fails without it — the scripting runtime).
+
+Two fresh-environment gaps surfaced (in the master drift table):
+**cmake ≥ 3.30** (LUS's FindVulkan uses policy CMP0159; noble apt ships
+3.28; runners pre-provide newer → the Kitware repo block), and a
+**shaderc/spirv-tools packaging skew on noble**: LUS prefers
+`shaderc_shared`, Ubuntu names the lib plain `libshaderc.so`, so cmake
+fell back to `libshaderc_combined.a` — which is ABI-skewed against
+noble's newer spirv-tools static libs (undefined `spvtools::` at link).
+The Dockerfile adds a `libshaderc_shared.so` compat symlink so LUS
+takes its preferred, self-consistent shared path.
+
+Verified nested 2026-09-01: image, `make build` of the patched tree,
+and `make appimage` (`out/ghostship.appimage`, 16 MB, + `.tcc`) all
+green. The AppImage's on-host run remains for the maintainer.
 
 ## Architecture reference (read to get oriented without re-reading the code)
 

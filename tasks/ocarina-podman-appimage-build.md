@@ -1,6 +1,16 @@
 # OcarinaOfTime: podman AppImage build like MajorasMask's
 
-**Status:** proposed — needs go-ahead
+**Status:** implemented — verified nested through `make appimage`
+(out/soh.appimage, 32 MB, patched tree); awaiting the maintainer's
+on-host run. Note (2026-09-01 evening): his first HOST build of the
+sibling mario64 project failed on the sandbox's `:Z`-poisoned SELinux
+labels (see that task) — fixed host-wide via `restorecon -R` + a `:z`
+launcher, so this project's host run should be unaffected now. Ocarina's
+checkout has NO submodule build-pollution (its older LUS doesn't build
+into the source tree — checked). Archive when the host run passes. Outcome details in
+`OcarinaOfTime/CLAUDE.md` ("Podman build") incl. three
+runner-pre-provides gaps found: Kitware cmake (jammy 3.22 < 3.26),
+python3, imagemagick (configure-time AppImage icon).
 **Priority:** 4
 **Difficulty:** 4
 

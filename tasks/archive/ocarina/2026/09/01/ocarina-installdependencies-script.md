@@ -1,6 +1,11 @@
 # OcarinaOfTime: installdependencies.sh — Fedora 44 dnf install script
 
-**Status:** proposed — needs go-ahead
+**Status:** done — verified 2026-09-01: a fresh fedora:44 container ran
+installdependencies.sh then a full out-of-tree configure + GenerateSohOtr
++ complete build, all green. The open question resolved as recommended:
+the package list is INLINED (works before first fetch), citing
+linux-build-deps/dnf.txt + BUILDING.md at the pin; python3 added on top
+for the asset extractor. Archived same day.
 **Priority:** 3
 **Difficulty:** 2
 
@@ -56,7 +61,4 @@ Decisions already made:
 
 ## Open questions
 
-1. Inline the package list (recommended — self-contained, works before the
-   first fetch, cites source + pin) vs `$(cat Shipwright/linux-build-deps/dnf.txt)`
-   like upstream's one-liner (stays auto-current but requires the checkout
-   to exist first)?
+None — the inline choice was adopted (see Status).

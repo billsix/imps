@@ -1,6 +1,7 @@
 # BanjoKazooie — Lighthouse
 
 ```sh
+sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once per machine)
 ./fetch.sh    # clone upstream if missing, checkout the pinned commit, init submodules
 ./apply.sh    # apply my patch series (patches/*.patch) on top of the pin
 ./build.sh    # cmake+ninja → bldInstall/ + copies lighthouse.o2r into runDir/

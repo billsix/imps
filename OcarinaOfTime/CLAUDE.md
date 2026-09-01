@@ -14,6 +14,9 @@ personal branches — the patch series is the whole delta.
 
 ## Scripts
 
+- `./installdependencies.sh` — dnf install of the Fedora build deps
+  (inline list; run once, as root). Verified 2026-09-01 in a fresh
+  fedora:44 container: script + full configure + o2r + build all green.
 - `./fetch.sh` — clone if missing, checkout the pin, init submodules.
 - `./apply.sh` — `git am` the series (refuses unless HEAD is at the pin).
 - `./build.sh` — cmake+ninja → `bldInstall/` (fetches first if needed).
@@ -77,6 +80,38 @@ details against the pinned checkout.
 
 Upstream human-facing docs live in `Shipwright/docs/` (BUILDING, MODDING,
 VERSIONING, CUSTOM_MUSIC).
+
+## libultraship reference docs
+
+The crawl set at `../tasks/reference/libultraship/` documents this
+project's exact LUS pin (`62e973ae`, 1.3.1-486) as **iteration 17** —
+the working tree shows a newer pin, so read it via git history
+(`git log --oneline -- tasks/reference/libultraship/`, commit
+"1.3.1-486 (62e973ae)").
+
+## Podman build (Dockerfile + Makefile)
+
+Created 2026-09-01 per `../tasks/ocarina-podman-appimage-build.md`, on
+the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
+CI's linux job (`.github/workflows/generate-builds.yml` at the pin,
+**ubuntu-22.04**): the apt list is **bind-mounted from the checkout's
+own `linux-build-deps/apt.txt`** at image build (stays auto-current);
+SDL 2.30.3, SDL2_net 2.2.0 (CI's local action), tinyxml2 10.0.0, and
+libzip 1.10.1 (no crypto) built from source, shadowing the apt ones the
+way CI does. Build flags mirror CI: Release + `BUILD_REMOTE_CONTROL=1`;
+`GenerateSohOtr` runs in-container (CI uses a separate job + artifact).
+
+Three "the GitHub runner pre-provides it" gaps surfaced (now in the
+master drift table): **cmake ≥ 3.26** (jammy apt ships 3.22 → the
+Kitware repo block, same fix as the maintainer's original 2ship
+Dockerfile), **python3** (the asset extractor), and **imagemagick**
+(the AppImage icon is generated at configure time by `convert`,
+silently skipped when absent — the appimage step then fails on a
+missing `sohIcon.png`).
+
+Verified nested 2026-09-01: image, `make build` of the patched tree,
+and `make appimage` (`out/soh.appimage`, 32 MB) all green. The
+AppImage's on-host run remains for the maintainer.
 
 ## Tools
 

@@ -40,6 +40,7 @@ Upstream: <https://github.com/HarbourMasters/Shipwright>
 
 ```sh
 cd OcarinaOfTime
+sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
 ./fetch.sh    # clone if missing, checkout the pinned commit, init submodules
 ./apply.sh    # apply my patch series (patches/*.patch) on top of the pin
 ./build.sh    # cmake+ninja → bldInstall/  (fetches first if you skipped fetch.sh)
@@ -62,8 +63,10 @@ cd OcarinaOfTime
   old fork; the fork's docs now live in `OcarinaOfTime/CLAUDE.md` and
   `tasks/reference/ocarina/`.
 - **MajorasMask** — builds and runs with the patch applied (verified
-  2026-09-01). One code patch (64-bit audio/scheduler fixes) exported from
-  my old `fedora44Fixes` fork branch. Also has the first podman build:
+  2026-09-01). Two patches: 64-bit audio/scheduler fixes (exported from
+  my old `fedora44Fixes` fork branch) and a BUILDING.md fix adding the
+  four required audio libraries (upstream candidate, found by the
+  install-script verification). Also has the first podman build:
   `make appimage` → `out/2ship.appimage` (see its README).
 - **SuperMario64** — builds and runs with the patches applied, cheats
   confirmed in the menu (verified 2026-09-01). Series: Super Jump,
@@ -77,9 +80,17 @@ cd OcarinaOfTime
   with the patches applied (verified 2026-09-01 via the podman AppImage
   pipeline: image → build → appimage → host run). Fork docs migrated to
   `BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
-- **Planned** (all tasked under `tasks/`): a podman build for
-  OcarinaOfTime (MajorasMask's and BanjoKazooie's are done);
-  per-project dependency-install scripts; save-generator story-flag
-  fidelity (making generated saves read like real playthroughs, from
-  reference saves I provide); the libultraship per-tag
-  reference-documentation crawl.
+- All four projects now have a podman AppImage build (`make appimage`)
+  and a container-verified `installdependencies.sh`; OcarinaOfTime's
+  and SuperMario64's AppImages await my on-host run.
+- The libultraship reference-documentation crawl is **complete** (18
+  iterations: 13 release tags + all 5 consumer pins): one evolving
+  8-doc set at `tasks/reference/libultraship/`, one commit per
+  version — git history is the time axis, and
+  `tasks/reference/libultraship/crawl.md` is the protocol + log a
+  future pin bump reopens.
+- **Planned** (all tasked under `tasks/`): save-generator story-flag
+  fidelity (blocked on reference saves I provide); replacing each
+  project's upstream CI Linux job with the Dockerfile build (future,
+  upstream-submission oriented); mario64 cheat research stubs; the
+  long-running decomp-rename cleanups.

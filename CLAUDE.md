@@ -126,6 +126,17 @@ operation in the agent contract below). The pairs:
   before starting (`git log --oneline` in the checkout should show the
   series' subjects on top of the pin); if it's at the bare pin, run
   `./apply.sh` first.
+- **Never build a checkout from a foreign toolchain via a bind mount —
+  copy the source into the throwaway container first.** libultraship at
+  1.3.1-482+ (banjo, mario) writes build artifacts INTO its submodule
+  source dir even for an out-of-tree configure, so a fedora:44
+  verification container that builds `-S /proj/<checkout> -B /tmp/b`
+  leaves Fedora-compiled `.a`s inside the checkout, and the next podman
+  (ubuntu) build silently reuses them — bit us 2026-09-01 as a
+  `libmonocypher.a … can not be used when making a PIE object` link
+  failure in mario's `make build`. Recovery: `git clean -fdx` in the
+  submodule (+ `git checkout --` any tracked file the build overwrote,
+  e.g. Ghostship's `src/generate_keys_header`) and wipe `build-cmake/`.
 - **The deliverable of any work is patches, never checkout state.** Do the
   work as commits in the checkout (repo-local unsigned commits — see
   Rules), then regenerate the series
@@ -227,3 +238,14 @@ operation in the agent contract below). The pairs:
   (image/build/appimage/run); its task is archived at
   `tasks/archive/banjo/2026/09/01/`. The `bill` branch's doc set (8 reference docs + the
   freeze investigation) migrated to `tasks/reference/banjo/`.
+- `libultraship/` — the shared engine under all four ports
+  (https://github.com/Kenix3/libultraship). Docs-only project: no
+  patches, no build scripts — `fetch.sh` pins whichever commit the
+  reference-doc crawl currently describes. The crawl is **complete**
+  (2026-09-01, 18 iterations — 13 release tags + the 4 games' submodule
+  pins + Ghostship's newer fork pin); the 8-doc set lives at
+  `tasks/reference/libultraship/` with git history as the time axis,
+  and `tasks/reference/libultraship/crawl.md` holds the protocol +
+  iteration log (a game's future LUS pin bump reopens it). Current
+  doc state = Ghostship's `c151cc91` (1.3.1-544, a KiritoDv FORK
+  branch — see the drift table's fork-topology caveat).

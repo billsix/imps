@@ -1,6 +1,12 @@
 # MajorasMask: installdependencies.sh — Fedora dnf install script
 
-**Status:** proposed — needs go-ahead
+**Status:** done — verified 2026-09-01: fresh fedora:44 container ran
+installdependencies.sh then full configure + Generate2ShipOtr + build,
+all green — after the verification exposed that upstream's BUILDING.md
+Fedora list is missing all four required audio libraries
+(ogg/vorbis/opus/opusfile; "Could NOT find Ogg/Opus" at configure).
+That doc gap is now patch 0002 of the series (Ubuntu lines fixed too),
+an upstream-submission candidate. Archived same day.
 **Priority:** 3
 **Difficulty:** 2
 

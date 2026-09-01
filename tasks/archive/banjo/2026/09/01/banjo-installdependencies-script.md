@@ -1,6 +1,9 @@
 # BanjoKazooie: installdependencies.sh — Fedora dnf install script
 
-**Status:** proposed — needs go-ahead
+**Status:** done — verified 2026-09-01: a fresh fedora:44 container ran
+installdependencies.sh then full configure + GeneratePortO2R + complete
+build, all green on the first run (no package gaps — Lighthouse's doc
+list was already complete). Archived same day.
 **Priority:** 3
 **Difficulty:** 2
 

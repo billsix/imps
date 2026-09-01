@@ -1,6 +1,25 @@
 # SuperMario64: podman AppImage build like MajorasMask's and BanjoKazooie's
 
-**Status:** proposed — approved for the 2026-09-01 work-session batch
+**Status:** implemented — awaiting the maintainer's on-host `make
+appimage` + `make run` retry (2026-09-01 evening). His first host attempt
+failed at Dockerfile step 6 (permission on the bind-mounted
+requirements.txt): root cause was the sandbox's `:Z` EXTRA_MOUNTS
+relabeling the whole imps repo (`container_file_t:c1022,c1023`), fixed
+by `restorecon -R` on the host + `:z` in his launcher (and the `:Z`
+examples fixed at source in runClaudeInContainer's README/Makefile,
+staged there). Separately, the install-script verification's fedora
+container had left Fedora-built LUS artifacts INSIDE
+`Ghostship/libultraship/` (LUS 482+/fork builds into its source dir),
+which broke the next nested build with a monocypher PIE link error —
+submodule `git clean -fdx` + `git checkout -- src/generate_keys_header`
++ `build-cmake/` wipe, then a from-scratch nested `make appimage` went
+green (909 steps, fresh out/ghostship.appimage). Gotcha recorded in the
+master CLAUDE.md agent contract. The host retry is expected to pass
+both hurdles now; archive this task when it does. Outcome details in
+`SuperMario64/CLAUDE.md` ("Podman build") incl. two gaps found: Kitware
+cmake (CMP0159 needs >= 3.30, noble ships 3.28) and the noble
+shaderc/spirv-tools ABI skew solved with a libshaderc_shared.so compat
+symlink.
 **Priority:** 4
 **Difficulty:** 4
 

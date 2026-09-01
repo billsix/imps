@@ -16,6 +16,9 @@ the whole delta.
 
 ## Scripts
 
+- `./installdependencies.sh` — dnf install of the Fedora build deps
+  (inline list; run once, as root). Verified 2026-09-01 in a fresh
+  fedora:44 container: script + full configure + o2r + build all green.
 - `./fetch.sh` — clone if missing, checkout the pin, init submodules.
 - `./apply.sh` — `git am` the series (refuses unless HEAD is at the pin).
 - `./build.sh` — cmake+ninja → `bldInstall/`; skips the ROM-needing
@@ -91,6 +94,13 @@ version gap):
   graph, feature flags, headless/sandbox gotchas.
 - [`freeze-after-rom-import.md`](../tasks/reference/banjo/freeze-after-rom-import.md) —
   the (resolved) freeze investigation behind patch 0003.
+
+## libultraship reference docs
+
+The crawl set at `../tasks/reference/libultraship/` documents this
+project's exact LUS pin (`2917d0f4`, 1.3.1-482) as **iteration 16** —
+read it via git history (commit "1.3.1-482 (2917d0f4)"); the working
+tree shows a newer pin.
 
 ## Podman build (Dockerfile + Makefile)
 

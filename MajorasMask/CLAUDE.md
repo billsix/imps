@@ -13,6 +13,9 @@ the whole delta.
 
 ## Scripts
 
+- `./installdependencies.sh` — dnf install of the Fedora build deps
+  (inline list; run once, as root). Verified 2026-09-01 in a fresh
+  fedora:44 container: script + full configure + o2r + build all green.
 - `./fetch.sh` — clone if missing, checkout the pin, init submodules.
 - `./apply.sh` — `git am` the series (refuses unless HEAD is at the pin).
 - `./build.sh` — cmake+ninja → `bldInstall/` (fetches first if needed).
@@ -34,9 +37,13 @@ the whole delta.
   Exported verbatim 2026-09-01 from the maintainer's old fork branch
   (`fedora44Fixes`, same base) and verified byte-identical on apply;
   patched tree build- and run-verified on the maintainer's host
-  2026-09-01.
-  **Good upstream-submission candidate** — surgical, well-documented,
-  fixes real 64-bit portability bugs.
+  2026-09-01. **Good upstream-submission candidate** — surgical,
+  well-documented, fixes real 64-bit portability bugs.
+- `patches/0002-docs-add-the-required-audio-libraries-...patch` —
+  adds libogg/libvorbis/opus/opusfile dev packages to BUILDING.md's
+  Ubuntu and Fedora lines (the build hard-requires all four; the Nix
+  section already listed them). Found by the install-script
+  fresh-container verification. **Upstream-submission candidate.**
 
 ## Version notes
 
@@ -44,10 +51,13 @@ the whole delta.
   ZAPDTR `ee3397a3` and OTRExporter `32e088e2` — this pin predates the
   torch asset-pipeline migration that OcarinaOfTime's newer pin has; 2S2H
   still extracts via ZAPD/OTRExporter here.
-- No reference-doc set exists for this project yet (the old fork carried
+- No 2S2H-specific reference-doc set exists yet (the old fork carried
   none). The ocarina docs in `../tasks/reference/ocarina/` describe the
-  sibling architecture and are directionally useful, not authoritative,
-  for 2S2H.
+  sibling architecture (directionally useful, not authoritative) — and
+  the LUS crawl set at `../tasks/reference/libultraship/` documents this
+  project's exact libultraship pin (`7f2baa10`, 1.3.1-397) as
+  **iteration 15**: read it via git history (commit "1.3.1-397
+  (7f2baa10)"); the working tree shows a newer pin.
 ## Podman build (Dockerfile + Makefile)
 
 Ported 2026-09-01 from the maintainer's old fork's `podmanBuildAppImage`

@@ -1,6 +1,7 @@
 # SuperMario64 — Ghostship
 
 ```sh
+sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once per machine)
 ./fetch.sh    # clone upstream if missing, checkout the pinned commit, init submodules
 ./apply.sh    # apply my patch series (patches/*.patch) on top of the pin
 ./build.sh    # cmake+ninja → bldInstall/  (fetches first if you skipped fetch.sh)
@@ -34,3 +35,20 @@ rm -rf Ghostship build-cmake bldInstall     # add runDir to also wipe saves + sm
   > contents in preserves saves.
 - Patch details and architecture notes: `CLAUDE.md` here, and
   `../tasks/reference/mario64/`.
+
+## Podman build → AppImage (alternative to the host build)
+
+```sh
+make image      # build the ubuntu-24.04 builder image (mirrors upstream CI)
+make appimage   # compile in the container → out/ghostship.appimage + out/.tcc
+make run        # run the AppImage on the host, from runDir/ (same saves as run.sh)
+```
+
+- `make help` lists all targets (build, image-export/import, shell,
+  clean, distclean).
+- Builds whatever the checkout holds — run `./fetch.sh && ./apply.sh`
+  first for the patched build.
+- > The `.tcc` dir next to the AppImage is the scripting runtime — CI
+  > ships it alongside, and the game needs it at run time.
+- > The container build dir is `Ghostship/build-cmake` (inside the
+  > checkout); the host build.sh uses the sibling `build-cmake/`.

@@ -1,6 +1,14 @@
 # OcarinaOfTime: save generator — make saves read like real playthroughs
 
-**Status:** proposed — needs go-ahead
+**Status:** blocked
+**Blocked on:** reference save files from the maintainer — real
+playthrough saves at named story points (he said: "perhaps I need to
+play the game and give you actual save states to learn from").
+**Recheck:** ask the maintainer, or check whether new .sav files have
+appeared under `OcarinaOfTime/runDir/Save/` (or wherever he says he put
+them) that are not generator output; cleared when at least one real
+playthrough save exists to diff against `tools/save_generator.py`
+output.
 **Priority:** 4
 **Difficulty:** 5
 

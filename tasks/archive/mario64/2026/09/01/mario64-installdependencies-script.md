@@ -1,6 +1,10 @@
 # SuperMario64: installdependencies.sh — Fedora dnf install script
 
-**Status:** proposed — needs go-ahead
+**Status:** done — verified 2026-09-01: a fresh fedora:44 container ran
+installdependencies.sh then full configure + GeneratePortO2R + complete
+build, all green on the first run (shaderc-devel and the other
+sandbox-discovered deps were already in the list; the libshaderc doc gap
+is patch 0004 of the series). Archived same day.
 **Priority:** 3
 **Difficulty:** 2
 

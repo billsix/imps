@@ -13,10 +13,10 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/Kenix3/libultraship
 
-# Crawl position: 1.3.1-399 (2026-02-20, old-Ghostship's submodule pin;
-# NEWER than the 1.4.x tags — different line) — iteration 14 of the
-# reference crawl, first stop of the consumer-pin leg.
-PIN_SHA=e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b
+# Crawl position: 1.3.1-397 (2026-02-28, MajorasMask's submodule pin;
+# a close cousin of 1.3.1-399, later in time despite the smaller
+# count) — iteration 15 of the reference crawl.
+PIN_SHA=7f2baa104108af3fca9f094754ea974a4973bdeb
 
 if [ ! -d libultraship ]; then
     git clone "$UPSTREAM" libultraship

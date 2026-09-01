@@ -183,8 +183,11 @@ by nothing; deliberately not an iteration.)
       project's current GitHub-develop checkout) — appended per the
       note above; walk it after the other three consumer pins to keep
       date order.
-- [ ] `7f2baa10` (1.3.1-397, 2026-02-27) — MajorasMask's pin (later date
-      despite the smaller describe-count; dates, not counts, order these)
+- [x] `7f2baa10` (1.3.1-397, 2026-02-28) — MajorasMask's pin —
+      iteration 15, 2026-09-01: tiny cousin delta vs 399 (shared base
+      `0b76d895`): PLUS the WASAPI mutex race fix (#1001), MINUS the
+      GuiTexture `LoadTextureFromResource` tail; everything else in
+      the iteration-14 doc state holds verbatim
 - [ ] `2917d0f4` (1.3.1-482, 2026-07-29) — BanjoKazooie's pin
 - [ ] `62e973ae` (1.3.1-486, ~2026-08) — OcarinaOfTime's pin
 

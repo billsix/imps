@@ -1,8 +1,10 @@
 # libultraship — audio backends and libultra OS shims
 
-> **Pinned:** libultraship **1.3.1-399**
-> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20). Updated
-> 2026-09-01, iteration 14 of the reference crawl
+> **Pinned:** libultraship **1.3.1-397**
+> (`7f2baa104108af3fca9f094754ea974a4973bdeb`, 2026-02-28 —
+> MajorasMask's pin; a close cousin of iteration 14's 1.3.1-399,
+> not its descendant). Updated 2026-09-01, iteration 15 of the
+> reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
 > NEWER than tag 1.4.2 despite the smaller number.
@@ -34,7 +36,11 @@ reinitializes the device without restart (`AudioPlayer.cpp:79-107`,
 Push-only is unchanged — no callback, LUS never requests audio;
 interleaved S16. Back-pressure is per-backend now: SDL drops the frame
 above 6000 queued; CoreAudio uses 6000 as its ring size; **WASAPI has
-no 6000 constant** — it clamps to device-buffer free space. Latent
+no 6000 constant** — it clamps to device-buffer free space. This pin's
+one commit over the shared base is the WASAPI race fix (#1001): a
+`std::mutex` guarding `DoClose`/`Buffered`/`DoPlay` and the
+device-change callback's `mInitialized` write — iteration 14's 399
+cousin LACKS this fix. Latent
 hazard: `AudioPlayer::~AudioPlayer()` is **non-virtual** — safe today
 only because players are made via `make_shared<Concrete>`.
 

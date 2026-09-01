@@ -1,9 +1,11 @@
 # libultraship — architecture overview
 
-> **Pinned:** libultraship **1.3.1-399**
-> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20 — the old
-> Ghostship fork's submodule pin; first stop of the consumer-pin leg).
-> Updated 2026-09-01 as iteration 14 of the reference crawl
+> **Pinned:** libultraship **1.3.1-397**
+> (`7f2baa104108af3fca9f094754ea974a4973bdeb`, 2026-02-28 —
+> MajorasMask's submodule pin; second stop of the consumer-pin leg.
+> Note: LATER in time than iteration 14's 1.3.1-399 despite the
+> smaller describe-count — the consumer pins are close cousins, not
+> a line). Updated 2026-09-01 as iteration 15 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above — if they
 > differ, the crawl has advanced (each iteration is a separate imps

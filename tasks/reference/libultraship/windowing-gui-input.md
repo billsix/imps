@@ -1,8 +1,10 @@
 # libultraship — windowing, GUI, and input
 
-> **Pinned:** libultraship **1.3.1-399**
-> (`e0c1b1fc35e3b4143f9417b21c7ea6e75ccfb94b`, 2026-02-20). Updated
-> 2026-09-01, iteration 14 of the reference crawl
+> **Pinned:** libultraship **1.3.1-397**
+> (`7f2baa104108af3fca9f094754ea974a4973bdeb`, 2026-02-28 —
+> MajorasMask's pin; a close cousin of iteration 14's 1.3.1-399,
+> not its descendant). Updated 2026-09-01, iteration 15 of the
+> reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
 > NEWER than tag 1.4.2 despite the smaller number.
@@ -48,8 +50,8 @@ NEW mouse-capture default **F2** (`:89-92`).
 backend from inside its `Init()`** (`gfx_sdl2.cpp:422`,
 `gfx_direct3d11.cpp:283`). **Not renderer-agnostic despite the split**:
 `Gui::Init` hard-`dynamic_pointer_cast`s the window to
-`Fast::Fast3dWindow` with no null check (`Gui.cpp:151`, duplicated at
-`:154`) and holds a `weak_ptr<Fast::Interpreter>` — a non-Fast3D
+`Fast::Fast3dWindow` with no null check (`Gui.cpp:152`, duplicated at
+`:156`) and holds a `weak_ptr<Fast::Interpreter>` — a non-Fast3D
 `Window` subclass null-derefs here.
 
 - Class tree: `GuiElement` → `{GuiWindow, GuiMenuBar}`; hooks are
@@ -69,10 +71,11 @@ backend from inside its `Init()`** (`gfx_sdl2.cpp:422`,
   `ConnectedPhysicalDeviceManager`. Remove it and hotplug dies.
 - `GameOverlay` drawn from inside `DrawGame`; **`InputViewer` no longer
   exists**.
-- GUI textures still route through Fast3D; NEW `GuiTexture` resource
-  type + `LoadTextureFromRawImage/Resource` (the HEAD commit);
-  `UnloadTexture` exists, the remaining leak is acknowledged in place
-  (`Gui.cpp:255`).
+- GUI textures still route through Fast3D via the `GuiTexture`
+  resource type + `LoadTextureFromRawImage` (upload code inline;
+  `LoadTextureFromResource` is a 399-side commit this pin lacks);
+  `UnloadTexture` exists, the upload-leak TODO is acknowledged in
+  place.
 - The GUI computes the game viewport/resolution (`CalculateGameViewport`,
   `Gui.cpp:654-698`) and composites the game FB as an `ImGui::Image` in
   `DrawGame` (`:709-761`) — balanced Begin/End now; still no
@@ -131,7 +134,7 @@ ControlDeck → ControlPort[n] → Controller
 ## Verified bugs at this pin
 
 - iOS backend-selection residual null-deref (above).
-- `Gui::Init` duplicated interpreter grab (`Gui.cpp:151`, `:154`) and
+- `Gui::Init` duplicated interpreter grab (`Gui.cpp:152`, `:156`) and
   unguarded cast (above).
 - **Uninitialized `SDL_Renderer* mRenderer`** read under OpenGL:
   assigned only on the Metal path (`gfx_sdl2.cpp:406`) but

@@ -1,7 +1,7 @@
 # libultraship — build system and dependencies
 
-> **Pinned:** libultraship tag **1.1.0**
-> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
+> **Pinned:** libultraship tag **1.2.0**
+> (`af368413f5c61557a7baf2a7a6ab35ba16a7affd`, 2023-07-19). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -39,8 +39,8 @@ messages.
 | d3d12 SDK headers | — | vendored inside `src/graphic/Fast3D/dxsdk/` |
 
 `find_package`: SDL2 (REQUIRED everywhere; CONFIG on Windows), GLEW
-(REQUIRED Win/Mac/Linux), OpenGL (QUIET), X11/PulseAudio (Linux,
-optional), Threads (Darwin/Switch), Apple frameworks via `find_library`.
+(REQUIRED Win/Mac/Linux), OpenGL (QUIET), PulseAudio (Linux, optional;
+X11 was dropped with GLX in 1.2.0), Threads (Darwin/Switch), Apple frameworks via `find_library`.
 
 Link graph (`src/CMakeLists.txt`): PRIVATE `StrHash64`; PUBLIC
 `ZAPDUtils ImGui storm tinyxml2 nlohmann_json::nlohmann_json`
@@ -68,14 +68,17 @@ desktop), Fast3D backends (`:281-329`), ImGui backends
 (`extern/CMakeLists.txt:47-76`).
 
 Compile definitions (not options): `ENABLE_DX11` (Windows),
-`ENABLE_OPENGL` (non-CafeOS), `SPDLOG_ACTIVE_LEVEL`, `_DEBUG`/`NDEBUG`.
+`ENABLE_OPENGL` (non-CafeOS), `SPDLOG_ACTIVE_LEVEL`, `_DEBUG`/`NDEBUG`,
+and since 1.2.0 **`NON_PORTABLE`** (+ a generated `install_config.h`
+carrying `CMAKE_INSTALL_PREFIX`) switching the app-directory model —
+see `config-cvars-logging.md`.
 **Referenced but never defined** — the two famous dead backends:
 
 - `ENABLE_DX12` — `gfx_direct3d12.cpp` (~1000 lines) compiles to an
   empty TU on Windows; `WindowBackend::DX12` unreachable.
-- `X11_SUPPORTED` — `gfx_glx.cpp` (554 lines) compiles to nothing on
-  Linux; `WindowBackend::GLX_OPENGL` unreachable, and the
-  `find_package(X11)` link is for nothing.
+- (`gfx_glx.cpp` and the X11 dependency were DELETED in 1.2.0 —
+  through 1.1.0 the file compiled to nothing behind the never-defined
+  `X11_SUPPORTED`, with `WindowBackend::GLX_OPENGL` unreachable.)
 
 ## Known build-system quirks at this tag
 

@@ -1,7 +1,7 @@
 # libultraship — windowing, GUI, and input
 
-> **Pinned:** libultraship tag **1.1.0**
-> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
+> **Pinned:** libultraship tag **1.2.0**
+> (`af368413f5c61557a7baf2a7a6ab35ba16a7affd`, 2023-07-19). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -94,6 +94,10 @@ on fullscreen toggles and at Context destruction.
   beyond the real N64 struct
   (`include/libultraship/libultra/controller.h:121-130` — its offset
   comments and `// size = 0x24` are stale/wrong).
+- 1.2.0 niceties: the Input Editor gained a live joystick preview
+  (#324); display/multi-monitor handling improved (#326); a DXGI
+  window-position type-conversion bug was fixed (#322); the cursor now
+  shows when starting fullscreen with the menubar open (#318).
 - Input lag simulation: a 6-deep pad buffer indexed by
   `gSimulatedInputLag` — but the buffer is **per device, not per
   port**, so "Auto" multi-port reads share one delay line.

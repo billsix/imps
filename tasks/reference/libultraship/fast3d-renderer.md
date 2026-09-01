@@ -1,7 +1,7 @@
 # libultraship — Fast3D renderer
 
-> **Pinned:** libultraship tag **1.1.0**
-> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
+> **Pinned:** libultraship tag **1.2.0**
+> (`af368413f5c61557a7baf2a7a6ab35ba16a7affd`, 2023-07-19). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -62,8 +62,8 @@ already at 1.0.0), **GX2** (Wii U), and D3D12 **compiled out**
 (`GfxWindowManagerAPI`): **SDL2** (serves both GL and Metal), **DXGI**
 (the only real frame pacer — vsync statistics, frame dropping by
 returning false from `start_frame`; vsync handling reworked in 1.0.1),
-GLX **compiled out**
-(`X11_SUPPORTED` never defined), Wii U shim. No Vulkan, no GLFW.
+Wii U shim. GLX was compiled-out dead code until its deletion in 1.2.0
+(which also improved the SDL pacing timer, #325). No Vulkan, no GLFW.
 
 ## Shader generation
 
@@ -128,7 +128,7 @@ off the public `src/` include dir.
 
 ## Dead/oddities ledger
 
-D3D12 + GLX (above); SDL's `get_time` returns 0.0, `can_disable_vsync`
+D3D12 (above; GLX deleted in 1.2.0); SDL's `get_time` returns 0.0, `can_disable_vsync`
 returns false, `set_maximum_frame_latency` is a no-op; empty
 `on_resize`/`finish_render` bodies in GL/Metal; leftover breakpoint
 hook (`:1928`) and unused `int dummy` (`:2444`); `gfx_destroy` frees

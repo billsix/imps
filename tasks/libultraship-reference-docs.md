@@ -116,7 +116,14 @@ set changes, anything surprising).
       `Context::CreateDefaultSettings` bulk seeding is REMOVED (killing
       the documented seeded-keys mismatch); new GBI extension
       `G_EXTRAGEOMETRYMODE` (0x3A) with `G_EX_INVERT_CULLING`.
-- [ ] 1.2.0 — delta
+- [x] 1.2.0 — DONE 2026-09-01 (delta, 12 commits): **GLX and the X11
+      dependency deleted** (dead since forever); app-directory model
+      reworked (`SHIP_BIN_DIR` removed → `/proc/self/exe`; new
+      `NON_PORTABLE` define routes the data dir to
+      `SDL_GetPrefPath`; `LocateFileAcrossAppDirs` helper);
+      `RomToBigEndian` added to ZAPDUtils BitConverter; better SDL
+      frame-pacing timer, display handling, Input Editor joystick
+      preview, misc fixes.
 - [ ] 1.2.1 — delta
 - [ ] 1.2.2 — delta
 - [ ] 1.3.0 — delta

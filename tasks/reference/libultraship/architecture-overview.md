@@ -1,7 +1,7 @@
 # libultraship — architecture overview
 
-> **Pinned:** libultraship tag **1.1.0**
-> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
+> **Pinned:** libultraship tag **1.2.0**
+> (`af368413f5c61557a7baf2a7a6ab35ba16a7affd`, 2023-07-19). Authored
 > 2026-09-01 as iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above — if they
@@ -85,9 +85,12 @@ No sample exists in-tree; the pattern read off the code:
 7. Push audio each frame via `AudioPlayerPlayFrame` — LUS never calls
    it itself; the game owns audio cadence.
 
-Env vars: `SHIP_BIN_DIR` (Linux bundle dir), `SHIP_HOME` (Linux/macOS
-data dir), both defaulting to `"."` (`src/Context.cpp:290-308`) — SoH
-branding that survived the de-branding.
+Env vars / locations (reworked in 1.2.0): the bundle path is now the
+executable's own directory via `/proc/self/exe` (the `SHIP_BIN_DIR` env
+var was removed); the data dir still honors `SHIP_HOME` (SoH branding
+that survived the de-branding), then under the new `NON_PORTABLE`
+build the user config directory via `SDL_GetPrefPath(appName)`, else
+`"."`. A `LocateFileAcrossAppDirs` helper searches both.
 
 ## The seams a port crosses
 

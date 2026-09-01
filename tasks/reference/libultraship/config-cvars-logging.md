@@ -1,7 +1,7 @@
 # libultraship — config, console variables, logging
 
-> **Pinned:** libultraship tag **1.1.0**
-> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
+> **Pinned:** libultraship tag **1.2.0**
+> (`af368413f5c61557a7baf2a7a6ab35ba16a7affd`, 2023-07-19). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -10,8 +10,10 @@
 
 `LUS::Config` (`src/config/Config.h:11`): nlohmann JSON, pretty-printed,
 at app-dir-relative path chosen by the game via
-`Context::CreateInstance`. App dir = `$SHIP_HOME` on Linux/macOS, else
-`"."`.
+`Context::CreateInstance`. App dir since 1.2.0: `$SHIP_HOME` if set;
+under a `NON_PORTABLE` build, the per-user config directory from
+`SDL_GetPrefPath(appName)`; else `"."` (portable, next to the exe).
+1.2.0 also stopped log-spamming default config values (#314).
 
 Implementation model worth knowing: it keeps BOTH a nested and a
 flattened JSON; **writes** go to the flattened form via JSON-pointer

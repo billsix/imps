@@ -141,7 +141,8 @@ set changes, anything surprising).
       old `bill`-branch doc set is deferred to the consumer-pin
       iterations — that set was authored at 1.3.1-**399**, i.e. deep
       into the consumer line, not at this tag.
-- [ ] 1.3.2 — delta (2023-11)
+- [x] 1.3.2 — DONE 2026-09-01 (one commit: partial revert of the 1.3.0
+      keyboard-resize change in the DXGI backend).
 - [ ] 1.3.3 — delta (2023-11)
 - [ ] 1.4.0 — delta (2023-11)
 - [ ] 1.4.1 — delta (2023-12)

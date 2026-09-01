@@ -1,5 +1,12 @@
 SHELL  := /bin/bash
-IMAGE  := 2ship-builder:latest
+# Builder variant: 'ci' (default — mirrors upstream CI: ubuntu 22.04 + gcc-12,
+# Kitware cmake) or '2604' (ubuntu 26.04, distro-default gcc-15/cmake).
+# Usage: make appimage VARIANT=2604
+# Each variant gets its own image tag so both can coexist and you can tell
+# which one built an artifact; the default keeps the plain tag.
+VARIANT    ?= ci
+DOCKERFILE := $(if $(filter 2604,$(VARIANT)),Dockerfile.ubuntu26.04,Dockerfile)
+IMAGE      := $(if $(filter ci,$(VARIANT)),2ship-builder:latest,2ship-builder-$(VARIANT):latest)
 # Repo part of IMAGE (drops the ":tag"), used for the export tarball filename.
 IMAGE_BASE := $(firstword $(subst :, ,$(IMAGE)))
 # The imps-managed upstream checkout (created by fetch.sh, patched by apply.sh).
@@ -37,6 +44,7 @@ PODMAN_RUN = podman run --rm $(PODMAN_RUN_FLAGS) \
 help:
 	@echo "Targets:"
 	@echo "  make image     - build the Podman image (~10 min first time, cached after)"
+	@echo "                   (VARIANT=ci [default, ubuntu 22.04 CI mirror] or VARIANT=2604 [ubuntu 26.04])"
 	@echo "  make image-export - save the built image to a timestamped tar here"
 	@echo "  make image-import - load an image tar: make image-import FILE=foo.tar"
 	@echo "  make build     - compile 2s2h.elf inside the container"
@@ -51,7 +59,7 @@ help:
 # Dockerfile itself lives here in imps. Fetch first if the checkout is missing.
 image:
 	@[ -d $(SRC) ] || ./fetch.sh
-	podman build -t $(IMAGE) -f Dockerfile $(SRC)
+	podman build -t $(IMAGE) -f $(DOCKERFILE) $(SRC)
 
 # Archive the built image to a timestamped tar and reload it without a rebuild
 # (move it to an offline/air-gapped machine, or snapshot a known-good build).

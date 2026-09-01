@@ -51,11 +51,24 @@ the whole delta.
 Ported 2026-09-01 from the maintainer's old fork's `podmanBuildAppImage`
 branch (2 commits: "Added Bill's Dockerfile based on the github action" +
 "updated to ubuntu 26.04") — as **native imps files, not patches**, per the
-patches-carry-code-only principle. The Dockerfile is verbatim (Ubuntu 26.04
-builder mirroring upstream CI: apt list bind-mounted from the checkout's
-`.github/workflows/apt-deps.txt`, SDL 2.30.3 / tinyxml2 10.0.0 /
-libzip 1.10.1 built from source). The Makefile was adapted for the imps
-layout, everything else verbatim:
+patches-carry-code-only principle. The branch's two Dockerfile versions
+were kept as **two selectable variants** instead of the second overwriting
+the first:
+
+- `Dockerfile` (default, `VARIANT=ci`) — mirrors upstream CI:
+  ubuntu 22.04, gcc-12 pin, Kitware cmake. Use for CI fidelity.
+- `Dockerfile.ubuntu26.04` (`VARIANT=2604`) — ubuntu 26.04,
+  distro-default gcc-15/cmake. The modern-toolchain build.
+- Both: apt list bind-mounted from the checkout's
+  `.github/workflows/apt-deps.txt`, SDL 2.30.3 / tinyxml2 10.0.0 /
+  libzip 1.10.1 built from source. Each variant gets its own image tag.
+- The branch's v2 also dropped `--userns=keep-id` from the `shell` target
+  only; with one shared Makefile that difference was deliberately NOT
+  carried — `shell` keeps `--userns=keep-id` in both variants, matching
+  `PODMAN_RUN` (without it a rootless-podman shell can't write the
+  bind-mounted source).
+
+The Makefile was adapted for the imps layout, everything else verbatim:
 
 - `SRC` = `2ship2harkinian/` (the imps checkout) instead of the Makefile's
   own directory;

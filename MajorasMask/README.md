@@ -33,6 +33,10 @@ make run        # run the AppImage on the host, from runDir/ (same saves as run.
 ```
 
 - `make help` lists all targets (image-export/import, shell, clean, distclean).
+- Two builder variants: default `VARIANT=ci` mirrors upstream CI
+  (ubuntu 22.04 + gcc-12, `Dockerfile`); `VARIANT=2604` uses ubuntu 26.04
+  with the distro toolchain (`Dockerfile.ubuntu26.04`), e.g.
+  `make appimage VARIANT=2604`. Each gets its own image tag.
 - Builds whatever the checkout holds — run `./fetch.sh && ./apply.sh` first
   for the patched build.
 - > The container build dir is `2ship2harkinian/build-cmake` (inside the

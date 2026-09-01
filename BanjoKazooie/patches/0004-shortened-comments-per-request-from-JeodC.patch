@@ -1,0 +1,51 @@
+From 9ac386c808bc3fb1aae1e3e1fb96c33d9c3419ea Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sat, 1 Aug 2026 07:25:04 -0400
+Subject: [PATCH 4/4] shortened comments per request from JeodC
+
+---
+ CMakeLists.txt              |  5 +----
+ src/core1/graphics_thread.c | 11 +----------
+ 2 files changed, 2 insertions(+), 14 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 26c4a099..a6952923 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -750,10 +750,7 @@ add_custom_target(
+     ExtractAssets
+     DEPENDS TorchExternal
+     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+-    # [port] Stamp bk.o2r with the project version so VerifyArchiveVersion() (Engine.cpp)
+-    # accepts it. Without -u, Torch writes no portVersion record -> the archive reads as
+-    # version {0,0,0}, never matches the build, and the runtime shows "incompatible ROM
+-    # archives" and re-extracts on every launch. Mirrors GeneratePortO2R's stamping.
++    # [port] Stamp bk.o2r with the project version so VerifyArchiveVersion() accepts it; without -u it reads as {0,0,0} and re-extracts every launch.
+     COMMAND ${TORCH_EXECUTABLE} o2r baserom.z64 -u ${PROJECT_VERSION}
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/bk.o2r" "${CMAKE_BINARY_DIR}/bk.o2r"
+ )
+diff --git a/src/core1/graphics_thread.c b/src/core1/graphics_thread.c
+index 2f3fcf9f..08809ae4 100644
+--- a/src/core1/graphics_thread.c
++++ b/src/core1/graphics_thread.c
+@@ -492,16 +492,7 @@ void thread5_entry(void *arg) {
+         }
+         ThreadWatchdog_Beat(WATCHDOG_THREAD5); // [port] one beat per serviced message
+         thread5_checkAndExecutePreNMI();
+-        // [port] OSMesg is an 8-byte union on PC. Hardware events are posted with
+-        // OS_MESG_32(code), which sets .data32 but leaves the union's high 4 bytes
+-        // UNINITIALIZED (garbage). The original discrimination here was
+-        // `(uintptr_t)msg.ptr < 100`, i.e. it read all 8 bytes — so an event whose garbage
+-        // high bytes happened to be non-zero (observed: SP=6 arriving as 0x00007FCE_00000006)
+-        // was mis-read as a task pointer and never dispatched. That silently dropped the
+-        // gfx-completion/yield SP events, stranding the yield and hanging game-tick on
+-        // sMesgQueue2 (the freeze). Task submissions carry a real pointer whose low 32 bits
+-        // are always large, so discriminate on .data32 (the event code) instead, which is
+-        // immune to the garbage high bytes.
++        // [port] OSMesg is an 8-byte union and OS_MESG_32 leaves its high bytes garbage, so discriminate on .data32 (the event code), not the full .ptr, which mis-read events as task pointers and dropped SP events (the post-import freeze).
+         if (msg.data32 < 100) {
+             if (msg.data32 == THREAD5_MESSAGE_EVENT_SYNC) { thread5_handleSyncEvent(); }
+             else if (msg.data32 == THREAD5_MESSAGE_EVENT_VI_RETRACE)  { thread5_handleVIRetraceEvent(); }
+-- 
+2.55.0
+

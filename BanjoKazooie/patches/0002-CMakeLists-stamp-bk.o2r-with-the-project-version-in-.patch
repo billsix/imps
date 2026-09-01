@@ -1,0 +1,42 @@
+From d883f6ffe42939e1a297b38c22233be61d88f348 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sat, 1 Aug 2026 03:04:35 +0000
+Subject: [PATCH 2/4] CMakeLists: stamp bk.o2r with the project version in
+ ExtractAssets
+
+The ExtractAssets target ran `torch o2r baserom.z64` without -u, so the
+generated bk.o2r carried no portVersion record. At runtime
+ReadPortVersionFromOTR() returns {0,0,0} for an archive with no portVersion,
+VerifyArchiveVersion() then compares that against the build version (1.0.0)
+and fails, so the game reports "Outdated/incompatible ROM archives" and
+drops into the re-extract flow on every launch.
+
+Pass `-u ${PROJECT_VERSION}` to the torch o2r command (mirroring how
+GeneratePortO2R already stamps lighthouse.o2r) so bk.o2r records a matching
+portVersion and the version check passes.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+---
+ CMakeLists.txt | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ba98a0bc..26c4a099 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -750,7 +750,11 @@ add_custom_target(
+     ExtractAssets
+     DEPENDS TorchExternal
+     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+-    COMMAND ${TORCH_EXECUTABLE} o2r baserom.z64
++    # [port] Stamp bk.o2r with the project version so VerifyArchiveVersion() (Engine.cpp)
++    # accepts it. Without -u, Torch writes no portVersion record -> the archive reads as
++    # version {0,0,0}, never matches the build, and the runtime shows "incompatible ROM
++    # archives" and re-extracts on every launch. Mirrors GeneratePortO2R's stamping.
++    COMMAND ${TORCH_EXECUTABLE} o2r baserom.z64 -u ${PROJECT_VERSION}
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/bk.o2r" "${CMAKE_BINARY_DIR}/bk.o2r"
+ )
+ 
+-- 
+2.55.0
+

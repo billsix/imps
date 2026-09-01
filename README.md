@@ -47,5 +47,10 @@ cd OcarinaOfTime
   from my old `fedora44Fixes` fork branch, verified to apply byte-identical
   on the pin; build verification pending. Also has the first podman build:
   `make appimage` → `out/2ship.appimage` (see its README).
+- **BanjoKazooie** — 4-patch series from my `fixOnFedora` fork branch
+  (submitted upstream as a PR): Fedora deps doc fix, bk.o2r version stamp,
+  the post-ROM-import freeze fix, review-round cleanup. Verified
+  byte-identical on apply; build verification pending. Fork docs migrated
+  to `BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
 - **Planned:** more projects (the Majora's Mask, Super Mario 64, and
   Banjo-Kazooie ports); podman container builds alongside the host builds.

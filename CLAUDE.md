@@ -123,3 +123,14 @@ docs namespaced per project as above, archives under `tasks/archive/`.
   podman build (`Dockerfile` + `Makefile` → AppImage), ported from the old
   fork's `podmanBuildAppImage` branch as native imps files — the first
   container build in imps.
+- `BanjoKazooie/` — Lighthouse
+  (https://github.com/HarbourMasters/Lighthouse), pinned at `6d30df9a`
+  (tip of `develop`, 2026-09-01, just past the 1.0.0 release; submodules
+  libultraship 1.3.1-482 + Torch). Details: `BanjoKazooie/CLAUDE.md`.
+  Status: 4-patch series exported from the maintainer's `fixOnFedora`
+  branch (Fedora build-deps doc fix, bk.o2r version stamp, the
+  post-ROM-import freeze fix, and a JeodC review round — the series is a
+  submitted upstream PR and retires if merged); patch 0002's lost commit
+  subject repaired during export; verified byte-identical on apply. Build
+  verification pending. The `bill` branch's doc set (8 reference docs +
+  the freeze investigation) migrated to `tasks/reference/banjo/`.

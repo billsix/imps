@@ -104,9 +104,16 @@ the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
 CI's build-linux job (`.github/workflows/main.yml` at the pin,
 `ubuntu-latest` resolved to **24.04**): CI's apt line verbatim
 (including the Vulkan set — libvulkan/libshaderc/glslang/spirv-tools),
-python deps **bind-mounted from the checkout's
+python deps **`COPY`d from the checkout's
 `libultraship/requirements.txt`** (pip `--break-system-packages` for
-noble's PEP668), SDL 2.30.3 / tinyxml2 10.0.0 / libzip 1.10.1 from
+noble's PEP668; `COPY` not `RUN --mount=type=bind` on purpose — a
+build-time bind mount is read by the confined `container_t` RUN process
+with the file's on-disk SELinux label, so a `:Z`-poisoned checkout
+(sandbox's `c1022,c1023` MCS categories) makes a host-side `podman
+build` fail with an MCS-mismatch AVC on `requirements.txt`, and a build
+mount has no relabel step; `COPY` is read by buildah as the unconfined
+host user, immune to the label — fixed 2026-09-01), SDL 2.30.3 /
+tinyxml2 10.0.0 / libzip 1.10.1 from
 source. `GeneratePortO2R` runs in-container; the `appimage` target also
 copies `build-cmake/.tcc` to `out/.tcc` (CI ships it beside the
 AppImage and hard-fails without it — the scripting runtime).

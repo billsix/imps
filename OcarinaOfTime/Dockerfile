@@ -10,14 +10,20 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Base toolchain + AppImage tooling + the shared CI library deps.  The library
 # list is read straight from linux-build-deps/apt.txt — the SAME file the
-# GitHub CI installs from — via a build-time bind mount (the build context is
-# the Shipwright checkout), so the list lives in one place.  The packages
-# listed inline are the ones a bare ubuntu:22.04 lacks that the GitHub runner
-# pre-provides (toolchain, download utilities, python3 for the asset
-# extractor, imagemagick — SoH's cmake configure runs `convert` on
-# sohIcon.png and fails without it — and AppImage packaging).
-RUN --mount=type=bind,source=linux-build-deps/apt.txt,target=/tmp/apt.txt \
-    apt-get update && apt-get install -y --no-install-recommends \
+# GitHub CI installs from (the build context is the Shipwright checkout) — so
+# the list lives in one place.  The packages listed inline are the ones a bare
+# ubuntu:22.04 lacks that the GitHub runner pre-provides (toolchain, download
+# utilities, python3 for the asset extractor, imagemagick — SoH's cmake
+# configure runs `convert` on sohIcon.png and fails without it — and AppImage
+# packaging).
+# COPY, not `RUN --mount=type=bind`: a build-time bind mount is read by the
+# confined `container_t` RUN process with the file's on-disk SELinux label, so
+# a `:Z`-poisoned checkout (the runClaudeInContainer sandbox's c1022,c1023 MCS
+# categories) makes a host-side `podman build` fail with an MCS-mismatch AVC,
+# and a build mount has no relabel step.  COPY is read by buildah as the
+# unconfined host user, immune to the label.
+COPY linux-build-deps/apt.txt /tmp/apt.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
         $(cat /tmp/apt.txt) \
         ca-certificates wget curl gnupg git file patchelf desktop-file-utils \
         build-essential gcc g++ pkg-config python3 imagemagick \

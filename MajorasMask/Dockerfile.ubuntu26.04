@@ -12,13 +12,19 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Base toolchain + AppImage tooling + the shared CI library deps.
 # The library list is read straight from .github/workflows/apt-deps.txt — the
-# SAME file the GitHub Linux CI installs from — via a build-time bind mount, so
-# the list lives in one place (no duplication) and the file is not baked into an
-# image layer. The packages listed inline are the ones a bare ubuntu:26.04 lacks
-# that the GitHub runner pre-provides (toolchain, checkout/download utilities,
-# AppImage packaging) plus the zip CLI tools the CI installs alongside apt-deps.
-RUN --mount=type=bind,source=.github/workflows/apt-deps.txt,target=/tmp/apt-deps.txt \
-    apt-get update && apt-get install -y --no-install-recommends \
+# SAME file the GitHub Linux CI installs from — so the list lives in one place
+# (no duplication). The packages listed inline are the ones a bare ubuntu:26.04
+# lacks that the GitHub runner pre-provides (toolchain, checkout/download
+# utilities, AppImage packaging) plus the zip CLI tools the CI installs
+# alongside apt-deps.
+# COPY, not `RUN --mount=type=bind`: a build-time bind mount is read by the
+# confined `container_t` RUN process with the file's on-disk SELinux label, so
+# a `:Z`-poisoned checkout (the runClaudeInContainer sandbox's c1022,c1023 MCS
+# categories) makes a host-side `podman build` fail with an MCS-mismatch AVC,
+# and a build mount has no relabel step.  COPY is read by buildah as the
+# unconfined host user, immune to the label.
+COPY .github/workflows/apt-deps.txt /tmp/apt-deps.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
         $(cat /tmp/apt-deps.txt) \
         ca-certificates wget curl git file patchelf desktop-file-utils \
         lsb-release build-essential gcc g++ cmake pkg-config python3 \

@@ -71,8 +71,11 @@ the first:
   ubuntu 22.04, gcc-12 pin, Kitware cmake. Use for CI fidelity.
 - `Dockerfile.ubuntu26.04` (`VARIANT=2604`) — ubuntu 26.04,
   distro-default gcc-15/cmake. The modern-toolchain build.
-- Both: apt list bind-mounted from the checkout's
-  `.github/workflows/apt-deps.txt`, SDL 2.30.3 / tinyxml2 10.0.0 /
+- Both: apt list **`COPY`d** from the checkout's
+  `.github/workflows/apt-deps.txt` (`COPY` not `RUN --mount=type=bind` —
+  the latter is read by the confined `container_t` RUN process and fails
+  on a `:Z`-poisoned checkout, see the SuperMario64 Dockerfile comment,
+  fixed 2026-09-01), SDL 2.30.3 / tinyxml2 10.0.0 /
   libzip 1.10.1 built from source. Each variant gets its own image tag.
 - The branch's v2 also dropped `--userns=keep-id` from the `shell` target
   only; with one shared Makefile that difference was deliberately NOT

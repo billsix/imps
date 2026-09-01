@@ -94,8 +94,11 @@ the working tree shows a newer pin, so read it via git history
 Created 2026-09-01 per `../tasks/ocarina-podman-appimage-build.md`, on
 the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
 CI's linux job (`.github/workflows/generate-builds.yml` at the pin,
-**ubuntu-22.04**): the apt list is **bind-mounted from the checkout's
-own `linux-build-deps/apt.txt`** at image build (stays auto-current);
+**ubuntu-22.04**): the apt list is **`COPY`d from the checkout's
+own `linux-build-deps/apt.txt`** at image build (stays auto-current;
+`COPY` not `RUN --mount=type=bind` — the latter is read by the confined
+`container_t` RUN process and fails on a `:Z`-poisoned checkout, see the
+SuperMario64 Dockerfile comment, fixed 2026-09-01);
 SDL 2.30.3, SDL2_net 2.2.0 (CI's local action), tinyxml2 10.0.0, and
 libzip 1.10.1 (no crypto) built from source, shadowing the apt ones the
 way CI does. Build flags mirror CI: Release + `BUILD_REMOTE_CONTROL=1`;

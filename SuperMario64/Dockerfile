@@ -41,12 +41,19 @@ RUN wget -O /tmp/kitware-archive.sh https://apt.kitware.com/kitware-archive.sh \
     && rm -rf /var/lib/apt/lists/* /tmp/kitware-archive.sh
 
 # Python deps for the Torch/asset tooling, read straight from the checkout's
-# libultraship/requirements.txt via a build-time bind mount (the build context
-# is the Ghostship checkout) — same single-source-of-truth trick as the apt
-# lists elsewhere.  --break-system-packages because 24.04's python is
+# libultraship/requirements.txt (the build context is the Ghostship checkout)
+# — same single-source-of-truth trick as the apt lists elsewhere.  COPY, not a
+# `RUN --mount=type=bind`, on purpose: a build-time bind mount is read by the
+# confined `container_t` RUN process with the file's on-disk SELinux label, so
+# when the checkout carries the runClaudeInContainer sandbox's `:Z` MCS
+# categories (c1022,c1023), a host-side `podman build` is denied read (category
+# mismatch — the sandbox `:Z`-poisons the repo per the global conventions, and a
+# build mount has no relabel step to fix it).  COPY is read by buildah as the
+# unconfined host user, which dominates all categories, so it works regardless
+# of the on-disk label.  --break-system-packages because 24.04's python is
 # PEP668-managed and this is a single-purpose container.
-RUN --mount=type=bind,source=libultraship/requirements.txt,target=/tmp/requirements.txt \
-    pip3 install --break-system-packages -r /tmp/requirements.txt
+COPY libultraship/requirements.txt /tmp/requirements.txt
+RUN pip3 install --break-system-packages -r /tmp/requirements.txt
 
 # SDL 2.30.3 from source (CI step "Install latest SDL").
 RUN mkdir -p /deps && cd /deps \

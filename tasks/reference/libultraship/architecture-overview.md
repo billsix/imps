@@ -1,14 +1,14 @@
-# libultraship 1.0.0 — architecture overview
+# libultraship — architecture overview
 
-> **Pinned:** libultraship tag **1.0.0**
-> (`31189cc9b3891a6049478e955a47589ce964265d`, 2023-05-29). Authored
+> **Pinned:** libultraship tag **1.0.1**
+> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
 > 2026-09-01 as iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above — if they
 > differ, the crawl has advanced and this doc state describes an older
 > tag (each tag's state is a separate imps commit).
 
-**What LUS is at 1.0.0:** a static C++20 library (`libultraship.a`) that
+**What LUS is at this pin:** a static C++20 library (`libultraship.a`) that
 gives an N64 decompilation "somewhere to run" — a Fast3D display-list
 renderer with pluggable graphics backends, an MPQ-based (`.otr`) asset
 archive + typed resource system, SDL-based audio/input, an ImGui overlay
@@ -101,7 +101,7 @@ branding that survived the de-branding.
   exist. **No threads, no rumble shim, no interrupts** — see
   `audio-and-libultra-shims.md`.
 
-## What does NOT exist at 1.0.0 (verified absences)
+## What does NOT exist yet at this pin (verified absences)
 
 - No thread shims (`osCreateThread` etc.) — types only.
 - No Vulkan backend; D3D12 and GLX code exist but are compiled out

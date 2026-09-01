@@ -1,7 +1,7 @@
-# libultraship 1.0.0 — Fast3D renderer
+# libultraship — Fast3D renderer
 
-> **Pinned:** libultraship tag **1.0.0**
-> (`31189cc9b3891a6049478e955a47589ce964265d`, 2023-05-29). Authored
+> **Pinned:** libultraship tag **1.0.1**
+> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -20,7 +20,8 @@ the color-combiner model shared by all shader generators.
 `switch (cmd->words.w0 >> 24)`; `G_ENDDL` returns. **No `default:`** —
 unknown opcodes are silently skipped (unhandled at this tag: plain
 `G_BRANCH_Z`, `G_CULLDL`, `G_LINE3D`, `G_SETBLENDCOLOR`,
-`G_RDPHALF_1/2`, all S2DEX except `G_BG_COPY`).
+`G_RDPHALF_1/2`, all S2DEX except `G_BG_COPY` — which since 1.0.1
+honors `G_BG_FLAG_FLIPS`, horizontal flip via negative dsdx).
 `include/libultraship/libultra/gbi.h:50` hardcodes `F3DEX_GBI_2`, so
 every F3D/F3DEX `#else` branch is dead.
 
@@ -57,7 +58,8 @@ already at 1.0.0), **GX2** (Wii U), and D3D12 **compiled out**
 (`ENABLE_DX12` never defined). Window managers
 (`GfxWindowManagerAPI`): **SDL2** (serves both GL and Metal), **DXGI**
 (the only real frame pacer — vsync statistics, frame dropping by
-returning false from `start_frame`), GLX **compiled out**
+returning false from `start_frame`; vsync handling reworked in 1.0.1),
+GLX **compiled out**
 (`X11_SUPPORTED` never defined), Wii U shim. No Vulkan, no GLFW.
 
 ## Shader generation

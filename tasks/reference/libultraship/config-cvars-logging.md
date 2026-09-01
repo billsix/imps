@@ -1,7 +1,7 @@
-# libultraship 1.0.0 — config, console variables, logging
+# libultraship — config, console variables, logging
 
-> **Pinned:** libultraship tag **1.0.0**
-> (`31189cc9b3891a6049478e955a47589ce964265d`, 2023-05-29). Authored
+> **Pinned:** libultraship tag **1.0.1**
+> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -24,7 +24,8 @@ wrong node.
 
 Defaults are seeded once (`Context::CreateDefaultSettings`,
 `src/Context.cpp:60-84`): 640×480 window at (100,100), fullscreen off
-@1920×1080, empty backend strings, `Shortcuts.Fullscreen` = F9,
+@1920×1080, empty backend strings, `Shortcuts.Fullscreen` = F11
+(F9 in 1.0.0),
 `Shortcuts.Console` = backtick. **Known mismatch:** the seeded keys
 `Window.GfxBackend`/`Window.GfxApi` are NOT what
 `Config::GetWindowBackend` reads (`Window.Backend.Id`).

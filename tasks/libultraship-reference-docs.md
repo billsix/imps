@@ -101,7 +101,15 @@ set changes, anything surprising).
       nonexistent `menu/ImGuiImpl.h`); `ResourceClearCache` declared
       but never defined; no thread or rumble shims; archives are
       MPQ/StormLib; no version constant exists in code.
-- [ ] 1.0.1 — delta
+- [x] 1.0.1 — DONE 2026-09-01 (delta, 7 commits/12 files; per-tag
+      commits authorized for this work session). Two 1.0.0 documented
+      defects fixed upstream: the SaveSettings double-increment and the
+      Wii U `menu/ImGuiImpl.h` compile-breaker. Also: fullscreen default
+      F9→F11 (handler + seed), ZAPDUtils PRIVATE→PUBLIC (closes the
+      FileHelper include leak), DisplayList XML gains
+      Grayscale/SetGrayscaleColor, `G_BG_COPY` honors horizontal flip,
+      DXGI vsync rework. Doc titles made version-less (banner carries
+      the pin).
 - [ ] 1.1.0 — delta
 - [ ] 1.2.0 — delta
 - [ ] 1.2.1 — delta

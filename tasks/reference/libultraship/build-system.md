@@ -1,7 +1,7 @@
-# libultraship 1.0.0 — build system and dependencies
+# libultraship — build system and dependencies
 
-> **Pinned:** libultraship tag **1.0.0**
-> (`31189cc9b3891a6049478e955a47589ce964265d`, 2023-05-29). Authored
+> **Pinned:** libultraship tag **1.0.1**
+> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -42,8 +42,10 @@ messages.
 (REQUIRED Win/Mac/Linux), OpenGL (QUIET), X11/PulseAudio (Linux,
 optional), Threads (Darwin/Switch), Apple frameworks via `find_library`.
 
-Link graph (`src/CMakeLists.txt:366-369`): PRIVATE `ZAPDUtils
-StrHash64`; PUBLIC `ImGui storm tinyxml2 nlohmann_json::nlohmann_json`.
+Link graph (`src/CMakeLists.txt`): PRIVATE `StrHash64`; PUBLIC
+`ZAPDUtils ImGui storm tinyxml2 nlohmann_json::nlohmann_json`
+(ZAPDUtils moved to PUBLIC in 1.0.1, closing the
+FileHelper/PathHelper include leak).
 PUBLIC include dirs include **`src/` itself** — the reason the
 include/src boundary is advisory (see `architecture-overview.md`).
 

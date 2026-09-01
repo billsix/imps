@@ -1,7 +1,7 @@
-# libultraship 1.0.0 — audio backends and libultra OS shims
+# libultraship — audio backends and libultra OS shims
 
-> **Pinned:** libultraship tag **1.0.0**
-> (`31189cc9b3891a6049478e955a47589ce964265d`, 2023-05-29). Authored
+> **Pinned:** libultraship tag **1.0.1**
+> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -87,8 +87,7 @@ definition — a consuming game must supply or avoid them):
   endianness).
 - `src/port/` — **empty on desktop**; Switch (`SwitchImpl`, overclock
   profiles keyed by `gSwitchPerfMode`) and Wii U (`WiiUImpl`, WPAD/VPAD
-  drivers). **The Wii U build cannot compile at this tag**: both
-  controller files include `menu/ImGuiImpl.h`, which does not exist in
-  the tree. Also `Switch::PrintErrorMessageToScreen` indexes
+  drivers). (1.0.0's Wii U compile-breaker — both controller files
+  included a nonexistent `menu/ImGuiImpl.h` — was fixed in 1.0.1.) Also `Switch::PrintErrorMessageToScreen` indexes
   `RandomTexts[rand() % 25]` into a 16-entry array (with a
   missing-comma string concatenation inside it).

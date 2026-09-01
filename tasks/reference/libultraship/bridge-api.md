@@ -1,7 +1,7 @@
-# libultraship 1.0.0 — the bridge API (game-facing surface)
+# libultraship — the bridge API (game-facing surface)
 
-> **Pinned:** libultraship tag **1.0.0**
-> (`31189cc9b3891a6049478e955a47589ce964265d`, 2023-05-29). Authored
+> **Pinned:** libultraship tag **1.0.1**
+> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -88,7 +88,8 @@ Details and the long not-implemented list:
 ~30 headers from `src/` re-exported wholesale (`Context`, `Window`,
 `Gui`, `ResourceManager`, `Archive`, `ControlDeck`, controllers, audio,
 binarytools, …) — and since `src/` is a PUBLIC include dir, consumers
-can include anything anyway. Two boundary leaks compile only via
+can include anything anyway. One boundary leak compiles only via
 transitive luck: `ResourceManager.h` includes the thread-pool header
-from a PRIVATE include dir, and `FileHelper.h`/`PathHelper.h` include
-ZAPDUtils (linked PRIVATE).
+from a PRIVATE include dir (a second — `FileHelper.h`/`PathHelper.h`
+including PRIVATE-linked ZAPDUtils — was resolved by 1.0.1 making
+ZAPDUtils PUBLIC).

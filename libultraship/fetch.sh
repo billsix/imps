@@ -13,9 +13,9 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/Kenix3/libultraship
 
-# Crawl position: tag 1.0.0 (2023-05-29) — iteration 1 of the reference
+# Crawl position: tag 1.0.1 (2023-06-07) — iteration 2 of the reference
 # crawl.
-PIN_SHA=31189cc9b3891a6049478e955a47589ce964265d
+PIN_SHA=22bd2a04ed45c9807d71908e08462542f89f7ed3
 
 if [ ! -d libultraship ]; then
     git clone "$UPSTREAM" libultraship

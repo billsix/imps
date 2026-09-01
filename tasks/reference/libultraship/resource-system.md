@@ -1,7 +1,7 @@
-# libultraship 1.0.0 — resource system and OTR archives
+# libultraship — resource system and OTR archives
 
-> **Pinned:** libultraship tag **1.0.0**
-> (`31189cc9b3891a6049478e955a47589ce964265d`, 2023-05-29). Authored
+> **Pinned:** libultraship tag **1.0.1**
+> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -92,7 +92,8 @@ path), DisplayList, Matrix, Array, Blob** — registered in
 in LUS** (games register their own) and an explicitly `(UNUSED)`
 `Archive` type. DisplayList's binary parser understands the 128-bit OTR
 opcodes (`G_SETTIMG_OTR_HASH` etc., `DisplayListFactory.cpp:68-74`);
-its XML parser is ~900 lines of GBI command names.
+its XML parser is ~900 lines of GBI command names (1.0.1 added
+`Grayscale`/`SetGrayscaleColor`).
 
 ## Caching and lifetime
 

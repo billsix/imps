@@ -1,7 +1,7 @@
-# libultraship 1.0.0 — windowing, GUI, and input
+# libultraship — windowing, GUI, and input
 
-> **Pinned:** libultraship tag **1.0.0**
-> (`31189cc9b3891a6049478e955a47589ce964265d`, 2023-05-29). Authored
+> **Pinned:** libultraship tag **1.0.1**
+> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -29,7 +29,9 @@ fullscreen = `SDL_WINDOW_FULLSCREEN_DESKTOP` unless CVar
 `gSdlWindowedFullscreen`; frame pacing = `nanosleep` timer (default 60
 FPS) then `SDL_GL_SwapWindow` — called **even under Metal** (Metal
 presents its own drawable; the SDL backend is only partly Metal-aware).
-F9 toggles fullscreen (config key `Shortcuts.Fullscreen`). Steam Deck
+F11 toggles fullscreen (config key `Shortcuts.Fullscreen`; the
+default was F9 in 1.0.0 — 1.0.1 changed both the handler and the
+seeded default). Steam Deck
 gamescope is sniffed from `/etc/os-release` and forces 1280×800
 fullscreen (`Window.cpp:44-63`). Window size/position persist to config
 on fullscreen toggles and at Context destruction.
@@ -105,9 +107,8 @@ on fullscreen toggles and at Context destruction.
 
 ## Verified bugs at this tag
 
-- **`ControlDeck::SaveSettings` double-increments its loop** (stray
-  `virtualSlot++` at `ControlDeck.cpp:296`): only slots 0 and 2 ever
-  persist; 1 and 3 silently don't.
+- (1.0.0's `SaveSettings` double-increment — only slots 0 and 2
+  persisting — was fixed in 1.0.1; all four slots now save.)
 - `SDLController::mSupportsGyro` read uninitialized when the device
   failed to open (`SDLController.cpp:21-33`).
 - The `TARGET_WEB` block in `SDLController::ReadDevice` references

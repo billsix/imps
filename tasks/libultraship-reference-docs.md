@@ -127,7 +127,9 @@ set changes, anything surprising).
 - [x] 1.2.1 — DONE 2026-09-01 (delta, 2 commits): SDL fullscreen made
       multi-monitor aware; `Gui::LoadGuiTexture` routes through the
       resource system so GUI icons honor HD/alt texture packs.
-- [ ] 1.2.2 — delta
+- [x] 1.2.2 — DONE 2026-09-01 (delta, 4 commits): Advanced Resolution
+      Mode GUI controls; clearMtx hack list 4→6 addresses (PAL GC MQ +
+      PAL1.0); reversed romSize check fixed in ZAPDUtils BitConverter.
 - [ ] 1.3.0 — delta
 - [ ] 1.3.1 — delta (2023-11; cross-check against the old `bill`-branch
       doc set, which was authored at 1.3.1-399)

@@ -1,7 +1,7 @@
 # libultraship — windowing, GUI, and input
 
-> **Pinned:** libultraship tag **1.2.1**
-> (`0a57812968539176bbeaa76c61532d0d6dec4881`, 2023-08-06). Authored
+> **Pinned:** libultraship tag **1.2.2**
+> (`ec44917cf5536c8c59aaa7865696926e0bec1ba0`, 2023-09-12). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -11,8 +11,9 @@
 `LUS::Window` (`src/window/Window.h:16`) is a thin facade over a
 `GfxRenderingAPI*` + `GfxWindowManagerAPI*` pair plus a
 `shared_ptr<Gui>`. Backend enum: `DX11, DX12, GLX_OPENGL, SDL_OPENGL,
-SDL_METAL, GX2` (`Window.h:12`) — of which **DX12 and GLX_OPENGL are
-never offered** (their code is compiled out; see `build-system.md`).
+SDL_METAL, GX2` (`Window.h`) — of which **DX12 and GLX_OPENGL are never
+offered** (D3D12 is compiled out; GLX's code was deleted outright in
+1.2.0, though its enum value lingers — see `build-system.md`).
 Availability (`Window.cpp:77-90`): DX11 on Win32, SDL_METAL on Apple iff
 `Metal_IsSupported()`, GX2 on Wii U, else SDL_OPENGL.
 
@@ -20,9 +21,9 @@ Availability (`Window.cpp:77-90`): DX11 on Win32, SDL_METAL on Apple iff
 from config is range-checked against the enum, not the availability
 list; a stale value hits the `default:` in `InitWindowManager`
 (`Window.cpp:273`) leaving **null API pointers** that `gfx_init`
-dereferences. Also note `CreateDefaultSettings` seeds
-`Window.GfxBackend`/`GfxApi` strings while `GetWindowBackend` reads
-`Window.Backend.Id` — the seeded keys aren't the ones read.
+dereferences. (The related seeded-keys mismatch died with
+`CreateDefaultSettings`' removal in 1.1.0 — see
+`config-cvars-logging.md`.)
 
 SDL specifics (`gfx_sdl2.cpp`): GL 4.1 core on macOS / 2.1 on Switch;
 fullscreen = `SDL_WINDOW_FULLSCREEN_DESKTOP` unless CVar
@@ -64,6 +65,8 @@ on fullscreen toggles and at Context destruction.
   `ImGui::Begin("Main Game")` and deliberately leaves it open;
   `Gui::StartFrame` composites the rendered game as an `ImGui::Image`
   and closes it. There is no ImGui-less mode.
+- 1.2.2 added Advanced Resolution Mode controls to the GUI (the
+  `gAdvancedResolution` family driving internal-resolution scaling).
 - Overlays (`GameOverlay` — CVar watches + fading notifications, fonts
   from the OTR) and `InputViewer` are separate objects drawn after the
   registered windows, not GuiElements.

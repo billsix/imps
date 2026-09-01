@@ -1,7 +1,7 @@
 # libultraship — Fast3D renderer
 
-> **Pinned:** libultraship tag **1.2.1**
-> (`0a57812968539176bbeaa76c61532d0d6dec4881`, 2023-08-06). Authored
+> **Pinned:** libultraship tag **1.2.2**
+> (`ec44917cf5536c8c59aaa7865696926e0bec1ba0`, 2023-09-12). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -45,8 +45,9 @@ fix HD-texture corruption, OTRTODO `:2806-2808`).
 texture binding, and vertex emission into a 256-tri buffer flushed via
 `gfx_rapi->draw_triangles`.
 
-**Game-specific hacks baked into the "generic" library:** four literal
-SM64/OoT segmented addresses remapped to `clearMtx` (`:2491-2494`); a
+**Game-specific hacks baked into the "generic" library:** literal
+OoT segmented addresses remapped to `clearMtx` (four at 1.0.0; six
+since 1.2.2, adding PAL GC MQ and PAL1.0); a
 "Bowser - Peach painting" LOD heuristic (`:1707`); full-screen fill
 rects widened ±1024/2048 for widescreen fades (`:2323`); a commented
 "Cursed Malon bug" offset (`:2425`). `SCREEN_WIDTH/HEIGHT` pinned to

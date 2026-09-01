@@ -1,7 +1,7 @@
 # libultraship — Fast3D renderer
 
-> **Pinned:** libultraship tag **1.3.3**
-> (`f717dd265aff2eff359de26915d8ad4e498ffdaf`, 2023-11-15). Authored
+> **Pinned:** libultraship tag **1.4.0**
+> (`59427a67bf9af060a4928bb72e3acce3b0782177`, 2023-11-27). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.

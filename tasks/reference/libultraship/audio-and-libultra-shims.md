@@ -1,7 +1,7 @@
 # libultraship — audio backends and libultra OS shims
 
-> **Pinned:** libultraship tag **1.3.3**
-> (`f717dd265aff2eff359de26915d8ad4e498ffdaf`, 2023-11-15). Authored
+> **Pinned:** libultraship tag **1.4.0**
+> (`59427a67bf9af060a4928bb72e3acce3b0782177`, 2023-11-27). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -13,7 +13,8 @@
 API, always built), **WASAPI** (`_WIN32`), **PulseAudio**
 (`__linux__`/`__BSD__` — but the *selector* uses `__linux` only, so BSD
 compiles the class and can never pick it). No ALSA, CoreAudio, OpenAL,
-or null player; macOS/consoles fall through to SDL.
+or null player; macOS/consoles fall through to SDL. (1.4.0 added a
+Switch fix reinitializing audio after suspend/resume.)
 
 **The model is push-only — there is no audio callback.** The game
 pushes PCM (S16 stereo, sample rate **hard-coded 44100** at

@@ -145,7 +145,9 @@ set changes, anything surprising).
       keyboard-resize change in the DXGI backend).
 - [x] 1.3.3 — DONE 2026-09-01 (one commit: missing switch `break` in
       gfx_dxgi that caused input lag).
-- [ ] 1.4.0 — delta (2023-11)
+- [x] 1.4.0 — DONE 2026-09-01 (4 commits): console gains a
+      binding-clear command; Stats window uses ImGui delta time; Switch
+      audio reinit after suspend; CI builds all branches.
 - [ ] 1.4.1 — delta (2023-12)
 - [ ] 1.4.2 — delta (2024-08; newest tag)
 

@@ -1,7 +1,7 @@
 # libultraship — config, console variables, logging
 
-> **Pinned:** libultraship tag **1.3.3**
-> (`f717dd265aff2eff359de26915d8ad4e498ffdaf`, 2023-11-15). Authored
+> **Pinned:** libultraship tag **1.4.0**
+> (`59427a67bf9af060a4928bb72e3acce3b0782177`, 2023-11-27). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -95,6 +95,7 @@ C shim for game code: `luslog(file, line, level, msg)` and
 `function<int32_t(shared_ptr<Console>, vector<string> args, string*
 output)>` with typed argument metadata. `Run()` splits on spaces.
 **`Console::Init()` is empty**; every built-in command (`bind`,
-`bind-toggle`, `help`, `clear`, `set`, `get`) is registered by the
+`bind-toggle`, `binding-clear` since 1.4.0, `help`, `clear`, `set`,
+`get`) is registered by the
 GUI's `ConsoleWindow` (`src/window/gui/ConsoleWindow.cpp:231-243`) —
 no GUI, no commands.

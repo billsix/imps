@@ -151,7 +151,12 @@ set changes, anything surprising).
 - [x] 1.4.1 — DONE 2026-09-01 (4 commits, all renderer fixes): blended
       textures fixed on DX/OpenGL/Metal, Metal color clamping, holes in
       color-clamped effects, DXGI frame-pacing busy loop.
-- [ ] 1.4.2 — delta (2024-08; newest tag)
+- [x] 1.4.2 — DONE 2026-09-01 (6 backport commits; newest tag, 2024-08
+      — **release-tag line complete**): `mAltAssetsEnabled` backported
+      from 2.0 (alt-asset switch moves off raw CVar reads into
+      ResourceManager); tex-clear funcs exposed + more Metal
+      blended-texture fixes; DirectX FPS deviation; Windows DPI
+      awareness; keyboard-resize fix reintroduced; yield-loop backport.
 
 Then the consumer line — the games' submodule pins are full iterations
 too (decided with the maintainer, 2026-09-01), and they are **newer than

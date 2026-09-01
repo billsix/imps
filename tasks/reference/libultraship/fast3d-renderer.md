@@ -1,7 +1,7 @@
 # libultraship — Fast3D renderer
 
-> **Pinned:** libultraship tag **1.4.1**
-> (`b4abd7c366b1fb38b2cd80ffb91e129035bee0ea`, 2023-12-13). Authored
+> **Pinned:** libultraship tag **1.4.2**
+> (`1ca7d0fa78013e49450a4a9881236a19a6600d64`, 2024-08-01). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -115,7 +115,10 @@ assets satisfy N64-sized loads (`:1989`), and
 sampler slots as `SHADER_OPT_TEXEL*_MASK/BLEND` (`:3294`, `:1473-1484`,
 6-slot model in `gfx_cc.h:66-69`). 1.4.1 fixed blended textures on
 DX/OpenGL/Metal, added Metal color clamping, patched holes in
-color-clamped effects, and fixed a DXGI frame-pacing busy loop.
+color-clamped effects, and fixed a DXGI frame-pacing busy loop; 1.4.2
+exposed texture-clear functions, fixed more Metal blended-texture
+issues, DirectX FPS deviation, Windows DPI awareness, and reintroduced
+the keyboard-resize fix.
 
 ## API surface
 

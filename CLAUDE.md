@@ -72,6 +72,33 @@ the standard date buckets. Repo-wide tasks (not about one game) use
   multiple base images exist, a `VARIANT` switch with per-variant image
   tags. `MajorasMask/` is the reference implementation.
 
+## Patch philosophy — upstream first, personal second
+
+(William Emerison Six <billsix@gmail.com>, 2026-09-01.) The project has
+two goals, ranked:
+
+1. **Upstreaming is the ultimate goal.** If a change is something
+   upstream would plausibly accept — a bug fix, a portability fix, a doc
+   correction — shape it as a **standalone, submission-ready patch**:
+   its own commit, a commit message written for an upstream reviewer
+   (problem → cause → fix, like the banjo series), no entanglement with
+   personal changes. Never fold an upstreamable fix into a personal
+   patch, and split a mixed change into two patches rather than ship one
+   hybrid. Mark upstream candidates as such in the per-project
+   CLAUDE.md patch list.
+2. **Personal patches are maintained independently, indefinitely.**
+   Changes upstream won't take (cheats, personal tweaks) are carried in
+   the same series and **replayed onto newer upstream pins as time
+   progresses** — that replay (the pin-bump operation below) is a core
+   workflow, not an afterthought.
+
+Lifecycle consequence: an upstreamable patch is temporary — once merged
+upstream, it retires at the next pin bump (the bump's `git am` will show
+it as already applied, or the rebase drops it); a personal patch is
+permanent and its long-term rebase cost is a design consideration when
+writing it (prefer hooking the port's event/enhancement layers over
+editing decomp internals — the mario64 cheats are the worked example).
+
 ## Working on a project — agent contract
 
 - **Assume the patches are applied.** The default working state of a
@@ -103,14 +130,15 @@ the standard date buckets. Repo-wide tasks (not about one game) use
 - ROM/asset acquisition is out of scope — each game's own in-app extraction
   handles it in `runDir/`. Never commit the upstream checkout or anything
   ROM-derived.
-- **Unsigned commits in checkouts/scratch clones are authorized** (William
-  Emerison Six <billsix@gmail.com>, 2026-09-01): the maintainer's gitconfig
-  enables commit signing, which fails in the sandbox. When making the
-  intermediate commits that patch work requires (cherry-picks, `git am`,
-  series edits), disable signing **repo-locally in the throwaway clone or
-  checkout** (`git config commit.gpgsign false` there, or per-command
-  `git -c commit.gpgsign=false`) — never in the global gitconfig. These
-  commits are scaffolding; the durable product is the patch files.
+- **Unsigned commits in checkouts/scratch clones are authorized and
+  automated** (William Emerison Six <billsix@gmail.com>, 2026-09-01): the
+  maintainer's gitconfig enables commit signing, which fails in the
+  sandbox — and a failed signature aborts `git am` mid-series. **Every
+  project's `fetch.sh` therefore sets `commit.gpgsign false` repo-locally
+  in the checkout it manages** — never in the global gitconfig. For
+  throwaway scratch clones, do the same by hand (`git config
+  commit.gpgsign false`, or per-command `git -c commit.gpgsign=false`).
+  These commits are scaffolding; the durable product is the patch files.
 
 ## Projects
 
@@ -136,6 +164,23 @@ the standard date buckets. Repo-wide tasks (not about one game) use
   podman build (`Dockerfile` + `Makefile` → AppImage), ported from the old
   fork's `podmanBuildAppImage` branch as native imps files — the first
   container build in imps.
+- `SuperMario64/` — Ghostship
+  (https://github.com/HarbourMasters/Ghostship), pinned at `49c5312a`
+  (tip of `develop`, 2026-09-01 — deliberately modern: upstream had
+  merged the maintainer's always-fly-on-triple-jump cheat, so it needs no
+  patch; submodules libultraship 1.3.1-544 + Torch). Details:
+  `SuperMario64/CLAUDE.md`. Status: 3-patch cheat series (Super Jump,
+  Infinite Air Jumps, Disable Skybox — plus a libshaderc-devel doc fix,
+  an upstream candidate) ported 2026-09-01 from the old fork's topic
+  branches across upstream's hooks→events restructure; **fully verified
+  2026-09-01**: byte-identical on apply, builds in sandbox and on the
+  maintainer's host, runs with all three cheats in the menu. Run
+  gotchas (Vulkan-on-RADV hang → OpenGL config; libtcc rpath) recorded
+  in `SuperMario64/CLAUDE.md`. The old
+  fork's doc set migrated to `tasks/reference/mario64/` (bannered — the
+  events restructure postdates them) and its cheat-idea task stubs to
+  `tasks/mario64-*.md`; the messy `bill` branch history was deliberately
+  not ported.
 - `BanjoKazooie/` — Lighthouse
   (https://github.com/HarbourMasters/Lighthouse), pinned at `6d30df9a`
   (tip of `develop`, 2026-09-01, just past the 1.0.0 release; submodules
@@ -144,6 +189,12 @@ the standard date buckets. Repo-wide tasks (not about one game) use
   branch (Fedora build-deps doc fix, bk.o2r version stamp, the
   post-ROM-import freeze fix, and a JeodC review round — the series is a
   submitted upstream PR and retires if merged); patch 0002's lost commit
-  subject repaired during export; verified byte-identical on apply. Build
-  verification pending. The `bill` branch's doc set (8 reference docs +
-  the freeze investigation) migrated to `tasks/reference/banjo/`.
+  subject repaired during export; verified byte-identical on apply, and
+  the patched tree **builds and runs** (2026-09-01: compiled in the
+  podman builder nested; AppImage `make run` confirmed on the
+  maintainer's host). Also carries a podman build (`Dockerfile`
+  ubuntu-24.04 CI mirror + `Makefile`, derived from upstream's
+  `main.yml` build-linux job) — verified end to end
+  (image/build/appimage/run); its task is archived at
+  `tasks/archive/banjo/2026/09/01/`. The `bill` branch's doc set (8 reference docs + the
+  freeze investigation) migrated to `tasks/reference/banjo/`.

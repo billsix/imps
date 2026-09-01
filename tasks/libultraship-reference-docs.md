@@ -91,7 +91,16 @@ Check each off when its sweep is done AND the maintainer has committed
 that tag's doc state. Add a one-line note per completed item (date, doc
 set changes, anything surprising).
 
-- [ ] 1.0.0 — cold authoring (full doc set from scratch)
+- [x] 1.0.0 — DONE 2026-09-01 (sweep + the maintainer's checkpoint
+      commit). Four parallel readers, claims verified; 8-doc set in
+      `tasks/reference/libultraship/` (same names as the old
+      `bill`-branch set for 1.3.1 comparability). Highlights: D3D12 and
+      GLX backends exist but are compiled out (`ENABLE_DX12`/
+      `X11_SUPPORTED` never defined); Metal already present; the Wii U
+      (`CafeOS`) build cannot compile at this tag (includes a
+      nonexistent `menu/ImGuiImpl.h`); `ResourceClearCache` declared
+      but never defined; no thread or rumble shims; archives are
+      MPQ/StormLib; no version constant exists in code.
 - [ ] 1.0.1 — delta
 - [ ] 1.1.0 — delta
 - [ ] 1.2.0 — delta

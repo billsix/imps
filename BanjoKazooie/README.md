@@ -27,3 +27,20 @@ rm -rf Lighthouse build-cmake bldInstall     # add runDir to also wipe saves + b
   > legally-acquired Banjo-Kazooie ROM (`.z64`) and extracts.
 - Patch details and architecture notes: `CLAUDE.md` here, and
   `../tasks/reference/banjo/`.
+
+## Podman build → AppImage (alternative to the host build)
+
+```sh
+make image      # build the ubuntu-24.04 builder image (mirrors upstream CI)
+make appimage   # compile in the container → out/lighthouse.appimage
+make run        # run the AppImage on the host, from runDir/ (same saves as run.sh)
+```
+
+- `make help` lists all targets (build, image-export/import, shell,
+  clean, distclean).
+- Builds whatever the checkout holds — run `./fetch.sh && ./apply.sh`
+  first for the patched build.
+- > The container build dir is `Lighthouse/build-cmake` (inside the
+  > checkout); the host build.sh uses the sibling `build-cmake/`. They
+  > don't clobber each other, and `make clean` touches only the
+  > container's.

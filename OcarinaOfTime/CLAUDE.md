@@ -77,3 +77,13 @@ details against the pinned checkout.
 
 Upstream human-facing docs live in `Shipwright/docs/` (BUILDING, MODDING,
 VERSIONING, CUSTOM_MUSIC).
+
+## Tools
+
+- `tools/save_generator.py` — interactive base-quest save-file generator
+  (dungeons-first interview, progression-derived defaults, full stocks;
+  writes locally, never installs). `--selftest <real.sav>` proves an
+  all-defaults save matches a pristine one. The save-format knowledge
+  behind it — including the Spirit/Shadow `randomizerInf` trap and the
+  section-version `.bak` landmine — lives in
+  [`../tasks/reference/ocarina/save-file-generator.md`](../tasks/reference/ocarina/save-file-generator.md).

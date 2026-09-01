@@ -20,5 +20,10 @@ if [ ! -d Lighthouse ]; then
     git clone "$UPSTREAM" Lighthouse
 fi
 
+# Scaffolding commits made in this checkout (git am of the series, ports,
+# rebases) must not require the maintainer's GPG key — disable signing
+# repo-locally, never globally.
+git -C Lighthouse config commit.gpgsign false
+
 git -C Lighthouse checkout "$PIN_SHA"
 git -C Lighthouse submodule update --init --recursive

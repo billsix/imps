@@ -1,6 +1,8 @@
 # BanjoKazooie: podman AppImage build like MajorasMask's
 
-**Status:** proposed — needs go-ahead
+**Status:** done — verified 2026-09-01 (nested image/build/appimage in
+the sandbox; the maintainer confirmed `make run` works on the host,
+closing the "runnable" gate). Archived same day.
 **Priority:** 4
 **Difficulty:** 4
 
@@ -45,6 +47,20 @@ Read first:
    `runDir/`. Remember the game binary is not installed by
    `cmake --install` — package from the build tree.
 5. Update `BanjoKazooie/README.md`/`CLAUDE.md` and the master docs.
+
+## Outcome (2026-09-01)
+
+Implemented on the MM template: `BanjoKazooie/Dockerfile` (ubuntu:24.04
+— resolved from CI's `ubuntu-latest` — apt list inlined from
+`main.yml`'s build-linux job, SDL 2.30.3 / tinyxml2 10.0.0 /
+libzip 1.10.1 from source) + `Makefile` (GeneratePortO2R in-container
+instead of CI's separate Torch job). New convention discovered and
+applied to MM too: `USERNS_FLAG` drops `--userns=keep-id` under
+`NESTED_PODMAN=1` (no subordinate IDs in the sandbox; host behavior
+unchanged). Verified nested: `make image` (1.08 GB), `make build`
+(patched tree, 17 MB binary), `make appimage`
+(`out/lighthouse.appimage`, 12.5 MB). Remaining: run the AppImage on
+the maintainer's host.
 
 ## Open questions
 

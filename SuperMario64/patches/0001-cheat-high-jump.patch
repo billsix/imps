@@ -1,0 +1,146 @@
+From 7be65d3028225ff532762dea32c5bb62a4280d74 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sat, 23 May 2026 18:26:51 -0400
+Subject: [PATCH 1/4] cheat - high jump
+
+---
+ src/game/mario.c                          |  2 ++
+ src/game/mario_actions_airborne.c         |  5 +++-
+ src/port/events/list/PlayerEvent.h        | 14 +++++++++++
+ src/port/mods/PortEnhancements.cpp        | 30 +++++++++++++++++++++++
+ src/port/ui/GhostshipMenuEnhancements.cpp |  4 +++
+ 5 files changed, 54 insertions(+), 1 deletion(-)
+
+diff --git a/src/game/mario.c b/src/game/mario.c
+index cd3d2bfa..27f67cfb 100644
+--- a/src/game/mario.c
++++ b/src/game/mario.c
+@@ -878,6 +878,8 @@ u32 set_mario_action_airborne(struct MarioState *m, u32 action, u32 actionArg) {
+             break;
+     }
+ 
++    CALL_EVENT(MarioHighJumpLaunch, m, action);
++
+     m->peakHeight = m->pos[1];
+     m->flags |= MARIO_UNKNOWN_08;
+ 
+diff --git a/src/game/mario_actions_airborne.c b/src/game/mario_actions_airborne.c
+index 85445d89..48a5c9ca 100644
+--- a/src/game/mario_actions_airborne.c
++++ b/src/game/mario_actions_airborne.c
+@@ -64,6 +64,7 @@ s32 check_fall_damage(struct MarioState *m, u32 hardFallAction) {
+ 
+     fallHeight = m->peakHeight - m->pos[1];
+     CALL_EVENT(PlayerLanded, m, fallHeight);
++    CALL_EVENT(MarioHighJumpFallHeight, m, &fallHeight);
+ 
+ #pragma GCC diagnostic push
+ #if defined(__clang__)
+@@ -121,7 +122,9 @@ s32 should_get_stuck_in_ground(struct MarioState *m) {
+ 
+     if (floor != NULL && (terrainType == TERRAIN_SNOW || terrainType == TERRAIN_SAND)
+         && type != SURFACE_BURNING && SURFACE_IS_NOT_HARD(type)) {
+-        if (!(flags & 0x01) && m->peakHeight - m->pos[1] > 1000.0f && floor->normal.y >= 0.8660254f) {
++        f32 effectiveFall = m->peakHeight - m->pos[1];
++        CALL_EVENT(MarioHighJumpFallHeight, m, &effectiveFall);
++        if (!(flags & 0x01) && effectiveFall > 1000.0f && floor->normal.y >= 0.8660254f) {
+             return TRUE;
+         }
+     }
+diff --git a/src/port/events/list/PlayerEvent.h b/src/port/events/list/PlayerEvent.h
+index 6e17f63a..288e086a 100644
+--- a/src/port/events/list/PlayerEvent.h
++++ b/src/port/events/list/PlayerEvent.h
+@@ -399,3 +399,17 @@ DEFINE_EVENT(FlyingTripleJumpLaunch,
+     struct MarioState* m;
+     f32* launchVelocity; // mutable initial vertical velocity
+ );
++
++// Fires when an airborne action is set, after vanilla launch handling.
++// Listeners may scale m->vel[1] (Super Jump cheat).
++DEFINE_EVENT(MarioHighJumpLaunch,
++    struct MarioState* m;
++    u32 action;
++);
++
++// Fires when computing the effective fall height for damage / stuck-in-ground
++// checks. Write *fallHeight to override it (Super Jump cheat).
++DEFINE_EVENT(MarioHighJumpFallHeight,
++    struct MarioState* m;
++    f32* fallHeight;
++);
+diff --git a/src/port/mods/PortEnhancements.cpp b/src/port/mods/PortEnhancements.cpp
+index 6f708514..4a63026d 100644
+--- a/src/port/mods/PortEnhancements.cpp
++++ b/src/port/mods/PortEnhancements.cpp
+@@ -114,6 +114,30 @@ void PortEnhancements_Init() {
+         *ev->launchVelocity = 246.0f;
+     });
+ 
++    static bool sHighJumpActive = false;
++    static f32 sHighJumpStartHeight = 0.0f;
++    REGISTER_LISTENER(MarioHighJumpLaunch, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
++        MarioHighJumpLaunch* ev = (MarioHighJumpLaunch*)event;
++        if (CVarGetInteger("gCheats.SuperJump", 0) == 0 ||
++            ev->action == ACT_FLYING_TRIPLE_JUMP ||
++            ev->m->vel[1] <= 0.0f) {
++            sHighJumpActive = false;
++            return;
++        }
++        sHighJumpStartHeight = ev->m->pos[1];
++        ev->m->vel[1] *= 3.0f;
++        sHighJumpActive = true;
++    });
++    REGISTER_LISTENER(MarioHighJumpFallHeight, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
++        if (!sHighJumpActive || CVarGetInteger("gCheats.SuperJump", 0) == 0) {
++            return;
++        }
++        MarioHighJumpFallHeight* ev = (MarioHighJumpFallHeight*)event;
++        f32 naturalPeak = sHighJumpStartHeight + (ev->m->peakHeight - sHighJumpStartHeight) / 9.0f;
++        f32 corrected = naturalPeak - ev->m->pos[1];
++        *ev->fallHeight = corrected > 0.0f ? corrected : 0.0f;
++    });
++
+     auto OnDistanceFunc = [](IEvent* event) {
+         if (CVarGetInteger("gEnhancements.DisableDrawDistance", 0) == 0) {
+             return;
+@@ -189,6 +213,8 @@ void PortEnhancements_Register() {
+     REGISTER_EVENT(SetTripleJumpAction);
+     REGISTER_EVENT(FlyingActionUpdate);
+     REGISTER_EVENT(FlyingTripleJumpLaunch);
++    REGISTER_EVENT(MarioHighJumpLaunch);
++    REGISTER_EVENT(MarioHighJumpFallHeight);
+     REGISTER_EVENT(PlayerCheckCommonAirborneCancels);
+     REGISTER_EVENT(PlayerLanded);
+     REGISTER_EVENT(PlayerHit);
+@@ -216,6 +242,10 @@ void PortEnhancements_Register() {
+     REGISTER_EVENT(PlayerFloorTypeChange);
+     REGISTER_EVENT(PlayerQuicksandSink);
+     REGISTER_EVENT(PlayerWindForce);
++=======
++    REGISTER_EVENT(MarioHighJumpLaunch);
++    REGISTER_EVENT(MarioHighJumpFallHeight);
++>>>>>>> 69c176ec (cheat - high jump)
+ 
+     // Register Rando Events
+     REGISTER_EVENT(ItemCollected);
+diff --git a/src/port/ui/GhostshipMenuEnhancements.cpp b/src/port/ui/GhostshipMenuEnhancements.cpp
+index 5eb6fc1b..1687f13a 100644
+--- a/src/port/ui/GhostshipMenuEnhancements.cpp
++++ b/src/port/ui/GhostshipMenuEnhancements.cpp
+@@ -261,6 +261,10 @@ void GhostshipMenu::AddMenuEnhancements() {
+         .CVar(CVAR_CHEAT("FlyingTripleJumpHighLaunch"))
+         .RaceDisable(false)
+         .Options(CheckboxOptions().Tooltip("Flying triple jump launches 3x higher than normal."));
++    AddWidget(path, "Super Jump", WIDGET_CVAR_CHECKBOX)
++        .CVar(CVAR_CHEAT("SuperJump"))
++        .RaceDisable(false)
++        .Options(CheckboxOptions().Tooltip("All jumps launch 3x higher than normal."));
+ }
+ 
+ } // namespace GhostshipGui
+
+base-commit: 49c5312a0f3c0a28e1974be1923babd4f869f719
+-- 
+2.55.0
+

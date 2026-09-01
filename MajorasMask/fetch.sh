@@ -20,5 +20,10 @@ if [ ! -d 2ship2harkinian ]; then
     git clone "$UPSTREAM" 2ship2harkinian
 fi
 
+# Scaffolding commits made in this checkout (git am of the series, ports,
+# rebases) must not require the maintainer's GPG key — disable signing
+# repo-locally, never globally.
+git -C 2ship2harkinian config commit.gpgsign false
+
 git -C 2ship2harkinian checkout "$PIN_SHA"
 git -C 2ship2harkinian submodule update --init --recursive

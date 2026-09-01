@@ -1,6 +1,11 @@
 # OcarinaOfTime: interactive save-file generator (Python CLI)
 
-**Status:** proposed — needs go-ahead
+**Status:** done — verified 2026-09-01: structural verification green,
+and the maintainer's in-game load test passed (after one real crash,
+root-caused to empty buttonItems with a worn sword — fixed, lesson in
+the reference doc). Known limitation (story/world flags stay at minute
+zero) spun off to `ocarina-save-generator-story-flags.md`. Archived
+same day.
 **Priority:** 4
 **Difficulty:** 6
 

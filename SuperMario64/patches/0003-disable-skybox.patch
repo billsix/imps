@@ -1,0 +1,48 @@
+From 9e4a4fbc537c550821bbd7dbda2e720d89192e4f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sat, 23 May 2026 18:29:35 -0400
+Subject: [PATCH 3/4] disable skybox
+
+---
+ src/port/mods/PortEnhancements.cpp        | 6 ++++++
+ src/port/ui/GhostshipMenuEnhancements.cpp | 7 +++++++
+ 2 files changed, 13 insertions(+)
+
+diff --git a/src/port/mods/PortEnhancements.cpp b/src/port/mods/PortEnhancements.cpp
+index b7a3cb7a..40ec459f 100644
+--- a/src/port/mods/PortEnhancements.cpp
++++ b/src/port/mods/PortEnhancements.cpp
+@@ -86,6 +86,12 @@ void PortEnhancements_Init() {
+         RenderPauseCourseOptions* ev = (RenderPauseCourseOptions*)event;
+         *ev->render = true;
+     });
++    REGISTER_LISTENER(SkyboxRender, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
++        if (CVarGetInteger("gEnhancements.DisableSkybox", 0) == 0) {
++            return;
++        }
++        event->Cancelled = true;
++    });
+ 
+     REGISTER_LISTENER(LevelInitFromSaveFile, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
+         if (CVarGetInteger("gEnhancements.DisableLakituCutscene", 0)) {
+diff --git a/src/port/ui/GhostshipMenuEnhancements.cpp b/src/port/ui/GhostshipMenuEnhancements.cpp
+index 22479d43..2186455a 100644
+--- a/src/port/ui/GhostshipMenuEnhancements.cpp
++++ b/src/port/ui/GhostshipMenuEnhancements.cpp
+@@ -49,6 +49,13 @@ void GhostshipMenu::AddMenuEnhancements() {
+             "Toggle between standard assets and alternate assets. Usually mods will indicate if "
+             "this setting has to be used or not."));
+ 
++    AddWidget(path, "Rendering", WIDGET_SEPARATOR_TEXT);
++
++    AddWidget(path, "Disable Skybox", WIDGET_CVAR_CHECKBOX)
++        .CVar(CVAR_ENHANCEMENT("DisableSkybox"))
++        .RaceDisable(false)
++        .Options(CheckboxOptions().Tooltip("Disables the background skybox, leaving a solid color behind the level geometry."));
++
+     AddWidget(path, "Game", WIDGET_SEPARATOR_TEXT);
+ 
+     AddWidget(path, "Disable Draw Distance", WIDGET_CVAR_CHECKBOX)
+-- 
+2.55.0
+

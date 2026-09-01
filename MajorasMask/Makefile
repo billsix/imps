@@ -29,13 +29,18 @@ GID    := $(shell id -g)
 # Overridable: make build PODMAN_RUN_FLAGS='--cgroups=disabled --network=host'
 PODMAN_RUN_FLAGS ?= $(if $(filter 1,$(NESTED_PODMAN)),--cgroups=disabled)
 
-# :z relabels the bind mount for SELinux (Fedora). Harmless on systems without SELinux.
 # --userns=keep-id maps your host UID into the container so bind-mounted files
-# stay writable; under rootless podman, --user with subuids breaks bind mounts.
+# stay writable under rootless podman. Inside the nested sandbox
+# (NESTED_PODMAN=1) there are no subordinate IDs for keep-id to build its user
+# namespace from — and the inner root already matches the mount owner — so the
+# flag is omitted there. On a normal host: keep-id, byte-identical to before.
+USERNS_FLAG ?= $(if $(filter 1,$(NESTED_PODMAN)),,--userns=keep-id)
+
+# :z relabels the bind mount for SELinux (Fedora). Harmless on systems without SELinux.
 PODMAN_RUN = podman run --rm $(PODMAN_RUN_FLAGS) \
         -v $(SRC):/src:z \
         -v $(OUT):/out:z \
-        --userns=keep-id \
+        $(USERNS_FLAG) \
         -e HOME=/tmp \
         $(IMAGE)
 
@@ -116,7 +121,7 @@ run:
 shell: image | $(OUT)
 	podman run --rm -it $(PODMAN_RUN_FLAGS) \
 	    -v $(SRC):/src:z -v $(OUT):/out:z \
-	    --userns=keep-id -e HOME=/tmp \
+	    $(USERNS_FLAG) -e HOME=/tmp \
 	    $(IMAGE) bash
 
 clean:

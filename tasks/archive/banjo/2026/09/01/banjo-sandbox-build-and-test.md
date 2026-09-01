@@ -1,6 +1,14 @@
 # BanjoKazooie: build and test in the sandbox
 
-**Status:** proposed — needs go-ahead
+**Status:** dropped 2026-09-01 (maintainer decision) — superseded, not
+completed. Its purpose (prove the patched BanjoKazooie builds and runs)
+was satisfied by other means the same day: the podman container build
+compiled the patched tree, and the maintainer ran the resulting AppImage
+on his host. The only remaining unique deliverable (a headless
+Xvfb-and-screenshots run in the sandbox) verifies nothing new. Archived
+for the record so the idea is not re-proposed from scratch; if a
+sandbox-run harness is ever wanted, this doc still holds the recipe
+(ROM-symlink ExtractAssets path, Xvfb/pixel-judging steps).
 **Priority:** 3
 **Difficulty:** 4
 

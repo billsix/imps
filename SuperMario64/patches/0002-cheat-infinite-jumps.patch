@@ -1,0 +1,157 @@
+From 331b80972152e1767e530f31ee567ef0e03d9dfd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sat, 23 May 2026 19:26:25 -0400
+Subject: [PATCH 2/4] cheat - infinite jumps
+
+---
+ src/game/mario.h                          |  8 ++++++++
+ src/game/mario_actions_airborne.c         |  4 +++-
+ src/port/events/list/PlayerEvent.h        |  6 ++++++
+ src/port/mods/PortEnhancements.cpp        | 24 ++++++++++++++++++-----
+ src/port/ui/GhostshipMenuEnhancements.cpp |  4 ++++
+ 5 files changed, 40 insertions(+), 6 deletions(-)
+
+diff --git a/src/game/mario.h b/src/game/mario.h
+index 402da3a5..b42b71f5 100644
+--- a/src/game/mario.h
++++ b/src/game/mario.h
+@@ -6,6 +6,10 @@
+ #include "macros.h"
+ #include "types.h"
+ 
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ s32 is_anim_at_end(struct MarioState *m);
+ s32 is_anim_past_end(struct MarioState *m);
+ s16 set_mario_animation(struct MarioState *m, s32 targetAnimID);
+@@ -51,4 +55,8 @@ s32 execute_mario_action(UNUSED struct Object *o);
+ void init_mario(void);
+ void init_mario_from_save_file(void);
+ 
++#ifdef __cplusplus
++}
++#endif
++
+ #endif // MARIO_H
+diff --git a/src/game/mario_actions_airborne.c b/src/game/mario_actions_airborne.c
+index 48a5c9ca..6845f0bf 100644
+--- a/src/game/mario_actions_airborne.c
++++ b/src/game/mario_actions_airborne.c
+@@ -2069,12 +2069,13 @@ s32 check_common_airborne_cancels(struct MarioState *m) {
+ }
+ 
+ s32 mario_execute_airborne_action(struct MarioState *m) {
+-    u32 cancel;
++    u32 cancel = FALSE;
+ 
+     if (check_common_airborne_cancels(m)) {
+         return TRUE;
+     }
+ 
++    CALL_CANCELLABLE_EVENT(MarioAirborneActionUpdate, m) {
+     play_far_fall_sound(m);
+ 
+     /* clang-format off */
+@@ -2126,6 +2127,7 @@ s32 mario_execute_airborne_action(struct MarioState *m) {
+         case ACT_VERTICAL_WIND:        cancel = act_vertical_wind(m);        break;
+     }
+     /* clang-format on */
++    }
+ 
+     return cancel;
+ }
+diff --git a/src/port/events/list/PlayerEvent.h b/src/port/events/list/PlayerEvent.h
+index 288e086a..31a42fbb 100644
+--- a/src/port/events/list/PlayerEvent.h
++++ b/src/port/events/list/PlayerEvent.h
+@@ -413,3 +413,9 @@ DEFINE_EVENT(MarioHighJumpFallHeight,
+     struct MarioState* m;
+     f32* fallHeight;
+ );
++
++// Fires each frame of common airborne action handling. Cancellable —
++// cancelling skips the vanilla airborne update (Infinite Air Jumps cheat).
++DEFINE_EVENT(MarioAirborneActionUpdate,
++    struct MarioState* m;
++);
+diff --git a/src/port/mods/PortEnhancements.cpp b/src/port/mods/PortEnhancements.cpp
+index 4a63026d..b7a3cb7a 100644
+--- a/src/port/mods/PortEnhancements.cpp
++++ b/src/port/mods/PortEnhancements.cpp
+@@ -4,6 +4,7 @@
+ #define INIT_EVENT_IDS
+ 
+ #include "sm64.h"
++#include "game/mario.h"
+ #include "game/level_update.h"
+ #include "game/game_init.h"
+ #include "port/events/Events.h"
+@@ -113,6 +114,22 @@ void PortEnhancements_Init() {
+         FlyingTripleJumpLaunch* ev = (FlyingTripleJumpLaunch*)event;
+         *ev->launchVelocity = 246.0f;
+     });
++    REGISTER_LISTENER(MarioAirborneActionUpdate, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
++        if (CVarGetInteger("gCheats.InfiniteAirJumps", 0) == 0) {
++            return;
++        }
++        MarioAirborneActionUpdate* ev = (MarioAirborneActionUpdate*)event;
++        struct MarioState* m = ev->m;
++        if ((m->input & INPUT_A_PRESSED)
++                && !(m->input & INPUT_Z_DOWN)
++                && !(m->action & ACT_FLAG_INVULNERABLE)
++                && !(m->action & ACT_FLAG_SWIMMING_OR_FLYING)
++                && m->action != ACT_GROUND_POUND
++                && m->action != ACT_FLYING_TRIPLE_JUMP) {
++            set_mario_action(m, ACT_JUMP, 0);
++            event->Cancelled = true;
++        }
++    });
+ 
+     static bool sHighJumpActive = false;
+     static f32 sHighJumpStartHeight = 0.0f;
+@@ -215,6 +232,7 @@ void PortEnhancements_Register() {
+     REGISTER_EVENT(FlyingTripleJumpLaunch);
+     REGISTER_EVENT(MarioHighJumpLaunch);
+     REGISTER_EVENT(MarioHighJumpFallHeight);
++    REGISTER_EVENT(MarioAirborneActionUpdate);
+     REGISTER_EVENT(PlayerCheckCommonAirborneCancels);
+     REGISTER_EVENT(PlayerLanded);
+     REGISTER_EVENT(PlayerHit);
+@@ -242,10 +260,6 @@ void PortEnhancements_Register() {
+     REGISTER_EVENT(PlayerFloorTypeChange);
+     REGISTER_EVENT(PlayerQuicksandSink);
+     REGISTER_EVENT(PlayerWindForce);
+-=======
+-    REGISTER_EVENT(MarioHighJumpLaunch);
+-    REGISTER_EVENT(MarioHighJumpFallHeight);
+->>>>>>> 69c176ec (cheat - high jump)
+ 
+     // Register Rando Events
+     REGISTER_EVENT(ItemCollected);
+@@ -296,4 +310,4 @@ void PortEnhancements_Register() {
+ 
+     Rando::Init();
+     LoadGuiTextures();
+-}
+\ No newline at end of file
++}
+diff --git a/src/port/ui/GhostshipMenuEnhancements.cpp b/src/port/ui/GhostshipMenuEnhancements.cpp
+index 1687f13a..22479d43 100644
+--- a/src/port/ui/GhostshipMenuEnhancements.cpp
++++ b/src/port/ui/GhostshipMenuEnhancements.cpp
+@@ -253,6 +253,10 @@ void GhostshipMenu::AddMenuEnhancements() {
+         .CVar(CVAR_CHEAT("PlayInDemo"))
+         .RaceDisable(false)
+         .Options(CheckboxOptions().Tooltip("Allows normal gameplay when a demo is playing."));
++    AddWidget(path, "Infinite Air Jumps", WIDGET_CVAR_CHECKBOX)
++        .CVar(CVAR_CHEAT("InfiniteAirJumps"))
++        .RaceDisable(false)
++        .Options(CheckboxOptions().Tooltip("Press A while airborne to jump again. Works with Super Jump."));
+     AddWidget(path, "Always Fly on Triple Jump", WIDGET_CVAR_CHECKBOX)
+         .CVar(CVAR_CHEAT("AlwaysFlyTripleJump"))
+         .RaceDisable(false)
+-- 
+2.55.0
+

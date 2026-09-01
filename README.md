@@ -6,6 +6,16 @@ upstream commit, a patch series, and short scripts to fetch, build, and run.
 The upstream checkout and all build products are gitignored — the scripts,
 patches, and docs ARE the repo.
 
+Two goals, in order:
+
+1. **Getting my patches upstreamed is the ultimate goal.** Anything upstream
+   would plausibly take (bug fixes, portability fixes, doc corrections) is
+   kept as a standalone, submission-ready patch — and retires from the
+   series once merged.
+2. **Maintaining the rest myself, independent of upstream** — patches for my
+   own purposes (cheats, personal tweaks) that I carry indefinitely and
+   replay onto newer upstream pins as time progresses.
+
 ## Layout
 
 - `<Project>/` — scripts (`fetch.sh`, `apply.sh`, `build.sh`, `run.sh`),
@@ -55,12 +65,21 @@ cd OcarinaOfTime
   2026-09-01). One code patch (64-bit audio/scheduler fixes) exported from
   my old `fedora44Fixes` fork branch. Also has the first podman build:
   `make appimage` → `out/2ship.appimage` (see its README).
+- **SuperMario64** — builds and runs with the patches applied, cheats
+  confirmed in the menu (verified 2026-09-01). Series: Super Jump,
+  Infinite Air Jumps, Disable Skybox, plus a Fedora-deps doc fix
+  (upstream candidate), on a modern develop pin that already includes my
+  merged fly-on-triple-jump cheat. Fork docs migrated to
+  `SuperMario64/CLAUDE.md` + `tasks/reference/mario64/`.
 - **BanjoKazooie** — 4-patch series from my `fixOnFedora` fork branch
   (submitted upstream as a PR): Fedora deps doc fix, bk.o2r version stamp,
-  the post-ROM-import freeze fix, review-round cleanup. Verified
-  byte-identical on apply; build verification pending. Fork docs migrated
-  to `BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
-- **Planned:** the Super Mario 64 port (Ghostship); podman builds for
-  OcarinaOfTime and BanjoKazooie like MajorasMask's (task docs exist under
-  `tasks/`), plus an OoT dependency-install script and an OoT save-file
-  generator (also tasked).
+  the post-ROM-import freeze fix, review-round cleanup. Builds and runs
+  with the patches applied (verified 2026-09-01 via the podman AppImage
+  pipeline: image → build → appimage → host run). Fork docs migrated to
+  `BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
+- **Planned** (all tasked under `tasks/`): a podman build for
+  OcarinaOfTime (MajorasMask's and BanjoKazooie's are done);
+  per-project dependency-install scripts; save-generator story-flag
+  fidelity (making generated saves read like real playthroughs, from
+  reference saves I provide); the libultraship per-tag
+  reference-documentation crawl.

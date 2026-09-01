@@ -1,6 +1,11 @@
 # SuperMario64: add the Ghostship project to imps
 
-**Status:** proposed — needs go-ahead
+**Status:** done — verified 2026-09-01: the maintainer built and ran on
+his host; the three cheats are present in the menu. Two run-time issues
+were found and fixed on the way (Vulkan-backend hang on RADV → OpenGL
+forced in config; libtcc.so rpath → LD_LIBRARY_PATH in run.sh) — both
+recorded in SuperMario64/CLAUDE.md. A 4th patch (libshaderc-devel doc
+fix) joined the series post-creation. Archived same day.
 **Priority:** 3
 **Difficulty:** 6
 
@@ -62,7 +67,7 @@ cheats in the menu.
    copied over to skip re-extraction). Caveat for containers later:
    cmake `curl`s `gamecontrollerdb.txt` at configure time.
 3. **Migrate the doc set from the old fork's `bill` branch** (wanted
-   absolutely): `tasks/reference/*.md` → imps `tasks/reference/mario64/`
+   absolutely): the fork's `tasks/reference/*.md` → imps `tasks/reference/mario64/`
    with provenance banners — banner STRONGLY: they were authored around
    base `67e561c6`, and develop has moved 118+ commits since, including
    the hooks→events restructure, so hook-layer claims are suspect. Also

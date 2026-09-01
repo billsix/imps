@@ -92,6 +92,34 @@ version gap):
 - [`freeze-after-rom-import.md`](../tasks/reference/banjo/freeze-after-rom-import.md) —
   the (resolved) freeze investigation behind patch 0003.
 
+## Podman build (Dockerfile + Makefile)
+
+Created 2026-09-01 per the banjo-podman-appimage-build task (archived at
+`../tasks/archive/banjo/2026/09/01/banjo-podman-appimage-build.md`), on
+the MajorasMask template. `Dockerfile` mirrors upstream CI's `build-linux`
+job (`.github/workflows/main.yml` at the pin): base **ubuntu:24.04**
+(CI says `ubuntu-latest`, which has resolved to the 24.04 LTS since
+early 2025 — recorded in the Dockerfile header), the workflow's apt
+list inlined (Lighthouse has no apt-deps.txt file), and SDL 2.30.3 /
+tinyxml2 10.0.0 / libzip 1.10.1 (no crypto) built from source. The
+Makefile builds `GeneratePortO2R` in-container (CI uses a separate
+Torch job + artifact download; same result), then the game, then
+`cpack -G External` → `out/lighthouse.appimage`.
+
+One deviation from the MM template worth knowing:
+**`USERNS_FLAG ?= $(if $(filter 1,$(NESTED_PODMAN)),,--userns=keep-id)`**
+— inside the nested sandbox there are no subordinate IDs for
+`--userns=keep-id` to build its user namespace from (inner runs die
+with `write /proc/…/uid_map: operation not permitted`), and the inner
+root already matches the mount owner, so the flag is dropped there; on
+a normal host it stays, byte-identical to before. (MajorasMask's
+Makefile got the same fix.)
+
+Verified 2026-09-01: `make image` (1.08 GB), `make build` of the patched
+tree (17 MB binary), and `make appimage` (`out/lighthouse.appimage`,
+12.5 MB) all green nested in the sandbox, and **`make run` confirmed
+working on the maintainer's host** — the full pipeline is closed.
+
 ## Conventions
 
 - The decomp is a near-1:1 port — match surrounding style, keep edits

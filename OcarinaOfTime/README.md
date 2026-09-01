@@ -24,3 +24,8 @@ rm -rf Shipwright build-cmake bldInstall     # add runDir to also wipe saves + o
   > OoT ROM and re-extracts.
 - Patch details and architecture notes: `CLAUDE.md` here, and
   `../tasks/reference/ocarina/`.
+- `tools/save_generator.py` — interactive save-file generator (base
+  quest): asks dungeons-beaten first, derives an item loadout you can
+  override, assumes full stocks, writes a `.sav` locally and prints
+  install + backup steps. Format details:
+  `../tasks/reference/ocarina/save-file-generator.md`.

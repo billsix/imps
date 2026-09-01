@@ -21,5 +21,10 @@ if [ ! -d Shipwright ]; then
     git clone "$UPSTREAM" Shipwright
 fi
 
+# Scaffolding commits made in this checkout (git am of the series, ports,
+# rebases) must not require the maintainer's GPG key — disable signing
+# repo-locally, never globally.
+git -C Shipwright config commit.gpgsign false
+
 git -C Shipwright checkout "$PIN_SHA"
 git -C Shipwright submodule update --init --recursive

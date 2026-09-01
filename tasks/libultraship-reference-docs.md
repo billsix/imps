@@ -148,7 +148,9 @@ set changes, anything surprising).
 - [x] 1.4.0 — DONE 2026-09-01 (4 commits): console gains a
       binding-clear command; Stats window uses ImGui delta time; Switch
       audio reinit after suspend; CI builds all branches.
-- [ ] 1.4.1 — delta (2023-12)
+- [x] 1.4.1 — DONE 2026-09-01 (4 commits, all renderer fixes): blended
+      textures fixed on DX/OpenGL/Metal, Metal color clamping, holes in
+      color-clamped effects, DXGI frame-pacing busy loop.
 - [ ] 1.4.2 — delta (2024-08; newest tag)
 
 Then the consumer line — the games' submodule pins are full iterations

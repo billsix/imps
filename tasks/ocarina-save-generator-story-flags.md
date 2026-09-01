@@ -37,9 +37,10 @@ a world whose NPCs/cutscenes/state match a real playthrough that far.
   cutscenes seen, NPCs met (Mido, Saria, Zelda, Kaepora), Door of Time
   opened, Master Sword pulled, era-transition story beats — all left at
   0, so the world believes the game just started.
-- **The method the maintainer proposed (2026-09-01), which is the right
-  one:** he plays the game and provides REAL save states at known
-  progression points; those become ground truth to learn from. The
+- **The method William Emerison Six <billsix@gmail.com> proposed
+  (2026-09-01), which is the right one:** playing the game and providing
+  REAL save states at known progression points, which become ground
+  truth to learn from. The
   generator's own `deep_diff` (used by `--selftest`) is exactly the tool
   to diff a real save at stage X against a generated stage-X save — the
   diff IS the missing-flag list for that stage.

@@ -1,6 +1,6 @@
 # SuperMario64: upstream a container-based CI (Dockerfile + workflow patch)
 
-**Status:** proposed — FUTURE, not for the 2026-09-01 batch (maintainer:
+**Status:** proposed — FUTURE, not for the 2026-09-01 batch (William Emerison Six <billsix@gmail.com>:
 "this work is not to happen yet, it is just to keep in mind")
 **Priority:** 6
 **Difficulty:** 5
@@ -42,7 +42,7 @@ the goal.
     identical so upstream sees a drop-in. This **settles the old
     `container:`-key-vs-build+run design point**: the workflow calls
     `make`, the Makefile drives the container.
-- **`CONTAINER_CMD` auto-detects podman→docker** (maintainer, 2026-09-01:
+- **`CONTAINER_CMD` auto-detects podman→docker** (William Emerison Six <billsix@gmail.com>, 2026-09-01:
   podman on his systems; docker is fine where they use it — GitHub
   runners ship Docker, so `make appimage` runs in CI unchanged). e.g.
   `CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)`.
@@ -55,7 +55,7 @@ the goal.
   tree the Makefile/Dockerfile live (match upstream's conventions). (The
   `container:`-vs-build+run and container-engine choices are settled —
   see above.)
-- **Acceptance strategy (maintainer, 2026-09-01): maximum fidelity to
+- **Acceptance strategy (William Emerison Six <billsix@gmail.com>, 2026-09-01): maximum fidelity to
   the existing CI job.** Same Ubuntu version as the workflow uses, same
   package list, same from-source library versions and flags, same build
   commands — a reviewer should see a zero-behavior-change refactor, not

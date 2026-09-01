@@ -3,7 +3,7 @@
 **Status:** proposed — ongoing/long-running; done in batches (one `code_*` file / cluster at a time).
 **Workflow:** Claude edits; **Bill builds + runs** (needed to capture runtime logs *and* to verify
 behavior is unchanged). Shipwright's build is heavy — batch small so each verify is worth it.
-**Priority (Bill, 2026-07-31): renaming files and functions is MORE important than de-obfuscating the
+**Priority (William Emerison Six <billsix@gmail.com>, 2026-07-31): renaming files and functions is MORE important than de-obfuscating the
 C.** Do the renames thoroughly and completely; treat the readability rewrites (goal 3) as secondary —
 only when trivially safe and quick, otherwise skip them. A file/function with a good name and ugly
 body is a win; don't hold up a rename batch on a risky readability rewrite.
@@ -239,7 +239,7 @@ broader hotspots.
     asset-pipeline edits (Q13). And `is_debug.c` `func_80002384` — byte-identical to libc `__assert` but
     SoH already declares `__assert`, so renaming risks a clash; it's dead/uncalled (Q14).
 
-- **2026-07-31 name-provenance annotations (per Bill's request).** Every symbol I renamed gets an inline
+- **2026-07-31 name-provenance annotations (at the request of William Emerison Six <billsix@gmail.com>).** Every symbol I renamed gets an inline
   greppable comment at its DEFINITION recording that the name is machine-generated and WHY it was chosen:
   `// LLM generated name (HIGH|GUESS), was <old_addr>: <reason from the code>`. The literal marker
   **`LLM generated name`** makes them trivial to audit (`git grep 'LLM generated name'`) or strip before
@@ -247,7 +247,7 @@ broader hotspots.
   reviewable. Manifest of all 191 renames + def-files lives in the session scratchpad; the annotation
   was applied by a fan-out over the definition files.
 
-- **2026-07-31 oot-sourced resolutions (Bill: look online, cite sources).** With no local oot checkout,
+- **2026-07-31 oot-sourced resolutions (William Emerison Six <billsix@gmail.com>: look online, cite sources).** With no local oot checkout,
   resolved held/GUESS names from the public **zeldaret/oot** decomp online (same game, same ROM
   addresses). These carry a distinct comment marker **`Name from zeldaret/oot ... Source: <url>`** (not
   the `LLM generated name` tag) because they're authoritative upstream names, not guesses. 18+4 such
@@ -272,7 +272,7 @@ broader hotspots.
   - **RCP file `code_800FBCE0.c` LEFT AS-IS (Q10, Bill: use discretion).** `func_800FBCE0`/`func_800FBFD8` are address-named in
     oot as well — no canonical name to pull.
 
-- **2026-07-31 full oot review pass (Bill: check all work vs zeldaret/oot, fix/enrich, use discretion).**
+- **2026-07-31 full oot review pass (William Emerison Six <billsix@gmail.com>: check all work vs zeldaret/oot, fix/enrich, use discretion).**
   Fanned 8 agents over all ~206 renamed symbols, each cross-checking against zeldaret/oot online. Result:
   **65 renames now carry `Name from zeldaret/oot ... [oot: <url>]` citations** (was 21) — 16 symbols renamed
   to oot's canonical spelling + 28 comments upgraded (my name already matched oot) + earlier oot-sourced ones.

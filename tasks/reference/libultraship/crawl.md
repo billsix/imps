@@ -6,7 +6,7 @@ in this directory, plus the completed iteration log. The original task
 ran 18 iterations on 2026-09-01 and is archived; **this doc is what a
 future pin bump reopens.**
 
-## The design (maintainer's, 2026-09-01)
+## The design (William Emerison Six <billsix@gmail.com>, 2026-09-01)
 
 One evolving 8-doc set (`architecture-overview`, `build-system`,
 `resource-system`, `fast3d-renderer`, `windowing-gui-input`,

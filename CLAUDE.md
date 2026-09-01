@@ -36,8 +36,8 @@ auto-loads every CLAUDE.md on the path from cwd to the repo root):
 one that versions them): in-flight task docs at `tasks/*.md` (named with a
 project prefix, e.g. `ocarina-…`), reference docs namespaced per project
 as above. **Archives are per-project — this overrides the global
-convention's flat date layout for this repo** (decided with the
-maintainer, 2026-09-01): a completed task moves to
+convention's flat date layout for this repo** (decided with William
+Emerison Six <billsix@gmail.com>, 2026-09-01): a completed task moves to
 `tasks/archive/<project>/<YYYY>/<MM>/<DD>/<slug>.md` — project first, then
 the standard date buckets. Repo-wide tasks (not about one game) use
 `imps` as their project directory.
@@ -178,7 +178,8 @@ operation in the agent contract below). The pairs:
   (tip of `develop`, 2026-09-01; submodules libultraship + torch). Details:
   `OcarinaOfTime/CLAUDE.md`. Status: one code patch (a 145-file decomp
   rename), ported from the maintainer's old fork; patched tree
-  **build-verified on the maintainer's host 2026-09-01**. The old fork's
+  **build-verified on-host 2026-09-01 (William Emerison Six
+  <billsix@gmail.com>)**. The old fork's
   docs-only commits were migrated into
   `OcarinaOfTime/CLAUDE.md` + `tasks/reference/ocarina/` per the
   documentation structure above (stale fork-era claims fixed or bannered
@@ -198,7 +199,8 @@ operation in the agent contract below). The pairs:
   byte-identical on apply, plus a BUILDING.md fix adding the four
   required audio libraries (upstream candidate, found 2026-09-01 by the
   install-script container verification); patched tree **build- and
-  run-verified on the maintainer's host 2026-09-01**. Also carries a
+  run-verified on-host 2026-09-01 (William Emerison Six
+  <billsix@gmail.com>)**. Also carries a
   podman build (`Dockerfile` + `Makefile` → AppImage), ported from the old
   fork's `podmanBuildAppImage` branch as native imps files — the first
   container build in imps.

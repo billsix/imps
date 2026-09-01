@@ -5,7 +5,7 @@
 > **Resolved:** this investigation concluded in the OSMesg high-byte fix now shipped as
 > `BanjoKazooie/patches/0003-core1-graphics_thread-fix-post-import-freeze-from-OS.patch`.
 
-**Status:** ✅ FIXED (2026-08-01) — confirmed working on Bill's hardware. It WAS the OSMesg thing.
+**Status:** ✅ FIXED (2026-08-01) — confirmed working on the hardware of William Emerison Six <billsix@gmail.com>. It WAS the OSMesg thing.
 
 ## RESOLUTION (root cause + fix)
 
@@ -118,7 +118,7 @@ Pipeline: sUnkFlag1=TASK_YIELDED  sUnkFlag2=0x40000001  taskQ=20/20(FULL)  pendi
 gdb `thread apply all bt` was low-value (all threads at `__syscall_cancel_arch`, deep frames not
 unwound); the ThreadWatchdog dump is the real oracle here.
 
-### 2026-08-01: SECOND, EARLIER failure reported by Bill — version-incompatible → crash
+### 2026-08-01: SECOND, EARLIER failure reported by William Emerison Six <billsix@gmail.com> — version-incompatible → crash
 
 Bill on his host: "incompatible… would ask to reimport the rom… then crapped out." This is the
 **version handshake** (`portArchiveVersionMatch`, `Engine.cpp:155`, `// TODO: port archive
@@ -199,7 +199,7 @@ reaching game-tick with bit30 still set. Candidate directions: (a) don't yield g
 audio-SP so completions aren't conflated. **Needs runtime instrumentation of the SP/DP/task
 sequence, or Bill's MM RCP fix shape.** Repro is now cheap, so iteration is viable.
 
-### 2026-08-01: exhaustive OSMesg audit (Bill: "#1 priority, it literally was the osmesg thing")
+### 2026-08-01: exhaustive OSMesg audit (William Emerison Six <billsix@gmail.com>: "#1 priority, it literally was the osmesg thing")
 
 Bill is confident the MM fix was the 64-bit OSMesg issue and directed a full replication for this
 project. Did the exhaustive MM-style sweep of EVERY message send/recv/construction on the paths

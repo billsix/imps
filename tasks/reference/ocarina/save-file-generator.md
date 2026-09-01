@@ -59,7 +59,8 @@ Two distinct gates (SaveManager.cpp:548-699 and :1369-1447):
 
 Randomizer saves add the `randomizer` section, more hard-required meta
 keys, and a **build-version equality lock** (mismatch → renamed to
-`.bak`). **Decision: base quest only** (maintainer, 2026-09-01); the
+`.bak`). **Decision: base quest only** (William Emerison Six
+<billsix@gmail.com>, 2026-09-01); the
 generator emits `fileType: 0` and refuses nothing else.
 
 ## The field semantics that matter
@@ -150,8 +151,8 @@ adult temple is beaten.
   inspecting the crashed file: `equips.equipment = 0x3332`,
   `buttonItems` all 255). Fixed; the button-consistency assertions are
   now part of the programmatic tests.
-- **In-game load test PASSED** (maintainer, 2026-09-01): the fixed
-  generator's save loads and plays.
+- **In-game load test PASSED** (William Emerison Six <billsix@gmail.com>,
+  2026-09-01): the fixed generator's save loads and plays.
 - **Known limitation → follow-up task:** only the mechanical progression
   is set; the story/world flags stay at minute zero (adult Link with
   medallions while the Great Deku Tree still "wants to talk"). The plan

@@ -8,7 +8,7 @@ Mario").
 `tasks/reference/mario64/port-layer.md`.
 
 ## Goal
-**Any damage Mario takes kills him instantly** (confirmed with Bill, 2026-07-31 — this is Mario dying
+**Any damage Mario takes kills him instantly** (confirmed with William Emerison Six <billsix@gmail.com>, 2026-07-31 — this is Mario dying
 in one hit, *not* Mario one-shotting enemies). A hardcore/permadeath-style difficulty toggle.
 
 ## Plan
@@ -35,4 +35,4 @@ in one hit, *not* Mario one-shotting enemies). A hardcore/permadeath-style diffi
   **this one likely needs NO new fire site** — reuse the existing `PlayerHealthChange` event.
 
 ## Resolved / open
-- **Resolved (Bill, 2026-07-31):** "single hit kills" = **Mario dies from one hit** (not enemies).
+- **Resolved (William Emerison Six <billsix@gmail.com>, 2026-07-31):** "single hit kills" = **Mario dies from one hit** (not enemies).

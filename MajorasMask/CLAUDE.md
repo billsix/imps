@@ -36,8 +36,9 @@ the whole delta.
   message as a stopgap, not a root-cause fix.
   Exported verbatim 2026-09-01 from the maintainer's old fork branch
   (`fedora44Fixes`, same base) and verified byte-identical on apply;
-  patched tree build- and run-verified on the maintainer's host
-  2026-09-01. **Good upstream-submission candidate** — surgical,
+  patched tree build- and run-verified on-host 2026-09-01 (William
+  Emerison Six <billsix@gmail.com>). **Good upstream-submission
+  candidate** — surgical,
   well-documented, fixes real 64-bit portability bugs.
 - `patches/0002-docs-add-the-required-audio-libraries-...patch` —
   adds libogg/libvorbis/opus/opusfile dev packages to BUILDING.md's

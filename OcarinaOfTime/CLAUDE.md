@@ -31,7 +31,8 @@ personal branches — the patch series is the whole delta.
   in `z_demo_kankyo.c` (upstream's `Audio_PlaySfxGeneral` rename crossing
   the series' `CutsceneCamera_UpdateSpline` rename), and upstream-added
   identifiers were checked for references to renamed-away symbols (none).
-  Patched tree build- and run-verified on the maintainer's host 2026-09-01.
+  Patched tree build- and run-verified on-host 2026-09-01 (William
+  Emerison Six <billsix@gmail.com>).
   The renaming effort continues in
   [`../tasks/ocarina-decomp-rename-and-cleanup.md`](../tasks/ocarina-decomp-rename-and-cleanup.md);
   method and gotchas in

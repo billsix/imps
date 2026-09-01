@@ -1,7 +1,7 @@
 # libultraship — resource system and OTR archives
 
-> **Pinned:** libultraship tag **1.2.0**
-> (`af368413f5c61557a7baf2a7a6ab35ba16a7affd`, 2023-07-19). Authored
+> **Pinned:** libultraship tag **1.2.1**
+> (`0a57812968539176bbeaa76c61532d0d6dec4881`, 2023-08-06). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.

@@ -124,7 +124,9 @@ set changes, anything surprising).
       `RomToBigEndian` added to ZAPDUtils BitConverter; better SDL
       frame-pacing timer, display handling, Input Editor joystick
       preview, misc fixes.
-- [ ] 1.2.1 — delta
+- [x] 1.2.1 — DONE 2026-09-01 (delta, 2 commits): SDL fullscreen made
+      multi-monitor aware; `Gui::LoadGuiTexture` routes through the
+      resource system so GUI icons honor HD/alt texture packs.
 - [ ] 1.2.2 — delta
 - [ ] 1.3.0 — delta
 - [ ] 1.3.1 — delta (2023-11; cross-check against the old `bill`-branch

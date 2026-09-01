@@ -1,7 +1,7 @@
 # libultraship — windowing, GUI, and input
 
-> **Pinned:** libultraship tag **1.2.0**
-> (`af368413f5c61557a7baf2a7a6ab35ba16a7affd`, 2023-07-19). Authored
+> **Pinned:** libultraship tag **1.2.1**
+> (`0a57812968539176bbeaa76c61532d0d6dec4881`, 2023-08-06). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -26,7 +26,9 @@ dereferences. Also note `CreateDefaultSettings` seeds
 
 SDL specifics (`gfx_sdl2.cpp`): GL 4.1 core on macOS / 2.1 on Switch;
 fullscreen = `SDL_WINDOW_FULLSCREEN_DESKTOP` unless CVar
-`gSdlWindowedFullscreen`; frame pacing = `nanosleep` timer (default 60
+`gSdlWindowedFullscreen`, made multi-monitor aware in 1.2.1 (detects
+the display in use, `SDL_SetWindowDisplayMode`, warns when the window
+is off every display); frame pacing = `nanosleep` timer (default 60
 FPS) then `SDL_GL_SwapWindow` — called **even under Metal** (Metal
 presents its own drawable; the SDL backend is only partly Metal-aware).
 F11 toggles fullscreen (config key `Shortcuts.Fullscreen`; the
@@ -67,6 +69,8 @@ on fullscreen toggles and at Context destruction.
   registered windows, not GuiElements.
 - GUI textures go through Fast3D, not ImGui: `Gui::LoadTexture` (stb) /
   `LoadGuiTexture` (LUS Texture resource) — both acknowledged leaks.
+  Since 1.2.1 `LoadGuiTexture` routes through the resource system's
+  alt/HD path, so GUI icons honor HD texture packs.
 - Ctrl+R (Cmd+R) dispatches the console `reset` command.
 
 ## Controller / input stack

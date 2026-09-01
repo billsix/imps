@@ -16,6 +16,14 @@ patches, and docs ARE the repo.
   patch carries only what must change upstream's own files. The full
   doc-structure contract is in `CLAUDE.md`.
 
+## License
+
+MIT (see `LICENSE`) for the original content of this repo — the scripts,
+docs, and patch authorship. The files under each project's `patches/`
+necessarily contain fragments of the upstream project's code (diff context
+and modified lines); those fragments remain under the respective upstream
+project's own license, not this repo's.
+
 ## Ocarina of Time (Ship of Harkinian)
 
 Upstream: <https://github.com/HarbourMasters/Shipwright>

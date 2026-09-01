@@ -1,86 +1,67 @@
 # libultraship — audio backends and libultra OS shims
 
-> **Pinned:** libultraship **1.3.1-397**
-> (`7f2baa104108af3fca9f094754ea974a4973bdeb`, 2026-02-28 —
-> MajorasMask's pin; a close cousin of iteration 14's 1.3.1-399,
-> not its descendant). Updated 2026-09-01, iteration 15 of the
-> reference crawl
+> **Pinned:** libultraship **1.3.1-482**
+> (`2917d0f4fe62c579174561dcd34f327c9410bb72`, 2026-07-29 —
+> BanjoKazooie's pin; direct descendant of 1.3.1-397, 85 commits).
+> Updated 2026-09-01, iteration 16 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
-> NEWER than tag 1.4.2 despite the smaller number.
+> NEWER than the 1.4.x tags despite the smaller number.
 
 ## Audio
 
-`AudioBackend { WASAPI, SDL, COREAUDIO, NUL }`
-(`include/ship/audio/Audio.h:9`). **PulseAudio is deleted** (configs
-carrying `"pulse"` migrate to SDL at read); **CoreAudio and a Null
-player are new**. Selection (`Audio.cpp:16-41`): WASAPI on `_WIN32`,
-CoreAudio on `__APPLE__`, SDL always, default → Null. The 1.4.2
-double-player leak is **fixed** — the fallback is now a clean
-`if (!Init()) SetCurrentAudioBackend(NUL)` — but that means a bad
-device **degrades to silence with nothing surfaced**. Linux is
-SDL-only. `SetCurrentAudioBackend` still does a full `Config::Save()`
-on every call, startup included (`:67-68`).
+Backends `WASAPI / SDL / COREAUDIO / NUL`, selection and silent
+degrade-to-NUL unchanged (`Audio.cpp:38-41`); Linux SDL-only;
+`AudioSettings` (44100/1024/2480) + 5.1 via `SoundMatrixDecoder`
+unchanged; push-only, no callback. Deltas:
 
-**Sample rate is no longer hard-coded**: `AudioSettings { SampleRate =
-44100, SampleLength = 1024, DesiredBuffered = 2480, ChannelSetting =
-audioStereo }` (`include/ship/audio/AudioPlayer.h:11-16`), threaded
-`CreateInstance` → `InitAudio` → each player; runtime setters exist.
-The 2480 magic number is now just the default.
+- **`NullAudioPlayer::Buffered()` fixed (#1167)**: returns
+  `GetDesiredBuffered()` instead of 0 (`NullAudioPlayer.cpp:18-21`) —
+  the null backend no longer spins/hangs the game's audio thread.
+- **Backend persistence moved into `Audio` itself** (#1097): it caches
+  `mConfig` and reads/writes `"Window.AudioBackend"` directly via
+  `GetSavedAudioBackend()` / `GetSavedAudioChannelsSetting()`
+  (`Audio.cpp:57`, `:66-105`); the `"pulse"`→SDL migration lives there
+  now (`:73-78`). Config knows nothing about backends.
+- **WASAPI error handling reworked (#1075)**: raw `throw res`
+  (HRESULT) → `HResultException` (`ship/utils/HResultException.h`),
+  silent catches now `SPDLOG_ERROR`. The #1001 mutex race fix is
+  retained (this pin descends from 397).
+- Still true: `SetCurrentAudioBackend` does a full `Config::Save()` on
+  every call, startup included (`Audio.cpp:107-126`); back-pressure
+  per-backend (SDL drops >6000 queued, CoreAudio 6000-ring, WASAPI
+  clamps to device buffer); **`~AudioPlayer` still non-virtual**
+  (`AudioPlayer.h:41`).
 
-**NEW: 5.1 surround.** `AudioChannelsSetting` stereo / matrix-5.1
-(through a `SoundMatrixDecoder`) / raw-5.1; runtime channel switching
-reinitializes the device without restart (`AudioPlayer.cpp:79-107`,
-`Audio.cpp:77-85`).
+## libultra shims
 
-Push-only is unchanged — no callback, LUS never requests audio;
-interleaved S16. Back-pressure is per-backend now: SDL drops the frame
-above 6000 queued; CoreAudio uses 6000 as its ring size; **WASAPI has
-no 6000 constant** — it clamps to device-buffer free space. This pin's
-one commit over the shared base is the WASAPI race fix (#1001): a
-`std::mutex` guarding `DoClose`/`Buffered`/`DoPlay` and the
-device-change callback's `mInitialized` write — iteration 14's 399
-cousin LACKS this fix. Latent
-hazard: `AudioPlayer::~AudioPlayer()` is **non-virtual** — safe today
-only because players are made via `make_shared<Concrete>`.
-
-## libultra shims — no longer "a very thin slice"
-
-Now **8 files** at `src/libultraship/libultra/`: `os.cpp os_cache.cpp
-os_eeprom.cpp os_mesg.cpp os_pi.cpp os_time.cpp(empty!) os_vi.cpp
-os_vm.cpp`.
+Same 8 `os_*.cpp` files (`os_time.cpp` still 0 bytes) **plus the new
+`AudioDmaRegistry.{h,cpp}`**:
 
 | Area | Behavior at this pin |
 |---|---|
-| `osContInit` | new signature `(OSMesgQueue*, uint8_t* bits, OSContStatus*)`; loads `gamecontrollerdb.txt`, `SDL_Init(GAMECONTROLLER)` — **still `exit(EXIT_FAILURE)` on failure** (`os.cpp:29`) — then `ControlDeck::Init` |
-| `osContStartReadData` / `osContGetReadData` | still stub-0 / zero-fill + `WriteToPad` |
-| `osGetTime` / `osGetCount` | **CHANGED — now real N64 46.875 MHz cycle units** via a `std::ratio<3000,64>` duration (`os.cpp:5-8`, `:54-64`). A port compensating for 1.4.2's raw-ticks/milliseconds is now wrong by a large constant factor. `osSetTime` is new |
-| **Rumble** | **implemented**: `__osMotorAccess` → `GetRumble()->Start/StopRumble` (`os.cpp:88-102`) — stock `osMotorStart/Stop` just works |
-| Message queues | now declared in `message.h`; `osJamMesg`/`osSetEventMesg` added — but **the block flag is still ignored, never blocks**, −1 on full/empty (`os_mesg.cpp:15,39`). The complete-looking API invites the wrong assumption |
-| **VI** (new) | `osCreateViManager` installs a 16 ms `SDL_AddTimer` posting `OS_EVENT_VI`; other setters no-op; framebuffer getters return nullptr (`os_vi.cpp`) |
-| **PI/DMA** (new) | `osPiStartDma` is a **plain unclamped `memcpy`** (`os_pi.cpp:18`) — a decomp trusting SDK bounds behavior gets memory corruption, not an error |
-| **EEPROM** (new) | full 512-byte `default.sav` read/write via the app dir (`os_eeprom.cpp`) |
-| Cache / VM (new) | all no-ops; `osVirtualToPhysical` = identity |
-| **Threads** | **still absent** — zero `osCreateThread` etc.; `thread.h` has only the ABI struct |
+| `osContInit` | **No longer exits on failure** — the gamecontrollerdb load + `SDL_Init(GAMECONTROLLER)` moved to `Context::InitControlDeck` (non-fatal `SPDLOG_WARN`, `Context.cpp:277-289`); `osContInit` shrank to `ControlDeck::Init(bits)` (`os.cpp:15-21`) |
+| **`osPiStartDma`** | **No longer an unclamped memcpy (#1035)** — `AudioDma_Clamp(devAddr, nbytes)` then memcpy of the clamped size, zero-filling the tail (`os_pi.cpp:18-28`). Mechanism: an **opt-in 8-slot registry** (`AudioDma_Register/Clamp/Clear`, `AudioDmaRegistry.cpp`). **LUS itself never calls `AudioDma_Register`** — the port must register its audio blobs; an unregistered address **passes through unclamped** (`:26-35`), so the 397 corruption hazard is fixed only for registered blobs |
+| `osGetTime`/`osGetCount` | still N64 46.875 MHz cycle units; `osSetTime` present (`os.cpp:35-52`). (#1023's `sysctl kern.clockrate` is SDL frame-pacing calibration, NOT an osGetTime change) |
+| Rumble | unchanged: `__osMotorAccess` → `Start/StopRumble` (`os.cpp:75-84`); `osMotorStart/Stop` macros (`motor.h:9-10`) |
+| Message queues | still never block (flag ignored, −1 on full/empty) |
+| VI / EEPROM / cache / VM | unchanged (16 ms SDL timer; 512-byte `default.sav`; no-ops) |
+| Threads | **still absent** |
 
-**Declared-but-undefined** (link error if called): `osContGetStatus`,
-`osAiSetFrequency` (declared **twice**, `os.h:140`+`:144`), `osViFade`,
-`osViRepeatLine`. **Defined-but-undeclared** (a C port writes its own
-prototype): `osViGetNext/CurrentFramebuffer`, `osVirtualToPhysical`,
-`osMapTLB`, `osPiReadIo/WriteIo`. The AI shims `osAiGetLength`/
-`osAiSetNextBuffer` are `// TODO` stubs returning 0.
+**Dangling declarations unchanged** (link error if called):
+`osContGetStatus` (`os.h:108`), `osAiSetFrequency` (declared twice,
+`os.h:140`+`:144`), `osViFade` (`:119`), `osViRepeatLine` (`:120`).
+Defined-but-undeclared set also unchanged (`osViGet*Framebuffer`,
+`osVirtualToPhysical`, `osMapTLB`, `osPiReadIo/WriteIo`).
 
 ## Support layers
 
-- Threading is flat: `BS::thread_pool` is a direct `ResourceManager`
-  member; the only background timer is the 16 ms VI SDL timer. No
-  `ThreadPool` component (that's a later-line thing).
-- `Console::Init()` still empty — commands come from the GUI
+- `Console::Init()` still empty; commands from the GUI
   (`config-cvars-logging.md`).
-- `src/ship/utils/`: `splitText` decl/def signature mismatch **still**
-  a link error for any caller (`Utils.h:18` vs `Utils.cpp:26`, which
-  also puts default args on the definition); `stox.cpp` still entirely
-  unused; `glob.c` vendored from the Linux kernel.
-- Switch/Wii U port layers deleted (with their bugs);
-  `src/ship/port/mobile/MobileImpl.cpp` is the only port dir
-  (android/iOS).
+- **`splitText` decl/def mismatch FIXED** — signatures agree
+  (`Utils.h:58` vs `Utils.cpp:21`), now test-covered
+  (`tests/splittext_tests.cpp`); `stox.cpp` no longer dead in practice
+  (`tests/stox_tests.cpp`).
+- Threading still flat (`BS::thread_pool` a ResourceManager member; the
+  16 ms VI timer the only background timer). Much of this range's audio
+  diff is Doxygen (#1065/#1077), not behavior.

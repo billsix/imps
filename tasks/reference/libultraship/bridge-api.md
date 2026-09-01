@@ -1,94 +1,63 @@
 # libultraship — the bridge API (game-facing surface)
 
-> **Pinned:** libultraship **1.3.1-397**
-> (`7f2baa104108af3fca9f094754ea974a4973bdeb`, 2026-02-28 —
-> MajorasMask's pin; a close cousin of iteration 14's 1.3.1-399,
-> not its descendant). Updated 2026-09-01, iteration 15 of the
-> reference crawl
+> **Pinned:** libultraship **1.3.1-482**
+> (`2917d0f4fe62c579174561dcd34f327c9410bb72`, 2026-07-29 —
+> BanjoKazooie's pin; direct descendant of 1.3.1-397, 85 commits).
+> Updated 2026-09-01, iteration 16 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
-> NEWER than tag 1.4.2 despite the smaller number.
+> NEWER than the 1.4.x tags despite the smaller number.
 
-`include/libultraship/bridge.h` now pulls **eight** headers (was six):
-resource, audio, controller, window, consolevariable, crashhandler,
-**gfxdebugger** (new), **gfx** (new). Headers at
-`include/libultraship/bridge/`, impls at `src/libultraship/bridge/`.
-Still plain `extern "C"`, still inline forwards through
-`Context::GetInstance()`. **Guarding is uneven**: audiobridge
-null-checks throughout; windowbridge and most others dereference
-unguarded — bridges crash rather than no-op when a subsystem is absent.
+`include/libultraship/bridge.h` now pulls **nine** headers: resource,
+audio, controller, window, consolevariable, crashhandler, gfxdebugger,
+gfx, **events** (new). A **tenth header exists but is deliberately NOT
+in `bridge.h`**: `scriptingbridge.h`, wholly inside `#ifdef
+ENABLE_SCRIPTING`, exposing one function —
+`void* ScriptGetFunction(const char* module, const char* function)`.
 
-## Gfx bridge (`gfxbridge.h`) — NEW
+**Every bridge declaration is now `API_EXPORT`** (new
+`include/ship/Api.h`: `extern "C"` + Windows dllexport/dllimport keyed
+on `__DLL__`; #1051). Combined with `ENABLE_EXPORTS` /
+`WINDOWS_EXPORT_ALL_SYMBOLS` on the target, the bridge is a
+**dynamic-loading surface** (scripts/DLLs resolve these symbols from
+the game binary), not just a link-time one. Function sets are otherwise
+as at 397 — the large header diffs are API_EXPORT + Doxygen churn
+(verified: resourcebridge same 26 functions, windowbridge same 7).
+Bridges still forward through the Context — now via
+**`GetRawInstance()`** — and still **crash rather than no-op** when a
+subsystem is absent (audiobridge remains the one guarded bridge;
+`GfxSetNativeDimensions` still double-derefs unguarded).
 
-`GfxSetNativeDimensions(w,h)`, `GfxGetPixelDepthPrepare(x,y)`,
-`GfxGetPixelDepth(x,y)`. Absorbed the pixel-depth pair from the window
-bridge. The two depth functions cast-and-check;
-**`GfxSetNativeDimensions` derefs the window cast AND the interpreter
-weak_ptr unguarded** (`gfxbridge.cpp:9-15`) — two crash sites in six
-lines if the window isn't a `Fast3dWindow`.
+## Events bridge (`eventsbridge.h`) — NEW
 
-## GfxDebugger bridge (`gfxdebuggerbridge.h`) — NEW
+`EventSystemRegisterEvent(name)`, `EventSystemRegisterListener(id, cb,
+priority, file, line)`, `EventSystemUnregisterListener(ev, id)`,
+`EventSystemCallEvent(id, event, file, line, key)` — forwarding through
+`GetRawInstance()->GetEventSystem()` **unguarded**
+(`eventsbridge.cpp:7-22`). The `EventTypes.h` macros (`CALL_EVENT`,
+`REGISTER_LISTENER`, …) dispatch through these functions, so C and C++
+share one path. LUS fires zero events itself at this pin.
 
-`GfxDebuggerRequestDebugging`, `GfxDebuggerIsDebugging`,
-`GfxDebuggerIsDebuggingRequested`, `GfxDebuggerDebugDisplayList(void*)`.
+## The other bridges — deltas only
 
-## Window bridge (`windowbridge.h`)
-
-`WindowIsRunning` (**the port's main-loop condition** — replaces the
-deleted `Window::MainLoop`), `WindowGetWidth/Height/AspectRatio`,
-NEW `WindowGetPosX/PosY`, NEW `WindowIsFullscreen`. Pixel-depth moved
-to gfxbridge. Zero null guards on all seven.
-
-## Resource bridge (`resourcebridge.h`)
-
-The by-name/by-CRC pair set survives; NEW `IsResourceManagerLoaded()`;
-**REMOVED `ResourceDoesOtrFileExist`**. `ResourceLoad(...)` overloads +
-templated forms remain C++-only. `ResourceLoadDirectoryAsync` is a bare
-void forward (futures still not surfaced).
-**`ResourceClearCache` is still declared and still never defined**
-(`resourcebridge.h:44`) — it has survived the entire tree
-reorganization unimplemented.
-
-## CVar bridge (`consolevariablebridge.h`)
-
-The Get/Set/Register triples, `CVarClear`, `CVarLoad`, `CVarSave`
-survive; NEW `CVarClearBlock`, `CVarCopy`, and **`CVarExists` —
-declared, never defined** (second dangling symbol; link error if
-called). `CVarGet` → `shared_ptr<Ship::CVar>` still C++-only. Note the
-header includes the C++-tree `ship/config/ConsoleVariable.h`.
-
-## Audio bridge (`audiobridge.h`)
-
-`AudioPlayerBuffered`, `AudioPlayerGetDesiredBuffered`,
-`AudioPlayerPlayFrame`; NEW `Get/SetAudioChannels`,
-`GetNumAudioChannels` (5.1 support). The **one** bridge that guards
-throughout (null player → safe defaults). Header includes the C++
-`ship/audio/AudioChannelsSetting.h`.
-
-## Controller bridge (`controllerbridge.h`)
-
-Still just `ControllerBlockGameInput`/`UnblockGameInput`. No
-rumble/LED/mapping/backend bridge — but rumble no longer needs one:
-stock `osMotorStart/Stop` works via the libultra shim
-(`audio-and-libultra-shims.md`). LED still C++-only, and nothing in
-LUS drives it.
-
-## Crash handler bridge
-
-One function, `CrashHandlerRegisterCallback`; the duplicated-typedef
-quirk is gone (declared once, outside any namespace).
-
-## Logging shim (`luslog.h`)
-
-Unchanged surface; impl moved to `src/libultraship/log/luslog.cpp`;
-`lusprintf` still missing `va_end`.
+- **resource**: dropped its cross-layer `fast/resource/type/Texture.h`
+  include (#1097). **`ResourceClearCache` still declared, never
+  defined** (`resourcebridge.h:136`) — has now survived two tree
+  reorganizations and an export-attribute pass unimplemented.
+- **consolevariable**: **`CVarExists` still declared, never defined**
+  (`consolevariablebridge.h:138`). `CVarClearBlock`/`CVarCopy` defined.
+- **window**: same 7 (`WindowIsRunning` remains the port's main-loop
+  condition), zero null guards.
+- **gfx / gfxdebugger / audio / controller / crashhandler**: unchanged
+  sets (controller still just Block/UnblockGameInput; LED still has no
+  bridge; rumble needs none — the libultra shim covers it).
+- **luslog**: unchanged; `lusprintf` still missing `va_end`.
 
 ## C++ class surface (`classes.h`)
 
-`include/libultraship/classes.h:4-37` re-exports ~26 headers, all
-`ship/`-prefixed, with platform guards; NEW entries: `OtrArchive.h`
-(expands to nothing without MPQ support), `O2rArchive.h`,
-`ArchiveManager.h`. **This list now actually matters** — `src/` no
-longer contains headers, so `classes.h` + the `include/` tree really
-are the surface. No events/scripting bridges at this pin (later-line
-features).
+Still the `ship/`-prefixed re-export list — but it **dropped
+`InputEditorWindow.h`** (#1097): InputEditorWindow and
+GfxDebuggerWindow moved to `include/libultraship/window/gui/`, and a
+consumer must include them from there directly. No events or scripting
+classes are re-exported; `EventSystem`/`ScriptLoader`/`Keystore` are
+included explicitly from their `ship/` paths.

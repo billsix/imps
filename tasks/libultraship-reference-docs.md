@@ -188,7 +188,20 @@ by nothing; deliberately not an iteration.)
       `0b76d895`): PLUS the WASAPI mutex race fix (#1001), MINUS the
       GuiTexture `LoadTextureFromResource` tail; everything else in
       the iteration-14 doc state holds verbatim
-- [ ] `2917d0f4` (1.3.1-482, 2026-07-29) — BanjoKazooie's pin
+- [x] `2917d0f4` (1.3.1-482, 2026-07-29) — BanjoKazooie's pin —
+      iteration 16, 2026-09-01 (3 parallel delta readers on the 85-commit
+      descendant range). Headlines: Context weak_ptr singleton →
+      unique_ptr + GetRawInstance()/DestroyInstance() returning raw
+      Context* (#1103, the biggest consumer break); event system (#1047);
+      opt-in TCC scripting + keystore + signed archives (#1068/#1084/
+      #1095 — monocypher unconditional PUBLIC dep, TinyCC pinned to the
+      MOVING `mob` branch); gtest suite behind LUS_BUILD_TESTS + test CI;
+      OTR opcodes RENUMBERED >=0x44 (push/pop shader; new WIDE 0x47-0x49,
+      LERP 0x4a) and custom shaders now live; Ship::Gui made
+      renderer-agnostic via Fast::Fast3dGui; O2r thread-safety fixed by
+      handle pooling (#1050); osPiStartDma clamped via opt-in
+      AudioDmaRegistry (#1035); OpenBSD support; NullAudioPlayer spin
+      fix. Bugs fixed/carried tracked per-doc
 - [ ] `62e973ae` (1.3.1-486, ~2026-08) — OcarinaOfTime's pin
 
 ## Open questions

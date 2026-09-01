@@ -1,132 +1,132 @@
 # libultraship — architecture overview
 
-> **Pinned:** libultraship **1.3.1-397**
-> (`7f2baa104108af3fca9f094754ea974a4973bdeb`, 2026-02-28 —
-> MajorasMask's submodule pin; second stop of the consumer-pin leg.
-> Note: LATER in time than iteration 14's 1.3.1-399 despite the
-> smaller describe-count — the consumer pins are close cousins, not
-> a line). Updated 2026-09-01 as iteration 15 of the reference crawl
-> (`../../libultraship-reference-docs.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above — if they
-> differ, the crawl has advanced (each iteration is a separate imps
-> commit; `git log` on this file is the time axis).
+> **Pinned:** libultraship **1.3.1-482**
+> (`2917d0f4fe62c579174561dcd34f327c9410bb72`, 2026-07-29 —
+> BanjoKazooie's submodule pin; a direct descendant of iteration 15's
+> 1.3.1-397, 85 commits later). Updated 2026-09-01 as iteration 16 of
+> the reference crawl (`../../libultraship-reference-docs.md`).
+> Re-sync check: compare `PIN_SHA` in `libultraship/fetch.sh` with the
+> SHA above — if they differ, the crawl has advanced (each iteration is
+> a separate imps commit; `git log` on this file is the time axis).
 >
-> **Version-number trap:** `1.3.1-399` is `git describe` from the last
-> tag on THIS line — which is ~18 months **newer** than tag `1.4.2`
-> (2024-08). The 1.4.x tags are a different, older release line. Do not
-> order these docs' history by version string.
+> **Version-number trap:** the 1.3.1-XXX describe-counts on this line
+> run ~2 years past tag `1.4.2` (2024-08), which is a different, older
+> release line. Do not order these docs' history by version string.
 
 **What LUS is at this pin:** a static C++20 library (`libultraship.a`)
 that gives an N64 decompilation "somewhere to run" — a Fast3D
-display-list interpreter (`Fast::Interpreter`) with per-microcode
-dispatch and Prism-templated shaders, a **zip-based (`.o2r`)** archive +
-typed resource system (MPQ/`.otr` is opt-in and off by default), SDL
-audio/input with a fully reworked controller stack, an ImGui overlay
-shell, JSON config + CVars (names now CMake-overridable macros), spdlog
-logging, and a much thicker libultra shim slice (VI timing, PI DMA,
-EEPROM, rumble). Still `add_subdirectory`-only (no install/export, no
-tests, no version constant in code).
+display-list interpreter with per-microcode dispatch and Prism-templated
+shaders (custom shaders now live via a push/pop stack), a zip-based
+(`.o2r`) archive + typed resource system with an optional
+manifest/signing trust chain, SDL audio/input, an ImGui overlay shell
+(now renderer-agnostic with a `Fast::Fast3dGui` subclass), JSON config +
+CVars, spdlog logging, thick libultra shims, **an event system**, and
+**opt-in TCC-based scripting with a keystore**. A gtest suite exists
+behind `LUS_BUILD_TESTS`. Still `add_subdirectory`-only (no
+install/export, no version constant) — but the target now exports
+symbols for dynamic loading.
 
 ## The three trees, three namespaces
 
-The 1.4.2-era flat `LUS::` + `src/graphic/Fast3D/` + `src/public/`
-layout is gone. Headers all live under `include/` (zero `.h` under
-`src/`), split three ways, all compiled into the **one** static target
-(`src/CMakeLists.txt:3`):
+Unchanged in shape (headers under `include/`, one static target):
 
 | Tree | Namespace | Contents |
 |---|---|---|
-| `include/ship/` + `src/ship/` | `Ship::` (191 files) | the game-agnostic engine: `Context`, `resource/`, `config/`, `debug/`, `window/` (+gui), `controller/`, `audio/`, `utils/` |
-| `include/fast/` + `src/fast/` | `Fast::` (42 files) | the Fast3D renderer: `interpreter.cpp`, `Fast3dWindow`, `backends/`, graphics resource types, `shaders/` (Prism templates) |
-| `include/libultraship/` + `src/libultraship/` | `LUS::` (8 decls) | the concrete N64-shaped layer: libultra shims (8 files), C `bridge/`, `LUS::ControlDeck`/`LUS::Controller`, `log/luslog.cpp` |
+| `include/ship/` + `src/ship/` (229 files) | `Ship::` | engine: `Context`, `resource/`, `config/`, `debug/`, `window/`(+gui), `controller/`, `audio/`, `utils/`, **`events/`** (new), **`scripting/`** + **`security/`** (new, scripting-gated) |
+| `include/fast/` + `src/fast/` (62) | `Fast::` | Fast3D: `interpreter.cpp`, `Fast3dWindow`, **`Fast3dGui`** (new), `backends/`, resources, `shaders/` |
+| `include/libultraship/` + `src/libultraship/` (74) | `LUS::` | N64 layer: libultra shims, C `bridge/`, `LUS::ControlDeck`/`Controller`, **`InputEditorWindow` + `GfxDebuggerWindow`** (moved here from ship) |
 
-The pattern: **`Ship::` is abstract and game-agnostic; `LUS::` is the
-concrete N64 implementation on top.** `LUS::ControlDeck` and
-`Ship::ControlDeck` are both real, different classes — mechanical
-`LUS::`→`Ship::` renames are mostly right and occasionally very wrong.
-The include/src boundary is now real, not advisory (though `src/` is
-still a PUBLIC include dir, it exposes no headers any more).
+**The cross-layer cleanup (#1097) made the split real**: zero
+`#include "fast/..."` anywhere under ship (grep-verified). LUS-specific
+GUI windows moved to the `libultraship/` tree, and `classes.h` dropped
+`InputEditorWindow.h` from its re-exports.
 
-## `Ship::Context` — the root singleton
+## `Ship::Context` — no longer a weak_ptr singleton (#1103)
 
-Still a **weak_ptr-held singleton** (`src/ship/Context.cpp:27-31`), not
-a Component tree (that comes later on this line). The creation API grew:
+**The biggest consumer-facing break in this range.** Storage is
+`static std::unique_ptr<Context>` (`src/ship/Context.cpp:33`);
+`CreateInstance`/`CreateUninitializedInstance` **return raw
+`Context*`** (`include/ship/Context.h:52-54`); access is
+**`GetRawInstance()`**, teardown is **`DestroyInstance()`**
+(`Context.cpp:39-41`). `GetInstance()` does not exist — a 397-era port
+holding the returned `shared_ptr` no longer compiles. (The doxygen at
+`Context.h:36` still says "use GetInstance()" — stale upstream doc.)
 
-```
-CreateInstance(name, shortName, configFilePath,
-               archivePaths = {}, validHashes = {}, reservedThreadCount = 1,
-               audioSettings = {}, window = nullptr, controlDeck = nullptr)
-```
+The `CreateInstance` signature (archivePaths/validHashes/audioSettings/
+window/controlDeck injection points) is otherwise as at 397 — `InitWindow`/
+`InitControlDeck` still fail on null (`Context.cpp:333-348`, `:262-271`).
 
-(`include/ship/Context.h:33-39`.) `otrFiles` became `archivePaths`; the
-three trailing params are new — and the last two are **injection
-points, not conveniences**: `InitWindow`/`InitControlDeck` FAIL on null
-(`src/ship/Context.cpp:312-327`, `:234-247`). `Ship::Window` is pure
-abstract; the port passes a `Fast::Fast3dWindow` (or its own subclass)
-and typically a `std::make_shared<LUS::ControlDeck>()`. 1.4.2-era code
-calling the old 6-arg form compiles (defaults) and then dies at runtime
-with "Failed to initialize window."
-`CreateUninitializedInstance(name, shortName, configFilePath)` still
-exists (`Context.h:40-41`) for hand-driving the `Init*` methods.
-
-**Init order** (`Context::Init`, `src/ship/Context.cpp:91-94`, a
-short-circuiting `&&` chain): logging → config → console variables →
+**Init chain** (`Context.cpp:110-118`): logging → config → cvars →
 resource manager → control deck → crash handler → console → window →
-audio → **gfx debugger** → **file-drop manager** (last two are new).
-Each `Init*` is idempotent (already-non-null → return true).
+audio → **event system** → file-drop mgr → *(scripting builds)*
+**script loader**. `InitGfxDebugger` left Context — the GfxDebugger now
+lives in `Fast::Fast3dWindow` (`Fast3dWindow.cpp:104-105`).
+`InitKeystore()` is called from inside `InitResourceManager` (`:231`).
+**SDL game-controller startup moved from `osContInit` into
+`InitControlDeck`** (`:277-289`) — controllers work in pre-game UI, and
+failure is a non-fatal `SPDLOG_WARN` (the old `exit(EXIT_FAILURE)` is
+gone).
 
-- **Missing archive is now fatal**: `InitResourceManager` shows the
-  message box and returns **false** (`:220-229`), short-circuiting the
-  chain so `CreateInstance` returns `nullptr` (`:58-63`). The 1.4.2
-  "boots with a permanently paused thread pool" hazard is narrowed to
-  the opt-in `allowEmptyPaths=true` path (the pause itself survives,
-  `src/ship/resource/ResourceManager.cpp:58-60`).
-- Destruction still tears down in explicit reverse order so
-  `spdlog::shutdown()` runs last — but `~Context` calls
-  `GetWindow()->SaveWindowToConfig()` **unguarded** (`:35`): an
-  uninitialized-instance consumer that never reached `InitWindow`
-  null-derefs on teardown. `mGfxDebugger`/`mFileDropMgr` are not
-  explicitly nulled, so they destruct *after* `spdlog::shutdown()`.
+- Missing archive still fatal (messagebox → `Init` false →
+  `CreateInstance` returns nullptr, `Context.cpp:248-257`);
+  `allowEmptyPaths` opt-out survives.
+- **The destructor null-deref survives and is MORE reachable**:
+  `~Context` calls `GetWindow()->SaveWindowToConfig()` unguarded
+  (`Context.cpp:45`), and a failed `CreateInstance` leaves the
+  half-initialized singleton in `mContext` (the failure branch returns
+  nullptr without resetting it, `:76-84`), so the process-exit
+  destructor runs against it.
+- Logging teardown reworked: no `spdlog::shutdown()`; explicit member
+  teardown, then `mLogger->flush()` (an unconditional deref — a Context
+  destroyed before `InitLogging` crashes) and the release-build
+  Context-owned log thread pool released last (`:64-70`).
+
+## New subsystems
+
+- **Event system (#1047)** — `Ship::EventSystem`
+  (`include/ship/events/EventSystem.h:57-128`): `RegisterEvent(name)` →
+  int32 id, `RegisterListener(id, cb, priority, file, line)`,
+  synchronous `CallEvent` in priority order. C-compatible structs +
+  macro surface in `EventTypes.h` (`DEFINE_EVENT`, `REGISTER_EVENT`,
+  `CALL_EVENT`, `CALL_CANCELLABLE_EVENT`, …); **the macros dispatch
+  through the C bridge**, so C and C++ share one path. Cancellation is
+  caller-enforced. Diagnostics `Callers` map is debug-only (#1131).
+  **LUS itself defines and fires zero events at this pin** — pure
+  port-facing infrastructure; `CoreEvents.h` is an empty include, and
+  the shipped `EventDebuggerWindow` is referenced nowhere (the port
+  must `AddGuiWindow` it).
+- **Scripting (#1068/#1084, `ENABLE_SCRIPTING`, default OFF)** —
+  `Ship::ScriptLoader`: compiles C sources found in mounted archives
+  with TinyCC, loads them, `GetFunction(module, function)`; `SafeLevel`
+  enum keyed to the `gScriptSafeLevel` CVar (macro defined, **unused at
+  this pin**). `LibraryLoader`: temp-file dlopen/LoadLibrary, runtime
+  option `DISABLE_DLL_LOADER`.
+- **Keystore + signed archives (#1095, scripting-gated)** —
+  `Ship::Keystore` (named ed25519 keys, origins User/Game/System);
+  archive `manifest.json` carries checksum/signature/public_key,
+  verified BLAKE2b + ed25519 via monocypher; unknown keys go through an
+  `UntrustedArchiveHandler` callback. Keys persist **inside the config
+  JSON** under a top-level `"Keystore"` node. See `resource-system.md`.
 
 ## The integration pattern at this pin
 
-1. `add_subdirectory(libultraship)`, link `libultraship`; include
-   `include/libultraship/libultraship.h`.
-2. Construct a `Fast::Fast3dWindow` + `LUS::ControlDeck`, pass both to
-   `CreateInstance` (or use `CreateUninitializedInstance` and drive
-   `Init*` yourself — what Ghostship does). Hold the returned
-   `shared_ptr` for process lifetime.
-3. Register game resource factories — **LUS registers almost none
-   itself**: Json + Shader at startup, GuiTexture + Font at GUI init.
-   The `Fast::` graphics factories (Texture, Vertex, DisplayList,
-   Matrix, Light) ship in-tree but the **port must register them**
-   (`resource-system.md`).
-4. `Gui::SetMenuBar` / `Gui::AddGuiWindow` as before (plus a new
-   full-screen `SetMenu` slot).
-5. **`Window::MainLoop` no longer exists.** The port owns the loop,
-   conditioned on the `WindowIsRunning()` bridge, and calls
-   `Fast3dWindow::DrawAndRunGraphicsCommands(Gfx*, mtxReplacements)`
-   once per frame — the `mtxReplacements` map is the
-   frame-interpolation injection point (`fast3d-renderer.md`).
-6. Audio is still push-only via `AudioPlayerPlayFrame`; sample rate and
-   channel layout now come from the `AudioSettings` struct.
-
-App dirs: `SHIP_HOME` honored on Apple/Linux only; `NON_PORTABLE` →
-`SDL_GetPrefPath`; else `"."` (`src/ship/Context.cpp:471-499`).
-`LocateFileAcrossAppDirs` survives (`include/ship/Context.h:46`).
+As at 397 (construct `Fast::Fast3dWindow` + `LUS::ControlDeck`, inject
+via `CreateInstance`, register the `Fast::` resource factories yourself,
+loop on `WindowIsRunning()` + `DrawAndRunGraphicsCommands`) — with the
+lifecycle changes: hold the raw `Context*`, call `DestroyInstance()` to
+tear down, and note the port is now expected to write
+`mInterpolationIndex`/`mInterpolationT` for frame interpolation
+(`fast3d-renderer.md`).
 
 ## What does NOT exist at this pin (verified absences)
 
-- No thread shims — `osCreateThread` etc. grep to zero; only the
-  `OSThread` ABI struct in `thread.h`.
-- No Vulkan; **D3D12 and GLX are deleted outright** (no dead files —
-  only a never-defined `ENABLE_DX12` macro in 7 `#if` guards).
-- **Switch and Wii U are gone** (zero `__SWITCH__`/`__WIIU__` hits);
-  Android and iOS took their place (`src/ship/port/mobile/`).
-- No events bus, no scripting, no keystore, no Component/Tickable
-  framework, no tests — those belong to later commits on this line.
-- No `.gitmodules` — but now because everything is **FetchContent**,
-  not vendored (`build-system.md`).
+- No thread shims; no Vulkan; D3D12/GLX/Switch/WiiU still deleted.
+- ~~No events bus, no scripting, no keystore, no tests~~ — **all four
+  arrived in this range** (above). The remaining absences: no
+  install/export, no version constant, no Component/Tickable framework
+  (Context members are still plain fields).
+- Platform matrix grew: Windows, Darwin, iOS, Linux, Android, **OpenBSD
+  (new, #971)**.
 
 ## Sibling docs
 

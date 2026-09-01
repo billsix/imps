@@ -1,93 +1,89 @@
 # libultraship — config, console variables, logging
 
-> **Pinned:** libultraship **1.3.1-397**
-> (`7f2baa104108af3fca9f094754ea974a4973bdeb`, 2026-02-28 —
-> MajorasMask's pin; a close cousin of iteration 14's 1.3.1-399,
-> not its descendant). Updated 2026-09-01, iteration 15 of the
-> reference crawl
+> **Pinned:** libultraship **1.3.1-482**
+> (`2917d0f4fe62c579174561dcd34f327c9410bb72`, 2026-07-29 —
+> BanjoKazooie's pin; direct descendant of 1.3.1-397, 85 commits).
+> Updated 2026-09-01, iteration 16 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above. This line is
-> NEWER than tag 1.4.2 despite the smaller number.
+> NEWER than the 1.4.x tags despite the smaller number.
 
 ## Config — JSON settings file
 
-`Ship::Config` (`include/ship/config/Config.h`): nlohmann JSON,
-`dump(4)` pretty-printed, at the port-chosen app-dir-relative path.
-App dir: `SHIP_HOME` (honored on **Apple/Linux only** —
-`Context.cpp:471-485`), `NON_PORTABLE` → `SDL_GetPrefPath`, else `"."`.
+`Ship::Config`: nlohmann JSON, `dump(4)`, port-chosen app-dir path.
+App dir: `SHIP_HOME` Apple/Linux only (`Context.cpp:553-572`),
+`NON_PORTABLE` → `SDL_GetPrefPath`, else `"."`.
 
-The dual nested/flattened model survives with both 1.4.2 defects:
-**`Nested()` still unflattens the whole document on every get**
-(`Config.cpp:47`), and the dotted-path walk still keeps the current
-subtree when a component is missing (`:49-56`) — partially-missing keys
-can return the wrong node. Fresh-install nuance: `Reload` leaves
-`mNestedJson` null, but `ConsoleVariable::Load`'s index into it is now
-benign (nlohmann promotes null to object, iterates zero times); the
-old `ControlDeck::LoadSettings` co-victim no longer exists.
+- The dual nested/flattened model survives with both defects:
+  **`Nested()` unflattens the whole document on every get**
+  (`Config.cpp:44`) and the dotted-path walk keeps the current subtree
+  on a missing component (`:46-52`).
+- **`Reload` hardened**: both JSONs pre-initialized to empty objects,
+  parse failures logged (`Config.cpp:204-212`) — the old
+  "fresh install leaves `mNestedJson` null" nuance is obsolete.
+- **Backend persistence moved OUT of Config (#1097)**: audio backend
+  get/set (and the `"pulse"`→SDL migration) now live on `Ship::Audio`
+  (`Audio.cpp:66-105`, migration `:75-78`); window-backend persistence
+  on `Ship::Window` (`Window.cpp:70`, `:125-126`). Config no longer
+  knows about backends.
+- **NEW consumer of the config file: the Keystore** (scripting builds)
+  — trusted ed25519 keys persist under a top-level `"Keystore"` node
+  (`Keystore.cpp:59-86`; see `resource-system.md`).
+- `SetBlock`/`EraseBlock` still `Save()` internally
+  (`Config.cpp:131-186`); `GetArray`/`SetArray` still dead;
+  `mIsNewInstance` still write-only. `RegisterVersionUpdater` is the
+  method (`Config.h:188`); the doxygen still cites the nonexistent
+  `RegisterConfigVersionUpdater` (`Config.h:19`).
 
-NEW API since 1.4.2: `Erase`, `EraseBlock`, `SetBlock`, `Copy`,
-`Contains`, `GetNestedJson` — note `SetBlock`/`EraseBlock` each call
-`Save()` internally, so a block write hits disk immediately.
-`GetArray`/`SetArray` still dead (zero callers).
+## CVars
 
-**`ConfigVersionUpdater` survives unchanged in shape** — but the
-registration method is now **`RegisterVersionUpdater`** (the `Config`
-infix is gone; the doxygen at `Config.h:20` still cites the old name —
-an upstream doc bug). Zero updaters registered inside LUS; purely a
-port hook. Migration at read: a config carrying `"pulse"` as audio
-backend is rewritten to SDL (`Config.cpp:240-241`).
+- Union storage unchanged, **and its bugs survive**: `SetString`/
+  `CopyVariable` set `Type` then `free()` the possibly-reinterpreted
+  `String` bits (`ConsoleVariable.cpp:117-121`, `:228-232`);
+  `LoadLegacy` double-`strdup` leak (`:370`).
+- **Lookup is allocation-free (#1022)**: transparent hash/equal
+  (`TransparentStringHash`, `ConsoleVariable.h:199-211`) — `Get(const
+  char*)` builds no temporary string.
+- `cmake/cvars.cmake` is now **24 macros**; new:
+  `CVAR_ALLOW_BACKGROUND_INPUTS` (`gAllowBackgroundInputs`, used in
+  `Fast3dGui.cpp:92,100` + `gfx_dxgi.cpp:513`) and
+  `CVAR_SCRIPT_SAFE_LEVEL` (`gScriptSafeLevel` — **zero code
+  references** at this pin). Grep for macros, not name literals.
+- Bridge: `CVarClearBlock`/`CVarCopy` defined
+  (`consolevariablebridge.cpp:73,77`); **`CVarExists` still declared,
+  never defined** (`consolevariablebridge.h:138`) — link error, now
+  even exported.
 
-## CVars — union storage, build-time-configurable names
+## Logging
 
-`CVar` is now a tagged **union** of
-`Integer/Float/String(char*)/Color/Color24`
-(`include/ship/config/ConsoleVariable.h:13-27`), strings manual
-`strdup`/`free`. Persistence unchanged (`CVars.<name>` in the config
-JSON, colors exploded into `.R/.G/.B/.A` + `.Type`).
+`Context::InitLogging`:
 
-**The biggest config-side surprise: CVar names are CMake macros.**
-`cmake/cvars.cmake` defines 22 cache variables pushed as
-`add_compile_definitions` string macros — `CVAR_VSYNC_ENABLED`
-(= `"gVsyncEnabled"`), `CVAR_MSAA_VALUE`, `CVAR_INTERNAL_RESOLUTION`,
-`CVAR_Z_FIGHTING_MODE`, `CVAR_AUDIO_CHANNELS_SETTING`, … plus two
-**prefixes** concatenated at use sites: `CVAR_PREFIX_CONTROLLERS`
-(`"gControllers"`) and `CVAR_PREFIX_ADVANCED_RESOLUTION`
-(`"gAdvancedResolution"`). Consequences: a port can rename every engine
-CVar from CMake, and **grepping the source for `"gStatsEnabled"` finds
-nothing** — grep for the macro. `gAltAssets` is gone from the library
-entirely (`resource-system.md`).
-
-C bridge additions vs 1.4.2: `CVarClearBlock`, `CVarCopy`, and
-`CVarExists` — **which is declared but never defined** (link error;
-`consolevariablebridge.h:33`). `CVarGet` returning the
-`shared_ptr<Ship::CVar>` remains C++-only.
-
-**Union bugs at this pin:** `SetString`/`CopyVariable` test-and-`free()`
-the `String` member after setting `Type` — if the CVar previously held
-a number/color, that `free()` runs on reinterpreted value bits
-(`ConsoleVariable.cpp:117-121`, `:228-232`). `LoadLegacy` double-strdups
-and leaks (`:370`).
-
-## Logging — spdlog, split sync/async
-
-`Context::InitLogging` (`src/ship/Context.cpp:97-167`):
-
-- **Log levels are now parameters** with defaults — debug builds
-  `spdlog::level::debug`, release `warn` (`include/ship/Context.h:70-71`).
-- **Debug builds get a plain synchronous logger** (`"multi_sink"`,
-  `flush_on(trace)`); release gets the async logger (overflow block,
-  `flush_on(info)`). `init_thread_pool(8192, 1)` still runs
-  unconditionally even in debug where nothing uses it.
-- Sinks unchanged: stdout color (debug Win32 re-points stdio via
-  `AllocConsole`), rotating `logs/<Name>.log` 10 MB × 10. Same pattern.
-  `spdlog::shutdown()` still last in `~Context`.
-- The C shim lives at `src/libultraship/log/luslog.cpp`; `lusprintf`
-  **still never calls `va_end`** (`:15-22`).
+- Levels still parameters (debug/warn defaults,
+  `include/ship/Context.h:196-197`); debug = synchronous `"multi_sink"`
+  flush-on-trace (`Context.cpp:172-174`); release = async
+  overflow-block flush-on-info — now fed by a **Context-owned**
+  `mLogThreadPool` (`:176-178`) instead of the global spdlog pool. Yet
+  `spdlog::init_thread_pool(8192, 1)` **still runs unconditionally**
+  (`:128`), so the global pool is now unused in *both* build types.
+- Console sink level explicit (`:163`); sinks/pattern/rotation
+  unchanged (10 MB × 10, `:167`).
+- **Teardown reworked (#1103)**: no `spdlog::shutdown()`; `~Context`
+  tears members down explicitly, then `mLogger->flush(); mLogger =
+  nullptr;` — an **unconditional deref**: a Context destroyed before
+  `InitLogging` crashes (`Context.cpp:64-68`).
+- `lusprintf` still never calls `va_end`
+  (`src/libultraship/log/luslog.cpp:15-22`).
 
 ## Console (command registry)
 
-`Console::Init()` is still empty (`src/ship/debug/Console.cpp:14-15`);
-all commands come from the GUI's `ConsoleWindow::InitElement`
-(`ConsoleWindow.cpp:304-317`) — no GUI, no commands. Command set:
-`set`, `get`, `help`, `clear`, `bind`, `bind-toggle`, **`unbind`**
-(replacing 1.4.0's `binding-clear`).
+`Console::Init()` still empty (`Console.cpp:15-16`); all 7 commands
+(`set get help clear unbind bind bind-toggle`) still registered by the
+GUI's `ConsoleWindow::InitElement` (`ConsoleWindow.cpp:304-321`).
+Internals cleaned (#1067): `Run` single-`find`, no `CommandEntry` copy
+(`Console.cpp:38-45`); **`GetCommand` now throws `std::out_of_range`**
+instead of default-inserting (`:70-76`).
+
+## Test coverage note
+
+The new gtest suite covers **none** of Config, CVars, Console, or
+logging (`tests/` covers utils/resource/events/audio-decoder).

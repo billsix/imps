@@ -1,7 +1,7 @@
 # libultraship — windowing, GUI, and input
 
-> **Pinned:** libultraship tag **1.2.2**
-> (`ec44917cf5536c8c59aaa7865696926e0bec1ba0`, 2023-09-12). Authored
+> **Pinned:** libultraship tag **1.3.0**
+> (`317edd72cc317387f8ac010a9ec772d4bfdfdbb6`, 2023-10-02). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -66,7 +66,9 @@ on fullscreen toggles and at Context destruction.
   `Gui::StartFrame` composites the rendered game as an `ImGui::Image`
   and closes it. There is no ImGui-less mode.
 - 1.2.2 added Advanced Resolution Mode controls to the GUI (the
-  `gAdvancedResolution` family driving internal-resolution scaling).
+  `gAdvancedResolution` family driving internal-resolution scaling);
+  1.3.0 extended them, fixed keyboard-resize handling, improved
+  Windows SDL frame pacing, and fixed SDL button-release masking.
 - Overlays (`GameOverlay` — CVar watches + fading notifications, fonts
   from the OTR) and `InputViewer` are separate objects drawn after the
   registered windows, not GuiElements.

@@ -130,7 +130,12 @@ set changes, anything surprising).
 - [x] 1.2.2 — DONE 2026-09-01 (delta, 4 commits): Advanced Resolution
       Mode GUI controls; clearMtx hack list 4→6 addresses (PAL GC MQ +
       PAL1.0); reversed romSize check fixed in ZAPDUtils BitConverter.
-- [ ] 1.3.0 — delta
+- [x] 1.3.0 — DONE 2026-09-01 (delta, 9 commits):
+      `Context::CreateUninitializedInstance` (games can drive subsystem
+      init themselves); Archive version-check refinement (empty
+      validHashes skips the check, version tracking decoupled); Color24
+      CVar save/load fix; more Advanced Resolution; keyboard-resize,
+      Windows frame-pacing, and SDL button-release fixes.
 - [ ] 1.3.1 — delta (2023-11; cross-check against the old `bill`-branch
       doc set, which was authored at 1.3.1-399)
 - [ ] 1.3.2 — delta (2023-11)

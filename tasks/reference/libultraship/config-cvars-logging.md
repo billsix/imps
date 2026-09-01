@@ -1,7 +1,7 @@
 # libultraship — config, console variables, logging
 
-> **Pinned:** libultraship tag **1.2.2**
-> (`ec44917cf5536c8c59aaa7865696926e0bec1ba0`, 2023-09-12). Authored
+> **Pinned:** libultraship tag **1.3.0**
+> (`317edd72cc317387f8ac010a9ec772d4bfdfdbb6`, 2023-10-02). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -49,7 +49,8 @@ templates with zero callers — dead.
 `LUS::ConsoleVariable` (`src/config/ConsoleVariable.h:23`): a
 `map<string, shared_ptr<CVar>>` where `CVar` is a fat struct holding
 all five types (`Integer, Float, String, Color(RGBA), Color24(RGB)`).
-Get/Set/Register triples per type; `Register*` = set-if-absent.
+Get/Set/Register triples per type; `Register*` = set-if-absent
+(Color24 handling had save/load bugs until a 1.3.0 fix).
 
 Persistence: `Save()` writes every CVar under `CVars.<name>` into the
 Config JSON (colors exploded into `.R/.G/.B/.A/.Type` sub-keys);

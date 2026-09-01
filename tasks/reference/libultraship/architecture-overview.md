@@ -1,7 +1,7 @@
 # libultraship — architecture overview
 
-> **Pinned:** libultraship tag **1.2.2**
-> (`ec44917cf5536c8c59aaa7865696926e0bec1ba0`, 2023-09-12). Authored
+> **Pinned:** libultraship tag **1.3.0**
+> (`317edd72cc317387f8ac010a9ec772d4bfdfdbb6`, 2023-10-02). Authored
 > 2026-09-01 as iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above — if they
@@ -43,6 +43,9 @@ not a leaked global: `CreateInstance(name, shortName, configFilePath,
 otrFiles, validHashes, reservedThreadCount)` (`src/Context.cpp:39`)
 creates it once and **returns the shared_ptr the game must keep alive**
 — dropping it destroys everything. `GetInstance()` = `mContext.lock()`.
+Since 1.3.0 there is also `CreateUninitializedInstance(name, shortName,
+configFilePath)` — same singleton wiring but skipping `Init()`, so a
+game can drive subsystem initialization itself.
 
 **Init order** (`Context::Init`): logging → config → console
 variables → resource manager → control deck → crash handler → console →

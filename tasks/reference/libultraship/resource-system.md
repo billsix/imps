@@ -1,7 +1,7 @@
 # libultraship — resource system and OTR archives
 
-> **Pinned:** libultraship tag **1.2.2**
-> (`ec44917cf5536c8c59aaa7865696926e0bec1ba0`, 2023-09-12). Authored
+> **Pinned:** libultraship tag **1.3.0**
+> (`317edd72cc317387f8ac010a9ec772d4bfdfdbb6`, 2023-10-02). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -50,8 +50,11 @@ precedence is application order. A patch with no `version` member is
 applied anyway (INFO log only, `:518`).
 
 The `version` member: 1 byte endianness + uint32 game-version hash,
-checked against `validHashes` (`ProcessOtrVersion`, `:395`). Known
-hashes are **OoT ROM CRCs** in `GameVersions.h` — SoH residue.
+checked against `validHashes` (`ProcessOtrVersion`). Known hashes are
+**OoT ROM CRCs** in `GameVersions.h` — SoH residue. Since 1.3.0 an
+empty `validHashes` list skips the version-file check entirely (an
+archive with no `version` member is then accepted), while game-version
+tracking still records whatever versions it finds.
 
 **Name lookup:** MPQ paths are the keys; `GenerateCrcMap` (`:377`) reads
 the `(listfile)` and stores `~CRC64(line)` → path. **Bug:** it

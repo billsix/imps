@@ -1,7 +1,7 @@
 # libultraship — audio backends and libultra OS shims
 
-> **Pinned:** libultraship tag **1.0.1**
-> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
+> **Pinned:** libultraship tag **1.1.0**
+> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.

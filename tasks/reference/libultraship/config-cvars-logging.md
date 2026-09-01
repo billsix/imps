@@ -1,7 +1,7 @@
 # libultraship — config, console variables, logging
 
-> **Pinned:** libultraship tag **1.0.1**
-> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
+> **Pinned:** libultraship tag **1.1.0**
+> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -22,13 +22,16 @@ path walk also *keeps the current subtree* when a component is missing
 instead of returning null, so partially-missing keys can return the
 wrong node.
 
-Defaults are seeded once (`Context::CreateDefaultSettings`,
-`src/Context.cpp:60-84`): 640×480 window at (100,100), fullscreen off
-@1920×1080, empty backend strings, `Shortcuts.Fullscreen` = F11
-(F9 in 1.0.0),
-`Shortcuts.Console` = backtick. **Known mismatch:** the seeded keys
-`Window.GfxBackend`/`Window.GfxApi` are NOT what
-`Config::GetWindowBackend` reads (`Window.Backend.Id`).
+Default handling changed in 1.1.0: `Context::CreateDefaultSettings`
+(which bulk-seeded 640×480 @(100,100), F11 fullscreen key, etc. — and
+whose seeded `Window.GfxBackend`/`GfxApi` keys never matched what
+`GetWindowBackend` reads) was REMOVED; defaults now come from the
+fallback arguments at each read site. In its place, 1.1.0 adds **config
+migrations**: `ConfigVersionUpdater` (`src/config/Config.h`) — subclass
+it, implement `Update(Config*)`, register via
+`RegisterConfigVersionUpdater`, and `RunVersionUpdates()` applies each
+updater whose version exceeds the file's `ConfigVersion` key, bumping
+the key as it goes.
 
 **Fresh-install bug:** with no config file, `Reload` returns early and
 `mNestedJson` stays null; `ConsoleVariable::Load` and

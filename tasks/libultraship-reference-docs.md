@@ -110,7 +110,12 @@ set changes, anything surprising).
       Grayscale/SetGrayscaleColor, `G_BG_COPY` honors horizontal flip,
       DXGI vsync rework. Doc titles made version-less (banner carries
       the pin).
-- [ ] 1.1.0 — delta
+- [x] 1.1.0 — DONE 2026-09-01 (delta, only 2 commits): config
+      migrations arrive (`ConfigVersionUpdater` +
+      `RunVersionUpdates`/`ConfigVersion` key) and
+      `Context::CreateDefaultSettings` bulk seeding is REMOVED (killing
+      the documented seeded-keys mismatch); new GBI extension
+      `G_EXTRAGEOMETRYMODE` (0x3A) with `G_EX_INVERT_CULLING`.
 - [ ] 1.2.0 — delta
 - [ ] 1.2.1 — delta
 - [ ] 1.2.2 — delta

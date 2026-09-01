@@ -1,7 +1,7 @@
 # libultraship — Fast3D renderer
 
-> **Pinned:** libultraship tag **1.0.1**
-> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
+> **Pinned:** libultraship tag **1.1.0**
+> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
 > 2026-09-01, iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above.
@@ -30,7 +30,10 @@ reference assets by CRC64 hash or path: `G_SETTIMG_OTR_HASH/FILEPATH`,
 `G_VTX_OTR_HASH/FILEPATH`, `G_DL_OTR_HASH/FILEPATH`, `G_MTX_OTR`,
 `G_BRANCH_Z_OTR`, `G_MARKER`, `G_INVALTEXCACHE`, framebuffer ops
 (`G_SETFB`/`G_RESETFB`/`G_SETTIMG_FB`), wide rects
-(`G_TEXRECT_WIDE`/`G_FILLWIDERECT`), `G_SETGRAYSCALE`/`G_SETINTENSITY`.
+(`G_TEXRECT_WIDE`/`G_FILLWIDERECT`), `G_SETGRAYSCALE`/`G_SETINTENSITY`,
+and since 1.1.0 `G_EXTRAGEOMETRYMODE` (0x3A) driving
+`rsp.extra_geometry_mode` — its one flag so far, `G_EX_INVERT_CULLING`,
+negates the backface-cull cross product (for mirrored worlds).
 They resolve through the resource bridge — and several **self-modify
 the display list**, overwriting `w1` with the resolved pointer
 (`:2584`, `:2815`; resource caching at the SETTIMG site was disabled to

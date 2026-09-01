@@ -1,7 +1,7 @@
 # libultraship — architecture overview
 
-> **Pinned:** libultraship tag **1.0.1**
-> (`22bd2a04ed45c9807d71908e08462542f89f7ed3`, 2023-06-07). Authored
+> **Pinned:** libultraship tag **1.1.0**
+> (`04ef63c74270dfe9df458bd8335aac7a7097468a`, 2023-06-10). Authored
 > 2026-09-01 as iteration 1 of the reference crawl
 > (`../../libultraship-reference-docs.md`). Re-sync check: compare
 > `PIN_SHA` in `libultraship/fetch.sh` with the SHA above — if they
@@ -44,10 +44,12 @@ otrFiles, validHashes, reservedThreadCount)` (`src/Context.cpp:39`)
 creates it once and **returns the shared_ptr the game must keep alive**
 — dropping it destroys everything. `GetInstance()` = `mContext.lock()`.
 
-**Init order** (`Context::Init`, `src/Context.cpp:86-98`):
-logging → config → console variables → resource manager →
-default settings → control deck → crash handler → console → window →
-audio. Notes:
+**Init order** (`Context::Init`): logging → config → console
+variables → resource manager → control deck → crash handler → console →
+window → audio. (Until 1.0.1 a bulk default-settings seeding step ran
+after the resource manager; 1.1.0 removed it in favor of per-read
+fallbacks + the `ConfigVersionUpdater` migration system — see
+`config-cvars-logging.md`.) Notes:
 
 - `InitResourceManager` (`:185`) reads `Game.Main Archive` /
   `Game.Patches Archive` from config; a missing OTR shows a message box

@@ -113,8 +113,11 @@ silently skipped when absent — the appimage step then fails on a
 missing `sohIcon.png`).
 
 Verified nested 2026-09-01: image, `make build` of the patched tree,
-and `make appimage` (`out/soh.appimage`, 32 MB) all green. The
-AppImage's on-host run remains for the maintainer.
+and `make appimage` (`out/soh.appimage`, 32 MB) all green. The AppImage
+was **built and run on-host, 2026-09-01 (William Emerison Six
+<billsix@gmail.com>)** — the `COPY` Dockerfile fix cleared the SELinux
+block that had stopped host builds (see the Dockerfile comment) — the
+full pipeline is closed.
 
 ## Tools
 

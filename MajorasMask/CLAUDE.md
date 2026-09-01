@@ -100,3 +100,9 @@ The Makefile was adapted for the imps layout, everything else verbatim:
 applied series — into `2ship2harkinian/build-cmake` (in-checkout, distinct
 from the host build.sh's sibling `build-cmake/`). `make run` executes the
 AppImage on the host from the shared `runDir/`.
+
+The default (`ci`, ubuntu-22.04) variant's AppImage build was
+**confirmed on-host 2026-09-01 (William Emerison Six
+<billsix@gmail.com>)** — `make appimage`, the `COPY` Dockerfile fix
+having cleared the SELinux block that stopped host builds; the `2604`
+variant and an on-host run of the AppImage were not exercised.

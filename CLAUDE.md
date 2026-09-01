@@ -184,9 +184,10 @@ operation in the agent contract below). The pairs:
   documentation structure above (stale fork-era claims fixed or bannered
   in the move); its submodule-pin changes were dropped as obsolete.
   Also carries a podman build (`Dockerfile` ubuntu-22.04 CI mirror +
-  `Makefile` → `out/soh.appimage`, verified nested 2026-09-01; the
-  maintainer's on-host run is the closing check) and a
-  container-verified `installdependencies.sh`.
+  `Makefile` → `out/soh.appimage`, verified nested 2026-09-01 and
+  **built + run on-host 2026-09-01 (William Emerison Six
+  <billsix@gmail.com>)** — pipeline closed) and a container-verified
+  `installdependencies.sh`.
 - `MajorasMask/` — 2 Ship 2 Harkinian
   (https://github.com/HarbourMasters/2ship2harkinian), pinned at
   `04a1a4319` (tip of `develop`, 2026-05-31; submodules libultraship +
@@ -219,7 +220,9 @@ operation in the agent contract below). The pairs:
   `tasks/mario64-*.md`; the messy `bill` branch history was deliberately
   not ported. Also carries a podman build (`Dockerfile` ubuntu-24.04 CI
   mirror + `Makefile` → `out/ghostship.appimage`, verified nested
-  2026-09-01; the maintainer's on-host run is the closing check) and a
+  2026-09-01 and **built on-host 2026-09-01 (William Emerison Six
+  <billsix@gmail.com>)** — launches on the Vulkan backend, see the RADV
+  Vulkan-hang caveat in `SuperMario64/CLAUDE.md`) and a
   container-verified `installdependencies.sh`.
 - `BanjoKazooie/` — Lighthouse
   (https://github.com/HarbourMasters/Lighthouse), pinned at `6d30df9a`

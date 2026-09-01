@@ -7,12 +7,15 @@
 
 ## BLUF
 
-Replace Shipwright's upstream Linux CI job with the equivalent container
-build: upstream the project Dockerfile plus an updated workflow that
-builds inside it, so the CI action is as repeatable/offline as possible
-(deps frozen in image layers instead of apt-installed and built from
-source on every ephemeral runner) and byte-matches the local podman
-build. Both the Dockerfile and the workflow change are **standalone
+Upstream a container-based Linux build for Shipwright as a standalone
+patch adding **three in-repo files**: a **Makefile** (the full imps
+target set — `image`/`build`/`appimage`/`image-export`/`image-import`/
+`shell`/`run`/`clean`, minus the fetch/apply machinery, since the source
+now ships in the same tree), the **Dockerfile** it drives, and the Linux
+CI job refactored to **just call `make appimage`**. Local dev and CI then
+run one identical path, and the build is as repeatable/offline as
+possible (deps frozen in image layers instead of apt-installed and built
+from source on every ephemeral runner). All three files are **standalone
 upstream-bound patches** in this project's series, per the
 patch-philosophy section of the master CLAUDE.md — upstreaming them IS
 the goal.
@@ -23,12 +26,35 @@ the goal.
   the **Linux job only**; Windows/macOS/Switch jobs stay untouched.
 - The imps Dockerfile this would upstream: tasked this same batch (`ocarina-podman-appimage-build.md`). This task depends
   on that Dockerfile existing and being verified; sequence after it.
-- Design points to settle at execution: where the image lives for CI
+- **The patch adds three in-repo files:**
+  - a **`Makefile`** — the full imps target set (`image`, `build`,
+    `appimage`, `image-export`/`image-import`, `shell`, `run`, `clean`,
+    `distclean`) kept verbatim so a contributor gets the maintainer's
+    local ergonomics, **minus `fetch.sh`/`apply.sh`**: the build context
+    is the repo root (`-f <dir>/Dockerfile .`), not an external checkout,
+    and `make appimage` builds the working tree as-is. Derive it from the
+    imps `OcarinaOfTime/Makefile` by removing the fetch auto-call and
+    re-rooting `$(SRC)`/context to `.`.
+  - the **`Dockerfile`** it drives — from the imps `OcarinaOfTime/Dockerfile`
+    (now `COPY`-based and host-build-clean as of 2026-09-01).
+  - the **CI workflow** — the existing Linux job reduced to
+    `checkout → make appimage → upload-artifact`, the upload step kept
+    identical so upstream sees a drop-in. This **settles the old
+    `container:`-key-vs-build+run design point**: the workflow calls
+    `make`, the Makefile drives the container.
+- **`CONTAINER_CMD` auto-detects podman→docker** (maintainer, 2026-09-01:
+  podman on his systems; docker is fine where they use it — GitHub
+  runners ship Docker, so `make appimage` runs in CI unchanged). e.g.
+  `CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)`.
+  imps's own `OcarinaOfTime/Makefile` hardcodes `podman` — the upstreamed
+  one must not.
+- Design points still open at execution: where the image lives for CI
   (built in-workflow from the committed Dockerfile — simplest, fully
-  self-contained — vs published to GHCR and pulled, faster); GitHub
-  Actions `container:` key vs an explicit build+run step; pinning the
-  base image by digest for the offline/repeatability goal; keeping the
-  artifact-upload steps identical so upstream sees a drop-in change.
+  self-contained — vs published to GHCR and pulled, faster); pinning the
+  base image by digest for the offline/repeatability goal; where in the
+  tree the Makefile/Dockerfile live (match upstream's conventions). (The
+  `container:`-vs-build+run and container-engine choices are settled —
+  see above.)
 - **Acceptance strategy (maintainer, 2026-09-01): maximum fidelity to
   the existing CI job.** Same Ubuntu version as the workflow uses, same
   package list, same from-source library versions and flags, same build
@@ -45,4 +71,8 @@ the goal.
 
 ## Open questions
 
-None until execution.
+None block starting. **Settled 2026-09-01:** the CI workflow just calls
+`make appimage` (not a bare `container:` job); the Makefile carries the
+full imps target set minus fetch/apply; `CONTAINER_CMD` auto-detects
+podman→docker. Remaining choices are the execution-time design points in
+Context.

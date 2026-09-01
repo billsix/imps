@@ -130,7 +130,12 @@ takes its preferred, self-consistent shared path.
 
 Verified nested 2026-09-01: image, `make build` of the patched tree,
 and `make appimage` (`out/ghostship.appimage`, 16 MB, + `.tcc`) all
-green. The AppImage's on-host run remains for the maintainer.
+green. The on-host AppImage build was **confirmed 2026-09-01 (William
+Emerison Six <billsix@gmail.com>)** — the `COPY` Dockerfile fix cleared
+the SELinux block that had stopped host builds (see the Dockerfile
+comment); it launches and auto-selects the Vulkan backend, so the RADV
+Vulkan-hang caveat above applies — switch to OpenGL if it goes silent
+after "Vulkan device:".
 
 ## Architecture reference (read to get oriented without re-reading the code)
 

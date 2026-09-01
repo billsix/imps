@@ -33,8 +33,14 @@ auto-loads every CLAUDE.md on the path from cwd to the repo root):
    large doc set never bloats sessions about another project.
 
 `tasks/` is shared across all projects at the imps root (this repo is the
-one that versions them): in-flight task docs at `tasks/*.md`, reference
-docs namespaced per project as above, archives under `tasks/archive/`.
+one that versions them): in-flight task docs at `tasks/*.md` (named with a
+project prefix, e.g. `ocarina-…`), reference docs namespaced per project
+as above. **Archives are per-project — this overrides the global
+convention's flat date layout for this repo** (decided with the
+maintainer, 2026-09-01): a completed task moves to
+`tasks/archive/<project>/<YYYY>/<MM>/<DD>/<slug>.md` — project first, then
+the standard date buckets. Repo-wide tasks (not about one game) use
+`imps` as their project directory.
 
 ## Per-project folder contract
 
@@ -59,6 +65,12 @@ docs namespaced per project as above, archives under `tasks/archive/`.
   `git format-patch --no-cover-letter --base=<pin> <pin>..HEAD -o patches/`.
 - `.gitignore` — the upstream checkout, `build-cmake/`, `bldInstall/`, and
   `runDir/` are all untracked.
+- Optionally a **podman build**: `Dockerfile` + `Makefile` (native imps
+  files, never patches) derived from the project's own CI workflow —
+  `make image/build/appimage/run`, image context = the checkout,
+  `PODMAN_RUN_FLAGS` threaded into every `run` (never `build`), and where
+  multiple base images exist, a `VARIANT` switch with per-variant image
+  tags. `MajorasMask/` is the reference implementation.
 
 ## Working on a project — agent contract
 
@@ -119,7 +131,8 @@ docs namespaced per project as above, archives under `tasks/archive/`.
   `MajorasMask/CLAUDE.md`. Status: one code patch (64-bit audio/scheduler
   fixes, a strong upstream-submission candidate), exported verbatim from
   the maintainer's old `fedora44Fixes` fork branch and verified
-  byte-identical on apply; build verification pending. Also carries a
+  byte-identical on apply; patched tree **build- and run-verified on the
+  maintainer's host 2026-09-01**. Also carries a
   podman build (`Dockerfile` + `Makefile` → AppImage), ported from the old
   fork's `podmanBuildAppImage` branch as native imps files — the first
   container build in imps.

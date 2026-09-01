@@ -43,14 +43,16 @@ cd OcarinaOfTime
   (verified 2026-09-01). One code patch (decomp renames), ported from my
   old fork; the fork's docs now live in `OcarinaOfTime/CLAUDE.md` and
   `tasks/reference/ocarina/`.
-- **MajorasMask** — one code patch (64-bit audio/scheduler fixes) exported
-  from my old `fedora44Fixes` fork branch, verified to apply byte-identical
-  on the pin; build verification pending. Also has the first podman build:
+- **MajorasMask** — builds and runs with the patch applied (verified
+  2026-09-01). One code patch (64-bit audio/scheduler fixes) exported from
+  my old `fedora44Fixes` fork branch. Also has the first podman build:
   `make appimage` → `out/2ship.appimage` (see its README).
 - **BanjoKazooie** — 4-patch series from my `fixOnFedora` fork branch
   (submitted upstream as a PR): Fedora deps doc fix, bk.o2r version stamp,
   the post-ROM-import freeze fix, review-round cleanup. Verified
   byte-identical on apply; build verification pending. Fork docs migrated
   to `BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
-- **Planned:** more projects (the Majora's Mask, Super Mario 64, and
-  Banjo-Kazooie ports); podman container builds alongside the host builds.
+- **Planned:** the Super Mario 64 port (Ghostship); podman builds for
+  OcarinaOfTime and BanjoKazooie like MajorasMask's (task docs exist under
+  `tasks/`), plus an OoT dependency-install script and an OoT save-file
+  generator (also tasked).

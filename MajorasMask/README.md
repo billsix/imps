@@ -23,3 +23,18 @@ rm -rf 2ship2harkinian build-cmake bldInstall   # add runDir to also wipe saves 
   > first run (or after wiping `runDir/`) the game asks for a legally-acquired
   > Majora's Mask ROM and re-extracts.
 - Patch details: `CLAUDE.md` here.
+
+## Podman build → AppImage (alternative to the host build)
+
+```sh
+make image      # build the Ubuntu 26.04 builder image (~10 min first time)
+make appimage   # compile in the container → out/2ship.appimage
+make run        # run the AppImage on the host, from runDir/ (same saves as run.sh)
+```
+
+- `make help` lists all targets (image-export/import, shell, clean, distclean).
+- Builds whatever the checkout holds — run `./fetch.sh && ./apply.sh` first
+  for the patched build.
+- > The container build dir is `2ship2harkinian/build-cmake` (inside the
+  > checkout); the host build.sh uses the sibling `build-cmake/`. They don't
+  > clobber each other, and `make clean` touches only the container's.

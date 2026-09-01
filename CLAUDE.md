@@ -119,4 +119,7 @@ docs namespaced per project as above, archives under `tasks/archive/`.
   `MajorasMask/CLAUDE.md`. Status: one code patch (64-bit audio/scheduler
   fixes, a strong upstream-submission candidate), exported verbatim from
   the maintainer's old `fedora44Fixes` fork branch and verified
-  byte-identical on apply; build verification pending.
+  byte-identical on apply; build verification pending. Also carries a
+  podman build (`Dockerfile` + `Makefile` → AppImage), ported from the old
+  fork's `podmanBuildAppImage` branch as native imps files — the first
+  container build in imps.

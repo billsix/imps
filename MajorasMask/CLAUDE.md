@@ -46,6 +46,29 @@ the whole delta.
   none). The ocarina docs in `../tasks/reference/ocarina/` describe the
   sibling architecture and are directionally useful, not authoritative,
   for 2S2H.
-- The maintainer's old fork also had a `podmanBuildAppImage` branch
-  (Ubuntu-based Dockerfile + Makefile building 2S2H in podman) — prior art
-  for imps' planned container builds, not yet ported.
+## Podman build (Dockerfile + Makefile)
+
+Ported 2026-09-01 from the maintainer's old fork's `podmanBuildAppImage`
+branch (2 commits: "Added Bill's Dockerfile based on the github action" +
+"updated to ubuntu 26.04") — as **native imps files, not patches**, per the
+patches-carry-code-only principle. The Dockerfile is verbatim (Ubuntu 26.04
+builder mirroring upstream CI: apt list bind-mounted from the checkout's
+`.github/workflows/apt-deps.txt`, SDL 2.30.3 / tinyxml2 10.0.0 /
+libzip 1.10.1 built from source). The Makefile was adapted for the imps
+layout, everything else verbatim:
+
+- `SRC` = `2ship2harkinian/` (the imps checkout) instead of the Makefile's
+  own directory;
+- `make image` passes the checkout as the build **context**
+  (`-f Dockerfile $(SRC)`) so the apt-deps bind mount still resolves, and
+  auto-runs `fetch.sh` if the checkout is missing;
+- the standard `PODMAN_RUN_FLAGS` nested-podman auto-default was added and
+  threaded into the `run` invocations (never `build`);
+- the old branch's `.gitignore` hunk became entries in this folder's
+  `.gitignore` (`out/`, image tars) — the checkout itself is already
+  ignored.
+
+`make build`/`make appimage` compile the checkout as-is — normally pin +
+applied series — into `2ship2harkinian/build-cmake` (in-checkout, distinct
+from the host build.sh's sibling `build-cmake/`). `make run` executes the
+AppImage on the host from the shared `runDir/`.

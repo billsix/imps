@@ -45,6 +45,7 @@ cd OcarinaOfTime
   `tasks/reference/ocarina/`.
 - **MajorasMask** — one code patch (64-bit audio/scheduler fixes) exported
   from my old `fedora44Fixes` fork branch, verified to apply byte-identical
-  on the pin. Build verification pending.
+  on the pin; build verification pending. Also has the first podman build:
+  `make appimage` → `out/2ship.appimage` (see its README).
 - **Planned:** more projects (the Majora's Mask, Super Mario 64, and
   Banjo-Kazooie ports); podman container builds alongside the host builds.

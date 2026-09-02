@@ -9,7 +9,7 @@
 > here — their older shapes stand. Updated 2026-09-01, iteration 18
 > (final) of the reference crawl
 > (`crawl.md`). Re-sync check: compare
-> `PIN_SHA` in `libultraship/fetch.sh` with the SHA above; git history
+> `PIN_SHA` in `n64/libultraship/fetch.sh` with the SHA above; git history
 > on these docs is the time axis (486-mainline state = the previous
 > commit).
 

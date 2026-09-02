@@ -5,7 +5,7 @@
 playthrough saves at named story points (he said: "perhaps I need to
 play the game and give you actual save states to learn from").
 **Recheck:** ask the maintainer, or check whether new .sav files have
-appeared under `OcarinaOfTime/runDir/Save/` (or wherever he says he put
+appeared under `n64/OcarinaOfTime/runDir/Save/` (or wherever he says he put
 them) that are not generator output; cleared when at least one real
 playthrough save exists to diff against `tools/save_generator.py`
 output.
@@ -27,7 +27,7 @@ a world whose NPCs/cutscenes/state match a real playthrough that far.
 
 ## Context
 
-- The generator: `OcarinaOfTime/tools/save_generator.py`; format
+- The generator: `n64/OcarinaOfTime/tools/save_generator.py`; format
   knowledge: `tasks/reference/ocarina/save-file-generator.md`; completed
   predecessor task:
   `tasks/archive/ocarina/2026/09/01/ocarina-save-file-generator.md`.

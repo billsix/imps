@@ -24,7 +24,7 @@ the goal.
 
 - Upstream CI file: `Shipwright/.github/workflows/generate-builds.yml` — the Linux job runs on ubuntu-22.04. Scope is
   the **Linux job only**; Windows/macOS/Switch jobs stay untouched.
-- The imps Dockerfile this would upstream: **shipped and host-verified** (`OcarinaOfTime/Dockerfile`); its build task is archived at `tasks/archive/ocarina/2026/09/01/ocarina-podman-appimage-build.md`.
+- The imps Dockerfile this would upstream: **shipped and host-verified** (`n64/OcarinaOfTime/Dockerfile`); its build task is archived at `tasks/archive/ocarina/2026/09/01/ocarina-podman-appimage-build.md`.
 - **The patch adds three in-repo files:**
   - a **`Makefile`** — the full imps target set (`image`, `build`,
     `appimage`, `image-export`/`image-import`, `shell`, `run`, `clean`,
@@ -32,9 +32,9 @@ the goal.
     local ergonomics, **minus `fetch.sh`/`apply.sh`**: the build context
     is the repo root (`-f <dir>/Dockerfile .`), not an external checkout,
     and `make appimage` builds the working tree as-is. Derive it from the
-    imps `OcarinaOfTime/Makefile` by removing the fetch auto-call and
+    imps `n64/OcarinaOfTime/Makefile` by removing the fetch auto-call and
     re-rooting `$(SRC)`/context to `.`.
-  - the **`Dockerfile`** it drives — from the imps `OcarinaOfTime/Dockerfile`
+  - the **`Dockerfile`** it drives — from the imps `n64/OcarinaOfTime/Dockerfile`
     (now `COPY`-based and host-build-clean as of 2026-09-01).
   - the **CI workflow** — the existing Linux job reduced to
     `checkout → make appimage → upload-artifact`, the upload step kept
@@ -45,7 +45,7 @@ the goal.
   podman on his systems; docker is fine where they use it — GitHub
   runners ship Docker, so `make appimage` runs in CI unchanged). e.g.
   `CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)`.
-  imps's own `OcarinaOfTime/Makefile` hardcodes `podman` — the upstreamed
+  imps's own `n64/OcarinaOfTime/Makefile` hardcodes `podman` — the upstreamed
   one must not.
 - Design points still open at execution: where the image lives for CI
   (built in-workflow from the committed Dockerfile — simplest, fully

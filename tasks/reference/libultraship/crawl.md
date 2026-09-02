@@ -12,13 +12,13 @@ One evolving 8-doc set (`architecture-overview`, `build-system`,
 `resource-system`, `fast3d-renderer`, `windowing-gui-input`,
 `audio-and-libultra-shims`, `config-cvars-logging`, `bridge-api`),
 updated **in place** — git history is the time axis. Each iteration:
-checkout the next pin in `libultraship/fetch.sh` (`PIN_SHA` and the doc
+checkout the next pin in `n64/libultraship/fetch.sh` (`PIN_SHA` and the doc
 banners advance together), delta-read against the previous iteration's
 doc state (small deltas verified directly; big ones via 3 parallel
 subsystem readers demanding STILL-TRUE/CHANGED/NEW with `file:line`
 anchors, every claim re-verified before it enters a doc), rewrite the
 docs, tick the log, one path-scoped commit:
-`libultraship/fetch.sh tasks/reference/libultraship/ <this doc>`.
+`n64/libultraship/fetch.sh tasks/reference/libultraship/ <this doc>`.
 
 ## The version topology (hard-won; do not re-derive)
 

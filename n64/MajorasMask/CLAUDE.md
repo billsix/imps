@@ -53,9 +53,9 @@ the whole delta.
   torch asset-pipeline migration that OcarinaOfTime's newer pin has; 2S2H
   still extracts via ZAPD/OTRExporter here.
 - No 2S2H-specific reference-doc set exists yet (the old fork carried
-  none). The ocarina docs in `../tasks/reference/ocarina/` describe the
+  none). The ocarina docs in `../../tasks/reference/ocarina/` describe the
   sibling architecture (directionally useful, not authoritative) — and
-  the LUS crawl set at `../tasks/reference/libultraship/` documents this
+  the LUS crawl set at `../../tasks/reference/libultraship/` documents this
   project's exact libultraship pin (`7f2baa10`, 1.3.1-397) as
   **iteration 15**: read it via git history (commit "1.3.1-397
   (7f2baa10)"); the working tree shows a newer pin.

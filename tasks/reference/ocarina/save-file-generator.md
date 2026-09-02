@@ -3,9 +3,9 @@
 > **Provenance:** authored 2026-09-01 against the imps pin `acdbc651d`
 > (9.2.3-421) **with the patch series applied**, by two verified source
 > readers plus field-level validation against a real pristine save
-> (`OcarinaOfTime/runDir/Save/file1.sav`). Online research was authorized
+> (`n64/OcarinaOfTime/runDir/Save/file1.sav`). Online research was authorized
 > but not needed — the code and the real save answered everything.
-> The tool this documents: `OcarinaOfTime/tools/save_generator.py`.
+> The tool this documents: `n64/OcarinaOfTime/tools/save_generator.py`.
 
 ## The container (SaveManager.cpp)
 
@@ -117,7 +117,7 @@ duplicated into eventChkInf "learned" bits; the Bongo-escaped flag
   `buttonItems[1..3]`, their slots in `cButtonSlots[0..2]`), D-pad
   empty (255).
 
-## The generator (`OcarinaOfTime/tools/save_generator.py`)
+## The generator (`n64/OcarinaOfTime/tools/save_generator.py`)
 
 Design per the maintainer's spec: **dungeons first** (presets + custom
 per-dungeon), then progressively finer questions whose **defaults derive

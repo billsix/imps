@@ -24,7 +24,7 @@ the goal.
 
 - Upstream CI file: `Lighthouse/.github/workflows/main.yml` — the build-linux job runs on ubuntu-latest. Scope is
   the **Linux job only**; Windows/macOS/Switch jobs stay untouched.
-- The imps Dockerfile this would upstream: shipped, verified end to end incl. a host run (`BanjoKazooie/Dockerfile`). This task depends
+- The imps Dockerfile this would upstream: shipped, verified end to end incl. a host run (`n64/BanjoKazooie/Dockerfile`). This task depends
   on that Dockerfile existing and being verified; sequence after it.
 - **The patch adds three in-repo files:**
   - a **`Makefile`** — the full imps target set (`image`, `build`,
@@ -33,9 +33,9 @@ the goal.
     local ergonomics, **minus `fetch.sh`/`apply.sh`**: the build context
     is the repo root (`-f <dir>/Dockerfile .`), not an external checkout,
     and `make appimage` builds the working tree as-is. Derive it from the
-    imps `BanjoKazooie/Makefile` by removing the fetch auto-call and
+    imps `n64/BanjoKazooie/Makefile` by removing the fetch auto-call and
     re-rooting `$(SRC)`/context to `.`.
-  - the **`Dockerfile`** it drives — from the imps `BanjoKazooie/Dockerfile`
+  - the **`Dockerfile`** it drives — from the imps `n64/BanjoKazooie/Dockerfile`
     (it inlines its apt list rather than reading a deps file, so it never
     had the build-time-bind-mount SELinux issue the other three did).
   - the **CI workflow** — the existing Linux job reduced to
@@ -47,7 +47,7 @@ the goal.
   podman on his systems; docker is fine where they use it — GitHub
   runners ship Docker, so `make appimage` runs in CI unchanged). e.g.
   `CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)`.
-  imps's own `BanjoKazooie/Makefile` hardcodes `podman` — the upstreamed
+  imps's own `n64/BanjoKazooie/Makefile` hardcodes `podman` — the upstreamed
   one must not.
 - Design points still open at execution: where the image lives for CI
   (built in-workflow from the committed Dockerfile — simplest, fully

@@ -11,8 +11,8 @@ It is the map; the four companion docs are the territory:*
 *[decomp-map.md](decomp-map.md) · [port-layer.md](port-layer.md) ·
 [libultraship-integration.md](libultraship-integration.md) ·
 [asset-pipeline.md](asset-pipeline.md) · [build-system.md](build-system.md).*
-*The maintainer's fork-specific workflow + gameplay gotchas live in the root
-[`CLAUDE.md`](../../CLAUDE.md); this doc is the architecture underneath them.*
+*The maintainer's fork-specific workflow + gameplay gotchas live in the project's
+[`CLAUDE.md`](../../../n64/SuperMario64/CLAUDE.md); this doc is the architecture underneath them.*
 
 ## What Ghostship is
 
@@ -116,7 +116,7 @@ These are the crux; everything else is detail.
 - **EventSystem hooks** — the primary decomp→port callback path (there is **no**
   SoH `GameInteractor` here; it was reimplemented as a lighter event bus). Decomp C fires
   `CALL_CANCELLABLE_EVENT`; port C++ listeners react and can cancel the guarded block. See
-  [port-layer.md](port-layer.md) and [`wiki/EventSystem.md`](../../wiki/EventSystem.md).
+  [port-layer.md](port-layer.md) and Ghostship's own `wiki/EventSystem.md` (in the checkout).
 - **CVars** — libultraship's string-keyed console-variable store, reached from decomp `.c`
   via `#include <libultraship/bridge/consolevariablebridge.h>`. The fork's cheats/enhancements
   are all CVar toggles (`gCheats.*` / `gEnhancements.*` — string namespaces, **not** structs).

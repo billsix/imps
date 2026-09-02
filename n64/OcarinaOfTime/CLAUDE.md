@@ -34,9 +34,9 @@ personal branches — the patch series is the whole delta.
   Patched tree build- and run-verified on-host 2026-09-01 (William
   Emerison Six <billsix@gmail.com>).
   The renaming effort continues in
-  [`../tasks/ocarina-decomp-rename-and-cleanup.md`](../tasks/ocarina-decomp-rename-and-cleanup.md);
+  [`../../tasks/ocarina-decomp-rename-and-cleanup.md`](../../tasks/ocarina-decomp-rename-and-cleanup.md);
   method and gotchas in
-  [`../tasks/reference/ocarina/decomp-renaming.md`](../tasks/reference/ocarina/decomp-renaming.md).
+  [`../../tasks/reference/ocarina/decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md).
 
 ## Version notes
 
@@ -50,32 +50,32 @@ personal branches — the patch series is the whole delta.
 
 ## Architecture reference (read to get oriented without re-reading the code)
 
-Deep, standing reference docs in **`../tasks/reference/ocarina/`** — start
+Deep, standing reference docs in **`../../tasks/reference/ocarina/`** — start
 with the overview, pull the subsystem doc you need. Each carries a
 provenance banner (authored at the old base, `988b53665`); spot-check
 details against the pinned checkout.
 
-- [`architecture-overview.md`](../tasks/reference/ocarina/architecture-overview.md) —
+- [`architecture-overview.md`](../../tasks/reference/ocarina/architecture-overview.md) —
   **read first.** The three bodies of code, the coroutine frame loop, the
   two seams (`__OTR__`/GbiWrap for graphics+assets, GameInteractor for
   behavior hooks).
-- [`decomp-map.md`](../tasks/reference/ocarina/decomp-map.md) — "where does
+- [`decomp-map.md`](../../tasks/reference/ocarina/decomp-map.md) — "where does
   X live" in the OoT decomp: GameState, actors-as-overlays (+ `ActorDB`),
   `z_player.c`, collision/camera/scenes.
-- [`port-layer.md`](../tasks/reference/ocarina/port-layer.md) — `soh/soh/`:
+- [`port-layer.md`](../../tasks/reference/ocarina/port-layer.md) — `soh/soh/`:
   `OTRGlobals`, the frame loop, CVars, the resource/OTR glue, SaveManager,
   `stubs.c`.
-- [`libultraship-integration.md`](../tasks/reference/ocarina/libultraship-integration.md) —
+- [`libultraship-integration.md`](../../tasks/reference/ocarina/libultraship-integration.md) —
   how SoH consumes LUS (written at 1.3.1-463; now 1.3.1-486).
-- [`asset-pipeline.md`](../tasks/reference/ocarina/asset-pipeline.md) —
+- [`asset-pipeline.md`](../../tasks/reference/ocarina/asset-pipeline.md) —
   **stale: describes the pre-torch ZAPD/OTRExporter pipeline.**
-- [`frame-interpolation.md`](../tasks/reference/ocarina/frame-interpolation.md) —
+- [`frame-interpolation.md`](../../tasks/reference/ocarina/frame-interpolation.md) —
   how the fixed OoT tick is decoupled from render FPS.
-- [`enhancements-gui-rando.md`](../tasks/reference/ocarina/enhancements-gui-rando.md) —
+- [`enhancements-gui-rando.md`](../../tasks/reference/ocarina/enhancements-gui-rando.md) —
   GameInteractor (hooks + `VB_*` overrides), SohGui, the randomizer.
-- [`build-system.md`](../tasks/reference/ocarina/build-system.md) —
+- [`build-system.md`](../../tasks/reference/ocarina/build-system.md) —
   **stale: pre-torch CMake/submodule graph.**
-- [`decomp-renaming.md`](../tasks/reference/ocarina/decomp-renaming.md) —
+- [`decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md) —
   how to rename `func_/D_` symbols safely; read before touching the
   decomp-rename task.
 
@@ -84,7 +84,7 @@ VERSIONING, CUSTOM_MUSIC).
 
 ## libultraship reference docs
 
-The crawl set at `../tasks/reference/libultraship/` documents this
+The crawl set at `../../tasks/reference/libultraship/` documents this
 project's exact LUS pin (`62e973ae`, 1.3.1-486) as **iteration 17** —
 the working tree shows a newer pin, so read it via git history
 (`git log --oneline -- tasks/reference/libultraship/`, commit
@@ -92,7 +92,7 @@ the working tree shows a newer pin, so read it via git history
 
 ## Podman build (Dockerfile + Makefile)
 
-Created 2026-09-01 per `../tasks/archive/ocarina/2026/09/01/ocarina-podman-appimage-build.md`, on
+Created 2026-09-01 per `../../tasks/archive/ocarina/2026/09/01/ocarina-podman-appimage-build.md`, on
 the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
 CI's linux job (`.github/workflows/generate-builds.yml` at the pin,
 **ubuntu-22.04**): the apt list is **`COPY`d from the checkout's
@@ -128,4 +128,4 @@ full pipeline is closed.
   all-defaults save matches a pristine one. The save-format knowledge
   behind it — including the Spirit/Shadow `randomizerInf` trap and the
   section-version `.bak` landmine — lives in
-  [`../tasks/reference/ocarina/save-file-generator.md`](../tasks/reference/ocarina/save-file-generator.md).
+  [`../../tasks/reference/ocarina/save-file-generator.md`](../../tasks/reference/ocarina/save-file-generator.md).

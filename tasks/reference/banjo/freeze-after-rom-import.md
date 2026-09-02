@@ -3,7 +3,7 @@
 > **Provenance:** authored 2026-07-31 against Lighthouse `6d30df9a` — the same commit
 > imps pins, so no version gap. Claims about the maintainer's fork/branches predate imps.
 > **Resolved:** this investigation concluded in the OSMesg high-byte fix now shipped as
-> `BanjoKazooie/patches/0003-core1-graphics_thread-fix-post-import-freeze-from-OS.patch`.
+> `n64/BanjoKazooie/patches/0003-core1-graphics_thread-fix-post-import-freeze-from-OS.patch`.
 
 **Status:** ✅ FIXED (2026-08-01) — confirmed working on the hardware of William Emerison Six <billsix@gmail.com>. It WAS the OSMesg thing.
 

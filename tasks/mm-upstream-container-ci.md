@@ -24,7 +24,7 @@ them IS the goal.
 
 - Upstream CI file: `2ship2harkinian/.github/workflows/main.yml` — the build-linux job runs on ubuntu-latest. Scope is
   the **Linux job only**; Windows/macOS/Switch jobs stay untouched.
-- The imps Dockerfile this would upstream: shipped and host-verified (`MajorasMask/Dockerfile`, two variants). This task depends
+- The imps Dockerfile this would upstream: shipped and host-verified (`n64/MajorasMask/Dockerfile`, two variants). This task depends
   on that Dockerfile existing and being verified; sequence after it.
 - **The patch adds three in-repo files:**
   - a **`Makefile`** — the full imps target set (`image`, `build`,
@@ -33,9 +33,9 @@ them IS the goal.
     local ergonomics, **minus `fetch.sh`/`apply.sh`**: the build context
     is the repo root (`-f <dir>/Dockerfile .`), not an external checkout,
     and `make appimage` builds the working tree as-is. Derive it from the
-    imps `MajorasMask/Makefile` by removing the fetch auto-call and
+    imps `n64/MajorasMask/Makefile` by removing the fetch auto-call and
     re-rooting `$(SRC)`/context to `.`.
-  - the **`Dockerfile`** it drives — the imps `MajorasMask/Dockerfile`
+  - the **`Dockerfile`** it drives — the imps `n64/MajorasMask/Dockerfile`
     **`VARIANT=ci` (ubuntu-22.04) variant ONLY** (William Emerison Six <billsix@gmail.com>, 2026-09-01:
     "for right now I just want the one that matches the existing GitHub
     CI/CD"). The `2604` variant is a local convenience, not for upstream;
@@ -51,7 +51,7 @@ them IS the goal.
   podman on his systems; docker is fine where they use it — GitHub
   runners ship Docker, so `make appimage` runs in CI unchanged). e.g.
   `CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)`.
-  imps's own `MajorasMask/Makefile` hardcodes `podman` — the upstreamed
+  imps's own `n64/MajorasMask/Makefile` hardcodes `podman` — the upstreamed
   one must not.
 - Design points still open at execution: where the image lives for CI
   (built in-workflow from the committed Dockerfile — simplest, fully

@@ -18,10 +18,15 @@ Two goals, in order:
 
 ## Layout
 
-- `<Project>/` — scripts (`fetch.sh`, `apply.sh`, `build.sh`, `run.sh`),
-  `patches/` (**code changes only**), and that project's `CLAUDE.md`.
-- `tasks/` — shared across all projects: task docs, plus deep-dive
-  reference docs under `tasks/reference/<project>/`.
+- `<family>/` — projects are grouped into family folders by the kind of
+  thing they patch (currently `n64/` for the HarbourMasters game ports).
+  Each family folder has its own `CLAUDE.md`.
+- `<family>/<Project>/` — scripts (`fetch.sh`, `apply.sh`, `build.sh`,
+  `run.sh`), `patches/` (**code changes only**), and that project's
+  `CLAUDE.md`.
+- `tasks/` — shared across all projects at the imps root (stays
+  project-keyed, no family level): task docs, plus deep-dive reference docs
+  under `tasks/reference/<project>/`.
 - Prose about a project lives here in imps, never inside the patches — a
   patch carries only what must change upstream's own files. The full
   doc-structure contract is in `CLAUDE.md`.
@@ -34,12 +39,22 @@ necessarily contain fragments of the upstream project's code (diff context
 and modified lines); those fragments remain under the respective upstream
 project's own license, not this repo's.
 
-## Ocarina of Time (Ship of Harkinian)
+## N64 ports (HarbourMasters)
+
+The `n64/` family: patch series on top of the HarbourMasters PC ports, all
+sharing the libultraship engine — `n64/OcarinaOfTime/`, `n64/MajorasMask/`,
+`n64/SuperMario64/`, `n64/BanjoKazooie/`, plus the docs-only
+`n64/libultraship/`. Every game folder follows the same
+fetch/apply/build/run contract; Ocarina of Time is shown in full below and
+the others work the same way from their own `n64/<Game>/` folder. Family
+contract and per-project index: `n64/CLAUDE.md`.
+
+### Ocarina of Time (Ship of Harkinian)
 
 Upstream: <https://github.com/HarbourMasters/Shipwright>
 
 ```sh
-cd OcarinaOfTime
+cd n64/OcarinaOfTime
 sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
 ./fetch.sh    # clone if missing, checkout the pinned commit, init submodules
 ./apply.sh    # apply my patch series (patches/*.patch) on top of the pin
@@ -56,11 +71,11 @@ sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
   > generates `runDir/oot.o2r` from it; saves, config, and logs also land in
   > `runDir/`. Nothing ROM-derived is ever committed.
 
-## Status / planned
+### Status / planned
 
 - **OcarinaOfTime** — builds and runs with the patch series applied
   (verified 2026-09-01). One code patch (decomp renames), ported from my
-  old fork; the fork's docs now live in `OcarinaOfTime/CLAUDE.md` and
+  old fork; the fork's docs now live in `n64/OcarinaOfTime/CLAUDE.md` and
   `tasks/reference/ocarina/`.
 - **MajorasMask** — builds and runs with the patch applied (verified
   2026-09-01). Two patches: 64-bit audio/scheduler fixes (exported from
@@ -73,13 +88,13 @@ sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
   Infinite Air Jumps, Disable Skybox, plus a Fedora-deps doc fix
   (upstream candidate), on a modern develop pin that already includes my
   merged fly-on-triple-jump cheat. Fork docs migrated to
-  `SuperMario64/CLAUDE.md` + `tasks/reference/mario64/`.
+  `n64/SuperMario64/CLAUDE.md` + `tasks/reference/mario64/`.
 - **BanjoKazooie** — 4-patch series from my `fixOnFedora` fork branch
   (submitted upstream as a PR): Fedora deps doc fix, bk.o2r version stamp,
   the post-ROM-import freeze fix, review-round cleanup. Builds and runs
   with the patches applied (verified 2026-09-01 via the podman AppImage
   pipeline: image → build → appimage → host run). Fork docs migrated to
-  `BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
+  `n64/BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
 - All four projects now have a podman AppImage build (`make appimage`)
   and a container-verified `installdependencies.sh` — **all four
   AppImages now build on my host** (2026-09-01): OcarinaOfTime and
@@ -96,3 +111,10 @@ sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
   project's upstream CI Linux job with the Dockerfile build (future,
   upstream-submission oriented); mario64 cheat research stubs; the
   long-running decomp-rename cleanups.
+
+## OpenStax — moved to the sibling repo `impo`
+
+The maintainer's OpenStax textbook port (a CNXML→LaTeX toolchain that builds
+each book to HTML/PDF/EPUB) uses this same carrier design, but lives in its
+own repository, [impo](https://github.com/billsix/impo) — split out to keep
+imps small, since the committed OpenStax content is large.

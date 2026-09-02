@@ -10,7 +10,7 @@
 bridges C↔C++, and adds the menu/cheats/hooks/rando. Read before touching `src/port/`.
 Companions: [architecture-overview.md](architecture-overview.md),
 [libultraship-integration.md](libultraship-integration.md). The cheat/enhancement *recipe*
-is in the root [`CLAUDE.md`](../../CLAUDE.md).*
+is in the project's [`CLAUDE.md`](../../../n64/SuperMario64/CLAUDE.md).*
 
 ## Subdir map
 
@@ -93,7 +93,7 @@ The fork's cheats/enhancements are all CVars. Flow:
 ## Hooks = an EventSystem (event bus, NOT function hooking)
 
 *This is the primary way the port overrides decomp behavior. Full how-to in
-[`wiki/EventSystem.md`](../../wiki/EventSystem.md).*
+Ghostship's own `wiki/EventSystem.md` (in the checkout).*
 
 - Core: `hooks/impl/EventSystem.{h,cpp}` — a static singleton
   (`EventSystem::Instance`, `EventSystem.cpp:7`) holding a

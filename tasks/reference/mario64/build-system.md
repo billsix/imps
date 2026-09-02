@@ -9,7 +9,7 @@
 *Standing reference. How Ghostship is configured, compiled, and packaged, across platforms.
 Read before touching CMake, adding source files, or debugging a build. Companions:
 [asset-pipeline.md](asset-pipeline.md) (the o2r targets), [architecture-overview.md](architecture-overview.md).
-Human-facing build steps: [`docs/building.md`](../../docs/building.md).*
+Human-facing build steps: Ghostship's `docs/building.md` (in the checkout).*
 
 The build is **CMake-driven** (`CMakeLists.txt`, ~700 lines). The shipping launcher pair
 `build.sh` + `run.sh` lives **one dir up** at `/foo/opt/n64/mario64/`. Per the root

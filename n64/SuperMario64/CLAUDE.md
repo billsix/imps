@@ -75,7 +75,7 @@ verified against the ported branch.
   loading, web/emscripten). The ~23 mainline commits after the branch
   point (Context `GetRawInstance` rework, `.meta` priority resolution,
   several audio/texture fixes) are absent from it. The crawl's docs at
-  `../tasks/reference/libultraship/` cover this pin as iteration 18 —
+  `../../tasks/reference/libultraship/` cover this pin as iteration 18 —
   the **current working-tree state** of that doc set (the crawl's final
   stop), so no git-history digging is needed for this project.
 - The events layer is documented upstream in `src/port/events/EVENTS.md`
@@ -99,7 +99,7 @@ verified against the ported branch.
 
 ## Podman build (Dockerfile + Makefile)
 
-Created 2026-09-01 per `../tasks/archive/mario64/2026/09/01/mario64-podman-appimage-build.md`, on
+Created 2026-09-01 per `../../tasks/archive/mario64/2026/09/01/mario64-podman-appimage-build.md`, on
 the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
 CI's build-linux job (`.github/workflows/main.yml` at the pin,
 `ubuntu-latest` resolved to **24.04**): CI's apt line verbatim
@@ -139,33 +139,33 @@ after "Vulkan device:".
 
 ## Architecture reference (read to get oriented without re-reading the code)
 
-Deep docs in **`../tasks/reference/mario64/`** — all authored against the
+Deep docs in **`../../tasks/reference/mario64/`** — all authored against the
 OLD base (`67e561c6`) and bannered accordingly: the hooks→events
 restructure postdates them, so port-layer path claims need verification
 against the pinned checkout.
 
-- [`architecture-overview.md`](../tasks/reference/mario64/architecture-overview.md) —
+- [`architecture-overview.md`](../../tasks/reference/mario64/architecture-overview.md) —
   read first; the three bodies of code and the seams.
-- [`decomp-map.md`](../tasks/reference/mario64/decomp-map.md) — where X
+- [`decomp-map.md`](../../tasks/reference/mario64/decomp-map.md) — where X
   lives in the SM64 decomp.
-- [`port-layer.md`](../tasks/reference/mario64/port-layer.md) — `src/port/`
+- [`port-layer.md`](../../tasks/reference/mario64/port-layer.md) — `src/port/`
   (most affected by the events restructure — verify).
-- [`libultraship-integration.md`](../tasks/reference/mario64/libultraship-integration.md) —
+- [`libultraship-integration.md`](../../tasks/reference/mario64/libultraship-integration.md) —
   the LUS seam (written at 1.3.1-399; pin is 1.3.1-544).
-- [`asset-pipeline.md`](../tasks/reference/mario64/asset-pipeline.md) —
+- [`asset-pipeline.md`](../../tasks/reference/mario64/asset-pipeline.md) —
   Torch, sm64.o2r/ghostship.o2r.
-- [`frame-interpolation.md`](../tasks/reference/mario64/frame-interpolation.md) —
+- [`frame-interpolation.md`](../../tasks/reference/mario64/frame-interpolation.md) —
   tick/render decoupling (pared down from SoH's).
-- [`build-system.md`](../tasks/reference/mario64/build-system.md) — CMake
+- [`build-system.md`](../../tasks/reference/mario64/build-system.md) — CMake
   graph.
-- [`cheats-and-menu-enhancements-plan.md`](../tasks/reference/mario64/cheats-and-menu-enhancements-plan.md) —
+- [`cheats-and-menu-enhancements-plan.md`](../../tasks/reference/mario64/cheats-and-menu-enhancements-plan.md) —
   the maintainer's cheat roadmap (several items since shipped; see its
   banner).
 
 ## Tasks
 
 Migrated cheat-idea stubs from the old fork, all `mario64-`-prefixed under
-`../tasks/`: decomp-rename-and-cleanup, endless-stairs-wallkick-unlock,
+`../../tasks/`: decomp-rename-and-cleanup, endless-stairs-wallkick-unlock,
 infinite-wall-kicks, one-hit-ko, rubber-mario, time-scale-bullet-time.
 The archived moon-gravity and ice-everywhere tasks were deliberately left
 in the old fork (their code was not ported).

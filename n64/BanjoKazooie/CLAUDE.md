@@ -49,7 +49,7 @@ draft). Byte-identical to `fixOnFedora` verified on apply.
   high bytes uninitialized, so SP events looked like task pointers and
   were dropped, hanging the game right after ROM import. Reads
   `msg.data32` instead. Investigation log:
-  [`../tasks/reference/banjo/freeze-after-rom-import.md`](../tasks/reference/banjo/freeze-after-rom-import.md).
+  [`../../tasks/reference/banjo/freeze-after-rom-import.md`](../../tasks/reference/banjo/freeze-after-rom-import.md).
 - `0004-shortened-comments-per-request-from-JeodC.patch` — collapses the
   two long explanatory comments per upstream review.
 
@@ -69,35 +69,35 @@ draft). Byte-identical to `fixOnFedora` verified on apply.
 
 ## Architecture reference (read to get oriented without re-reading the code)
 
-Deep docs in **`../tasks/reference/banjo/`**, authored at the pin (no
+Deep docs in **`../../tasks/reference/banjo/`**, authored at the pin (no
 version gap):
 
-- [`architecture-overview.md`](../tasks/reference/banjo/architecture-overview.md) —
+- [`architecture-overview.md`](../../tasks/reference/banjo/architecture-overview.md) —
   **read first.** The 3-layer model, two-thread frame model, and the three
   seams (graphics, asset, and the Lighthouse-specific OS-emulation seam).
-- [`decomp-map.md`](../tasks/reference/banjo/decomp-map.md) — where X lives
+- [`decomp-map.md`](../../tasks/reference/banjo/decomp-map.md) — where X lives
   in the BK decomp: core1 vs core2 vs level overlays; the actor system +
   Banjo state machine; the per-frame update chain.
-- [`port-layer.md`](../tasks/reference/banjo/port-layer.md) — `src/port/`:
+- [`port-layer.md`](../../tasks/reference/banjo/port-layer.md) — `src/port/`:
   `GameEngine`, the two-thread pump, CVars, events, enhancements/rando.
-- [`os-emulation-threading.md`](../tasks/reference/banjo/os-emulation-threading.md) —
+- [`os-emulation-threading.md`](../../tasks/reference/banjo/os-emulation-threading.md) —
   **the biggest divergence from the siblings, and the first doc for any
   hang**: N64 threads/queues on real `std::thread`s, the ThreadWatchdog,
   a freeze-debugging playbook, 64-bit-host hazards.
-- [`libultraship-integration.md`](../tasks/reference/banjo/libultraship-integration.md) —
+- [`libultraship-integration.md`](../../tasks/reference/banjo/libultraship-integration.md) —
   the LUS seam at 1.3.1-482.
-- [`frame-interpolation.md`](../tasks/reference/banjo/frame-interpolation.md) —
+- [`frame-interpolation.md`](../../tasks/reference/banjo/frame-interpolation.md) —
   30 Hz tick decoupled from render FPS via subframe DL replay.
-- [`asset-pipeline.md`](../tasks/reference/banjo/asset-pipeline.md) — ROM →
+- [`asset-pipeline.md`](../../tasks/reference/banjo/asset-pipeline.md) — ROM →
   Torch → `bk.o2r`; `lighthouse.o2r`; the `__OTR__` seam; HD/mods.
-- [`build-system.md`](../tasks/reference/banjo/build-system.md) — CMake
+- [`build-system.md`](../../tasks/reference/banjo/build-system.md) — CMake
   graph, feature flags, headless/sandbox gotchas.
-- [`freeze-after-rom-import.md`](../tasks/reference/banjo/freeze-after-rom-import.md) —
+- [`freeze-after-rom-import.md`](../../tasks/reference/banjo/freeze-after-rom-import.md) —
   the (resolved) freeze investigation behind patch 0003.
 
 ## libultraship reference docs
 
-The crawl set at `../tasks/reference/libultraship/` documents this
+The crawl set at `../../tasks/reference/libultraship/` documents this
 project's exact LUS pin (`2917d0f4`, 1.3.1-482) as **iteration 16** —
 read it via git history (commit "1.3.1-482 (2917d0f4)"); the working
 tree shows a newer pin.
@@ -105,7 +105,7 @@ tree shows a newer pin.
 ## Podman build (Dockerfile + Makefile)
 
 Created 2026-09-01 per the banjo-podman-appimage-build task (archived at
-`../tasks/archive/banjo/2026/09/01/banjo-podman-appimage-build.md`), on
+`../../tasks/archive/banjo/2026/09/01/banjo-podman-appimage-build.md`), on
 the MajorasMask template. `Dockerfile` mirrors upstream CI's `build-linux`
 job (`.github/workflows/main.yml` at the pin): base **ubuntu:24.04**
 (CI says `ubuntu-latest`, which has resolved to the 24.04 LTS since

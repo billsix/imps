@@ -5,7 +5,7 @@
 > pin; **KiritoDv FORK branch** = 1.3.1-463 + 81 fork commits; mainline
 > 464–486 absent). Updated 2026-09-01, iteration 18 (final) of the
 > reference crawl (`crawl.md`). Re-sync
-> check: compare `PIN_SHA` in `libultraship/fetch.sh`.
+> check: compare `PIN_SHA` in `n64/libultraship/fetch.sh`.
 
 `include/libultraship/bridge.h` pulls the same **nine** headers
 (resource, audio, controller, window, consolevariable, crashhandler,

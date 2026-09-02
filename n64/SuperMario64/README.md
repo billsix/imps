@@ -34,7 +34,7 @@ rm -rf Ghostship build-cmake bldInstall     # add runDir to also wipe saves + sm
   > legally-acquired SM64 ROM and extracts. Copying your old runDir
   > contents in preserves saves.
 - Patch details and architecture notes: `CLAUDE.md` here, and
-  `../tasks/reference/mario64/`.
+  `../../tasks/reference/mario64/`.
 
 ## Podman build → AppImage (alternative to the host build)
 

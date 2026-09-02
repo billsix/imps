@@ -51,7 +51,7 @@ sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
   to run unless the checkout is exactly at the pin (re-run `fetch.sh` to get
   back there; local branches survive).
 - The pin is the tip of upstream `develop` as of 2026-09-01; it lives in
-  `fetch.sh` (`SHIPWRIGHT_SHA`).
+  `fetch.sh` (`PIN_SHA`).
 - > On first launch the game asks for a legally-acquired OoT ROM and
   > generates `runDir/oot.o2r` from it; saves, config, and logs also land in
   > `runDir/`. Nothing ROM-derived is ever committed.
@@ -81,8 +81,10 @@ sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
   pipeline: image → build → appimage → host run). Fork docs migrated to
   `BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
 - All four projects now have a podman AppImage build (`make appimage`)
-  and a container-verified `installdependencies.sh`; OcarinaOfTime's
-  and SuperMario64's AppImages await my on-host run.
+  and a container-verified `installdependencies.sh` — **all four
+  AppImages now build on my host** (2026-09-01): OcarinaOfTime and
+  BanjoKazooie are run-confirmed, SuperMario64 launches on the Vulkan
+  backend (see its `CLAUDE.md` RADV caveat).
 - The libultraship reference-documentation crawl is **complete** (18
   iterations: 13 release tags + all 5 consumer pins): one evolving
   8-doc set at `tasks/reference/libultraship/`, one commit per

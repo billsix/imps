@@ -203,7 +203,8 @@ operation in the agent contract below). The pairs:
   <billsix@gmail.com>)**. Also carries a
   podman build (`Dockerfile` + `Makefile` → AppImage), ported from the old
   fork's `podmanBuildAppImage` branch as native imps files — the first
-  container build in imps.
+  container build in imps; the `ci` variant's AppImage built on-host
+  2026-09-01 (William Emerison Six <billsix@gmail.com>).
 - `SuperMario64/` — Ghostship
   (https://github.com/HarbourMasters/Ghostship), pinned at `49c5312a`
   (tip of `develop`, 2026-09-01 — deliberately modern: upstream had

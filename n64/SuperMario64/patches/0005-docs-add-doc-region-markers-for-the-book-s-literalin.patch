@@ -1,4 +1,4 @@
-From 419f73efe7c554b85cdd84d7bd836571c0f421b6 Mon Sep 17 00:00:00 2001
+From a23e90705291962dcdd08e1d00fb9a0638655d4e Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Sun, 6 Sep 2026 16:32:16 +0000
 Subject: [PATCH] docs: add doc-region markers for the book's literalinclude
@@ -8,8 +8,9 @@ literalinclude exact spans by name instead of drift-prone line numbers. First
 region: euler_zxy_to_matrix (the Euler-angle rotation matrix builder).
 ---
  src/engine/math_util.c          | 4 ++++
- src/game/rendering_graph_node.c | 2 ++
- 2 files changed, 6 insertions(+)
+ src/game/camera.h               | 2 ++
+ src/game/rendering_graph_node.c | 4 ++++
+ 3 files changed, 10 insertions(+)
 
 diff --git a/src/engine/math_util.c b/src/engine/math_util.c
 index a5a491b9..e3b0f8e2 100644
@@ -47,11 +48,47 @@ index a5a491b9..e3b0f8e2 100644
  
  /**
   * Set matrix 'dest' to 'mtx' scaled by vector s
+diff --git a/src/game/camera.h b/src/game/camera.h
+index 4d16db8d..e208763f 100644
+--- a/src/game/camera.h
++++ b/src/game/camera.h
+@@ -98,6 +98,7 @@
+ #define CAM_ANGLE_MARIO  1
+ #define CAM_ANGLE_LAKITU 2
+ 
++// doc-region-begin camera_modes
+ #define CAMERA_MODE_NONE              0x00
+ #define CAMERA_MODE_RADIAL            0x01
+ #define CAMERA_MODE_OUTWARD_RADIAL    0x02
+@@ -113,6 +114,7 @@
+ #define CAMERA_MODE_8_DIRECTIONS      0x0E // AKA Parallel Camera, Bowser Courses & Rainbow Ride
+ #define CAMERA_MODE_FREE_ROAM         0x10
+ #define CAMERA_MODE_SPIRAL_STAIRS     0x11
++// doc-region-end camera_modes
+ 
+ #define CAM_MOVE_RETURN_TO_MIDDLE       0x0001
+ #define CAM_MOVE_ZOOMED_OUT             0x0002
 diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
-index 6f19801d..335df20c 100644
+index 6f19801d..3db5581d 100644
 --- a/src/game/rendering_graph_node.c
 +++ b/src/game/rendering_graph_node.c
-@@ -378,6 +378,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+@@ -343,6 +343,7 @@ void geo_process_switch(struct GraphNodeSwitchCase *node) {
+ /**
+  * Process a camera node.
+  */
++// doc-region-begin camera_view_matrix
+ void geo_process_camera(struct GraphNodeCamera *node) {
+     Mat4 cameraTransform;
+     Mtx *rollMtx = alloc_display_list(sizeof(*rollMtx));
+@@ -371,6 +372,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+     gMatStackIndex--;
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end camera_view_matrix
+ 
+ /**
+  * Process a translation / rotation node. A transformation matrix based
+@@ -378,6 +380,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
   * the float and fixed point matrix stacks.
   * For the rest it acts as a normal display list node.
   */
@@ -59,7 +96,7 @@ index 6f19801d..335df20c 100644
  void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node) {
      Mat4 mtxf;
      Vec3f translation;
-@@ -399,6 +400,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
+@@ -399,6 +402,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
      gMatStackIndex--;
      FrameInterpolation_RecordCloseChild();
  }

@@ -26,3 +26,4 @@ chapters and appendices you can follow when you want more.
    intro
    rotation
    engine-math
+   camera

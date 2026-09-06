@@ -44,6 +44,18 @@ own renderer. This single function is the entire N64-to-PC handoff:
    :end-before: // doc-region-end graphics_seam
    :caption: exec_display_list — the one seam
 
+.. admonition:: Try breaking it
+   :class: caution
+
+   Comment out the one line inside ``exec_display_list`` — the
+   ``ProcessGfxCommands`` call above. Rebuild and run. The game still works:
+   logic ticks, music plays, the controller responds. But the screen is
+   **black**, because nothing is ever handed to the renderer. You just did to
+   the graphics what commenting out the ``exec`` system call does to a shell —
+   everything is set up and ready, and then nothing is actually handed off to
+   happen. One line is the whole difference between "a running game" and "a
+   running game you can see."
+
 **The list is replayed several times per frame.** The game thinks at 30 Hz, but
 we want 60 or more. Rather than run the game faster, the port draws the *same*
 list several times with matrices blended between the last frame and this one:

@@ -52,6 +52,16 @@ engine's transposed, translation-in-the-last-row layout — see :doc:`engine-mat
 what a rotor avoids — and it is why this scheme can *gimbal-lock*, losing a
 degree of freedom when two axes line up.
 
+.. admonition:: Try breaking it
+   :class: caution
+
+   In the matrix builder, force the Y-axis terms flat: set ``sy`` to ``0`` and
+   ``cy`` to ``1`` (as if the Y angle were always zero). Rebuild and run.
+   Objects can no longer turn left or right — Mario slides where he is going
+   but never *faces* it, frozen looking one direction. You have deleted one of
+   the three axes of rotation by hand, and you can see exactly which freedom it
+   was.
+
 The pipeline, at a glance:
 
 .. graphviz::

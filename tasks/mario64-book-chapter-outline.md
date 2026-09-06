@@ -78,3 +78,23 @@ when a chapter finds a gap (the maintainer's standing expectation).
   the frame at a high level and clicks through for depth. Chapters also keep the
   "Go deeper" links to the reference set.
 - Granularity (~14 ch + appendices) and lighting at ch9 are fine as proposed.
+
+## New content requested (2026-09-06) — to build
+
+- **"Try breaking it" boxes (recurring device).** In each chapter, a small,
+  named code change and what it breaks and why — learning by sabotage, like
+  commenting out `exec` in a shell. Where the change is clean, make it a real
+  toggleable `#ifdef GAME_BREAK_*` experiment in the source (its own doc-region
+  / experiment patch) so the reader can actually flip it on and run it. Seed
+  examples: the graphics seam (black screen, the exec analogy), freezing an
+  Euler axis, disabling frame interpolation (jitter).
+- **Controls chapter.** How input works end to end: SDL → ControlDeck → the N64
+  `osCont` API the decomp still calls → the game reading pads; the specific code
+  that maps a button to an action. Needs a new reference doc + doc-regions.
+- **A "what's hardcoded" section/appendix.** How much is special-cased rather
+  than data-driven — e.g. whether Mario's or Bowser's models/behavior are wired
+  into the code in ways that make them hard to swap. Needs investigation +
+  a new reference doc.
+- **Transparency** — currently only mentioned inside the water section; give it
+  its own section (render layers, draw order, alpha blend vs alpha test). The
+  reference note `transparency-and-blending.md` already exists.

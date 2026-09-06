@@ -30,6 +30,30 @@ family adds a concrete **HarbourMasters-port** shape on top of it:
   multiple base images exist, a `VARIANT` switch with per-variant image
   tags. `n64/MajorasMask/` is the reference implementation.
 
+### Patches live in TWO lanes: the game tree and the libultraship submodule
+
+(Family contract, William Emerison Six <billsix@gmail.com>, 2026-09-06.)
+A game's delta can touch either the port's own tree OR the shared engine,
+so a project may carry **two separate patch series**:
+
+- **Game-tree lane** — the existing `n64/<Game>/patches/`, base = the
+  Ghostship/Shipwright/… pin, applied by `apply.sh` on the game checkout.
+  This is the only lane in use today (cheats, doc fixes, port tweaks).
+- **libultraship lane** — a SEPARATE series applying INSIDE
+  `<Game>/<checkout>/libultraship/`, base = that game's **pinned submodule
+  SHA**, with its own apply step. The submodule is its own git repo, so
+  gpg signing must be disabled in ITS config too
+  (`git config commit.gpgsign false`, repo-local, never global).
+
+Each game pins a **different** libultraship commit (Ocarina/MM on older
+mainline, Banjo `1.3.1-482`, Mario 64 the `1.3.1-544` KiritoDv fork), so
+the LUS lane is per-game, keyed to that game's submodule SHA — a doc-region
+marker or fix authored for one game's LUS may need re-anchoring against
+another's via `git am`/rebase. On a game pin bump, replay BOTH lanes.
+(Origin: the mario64 graphics reference-doc initiative,
+`tasks/mario64-graphics-refdocs.md`, which will add doc-region markers to
+both lanes in a later pass.)
+
 ### Never build a checkout from a foreign toolchain via a bind mount — copy the source into the throwaway container first
 
 libultraship at 1.3.1-482+ (banjo, mario) writes build artifacts INTO its

@@ -1,10 +1,15 @@
 # Reference: Frame interpolation (30 Hz logic → smooth high-FPS render)
 
-> **Provenance:** authored 2026-06/07 against Ghostship around base `67e561c6` — the imps
-> pin (`49c5312a`, GitHub develop tip 2026-09-01) is 120+ commits newer and includes a
-> restructure of the hook layer (`src/port/hooks/` became `src/port/events/`, with an
-> expanded event list and an EVENTS.md). Claims about hooks, file paths under port/, and
-> the maintainer's fork/branches are suspect — verify against the pinned checkout.
+> **Provenance:** authored 2026-06/07 against Ghostship base `67e561c6`;
+> **entry-point anchors re-verified 2026-09-06 against pin `49c5312a`** /
+> libultraship submodule `c151cc91` (1.3.1-544 fork). The mechanism and
+> the decomp/port anchors hold. The port entry points are corrected below
+> (`ProcessGfxCommands` `Engine.cpp:1387`, `RunCommands` `:1352`). **The
+> `interpreter.cpp` INTERNAL line numbers in §3-5 are from the old
+> checkout and have drifted** (e.g. `GfxSpMatrix` is now `:2251`, not
+> `:1065`) — they get fully re-mapped when step 4 of
+> `tasks/mario64-graphics-refdocs.md` writes the pipeline/shader docs;
+> until then treat interpreter internals as approximate.
 
 *Standing reference, high detail. How Ghostship decouples SM64's fixed 30 Hz game tick from
 render framerate by drawing interpolated in-between frames at 60/120/144/…360 FPS. Read
@@ -31,7 +36,7 @@ Files: `src/port/interpolation/FrameInterpolation.{h,cpp}` (the engine),
 `src/engine/math_util.c` + `src/game/rendering_graph_node.c`/`hud.c`/`ingame_menu.c`/
 `mario_misc.c`/`game_init.c` (recording call sites). Consumed in LUS (`src/fast/interpreter.cpp`,
 `Fast3dWindow.cpp`, `gfx_sdl2.cpp` — see libultraship's `tasks/reference/fast3d-renderer.md`; the
-LUS anchors below are pinned to submodule commit `e0c1b1fc`).
+LUS interpreter internals below are from the OLD checkout and have drifted (re-mapped in step 4); the current submodule is `c151cc91`/1.3.1-544).
 
 ## 1. What ticks vs. what renders
 
@@ -103,7 +108,7 @@ element-wise lerp of the two stored `MtxF`s, independent of replayed stack state
 
 ## 3. The render loop — replay the display list N times
 
-`GameEngine::ProcessGfxCommands` (`Engine.cpp:1000-1037`):
+`GameEngine::ProcessGfxCommands` (`Engine.cpp:1387`):
 ```cpp
 std::vector<std::unordered_map<Mtx*, MtxF>> mtx_replacements;
 int target_fps = GetInterpolationFPS();
@@ -135,7 +140,7 @@ last_fps = fps;
 - **Exact keyframe pushes an empty map** (`:1024`) → interpreter substitutes nothing → the raw
   fixed-point matrices render verbatim (the true, un-interpolated frame).
 
-**RunCommands** (`Engine.cpp:974-998`) does the replay:
+**RunCommands** (`Engine.cpp:1352`) does the replay:
 ```cpp
 interpreter->mInterpolationIndex = 0;
 for (const auto& mtxStack : mtx_replacements) {

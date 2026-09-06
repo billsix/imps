@@ -23,6 +23,34 @@ scroll — the camera's yaw becomes a horizontal offset into the image:
 Only the yaw matters — not position, not pitch — which is exactly why the sky
 reads as infinitely far away.
 
+Transparency: it's really about draw order
+==========================================
+
+Before the water, a question it depends on: how does a game draw something you
+can see *through*? The depth buffer you learned in your course sorts solid
+objects for free — a nearer pixel wins. But a transparent surface has to be
+drawn **over** whatever is behind it and blended, which the depth buffer alone
+cannot arrange. Super Mario 64 does not sort every triangle; it uses **render
+layers**. As the scene is walked, each piece of geometry is filed into a bucket
+by layer — opaque, alpha-tested, transparent — and the buckets are emitted in a
+fixed order:
+
+.. literalinclude:: ../../Ghostship/src/game/rendering_graph_node.c
+   :language: c
+   :start-after: // doc-region-begin render_layer_buckets
+   :end-before: // doc-region-end render_layer_buckets
+   :caption: geo_process_master_list_sub — draw the layers in order
+
+Opaque geometry lays down the depth buffer first; transparent geometry draws
+last, blending over it. A material picks its layer once — that is its whole part
+in transparency. Two mechanisms hide under the word: **alpha blend** (mix with
+what is behind, so order matters) and **alpha test** (a hard cutoff — draw or
+discard — which needs no ordering, used for foliage edges, decals, and HUD
+icons). The catch: two overlapping *blended* surfaces in the same layer can draw
+in the wrong order and show a seam — the classic N64 transparency artifact,
+which the game sidesteps by design rather than by solving. Water, next, is the
+marquee customer of this machinery.
+
 Water animates its texture, not its geometry
 ============================================
 

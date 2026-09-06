@@ -4,6 +4,7 @@
 project = "How a Production Game Is Built"
 copyright = "2026, William Emerison Six"
 author = "William Emerison Six"
+version = "0.0.1"
 release = "0.0.1"
 
 extensions = [

@@ -57,6 +57,11 @@ verified against the ported branch.
   `docs/building.md` (the LUS Vulkan backend includes
   `shaderc/shaderc.hpp`; found the hard way, 2026-09-01). Doc fix to
   upstream's own file, hence a patch; upstream-submission candidate.
+- `0005-docs-add-doc-region-markers-...patch` — comment-only
+  `// doc-region-begin/end <name>` markers so the book's
+  `literalinclude` pulls spans by NAME, not line numbers. First region:
+  `euler_zxy_to_matrix`. Grows per book chapter (the game-tree doc-region
+  lane). Upstream-plausible (comments only).
 - `0003-disable-skybox.patch` — "Disable Skybox"
   (`gEnhancements.DisableSkybox`). **Slimmed in the port:** upstream now
   ships a cancellable `SkyboxRender` event already wired into
@@ -190,3 +195,11 @@ in the old fork (their code was not ported).
   widget, not by hacking decomp logic (the patches above are the worked
   examples).
 - C/C++ formatted with the project `.clang-format`.
+
+## The book (student-facing docs)
+
+`book/` is the Sphinx book *How a Production Game Is Built* (HTML/EPUB/PDF via
+its own Dockerfile+Makefile), teaching a reader who has done `modelviewprojection`
+how a real game is made, `literalinclude`-ing this source by doc-region. It
+draws its detail from `../../tasks/reference/mario64/`. Design + status:
+`../../tasks/mario64-sphinx-book.md`.

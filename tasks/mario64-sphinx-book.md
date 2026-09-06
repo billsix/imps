@@ -1,7 +1,7 @@
 # Mario 64: the "how a production game is built" Sphinx book (UMBRELLA)
 
-**Status:** IN PROGRESS — decisions made 2026-09-06 (see below); scaffolding
-the book at `n64/SuperMario64/book/`. A large multi-phase initiative that will
+**Status:** IN PROGRESS — decisions made 2026-09-06 (see below); the book is scaffolded at `n64/SuperMario64/book/` (HTML builds clean on the
+host; container build + PDF/EPUB not yet verified). A large multi-phase initiative that will
 spawn many child tasks over time.
 **Priority:** 3
 **Difficulty:** 9

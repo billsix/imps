@@ -1,7 +1,8 @@
 # Mario 64: the "how a production game is built" Sphinx book (UMBRELLA)
 
-**Status:** proposed — needs go-ahead; this is a large multi-phase
-initiative that will spawn many child tasks over time.
+**Status:** IN PROGRESS — decisions made 2026-09-06 (see below); scaffolding
+the book at `n64/SuperMario64/book/`. A large multi-phase initiative that will
+spawn many child tasks over time.
 **Priority:** 3
 **Difficulty:** 9
 
@@ -99,14 +100,29 @@ This will become a **step-task umbrella** with children. Likely early phases
   other three games (their reference umbrellas exist:
   `{ocarina,mm,banjo}-graphics-refdocs.md`), but that is out of scope here.
 
-## Open questions (for the maintainer — see the closing list at report time)
+## Decisions (resolved with the maintainer, 2026-09-06)
 
-1. **Where does the book live?** — a NEW dedicated repo (like
-   `modelviewprojection` is its own repo), or a directory inside imps (e.g.
-   `n64/SuperMario64/book/`)? This drives the whole scaffold and the
-   literalinclude-from-patched-source build design.
-2. **Build environment** — its own container-per-project template (Dockerfile +
-   Makefile like mvp), or reuse the sandbox's Sphinx/LuaLaTeX toolchain?
-3. **Scope of the running example** — mvp uses ONE running example throughout;
-   should this book pick a single spine (e.g. "follow one triangle / one frame"),
-   or be topic-organized like the reference set?
+1. **Home:** the book lives at **`n64/SuperMario64/book/`** inside imps — a
+   directory in this repo so `literalinclude` can reference the Ghostship
+   source directly by relative path (`../Ghostship/...`), the doc-region
+   markers being added to that (patched) source per-chapter.
+2. **Build:** its **own container template** — a `Dockerfile` + `Makefile`
+   like `modelviewprojection`'s, building HTML + PDF (LuaLaTeX) + EPUB — so it
+   builds reproducibly anywhere, following the maintainer's
+   container-per-project template.
+3. **Audience & structure:** written for **a student who has read the
+   maintainer's `modelviewprojection` book** and can pick this up and start
+   reading. Explain things in a logical progression; it is fine to **gloss
+   over details early and add more detail later**, or push depth into
+   **appendices** that chapters reference. The reference set
+   (`tasks/reference/mario64/`) is the backing detail those appendices and
+   deep-dives draw from.
+
+## Immediate next (this phase — the scaffold)
+
+Stand up `n64/SuperMario64/book/` as a Sphinx project on the maintainer's
+container template: `conf.py` (furo, myst-nb, LuaLaTeX PDF), a `toctree`
+`index.rst`, a `Dockerfile` + `Makefile` (`make html/pdf/epub`) mirroring
+`modelviewprojection`, and a first real chapter that proves `literalinclude`
+works against a doc-region in `../Ghostship/`. Then the chapter-outline child
+task sequences the 23 topics into the teachable arc.

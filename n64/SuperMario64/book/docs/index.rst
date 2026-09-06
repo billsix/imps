@@ -37,6 +37,7 @@ chapters and appendices you can follow when you want more.
    effects
    frame-interpolation
    sound
+   controls
 
 .. toctree::
    :maxdepth: 1

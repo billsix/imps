@@ -52,11 +52,16 @@ verified against the ported branch.
   `mario_execute_airborne_action`. Port note: the cancel field is
   `Cancelled` (capital) in the events layer — the original commit's
   lowercase `cancelled` was fixed during the port.
-- `0004-docs-add-libshaderc-devel-to-the-Fedora-build-depend.patch` —
+- `patches/upstream-candidates/0001-...libshaderc...` (upstream candidate) —
   adds `libshaderc-devel` to both Fedora dnf lines in
   `docs/building.md` (the LUS Vulkan backend includes
   `shaderc/shaderc.hpp`; found the hard way, 2026-09-01). Doc fix to
   upstream's own file, hence a patch; upstream-submission candidate.
+- `patches/book/0001-doc-region-markers.patch` — comment-only
+  `// doc-region-begin/end <name>` markers so the book's
+  `literalinclude` pulls spans by NAME, not line numbers. First region:
+  `euler_zxy_to_matrix`. Grows per book chapter (the game-tree doc-region
+  lane). Upstream-plausible (comments only).
 - `0003-disable-skybox.patch` — "Disable Skybox"
   (`gEnhancements.DisableSkybox`). **Slimmed in the port:** upstream now
   ships a cancellable `SkyboxRender` event already wired into
@@ -190,3 +195,24 @@ in the old fork (their code was not ported).
   widget, not by hacking decomp logic (the patches above are the worked
   examples).
 - C/C++ formatted with the project `.clang-format`.
+
+## The book (student-facing docs)
+
+`book/` is the Sphinx book *How a Production Game Is Built* (HTML/EPUB/PDF via
+its own Dockerfile+Makefile), teaching a reader who has done `modelviewprojection`
+how a real game is made, `literalinclude`-ing this source by doc-region. It
+draws its detail from `../../tasks/reference/mario64/`. Design + status:
+`../../tasks/mario64-sphinx-book.md`.
+
+### libultraship doc-region lane (`patches-libultraship/`)
+
+The book also `literalinclude`s libultraship code, so a SECOND patch lane
+lives in `patches-libultraship/` (streamed the same way — `patches-libultraship/book/`) (base = the submodule pin `c151cc91`),
+applied INSIDE `Ghostship/libultraship/`. `patches-libultraship/book/0001-...` adds comment-only
+doc-region markers (currently `combiner_input_to_glsl`, `set_combine_mode`,
+`light_dir_to_normal_space`, `tile_wrap_modes`), verified to `git am` clean onto
+the pin. **`apply.sh` applies BOTH lanes** (2026-09-06): after `fetch.sh`'s
+`git submodule update` checks out libultraship at its pin, `apply.sh` applies
+`patches-libultraship/*` inside the submodule (signing off, guarded on the
+submodule being at its pristine gitlink SHA). So a fresh `fetch.sh && apply.sh`
+gives a checkout with both the game-tree and the LUS doc-region markers.

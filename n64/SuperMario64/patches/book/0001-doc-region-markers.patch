@@ -1,0 +1,377 @@
+From bb4a2fe944247e46060469baf8166784b11a0d29 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 6 Sep 2026 16:32:16 +0000
+Subject: [PATCH] docs: add doc-region markers for the book's literalinclude
+
+Comment-only markers (// doc-region-begin/end <name>) so the Mario 64 book can
+literalinclude exact spans by name instead of drift-prone line numbers. First
+region: euler_zxy_to_matrix (the Euler-angle rotation matrix builder).
+---
+ data/behavior_data.c             |  2 ++
+ src/engine/graph_node.c          |  2 ++
+ src/engine/math_util.c           |  4 ++++
+ src/engine/math_util.h           |  2 ++
+ src/engine/surface_collision.c   |  2 ++
+ src/game/camera.h                |  2 ++
+ src/game/game_init.c             |  2 ++
+ src/game/mario.c                 |  2 ++
+ src/game/object_list_processor.c |  2 ++
+ src/game/paintings.c             |  2 ++
+ src/game/rendering_graph_node.c  | 10 ++++++++++
+ src/game/skybox.c                |  2 ++
+ src/port/Engine.cpp              |  2 ++
+ src/port/Game.cpp                |  2 ++
+ 14 files changed, 38 insertions(+)
+
+diff --git a/data/behavior_data.c b/data/behavior_data.c
+index 22d03da5..ba4fcb24 100644
+--- a/data/behavior_data.c
++++ b/data/behavior_data.c
+@@ -4894,6 +4894,7 @@ const BehaviorScript bhvFlyGuy[] = {
+     END_LOOP(),
+ };
+ 
++// doc-region-begin goomba_behavior_script
+ const BehaviorScript bhvGoomba[] = {
+     BEGIN(OBJ_LIST_PUSHABLE),
+     OR_INT(oFlags, (OBJ_FLAG_COMPUTE_ANGLE_TO_MARIO | OBJ_FLAG_COMPUTE_DIST_TO_MARIO | OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW | OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE)),
+@@ -4906,6 +4907,7 @@ const BehaviorScript bhvGoomba[] = {
+         CALL_NATIVE(bhv_goomba_update),
+     END_LOOP(),
+ };
++// doc-region-end goomba_behavior_script
+ 
+ const BehaviorScript bhvGoombaTripletSpawner[] = {
+     BEGIN(OBJ_LIST_PUSHABLE),
+diff --git a/src/engine/graph_node.c b/src/engine/graph_node.c
+index db6954bf..639fd05b 100644
+--- a/src/engine/graph_node.c
++++ b/src/engine/graph_node.c
+@@ -742,6 +742,7 @@ void geo_obj_init_spawninfo(struct GraphNodeObject *graphNode, struct SpawnInfo
+ /**
+  * Initialize the animation of an object node
+  */
++// doc-region-begin bind_animation
+ void geo_obj_init_animation(struct GraphNodeObject *graphNode, struct Animation **animPtrAddr) {
+     struct Animation **animSegmented = animPtrAddr;
+ 
+@@ -759,6 +760,7 @@ void geo_obj_init_animation(struct GraphNodeObject *graphNode, struct Animation
+         graphNode->animInfo.animYTrans = 0;
+     }
+ }
++// doc-region-end bind_animation
+ 
+ /**
+  * Initialize the animation of an object node
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index a5a491b9..e3b0f8e2 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -276,6 +276,7 @@ void mtxf_lookat(Mat4 mtx, Vec3f from, Vec3f to, s16 roll) {
+  * Build a matrix that rotates around the z axis, then the x axis, then the y
+  * axis, and then translates.
+  */
++// doc-region-begin euler_zxy_to_matrix
+ void mtxf_rotate_zxy_and_translate(Mat4 dest, Vec3f translate, Vec3s rotate) {
+     FrameInterpolation_RecordMatrixPosRotZXY(dest, translate, rotate);
+     register f32 sx = sins(rotate[0]);
+@@ -305,6 +306,7 @@ void mtxf_rotate_zxy_and_translate(Mat4 dest, Vec3f translate, Vec3s rotate) {
+     dest[0][3] = dest[1][3] = dest[2][3] = 0.0f;
+     dest[3][3] = 1.0f;
+ }
++// doc-region-end euler_zxy_to_matrix
+ 
+ /**
+  * Build a matrix that rotates around the x axis, then the y axis, then the z
+@@ -498,6 +500,7 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
+  * The resulting matrix represents first applying transformation b and
+  * then a.
+  */
++// doc-region-begin mtxf_mul_affine
+ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+     // TODO: FrameInterpolation is broken, fix it
+     // FrameInterpolation_RecordMatrixMult(dest, dest, 0);
+@@ -543,6 +546,7 @@ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+ 
+     mtxf_copy(dest, temp);
+ }
++// doc-region-end mtxf_mul_affine
+ 
+ /**
+  * Set matrix 'dest' to 'mtx' scaled by vector s
+diff --git a/src/engine/math_util.h b/src/engine/math_util.h
+index 9bb7b162..e962afcc 100644
+--- a/src/engine/math_util.h
++++ b/src/engine/math_util.h
+@@ -17,11 +17,13 @@
+  * exploits array sizes for range analysis-based optimizations as well).
+  * Thus, for non-IDO compilers we use the standard-compliant version.
+  */
++// doc-region-begin sine_lookup
+ extern_s f32 gSineTable[];
+ #define gCosineTable (gSineTable + 0x400)
+ 
+ #define sins(x) gSineTable[(u16) (x) >> 4]
+ #define coss(x) gCosineTable[(u16) (x) >> 4]
++// doc-region-end sine_lookup
+ 
+ #define min(a, b) ((a) <= (b) ? (a) : (b))
+ #define max(a, b) ((a) > (b) ? (a) : (b))
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index 71bb0d98..03461e13 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -182,6 +182,7 @@ s32 f32_find_wall_collision(f32 *xPtr, f32 *yPtr, f32 *zPtr, f32 offsetY, f32 ra
+ /**
+  * Find wall collisions and receive their push.
+  */
++// doc-region-begin spatial_partition_lookup
+ s32 find_wall_collisions(struct WallCollisionData *colData) {
+     struct SurfaceNode *node;
+     s16 cellX, cellZ;
+@@ -216,6 +217,7 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
+ 
+     return numCollisions;
+ }
++// doc-region-end spatial_partition_lookup
+ 
+ /**************************************************
+  *                     CEILINGS                   *
+diff --git a/src/game/camera.h b/src/game/camera.h
+index 4d16db8d..e208763f 100644
+--- a/src/game/camera.h
++++ b/src/game/camera.h
+@@ -98,6 +98,7 @@
+ #define CAM_ANGLE_MARIO  1
+ #define CAM_ANGLE_LAKITU 2
+ 
++// doc-region-begin camera_modes
+ #define CAMERA_MODE_NONE              0x00
+ #define CAMERA_MODE_RADIAL            0x01
+ #define CAMERA_MODE_OUTWARD_RADIAL    0x02
+@@ -113,6 +114,7 @@
+ #define CAMERA_MODE_8_DIRECTIONS      0x0E // AKA Parallel Camera, Bowser Courses & Rainbow Ride
+ #define CAMERA_MODE_FREE_ROAM         0x10
+ #define CAMERA_MODE_SPIRAL_STAIRS     0x11
++// doc-region-end camera_modes
+ 
+ #define CAM_MOVE_RETURN_TO_MIDDLE       0x0001
+ #define CAM_MOVE_ZOOMED_OUT             0x0002
+diff --git a/src/game/game_init.c b/src/game/game_init.c
+index 073fb7f4..c5768f83 100644
+--- a/src/game/game_init.c
++++ b/src/game/game_init.c
+@@ -561,6 +561,7 @@ void run_demo_inputs(void) {
+ /**
+  * Update the controller struct with available inputs if present.
+  */
++// doc-region-begin read_controller
+ void read_controller_inputs(void) {
+     s32 i;
+ 
+@@ -624,6 +625,7 @@ void read_controller_inputs(void) {
+     gPlayer3Controller->buttonPressed = gPlayer1Controller->buttonPressed;
+     gPlayer3Controller->buttonDown = gPlayer1Controller->buttonDown;
+ }
++// doc-region-end read_controller
+ 
+ /**
+  * Initialize the controller structs to point at the OSCont information.
+diff --git a/src/game/mario.c b/src/game/mario.c
+index cd3d2bfa..3ba0c7dd 100644
+--- a/src/game/mario.c
++++ b/src/game/mario.c
+@@ -1249,6 +1249,7 @@ void debug_print_speed_action_normal(struct MarioState *m) {
+  * Update the button inputs for Mario.
+  */
+ void update_mario_button_inputs(struct MarioState *m) {
++    // doc-region-begin button_to_input
+     if (m->controller->buttonPressed & A_BUTTON) {
+         m->input |= INPUT_A_PRESSED;
+     }
+@@ -1256,6 +1257,7 @@ void update_mario_button_inputs(struct MarioState *m) {
+     if (m->controller->buttonDown & A_BUTTON) {
+         m->input |= INPUT_A_DOWN;
+     }
++    // doc-region-end button_to_input
+ 
+     // Don't update for these buttons if squished.
+     if (m->squishTimer == 0) {
+diff --git a/src/game/object_list_processor.c b/src/game/object_list_processor.c
+index 026a135d..24f583a5 100644
+--- a/src/game/object_list_processor.c
++++ b/src/game/object_list_processor.c
+@@ -326,9 +326,11 @@ s32 update_objects_during_time_stop(struct ObjectNode *objList, struct ObjectNod
+ 
+         // Selectively unfreeze certain objects
+         if (!(gTimeStopState & TIME_STOP_ALL_OBJECTS)) {
++            // doc-region-begin mario_is_special
+             if (gCurrentObject == gMarioObject && !(gTimeStopState & TIME_STOP_MARIO_AND_DOORS)) {
+                 unfrozen = TRUE;
+             }
++            // doc-region-end mario_is_special
+ 
+             if ((gCurrentObject->oInteractType & (INTERACT_DOOR | INTERACT_WARP_DOOR))
+                 && !(gTimeStopState & TIME_STOP_MARIO_AND_DOORS)) {
+diff --git a/src/game/paintings.c b/src/game/paintings.c
+index 13d72c46..d64edfcd 100644
+--- a/src/game/paintings.c
++++ b/src/game/paintings.c
+@@ -611,6 +611,7 @@ void painting_update_ripple_state(struct Painting *painting) {
+  * @return the ripple function at posX, posY
+  * note that posX and posY correspond to a point on the face of the painting, not actual axes
+  */
++// doc-region-begin ripple_traveling_wave
+ s16 calculate_ripple_at_point(struct Painting *painting, f32 posX, f32 posY) {
+     /// Controls the peaks of the ripple.
+     f32 rippleMag = painting->currRippleMag;
+@@ -644,6 +645,7 @@ s16 calculate_ripple_at_point(struct Painting *painting, f32 posX, f32 posY) {
+         return round_float(rippleZ);
+     }
+ }
++// doc-region-end ripple_traveling_wave
+ 
+ /**
+  * If movable, return the ripple function at (posX, posY)
+diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
+index 6f19801d..6bfe2150 100644
+--- a/src/game/rendering_graph_node.c
++++ b/src/game/rendering_graph_node.c
+@@ -146,6 +146,7 @@ LookAt lookAt;
+ /**
+  * Process a master list node.
+  */
++// doc-region-begin render_layer_buckets
+ void geo_process_master_list_sub(struct GraphNodeMasterList *node) {
+     struct DisplayListNode *currList;
+     s32 i;
+@@ -184,6 +185,7 @@ void geo_process_master_list_sub(struct GraphNodeMasterList *node) {
+     }
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end render_layer_buckets
+ 
+ /**
+  * Appends the display list to one of the master lists based on the layer
+@@ -235,6 +237,7 @@ void geo_process_master_list(struct GraphNodeMasterList *node) {
+ /**
+  * Process an orthographic projection node.
+  */
++// doc-region-begin guOrtho_hud
+ void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
+     if (node->node.children != NULL) {
+         Mtx *mtx = alloc_display_list(sizeof(*mtx));
+@@ -252,10 +255,12 @@ void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
+         FrameInterpolation_RecordCloseChild();
+     }
+ }
++// doc-region-end guOrtho_hud
+ 
+ /**
+  * Process a perspective projection node.
+  */
++// doc-region-begin guPerspective_setup
+ void geo_process_perspective(struct GraphNodePerspective *node) {
+     if (node->fnNode.func != NULL) {
+         FrameInterpolation_RecordOpenChild("geo_process_perspective", (uintptr_t)node);
+@@ -289,6 +294,7 @@ void geo_process_perspective(struct GraphNodePerspective *node) {
+         FrameInterpolation_RecordCloseChild();
+     }
+ }
++// doc-region-end guPerspective_setup
+ 
+ /**
+  * Process a level of detail node. From the current transformation matrix,
+@@ -343,6 +349,7 @@ void geo_process_switch(struct GraphNodeSwitchCase *node) {
+ /**
+  * Process a camera node.
+  */
++// doc-region-begin camera_view_matrix
+ void geo_process_camera(struct GraphNodeCamera *node) {
+     Mat4 cameraTransform;
+     Mtx *rollMtx = alloc_display_list(sizeof(*rollMtx));
+@@ -371,6 +378,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+     gMatStackIndex--;
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end camera_view_matrix
+ 
+ /**
+  * Process a translation / rotation node. A transformation matrix based
+@@ -378,6 +386,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+  * the float and fixed point matrix stacks.
+  * For the rest it acts as a normal display list node.
+  */
++// doc-region-begin compose_local_onto_parent
+ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node) {
+     Mat4 mtxf;
+     Vec3f translation;
+@@ -399,6 +408,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
+     gMatStackIndex--;
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end compose_local_onto_parent
+ 
+ /**
+  * Process a translation node. A transformation matrix based on the node's
+diff --git a/src/game/skybox.c b/src/game/skybox.c
+index e7f41e09..3fdfb9b5 100644
+--- a/src/game/skybox.c
++++ b/src/game/skybox.c
+@@ -136,6 +136,7 @@ u8 sSkyboxColors[][3] = {
+  *                 (how far is the camera rotated from 0, scaled 0 to 1)   *
+  *                 (the screen width)
+  */
++// doc-region-begin skybox_yaw_scroll
+ f32 calculate_skybox_scaled_x(s8 player, f32 fov) {
+     f32 yaw = sSkyBoxInfo[player].yaw;
+ 
+@@ -160,6 +161,7 @@ f32 calculate_skybox_scaled_x(s8 player, f32 fov) {
+ 
+     return SKYBOX_WIDTH - scaledX;
+ }
++// doc-region-end skybox_yaw_scroll
+ 
+ /**
+  * Convert the camera's pitch into a y position in the scaled skybox image.
+diff --git a/src/port/Engine.cpp b/src/port/Engine.cpp
+index c6f3eb27..ab4b7673 100644
+--- a/src/port/Engine.cpp
++++ b/src/port/Engine.cpp
+@@ -1384,6 +1384,7 @@ void GameEngine::RunCommands(Gfx* Commands, const std::vector<FrameInterpolation
+     }
+ }
+ 
++// doc-region-begin replay_loop
+ void GameEngine::ProcessGfxCommands(Gfx* commands) {
+     std::vector<FrameInterpolationResult> mtx_replacements;
+     auto wnd = std::dynamic_pointer_cast<Fast::Fast3dWindow>(Ship::Context::GetInstance()->GetWindow());
+@@ -1422,6 +1423,7 @@ void GameEngine::ProcessGfxCommands(Gfx* commands) {
+ 
+     last_fps = fps;
+ }
++// doc-region-end replay_loop
+ 
+ bool GameEngine::IsAltAssetsEnabled() {
+     return prevAltAssets;
+diff --git a/src/port/Game.cpp b/src/port/Game.cpp
+index 4b8b4f88..493225fb 100644
+--- a/src/port/Game.cpp
++++ b/src/port/Game.cpp
+@@ -23,9 +23,11 @@ void alloc_pool() {
+     gEffectsMemoryPool = mem_pool_init(0x4000, MEMORY_POOL_LEFT);
+ }
+ 
++// doc-region-begin graphics_seam
+ extern "C" void exec_display_list(SPTask* spTask) {
+     GameEngine::ProcessGfxCommands((Gfx*)spTask->task.t.data_ptr);
+ }
++// doc-region-end graphics_seam
+ 
+ void push_frame() {
+     GameEngine::StartAudioFrame();
+
+base-commit: 49c5312a0f3c0a28e1974be1923babd4f869f719
+-- 
+2.55.0
+

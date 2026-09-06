@@ -1,10 +1,12 @@
 # Reference: libultraship (LUS) integration
 
-> **Provenance:** authored 2026-06/07 against Ghostship around base `67e561c6` — the imps
-> pin (`49c5312a`, GitHub develop tip 2026-09-01) is 120+ commits newer and includes a
-> restructure of the hook layer (`src/port/hooks/` became `src/port/events/`, with an
-> expanded event list and an EVENTS.md). Claims about hooks, file paths under port/, and
-> the maintainer's fork/branches are suspect — verify against the pinned checkout.
+> **Provenance:** authored 2026-06/07 against Ghostship base `67e561c6`;
+> **§4 (graphics) re-anchored 2026-09-06 to the current pin** `49c5312a`
+> and its libultraship submodule `c151cc91` (1.3.1-544, the KiritoDv
+> FORK). The decomp/port claims below hold; the LUS layout changed
+> (`libultraship/src/fast/` interpreter + backends, a Vulkan backend),
+> and the hook layer became `src/port/events/`. Anchors outside §4 not
+> yet re-verified — check against the pinned checkout.
 
 *Standing reference. What libultraship provides and — mostly — how Ghostship consumes it.
 Read before tracing why an asset loads, a frame draws, or input arrives. Companions:
@@ -17,15 +19,16 @@ Wired in by CMake: `add_subdirectory(libultraship)` + `target_link_libraries(Gho
 PRIVATE libultraship)` (`CMakeLists.txt:324-326`), include roots `libultraship/include` and
 `libultraship/include/libultraship` (`:317-318`).
 
-**The standalone libultraship clone alongside this repo is pinned to the exact commit this
-submodule builds** (`e0c1b1fc` / `1.3.1-399`, branch `bill`, `origin` = github.com/Kenix3/libultraship)
-and carries a deeper reference-doc set describing that same LUS — its `tasks/reference/`:
-architecture-overview, bridge-api, resource-system, fast3d-renderer, windowing-gui-input,
-audio-and-libultra-shims, config-cvars-logging, build-system. Those docs match what Ghostship
-builds and go deeper than this file on LUS internals (they confirm the singleton `Context` API this
-doc describes — `Context::GetInstance`, `CreateUninitializedInstance`, `InitResourceManager`/
-`InitWindow`/…, which `Engine.cpp` calls). **Keep them in sync:** if this submodule is bumped,
-re-pin that clone to the new SHA and re-verify its docs (see its `CLAUDE.md`).
+**Which libultraship this is (corrected 2026-09-06):** the submodule at this pin is
+`c151cc91` / **1.3.1-544**, a **KiritoDv FORK** of libultraship (branch point `f30fe0ed` =
+1.3.1-463, + 81 fork commits adding the Vulkan backend, GPU-side T&L, postprocessing
+shaders, RT64-style mipmapping, async textures), NOT Kenix3 mainline. The imps
+`tasks/reference/libultraship/` crawl docs describe MAINLINE release tags (its final stop is
+this same 1.3.1-544 fork as iteration 18) — but for anything file-level, verify against THIS
+submodule (`Ghostship/libultraship/`), since the fork's layout differs from the older
+`e0c1b1fc`/1.3.1-399 the earlier docs were written against. The singleton `Context` API this
+doc describes (`Context::GetInstance`, `CreateUninitializedInstance`, `InitResourceManager`/
+`InitWindow`/…, called from `Engine.cpp`) still holds. **On a submodule bump, re-verify.**
 
 **Three namespaces, inconsistent header spellings:**
 - `Ship::` — the bulk (Context, ResourceManager, ArchiveManager, Window, GuiWindow, CVar).
@@ -97,15 +100,21 @@ getters `CVarGetInteger/Float/String/Color/Color24(name, default)` (`:14-18`), s
 1. Decomp builds N64 `Gfx*` display lists as on hardware (`alloc_display_list`,
    `src/game/memory.c:393`).
 2. **The one seam:** decomp's `exec_display_list(SPTask*)` is redefined in the port
-   (`Game.cpp:18`, `extern "C"`) → `GameEngine::ProcessGfxCommands`.
-3. `ProcessGfxCommands` (`Engine.cpp:1000`) computes frame-interpolation matrix replacements
-   (`FrameInterpolation_Interpolate`) for the target FPS, then `RunCommands` (`:974`) casts
-   the window to `Fast::Fast3dWindow`, gets its `Fast::Interpreter`, and calls
-   `DrawAndRunGraphicsCommands(Commands, mtxStack)` **once per interpolation sub-frame**
-   (newcomers expecting one draw per frame get surprised).
-4. `Fast::Interpreter` (`fast/interpreter.h`) walks the F3D/F3DEX list and emits calls to a
-   `GfxRenderingAPI` backend (`fast/backends/gfx_rendering_api.h`; `gfx_metal.h` on Apple)
-   → OpenGL/DX11/Metal. Backend chosen inside LUS at window creation, **not** in Ghostship.
+   (`Game.cpp:26`, `extern "C"`) → `GameEngine::ProcessGfxCommands` (`Game.cpp:27`).
+3. `ProcessGfxCommands` (`Engine.cpp:1387`) computes frame-interpolation matrix replacements
+   (`FrameInterpolation_Interpolate`, called at `:1409`) for the target FPS, then
+   `RunCommands` (`:1352`, invoked `:1421`) casts the window to `Fast::Fast3dWindow`, gets
+   its `Fast::Interpreter`, and calls `DrawAndRunGraphicsCommands(Commands, r.mtx[, r.dl])`
+   (`:1367`/`:1369`) **once per interpolation sub-frame** (newcomers expecting one draw per
+   frame get surprised). Matrices are `Mat4` (float 4×4) here, not the old `MtxF` name.
+4. `Fast::Interpreter::Run` (`libultraship/src/fast/interpreter.cpp:6644`, taking the
+   `unordered_map<Mtx*, MtxF>` replacements) walks the F3D/F3DEX list and, per batch, emits
+   `mRapi->DrawTriangles(...)` (`interpreter.cpp:146`) to a `GfxRenderingAPI` backend
+   (`fast/backends/gfx_opengl.cpp`, `gfx_vulkan.cpp`, `gfx_d3d11.cpp`, `gfx_metal.*`) →
+   OpenGL / **Vulkan** / DX11 / Metal. Backend chosen inside LUS at window creation, **not**
+   in Ghostship (see `SuperMario64/CLAUDE.md` for the OpenGL-default seed / Vulkan-hang
+   caveat). Shaders are GENERATED from the N64 color combiner — see
+   [`shaders-and-gpu.md`](shaders-and-gpu.md).
 - **GBI interception:** `src/port/GBIMiddleware.cpp` intercepts individual macros
   (`gSPDisplayList`, `gSPVertex` — resolves `__OTR__` vertex names via `ResourceGetDataByName`
   at `:80`, `ResourceMgr_PatchGfxByName`). HUD/aspect helpers (`OTRGetDimensionFromLeftEdge`,

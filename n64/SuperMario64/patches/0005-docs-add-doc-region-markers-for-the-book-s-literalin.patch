@@ -1,4 +1,4 @@
-From d6e74fd2b7d0a99eafec835e6b2f286162c68465 Mon Sep 17 00:00:00 2001
+From 0b03db615b8de26cad7f2adb8dd6f53d87261a42 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Sun, 6 Sep 2026 16:32:16 +0000
 Subject: [PATCH] docs: add doc-region markers for the book's literalinclude
@@ -7,13 +7,38 @@ Comment-only markers (// doc-region-begin/end <name>) so the Mario 64 book can
 literalinclude exact spans by name instead of drift-prone line numbers. First
 region: euler_zxy_to_matrix (the Euler-angle rotation matrix builder).
 ---
+ src/engine/graph_node.c         | 2 ++
  src/engine/math_util.c          | 4 ++++
+ src/engine/math_util.h          | 2 ++
+ src/engine/surface_collision.c  | 2 ++
  src/game/camera.h               | 2 ++
+ src/game/paintings.c            | 2 ++
  src/game/rendering_graph_node.c | 8 ++++++++
+ src/game/skybox.c               | 2 ++
  src/port/Engine.cpp             | 2 ++
  src/port/Game.cpp               | 2 ++
- 5 files changed, 18 insertions(+)
+ 10 files changed, 28 insertions(+)
 
+diff --git a/src/engine/graph_node.c b/src/engine/graph_node.c
+index db6954bf..639fd05b 100644
+--- a/src/engine/graph_node.c
++++ b/src/engine/graph_node.c
+@@ -742,6 +742,7 @@ void geo_obj_init_spawninfo(struct GraphNodeObject *graphNode, struct SpawnInfo
+ /**
+  * Initialize the animation of an object node
+  */
++// doc-region-begin bind_animation
+ void geo_obj_init_animation(struct GraphNodeObject *graphNode, struct Animation **animPtrAddr) {
+     struct Animation **animSegmented = animPtrAddr;
+ 
+@@ -759,6 +760,7 @@ void geo_obj_init_animation(struct GraphNodeObject *graphNode, struct Animation
+         graphNode->animInfo.animYTrans = 0;
+     }
+ }
++// doc-region-end bind_animation
+ 
+ /**
+  * Initialize the animation of an object node
 diff --git a/src/engine/math_util.c b/src/engine/math_util.c
 index a5a491b9..e3b0f8e2 100644
 --- a/src/engine/math_util.c
@@ -50,6 +75,44 @@ index a5a491b9..e3b0f8e2 100644
  
  /**
   * Set matrix 'dest' to 'mtx' scaled by vector s
+diff --git a/src/engine/math_util.h b/src/engine/math_util.h
+index 9bb7b162..e962afcc 100644
+--- a/src/engine/math_util.h
++++ b/src/engine/math_util.h
+@@ -17,11 +17,13 @@
+  * exploits array sizes for range analysis-based optimizations as well).
+  * Thus, for non-IDO compilers we use the standard-compliant version.
+  */
++// doc-region-begin sine_lookup
+ extern_s f32 gSineTable[];
+ #define gCosineTable (gSineTable + 0x400)
+ 
+ #define sins(x) gSineTable[(u16) (x) >> 4]
+ #define coss(x) gCosineTable[(u16) (x) >> 4]
++// doc-region-end sine_lookup
+ 
+ #define min(a, b) ((a) <= (b) ? (a) : (b))
+ #define max(a, b) ((a) > (b) ? (a) : (b))
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index 71bb0d98..03461e13 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -182,6 +182,7 @@ s32 f32_find_wall_collision(f32 *xPtr, f32 *yPtr, f32 *zPtr, f32 offsetY, f32 ra
+ /**
+  * Find wall collisions and receive their push.
+  */
++// doc-region-begin spatial_partition_lookup
+ s32 find_wall_collisions(struct WallCollisionData *colData) {
+     struct SurfaceNode *node;
+     s16 cellX, cellZ;
+@@ -216,6 +217,7 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
+ 
+     return numCollisions;
+ }
++// doc-region-end spatial_partition_lookup
+ 
+ /**************************************************
+  *                     CEILINGS                   *
 diff --git a/src/game/camera.h b/src/game/camera.h
 index 4d16db8d..e208763f 100644
 --- a/src/game/camera.h
@@ -70,6 +133,26 @@ index 4d16db8d..e208763f 100644
  
  #define CAM_MOVE_RETURN_TO_MIDDLE       0x0001
  #define CAM_MOVE_ZOOMED_OUT             0x0002
+diff --git a/src/game/paintings.c b/src/game/paintings.c
+index 13d72c46..d64edfcd 100644
+--- a/src/game/paintings.c
++++ b/src/game/paintings.c
+@@ -611,6 +611,7 @@ void painting_update_ripple_state(struct Painting *painting) {
+  * @return the ripple function at posX, posY
+  * note that posX and posY correspond to a point on the face of the painting, not actual axes
+  */
++// doc-region-begin ripple_traveling_wave
+ s16 calculate_ripple_at_point(struct Painting *painting, f32 posX, f32 posY) {
+     /// Controls the peaks of the ripple.
+     f32 rippleMag = painting->currRippleMag;
+@@ -644,6 +645,7 @@ s16 calculate_ripple_at_point(struct Painting *painting, f32 posX, f32 posY) {
+         return round_float(rippleZ);
+     }
+ }
++// doc-region-end ripple_traveling_wave
+ 
+ /**
+  * If movable, return the ripple function at (posX, posY)
 diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
 index 6f19801d..4817bc78 100644
 --- a/src/game/rendering_graph_node.c
@@ -135,6 +218,26 @@ index 6f19801d..4817bc78 100644
  
  /**
   * Process a translation node. A transformation matrix based on the node's
+diff --git a/src/game/skybox.c b/src/game/skybox.c
+index e7f41e09..3fdfb9b5 100644
+--- a/src/game/skybox.c
++++ b/src/game/skybox.c
+@@ -136,6 +136,7 @@ u8 sSkyboxColors[][3] = {
+  *                 (how far is the camera rotated from 0, scaled 0 to 1)   *
+  *                 (the screen width)
+  */
++// doc-region-begin skybox_yaw_scroll
+ f32 calculate_skybox_scaled_x(s8 player, f32 fov) {
+     f32 yaw = sSkyBoxInfo[player].yaw;
+ 
+@@ -160,6 +161,7 @@ f32 calculate_skybox_scaled_x(s8 player, f32 fov) {
+ 
+     return SKYBOX_WIDTH - scaledX;
+ }
++// doc-region-end skybox_yaw_scroll
+ 
+ /**
+  * Convert the camera's pitch into a y position in the scaled skybox image.
 diff --git a/src/port/Engine.cpp b/src/port/Engine.cpp
 index c6f3eb27..ab4b7673 100644
 --- a/src/port/Engine.cpp

@@ -32,3 +32,18 @@ chapters and appendices you can follow when you want more.
    shaders
    textures
    lighting
+   animation
+   collision
+   effects
+   frame-interpolation
+   sound
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Appendices
+
+   appendix-fixed-point
+   appendix-binary-angles
+   appendix-geo-bytecode
+   appendix-curves
+   appendix-reference-set

@@ -15,9 +15,10 @@ Mario 64 (Ghostship) source. For a reader who has done
 ```
 
 > The chapters `literalinclude` code from `../Ghostship/` by **named
-> doc-region**, so the game checkout must be fetched and its patches applied
-> first (`cd .. && ./fetch.sh && ./apply.sh`). The doc-region markers are added
-> to that source per-chapter, in the imps two-lane patch model.
+> doc-region**, so the game checkout must be fetched and patched
+> first (`cd .. && ./fetch.sh && ./apply.sh`). `apply.sh` applies BOTH patch
+> lanes — the game tree AND the libultraship submodule — so the doc-region
+> markers the chapters `literalinclude` are all present.
 
 ## Where the detail lives
 

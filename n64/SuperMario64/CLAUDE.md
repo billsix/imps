@@ -209,8 +209,10 @@ draws its detail from `../../tasks/reference/mario64/`. Design + status:
 The book also `literalinclude`s libultraship code, so a SECOND patch series
 lives in `patches-libultraship/` (base = the submodule pin `c151cc91`),
 applied INSIDE `Ghostship/libultraship/`. `0001-...` adds comment-only
-doc-region markers (`combiner_input_to_glsl`, `set_combine_mode`), verified to
-`git am` clean onto the pin. **Caveat:** `apply.sh` does NOT yet apply this
-lane — a fresh fetch has the game-tree patches but not the LUS markers, so the
-book's LUS `literalinclude`s need the submodule patched by hand until apply.sh
-is extended (tracked in `../../tasks/mario64-sphinx-book.md`).
+doc-region markers (currently `combiner_input_to_glsl`, `set_combine_mode`,
+`light_dir_to_normal_space`, `tile_wrap_modes`), verified to `git am` clean onto
+the pin. **`apply.sh` applies BOTH lanes** (2026-09-06): after `fetch.sh`'s
+`git submodule update` checks out libultraship at its pin, `apply.sh` applies
+`patches-libultraship/*` inside the submodule (signing off, guarded on the
+submodule being at its pristine gitlink SHA). So a fresh `fetch.sh && apply.sh`
+gives a checkout with both the game-tree and the LUS doc-region markers.

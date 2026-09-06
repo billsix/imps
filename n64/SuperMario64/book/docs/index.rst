@@ -38,6 +38,7 @@ chapters and appendices you can follow when you want more.
    frame-interpolation
    sound
    controls
+   hardcoded
 
 .. toctree::
    :maxdepth: 1

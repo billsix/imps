@@ -52,7 +52,9 @@ The big set-piece enemies are the same story. Bowser's behavior is not a shared
 script; it is hand-written C — ``behaviors/bowser.inc.c`` and its siblings
 (``bowser_bomb``, ``bowser_flame``, and more), with fixed ``MODEL_BOWSER_*``
 IDs. There are **226** hand-written behavior files in all. Ordinary enemies lean
-on the shared behavior system; the memorable ones are special code.
+on the shared behavior system; the memorable ones are special code. But even
+"leans on the behavior system" understates how *configured* an ordinary enemy is
+— that is its own chapter, :doc:`objects-and-behaviors`.
 
 The takeaway
 ============

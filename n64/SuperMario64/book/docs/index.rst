@@ -39,6 +39,7 @@ chapters and appendices you can follow when you want more.
    sound
    controls
    hardcoded
+   objects-and-behaviors
 
 .. toctree::
    :maxdepth: 1

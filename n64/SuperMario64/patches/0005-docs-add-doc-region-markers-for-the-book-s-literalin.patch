@@ -1,4 +1,4 @@
-From 80872f57ebf9e61a2aab0967a3ccf631799334b5 Mon Sep 17 00:00:00 2001
+From bb4a2fe944247e46060469baf8166784b11a0d29 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Sun, 6 Sep 2026 16:32:16 +0000
 Subject: [PATCH] docs: add doc-region markers for the book's literalinclude
@@ -7,21 +7,42 @@ Comment-only markers (// doc-region-begin/end <name>) so the Mario 64 book can
 literalinclude exact spans by name instead of drift-prone line numbers. First
 region: euler_zxy_to_matrix (the Euler-angle rotation matrix builder).
 ---
- src/engine/graph_node.c          | 2 ++
- src/engine/math_util.c           | 4 ++++
- src/engine/math_util.h           | 2 ++
- src/engine/surface_collision.c   | 2 ++
- src/game/camera.h                | 2 ++
- src/game/game_init.c             | 2 ++
- src/game/mario.c                 | 2 ++
- src/game/object_list_processor.c | 2 ++
- src/game/paintings.c             | 2 ++
- src/game/rendering_graph_node.c  | 8 ++++++++
- src/game/skybox.c                | 2 ++
- src/port/Engine.cpp              | 2 ++
- src/port/Game.cpp                | 2 ++
- 13 files changed, 34 insertions(+)
+ data/behavior_data.c             |  2 ++
+ src/engine/graph_node.c          |  2 ++
+ src/engine/math_util.c           |  4 ++++
+ src/engine/math_util.h           |  2 ++
+ src/engine/surface_collision.c   |  2 ++
+ src/game/camera.h                |  2 ++
+ src/game/game_init.c             |  2 ++
+ src/game/mario.c                 |  2 ++
+ src/game/object_list_processor.c |  2 ++
+ src/game/paintings.c             |  2 ++
+ src/game/rendering_graph_node.c  | 10 ++++++++++
+ src/game/skybox.c                |  2 ++
+ src/port/Engine.cpp              |  2 ++
+ src/port/Game.cpp                |  2 ++
+ 14 files changed, 38 insertions(+)
 
+diff --git a/data/behavior_data.c b/data/behavior_data.c
+index 22d03da5..ba4fcb24 100644
+--- a/data/behavior_data.c
++++ b/data/behavior_data.c
+@@ -4894,6 +4894,7 @@ const BehaviorScript bhvFlyGuy[] = {
+     END_LOOP(),
+ };
+ 
++// doc-region-begin goomba_behavior_script
+ const BehaviorScript bhvGoomba[] = {
+     BEGIN(OBJ_LIST_PUSHABLE),
+     OR_INT(oFlags, (OBJ_FLAG_COMPUTE_ANGLE_TO_MARIO | OBJ_FLAG_COMPUTE_DIST_TO_MARIO | OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW | OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE)),
+@@ -4906,6 +4907,7 @@ const BehaviorScript bhvGoomba[] = {
+         CALL_NATIVE(bhv_goomba_update),
+     END_LOOP(),
+ };
++// doc-region-end goomba_behavior_script
+ 
+ const BehaviorScript bhvGoombaTripletSpawner[] = {
+     BEGIN(OBJ_LIST_PUSHABLE),
 diff --git a/src/engine/graph_node.c b/src/engine/graph_node.c
 index db6954bf..639fd05b 100644
 --- a/src/engine/graph_node.c
@@ -213,10 +234,26 @@ index 13d72c46..d64edfcd 100644
  /**
   * If movable, return the ripple function at (posX, posY)
 diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
-index 6f19801d..4817bc78 100644
+index 6f19801d..6bfe2150 100644
 --- a/src/game/rendering_graph_node.c
 +++ b/src/game/rendering_graph_node.c
-@@ -235,6 +235,7 @@ void geo_process_master_list(struct GraphNodeMasterList *node) {
+@@ -146,6 +146,7 @@ LookAt lookAt;
+ /**
+  * Process a master list node.
+  */
++// doc-region-begin render_layer_buckets
+ void geo_process_master_list_sub(struct GraphNodeMasterList *node) {
+     struct DisplayListNode *currList;
+     s32 i;
+@@ -184,6 +185,7 @@ void geo_process_master_list_sub(struct GraphNodeMasterList *node) {
+     }
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end render_layer_buckets
+ 
+ /**
+  * Appends the display list to one of the master lists based on the layer
+@@ -235,6 +237,7 @@ void geo_process_master_list(struct GraphNodeMasterList *node) {
  /**
   * Process an orthographic projection node.
   */
@@ -224,7 +261,7 @@ index 6f19801d..4817bc78 100644
  void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
      if (node->node.children != NULL) {
          Mtx *mtx = alloc_display_list(sizeof(*mtx));
-@@ -252,10 +253,12 @@ void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
+@@ -252,10 +255,12 @@ void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
          FrameInterpolation_RecordCloseChild();
      }
  }
@@ -237,7 +274,7 @@ index 6f19801d..4817bc78 100644
  void geo_process_perspective(struct GraphNodePerspective *node) {
      if (node->fnNode.func != NULL) {
          FrameInterpolation_RecordOpenChild("geo_process_perspective", (uintptr_t)node);
-@@ -289,6 +292,7 @@ void geo_process_perspective(struct GraphNodePerspective *node) {
+@@ -289,6 +294,7 @@ void geo_process_perspective(struct GraphNodePerspective *node) {
          FrameInterpolation_RecordCloseChild();
      }
  }
@@ -245,7 +282,7 @@ index 6f19801d..4817bc78 100644
  
  /**
   * Process a level of detail node. From the current transformation matrix,
-@@ -343,6 +347,7 @@ void geo_process_switch(struct GraphNodeSwitchCase *node) {
+@@ -343,6 +349,7 @@ void geo_process_switch(struct GraphNodeSwitchCase *node) {
  /**
   * Process a camera node.
   */
@@ -253,7 +290,7 @@ index 6f19801d..4817bc78 100644
  void geo_process_camera(struct GraphNodeCamera *node) {
      Mat4 cameraTransform;
      Mtx *rollMtx = alloc_display_list(sizeof(*rollMtx));
-@@ -371,6 +376,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+@@ -371,6 +378,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
      gMatStackIndex--;
      FrameInterpolation_RecordCloseChild();
  }
@@ -261,7 +298,7 @@ index 6f19801d..4817bc78 100644
  
  /**
   * Process a translation / rotation node. A transformation matrix based
-@@ -378,6 +384,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+@@ -378,6 +386,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
   * the float and fixed point matrix stacks.
   * For the rest it acts as a normal display list node.
   */
@@ -269,7 +306,7 @@ index 6f19801d..4817bc78 100644
  void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node) {
      Mat4 mtxf;
      Vec3f translation;
-@@ -399,6 +406,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
+@@ -399,6 +408,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
      gMatStackIndex--;
      FrameInterpolation_RecordCloseChild();
  }

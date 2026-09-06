@@ -23,8 +23,11 @@ behavior is code and the animations are keyed to a specific skeleton.
 
 - **Level geometry** is a *geo layout* — bytecode built into a scene tree by an
   interpreter (`scene-graph-and-data-structures.md`). Not C.
-- **Most objects** run a *behavior script* on a small VM, and there is a large
-  library of behaviors. So a Goomba is largely data + a shared script.
+- **Most objects** run through an **object + behavior system**: a *behavior
+  script* (bytecode, run by a VM) that carries the object's list, flags, physics
+  parameters, and animations as DATA and `CALL_NATIVE`s a hand-written update
+  loop, which itself leans on a big **shared helper library**. So a Goomba is
+  semi-data-driven — see `object-and-behavior-system.md` for the full story.
 
 Against that backdrop, the hardcoded parts stand out.
 
@@ -61,8 +64,9 @@ an asset.
 `MODEL_BOWSER_*` are fixed IDs, and Bowser's behavior lives in hand-written
 files — `behaviors/bowser.inc.c`, `bowser_bomb.inc.c`, `bowser_flame.inc.c`,
 `bowser_falling_platform.inc.c`, and more. Big set-piece enemies are not
-data-driven; they are special code. (Ordinary enemies lean much more on the
-shared behavior system.)
+data-driven; they are special code. (Ordinary enemies are semi-data-driven — a script + a helper-heavy native loop;
+see `object-and-behavior-system.md`. Bosses are the bespoke end of that same
+system. Mario is outside it entirely.)
 
 ## How this relates to the course
 

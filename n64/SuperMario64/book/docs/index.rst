@@ -30,3 +30,5 @@ chapters and appendices you can follow when you want more.
    projection
    pipeline
    shaders
+   textures
+   lighting

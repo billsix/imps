@@ -7,6 +7,15 @@ effort, not scheduled. Parked until the maintainer wants to explore it.
 
 ## BLUF
 
+**Feasibility researched 2026-09-06 — see
+`tasks/reference/mario64/extracting-behaviors-to-scripts.md`.** Key finding: the
+port has NO Lua; its scripting runtime is **libtcc (runtime-compiled C linked
+against the game's exported symbols)**, with mods hooking via the events system.
+So the achievable version is "extract to the port's own C-scripting" (feasible
+incrementally for enemies, harder for Mario); "extract to Lua" specifically is a
+large new VM+bindings project justified only by wanting non-C moddability. The
+sections below stand; the reference doc supersedes research question 1.
+
 Investigate whether the game's **character logic that is currently bespoke C** —
 Mario's action state machine, and/or the enemies' native behavior loops — could
 be **re-expressed in Lua** and the custom C removed, using (or extending) the

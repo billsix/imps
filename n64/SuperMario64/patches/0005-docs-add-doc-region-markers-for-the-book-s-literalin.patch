@@ -1,4 +1,4 @@
-From 808b4a50d435814a39cef7fbbf289996f49d55bd Mon Sep 17 00:00:00 2001
+From 419f73efe7c554b85cdd84d7bd836571c0f421b6 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Sun, 6 Sep 2026 16:32:16 +0000
 Subject: [PATCH] docs: add doc-region markers for the book's literalinclude
@@ -7,11 +7,12 @@ Comment-only markers (// doc-region-begin/end <name>) so the Mario 64 book can
 literalinclude exact spans by name instead of drift-prone line numbers. First
 region: euler_zxy_to_matrix (the Euler-angle rotation matrix builder).
 ---
- src/engine/math_util.c | 2 ++
- 1 file changed, 2 insertions(+)
+ src/engine/math_util.c          | 4 ++++
+ src/game/rendering_graph_node.c | 2 ++
+ 2 files changed, 6 insertions(+)
 
 diff --git a/src/engine/math_util.c b/src/engine/math_util.c
-index a5a491b9..201fcd2c 100644
+index a5a491b9..e3b0f8e2 100644
 --- a/src/engine/math_util.c
 +++ b/src/engine/math_util.c
 @@ -276,6 +276,7 @@ void mtxf_lookat(Mat4 mtx, Vec3f from, Vec3f to, s16 roll) {
@@ -30,6 +31,42 @@ index a5a491b9..201fcd2c 100644
  
  /**
   * Build a matrix that rotates around the x axis, then the y axis, then the z
+@@ -498,6 +500,7 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
+  * The resulting matrix represents first applying transformation b and
+  * then a.
+  */
++// doc-region-begin mtxf_mul_affine
+ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+     // TODO: FrameInterpolation is broken, fix it
+     // FrameInterpolation_RecordMatrixMult(dest, dest, 0);
+@@ -543,6 +546,7 @@ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+ 
+     mtxf_copy(dest, temp);
+ }
++// doc-region-end mtxf_mul_affine
+ 
+ /**
+  * Set matrix 'dest' to 'mtx' scaled by vector s
+diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
+index 6f19801d..335df20c 100644
+--- a/src/game/rendering_graph_node.c
++++ b/src/game/rendering_graph_node.c
+@@ -378,6 +378,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+  * the float and fixed point matrix stacks.
+  * For the rest it acts as a normal display list node.
+  */
++// doc-region-begin compose_local_onto_parent
+ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node) {
+     Mat4 mtxf;
+     Vec3f translation;
+@@ -399,6 +400,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
+     gMatStackIndex--;
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end compose_local_onto_parent
+ 
+ /**
+  * Process a translation node. A transformation matrix based on the node's
 
 base-commit: 49c5312a0f3c0a28e1974be1923babd4f869f719
 -- 

@@ -52,6 +52,40 @@ Part III: animation, collision, effects, frame-interpolation, sound.
 Appendices: A fixed-point matrices, B binary-angle table, C geo bytecode,
 D curves/splines, E the reference set.
 
+
+
+## Self-review pass 1 — intro + rotation (2026-09-06)
+
+Did a self-review of the first two chapters and applied the safe improvements;
+the judgment calls below are for the maintainer.
+
+**intro.rst — changed:**
+- Rewrote "The plan" to reflect the ACTUAL structure (Parts I/II/III, all 13
+  chapters) and to introduce the book's organizing idea up front: the black-box
+  "one frame's journey" spine with white-box links. The old version listed five
+  vague bullets and never mentioned the spine.
+- Fixed "margin notes" → "Go deeper boxes" (there are no margin notes; they are
+  `.. admonition:: seealso` blocks).
+
+**rotation.rst — changed:**
+- Fixed the ASCII binary-angle circle: the old one labelled 0x0000 "east" and
+  0x8000 "west" (a muddled compass); replaced with a clean clock (0° top, 90°
+  right, 180° bottom, 270° left) labelled by angle only.
+- Added a cross-link to :doc:`engine-math` where the matrix's transposed layout
+  is explained, and to the new :doc:`appendix-binary-angles` for the sine-table
+  trick.
+
+**Judgment calls for the maintainer (I did NOT change these):**
+1. Tone/voice — does the intro's "you already know X; here's what a real game
+   does" hook sound like you, or too breezy?
+2. The rotation `literalinclude` shows the whole ~30-line matrix builder. Keep
+   it whole (shows the hand-multiplied Euler product), or trim to a few rows?
+3. Do you want the ASCII diagrams at all, or would you rather these be Graphviz
+   (consistent with the rest) or dropped?
+4. Reading order — is putting rotation FIRST (as the warm-up) right, or should
+   the black-box "one frame" overview come first so the reader sees the whole
+   shape before any detail?
+
 ## Related
 
 - The book: `mario64-sphinx-book.md`. The arc: `mario64-book-chapter-outline.md`.

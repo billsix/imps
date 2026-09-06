@@ -16,19 +16,26 @@ it also does a dozen things your course never covered.
 The plan
 ========
 
-Each chapter takes one topic, shows the real code, and compares it to how you
-already think about the subject:
+The book follows a real **frame** — from the game's logic to the pixels on
+screen — as its spine. One central chapter, :doc:`pipeline`, walks that whole
+path at arm's length as a **black box**; from it, links open each stage into a
+**white-box** chapter that shows the actual code. Read straight through, or
+follow the frame and click into whichever box you want opened.
 
-- **Rotation** — the same rotation you build with a rotor, done with three
-  integer Euler angles and a lookup table (this chapter).
-- Transforms, the matrix stack, and the scene graph.
-- The graphics pipeline: from an N64 display list to a modern GPU.
-- Lighting, textures, the color combiner, and generated shaders.
-- Cameras, animation, collision, and the effects that give a world life.
+Three parts:
 
-Where a chapter glosses over something, a later chapter or an appendix carries
-the detail. The margin notes point at the reference material in the imps
-``tasks/reference/mario64/`` set, which is where the exhaustive version lives.
+- **Part I — from your math to a real engine.** Rotation (this chapter), the
+  engine's matrices and scene graph, the camera as a system, and projection.
+- **Part II — the graphics pipeline.** One frame's journey end to end
+  (:doc:`pipeline`), then the color combiner and generated shaders, textures,
+  and lighting.
+- **Part III — making a world feel alive.** Animation, collision, the effects
+  that sell a place (skybox, water, the rippling paintings), the smooth-motion
+  trick, and sound.
+
+Five appendices carry the deepest detail. Every **"Go deeper" box** at the end
+of a chapter points at the exhaustive per-topic reference note in the imps
+``tasks/reference/mario64/`` set, which is where the whole story lives.
 
 .. note::
 

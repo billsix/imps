@@ -22,13 +22,13 @@ because the counter *is* the circle:
 
 .. code-block:: text
 
-      0x0000  ── east (0°)
-        │
-   0xC000 ─── ● ─── 0x4000      quarter turn = 0x4000 (90°)
-        │
-      0x8000  ── west (180°)
+              0x0000  (0°)
+                 |
+      0xC000 ----+---- 0x4000        a quarter turn = 0x4000 (90°)
+      (270°)     |     (90°)
+              0x8000  (180°)
 
-    add past 0xFFFF → wraps to 0x0000, automatically
+      add past 0xFFFF and it wraps back to 0x0000, automatically
 
 Sine and cosine come from a table, not a function call. ``sins(x)`` is just an
 array read, and cosine is the *same* table read a quarter-turn later.
@@ -47,7 +47,8 @@ a 4×4 matrix. It is pulled straight from the game's source:
 
 Read the nine matrix entries: they are the product of three separate axis
 rotations, multiplied out by hand, in a **fixed order** (here Z, then X, then
-Y). The order is baked into the function's name. That fixed order is exactly
+Y). The order is baked into the function's name. (The matrix it fills uses the
+engine's transposed, translation-in-the-last-row layout — see :doc:`engine-math`.) That fixed order is exactly
 what a rotor avoids — and it is why this scheme can *gimbal-lock*, losing a
 degree of freedom when two axes line up.
 
@@ -84,4 +85,5 @@ course teaches it as the default once you are *not* squeezed into six bytes.
    The exhaustive version — the lookup-table memory trick, angle extraction
    with ``atan2s``, and the full rotor-vs-Euler comparison table — is in the
    reference note ``tasks/reference/mario64/rotation-euler-vs-rotors.md`` and
-   its one-page orientation ``…-overview.md``.
+   its one-page orientation ``…-overview.md``. The sine-table packing trick has
+   its own short appendix, :doc:`appendix-binary-angles`.

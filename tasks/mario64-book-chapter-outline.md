@@ -3,7 +3,7 @@
 **Status:** decisions made 2026-09-06 — (1) MIXTURE: the 'follow one frame'
 spine is the BLACK BOX; links open the white-box detail chapters (click for
 depth). (2) Granularity fine for now. (3) Ch9 (lighting) placement fine.
-Authoring in this order.
+Authoring in this order. ALL chapters + appendices DRAFTED 2026-09-06.
 **Priority:** 3
 **Difficulty:** 4
 **Part of:** `mario64-sphinx-book.md` (umbrella)

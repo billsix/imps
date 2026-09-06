@@ -8,12 +8,11 @@ RUN  --mount=type=cache,target=/var/cache/libdnf5 \
      echo "keepcache=True" >> /etc/dnf/dnf.conf && \
      dnf upgrade -y && \
      dnf install -y \
-        python3-sphinx python3-furo python3-myst-parser \
+        sphinx python3-furo python3-myst-parser \
+        python3-sphinx-latex \
         graphviz \
-        texlive-luahbtex texlive-latexmk texlive-fontspec gnu-free-fonts \
-        texlive-fncychap texlive-wrapfig texlive-capt-of texlive-needspace \
-        texlive-tabulary texlive-framed texlive-titlesec texlive-varwidth \
-        texlive-fancyhdr texlive-multirow texlive-threeparttable texlive-eqparbox \
+        texlive texlive-luahbtex texlive-luatex85 texlive-fontspec \
+        texlive-gnu-freefont texlive-polyglossia latexmk \
         make findutils
 
 COPY entrypoint/*.sh /usr/local/bin/

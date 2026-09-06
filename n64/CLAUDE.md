@@ -54,6 +54,39 @@ another's via `git am`/rebase. On a game pin bump, replay BOTH lanes.
 `tasks/mario64-graphics-refdocs.md`, which will add doc-region markers to
 both lanes in a later pass.)
 
+### Patches are grouped into purpose STREAMS — no total ordering across them
+
+(Family contract, William Emerison Six <billsix@gmail.com>, 2026-09-06.) Within
+each lane, patches are NOT one numbered series but are grouped into
+**purpose streams** — subfolders by intent:
+
+- `patches/cheats/` — personal gameplay cheats/enhancements (SuperMario64).
+- `patches/upstream-candidates/` — fixes shaped for upstream submission
+  (MM audio + doc fixes; Banjo's fixOnFedora PR; SM64's libshaderc doc fix).
+- `patches/personal/` — personal refactors not bound for upstream
+  (Ocarina's decomp rename).
+- `patches/book/` — comment-only `doc-region` markers for a game's book
+  `literalinclude` (grows per chapter). Same subfolders under
+  `patches-libultraship/` for the LUS lane.
+- (future) `patches/lua-extraction/` — a scripting-extraction stream, etc.
+
+**The rule that makes this work: WITHIN a stream, order matters (numbered
+0001…); ACROSS streams it does NOT** — the streams touch **disjoint files**
+and therefore commute, so there is no total order to maintain, and a new stream
+(a book, a Lua experiment) is added without renumbering anything. The invariant
+to preserve: **streams must stay independent** (disjoint files/regions). If a
+real cross-stream dependency ever appears, merge those patches into one stream
+or document the required order explicitly — do not silently rely on
+folder-alphabetical apply order for correctness.
+
+`apply.sh` iterates `patches/*/` (and `patches-libultraship/*/`), `git am`-ing
+each stream's numbered patches; independence makes the cross-stream sequence
+irrelevant. **Regenerating one stream:** rebuild just that stream's commits in
+the checkout and `git format-patch --base=<pin>` them into their subfolder — the
+other streams are untouched. This is the SuperMario64 shape; all four games were
+converted to it 2026-09-06 (verified: each game's streams `git am` clean onto its
+pin).
+
 ### Never build a checkout from a foreign toolchain via a bind mount — copy the source into the throwaway container first
 
 libultraship at 1.3.1-482+ (banjo, mario) writes build artifacts INTO its
@@ -143,7 +176,9 @@ table's fork-topology caveat).
   an upstream candidate) ported 2026-09-01 from the old fork's topic
   branches across upstream's hooks→events restructure; **fully verified
   2026-09-01**: byte-identical on apply, builds in sandbox and on the
-  maintainer's host, runs with all three cheats in the menu. Run
+  maintainer's host, runs with all three cheats in the menu. Also carries a **Sphinx book** (`SuperMario64/book/`, *How a Production Game
+  Is Built* — 16 chapters + appendices, HTML/EPUB/PDF) that `literalinclude`s
+  this source by doc-region; see `SuperMario64/CLAUDE.md`. Run
   gotchas (Vulkan-on-RADV hang → OpenGL config; libtcc rpath) recorded
   in `n64/SuperMario64/CLAUDE.md`. The old
   fork's doc set migrated to `tasks/reference/mario64/` (bannered — the
@@ -156,7 +191,10 @@ table's fork-topology caveat).
   for the from-source build (2026-09-06), while a directly-launched
   AppImage still picks Vulkan — see the RADV Vulkan-hang caveat in
   `n64/SuperMario64/CLAUDE.md`) and a
-  container-verified `installdependencies.sh`.
+  container-verified `installdependencies.sh`. Also carries a
+  **Sphinx book** (`SuperMario64/book/`, *How a Production Game Is Built* —
+  16 chapters + appendices, HTML/EPUB/PDF via its own Dockerfile/Makefile) that
+  `literalinclude`s this source by doc-region; see `SuperMario64/CLAUDE.md`.
 - `n64/BanjoKazooie/` — Lighthouse
   (https://github.com/HarbourMasters/Lighthouse), pinned at `6d30df9a`
   (tip of `develop`, 2026-09-01, just past the 1.0.0 release; submodules

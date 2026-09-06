@@ -81,10 +81,12 @@ the series, the podman AppImage build — is in `n64/CLAUDE.md`).
   guarded to run only when HEAD is exactly at the pin (it reads the pin out
   of `fetch.sh`, the single source of truth). Optional: skipping it gives a
   pristine upstream build.
-- `patches/` — numbered `git format-patch` series (with `base-commit:`
-  footers naming the pin), **code changes only** per the dividing principle
-  above. Regenerate after editing commits in the checkout with
-  `git format-patch --no-cover-letter --base=<pin> <pin>..HEAD -o patches/`.
+- `patches/` — a `git format-patch` series with `base-commit:` footers naming
+  the pin, **code changes only** per the dividing principle above. A project MAY
+  group these into **purpose-stream subfolders** (`patches/<stream>/`) when it
+  carries independent patch sets — order matters within a stream, not across
+  them; see the family `CLAUDE.md`. Regenerate after editing commits in the
+  checkout with `git format-patch --no-cover-letter --base=<pin> <pin>..HEAD`.
 - `.gitignore` — the upstream checkout, `build-cmake/`, `bldInstall/`, and
   `runDir/` are all untracked.
 

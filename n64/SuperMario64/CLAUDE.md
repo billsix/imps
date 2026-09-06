@@ -52,12 +52,12 @@ verified against the ported branch.
   `mario_execute_airborne_action`. Port note: the cancel field is
   `Cancelled` (capital) in the events layer — the original commit's
   lowercase `cancelled` was fixed during the port.
-- `0004-docs-add-libshaderc-devel-to-the-Fedora-build-depend.patch` —
+- `patches/upstream-candidates/0001-...libshaderc...` (upstream candidate) —
   adds `libshaderc-devel` to both Fedora dnf lines in
   `docs/building.md` (the LUS Vulkan backend includes
   `shaderc/shaderc.hpp`; found the hard way, 2026-09-01). Doc fix to
   upstream's own file, hence a patch; upstream-submission candidate.
-- `0005-docs-add-doc-region-markers-...patch` — comment-only
+- `patches/book/0001-doc-region-markers.patch` — comment-only
   `// doc-region-begin/end <name>` markers so the book's
   `literalinclude` pulls spans by NAME, not line numbers. First region:
   `euler_zxy_to_matrix`. Grows per book chapter (the game-tree doc-region
@@ -206,9 +206,9 @@ draws its detail from `../../tasks/reference/mario64/`. Design + status:
 
 ### libultraship doc-region lane (`patches-libultraship/`)
 
-The book also `literalinclude`s libultraship code, so a SECOND patch series
-lives in `patches-libultraship/` (base = the submodule pin `c151cc91`),
-applied INSIDE `Ghostship/libultraship/`. `0001-...` adds comment-only
+The book also `literalinclude`s libultraship code, so a SECOND patch lane
+lives in `patches-libultraship/` (streamed the same way — `patches-libultraship/book/`) (base = the submodule pin `c151cc91`),
+applied INSIDE `Ghostship/libultraship/`. `patches-libultraship/book/0001-...` adds comment-only
 doc-region markers (currently `combiner_input_to_glsl`, `set_combine_mode`,
 `light_dir_to_normal_space`, `tile_wrap_modes`), verified to `git am` clean onto
 the pin. **`apply.sh` applies BOTH lanes** (2026-09-06): after `fetch.sh`'s

@@ -27,6 +27,10 @@ rm -rf Ghostship build-cmake bldInstall     # add runDir to also wipe saves + sm
   gets you back there.
 - The game binary runs from the **build tree** (`build-cmake/Ghostship`);
   the game finds its o2r archives next to the executable.
+- `run.sh` defaults a fresh `runDir/` to the **OpenGL** renderer (the
+  Vulkan backend hangs on some GPUs/drivers, RADV among them); switch to
+  Vulkan in the in-game menu if your machine wants it — the choice sticks
+  and the seed never overwrites an existing config.
 - > cmake's configure step downloads `gamecontrollerdb.txt`, so configure
   > needs network.
 - > `runDir/` holds your saves, config, and the extracted `sm64.o2r`. On a

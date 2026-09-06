@@ -128,8 +128,10 @@ table's fork-topology caveat).
   not ported. Also carries a podman build (`Dockerfile` ubuntu-24.04 CI
   mirror + `Makefile` → `out/ghostship.appimage`, verified nested
   2026-09-01 and **built on-host 2026-09-01 (William Emerison Six
-  <billsix@gmail.com>)** — launches on the Vulkan backend, see the RADV
-  Vulkan-hang caveat in `n64/SuperMario64/CLAUDE.md`) and a
+  <billsix@gmail.com>)**; `run.sh` seeds the OpenGL renderer by default
+  for the from-source build (2026-09-06), while a directly-launched
+  AppImage still picks Vulkan — see the RADV Vulkan-hang caveat in
+  `n64/SuperMario64/CLAUDE.md`) and a
   container-verified `installdependencies.sh`.
 - `n64/BanjoKazooie/` — Lighthouse
   (https://github.com/HarbourMasters/Lighthouse), pinned at `6d30df9a`

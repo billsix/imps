@@ -89,10 +89,19 @@ verified against the ported branch.
   (the new LUS Vulkan backend) installed — neither is in the base image.
 - **The Vulkan backend hangs at this pin on the maintainer's GPU**
   (RADV Radeon 610M, 2026-09-01): the game goes silent right after
-  "Vulkan device:" in the log, before any window. The game auto-picked
-  Vulkan (`Window.Backend.Id = 4` in `runDir/ghostship.cfg.json`); the
-  fix is `Id = 2` / `"OpenGL"` (`FAST3D_SDL_OPENGL`, enum in LUS
-  `include/fast/Fast3dWindow.h:22`). Upstream/driver issue, not imps'.
+  "Vulkan device:" in the log, before any window. The cause is that
+  libultraship registers Vulkan before OpenGL on Linux and defaults to the
+  front of that list (`GetSavedWindowBackend` returns
+  `mAvailableWindowBackends->front()` in
+  `libultraship/src/ship/window/Window.cpp`), so a first run with no config
+  auto-picks Vulkan (`Window.Backend.Id = 4`). **`run.sh` now seeds
+  `runDir/ghostship.cfg.json` with `Id = 2` / `"OpenGL"`
+  (`FAST3D_SDL_OPENGL`) when the config is absent**, so a fresh `runDir/`
+  starts on OpenGL; switch to Vulkan in the menu if a machine wants it (the
+  choice persists, and the seed never overwrites an existing config).
+  Vulkan stays compiled in — this changes only the default. Task:
+  `../../tasks/archive/mario64/2026/09/06/mario64-default-to-opengl-backend.md`.
+  Upstream/driver issue, not imps'.
 - The binary's rpath bakes the absolute build-time path to `libtcc.so`
   (in `Ghostship/libultraship/`) — `run.sh` sets `LD_LIBRARY_PATH` so a
   binary built at one mount path runs at another.
@@ -133,9 +142,13 @@ and `make appimage` (`out/ghostship.appimage`, 16 MB, + `.tcc`) all
 green. The on-host AppImage build was **confirmed 2026-09-01 (William
 Emerison Six <billsix@gmail.com>)** — the `COPY` Dockerfile fix cleared
 the SELinux block that had stopped host builds (see the Dockerfile
-comment); it launches and auto-selects the Vulkan backend, so the RADV
-Vulkan-hang caveat above applies — switch to OpenGL if it goes silent
-after "Vulkan device:".
+comment). **The OpenGL-default seed lives in `run.sh`, not in the AppImage**
+— an AppImage launched directly (not via `run.sh`) still auto-picks Vulkan
+on first run, so the RADV Vulkan-hang caveat applies to it: switch to
+OpenGL in the menu if it goes silent after "Vulkan device:". This is
+accepted, not a bug — the podman AppImage exists only to mirror upstream's
+CI/CD; the maintainer's own play path is a from-source build run via
+`run.sh`, which is seeded.
 
 ## Architecture reference (read to get oriented without re-reading the code)
 

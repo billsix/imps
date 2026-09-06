@@ -1,7 +1,9 @@
 # Mario 64 book: chapter outline (the teachable arc)
 
-**Status:** proposed — needs go-ahead / reshaping (the maintainer said we'd
-coordinate the sequence closely)
+**Status:** decisions made 2026-09-06 — (1) MIXTURE: the 'follow one frame'
+spine is the BLACK BOX; links open the white-box detail chapters (click for
+depth). (2) Granularity fine for now. (3) Ch9 (lighting) placement fine.
+Authoring in this order.
 **Priority:** 3
 **Difficulty:** 4
 **Part of:** `mario64-sphinx-book.md` (umbrella)
@@ -68,11 +70,11 @@ lane); draw the Graphviz/ASCII figures; build-verify HTML (+ the other formats
 periodically). Authoring may spawn NEW reference docs / deeper levels of detail
 when a chapter finds a gap (the maintainer's standing expectation).
 
-## Open questions
+## Resolved (2026-09-06)
 
-1. Is the running-thread spine ("follow one frame") the right organizing
-   device, or prefer strict topic order?
-2. Part/chapter granularity — is ~14 chapters + appendices the right grain, or
-   split/merge?
-3. Any topic you want moved earlier for motivation (e.g. lighting, which is the
-   biggest gap, sits at ch9)?
+- **Structure = black box + white box.** The "one frame's journey" chapter is a
+  black-box overview; each stage links (Sphinx `:doc:`/`:ref:`) to the white-box
+  chapter that details it, and detail chapters link back up. A reader follows
+  the frame at a high level and clicks through for depth. Chapters also keep the
+  "Go deeper" links to the reference set.
+- Granularity (~14 ch + appendices) and lighting at ch9 are fine as proposed.

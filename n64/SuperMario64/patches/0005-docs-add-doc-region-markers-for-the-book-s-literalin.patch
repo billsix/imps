@@ -1,4 +1,4 @@
-From a23e90705291962dcdd08e1d00fb9a0638655d4e Mon Sep 17 00:00:00 2001
+From d6e74fd2b7d0a99eafec835e6b2f286162c68465 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Sun, 6 Sep 2026 16:32:16 +0000
 Subject: [PATCH] docs: add doc-region markers for the book's literalinclude
@@ -9,8 +9,10 @@ region: euler_zxy_to_matrix (the Euler-angle rotation matrix builder).
 ---
  src/engine/math_util.c          | 4 ++++
  src/game/camera.h               | 2 ++
- src/game/rendering_graph_node.c | 4 ++++
- 3 files changed, 10 insertions(+)
+ src/game/rendering_graph_node.c | 8 ++++++++
+ src/port/Engine.cpp             | 2 ++
+ src/port/Game.cpp               | 2 ++
+ 5 files changed, 18 insertions(+)
 
 diff --git a/src/engine/math_util.c b/src/engine/math_util.c
 index a5a491b9..e3b0f8e2 100644
@@ -69,10 +71,39 @@ index 4d16db8d..e208763f 100644
  #define CAM_MOVE_RETURN_TO_MIDDLE       0x0001
  #define CAM_MOVE_ZOOMED_OUT             0x0002
 diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
-index 6f19801d..3db5581d 100644
+index 6f19801d..4817bc78 100644
 --- a/src/game/rendering_graph_node.c
 +++ b/src/game/rendering_graph_node.c
-@@ -343,6 +343,7 @@ void geo_process_switch(struct GraphNodeSwitchCase *node) {
+@@ -235,6 +235,7 @@ void geo_process_master_list(struct GraphNodeMasterList *node) {
+ /**
+  * Process an orthographic projection node.
+  */
++// doc-region-begin guOrtho_hud
+ void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
+     if (node->node.children != NULL) {
+         Mtx *mtx = alloc_display_list(sizeof(*mtx));
+@@ -252,10 +253,12 @@ void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
+         FrameInterpolation_RecordCloseChild();
+     }
+ }
++// doc-region-end guOrtho_hud
+ 
+ /**
+  * Process a perspective projection node.
+  */
++// doc-region-begin guPerspective_setup
+ void geo_process_perspective(struct GraphNodePerspective *node) {
+     if (node->fnNode.func != NULL) {
+         FrameInterpolation_RecordOpenChild("geo_process_perspective", (uintptr_t)node);
+@@ -289,6 +292,7 @@ void geo_process_perspective(struct GraphNodePerspective *node) {
+         FrameInterpolation_RecordCloseChild();
+     }
+ }
++// doc-region-end guPerspective_setup
+ 
+ /**
+  * Process a level of detail node. From the current transformation matrix,
+@@ -343,6 +347,7 @@ void geo_process_switch(struct GraphNodeSwitchCase *node) {
  /**
   * Process a camera node.
   */
@@ -80,7 +111,7 @@ index 6f19801d..3db5581d 100644
  void geo_process_camera(struct GraphNodeCamera *node) {
      Mat4 cameraTransform;
      Mtx *rollMtx = alloc_display_list(sizeof(*rollMtx));
-@@ -371,6 +372,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+@@ -371,6 +376,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
      gMatStackIndex--;
      FrameInterpolation_RecordCloseChild();
  }
@@ -88,7 +119,7 @@ index 6f19801d..3db5581d 100644
  
  /**
   * Process a translation / rotation node. A transformation matrix based
-@@ -378,6 +380,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+@@ -378,6 +384,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
   * the float and fixed point matrix stacks.
   * For the rest it acts as a normal display list node.
   */
@@ -96,7 +127,7 @@ index 6f19801d..3db5581d 100644
  void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node) {
      Mat4 mtxf;
      Vec3f translation;
-@@ -399,6 +402,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
+@@ -399,6 +406,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
      gMatStackIndex--;
      FrameInterpolation_RecordCloseChild();
  }
@@ -104,6 +135,42 @@ index 6f19801d..3db5581d 100644
  
  /**
   * Process a translation node. A transformation matrix based on the node's
+diff --git a/src/port/Engine.cpp b/src/port/Engine.cpp
+index c6f3eb27..ab4b7673 100644
+--- a/src/port/Engine.cpp
++++ b/src/port/Engine.cpp
+@@ -1384,6 +1384,7 @@ void GameEngine::RunCommands(Gfx* Commands, const std::vector<FrameInterpolation
+     }
+ }
+ 
++// doc-region-begin replay_loop
+ void GameEngine::ProcessGfxCommands(Gfx* commands) {
+     std::vector<FrameInterpolationResult> mtx_replacements;
+     auto wnd = std::dynamic_pointer_cast<Fast::Fast3dWindow>(Ship::Context::GetInstance()->GetWindow());
+@@ -1422,6 +1423,7 @@ void GameEngine::ProcessGfxCommands(Gfx* commands) {
+ 
+     last_fps = fps;
+ }
++// doc-region-end replay_loop
+ 
+ bool GameEngine::IsAltAssetsEnabled() {
+     return prevAltAssets;
+diff --git a/src/port/Game.cpp b/src/port/Game.cpp
+index 4b8b4f88..493225fb 100644
+--- a/src/port/Game.cpp
++++ b/src/port/Game.cpp
+@@ -23,9 +23,11 @@ void alloc_pool() {
+     gEffectsMemoryPool = mem_pool_init(0x4000, MEMORY_POOL_LEFT);
+ }
+ 
++// doc-region-begin graphics_seam
+ extern "C" void exec_display_list(SPTask* spTask) {
+     GameEngine::ProcessGfxCommands((Gfx*)spTask->task.t.data_ptr);
+ }
++// doc-region-end graphics_seam
+ 
+ void push_frame() {
+     GameEngine::StartAudioFrame();
 
 base-commit: 49c5312a0f3c0a28e1974be1923babd4f869f719
 -- 

@@ -27,3 +27,5 @@ chapters and appendices you can follow when you want more.
    rotation
    engine-math
    camera
+   projection
+   pipeline

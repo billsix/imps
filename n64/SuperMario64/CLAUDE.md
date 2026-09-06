@@ -203,3 +203,14 @@ its own Dockerfile+Makefile), teaching a reader who has done `modelviewprojectio
 how a real game is made, `literalinclude`-ing this source by doc-region. It
 draws its detail from `../../tasks/reference/mario64/`. Design + status:
 `../../tasks/mario64-sphinx-book.md`.
+
+### libultraship doc-region lane (`patches-libultraship/`)
+
+The book also `literalinclude`s libultraship code, so a SECOND patch series
+lives in `patches-libultraship/` (base = the submodule pin `c151cc91`),
+applied INSIDE `Ghostship/libultraship/`. `0001-...` adds comment-only
+doc-region markers (`combiner_input_to_glsl`, `set_combine_mode`), verified to
+`git am` clean onto the pin. **Caveat:** `apply.sh` does NOT yet apply this
+lane — a fresh fetch has the game-tree patches but not the LUS markers, so the
+book's LUS `literalinclude`s need the submodule patched by hand until apply.sh
+is extended (tracked in `../../tasks/mario64-sphinx-book.md`).

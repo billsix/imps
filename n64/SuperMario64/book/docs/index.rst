@@ -29,3 +29,4 @@ chapters and appendices you can follow when you want more.
    camera
    projection
    pipeline
+   shaders

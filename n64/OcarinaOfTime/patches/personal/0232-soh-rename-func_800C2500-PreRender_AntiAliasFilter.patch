@@ -1,0 +1,53 @@
+From 252f8d59380e1672e548a78e52b4444068a89e6e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:22 +0000
+Subject: [PATCH 232/784] soh: rename func_800C2500 ->
+ PreRender_AntiAliasFilter
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.87.
+Defined in soh/src/code/PreRender.c.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/PreRender.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 1a180106a..67e9f1fa6 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1591,7 +1591,7 @@ void func_800C2118(PreRender* this, Gfx** gfxp);
+ void func_800C213C(PreRender* this, Gfx** gfxp);
+ void func_800C24BC(PreRender* this, Gfx** gfxp);
+ void func_800C24E0(PreRender* this, Gfx** gfxp);
+-void func_800C2500(PreRender* this, s32 x, s32 y);
++void PreRender_AntiAliasFilter(PreRender* this, s32 x, s32 y);  // was func_800C2500 [oot]
+ void func_800C2FE4(PreRender* this);
+ void PreRender_Calc(PreRender* this);
+ void THGA_Ct(TwoHeadGfxArena* thga, Gfx* start, size_t size);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index c331548eb..49efabd30 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -358,7 +358,8 @@ void func_800C24E0(PreRender* this, Gfx** gfxp) {
+     PreRender_CopyImageRegionImpl(this, gfxp);
+ }
+ 
+-void func_800C2500(PreRender* this, s32 x, s32 y) {
++// Name from zeldaret/oot (was func_800C2500): adopted upstream's name for this address; body verified to match upstream at 0.87. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_AntiAliasFilter(PreRender* this, s32 x, s32 y) {
+     s32 i;
+     s32 j;
+     s32 buffA[3 * 5];
+@@ -566,7 +567,7 @@ void PreRender_Calc(PreRender* this) {
+                 a >>= 5;
+                 a++;
+                 if (a != 8) {
+-                    func_800C2500(this, x, y);
++                    PreRender_AntiAliasFilter(this, x, y);
+                 }
+             }
+         }
+-- 
+2.55.0
+

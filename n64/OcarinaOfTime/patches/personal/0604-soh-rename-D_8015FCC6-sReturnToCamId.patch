@@ -1,0 +1,72 @@
+From 147fa3471d769a13fa545645b7a12723efbaa98c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:10 +0000
+Subject: [PATCH 604/784] soh: rename D_8015FCC6 -> sReturnToCamId
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/code/z_demo.c.
+---
+ soh/src/code/z_demo.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index b987eeeff..5f1cfc1d0 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -112,7 +112,8 @@ u16 gCamAtSplinePointsAppliedFrame;
+ u16 gCamEyePointAppliedFrame;
+ // Name from zeldaret/oot (was D_8015FCC4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ u16 gCamAtPointAppliedFrame;
+-s16 D_8015FCC6;
++// Name from zeldaret/oot (was D_8015FCC6): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++s16 sReturnToCamId;
+ u8 D_8015FCC8;
+ s16 sQuakeIndex;
+ u16 D_8015FCCC;      // only written to, never read
+@@ -1458,7 +1459,7 @@ size_t Cutscene_Command_CameraPositions(PlayState* play, CutsceneContext* csCtx,
+             csCtx->unk_18 = cmdBase->startFrame;
+             if (D_8015FCC8 != 0) {
+                 Play_CameraChangeSetting(play, csCtx->unk_14, CAM_SET_CS_0);
+-                Play_ChangeCameraStatus(play, D_8015FCC6, CAM_STAT_WAIT);
++                Play_ChangeCameraStatus(play, sReturnToCamId, CAM_STAT_WAIT);
+                 Play_ChangeCameraStatus(play, csCtx->unk_14, CAM_STAT_ACTIVE);
+                 Camera_ResetAnim(Play_GetCamera(play, csCtx->unk_14));
+                 Camera_SetCSParams(Play_GetCamera(play, csCtx->unk_14), csCtx->cameraFocus, csCtx->cameraPosition,
+@@ -1495,7 +1496,7 @@ size_t Cutscene_Command_CameraFocus(PlayState* play, CutsceneContext* csCtx, u8*
+             gCamAtSplinePointsAppliedFrame = cmdBase->startFrame;
+             if (D_8015FCC8 != 0) {
+                 Play_CameraChangeSetting(play, csCtx->unk_14, CAM_SET_CS_0);
+-                Play_ChangeCameraStatus(play, D_8015FCC6, CAM_STAT_WAIT);
++                Play_ChangeCameraStatus(play, sReturnToCamId, CAM_STAT_WAIT);
+                 Play_ChangeCameraStatus(play, csCtx->unk_14, CAM_STAT_ACTIVE);
+                 Camera_ResetAnim(Play_GetCamera(play, csCtx->unk_14));
+                 Camera_SetCSParams(Play_GetCamera(play, csCtx->unk_14), csCtx->cameraFocus, csCtx->cameraPosition,
+@@ -2130,12 +2131,12 @@ void func_80068DC0(PlayState* play, CutsceneContext* csCtx) {
+                 case ENTR_HYRULE_FIELD_12:
+                 case ENTR_HYRULE_FIELD_13:
+                 case ENTR_HYRULE_FIELD_15:
+-                    Play_CopyCamera(play, D_8015FCC6, csCtx->unk_14);
++                    Play_CopyCamera(play, sReturnToCamId, csCtx->unk_14);
+             }
+ 
+-            Play_ChangeCameraStatus(play, D_8015FCC6, CAM_STAT_ACTIVE);
++            Play_ChangeCameraStatus(play, sReturnToCamId, CAM_STAT_ACTIVE);
+             Play_ClearCamera(play, csCtx->unk_14);
+-            Camera_SetFinishedFlag(play->cameraPtrs[D_8015FCC6]);
++            Camera_SetFinishedFlag(play->cameraPtrs[sReturnToCamId]);
+         }
+ 
+         Audio_SetCutsceneFlag(0);
+@@ -2174,7 +2175,7 @@ void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx) {
+             gCamAtPointAppliedFrame = 0xFFFF;
+             csCtx->unk_1A = 0;
+             csCtx->unk_1B = 0;
+-            D_8015FCC6 = play->activeCamera;
++            sReturnToCamId = play->activeCamera;
+ 
+             if (D_8015FCC8 != 0) {
+                 csCtx->unk_14 = Play_CreateSubCamera(play);
+-- 
+2.55.0
+

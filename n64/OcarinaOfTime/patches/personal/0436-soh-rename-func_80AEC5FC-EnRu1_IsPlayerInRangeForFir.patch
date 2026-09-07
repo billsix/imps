@@ -1,0 +1,53 @@
+From 5cf50fa2e5370d4ec284a36a66dd2bfc618cb41f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:45 +0000
+Subject: [PATCH 436/784] soh: rename func_80AEC5FC ->
+ EnRu1_IsPlayerInRangeForFirstEncounter
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 1.00.
+Defined in soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c.
+---
+ .../game-interactor/vanilla-behavior/GIVanillaBehavior.h     | 2 +-
+ soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c                | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h b/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
+index cd0fc2255..e35850b32 100644
+--- a/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
++++ b/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
+@@ -1987,7 +1987,7 @@ typedef enum {
+     // #### `result`
+     // Close enough & various cutscene checks
+     // ```c
+-    // (func_80AEC5FC(this, play)) && (!Play_InCsMode(play)) &&
++    // (EnRu1_IsPlayerInRangeForFirstEncounter(this, play)) && (!Play_InCsMode(play)) &&
+     // (!(player->stateFlags1 & (PLAYER_STATE1_HANGING_OFF_LEDGE | PLAYER_STATE1_CLIMBING_LEDGE |
+     // PLAYER_STATE1_CLIMBING_LADDER))) &&
+     // (player->actor.bgCheckFlags & 1)
+diff --git a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
+index 5b1ac20eb..e369de78a 100644
+--- a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
++++ b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
+@@ -845,7 +845,8 @@ void EnRu1_AccelerateDownHole(EnRu1* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-s32 func_80AEC5FC(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEC5FC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_IsPlayerInRangeForFirstEncounter(EnRu1* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 thisPosZ = this->actor.world.pos.z;
+     f32 playerPosZ = player->actor.world.pos.z;
+@@ -886,7 +887,7 @@ void func_80AEC780(EnRu1* this, PlayState* play) {
+ 
+     if (GameInteractor_Should(
+             VB_PLAY_CHILD_RUTO_INTRO,
+-            (func_80AEC5FC(this, play)) && (!Play_InCsMode(play)) &&
++            (EnRu1_IsPlayerInRangeForFirstEncounter(this, play)) && (!Play_InCsMode(play)) &&
+                 (!(player->stateFlags1 &
+                    (PLAYER_STATE1_HANGING_OFF_LEDGE | PLAYER_STATE1_CLIMBING_LEDGE | PLAYER_STATE1_CLIMBING_LADDER))) &&
+                 (player->actor.bgCheckFlags & 1),
+-- 
+2.55.0
+

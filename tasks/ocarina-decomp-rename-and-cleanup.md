@@ -8,6 +8,114 @@ C.** Do the renames thoroughly and completely; treat the readability rewrites (g
 only when trivially safe and quick, otherwise skip them. A file/function with a good name and ugly
 body is a win; don't hold up a rename batch on a risky readability rewrite.
 
+## ORACLE EXHAUSTED (2026-09-07) — deduction work split out
+
+**765 of 4,235 symbols renamed (18.1%)**, every one of them sourced from
+zeldaret/oot and verified. The oracle has converged: re-running it yields one
+candidate, and that one is a name collision it correctly refuses
+(`EnDivingGame_TalkDuringMinigame` is already taken by a different SoH
+function). `personal` is **784 patches**; the tree compiles.
+
+**The remaining 3,470 need names DEDUCED, not adopted** — 2,565 of them are
+address-named in oot too, so upstream has nothing to give. That is a different
+kind of work with a different risk profile, and it lives in its own task:
+[`tasks/ocarina-deduce-remaining-decomp-names.md`](ocarina-deduce-remaining-decomp-names.md).
+It also inherits 146 rows (76 UNSAFE, 66 MISMATCH, 4 NOFILE) that failed for
+mechanical reasons rather than absence of an upstream name, and should be
+retried against a closer oot revision **before** any guessing starts.
+
+## BUILD-VERIFIED (2026-09-07) — the renames compile
+
+`soh.elf` links clean with all 765 renames applied: **0 errors, 2 warnings**,
+`cmake --build` exit 0. Previous batches were only ever grep-complete; this is
+the first compile gate the renaming effort has passed.
+
+**How to rebuild it in-sandbox** (the maintainer's host build is no longer the
+only option): copy the checkout OUT of the repo first — `n64/CLAUDE.md` warns
+that libultraship ≥1.3.1-482 writes build artifacts into its own submodule
+source even for an out-of-tree configure, which would poison the next host
+build through the bind mount. Then:
+
+```sh
+cp -a n64/OcarinaOfTime/Shipwright /tmp/scratch/ && cd /tmp/scratch
+cmake -HShipwright -Bbuild -GNinja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build -j$(nproc)
+```
+
+The sandbox needed two extra Fedora packages beyond its defaults:
+`opus-devel opusfile-devel` (the project's `installdependencies.sh` lists them;
+the sandbox image ships neither). Do NOT reuse `n64/OcarinaOfTime/build-cmake/`
+— that cache belongs to the maintainer's host and cmake refuses a different
+source path anyway.
+
+## Batch 2 — 738 upstream names adopted (2026-09-07)
+
+**Done:** 559 more symbols renamed, taking the total from 206 to **765 of 4,235
+(18.1%)**; 3,470 remain. All gates green, the `personal` stream regenerated to
+**784 patches**, `apply.sh` clean from a pristine pin, and the tree **compiles**.
+
+**Method — zeldaret/oot as a bulk oracle, then verified.** SoH's decomp *is* the
+oot decomp at the same ROM addresses, so oot's name for the function at an
+address is authoritative. oot renamed its symbols, so the addresses are gone
+from its source; instead
+[`tasks/adhoc/ocarina-decomp-rename-and-cleanup/oot_oracle.py`](adhoc/ocarina-decomp-rename-and-cleanup/oot_oracle.py)
+fetches oot's counterpart file and aligns the two function sequences.
+
+Three things made this trustworthy, and each changed the answer materially:
+
+1. **Anchor-based alignment, not whole-file.** oot's `main` has drifted from
+   SoH's snapshot, so requiring identical sequences flagged 1,867 of 2,810 as
+   unusable. Using the names the files already agree on as anchors, and mapping
+   only within equal-length gaps between them, cut that to 25.
+2. **Body verification.** Positional alignment is a lead, not proof. Comparing
+   comment- and whitespace-stripped bodies **rejected 256 of 548 candidates** —
+   nearly half would have shipped as wrong "authoritative" names. Threshold
+   0.80, hand-checked at the boundary (`func_80064558` → `Cutscene_UpdateManual`
+   at 0.81 is unambiguously the same function; only oot's later refactors
+   differ).
+3. **Collision checks.** One name was already taken by a different SoH function
+   (`EnDivingGame_TalkDuringMinigame`) and was skipped rather than clobbered.
+
+**Comment form for a bulk adoption.** The provenance comment states the source
+and the verification score, and deliberately does **not** describe what the
+function does — 291 fabricated behaviour summaries would be worse than none, and
+the citation is the actual justification. A later reader can still overturn any
+of them.
+
+**A wrong path mapping silently cost 7 files.** The audio code moved out of
+`src/code/` in oot, and the oracle guessed `src/audio/lib/` — which 404s. The
+real layout is `src/audio/game/` (game-facing API) and `src/audio/internal/`
+(synthesis engine), verified against the live repo tree. Fixing it recovered 27
+more names. **Check a path mapping against the actual tree; a 404 looks exactly
+like "upstream has no name here".**
+
+**A second verification tier recovered 164 more.** A body comparison rejects a
+function whose identifiers oot has since renamed, even when it is plainly the
+same function. Blanking every identifier and literal leaves control flow,
+operators and call shape — which those refactors do not touch. 164 of 228
+MISMATCH rows scored ≥0.92 structurally (many exactly 1.00) and were adopted,
+with the comment saying **structure**-verified rather than body-verified so the
+weaker evidence is on the record. The remaining 64 are genuinely different code.
+
+**The oracle improves as you rename — so iterate it.** Each batch of adopted
+names becomes an *anchor* for the next alignment pass, letting it see through
+drift it previously could not. Re-running oracle→apply converged in four rounds
+(291 → 62 → 7 → 2 → 0). **Always run it to a fixpoint rather than once.**
+
+**Data symbols were initially missed.** The first pass extracted only function
+definitions, so all 1,086 `D_` symbols were skipped. The oracle now aligns
+functions and data as **two separate sequences** — a file's functions and its
+statics are independent address-ordered lists, and mixing them destroys the
+anchors. Data yielded only 6 adoptable names, so the remaining `D_` work is
+almost entirely deduction.
+
+**What remains, and why it is different work.** The oracle says **2,559** of the
+remaining symbols are address-named *in oot too* — there is no upstream name
+to adopt, so each needs a name deduced from its body and callers. That is
+read-every-function work, not a bulk operation, and it is where the remaining
+effort lies. 228 MISMATCH (aligned, but the bodies diverged too far to trust) + 77 UNSAFE +
+7 NOFILE also need individual attention.
+
 ## STOPPING POINT — resume here (2026-07-31, session end)
 Stopped at a clean milestone (the maintainer's call); task stays **open** — the bulk of the renaming remains.
 - **Done:** 18/19 `code_<addr>.c` files renamed (only `code_800FBCE0.c` left — RCP, oot leaves it

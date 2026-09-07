@@ -1,0 +1,65 @@
+From d8876a34447647fb47a90e37f3608134d2ff8c6c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:34 +0000
+Subject: [PATCH 337/784] soh: rename func_809EDCB0 -> EnDivingGame_Reset
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.99.
+Defined in soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c.
+---
+ .../actors/ovl_En_Diving_Game/z_en_diving_game.c      | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+index f627e19ee..7510e3d5a 100644
+--- a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
++++ b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+@@ -17,7 +17,8 @@ void EnDivingGame_Destroy(Actor* thisx, PlayState* play);
+ void EnDivingGame_Update(Actor* thisx, PlayState* play);
+ void EnDivingGame_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_809EDCB0(EnDivingGame* this, PlayState* play);
++// Name from zeldaret/oot (was func_809EDCB0): adopted upstream's name for this address; body verified to match upstream at 0.99. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c]
++void EnDivingGame_Reset(EnDivingGame* this, PlayState* play);
+ void EnDivingGame_Talk(EnDivingGame* this, PlayState* play);
+ void EnDivingGame_HandlePlayChoice(EnDivingGame* this, PlayState* play);
+ void func_809EE048(EnDivingGame* this, PlayState* play);
+@@ -97,7 +98,7 @@ void EnDivingGame_Init(Actor* thisx, PlayState* play) {
+         sHasSpawned = true;
+         this->actor.targetMode = 0;
+         this->actor.colChkInfo.mass = MASS_IMMOVABLE;
+-        this->actionFunc = func_809EDCB0;
++        this->actionFunc = EnDivingGame_Reset;
+     }
+ }
+ 
+@@ -175,7 +176,7 @@ s32 EnDivingGame_HasMinigameFinished(EnDivingGame* this, PlayState* play) {
+ }
+ 
+ // EnDivingGame_FinishMinigame ? // Reset probably
+-void func_809EDCB0(EnDivingGame* this, PlayState* play) {
++void EnDivingGame_Reset(EnDivingGame* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gZoraIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gZoraIdleAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+@@ -271,7 +272,7 @@ void func_809EE048(EnDivingGame* this, PlayState* play) {
+         if (this->phase == ENDIVINGGAME_PHASE_ENDED) {
+             Message_CloseTextbox(play);
+             Player_SetCsActionWithHaltedActors(play, NULL, 7);
+-            this->actionFunc = func_809EDCB0;
++            this->actionFunc = EnDivingGame_Reset;
+         } else {
+             play->msgCtx.msgMode = MSGMODE_PAUSED;
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -493,7 +494,7 @@ void func_809EEAF8(EnDivingGame* this, PlayState* play) {
+         osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ 正常終了 ☆☆☆☆☆ \n" VT_RST);
+         this->allRupeesThrown = this->state = this->phase = this->unk_2A2 = this->grabbedRupeesCounter = 0;
+         Flags_SetEventChkInf(EVENTCHKINF_OBTAINED_SILVER_SCALE);
+-        this->actionFunc = func_809EDCB0;
++        this->actionFunc = EnDivingGame_Reset;
+     }
+ }
+ 
+-- 
+2.55.0
+

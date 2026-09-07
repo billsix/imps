@@ -1,0 +1,72 @@
+From 4347bb704a0270fe1e6e645b667412e5fb68074b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:11 +0000
+Subject: [PATCH 607/784] soh: rename func_80074CE8 ->
+ Environment_ChangeLightSetting
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 0.99.
+Defined in soh/src/code/z_kankyo.c.
+---
+ soh/include/functions.h                                     | 2 +-
+ soh/src/code/z_kankyo.c                                     | 3 ++-
+ soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c | 2 +-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c         | 2 +-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 662264272..9a8ce3faf 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -927,7 +927,7 @@ void Environment_DrawSunLensFlare(PlayState* play, EnvironmentContext* envCtx, V
+ void Environment_DrawLensFlare(PlayState* play, EnvironmentContext* envCtx, View* view,
+                                GraphicsContext* gfxCtx, Vec3f pos, s32 unused, s16 arg6, f32 arg7, s16 arg8, u8 arg9);
+ void Environment_DrawRain(PlayState* play, View* view, GraphicsContext* gfxCtx);
+-void func_80074CE8(PlayState* play, u32 arg1);
++void Environment_ChangeLightSetting(PlayState* play, u32 arg1);  // was func_80074CE8 [oot]
+ void Environment_DrawSkyboxFilters(PlayState* play);
+ void Environment_UpdateLightningStrike(PlayState* play);
+ void Environment_AddLightningBolts(PlayState* play, u8 num);
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 60647ac22..21c392aec 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -1743,7 +1743,8 @@ void Environment_DrawRain(PlayState* play, View* view, GraphicsContext* gfxCtx)
+     }
+ }
+ 
+-void func_80074CE8(PlayState* play, u32 arg1) {
++// Name from zeldaret/oot (was func_80074CE8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.99. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++void Environment_ChangeLightSetting(PlayState* play, u32 arg1) {
+     if ((play->envCtx.unk_BD != arg1) && (play->envCtx.unk_D8 >= 1.0f) && (play->envCtx.unk_BF == 0xFF)) {
+         if (arg1 > 30) {
+             arg1 = 0;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c b/soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c
+index e8553f978..fbbae3c80 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c
+@@ -246,7 +246,7 @@ void BgMoriBigst_Update(Actor* thisx, PlayState* play) {
+         this->waitTimer--;
+     }
+     if (DynaPolyActor_IsPlayerAbove(&this->dyna)) {
+-        func_80074CE8(play, 6);
++        Environment_ChangeLightSetting(play, 6);
+     }
+     if (this->actionFunc != NULL) {
+         this->actionFunc(this, play);
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 49614abde..e6b021bb4 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -11246,7 +11246,7 @@ void Player_ProcessSceneCollision(PlayState* play, Player* this) {
+             Audio_SetCodeReverb(SurfaceType_GetEcho(&play->colCtx, floorPoly, this->actor.floorBgId));
+ 
+             if (this->actor.floorBgId == BGCHECK_SCENE) {
+-                func_80074CE8(play, SurfaceType_GetLightSettingIndex(&play->colCtx, floorPoly, this->actor.floorBgId));
++                Environment_ChangeLightSetting(play, SurfaceType_GetLightSettingIndex(&play->colCtx, floorPoly, this->actor.floorBgId));
+             } else {
+                 DynaPoly_SetPlayerAbove(&play->colCtx, this->actor.floorBgId);
+             }
+-- 
+2.55.0
+

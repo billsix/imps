@@ -1,0 +1,99 @@
+From dc407e128b0cb26fb499b8ae7bcae7af570b05cc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:13 +0000
+Subject: [PATCH 620/784] soh: rename func_800AA460 -> View_SetPerspective
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/code/z_view.c.
+---
+ soh/include/functions.h                         | 2 +-
+ soh/src/code/z_parameter.c                      | 2 +-
+ soh/src/code/z_play.c                           | 2 +-
+ soh/src/code/z_sample.c                         | 2 +-
+ soh/src/code/z_view.c                           | 3 ++-
+ soh/src/overlays/gamestates/ovl_title/z_title.c | 2 +-
+ 6 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 9a8ce3faf..942575403 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1398,7 +1398,7 @@ void func_800AA358(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up);
+ void func_800AA3F0(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up);
+ void View_SetScale(View* view, f32 scale);
+ void View_GetScale(View* view, f32* scale);
+-void func_800AA460(View* view, f32 fovy, f32 near, f32 far);
++void View_SetPerspective(View* view, f32 fovy, f32 near, f32 far);  // was func_800AA460 [oot]
+ void View_GetPerspective(View* view, f32* fovy, f32* near, f32* far);  // was func_800AA48C [oot]
+ void View_SetOrtho(View* view, f32 fovy, f32 near, f32 far);  // was func_800AA4A8 [oot]
+ void View_GetOrtho(View* view, f32* fovy, f32* near, f32* far);  // was func_800AA4E0 [oot]
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 69fd6ded3..80ef10011 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -5081,7 +5081,7 @@ void func_8008A8B8(PlayState* play, s32 topY, s32 bottomY, s32 leftX, s32 rightX
+     interfaceCtx->viewport.rightX = rightX;
+     View_SetViewport(&interfaceCtx->view, &interfaceCtx->viewport);
+ 
+-    func_800AA460(&interfaceCtx->view, 60.0f, 10.0f, 60.0f);
++    View_SetPerspective(&interfaceCtx->view, 60.0f, 10.0f, 60.0f);
+     func_800AB560(&interfaceCtx->view);
+ }
+ */
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index d02237107..d5fb9a5f9 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1357,7 +1357,7 @@ void Play_Draw(PlayState* play) {
+         POLY_OPA_DISP = Play_SetFog(play, POLY_OPA_DISP);
+         POLY_XLU_DISP = Play_SetFog(play, POLY_XLU_DISP);
+ 
+-        func_800AA460(&play->view, play->view.fovy, play->view.zNear, play->lightCtx.fogFar);
++        View_SetPerspective(&play->view, play->view.fovy, play->view.zNear, play->lightCtx.fogFar);
+         func_800AAA50(&play->view, 15);
+ 
+         // Flip the projections and invert culling for the OPA and XLU display buffers
+diff --git a/soh/src/code/z_sample.c b/soh/src/code/z_sample.c
+index ecd379443..21d5b441f 100644
+--- a/soh/src/code/z_sample.c
++++ b/soh/src/code/z_sample.c
+@@ -55,7 +55,7 @@ void Sample_SetupView(SampleContext* this) {
+ 
+     View_Init(view, gfxCtx);
+     SET_FULLSCREEN_VIEWPORT(view);
+-    func_800AA460(view, 60.0f, 10.0f, 12800.0f);
++    View_SetPerspective(view, 60.0f, 10.0f, 12800.0f);
+ 
+     {
+         Vec3f eye;
+diff --git a/soh/src/code/z_view.c b/soh/src/code/z_view.c
+index 0dbb02f4f..e40a21753 100644
+--- a/soh/src/code/z_view.c
++++ b/soh/src/code/z_view.c
+@@ -105,7 +105,8 @@ void View_GetScale(View* view, f32* scale) {
+     *scale = view->scale;
+ }
+ 
+-void func_800AA460(View* view, f32 fovy, f32 near, f32 far) {
++// Name from zeldaret/oot (was func_800AA460): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_view.c]
++void View_SetPerspective(View* view, f32 fovy, f32 near, f32 far) {
+     view->fovy = fovy;
+     view->zNear = near;
+     // view->zNear = -30;
+diff --git a/soh/src/overlays/gamestates/ovl_title/z_title.c b/soh/src/overlays/gamestates/ovl_title/z_title.c
+index c701d117c..24550f027 100644
+--- a/soh/src/overlays/gamestates/ovl_title/z_title.c
++++ b/soh/src/overlays/gamestates/ovl_title/z_title.c
+@@ -53,7 +53,7 @@ void Title_SetupView(TitleContext* this, f32 x, f32 y, f32 z) {
+     lookAt.x = lookAt.y = lookAt.z = 0.0f;
+     up.y = 1.0f;
+ 
+-    func_800AA460(view, 30.0f, 10.0f, 12800.0f);
++    View_SetPerspective(view, 30.0f, 10.0f, 12800.0f);
+     func_800AA358(view, &eye, &lookAt, &up);
+     func_800AAA50(view, 0xF);
+ }
+-- 
+2.55.0
+

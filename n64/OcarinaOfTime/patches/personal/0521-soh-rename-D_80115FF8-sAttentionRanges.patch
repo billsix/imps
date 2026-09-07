@@ -1,0 +1,46 @@
+From ea9891c64f2086beea3bef580e3b255b120476bb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:12:04 +0000
+Subject: [PATCH 521/784] soh: rename D_80115FF8 -> sAttentionRanges
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.81.
+Defined in soh/src/code/z_actor.c.
+---
+ soh/src/code/z_actor.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index c00c1e451..c99cb59de 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1915,14 +1915,15 @@ typedef struct {
+ #define TARGET_RANGE(range, leash) \
+     { SQ(range), (f32)range / leash }
+ 
+-TargetRangeParams D_80115FF8[] = {
++// Name from zeldaret/oot (was D_80115FF8): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_actor.c]
++TargetRangeParams sAttentionRanges[] = {
+     TARGET_RANGE(70, 140),   TARGET_RANGE(170, 255),    TARGET_RANGE(280, 5600),      TARGET_RANGE(350, 525),
+     TARGET_RANGE(700, 1050), TARGET_RANGE(1000, 1500),  TARGET_RANGE(100, 105.36842), TARGET_RANGE(140, 163.33333),
+     TARGET_RANGE(240, 576),  TARGET_RANGE(280, 280000),
+ };
+ 
+ u32 Attention_ActorIsInRange(Actor* actor, f32 arg1) {
+-    return arg1 < D_80115FF8[actor->targetMode].rangeSq;
++    return arg1 < sAttentionRanges[actor->targetMode].rangeSq;
+ }
+ 
+ s32 Attention_ShouldReleaseLockOn(Actor* actor, Player* player, s32 flag) {
+@@ -1941,7 +1942,7 @@ s32 Attention_ShouldReleaseLockOn(Actor* actor, Player* player, s32 flag) {
+             dist = actor->xyzDistToPlayerSq;
+         }
+ 
+-        return !Attention_ActorIsInRange(actor, D_80115FF8[actor->targetMode].leashScale * dist);
++        return !Attention_ActorIsInRange(actor, sAttentionRanges[actor->targetMode].leashScale * dist);
+     }
+ 
+     return false;
+-- 
+2.55.0
+

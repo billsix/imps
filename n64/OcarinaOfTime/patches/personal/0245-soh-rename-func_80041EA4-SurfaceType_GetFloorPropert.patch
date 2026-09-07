@@ -1,0 +1,86 @@
+From e3682e7144873fd45507569ad74559d119b2dbd3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:23 +0000
+Subject: [PATCH 245/784] soh: rename func_80041EA4 ->
+ SurfaceType_GetFloorProperty
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 1.00.
+Defined in soh/src/code/z_bgcheck.c.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/soh/Enhancements/ExtraModes/EnemyRandomizer.cpp | 2 +-
+ soh/src/code/z_bgcheck.c                            | 3 ++-
+ soh/src/overlays/actors/ovl_En_Test/z_en_test.c     | 2 +-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 2 +-
+ 5 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 425cc33ac..cb5989357 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -688,7 +688,7 @@ s32 SurfaceType_CheckWallFlag0(CollisionContext* colCtx, CollisionPoly* poly, s3
+ s32 SurfaceType_CheckWallFlag1(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041E18 [oot]
+ s32 SurfaceType_CheckWallFlag2(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041E4C [oot]
+ s32 SurfaceType_GetFloorProperty2(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041E80 [oot]
+-u32 func_80041EA4(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
++u32 SurfaceType_GetFloorProperty(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041EA4 [oot]
+ u32 func_80041EC8(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u32 SurfaceType_IsHorseBlocked(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u32 func_80041F10(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+diff --git a/soh/soh/Enhancements/ExtraModes/EnemyRandomizer.cpp b/soh/soh/Enhancements/ExtraModes/EnemyRandomizer.cpp
+index f4a3dd5a3..613710111 100644
+--- a/soh/soh/Enhancements/ExtraModes/EnemyRandomizer.cpp
++++ b/soh/soh/Enhancements/ExtraModes/EnemyRandomizer.cpp
+@@ -1000,7 +1000,7 @@ void RegisterEnemyRandomizer() {
+              IsTimedRoom(ResourceMgr_IsSceneMasterQuest(gPlayState->sceneNum), gPlayState->sceneNum,
+                          gPlayState->roomCtx.curRoom.num)) &&
+             enemy->id != ACTOR_EN_FIREFLY && enemy->id != ACTOR_EN_CROW) {
+-            u32 floorProperty = func_80041EA4(&gPlayState->colCtx, enemy->floorPoly, enemy->floorBgId);
++            u32 floorProperty = SurfaceType_GetFloorProperty(&gPlayState->colCtx, enemy->floorPoly, enemy->floorBgId);
+ 
+             // Let ground enemies air walk above voidout floor in clear/timed rooms
+             // and move them up if setting is enabled after they're fallen down
+diff --git a/soh/src/code/z_bgcheck.c b/soh/src/code/z_bgcheck.c
+index 5ce74b2ce..ed8c672c8 100644
+--- a/soh/src/code/z_bgcheck.c
++++ b/soh/src/code/z_bgcheck.c
+@@ -4071,7 +4071,8 @@ s32 SurfaceType_GetFloorProperty2(CollisionContext* colCtx, CollisionPoly* poly,
+ /**
+  * SurfaceType Get Floor Property
+  */
+-u32 func_80041EA4(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
++// Name from zeldaret/oot (was func_80041EA4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_bgcheck.c]
++u32 SurfaceType_GetFloorProperty(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
+     return SurfaceType_GetData(colCtx, poly, bgId, 0) >> 26 & 0xF;
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+index bee5b7313..9fb3c456c 100644
+--- a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
++++ b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+@@ -1724,7 +1724,7 @@ void EnTest_Update(Actor* thisx, PlayState* play) {
+                 this->actor.floorHeight = this->actor.home.pos.y;
+             }
+         } else if (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND_TOUCH) {
+-            floorProperty = func_80041EA4(&play->colCtx, this->actor.floorPoly, this->actor.floorBgId);
++            floorProperty = SurfaceType_GetFloorProperty(&play->colCtx, this->actor.floorPoly, this->actor.floorBgId);
+ 
+             if ((floorProperty == FLOOR_PROPERTY_5) || (floorProperty == FLOOR_PROPERTY_12) ||
+                 SurfaceType_GetFloorType(&play->colCtx, this->actor.floorPoly, this->actor.floorBgId) == 9) {
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 441c3623d..4e6d53de9 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -11223,7 +11223,7 @@ void Player_ProcessSceneCollision(PlayState* play, Player* this) {
+     floorPoly = this->actor.floorPoly;
+ 
+     if (floorPoly != NULL) {
+-        this->floorProperty = func_80041EA4(&play->colCtx, floorPoly, this->actor.floorBgId);
++        this->floorProperty = SurfaceType_GetFloorProperty(&play->colCtx, floorPoly, this->actor.floorBgId);
+         this->prevFloorSfxOffset = this->floorSfxOffset;
+ 
+         if (this->actor.bgCheckFlags & 0x20) {
+-- 
+2.55.0
+

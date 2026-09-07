@@ -1,0 +1,58 @@
+From 9c2d230fbd2067d7fc8c85cb7c58ab0711acc392 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:23 +0000
+Subject: [PATCH 241/784] soh: rename func_80041DE4 ->
+ SurfaceType_CheckWallFlag0
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 1.00.
+Defined in soh/src/code/z_bgcheck.c.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/src/code/z_bgcheck.c                            | 3 ++-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index d7aa22d87..767e6abb3 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -684,7 +684,7 @@ u32 SurfaceType_GetFloorType(CollisionContext* colCtx, CollisionPoly* poly, s32
+ u32 func_80041D70(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u32 SurfaceType_GetWallType(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041D94 [oot]
+ s32 SurfaceType_GetWallFlags(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+-s32 func_80041DE4(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
++s32 SurfaceType_CheckWallFlag0(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041DE4 [oot]
+ s32 func_80041E18(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ s32 func_80041E4C(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ s32 func_80041E80(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+diff --git a/soh/src/code/z_bgcheck.c b/soh/src/code/z_bgcheck.c
+index 83e124ca3..ac2d4b4d9 100644
+--- a/soh/src/code/z_bgcheck.c
++++ b/soh/src/code/z_bgcheck.c
+@@ -4039,7 +4039,8 @@ s32 SurfaceType_GetWallFlags(CollisionContext* colCtx, CollisionPoly* poly, s32
+ /**
+  * SurfaceType Is Wall Flag (1 << 0) Set
+  */
+-s32 func_80041DE4(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
++// Name from zeldaret/oot (was func_80041DE4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_bgcheck.c]
++s32 SurfaceType_CheckWallFlag0(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
+     return (SurfaceType_GetWallFlags(colCtx, poly, bgId) & WALL_FLAG_0) ? true : false;
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 53c977e2d..f62f06222 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -11358,7 +11358,7 @@ void Player_ProcessSceneCollision(PlayState* play, Player* this) {
+                          ABS(wallYawDiff) < 0x4000) &&
+                         !func_80041E18(&play->colCtx, poly, bgId)) {
+                         this->yDistToLedge = 399.96002f;
+-                    } else if (func_80041DE4(&play->colCtx, wallPoly, this->actor.wallBgId) == 0) {
++                    } else if (SurfaceType_CheckWallFlag0(&play->colCtx, wallPoly, this->actor.wallBgId) == 0) {
+                         if (this->ageProperties->unk_1C <= this->yDistToLedge) {
+                             if (ABS(ledgeFloorPoly->normal.y) > 28000) {
+                                 if (this->ageProperties->unk_14 <= this->yDistToLedge) {
+-- 
+2.55.0
+

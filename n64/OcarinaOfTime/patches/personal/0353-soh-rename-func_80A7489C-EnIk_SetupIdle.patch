@@ -1,0 +1,74 @@
+From 16e9b7b0bba908e5ffeddf8cd8a6fa74cf12a04d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:36 +0000
+Subject: [PATCH 353/784] soh: rename func_80A7489C -> EnIk_SetupIdle
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.95.
+Defined in soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c.
+---
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index 559e95934..c40d003fb 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -321,7 +321,8 @@ void EnIk_StandUp(EnIk* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7489C(EnIk* this) {
++// Name from zeldaret/oot (was func_80A7489C): adopted upstream's name for this address; body verified to match upstream at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupIdle(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&object_ik_Anim_00DD50);
+ 
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE;
+@@ -482,7 +483,7 @@ void func_80A7510C(EnIk* this, PlayState* play) {
+ 
+     if (SkelAnime_Update(&this->skelAnime) || (--this->animationTimer == 0)) {
+         if (this->unk_2F8 == 8) {
+-            func_80A7489C(this);
++            EnIk_SetupIdle(this);
+         } else {
+             frames = Animation_GetLastFrame(&gIronKnuckleRecoverFromVerticalAttackAnim);
+             this->unk_2F8 = 8;
+@@ -545,7 +546,7 @@ void func_80A753D0(EnIk* this) {
+ 
+ void func_80A7545C(EnIk* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+-        func_80A7489C(this);
++        EnIk_SetupIdle(this);
+         EnIk_HandleBlocking(this, play);
+     }
+ }
+@@ -599,7 +600,7 @@ void func_80A7567C(EnIk* this, PlayState* play) {
+                 func_80A751C8(this);
+             }
+         } else {
+-            func_80A7489C(this);
++            EnIk_SetupIdle(this);
+         }
+     }
+ }
+@@ -631,7 +632,7 @@ void func_80A758B0(EnIk* this, PlayState* play) {
+     }
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if (ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) <= 0x4000) {
+-            func_80A7489C(this);
++            EnIk_SetupIdle(this);
+             EnIk_HandleBlocking(this, play);
+         } else {
+             func_80A754A0(this);
+@@ -1428,7 +1429,7 @@ void func_80A78160(EnIk* this, PlayState* play) {
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE;
+     Flags_SetEventChkInf(EVENTCHKINF_BEGAN_NABOORU_BATTLE);
+     Actor_SetScale(&this->actor, 0.012f);
+-    func_80A7489C(this);
++    EnIk_SetupIdle(this);
+ }
+ 
+ void func_80A781CC(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

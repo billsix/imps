@@ -1,0 +1,57 @@
+From 7b9c98fedb659096c209d5deb3cc21fa5e1a1f6d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:12:03 +0000
+Subject: [PATCH 517/784] soh: rename func_800C20B4 -> PreRender_DrawCoverage
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.92.
+Defined in soh/src/code/PreRender.c.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/PreRender.c | 3 ++-
+ soh/src/code/z_play.c    | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 232ecd00a..6592d339a 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1586,7 +1586,7 @@ void PreRender_CoverageRgba16ToI8(PreRender* this, Gfx** gfxp, void* fbuf, void*
+ void PreRender_SaveZBuffer(PreRender* this, Gfx** gfxp);  // was func_800C1E9C [oot]
+ void PreRender_SaveFramebuffer(PreRender* this, Gfx** gfxp);  // was func_800C1F20 [oot]
+ void PreRender_FetchFbufCoverage(PreRender* this, Gfx** gfxp);  // was func_800C1FA4 [oot]
+-void func_800C20B4(PreRender* this, Gfx** gfxp);
++void PreRender_DrawCoverage(PreRender* this, Gfx** gfxp);  // was func_800C20B4 [oot]
+ void func_800C2118(PreRender* this, Gfx** gfxp);
+ void func_800C213C(PreRender* this, Gfx** gfxp);
+ void func_800C24BC(PreRender* this, Gfx** gfxp);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index 49efabd30..5471237fe 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -280,7 +280,8 @@ void PreRender_FetchFbufCoverage(PreRender* this, Gfx** gfxp) {
+     *gfxp = gfx;
+ }
+ 
+-void func_800C20B4(PreRender* this, Gfx** gfxp) {
++// Name from zeldaret/oot (was func_800C20B4): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_DrawCoverage(PreRender* this, Gfx** gfxp) {
+     PreRender_FetchFbufCoverage(this, gfxp);
+     LOG_CHECK_NULL_POINTER("this->cvg_save", this->cvgSave);
+     if (this->cvgSave != NULL) {
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 9a4497ad0..3a3c98720 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1574,7 +1574,7 @@ void Play_Draw(PlayState* play) {
+             // PreRender_SaveFramebuffer(&play->pauseBgPreRender, &gfxP);
+             if (R_PAUSE_MENU_MODE == 1) {
+                 play->pauseBgPreRender.cvgSave = (u8*)gfxCtx->curFrameBuffer;
+-                // func_800C20B4(&play->pauseBgPreRender, &gfxP);
++                // PreRender_DrawCoverage(&play->pauseBgPreRender, &gfxP);
+                 R_PAUSE_MENU_MODE = 2;
+ 
+                 // #region SOH [Port] Custom handling for pause prerender background capture
+-- 
+2.55.0
+

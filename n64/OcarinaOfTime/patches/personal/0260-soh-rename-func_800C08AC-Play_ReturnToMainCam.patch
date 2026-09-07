@@ -1,0 +1,337 @@
+From 76174612155d17d4ae5f425e05a77a457707c0ee Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:25 +0000
+Subject: [PATCH 260/784] soh: rename func_800C08AC -> Play_ReturnToMainCam
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.82.
+Defined in soh/src/code/z_play.c.
+---
+ soh/include/functions.h                                |  2 +-
+ soh/src/code/z_play.c                                  |  3 ++-
+ .../overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c  |  4 ++--
+ soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c        |  2 +-
+ soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c      |  2 +-
+ soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c  |  4 ++--
+ .../overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c    | 10 +++++-----
+ .../actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c       |  2 +-
+ soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c    |  6 +++---
+ soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c        |  6 +++---
+ soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c        |  6 +++---
+ .../overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c  |  2 +-
+ soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c          |  2 +-
+ soh/src/overlays/actors/ovl_Fishing/z_fishing.c        |  6 +++---
+ 14 files changed, 29 insertions(+), 28 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index cc85bf0e8..9a8ea956b 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1564,7 +1564,7 @@ s32 Play_SetCameraRoll(PlayState* play, s16 camId, s16 roll);
+ void Play_CopyCamera(PlayState* play, s16 camId1, s16 camId2);
+ s32 Play_InitCameraDataUsingPlayer(PlayState* play, s16 camId, Player* player, s16 arg3);  // was func_800C0808 [oot]
+ s32 Play_CameraChangeSetting(PlayState* play, s16 camId, s16 arg2);
+-void func_800C08AC(PlayState* play, s16 camId, s16 arg2);
++void Play_ReturnToMainCam(PlayState* play, s16 camId, s16 arg2);  // was func_800C08AC [oot]
+ void Play_SaveSceneFlags(PlayState* play);
+ void Play_SetupRespawnPoint(PlayState* play, s32 respawnMode, s32 playerParams);
+ void Play_TriggerVoidOut(PlayState* play);
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index cf7124765..50214be48 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -2003,7 +2003,8 @@ s32 Play_CameraChangeSetting(PlayState* play, s16 camId, s16 setting) {
+     return Camera_RequestSetting(Play_GetCamera(play, camId), setting);
+ }
+ 
+-void func_800C08AC(PlayState* play, s16 camId, s16 arg2) {
++// Name from zeldaret/oot (was func_800C08AC): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_play.c]
++void Play_ReturnToMainCam(PlayState* play, s16 camId, s16 arg2) {
+     s16 camIdx = (camId == SUBCAM_ACTIVE) ? play->activeCamera : camId;
+     s16 i;
+ 
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index 15ca508f7..cdc9a4ab5 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -595,7 +595,7 @@ void BossDodongo_IntroCutscene(BossDodongo* this, PlayState* play) {
+                 camera->eye = this->cameraEye;
+                 camera->eyeNext = this->cameraEye;
+                 camera->at = this->cameraAt;
+-                func_800C08AC(play, this->cutsceneCamera, 0);
++                Play_ReturnToMainCam(play, this->cutsceneCamera, 0);
+                 this->cutsceneCamera = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+@@ -1861,7 +1861,7 @@ void BossDodongo_DeathCutscene(BossDodongo* this, PlayState* play) {
+                 camera->eye = this->cameraEye;
+                 camera->eyeNext = this->cameraEye;
+                 camera->at = this->cameraAt;
+-                func_800C08AC(play, this->cutsceneCamera, 0);
++                Play_ReturnToMainCam(play, this->cutsceneCamera, 0);
+                 this->unk_1BC = 0;
+                 this->cutsceneCamera = CAM_ID_MAIN;
+                 this->csState = 100;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+index 9b22baa19..57396068c 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+@@ -546,7 +546,7 @@ void BossFd_Fly(BossFd* this, PlayState* play) {
+                     mainCam->eye = this->camData.eye;
+                     mainCam->eyeNext = this->camData.eye;
+                     mainCam->at = this->camData.at;
+-                    func_800C08AC(play, this->introCamera, 0);
++                    Play_ReturnToMainCam(play, this->introCamera, 0);
+                     this->introState = this->introFlyState = this->introCamera = BFD_CS_NONE;
+                     Cutscene_StopManual(play, &play->csCtx);
+                     Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c b/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
+index 4245fa26e..9c0267bf4 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
+@@ -787,7 +787,7 @@ void BossFd2_Death(BossFd2* this, PlayState* play) {
+                 mainCam->eye = this->camData.eye;
+                 mainCam->eyeNext = this->camData.eye;
+                 mainCam->at = this->camData.at;
+-                func_800C08AC(play, this->deathCamera, 0);
++                Play_ReturnToMainCam(play, this->deathCamera, 0);
+                 this->deathCamera = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+index 626a42ffc..caa52ed52 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+@@ -1164,7 +1164,7 @@ void BossGanon_IntroCutscene(BossGanon* this, PlayState* play) {
+                 mainCam->eye = this->csCamEye;
+                 mainCam->eyeNext = this->csCamEye;
+                 mainCam->at = this->csCamAt;
+-                func_800C08AC(play, this->csCamIndex, 0);
++                Play_ReturnToMainCam(play, this->csCamIndex, 0);
+                 this->csState = this->csCamIndex = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+@@ -1866,7 +1866,7 @@ void BossGanon_DeathAndTowerCutscene(BossGanon* this, PlayState* play) {
+                 mainCam->eyeNext = this->csCamEye;
+                 mainCam->at = this->csCamAt;
+ 
+-                func_800C08AC(play, this->csCamIndex, 0);
++                Play_ReturnToMainCam(play, this->csCamIndex, 0);
+                 this->csState = 109;
+                 this->csCamIndex = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index 4e088265d..d4a4fb3db 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -378,7 +378,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+                 camera->eye = this->subCamEye;
+                 camera->eyeNext = this->subCamEye;
+                 camera->at = this->subCamAt;
+-                func_800C08AC(play, this->subCamId, 0);
++                Play_ReturnToMainCam(play, this->subCamId, 0);
+                 this->subCamId = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+@@ -934,7 +934,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+                 camera->eye = this->subCamEye;
+                 camera->eyeNext = this->subCamEye;
+                 camera->at = this->subCamAt;
+-                func_800C08AC(play, this->subCamId, 0);
++                Play_ReturnToMainCam(play, this->subCamId, 0);
+                 this->subCamId = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+@@ -1403,7 +1403,7 @@ void func_80900890(BossGanon2* this, PlayState* play) {
+                 temp_v0->eye = this->subCamEye;
+                 temp_v0->eyeNext = this->subCamEye;
+                 temp_v0->at = this->subCamAt;
+-                func_800C08AC(play, this->subCamId, 0);
++                Play_ReturnToMainCam(play, this->subCamId, 0);
+                 this->subCamId = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+@@ -1435,7 +1435,7 @@ void func_80900890(BossGanon2* this, PlayState* play) {
+                 temp_v0_2->eyeNext = this->subCamEye;
+                 temp_v0_2->at = this->subCamAt;
+                 this->csState = 3;
+-                func_800C08AC(play, this->subCamId, 0);
++                Play_ReturnToMainCam(play, this->subCamId, 0);
+                 this->subCamId = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+@@ -1690,7 +1690,7 @@ void func_8090120C(BossGanon2* this, PlayState* play) {
+                 temp_v0_2->eye = this->subCamEye;
+                 temp_v0_2->eyeNext = this->subCamEye;
+                 temp_v0_2->at = this->subCamAt;
+-                func_800C08AC(play, this->subCamId, 0);
++                Play_ReturnToMainCam(play, this->subCamId, 0);
+                 this->subCamId = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c b/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
+index 52cfcb4e1..0e737226f 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
+@@ -1080,7 +1080,7 @@ void BossGanondrof_Death(BossGanondrof* this, PlayState* play) {
+                 camera->eye = this->cameraEye;
+                 camera->eyeNext = this->cameraEye;
+                 camera->at = this->cameraAt;
+-                func_800C08AC(play, this->deathCamera, 0);
++                Play_ReturnToMainCam(play, this->deathCamera, 0);
+                 this->deathCamera = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c b/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
+index 5a375fde6..694a46197 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
++++ b/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
+@@ -772,7 +772,7 @@ void BossGoma_Encounter(BossGoma* this, PlayState* play) {
+                 cam->eye = this->subCameraEye;
+                 cam->eyeNext = this->subCameraEye;
+                 cam->at = this->subCameraAt;
+-                func_800C08AC(play, this->subCameraId, 0);
++                Play_ReturnToMainCam(play, this->subCameraId, 0);
+                 this->subCameraId = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+@@ -965,7 +965,7 @@ void BossGoma_Encounter(BossGoma* this, PlayState* play) {
+                 cam->eye = this->subCameraEye;
+                 cam->eyeNext = this->subCameraEye;
+                 cam->at = this->subCameraAt;
+-                func_800C08AC(play, this->subCameraId, 0);
++                Play_ReturnToMainCam(play, this->subCameraId, 0);
+                 this->subCameraId = 0;
+                 BossGoma_SetupFloorMain(this);
+                 this->disableGameplayLogic = false;
+@@ -1189,7 +1189,7 @@ void BossGoma_Defeated(BossGoma* this, PlayState* play) {
+                     camera->eye = this->subCameraEye;
+                     camera->eyeNext = this->subCameraEye;
+                     camera->at = this->subCameraAt;
+-                    func_800C08AC(play, this->subCameraId, 0);
++                    Play_ReturnToMainCam(play, this->subCameraId, 0);
+                     this->subCameraId = 0;
+                     Cutscene_StopManual(play, &play->csCtx);
+                     Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+index bf2d46049..fbf71a5cd 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+@@ -939,7 +939,7 @@ void BossMo_Tentacle(BossMo* this, PlayState* play) {
+                     camera2->eye = this->cameraEye;
+                     camera2->eyeNext = this->cameraEye;
+                     camera2->at = this->cameraAt;
+-                    func_800C08AC(play, this->csCamera, 0);
++                    Play_ReturnToMainCam(play, this->csCamera, 0);
+                     this->csCamera = 0;
+                     Cutscene_StopManual(play, &play->csCtx);
+                 }
+@@ -1487,7 +1487,7 @@ void BossMo_IntroCs(BossMo* this, PlayState* play) {
+                 camera2->eye = this->cameraEye;
+                 camera2->eyeNext = this->cameraEye;
+                 camera2->at = this->cameraAt;
+-                func_800C08AC(play, this->csCamera, 0);
++                Play_ReturnToMainCam(play, this->csCamera, 0);
+                 this->csState = this->csCamera = MO_BATTLE;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+@@ -1719,7 +1719,7 @@ void BossMo_DeathCs(BossMo* this, PlayState* play) {
+                     camera->eye = this->cameraEye;
+                     camera->eyeNext = this->cameraEye;
+                     camera->at = this->cameraAt;
+-                    func_800C08AC(play, this->csCamera, 0);
++                    Play_ReturnToMainCam(play, this->csCamera, 0);
+                     this->csCamera = 0;
+                     Cutscene_StopManual(play, &play->csCtx);
+                     Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+index 2b9e11000..6d29819ab 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
++++ b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+@@ -1691,7 +1691,7 @@ void BossTw_TwinrovaMergeCS(BossTw* this, PlayState* play) {
+                 cam->eye = this->subCamEye;
+                 cam->eyeNext = this->subCamEye;
+                 cam->at = this->subCamAt;
+-                func_800C08AC(play, this->subCamId, 0);
++                Play_ReturnToMainCam(play, this->subCamId, 0);
+                 this->subCamId = 0;
+                 this->csState2 = this->subCamId;
+                 Cutscene_StopManual(play, &play->csCtx);
+@@ -2253,7 +2253,7 @@ void BossTw_TwinrovaIntroCS(BossTw* this, PlayState* play) {
+                 cam->eye = this->subCamEye;
+                 cam->eyeNext = this->subCamEye;
+                 cam->at = this->subCamAt;
+-                func_800C08AC(play, this->subCamId, 0);
++                Play_ReturnToMainCam(play, this->subCamId, 0);
+                 this->subCamId = 0;
+                 this->csState2 = this->subCamId;
+                 Cutscene_StopManual(play, &play->csCtx);
+@@ -2799,7 +2799,7 @@ void BossTw_TwinrovaDeathCS(BossTw* this, PlayState* play) {
+                 mainCam->eye = this->subCamEye;
+                 mainCam->eyeNext = this->subCamEye;
+                 mainCam->at = this->subCamAt;
+-                func_800C08AC(play, this->subCamId, 0);
++                Play_ReturnToMainCam(play, this->subCamId, 0);
+                 this->csState2 = 4;
+                 this->subCamId = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+diff --git a/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c b/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
+index b91003c7e..d0f06f867 100644
+--- a/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
+@@ -644,7 +644,7 @@ void EnClearTag_Update(Actor* thisx, PlayState* play2) {
+ 
+                 // Cutscene has finished.
+                 if (this->cutsceneTimer == 1) {
+-                    func_800C08AC(play, this->cameraId, 0);
++                    Play_ReturnToMainCam(play, this->cameraId, 0);
+                     this->cutsceneMode = this->cameraId = SUBCAM_FREE;
+                     Cutscene_StopManual(play, &play->csCtx);
+                 }
+diff --git a/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c b/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
+index 7b69f7c30..d7c7be6fb 100644
+--- a/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
++++ b/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
+@@ -397,7 +397,7 @@ void EnfHG_Intro(EnfHG* this, PlayState* play) {
+                 camera->eye = this->cameraEye;
+                 camera->eyeNext = this->cameraEye;
+                 camera->at = this->cameraAt;
+-                func_800C08AC(play, this->cutsceneCamera, 0);
++                Play_ReturnToMainCam(play, this->cutsceneCamera, 0);
+                 this->cutsceneCamera = 0;
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index cfcae0ee5..f3ee918d8 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -5475,7 +5475,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+             mainCam->eye = sCameraEye;
+             mainCam->eyeNext = sCameraEye;
+             mainCam->at = sCameraAt;
+-            func_800C08AC(play, sSubCamId, 0);
++            Play_ReturnToMainCam(play, sSubCamId, 0);
+             Cutscene_StopManual(play, &play->csCtx);
+             sFishingPlayerCinematicState = 0;
+             sSubCamId = 0;
+@@ -5523,7 +5523,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+                 mainCam->eye = sCameraEye;
+                 mainCam->eyeNext = sCameraEye;
+                 mainCam->at = sCameraAt;
+-                func_800C08AC(play, sSubCamId, 0);
++                Play_ReturnToMainCam(play, sSubCamId, 0);
+                 Cutscene_StopManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+                 sFishingPlayerCinematicState = 0;
+@@ -5627,7 +5627,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+                         mainCam->eye = sCameraEye;
+                         mainCam->eyeNext = sCameraEye;
+                         mainCam->at = sCameraAt;
+-                        func_800C08AC(play, sSubCamId, 0);
++                        Play_ReturnToMainCam(play, sSubCamId, 0);
+                         Cutscene_StopManual(play, &play->csCtx);
+                         Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+                         sFishingPlayerCinematicState = 0;
+-- 
+2.55.0
+

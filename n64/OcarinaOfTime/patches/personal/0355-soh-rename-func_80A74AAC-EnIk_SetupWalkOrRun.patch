@@ -1,0 +1,57 @@
+From aaa4b0f6e5d6194dd16a17298462dfaa228d2f12 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:36 +0000
+Subject: [PATCH 355/784] soh: rename func_80A74AAC -> EnIk_SetupWalkOrRun
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.96.
+Defined in soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c.
+---
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index c9f4342fc..5d61a5d52 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -25,7 +25,8 @@ void EnIk_SetupStandUp(EnIk* this);
+ void EnIk_StandUp(EnIk* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A7492C): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+ void EnIk_Idle(EnIk* this, PlayState* play);
+-void func_80A74AAC(EnIk* this);
++// Name from zeldaret/oot (was func_80A74AAC): adopted upstream's name for this address; body verified to match upstream at 0.96. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupWalkOrRun(EnIk* this);
+ void func_80A74BA4(EnIk* this, PlayState* play);
+ void func_80A74E2C(EnIk* this);
+ void func_80A74EBC(EnIk* this, PlayState* play);
+@@ -318,7 +319,7 @@ void EnIk_StandUp(EnIk* this, PlayState* play) {
+     }
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE;
+-        func_80A74AAC(this);
++        EnIk_SetupWalkOrRun(this);
+     }
+ }
+ 
+@@ -345,15 +346,15 @@ void EnIk_Idle(EnIk* this, PlayState* play) {
+             func_80A751C8(this);
+         }
+     } else if ((ABS(yawDiff) <= 0x4000) && (ABS(this->actor.yDistToPlayer) < 150.0f)) {
+-        func_80A74AAC(this);
++        EnIk_SetupWalkOrRun(this);
+     } else {
+-        func_80A74AAC(this);
++        EnIk_SetupWalkOrRun(this);
+     }
+     EnIk_HandleBlocking(this, play);
+     SkelAnime_Update(&this->skelAnime);
+ }
+ 
+-void func_80A74AAC(EnIk* this) {
++void EnIk_SetupWalkOrRun(EnIk* this) {
+     this->unk_2F8 = 5;
+     if (this->armorStatusFlag == 0) {
+         Animation_Change(&this->skelAnime, &gIronKnuckleWalkAnim, 1.0f, 0.0f,
+-- 
+2.55.0
+

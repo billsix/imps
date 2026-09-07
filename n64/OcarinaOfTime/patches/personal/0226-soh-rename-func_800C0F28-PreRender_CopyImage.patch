@@ -1,0 +1,70 @@
+From 1c5886bc555a217d162a1aaf68787f4768926359 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:21 +0000
+Subject: [PATCH 226/784] soh: rename func_800C0F28 -> PreRender_CopyImage
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.86.
+Defined in soh/src/code/PreRender.c.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/PreRender.c | 9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 60f5c3f53..9bbacc991 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1578,7 +1578,7 @@ void PreRender_SetValuesSave(PreRender* this, u32 width, u32 height, void* fbuf,
+ void PreRender_Init(PreRender* this);
+ void PreRender_SetValues(PreRender* this, u32 width, u32 height, void* fbuf, void* zbuf);
+ void PreRender_Destroy(PreRender* this);
+-void func_800C0F28(PreRender* this, Gfx** gfxp, void* buf, void* bufSave);
++void PreRender_CopyImage(PreRender* this, Gfx** gfxp, void* buf, void* bufSave);  // was func_800C0F28 [oot]
+ void func_800C1258(PreRender* this, Gfx** gfxp);
+ void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a);
+ void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index e79b4cfe0..e1d12f51d 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -36,7 +36,8 @@ void PreRender_Destroy(PreRender* this) {
+     ListAlloc_FreeAll(&this->alloc);
+ }
+ 
+-void func_800C0F28(PreRender* this, Gfx** gfxp, void* buf, void* bufSave) {
++// Name from zeldaret/oot (was func_800C0F28): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_CopyImage(PreRender* this, Gfx** gfxp, void* buf, void* bufSave) {
+     Gfx* gfx;
+     s32 x;
+     s32 x2;
+@@ -244,7 +245,7 @@ void func_800C1E9C(PreRender* this, Gfx** gfxp) {
+     LOG_CHECK_NULL_POINTER("this->zbuf", this->zbuf);
+ 
+     if ((this->zbufSave != NULL) && (this->zbuf != NULL)) {
+-        func_800C0F28(this, gfxp, this->zbuf, this->zbufSave);
++        PreRender_CopyImage(this, gfxp, this->zbuf, this->zbufSave);
+     }
+ }
+ 
+@@ -283,7 +284,7 @@ void func_800C20B4(PreRender* this, Gfx** gfxp) {
+ }
+ 
+ void func_800C2118(PreRender* this, Gfx** gfxp) {
+-    func_800C0F28(this, gfxp, this->zbufSave, this->zbuf);
++    PreRender_CopyImage(this, gfxp, this->zbufSave, this->zbuf);
+ }
+ 
+ void func_800C213C(PreRender* this, Gfx** gfxp) {
+@@ -345,7 +346,7 @@ void func_800C213C(PreRender* this, Gfx** gfxp) {
+ }
+ 
+ void func_800C24BC(PreRender* this, Gfx** gfxp) {
+-    func_800C0F28(this, gfxp, this->fbufSave, this->fbuf);
++    PreRender_CopyImage(this, gfxp, this->fbufSave, this->fbuf);
+ }
+ 
+ void func_800C24E0(PreRender* this, Gfx** gfxp) {
+-- 
+2.55.0
+

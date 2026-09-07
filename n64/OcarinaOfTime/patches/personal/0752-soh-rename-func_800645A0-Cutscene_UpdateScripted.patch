@@ -1,0 +1,57 @@
+From 4558d93683795c8bab0211d9debbf1ffff45d389 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:53 +0000
+Subject: [PATCH 752/784] soh: rename func_800645A0 -> Cutscene_UpdateScripted
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.80.
+Defined in soh/src/code/z_demo.c.
+---
+ soh/include/functions.h | 2 +-
+ soh/src/code/z_demo.c   | 3 ++-
+ soh/src/code/z_play.c   | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 942575403..7b6d23b3f 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -866,7 +866,7 @@ void Cutscene_InitContext(PlayState* play, CutsceneContext* csCtx);  // was func
+ void Cutscene_StartManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064520 [oot]
+ void Cutscene_StopManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064534 [oot]
+ void Cutscene_UpdateManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064558 [oot]
+-void func_800645A0(PlayState* play, CutsceneContext* csCtx);
++void Cutscene_UpdateScripted(PlayState* play, CutsceneContext* csCtx);  // was func_800645A0 [oot]
+ void Cutscene_HandleEntranceTriggers(PlayState* play);
+ void Cutscene_HandleConditionalTriggers(PlayState* play);
+ void Cutscene_SetSegment(PlayState* play, void* segment);
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 150adfd8c..ccc0bacd9 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -170,7 +170,8 @@ void Cutscene_UpdateManual(PlayState* play, CutsceneContext* csCtx) {
+     }
+ }
+ 
+-void func_800645A0(PlayState* play, CutsceneContext* csCtx) {
++// Name from zeldaret/oot (was func_800645A0): adopted upstream's name for this address; body verified to match upstream at 0.80. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++void Cutscene_UpdateScripted(PlayState* play, CutsceneContext* csCtx) {
+     Input* input = &play->state.input[0];
+ 
+     if (CVarGetInteger(CVAR_DEVELOPER_TOOLS("DebugEnabled"), 0) && CHECK_BTN_ALL(input->press.button, BTN_DLEFT) &&
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index d5fb9a5f9..141e79c4b 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1176,7 +1176,7 @@ void Play_Update(PlayState* play) {
+                     Cutscene_UpdateManual(play, &play->csCtx);
+ 
+                     PLAY_LOG(3648);
+-                    func_800645A0(play, &play->csCtx);
++                    Cutscene_UpdateScripted(play, &play->csCtx);
+ 
+                     PLAY_LOG(3651);
+                     Effect_UpdateAll(play);
+-- 
+2.55.0
+

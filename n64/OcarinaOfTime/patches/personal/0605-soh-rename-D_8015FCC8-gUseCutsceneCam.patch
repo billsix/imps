@@ -1,0 +1,142 @@
+From d74fe4464fef121c09cc3978c3422286092f8b87 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:11 +0000
+Subject: [PATCH 605/784] soh: rename D_8015FCC8 -> gUseCutsceneCam
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/code/z_demo.c.
+---
+ soh/include/variables.h  |  2 +-
+ soh/src/code/db_camera.c |  2 +-
+ soh/src/code/z_demo.c    | 19 ++++++++++---------
+ soh/src/code/z_kankyo.c  |  2 +-
+ 4 files changed, 13 insertions(+), 12 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 7f42a51a3..834f13004 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -192,7 +192,7 @@ extern "C"
+ 	extern u16 gCamAtSplinePointsAppliedFrame;  // was D_8015FCC0 [oot]
+ 	extern u16 gCamEyePointAppliedFrame;  // was D_8015FCC2 [oot]
+ 	extern u16 gCamAtPointAppliedFrame;  // was D_8015FCC4 [oot]
+-	extern u8 D_8015FCC8;
++	extern u8 gUseCutsceneCam;  // was D_8015FCC8 [oot]
+ 	extern u8 gCustomLensFlareOn;
+ 	extern Vec3f gCustomLensFlarePos;
+ 	extern s16 gLensFlareScale;
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index 61bd450a9..9982ad570 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -2082,7 +2082,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+             }
+ 
+             if (CHECK_BTN_ALL(sPlayState->state.input[1].press.button, BTN_CRIGHT)) {
+-                D_8015FCC8 = 0;
++                gUseCutsceneCam = 0;
+                 gSaveContext.cutsceneIndex = 0xFFFD;
+                 gSaveContext.cutsceneTrigger = 1;
+                 sDbCamAnim.curFrame = 0.0f;
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 5f1cfc1d0..150adfd8c 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -114,7 +114,8 @@ u16 gCamEyePointAppliedFrame;
+ u16 gCamAtPointAppliedFrame;
+ // Name from zeldaret/oot (was D_8015FCC6): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ s16 sReturnToCamId;
+-u8 D_8015FCC8;
++// Name from zeldaret/oot (was D_8015FCC8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u8 gUseCutsceneCam;
+ s16 sQuakeIndex;
+ u16 D_8015FCCC;      // only written to, never read
+ char D_8015FCD0[20]; // unreferenced
+@@ -174,14 +175,14 @@ void func_800645A0(PlayState* play, CutsceneContext* csCtx) {
+ 
+     if (CVarGetInteger(CVAR_DEVELOPER_TOOLS("DebugEnabled"), 0) && CHECK_BTN_ALL(input->press.button, BTN_DLEFT) &&
+         (csCtx->state == CS_STATE_IDLE) && (gSaveContext.sceneLayer >= 4)) {
+-        D_8015FCC8 = 0;
++        gUseCutsceneCam = 0;
+         gSaveContext.cutsceneIndex = 0xFFFD;
+         gSaveContext.cutsceneTrigger = 1;
+     }
+ 
+     if (CVarGetInteger(CVAR_DEVELOPER_TOOLS("DebugEnabled"), 0) && CHECK_BTN_ALL(input->press.button, BTN_DUP) &&
+         (csCtx->state == CS_STATE_IDLE) && (gSaveContext.sceneLayer >= 4) && !gDbgCamEnabled) {
+-        D_8015FCC8 = 1;
++        gUseCutsceneCam = 1;
+         gSaveContext.cutsceneIndex = 0xFFFD;
+         gSaveContext.cutsceneTrigger = 1;
+     }
+@@ -1457,7 +1458,7 @@ size_t Cutscene_Command_CameraPositions(PlayState* play, CutsceneContext* csCtx,
+         csCtx->cameraPosition = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1A != 0) {
+             csCtx->unk_18 = cmdBase->startFrame;
+-            if (D_8015FCC8 != 0) {
++            if (gUseCutsceneCam != 0) {
+                 Play_CameraChangeSetting(play, csCtx->unk_14, CAM_SET_CS_0);
+                 Play_ChangeCameraStatus(play, sReturnToCamId, CAM_STAT_WAIT);
+                 Play_ChangeCameraStatus(play, csCtx->unk_14, CAM_STAT_ACTIVE);
+@@ -1494,7 +1495,7 @@ size_t Cutscene_Command_CameraFocus(PlayState* play, CutsceneContext* csCtx, u8*
+         csCtx->cameraFocus = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1B != 0) {
+             gCamAtSplinePointsAppliedFrame = cmdBase->startFrame;
+-            if (D_8015FCC8 != 0) {
++            if (gUseCutsceneCam != 0) {
+                 Play_CameraChangeSetting(play, csCtx->unk_14, CAM_SET_CS_0);
+                 Play_ChangeCameraStatus(play, sReturnToCamId, CAM_STAT_WAIT);
+                 Play_ChangeCameraStatus(play, csCtx->unk_14, CAM_STAT_ACTIVE);
+@@ -1534,7 +1535,7 @@ size_t Cutscene_Command_07(PlayState* play, CutsceneContext* csCtx, u8* cmd, u8
+         csCtx->cameraPosition = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1A != 0) {
+             gCamEyePointAppliedFrame = cmdBase->startFrame;
+-            if (D_8015FCC8 != 0) {
++            if (gUseCutsceneCam != 0) {
+                 sp2C = Play_GetCamera(play, csCtx->unk_14);
+                 sp2C->player = NULL;
+                 Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -1577,7 +1578,7 @@ size_t Cutscene_Command_08(PlayState* play, CutsceneContext* csCtx, u8* cmd, u8
+         csCtx->cameraFocus = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1B != 0) {
+             gCamAtPointAppliedFrame = cmdBase->startFrame;
+-            if (D_8015FCC8 != 0) {
++            if (gUseCutsceneCam != 0) {
+                 sp2C = Play_GetCamera(play, csCtx->unk_14);
+                 sp2C->player = NULL;
+                 Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -2125,7 +2126,7 @@ void func_80068DC0(PlayState* play, CutsceneContext* csCtx) {
+         gSaveContext.cutsceneIndex = 0;
+         gSaveContext.gameMode = GAMEMODE_NORMAL;
+ 
+-        if (D_8015FCC8 != 0) {
++        if (gUseCutsceneCam != 0) {
+             switch (gSaveContext.entranceIndex) {
+                 case ENTR_HYRULE_FIELD_11:
+                 case ENTR_HYRULE_FIELD_12:
+@@ -2177,7 +2178,7 @@ void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx) {
+             csCtx->unk_1B = 0;
+             sReturnToCamId = play->activeCamera;
+ 
+-            if (D_8015FCC8 != 0) {
++            if (gUseCutsceneCam != 0) {
+                 csCtx->unk_14 = Play_CreateSubCamera(play);
+             }
+ 
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 1413511cc..b4b201b5b 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -403,7 +403,7 @@ void Environment_Init(PlayState* play2, EnvironmentContext* envCtx, s32 unused)
+     cREG(12) = 0;
+     cREG(13) = 0;
+     cREG(14) = 0;
+-    D_8015FCC8 = 1;
++    gUseCutsceneCam = 1;
+ 
+     for (i = 0; i < ARRAY_COUNT(sLightningBolts); i++) {
+         sLightningBolts[i].state = LIGHTNING_BOLT_INACTIVE;
+-- 
+2.55.0
+

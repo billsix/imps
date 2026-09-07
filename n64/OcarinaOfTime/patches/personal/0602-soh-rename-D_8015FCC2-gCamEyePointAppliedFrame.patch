@@ -1,0 +1,80 @@
+From f3f1488bfbc64b6f3f995234e90977e5fb83016b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:10 +0000
+Subject: [PATCH 602/784] soh: rename D_8015FCC2 -> gCamEyePointAppliedFrame
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/code/z_demo.c.
+---
+ soh/include/variables.h                                  | 2 +-
+ soh/src/code/z_demo.c                                    | 9 +++++----
+ .../overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c    | 2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 36cdd0a1c..2764f9883 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -190,7 +190,7 @@ extern "C"
+ 	extern SaveContext gSaveContext;
+ 	extern GameInfo* gGameInfo;
+ 	extern u16 gCamAtSplinePointsAppliedFrame;  // was D_8015FCC0 [oot]
+-	extern u16 D_8015FCC2;
++	extern u16 gCamEyePointAppliedFrame;  // was D_8015FCC2 [oot]
+ 	extern u16 D_8015FCC4;
+ 	extern u8 D_8015FCC8;
+ 	extern u8 gCustomLensFlareOn;
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 16d307d71..04beec03c 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -108,7 +108,8 @@ void* D_8011E304[] = {
+ 
+ // Name from zeldaret/oot (was D_8015FCC0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ u16 gCamAtSplinePointsAppliedFrame;
+-u16 D_8015FCC2;
++// Name from zeldaret/oot (was D_8015FCC2): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u16 gCamEyePointAppliedFrame;
+ u16 D_8015FCC4;
+ s16 D_8015FCC6;
+ u8 D_8015FCC8;
+@@ -1526,11 +1527,11 @@ size_t Cutscene_Command_07(PlayState* play, CutsceneContext* csCtx, u8* cmd, u8
+     size = sizeof(CutsceneData) * 2;
+ 
+     if ((cmdBase->startFrame < csCtx->frames) && (csCtx->frames < cmdBase->endFrame) &&
+-        ((D_8015FCC2 < cmdBase->startFrame) || (D_8015FCC2 >= 0xF000))) {
++        ((gCamEyePointAppliedFrame < cmdBase->startFrame) || (gCamEyePointAppliedFrame >= 0xF000))) {
+         csCtx->unk_1B = 1;
+         csCtx->cameraPosition = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1A != 0) {
+-            D_8015FCC2 = cmdBase->startFrame;
++            gCamEyePointAppliedFrame = cmdBase->startFrame;
+             if (D_8015FCC8 != 0) {
+                 sp2C = Play_GetCamera(play, csCtx->unk_14);
+                 sp2C->player = NULL;
+@@ -2168,7 +2169,7 @@ void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx) {
+             csCtx->frames = 0xFFFF;
+             csCtx->unk_18 = 0xFFFF;
+             gCamAtSplinePointsAppliedFrame = 0xFFFF;
+-            D_8015FCC2 = 0xFFFF;
++            gCamEyePointAppliedFrame = 0xFFFF;
+             D_8015FCC4 = 0xFFFF;
+             csCtx->unk_1A = 0;
+             csCtx->unk_1B = 0;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+index 99851e8b9..c5b60df37 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
++++ b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+@@ -179,7 +179,7 @@ void func_808BC9EC(BgTreemouth* this, PlayState* play) {
+         play->csCtx.frames = 0;
+         play->csCtx.unk_18 = 0xFFFF;
+         gCamAtSplinePointsAppliedFrame = 0xFFFF;
+-        D_8015FCC2 = 0xFFFF;
++        gCamEyePointAppliedFrame = 0xFFFF;
+         D_8015FCC4 = 0xFFFF;
+         play->csCtx.unk_1A = 0;
+         play->csCtx.unk_1B = 0;
+-- 
+2.55.0
+

@@ -1,0 +1,78 @@
+From ee36a1f339910543817cec9c4785c1cfef2e788e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:47 +0000
+Subject: [PATCH 747/784] soh: rename func_80B44DC4 -> EnZf_PickAction
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 0.93.
+Defined in soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c.
+---
+ soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+index 43a6a9701..b90069da2 100644
+--- a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
++++ b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+@@ -572,7 +572,8 @@ s32 EnZf_CanAttack(PlayState* play, EnZf* this) {
+     return false;
+ }
+ 
+-void func_80B44DC4(EnZf* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80B44DC4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
++void EnZf_PickAction(EnZf* this, PlayState* play) {
+     s16 angleDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+ 
+     if (angleDiff < 0) {
+@@ -1335,7 +1336,7 @@ void EnZf_Stunned(EnZf* this, PlayState* play) {
+             EnZf_SetupDie(this);
+         } else if ((this->actor.params != ENZF_TYPE_DINOLFOS) || !EnZf_ChooseAction(play, this)) {
+             if (D_80B4A1B4 != -1) {
+-                func_80B44DC4(this, play);
++                EnZf_PickAction(this, play);
+             } else {
+                 angleToWall = this->actor.wallYaw - this->actor.shape.rot.y;
+                 angleToWall = ABS(angleToWall);
+@@ -1346,12 +1347,12 @@ void EnZf_Stunned(EnZf* this, PlayState* play) {
+                     EnZf_SetupJumpUp(this);
+                 } else if (!EnZf_DodgeRangedEngaging(play, this)) {
+                     if (this->actor.params != ENZF_TYPE_DINOLFOS) {
+-                        func_80B44DC4(this, play);
++                        EnZf_PickAction(this, play);
+                     } else if ((this->actor.xzDistToPlayer <= 100.0f) && ((play->gameplayFrames % 4) != 0) &&
+                                EnZf_CanAttack(play, this)) {
+                         EnZf_SetupSlash(this);
+                     } else {
+-                        func_80B44DC4(this, play);
++                        EnZf_PickAction(this, play);
+                     }
+                 }
+             }
+@@ -1676,7 +1677,7 @@ void EnZf_Damaged(EnZf* this, PlayState* play) {
+                 } else if ((this->actor.xzDistToPlayer <= 100.0f) && ((play->gameplayFrames % 4) == 0)) {
+                     EnZf_SetupSlash(this);
+                 } else {
+-                    func_80B44DC4(this, play);
++                    EnZf_PickAction(this, play);
+                 }
+             }
+         } else {
+@@ -1696,13 +1697,13 @@ void EnZf_Damaged(EnZf* this, PlayState* play) {
+                     } else if ((this->actor.xzDistToPlayer <= 100.0f) && ((play->gameplayFrames % 4) == 0)) {
+                         EnZf_SetupSlash(this);
+                     } else {
+-                        func_80B44DC4(this, play);
++                        EnZf_PickAction(this, play);
+                     }
+                 } else if ((this->actor.xzDistToPlayer <= 100.0f) && ((play->gameplayFrames % 4) == 0) &&
+                            EnZf_CanAttack(play, this)) {
+                     EnZf_SetupSlash(this);
+                 } else {
+-                    func_80B44DC4(this, play);
++                    EnZf_PickAction(this, play);
+                 }
+             }
+         }
+-- 
+2.55.0
+

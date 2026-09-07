@@ -1,0 +1,57 @@
+From fad274945d25685bdc9e94e23323a95e4203a22a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:12 +0000
+Subject: [PATCH 614/784] soh: rename D_8011FDD4 -> sSandstormLerpScale
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/code/z_kankyo.c.
+---
+ soh/src/code/z_kankyo.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index d7bbcb20d..da8216663 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -205,7 +205,8 @@ SkyboxFile gSkyboxFiles[] = {
+ u8 sSandstormColorIndex = 0;
+ // Name from zeldaret/oot (was D_8011FDD0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
+ u8 sNextSandstormColorIndex = 0;
+-f32 D_8011FDD4 = 0.0f;
++// Name from zeldaret/oot (was D_8011FDD4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++f32 sSandstormLerpScale = 0.0f;
+ 
+ u8 gCustomLensFlareOn;
+ Vec3f gCustomLensFlarePos;
+@@ -995,7 +996,7 @@ void Environment_Update(PlayState* play, EnvironmentContext* envCtx, LightContex
+ 
+                         sSandstormColorIndex = TIME_ENTRY_1F.unk_04 & 3;
+                         sNextSandstormColorIndex = TIME_ENTRY_1F.unk_05 & 3;
+-                        D_8011FDD4 = sp8C;
++                        sSandstormLerpScale = sp8C;
+ 
+                         if (envCtx->unk_21) {
+                             sp88 = ((f32)envCtx->unk_24 - envCtx->unk_22) / envCtx->unk_24;
+@@ -2413,12 +2414,12 @@ void Environment_DrawSandstorm(PlayState* play, u8 sandstormState) {
+         envColor.g = sSandstormEnvColors[sSandstormColorIndex].g;
+         envColor.b = sSandstormEnvColors[sSandstormColorIndex].b;
+     } else {
+-        primColor.r = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].r, sSandstormPrimColors[sNextSandstormColorIndex].r, D_8011FDD4);
+-        primColor.g = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].g, sSandstormPrimColors[sNextSandstormColorIndex].g, D_8011FDD4);
+-        primColor.b = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].b, sSandstormPrimColors[sNextSandstormColorIndex].b, D_8011FDD4);
+-        envColor.r = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].r, sSandstormEnvColors[sNextSandstormColorIndex].r, D_8011FDD4);
+-        envColor.g = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].g, sSandstormEnvColors[sNextSandstormColorIndex].g, D_8011FDD4);
+-        envColor.b = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].b, sSandstormEnvColors[sNextSandstormColorIndex].b, D_8011FDD4);
++        primColor.r = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].r, sSandstormPrimColors[sNextSandstormColorIndex].r, sSandstormLerpScale);
++        primColor.g = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].g, sSandstormPrimColors[sNextSandstormColorIndex].g, sSandstormLerpScale);
++        primColor.b = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].b, sSandstormPrimColors[sNextSandstormColorIndex].b, sSandstormLerpScale);
++        envColor.r = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].r, sSandstormEnvColors[sNextSandstormColorIndex].r, sSandstormLerpScale);
++        envColor.g = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].g, sSandstormEnvColors[sNextSandstormColorIndex].g, sSandstormLerpScale);
++        envColor.b = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].b, sSandstormEnvColors[sNextSandstormColorIndex].b, sSandstormLerpScale);
+     }
+ 
+     envColor.r = ((envColor.r * sp98) + ((6.0f - sp98) * primColor.r)) * (1.0f / 6.0f);
+-- 
+2.55.0
+

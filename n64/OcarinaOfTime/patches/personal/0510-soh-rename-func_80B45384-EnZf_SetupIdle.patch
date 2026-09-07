@@ -1,0 +1,155 @@
+From ec63fb7e0dc88d99b7b9d435c53cd3af3a6145ce Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:53 +0000
+Subject: [PATCH 510/784] soh: rename func_80B45384 -> EnZf_SetupIdle
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.90.
+Defined in soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c.
+---
+ soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c | 33 +++++++++++----------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+index 5e2eeaa3d..04b63ee39 100644
+--- a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
++++ b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+@@ -20,7 +20,8 @@ void EnZf_Reset(void);
+ s16 EnZf_FindPlatform(Vec3f* pos, s16 preferredIndex);
+ void EnZf_SetupDropIn(EnZf* this);
+ void EnZf_DropIn(EnZf* this, PlayState* play);
+-void func_80B45384(EnZf* this);
++// Name from zeldaret/oot (was func_80B45384): adopted upstream's name for this address; body verified to match upstream at 0.90. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
++void EnZf_SetupIdle(EnZf* this);
+ void func_80B4543C(EnZf* this, PlayState* play);
+ void EnZf_SetupApproachPlayer(EnZf* this, PlayState* play);
+ void EnZf_ApproachPlayer(EnZf* this, PlayState* play);
+@@ -346,7 +347,7 @@ void EnZf_Init(Actor* thisx, PlayState* play) {
+         if (thisx->params == ENZF_TYPE_LIZALFOS_LONE) {
+             EnZf_SetupDropIn(this);
+         } else { // Dinolfos
+-            func_80B45384(this);
++            EnZf_SetupIdle(this);
+         }
+     } else { // Minibosses
+         posDiff = player->actor.world.pos.y - thisx->world.pos.y;
+@@ -579,7 +580,7 @@ void func_80B44DC4(EnZf* this, PlayState* play) {
+                EnZf_CanAttack(play, this)) {
+         EnZf_SetupSlash(this);
+     } else {
+-        func_80B45384(this);
++        EnZf_SetupIdle(this);
+     }
+ }
+ 
+@@ -688,14 +689,14 @@ void EnZf_DropIn(EnZf* this, PlayState* play) {
+         if (this->actor.params > ENZF_TYPE_LIZALFOS_MINIBOSS_A) { // Only miniboss B
+             EnZf_SetupSheatheSword(this, play);
+         } else {
+-            func_80B45384(this);
++            EnZf_SetupIdle(this);
+         }
+     }
+     this->actor.shape.shadowAlpha = this->alpha;
+ }
+ 
+ // stop? and choose an action
+-void func_80B45384(EnZf* this) {
++void EnZf_SetupIdle(EnZf* this) {
+     Animation_Change(&this->skelAnime, &gZfCryingAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gZfCryingAnim),
+                      ANIMMODE_LOOP_INTERP, -4.0f);
+     this->action = ENZF_ACTION_3;
+@@ -866,7 +867,7 @@ void EnZf_ApproachPlayer(EnZf* this, PlayState* play) {
+                 if (Rand_ZeroOne() > 0.5f) {
+                     func_80B462E4(this, play);
+                 } else {
+-                    func_80B45384(this);
++                    EnZf_SetupIdle(this);
+                 }
+             } else if (this->actor.xzDistToPlayer < 100.0f) {
+                 if ((Rand_ZeroOne() > 0.05f) && EnZf_CanAttack(play, this)) {
+@@ -874,13 +875,13 @@ void EnZf_ApproachPlayer(EnZf* this, PlayState* play) {
+                 } else if (Rand_ZeroOne() > 0.5f) {
+                     func_80B483E4(this, play);
+                 } else {
+-                    func_80B45384(this);
++                    EnZf_SetupIdle(this);
+                 }
+             } else {
+                 if (this->unk_3F8) {
+                     func_80B462E4(this, play);
+                 } else if (Rand_ZeroOne() < 0.1f) {
+-                    func_80B45384(this);
++                    EnZf_SetupIdle(this);
+                 }
+             }
+         }
+@@ -1156,7 +1157,7 @@ void func_80B463E4(EnZf* this, PlayState* play) {
+                 EnZf_CanAttack(play, this)) {
+                 EnZf_SetupSlash(this);
+             } else {
+-                func_80B45384(this);
++                EnZf_SetupIdle(this);
+             }
+         } else if (this->unk_3F0 != 0) {
+             this->unk_3F0--;
+@@ -1194,11 +1195,11 @@ void EnZf_Slash(EnZf* this, PlayState* play) {
+         EffectBlure_AddSpace(Effect_GetByIndex(this->blureIndex));
+ 
+         if ((this->actor.params == ENZF_TYPE_DINOLFOS) && !Actor_IsFacingPlayer(&this->actor, 5460)) {
+-            func_80B45384(this);
++            EnZf_SetupIdle(this);
+             this->unk_3F0 = Rand_ZeroOne() * 5.0f + 5.0f;
+             this->unk_3F4 = Rand_ZeroOne() * 20.0f + 100.0f;
+         } else if ((Rand_ZeroOne() > 0.7f) || (this->actor.xzDistToPlayer >= 120.0f)) {
+-            func_80B45384(this);
++            EnZf_SetupIdle(this);
+             this->unk_3F0 = Rand_ZeroOne() * 5.0f + 5.0f;
+         } else {
+             this->actor.world.rot.y = this->actor.yawTowardsPlayer;
+@@ -1245,7 +1246,7 @@ void EnZf_SetupRecoilFromBlockedSlash(EnZf* this) {
+ void EnZf_RecoilFromBlockedSlash(EnZf* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if (Rand_ZeroOne() > 0.7f) {
+-            func_80B45384(this);
++            EnZf_SetupIdle(this);
+         } else if ((Rand_ZeroOne() > 0.2f) && EnZf_CanAttack(play, this)) {
+             EnZf_SetupSlash(this);
+         } else {
+@@ -1281,7 +1282,7 @@ void EnZf_JumpBack(EnZf* this, PlayState* play) {
+         } else if ((play->gameplayFrames % 2) != 0) {
+             func_80B483E4(this, play);
+         } else {
+-            func_80B45384(this);
++            EnZf_SetupIdle(this);
+         }
+     }
+ 
+@@ -1607,7 +1608,7 @@ void EnZf_DrawSword(EnZf* this, PlayState* play) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_RIZA_CRY);
+         this->actor.world.rot.y = yawTowardsPlayer;
+         this->hopAnimIndex = -1;
+-        func_80B45384(this);
++        EnZf_SetupIdle(this);
+     }
+ 
+     if (this->skelAnime.curFrame == 22.0f) {
+@@ -1868,7 +1869,7 @@ void EnZf_CircleAroundPlayer(EnZf* this, PlayState* play) {
+                 if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) && (D_80B4A1B4 == this->actor.params)) {
+                     EnZf_SetupHopAndTaunt(this);
+                 } else {
+-                    func_80B45384(this);
++                    EnZf_SetupIdle(this);
+                     this->unk_3F0 = Rand_ZeroOne() * 5.0f + 1.0f;
+                 }
+             } else if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) && (D_80B4A1B4 == this->actor.params)) {
+@@ -2441,4 +2442,4 @@ s32 EnZf_DodgeRangedWaiting(PlayState* play, EnZf* this) {
+ void EnZf_Reset(void) {
+     D_80B4A1B0 = 0;
+     D_80B4A1B4 = 1;
+-}
+\ No newline at end of file
++}
+-- 
+2.55.0
+

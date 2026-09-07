@@ -1,0 +1,53 @@
+From f53e13fe37dee5a52435b84f2578b6d3ec2c5bb7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:21 +0000
+Subject: [PATCH 228/784] soh: rename func_800C1B24 ->
+ PreRender_CoverageRgba16ToI8
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.86.
+Defined in soh/src/code/PreRender.c.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/PreRender.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index ee3151bb5..a1d333813 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1582,7 +1582,7 @@ void PreRender_CopyImage(PreRender* this, Gfx** gfxp, void* buf, void* bufSave);
+ void PreRender_CopyImageRegionImpl(PreRender* this, Gfx** gfxp);  // was func_800C1258 [oot]
+ void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a);
+ void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave);
+-void func_800C1B24(PreRender* this, Gfx** gfxp, void* fbuf, void* cvgSave);
++void PreRender_CoverageRgba16ToI8(PreRender* this, Gfx** gfxp, void* fbuf, void* cvgSave);  // was func_800C1B24 [oot]
+ void func_800C1E9C(PreRender* this, Gfx** gfxp);
+ void func_800C1F20(PreRender* this, Gfx** gfxp);
+ void func_800C1FA4(PreRender* this, Gfx** gfxp);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index 07cad9de6..d4d375ba2 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -192,7 +192,8 @@ void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave) {
+     func_800C170C(this, gfxp, fbuf, fbufSave, 255, 255, 255, 255);
+ }
+ 
+-void func_800C1B24(PreRender* this, Gfx** gfxp, void* fbuf, void* cvgSave) {
++// Name from zeldaret/oot (was func_800C1B24): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_CoverageRgba16ToI8(PreRender* this, Gfx** gfxp, void* fbuf, void* cvgSave) {
+     Gfx* gfx;
+     s32 x;
+     s32 x2;
+@@ -280,7 +281,7 @@ void func_800C20B4(PreRender* this, Gfx** gfxp) {
+     func_800C1FA4(this, gfxp);
+     LOG_CHECK_NULL_POINTER("this->cvg_save", this->cvgSave);
+     if (this->cvgSave != NULL) {
+-        func_800C1B24(this, gfxp, this->fbuf, this->cvgSave);
++        PreRender_CoverageRgba16ToI8(this, gfxp, this->fbuf, this->cvgSave);
+     }
+ }
+ 
+-- 
+2.55.0
+

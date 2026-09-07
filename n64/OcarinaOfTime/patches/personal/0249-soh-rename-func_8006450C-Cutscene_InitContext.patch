@@ -1,0 +1,57 @@
+From e0ed85d8a940a24ccf8049af17a088fb4f2f7d20 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:24 +0000
+Subject: [PATCH 249/784] soh: rename func_8006450C -> Cutscene_InitContext
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.88.
+Defined in soh/src/code/z_demo.c.
+---
+ soh/include/functions.h | 2 +-
+ soh/src/code/z_demo.c   | 3 ++-
+ soh/src/code/z_play.c   | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 5e641cdb0..416d80eb9 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -862,7 +862,7 @@ DebugDispObject* DebugDisplay_AddObject(f32 posX, f32 posY, f32 posZ, s16 rotX,
+                                         f32 scaleY, f32 scaleZ, u8 red, u8 green, u8 blue, u8 alpha, s16 type,
+                                         GraphicsContext* gfxCtx);
+ void DebugDisplay_DrawObjects(PlayState* play);
+-void func_8006450C(PlayState* play, CutsceneContext* csCtx);
++void Cutscene_InitContext(PlayState* play, CutsceneContext* csCtx);  // was func_8006450C [oot]
+ void func_80064520(PlayState* play, CutsceneContext* csCtx);
+ void func_80064534(PlayState* play, CutsceneContext* csCtx);
+ void func_80064558(PlayState* play, CutsceneContext* csCtx);
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 9d96715ca..c12773c4d 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -132,7 +132,8 @@ void Cutscene_DrawDebugInfo(PlayState* play, Gfx** dlist, CutsceneContext* csCtx
+     GfxPrint_Destroy(&printer);
+ }
+ 
+-void func_8006450C(PlayState* play, CutsceneContext* csCtx) {
++// Name from zeldaret/oot (was func_8006450C): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++void Cutscene_InitContext(PlayState* play, CutsceneContext* csCtx) {
+     csCtx->state = CS_STATE_IDLE;
+     csCtx->unk_0C = 0.0f;
+ }
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 8337cbd15..d33b25be5 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -419,7 +419,7 @@ void Play_Init(GameState* thisx) {
+     EffectSs_InitInfo(play, 0x55);
+     CollisionCheck_InitContext(play, &play->colChkCtx);
+     AnimationContext_Reset(&play->animationCtx);
+-    func_8006450C(play, &play->csCtx);
++    Cutscene_InitContext(play, &play->csCtx);
+ 
+     if (gSaveContext.nextCutsceneIndex != 0xFFEF) {
+         gSaveContext.cutsceneIndex = gSaveContext.nextCutsceneIndex;
+-- 
+2.55.0
+

@@ -1,0 +1,53 @@
+From cb76b5242345b9b85fe23b59a5640c078c86a848 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:22 +0000
+Subject: [PATCH 231/784] soh: rename func_800C1FA4 ->
+ PreRender_FetchFbufCoverage
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.98.
+Defined in soh/src/code/PreRender.c.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/PreRender.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 1b8f80ce4..1a180106a 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1585,7 +1585,7 @@ void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave);
+ void PreRender_CoverageRgba16ToI8(PreRender* this, Gfx** gfxp, void* fbuf, void* cvgSave);  // was func_800C1B24 [oot]
+ void PreRender_SaveZBuffer(PreRender* this, Gfx** gfxp);  // was func_800C1E9C [oot]
+ void PreRender_SaveFramebuffer(PreRender* this, Gfx** gfxp);  // was func_800C1F20 [oot]
+-void func_800C1FA4(PreRender* this, Gfx** gfxp);
++void PreRender_FetchFbufCoverage(PreRender* this, Gfx** gfxp);  // was func_800C1FA4 [oot]
+ void func_800C20B4(PreRender* this, Gfx** gfxp);
+ void func_800C2118(PreRender* this, Gfx** gfxp);
+ void func_800C213C(PreRender* this, Gfx** gfxp);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index 7fd6dda6d..c331548eb 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -262,7 +262,8 @@ void PreRender_SaveFramebuffer(PreRender* this, Gfx** gfxp) {
+     }
+ }
+ 
+-void func_800C1FA4(PreRender* this, Gfx** gfxp) {
++// Name from zeldaret/oot (was func_800C1FA4): adopted upstream's name for this address; body verified to match upstream at 0.98. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_FetchFbufCoverage(PreRender* this, Gfx** gfxp) {
+     Gfx* gfx = *gfxp;
+ 
+     gDPPipeSync(gfx++);
+@@ -280,7 +281,7 @@ void func_800C1FA4(PreRender* this, Gfx** gfxp) {
+ }
+ 
+ void func_800C20B4(PreRender* this, Gfx** gfxp) {
+-    func_800C1FA4(this, gfxp);
++    PreRender_FetchFbufCoverage(this, gfxp);
+     LOG_CHECK_NULL_POINTER("this->cvg_save", this->cvgSave);
+     if (this->cvgSave != NULL) {
+         PreRender_CoverageRgba16ToI8(this, gfxp, this->fbuf, this->cvgSave);
+-- 
+2.55.0
+

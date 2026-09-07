@@ -1,0 +1,56 @@
+From 0a60bb5be43f1ae1de0de6b029bb81037f49f903 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:41 +0000
+Subject: [PATCH 408/784] soh: rename func_80ABBB34 -> EnNutsball_WaitForObject
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.81.
+Defined in soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c.
+---
+ soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c b/soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c
+index 581487b25..48e282f36 100644
+--- a/soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c
++++ b/soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c
+@@ -20,7 +20,8 @@ void EnNutsball_Destroy(Actor* thisx, PlayState* play);
+ void EnNutsball_Update(Actor* thisx, PlayState* play);
+ void EnNutsball_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80ABBB34(EnNutsball* this, PlayState* play);
++// Name from zeldaret/oot (was func_80ABBB34): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c]
++void EnNutsball_WaitForObject(EnNutsball* this, PlayState* play);
+ void func_80ABBBA8(EnNutsball* this, PlayState* play);
+ 
+ const ActorInit En_Nutsball_InitVars = {
+@@ -84,7 +85,7 @@ void EnNutsball_Init(Actor* thisx, PlayState* play) {
+     if (this->objBankIndex < 0) {
+         Actor_Kill(&this->actor);
+     } else {
+-        this->actionFunc = func_80ABBB34;
++        this->actionFunc = EnNutsball_WaitForObject;
+     }
+ }
+ 
+@@ -94,7 +95,7 @@ void EnNutsball_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80ABBB34(EnNutsball* this, PlayState* play) {
++void EnNutsball_WaitForObject(EnNutsball* this, PlayState* play) {
+     if (Object_IsLoaded(&play->objectCtx, this->objBankIndex)) {
+         this->actor.objBankIndex = this->objBankIndex;
+         this->actor.draw = EnNutsball_Draw;
+@@ -159,7 +160,7 @@ void EnNutsball_Update(Actor* thisx, PlayState* play) {
+ 
+     if (!(player->stateFlags1 &
+           (PLAYER_STATE1_TALKING | PLAYER_STATE1_DEAD | PLAYER_STATE1_IN_ITEM_CS | PLAYER_STATE1_IN_CUTSCENE)) ||
+-        (this->actionFunc == func_80ABBB34)) {
++        (this->actionFunc == EnNutsball_WaitForObject)) {
+         this->actionFunc(this, play);
+ 
+         Actor_MoveXZGravity(&this->actor);
+-- 
+2.55.0
+

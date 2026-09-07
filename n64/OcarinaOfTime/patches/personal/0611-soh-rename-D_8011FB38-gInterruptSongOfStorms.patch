@@ -1,0 +1,97 @@
+From 2436e89d04ea13b6d08fd471913421d1aa0bf17b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:12 +0000
+Subject: [PATCH 611/784] soh: rename D_8011FB38 -> gInterruptSongOfStorms
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/code/z_kankyo.c.
+---
+ soh/include/variables.h                                   | 2 +-
+ soh/src/code/z_kankyo.c                                   | 5 +++--
+ .../actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c    | 2 +-
+ .../overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c | 8 ++++----
+ 4 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 19b7c0c67..5d7314831 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -75,7 +75,7 @@ extern "C"
+ 	extern GameStateOverlay gGameStateOverlayTable[6];
+ 	extern u8 gWeatherMode;
+ 	extern u8 gLightConfigAfterUnderwater;  // was D_8011FB34 [oot]
+-	extern u8 D_8011FB38;
++	extern u8 gInterruptSongOfStorms;  // was D_8011FB38 [oot]
+ 	extern u8 gSkyboxBlendingEnabled;
+ 	extern u16 gTimeSpeed;
+ 	extern struct_8011FC1C D_8011FC1C[][9];
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 9bb75a189..a5b1d398f 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -54,7 +54,8 @@ u8 gWeatherMode = 0; // "E_wether_flg"
+ // Name from zeldaret/oot (was D_8011FB34): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
+ u8 gLightConfigAfterUnderwater = 0;
+ 
+-u8 D_8011FB38 = 0;
++// Name from zeldaret/oot (was D_8011FB38): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++u8 gInterruptSongOfStorms = 0;
+ 
+ u8 gSkyboxBlendingEnabled = false;
+ 
+@@ -388,7 +389,7 @@ void Environment_Init(PlayState* play2, EnvironmentContext* envCtx, s32 unused)
+         gWeatherMode = 0;
+     }
+ 
+-    D_8011FB38 = 0;
++    gInterruptSongOfStorms = 0;
+     gLightConfigAfterUnderwater = 0;
+     gSkyboxBlendingEnabled = false;
+     gSaveContext.retainWeatherMode = 0;
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c b/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
+index bcca98270..f768c4a79 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
+@@ -85,7 +85,7 @@ void EnOkarinaEffect_ManageStorm(EnOkarinaEffect* this, PlayState* play) {
+         }
+     }
+ 
+-    if (D_8011FB38 != 0) {
++    if (gInterruptSongOfStorms != 0) {
+         this->timer = 0;
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c b/soh/src/overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c
+index 0665188ee..32106ff2f 100644
+--- a/soh/src/overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c
+@@ -139,10 +139,10 @@ u8 WeatherTag_CheckEnableWeatherEffect(EnWeatherTag* this, PlayState* play, u8 a
+     if (Actor_WorldDistXZToActor(&player->actor, &this->actor) < WEATHER_TAG_RANGE100(this->actor.params)) {
+         if ((play->envCtx.indoors != 0) || !gSkyboxBlendingEnabled ||
+             (play->skyboxId != SKYBOX_NORMAL_SKY && play->envCtx.unk_1F == play->envCtx.unk_20)) {
+-            D_8011FB38 = 1;
++            gInterruptSongOfStorms = 1;
+             if (play->envCtx.gloomySkyMode == 0 &&
+                 (play->envCtx.indoors != 0 || (play->envCtx.unk_1F != 1 && play->envCtx.unk_21 == 0))) {
+-                D_8011FB38 = 0;
++                gInterruptSongOfStorms = 0;
+                 if (gWeatherMode != weatherMode) {
+                     gWeatherMode = weatherMode;
+                     if (play->envCtx.gloomySkyMode == 0) {
+@@ -178,10 +178,10 @@ u8 WeatherTag_CheckRestoreWeather(EnWeatherTag* this, PlayState* play, u8 arg2,
+     if ((WEATHER_TAG_RANGE100(this->actor.params) + 100.0f) < Actor_WorldDistXZToActor(&player->actor, &this->actor)) {
+         if (play->envCtx.indoors != 0 || !gSkyboxBlendingEnabled ||
+             (play->skyboxId != SKYBOX_NORMAL_SKY && play->envCtx.unk_1F == play->envCtx.unk_20)) {
+-            D_8011FB38 = 1;
++            gInterruptSongOfStorms = 1;
+             if ((play->envCtx.gloomySkyMode == 0) &&
+                 (play->envCtx.indoors != 0 || (play->envCtx.unk_1F != 1 && play->envCtx.unk_21 == 0))) {
+-                D_8011FB38 = 0;
++                gInterruptSongOfStorms = 0;
+                 gWeatherMode = 0;
+                 play->envCtx.unk_19 = 1;
+                 play->envCtx.unk_17 = arg2;
+-- 
+2.55.0
+

@@ -1,0 +1,58 @@
+From b6d535a47aee7cce4d5b0c861dd1044d2bd87d47 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:21 +0000
+Subject: [PATCH 230/784] soh: rename func_800C1F20 ->
+ PreRender_SaveFramebuffer
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.88.
+Defined in soh/src/code/PreRender.c.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/PreRender.c | 3 ++-
+ soh/src/code/z_play.c    | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index e47f6a104..1b8f80ce4 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1584,7 +1584,7 @@ void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32
+ void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave);
+ void PreRender_CoverageRgba16ToI8(PreRender* this, Gfx** gfxp, void* fbuf, void* cvgSave);  // was func_800C1B24 [oot]
+ void PreRender_SaveZBuffer(PreRender* this, Gfx** gfxp);  // was func_800C1E9C [oot]
+-void func_800C1F20(PreRender* this, Gfx** gfxp);
++void PreRender_SaveFramebuffer(PreRender* this, Gfx** gfxp);  // was func_800C1F20 [oot]
+ void func_800C1FA4(PreRender* this, Gfx** gfxp);
+ void func_800C20B4(PreRender* this, Gfx** gfxp);
+ void func_800C2118(PreRender* this, Gfx** gfxp);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index 83b6bc654..7fd6dda6d 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -252,7 +252,8 @@ void PreRender_SaveZBuffer(PreRender* this, Gfx** gfxp) {
+     }
+ }
+ 
+-void func_800C1F20(PreRender* this, Gfx** gfxp) {
++// Name from zeldaret/oot (was func_800C1F20): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_SaveFramebuffer(PreRender* this, Gfx** gfxp) {
+     LOG_CHECK_NULL_POINTER("this->fbuf_save", this->fbufSave);
+     LOG_CHECK_NULL_POINTER("this->fbuf", this->fbuf);
+ 
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 55e947eff..8337cbd15 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1571,7 +1571,7 @@ void Play_Draw(PlayState* play) {
+             play->pauseBgPreRender.fbuf = gfxCtx->curFrameBuffer;
+             play->pauseBgPreRender.fbufSave = (u16*)gZBuffer;
+             // SOH [Port] Use our custom copy method instead of the prerender system
+-            // func_800C1F20(&play->pauseBgPreRender, &gfxP);
++            // PreRender_SaveFramebuffer(&play->pauseBgPreRender, &gfxP);
+             if (R_PAUSE_MENU_MODE == 1) {
+                 play->pauseBgPreRender.cvgSave = (u8*)gfxCtx->curFrameBuffer;
+                 // func_800C20B4(&play->pauseBgPreRender, &gfxP);
+-- 
+2.55.0
+

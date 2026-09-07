@@ -1,0 +1,74 @@
+From ed2ca71634575d0905fbba0fc13f203a4042862a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:35 +0000
+Subject: [PATCH 349/784] soh: rename func_80A745E4 -> EnIk_HandleBlocking
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.90.
+Defined in soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c.
+---
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index e454a5e02..9e4d0386a 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -249,7 +249,8 @@ void EnIk_InitImpl(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80A745E4(EnIk* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A745E4): adopted upstream's name for this address; body verified to match upstream at 0.90. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++s32 EnIk_HandleBlocking(EnIk* this, PlayState* play) {
+     if (((this->armorStatusFlag != 0) || (this->actor.params == 0)) &&
+         (func_800354B4(play, &this->actor, 100.0f, 0x2710, 0x4000, this->actor.shape.rot.y) != 0) &&
+         (play->gameplayFrames & 1)) {
+@@ -343,7 +344,7 @@ void func_80A7492C(EnIk* this, PlayState* play) {
+     } else {
+         func_80A74AAC(this);
+     }
+-    func_80A745E4(this, play);
++    EnIk_HandleBlocking(this, play);
+     SkelAnime_Update(&this->skelAnime);
+ }
+ 
+@@ -414,7 +415,7 @@ void func_80A74BA4(EnIk* this, PlayState* play) {
+             this->unk_300 = 0x28;
+         }
+     }
+-    func_80A745E4(this, play);
++    EnIk_HandleBlocking(this, play);
+     SkelAnime_Update(&this->skelAnime);
+     if ((sp30 == (s16)this->skelAnime.curFrame) || (sp2E == (s16)this->skelAnime.curFrame)) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_IRONNACK_WALK);
+@@ -542,7 +543,7 @@ void func_80A753D0(EnIk* this) {
+ void func_80A7545C(EnIk* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         func_80A7489C(this);
+-        func_80A745E4(this, play);
++        EnIk_HandleBlocking(this, play);
+     }
+ }
+ 
+@@ -570,7 +571,7 @@ void func_80A75530(EnIk* this, PlayState* play) {
+     }
+     if (SkelAnime_Update(&this->skelAnime)) {
+         func_80A753D0(this);
+-        func_80A745E4(this, play);
++        EnIk_HandleBlocking(this, play);
+     }
+ }
+ 
+@@ -628,7 +629,7 @@ void func_80A758B0(EnIk* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if (ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) <= 0x4000) {
+             func_80A7489C(this);
+-            func_80A745E4(this, play);
++            EnIk_HandleBlocking(this, play);
+         } else {
+             func_80A754A0(this);
+         }
+-- 
+2.55.0
+

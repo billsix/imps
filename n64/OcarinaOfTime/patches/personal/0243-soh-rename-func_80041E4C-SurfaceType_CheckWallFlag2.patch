@@ -1,0 +1,67 @@
+From 4a17bd057765dbb5cbb89f802c1d9e1b5f53173b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:23 +0000
+Subject: [PATCH 243/784] soh: rename func_80041E4C ->
+ SurfaceType_CheckWallFlag2
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.93.
+Defined in soh/src/code/z_bgcheck.c.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/src/code/z_bgcheck.c                            | 3 ++-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 79191ed28..fb7a6ed2c 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -686,7 +686,7 @@ u32 SurfaceType_GetWallType(CollisionContext* colCtx, CollisionPoly* poly, s32 b
+ s32 SurfaceType_GetWallFlags(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ s32 SurfaceType_CheckWallFlag0(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041DE4 [oot]
+ s32 SurfaceType_CheckWallFlag1(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041E18 [oot]
+-s32 func_80041E4C(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
++s32 SurfaceType_CheckWallFlag2(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041E4C [oot]
+ s32 func_80041E80(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u32 func_80041EA4(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u32 func_80041EC8(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+diff --git a/soh/src/code/z_bgcheck.c b/soh/src/code/z_bgcheck.c
+index 429ec33c4..a6218dbb2 100644
+--- a/soh/src/code/z_bgcheck.c
++++ b/soh/src/code/z_bgcheck.c
+@@ -4055,7 +4055,8 @@ s32 SurfaceType_CheckWallFlag1(CollisionContext* colCtx, CollisionPoly* poly, s3
+ /**
+  * SurfaceType Is Wall Flag (1 << 2) Set
+  */
+-s32 func_80041E4C(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
++// Name from zeldaret/oot (was func_80041E4C): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_bgcheck.c]
++s32 SurfaceType_CheckWallFlag2(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
+     return (SurfaceType_GetWallFlags(colCtx, poly, bgId) & WALL_FLAG_LADDER_TOP) ? true : false;
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index baa7237df..441c3623d 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -7507,7 +7507,7 @@ s32 func_8083EC18(Player* this, PlayState* play, u32 wallFlags) {
+             s32 sp8C = (wallFlags & WALL_FLAG_CLIMBABLE) ? 2 : 0;
+ 
+             if ((sp8C != 0) || (wallFlags & WALL_FLAG_LADDER) ||
+-                func_80041E4C(&play->colCtx, this->actor.wallPoly, this->actor.wallBgId)) {
++                SurfaceType_CheckWallFlag2(&play->colCtx, this->actor.wallPoly, this->actor.wallBgId)) {
+                 f32 phi_f20;
+                 CollisionPoly* wallPoly = this->actor.wallPoly;
+                 f32 sp80;
+@@ -7906,7 +7906,7 @@ s32 func_8083FBC0(Player* this, PlayState* play) {
+     if (!CHECK_BTN_ALL(sControlInput->press.button, BTN_A) &&
+         (this->actor.bgCheckFlags & BGCHECKFLAG_PLAYER_WALL_INTERACT) &&
+         ((sTouchedWallFlags & WALL_FLAG_CLIMBABLE) || (sTouchedWallFlags & WALL_FLAG_LADDER) ||
+-         func_80041E4C(&play->colCtx, this->actor.wallPoly, this->actor.wallBgId))) {
++         SurfaceType_CheckWallFlag2(&play->colCtx, this->actor.wallPoly, this->actor.wallBgId))) {
+         return false;
+     }
+ 
+-- 
+2.55.0
+

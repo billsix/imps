@@ -1,0 +1,39 @@
+From e778f85ab444721632cff8bcb80c2e1d18ee5840 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:43:49 +0000
+Subject: [PATCH 784/784] soh: rename func_800DC164 ->
+ AudioSynth_LoadReverbSamples
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.85.
+Defined in soh/src/code/audio_synthesis.c.
+---
+ soh/src/code/audio_synthesis.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/code/audio_synthesis.c b/soh/src/code/audio_synthesis.c
+index 876530fc9..114a6d0d0 100644
+--- a/soh/src/code/audio_synthesis.c
++++ b/soh/src/code/audio_synthesis.c
+@@ -523,7 +523,8 @@ Acmd* AudioSynth_MaybeLoadRingBuffer2(Acmd* cmd, s32 arg1, SynthesisReverb* reve
+     return cmd;
+ }
+ 
+-Acmd* func_800DC164(Acmd* cmd, s32 arg1, SynthesisReverb* reverb, s16 arg3) {
++// Name from zeldaret/oot (was func_800DC164): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/code/audio_synthesis.c]
++Acmd* AudioSynth_LoadReverbSamples(Acmd* cmd, s32 arg1, SynthesisReverb* reverb, s16 arg3) {
+     // Sets DMEM_WET_{LEFT,RIGHT}_CH, clobbers DMEM_TEMP
+     if (reverb->downsampleRate == 1) {
+         if (reverb->unk_18 != 0) {
+@@ -621,7 +622,7 @@ Acmd* AudioSynth_DoOneAudioUpdate(s16* aiBuf, s32 aiBufLen, Acmd* cmd, s32 updat
+         reverb = &gAudioContext.synthesisReverbs[reverbIndex];
+         useReverb = reverb->useReverb;
+         if (useReverb) {
+-            cmd = func_800DC164(cmd, aiBufLen, reverb, updateIndex);
++            cmd = AudioSynth_LoadReverbSamples(cmd, aiBufLen, reverb, updateIndex);
+             aMix(cmd++, 0x34, reverb->unk_0A, DMEM_WET_LEFT_CH, DMEM_LEFT_CH);
+             unk14 = reverb->unk_14;
+             if (unk14) {
+-- 
+2.55.0
+

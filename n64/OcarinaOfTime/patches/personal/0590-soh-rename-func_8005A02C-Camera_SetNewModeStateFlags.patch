@@ -1,0 +1,48 @@
+From e23b59a2e61c3595da68414693f1cba2db37abb6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:05 +0000
+Subject: [PATCH 590/784] soh: rename func_8005A02C ->
+ Camera_SetNewModeStateFlags
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 0.94.
+Defined in soh/src/code/z_camera.c.
+---
+ soh/src/code/z_camera.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index b49e1e8b6..6b6afdbfc 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -7805,7 +7805,8 @@ void Camera_Finish(Camera* camera) {
+     }
+ }
+ 
+-s32 func_8005A02C(Camera* camera) {
++// Name from zeldaret/oot (was func_8005A02C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
++s32 Camera_SetNewModeStateFlags(Camera* camera) {
+     camera->unk_14C |= 0xC;
+     camera->unk_14C &= ~(0x1000 | 0x8);
+     return true;
+@@ -7834,7 +7835,7 @@ s32 Camera_RequestModeImpl(Camera* camera, s16 requestedMode, u8 forceModeChange
+                          sCameraSettingNames[camera->setting], sCameraModeNames[requestedMode]);
+             camera->mode = CAM_MODE_NORMAL;
+             Camera_CopyDataToRegs(camera, camera->mode);
+-            func_8005A02C(camera);
++            Camera_SetNewModeStateFlags(camera);
+             return 0xC0000000 | requestedMode;
+         } else {
+             camera->unk_14A |= 0x20;
+@@ -7940,7 +7941,7 @@ s32 Camera_RequestModeImpl(Camera* camera, s16 requestedMode, u8 forceModeChange
+             camera->play->manualCamera = false;
+         }
+ 
+-        func_8005A02C(camera);
++        Camera_SetNewModeStateFlags(camera);
+         camera->mode = requestedMode;
+         return 0x80000000 | requestedMode;
+     }
+-- 
+2.55.0
+

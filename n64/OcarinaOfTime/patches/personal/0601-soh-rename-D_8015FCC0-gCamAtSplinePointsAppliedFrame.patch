@@ -1,0 +1,81 @@
+From 3d84912d8c68c2d462621412316d07318e5fdeb0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:21:09 +0000
+Subject: [PATCH 601/784] soh: rename D_8015FCC0 ->
+ gCamAtSplinePointsAppliedFrame
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/code/z_demo.c.
+---
+ soh/include/variables.h                                  | 2 +-
+ soh/src/code/z_demo.c                                    | 9 +++++----
+ .../overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c    | 2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 49d9b2593..36cdd0a1c 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -189,7 +189,7 @@ extern "C"
+ 
+ 	extern SaveContext gSaveContext;
+ 	extern GameInfo* gGameInfo;
+-	extern u16 D_8015FCC0;
++	extern u16 gCamAtSplinePointsAppliedFrame;  // was D_8015FCC0 [oot]
+ 	extern u16 D_8015FCC2;
+ 	extern u16 D_8015FCC4;
+ 	extern u8 D_8015FCC8;
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 11bd79f78..16d307d71 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -106,7 +106,8 @@ void* D_8011E304[] = {
+     gDekuTreeIntroCs, gJabuJabuIntroCs, gDcOpeningCs, gMinuetCs, gIceCavernSerenadeCs, gTowerBarrierCs,
+ };
+ 
+-u16 D_8015FCC0;
++// Name from zeldaret/oot (was D_8015FCC0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u16 gCamAtSplinePointsAppliedFrame;
+ u16 D_8015FCC2;
+ u16 D_8015FCC4;
+ s16 D_8015FCC6;
+@@ -1485,11 +1486,11 @@ size_t Cutscene_Command_CameraFocus(PlayState* play, CutsceneContext* csCtx, u8*
+     size = sizeof(CutsceneData) * 2;
+ 
+     if ((cmdBase->startFrame < csCtx->frames) && (csCtx->frames < cmdBase->endFrame) &&
+-        ((D_8015FCC0 < cmdBase->startFrame) || (D_8015FCC0 >= 0xF000))) {
++        ((gCamAtSplinePointsAppliedFrame < cmdBase->startFrame) || (gCamAtSplinePointsAppliedFrame >= 0xF000))) {
+         csCtx->unk_1A = 1;
+         csCtx->cameraFocus = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1B != 0) {
+-            D_8015FCC0 = cmdBase->startFrame;
++            gCamAtSplinePointsAppliedFrame = cmdBase->startFrame;
+             if (D_8015FCC8 != 0) {
+                 Play_CameraChangeSetting(play, csCtx->unk_14, CAM_SET_CS_0);
+                 Play_ChangeCameraStatus(play, D_8015FCC6, CAM_STAT_WAIT);
+@@ -2166,7 +2167,7 @@ void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx) {
+ 
+             csCtx->frames = 0xFFFF;
+             csCtx->unk_18 = 0xFFFF;
+-            D_8015FCC0 = 0xFFFF;
++            gCamAtSplinePointsAppliedFrame = 0xFFFF;
+             D_8015FCC2 = 0xFFFF;
+             D_8015FCC4 = 0xFFFF;
+             csCtx->unk_1A = 0;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+index 4d728d316..99851e8b9 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
++++ b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+@@ -178,7 +178,7 @@ void func_808BC9EC(BgTreemouth* this, PlayState* play) {
+ 
+         play->csCtx.frames = 0;
+         play->csCtx.unk_18 = 0xFFFF;
+-        D_8015FCC0 = 0xFFFF;
++        gCamAtSplinePointsAppliedFrame = 0xFFFF;
+         D_8015FCC2 = 0xFFFF;
+         D_8015FCC4 = 0xFFFF;
+         play->csCtx.unk_1A = 0;
+-- 
+2.55.0
+

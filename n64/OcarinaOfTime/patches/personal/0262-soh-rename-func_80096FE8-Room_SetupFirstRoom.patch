@@ -1,0 +1,57 @@
+From ff46a4440ded2721c982446f36afabdc172c9b42 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 15:02:26 +0000
+Subject: [PATCH 262/784] soh: rename func_80096FE8 -> Room_SetupFirstRoom
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.84.
+Defined in soh/src/code/z_room.c.
+---
+ soh/include/functions.h | 2 +-
+ soh/soh/z_play_otr.cpp  | 2 +-
+ soh/src/code/z_room.c   | 3 ++-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 3e555e477..62a8c40e9 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1242,7 +1242,7 @@ void func_80095AA0(PlayState* play, Room* room, Input* arg2, UNK_TYPE arg3);
+ void Room_DrawBackground2D(Gfx** gfxP, void* tex, void* tlut, u16 width, u16 height, u8 fmt, u8 siz, u16 tlutMode,
+                            u16 tlutCount, f32 offsetX, f32 offsetY);
+ void Room_Init(PlayState* play, Room* room);  // was func_80096FD4 [oot]
+-u32 func_80096FE8(PlayState* play, RoomContext* roomCtx);
++u32 Room_SetupFirstRoom(PlayState* play, RoomContext* roomCtx);  // was func_80096FE8 [oot]
+ s32 Room_RequestNewRoom(PlayState* play, RoomContext* roomCtx, s32 roomNum);
+ s32 func_800973FC(PlayState* play, RoomContext* roomCtx);
+ void Room_Draw(PlayState* play, Room* room, u32 flags);
+diff --git a/soh/soh/z_play_otr.cpp b/soh/soh/z_play_otr.cpp
+index 5396ad6e9..3254e104d 100644
+--- a/soh/soh/z_play_otr.cpp
++++ b/soh/soh/z_play_otr.cpp
+@@ -59,7 +59,7 @@ extern "C" void OTRPlay_SpawnScene(PlayState* play, s32 sceneId, s32 spawn) {
+     // gSegments[2] = VIRTUAL_TO_PHYSICAL(play->sceneSegment);
+ 
+     OTRPlay_InitScene(play, spawn);
+-    auto roomSize = func_80096FE8(play, &play->roomCtx);
++    auto roomSize = Room_SetupFirstRoom(play, &play->roomCtx);
+ 
+     osSyncPrintf("ROOM SIZE=%fK\n", roomSize / 1024.0f);
+ 
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index deaf9df10..d41d983df 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -519,7 +519,8 @@ void Room_Init(PlayState* play, Room* room) {
+     room->segment = NULL;
+ }
+ 
+-u32 func_80096FE8(PlayState* play, RoomContext* roomCtx) {
++// Name from zeldaret/oot (was func_80096FE8): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_room.c]
++u32 Room_SetupFirstRoom(PlayState* play, RoomContext* roomCtx) {
+     u32 maxRoomSize = 0;
+     RomFile* roomList = play->roomList;
+     u32 roomSize;
+-- 
+2.55.0
+

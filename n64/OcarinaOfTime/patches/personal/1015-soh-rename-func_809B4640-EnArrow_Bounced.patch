@@ -1,0 +1,51 @@
+From 2577025060705e37069ce81e11bd3159b46b346d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:35:19 +0000
+Subject: [PATCH 1015/3799] soh: rename func_809B4640 -> EnArrow_Bounced
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the action installed by EnArrow_SetupBounce: the same countdown as EnArrow_Stuck, plus Actor_MoveXZGravity so the deflected arrow keeps tumbling.
+Defined in soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c b/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
+index 6e45573d6..a5608492d 100644
+--- a/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
++++ b/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
+@@ -21,7 +21,8 @@ void EnArrow_Shoot(EnArrow* this, PlayState* play);
+ void EnArrow_Fly(EnArrow* this, PlayState* play);
+ // LLM generated name (HIGH), was func_809B45E0: the action installed after the arrow embeds in geometry: only advances the animation and kills the actor when the timer runs out.
+ void EnArrow_Stuck(EnArrow* this, PlayState* play);  // was func_809B45E0 [LLM:HIGH]
+-void func_809B4640(EnArrow* this, PlayState* play);
++// LLM generated name (HIGH), was func_809B4640: the action installed by EnArrow_SetupBounce: the same countdown as EnArrow_Stuck, plus Actor_MoveXZGravity so the deflected arrow keeps tumbling.
++void EnArrow_Bounced(EnArrow* this, PlayState* play);  // was func_809B4640 [LLM:HIGH]
+ 
+ const ActorInit En_Arrow_InitVars = {
+     ACTOR_EN_ARROW,
+@@ -251,7 +252,7 @@ void EnArrow_Shoot(EnArrow* this, PlayState* play) {
+ 
+ // LLM generated name (HIGH), was func_809B3CEC: called when the arrow strikes something that repels it: plays gArrow1Anim, flips the yaw by roughly 180 degrees with jitter, converts forward speed into an upward hop, enables gravity and starts a 50-frame countdown.
+ void EnArrow_SetupBounce(PlayState* play, EnArrow* this) {
+-    EnArrow_SetupAction(this, func_809B4640);
++    EnArrow_SetupAction(this, EnArrow_Bounced);  // was func_809B4640 [LLM:HIGH]
+     Animation_PlayOnce(&this->skelAnime, &gArrow1Anim);
+     this->actor.world.rot.y += (s32)(24576.0f * (Rand_ZeroOne() - 0.5f)) + 0x8000;
+     this->actor.velocity.y += (this->actor.speedXZ * (0.4f + (0.4f * Rand_ZeroOne())));
+@@ -432,7 +433,7 @@ void EnArrow_Stuck(EnArrow* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809B4640(EnArrow* this, PlayState* play) {
++void EnArrow_Bounced(EnArrow* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     Actor_MoveXZGravity(&this->actor);
+ 
+-- 
+2.55.0
+

@@ -1,0 +1,91 @@
+From c3e36b4542b59da5d167a7e611b24e40f5fda493 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:59 +0000
+Subject: [PATCH 2526/3799] soh: rename D_8016B7B0 -> sSpeedFreqScale
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the frequency scale Audio_SetSfxScalesFromSpeed writes, 0.9 to 1.1
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/audio_general.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 4d0364029..17c323555 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -1265,7 +1265,8 @@ u32 sAudioUpdateEndTime;   // decomp: debug only
+ f32 sSpeedVolScale;  // was D_8016B7A8 [LLM:HIGH]
+ // LLM generated name (HIGH), was D_8016B7AC: the volume scale for the second sound Audio_PlayWalkSfx may add
+ f32 sSecondSfxVolScale;  // was D_8016B7AC [LLM:HIGH]
+-f32 D_8016B7B0;
++// LLM generated name (HIGH), was D_8016B7B0: the frequency scale Audio_SetSfxScalesFromSpeed writes, 0.9 to 1.1
++f32 sSpeedFreqScale;  // was D_8016B7B0 [LLM:HIGH]
+ f32 D_8016B7B4;
+ FreqLerp sRiverFreqScaleLerp;
+ FreqLerp sWaterfallFreqScaleLerp;
+@@ -1357,7 +1358,7 @@ s32 sAudioUpdateTaskEnd;      // decomp: debug only
+     F(sNearestBgmSourceDist)                                      \
+     F(sSpeedVolScale)                                      \
+     F(sSecondSfxVolScale)                                      \
+-    F(D_8016B7B0)                                      \
++    F(sSpeedFreqScale)                                      \
+     F(D_8016B7B4)                                      \
+     F(sRiverFreqScaleLerp)                             \
+     F(sWaterfallFreqScaleLerp)                         \
+@@ -4394,11 +4395,11 @@ f32 Audio_SetSfxScalesFromSpeed(f32 arg0) {
+ 
+     if (arg0 > 6.0f) {
+         sSpeedVolScale = 1.0f;  // was D_8016B7A8 [LLM:HIGH]
+-        D_8016B7B0 = 1.1f;
++        sSpeedFreqScale = 1.1f;  // was D_8016B7B0 [LLM:HIGH]
+     } else {
+         ret = arg0 / 6.0f;
+         sSpeedVolScale = (ret * 0.22500002f) + 0.775f;  // was D_8016B7A8 [LLM:HIGH]
+-        D_8016B7B0 = (ret * 0.2f) + 0.9f;
++        sSpeedFreqScale = (ret * 0.2f) + 0.9f;  // was D_8016B7B0 [LLM:HIGH]
+     }
+     return ret;
+ }
+@@ -4412,7 +4413,7 @@ void Audio_PlayWalkSfx(Vec3f* pos, u16 sfxId, f32 arg2) {
+ 
+     D_80131C8C = arg2;
+     sp24 = Audio_SetSfxScalesFromSpeed(arg2);  // was func_800F3F84 [LLM:HIGH]
+-    Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7B0, &sSpeedVolScale, &gSfxDefaultReverb);  // was D_8016B7A8 [LLM:HIGH]
++    Audio_PlaySfxGeneral(sfxId, pos, 4, &sSpeedFreqScale, &sSpeedVolScale, &gSfxDefaultReverb);  // was D_8016B7A8 [LLM:HIGH]
+ 
+     if ((sfxId & 0xF0) == 0xB0) {
+         phi_f0 = 0.3f;
+@@ -4430,14 +4431,14 @@ void Audio_PlayWalkSfx(Vec3f* pos, u16 sfxId, f32 arg2) {
+             sfxId2 = NA_SE_PL_METALEFFECT_KID;
+         }
+         sSecondSfxVolScale = (sp24 * 0.7) + 0.3;  // was D_8016B7AC [LLM:HIGH]
+-        Audio_PlaySfxGeneral(sfxId2, pos, 4, &D_8016B7B0, &sSecondSfxVolScale, &gSfxDefaultReverb);  // was D_8016B7AC [LLM:HIGH]
++        Audio_PlaySfxGeneral(sfxId2, pos, 4, &sSpeedFreqScale, &sSecondSfxVolScale, &gSfxDefaultReverb);  // was D_8016B7AC [LLM:HIGH]
+     }
+ }
+ 
+ // LLM generated name (HIGH), was func_800F4138: plays a sound with the frequency and volume scales derived from the caller's speed
+ void Audio_PlaySfxWithSpeedScales(Vec3f* pos, u16 sfxId, f32 arg2) {
+     Audio_SetSfxScalesFromSpeed(arg2);  // was func_800F3F84 [LLM:HIGH]
+-    Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7B0, &sSpeedVolScale, &gSfxDefaultReverb);  // was D_8016B7A8 [LLM:HIGH]
++    Audio_PlaySfxGeneral(sfxId, pos, 4, &sSpeedFreqScale, &sSpeedVolScale, &gSfxDefaultReverb);  // was D_8016B7A8 [LLM:HIGH]
+ }
+ 
+ // LLM generated name (HIGH), was func_800F4190: plays a sound with the file's constant frequency scale and reverb
+@@ -5471,7 +5472,7 @@ void Audio_PreNMI(void) {
+ void Audio_ResetData(void) {
+     sPrevSeqMode = 0;
+     sSpeedVolScale = 1.0f;  // was D_8016B7A8 [LLM:HIGH]
+-    D_8016B7B0 = 1.0f;
++    sSpeedFreqScale = 1.0f;  // was D_8016B7B0 [LLM:HIGH]
+     sAudioBaseFilter = 0;
+     sAudioExtraFilter = 0;
+     sAudioBaseFilter2 = 0;
+-- 
+2.55.0
+

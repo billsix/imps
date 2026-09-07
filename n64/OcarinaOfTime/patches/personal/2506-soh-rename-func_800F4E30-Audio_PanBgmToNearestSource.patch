@@ -1,0 +1,62 @@
+From 103369dd2feddd29034fa59362e322ba55fe9202 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:56 +0000
+Subject: [PATCH 2506/3799] soh: rename func_800F4E30 ->
+ Audio_PanBgmToNearestSource
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: keeps the nearest positional BGM source and pans and attenuates every main BGM channel by its X and distance
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/audio_general.c                                  | 3 ++-
+ soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 399422919..3f86e78c6 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2093,7 +2093,7 @@ void Audio_PlaySoundIncreasinglyTransposed(Vec3f* pos, s16 sfxId, u8* semitones)
+ void Audio_ResetIncreasingTranspose(void);
+ void Audio_PlaySoundTransposed(Vec3f* pos, u16 sfxId, s8 semitone);
+ void Audio_SetSfxIoForActiveSfxId(Vec3f* pos, u16 sfxId, u8);  // was func_800F4C58 [LLM:HIGH]
+-void func_800F4E30(Vec3f* pos, f32);
++void Audio_PanBgmToNearestSource(Vec3f* pos, f32);  // was func_800F4E30 [LLM:HIGH]
+ void Audio_ClearSariaBgm(void);
+ void Audio_ClearSariaBgmAtPos(Vec3f* pos);
+ void Audio_PlaySariaBgm(Vec3f* pos, u16 seqId, u16 distMax);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index b396bf216..4748c9281 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4697,7 +4697,8 @@ void Audio_SetSfxIoForActiveSfxId(Vec3f* pos, u16 sfxId, u8 arg2) {
+     Audio_PlaySfxGeneral(sfxId, pos, 4, &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ }
+ 
+-void func_800F4E30(Vec3f* pos, f32 arg1) {
++// LLM generated name (HIGH), was func_800F4E30: keeps the nearest positional BGM source and pans and attenuates every main BGM channel by its X and distance
++void Audio_PanBgmToNearestSource(Vec3f* pos, f32 arg1) {
+     f32 phi_f22;
+     s8 phi_s4;
+     u8 i;
+diff --git a/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c b/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
+index e1056822c..3d2680abc 100644
+--- a/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
++++ b/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
+@@ -240,7 +240,7 @@ void EnRiverSound_Draw(Actor* thisx, PlayState* play) {
+     } else if (this->actor.params == RS_UNK_11) {
+         Audio_LowerMainBgmVolume(90);
+     } else if (this->actor.params == RS_SARIAS_SONG) {
+-        func_800F4E30(&this->actor.projectedPos, this->actor.xzDistToPlayer);
++        Audio_PanBgmToNearestSource(&this->actor.projectedPos, this->actor.xzDistToPlayer);  // was func_800F4E30 [LLM:HIGH]
+     } else if (this->actor.params == RS_UNK_13) {
+         Audio_PlaySariaBgm(&this->actor.home.pos, NA_BGM_SARIA_THEME, 1000);
+     } else if (this->actor.params == RS_UNK_19) {
+-- 
+2.55.0
+

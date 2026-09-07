@@ -1,0 +1,51 @@
+From 00a98e9dc60e43a1d2a7e5ee71290f6c0b511663 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:25:00 +0000
+Subject: [PATCH 1532/3799] soh: rename func_80ABD3B8 -> EnNy_UpdateBuoyancy
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: turns gravity off and eases the vertical velocity toward the swim target while the actor is between the two given water depths, and restores normal gravity otherwise.
+Defined in soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c b/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
+index ab490bc53..a157e3b29 100644
+--- a/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
++++ b/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
+@@ -29,7 +29,8 @@ void EnNy_Grow(EnNy* this, PlayState* play);  // was func_80ABCEEC [LLM:HIGH]
+ void EnNy_UpdateDeath(Actor* thisx, PlayState* PlayState);
+ void EnNy_SetupDie(EnNy* this, PlayState* play);
+ void EnNy_DrawDeathEffect(Actor* thisx, PlayState* PlayState);
+-void func_80ABD3B8(EnNy* this, f32, f32);
++// LLM generated name (HIGH), was func_80ABD3B8: turns gravity off and eases the vertical velocity toward the swim target while the actor is between the two given water depths, and restores normal gravity otherwise.
++void EnNy_UpdateBuoyancy(EnNy* this, f32, f32);  // was func_80ABD3B8 [LLM:HIGH]
+ 
+ const ActorInit En_Ny_InitVars = {
+     ACTOR_EN_NY,
+@@ -356,7 +357,7 @@ s32 EnNy_CollisionCheck(EnNy* this, PlayState* play) {
+     return 0;
+ }
+ 
+-void func_80ABD3B8(EnNy* this, f32 arg1, f32 arg2) {
++void EnNy_UpdateBuoyancy(EnNy* this, f32 arg1, f32 arg2) {
+     if (this->unk_1E8 == 0.0f) {
+         this->actor.gravity = -0.4f;
+     } else if (!(arg1 < this->actor.yDistToWater)) {
+@@ -393,7 +394,7 @@ void EnNy_Update(Actor* thisx, PlayState* play) {
+     this->collider.elements[0].dim.scale = 1.33f * temp_f20 + 1.0f;
+     temp_f22 = (24.0f * temp_f20) + 12.0f;
+     this->actor.shape.rot.x += (s16)(this->unk_1E8 * 1000.0f);
+-    func_80ABD3B8(this, temp_f22 + 10.0f, temp_f22 - 10.0f);
++    EnNy_UpdateBuoyancy(this, temp_f22 + 10.0f, temp_f22 - 10.0f);  // was func_80ABD3B8 [LLM:HIGH]
+     Actor_MoveXZGravity(&this->actor);
+     Math_StepToF(&this->unk_1E4, this->unk_1E8, 0.1f);
+     this->actionFunc(this, play);
+-- 
+2.55.0
+

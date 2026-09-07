@@ -1,0 +1,62 @@
+From 6e596c207c148fbe6a342178d664d98651a3af55 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:57 +0000
+Subject: [PATCH 2515/3799] soh: rename func_800F71BC ->
+ Audio_ResetForSpecChange
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the reset audio_seq.c runs when the audio spec changes: resets the data, ocarina staffs, channel state, sequences and sounds
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h      | 2 +-
+ soh/src/code/audio_general.c | 3 ++-
+ soh/src/code/audio_seq.c     | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 796455b69..48f7818e8 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2137,7 +2137,7 @@ void Audio_PlayNatureAmbienceSequence(u8 natureAmbienceId);
+ void Audio_Init();
+ void Audio_InitSound();
+ void Audio_RestartAudio(void);  // was func_800F7170 [LLM:GUESS]
+-void func_800F71BC(s32 arg0);
++void Audio_ResetForSpecChange(s32 arg0);  // was func_800F71BC [LLM:HIGH]
+ void Audio_SetSfxBanksMute(u16 muteMask);
+ void Audio_QueueSeqCmdMute(u8 channelIdx);
+ void Audio_ClearBGMMute(u8 channelIdx);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 3fb6cff85..4ffe33a2d 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -5595,7 +5595,8 @@ void Audio_RestartAudio(void) {
+     Audio_QueueCmdS32(0xF8000000, 0);
+ }
+ 
+-void func_800F71BC(s32 arg0) {
++// LLM generated name (HIGH), was func_800F71BC: the reset audio_seq.c runs when the audio spec changes: resets the data, ocarina staffs, channel state, sequences and sounds
++void Audio_ResetForSpecChange(s32 arg0) {
+     sAudioResetState = 1;
+     Audio_ResetData();
+     AudioOcarina_ResetStaffs();
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index a1dc2170b..f4f42bf21 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -382,7 +382,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+             oldSpec = gAudioSpecId;
+             gAudioSpecId = spec;
+             AudioThread_ResetAudioHeap(spec);
+-            func_800F71BC(oldSpec);
++            Audio_ResetForSpecChange(oldSpec);  // was func_800F71BC [LLM:HIGH]
+             Audio_QueueCmdS32(0xF8000000, 0);
+             break;
+     }
+-- 
+2.55.0
+

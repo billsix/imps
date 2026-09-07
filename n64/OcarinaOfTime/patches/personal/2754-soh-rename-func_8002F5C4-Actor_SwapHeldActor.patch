@@ -1,0 +1,61 @@
+From d41ac939f29f15017ce075ee628d82dce089b8db Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:33 +0000
+Subject: [PATCH 2754/3799] soh: rename func_8002F5C4 -> Actor_SwapHeldActor
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: moves one actor's parent link onto another, updating the player's held and interact-range actors when the parent is the player
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                           | 2 +-
+ soh/src/code/z_actor.c                            | 3 ++-
+ soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index cdfc96a50..99d21f870 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -465,7 +465,7 @@ s32 Actor_OfferGetItem(Actor* actor, PlayState* play, s32 getItemId, f32 xzRange
+ void Actor_OfferGetItemNearby(Actor* actor, PlayState* play, s32 getItemId);
+ void Actor_OfferCarry(Actor* actor, PlayState* play);
+ u32 Actor_HasNoParent(Actor* actor, PlayState* play);
+-void func_8002F5C4(Actor* actorA, Actor* actorB, PlayState* play);
++void Actor_SwapHeldActor(Actor* actorA, Actor* actorB, PlayState* play);  // was func_8002F5C4 [LLM:HIGH]
+ void Actor_SetClosestSecretDistance(Actor* actor, PlayState* play);
+ s32 Actor_IsMounted(PlayState* play, Actor* horse);
+ u32 Actor_SetRideActor(PlayState* play, Actor* horse, s32 arg2);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 96ad0536b..172f8a214 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -2179,7 +2179,8 @@ u32 Actor_HasNoParent(Actor* actor, PlayState* play) {
+     }
+ }
+ 
+-void func_8002F5C4(Actor* actorA, Actor* actorB, PlayState* play) {
++// LLM generated name (HIGH), was func_8002F5C4: moves one actor's parent link onto another, updating the player's held and interact-range actors when the parent is the player
++void Actor_SwapHeldActor(Actor* actorA, Actor* actorB, PlayState* play) {
+     Actor* parent = actorA->parent;
+ 
+     if (parent->id == ACTOR_PLAYER) {
+diff --git a/soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c b/soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c
+index 5251abc5a..ff4d21b34 100644
+--- a/soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c
++++ b/soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c
+@@ -154,7 +154,7 @@ void EnBombf_GrowBomb(EnBombf* this, PlayState* play) {
+             bombFlower = (EnBombf*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOMBF, this->actor.world.pos.x,
+                                                this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0, 0);
+             if (bombFlower != NULL) {
+-                func_8002F5C4(&this->actor, &bombFlower->actor, play);
++                Actor_SwapHeldActor(&this->actor, &bombFlower->actor, play);  // was func_8002F5C4 [LLM:HIGH]
+                 this->timer = 180;
+                 this->flowerBombScale = 0.0f;
+                 Audio_PlayActorSound2(&this->actor, NA_SE_PL_PULL_UP_ROCK);
+-- 
+2.55.0
+

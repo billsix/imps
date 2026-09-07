@@ -1,0 +1,67 @@
+From da95bc5410c9ecbcf46d28b9ddf3800db6e631b9 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:58 +0000
+Subject: [PATCH 2519/3799] soh: rename D_801305B8 -> sSfxIntervalCounter
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the countdown Audio_PlaySfxAtInterval fires on
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/audio_general.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 39b601d52..705a3caac 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -119,7 +119,8 @@ u8 gUsedChannelsPerBank[4][7] = {
+ f32 sFixedFreqScale = 0.7950898f;  // was D_801305B0 [LLM:HIGH]
+ // LLM generated name (HIGH), was D_801305B4: the constant reverb that goes with it
+ s8 sFixedReverb = 35;  // was D_801305B4 [LLM:HIGH]
+-s8 D_801305B8 = 20;
++// LLM generated name (HIGH), was D_801305B8: the countdown Audio_PlaySfxAtInterval fires on
++s8 sSfxIntervalCounter = 20;  // was D_801305B8 [LLM:HIGH]
+ s8 D_801305BC = 30;
+ s8 D_801305C0 = 20;
+ f32 sBehindScreenZ[2] = { -15.0f, -65.0f };
+@@ -1322,7 +1323,7 @@ s32 sAudioUpdateTaskEnd;      // decomp: debug only
+     F(sOcaMemoryGameEndPos)                            \
+     F(sFixedFreqScale)                                      \
+     F(sFixedReverb)                                      \
+-    F(D_801305B8)                                      \
++    F(sSfxIntervalCounter)                                      \
+     F(D_801305BC)                                      \
+     F(D_801305C0)                                      \
+     F(sAudioIncreasingTranspose)                       \
+@@ -4484,20 +4485,20 @@ void Audio_PlaySfxScaledByRate(Vec3f* pos, u16 sfxId, f32 arg2) {
+ 
+ // LLM generated name (HIGH), was func_800F4414: fires the sound on a countdown whose period shortens as the caller's rate rises
+ void Audio_PlaySfxAtInterval(Vec3f* pos, u16 sfxId, f32 arg2) {
+-    D_801305B8--;
+-    if (D_801305B8 == 0) {
++    sSfxIntervalCounter--;  // was D_801305B8 [LLM:HIGH]
++    if (sSfxIntervalCounter == 0) {  // was D_801305B8 [LLM:HIGH]
+         Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7D8, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ 
+         if (arg2 > 2.0f) {
+             arg2 = 2.0f;
+         }
+-        D_801305B8 = (s8)((D_801305C0 - D_801305BC) * (1.0f - arg2)) + D_801305C0;
++        sSfxIntervalCounter = (s8)((D_801305C0 - D_801305BC) * (1.0f - arg2)) + D_801305C0;  // was D_801305B8 [LLM:HIGH]
+     }
+ }
+ 
+ // LLM generated name (HIGH), was func_800F44EC: arms that countdown and stores the two bounds its period is computed from
+ void Audio_SetSfxIntervalRange(s8 arg0, s8 arg1) {
+-    D_801305B8 = 1;
++    sSfxIntervalCounter = 1;  // was D_801305B8 [LLM:HIGH]
+     D_801305BC = arg1;
+     D_801305C0 = arg0;
+ }
+-- 
+2.55.0
+

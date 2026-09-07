@@ -1,0 +1,47 @@
+From b4fc08f544ee6814d3660deb53e67b2b10473234 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:39:39 +0000
+Subject: [PATCH 1060/3799] soh: rename func_809949C8 -> DoorGerudo_Open
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: accelerates the door upward to speed 15 and raises it 200 units above home.
+Defined in soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c b/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
+index 2c3bc752c..a4ec874f1 100644
+--- a/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
++++ b/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
+@@ -21,7 +21,8 @@ void DoorGerudo_Idle(DoorGerudo* this, PlayState* play);  // was func_8099485C [
+ s32 DoorGerudo_GetApproachDirection(DoorGerudo* this, PlayState* play);  // was func_80994750 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_8099496C: counts down the lock animation timer that the draw function also reads, then plays the sliding-door sfx and starts the opening slide.
+ void DoorGerudo_Unlock(DoorGerudo* this, PlayState* play);  // was func_8099496C [LLM:HIGH]
+-void func_809949C8(DoorGerudo* this, PlayState* play);
++// LLM generated name (HIGH), was func_809949C8: accelerates the door upward to speed 15 and raises it 200 units above home.
++void DoorGerudo_Open(DoorGerudo* this, PlayState* play);  // was func_809949C8 [LLM:HIGH]
+ 
+ const ActorInit Door_Gerudo_InitVars = {
+     ACTOR_DOOR_GERUDO,
+@@ -132,11 +133,11 @@ void DoorGerudo_Idle(DoorGerudo* this, PlayState* play) {
+ void DoorGerudo_Unlock(DoorGerudo* this, PlayState* play) {
+     if (DECR(this->unk_166) == 0) {
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_SLIDE_DOOR_OPEN);
+-        this->actionFunc = func_809949C8;
++        this->actionFunc = DoorGerudo_Open;  // was func_809949C8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809949C8(DoorGerudo* this, PlayState* play) {
++void DoorGerudo_Open(DoorGerudo* this, PlayState* play) {
+     Math_StepToF(&this->dyna.actor.velocity.y, 15.0f, 3.0f);
+     Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y + 200.0f, this->dyna.actor.velocity.y);
+ }
+-- 
+2.55.0
+

@@ -1,0 +1,48 @@
+From 6cfd3b0ad3905d8e9770173e0d60e7bf13cc7e1c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:50:07 +0000
+Subject: [PATCH 1890/3799] soh: rename func_80B8FF8C -> ObjBean_Overshoot
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: stretches the plant past its final size on a sine and hands off to the settle once it passes the threshold.
+Defined in soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+index c1ff2eea7..8726e95d5 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
++++ b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+@@ -47,7 +47,8 @@ void ObjBean_Sprout(ObjBean* this, PlayState* play);  // was func_80B8FEAC [LLM:
+ // LLM generated name (HIGH), was func_80B8FF50: installs the overshoot action at its starting angle.
+ void ObjBean_SetupOvershoot(ObjBean* this);  // was func_80B8FF50 [LLM:HIGH]
+ void ObjBean_SetupGrowWaterPhase4(ObjBean* this);
+-void func_80B8FF8C(ObjBean* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B8FF8C: stretches the plant past its final size on a sine and hands off to the settle once it passes the threshold.
++void ObjBean_Overshoot(ObjBean* this, PlayState* play);  // was func_80B8FF8C [LLM:HIGH]
+ void func_80B90050(ObjBean* this, PlayState* play);
+ void func_80B90010(ObjBean* this);
+ void func_80B908EC(ObjBean* this);
+@@ -597,12 +598,12 @@ void ObjBean_Sprout(ObjBean* this, PlayState* play) {
+ }
+ 
+ void ObjBean_SetupOvershoot(ObjBean* this) {
+-    this->actionFunc = func_80B8FF8C;
++    this->actionFunc = ObjBean_Overshoot;  // was func_80B8FF8C [LLM:HIGH]
+     ObjBean_SetDrawMode(this, BEAN_STATE_DRAW_LEAVES | BEAN_STATE_DRAW_SOIL);
+     this->unk_1B6.x = 0x33E9;
+ }
+ 
+-void func_80B8FF8C(ObjBean* this, PlayState* play) {
++void ObjBean_Overshoot(ObjBean* this, PlayState* play) {
+     this->unk_1B6.x -= 0x960;
+     this->dyna.actor.scale.y = Math_SinS(this->unk_1B6.x) * 0.17434467f;
+     this->dyna.actor.scale.x = this->dyna.actor.scale.z = Math_CosS(this->unk_1B6.x) * 0.12207746f;
+-- 
+2.55.0
+

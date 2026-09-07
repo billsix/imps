@@ -39,11 +39,25 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 CHECKOUT = os.path.join(ROOT, "n64", "OcarinaOfTime", "Shipwright")
 CACHE = os.path.join(HERE, ".cache")
-RAW = "https://raw.githubusercontent.com/zeldaret/oot/main/"
+# Try several oot revisions and keep the best answer per symbol. `main` has the
+# most names, but it has drifted years from SoH's snapshot -- files get renamed
+# or moved away, and function sequences diverge past what alignment can bridge.
+# An older revision is closer to SoH and still carries upstream names, so it
+# recovers symbols `main` cannot reach (padutils.c and z_kaleido_scope_PAL.c,
+# for instance, exist at the 2022 revision but not at main's paths).
+REVISIONS = (
+    "main",
+    "fa1ea37d5428c66bf783039117568bc3c5f4b645",   # 2022-05-31, nearer SoH
+)
+RAW = "https://raw.githubusercontent.com/zeldaret/oot/{rev}/"
 
-# A function DEFINITION: a line starting in column 0 that ends in `{` or `)`.
+# A function DEFINITION at column 0. The parameter list may WRAP, in which case
+# the first line ends in a comma rather than `)` -- 23 SoH definitions do, and an
+# earlier version of this pattern silently could not see any of them (found via
+# the four Skin_DrawImpl wrappers in z_skin.c, 2026-09-07). Accept both shapes.
 DEF_RE = re.compile(
-    r"^[A-Za-z_][A-Za-z0-9_ \t\*]*?\b([A-Za-z_][A-Za-z0-9_]*)\s*\([^;]*\)\s*\{?\s*$")
+    r"^[A-Za-z_][A-Za-z0-9_ \t\*]*?\b([A-Za-z_][A-Za-z0-9_]*)\s*"
+    r"\((?:[^;]*\)\s*\{?|[^;)]*,)\s*$")
 ADDR_RE = re.compile(r"^(func_[0-9A-Fa-f]{6,8}|D_[0-9A-Fa-f]{6,8})$")
 KEYWORDS = {"if", "for", "while", "switch", "return", "else", "do", "sizeof"}
 
@@ -74,15 +88,16 @@ def soh_to_oot(path):
     return moved.get(p, p)
 
 
-def fetch(oot_path):
-    """oot source for `oot_path`, cached on disk. None if oot has no such file."""
-    cached = os.path.join(CACHE, oot_path.replace("/", "__"))
+def fetch(oot_path, rev="main"):
+    """oot source for `oot_path` at `rev`, cached on disk. None if absent."""
+    cached = os.path.join(CACHE, f"{rev[:8]}__" + oot_path.replace("/", "__"))
     if os.path.exists(cached):
         text = open(cached, encoding="utf-8", errors="replace").read()
         return text or None
     os.makedirs(CACHE, exist_ok=True)
     try:
-        with urllib.request.urlopen(RAW + oot_path, timeout=30) as response:
+        url = RAW.format(rev=rev) + oot_path
+        with urllib.request.urlopen(url, timeout=30) as response:
             text = response.read().decode("utf-8", "replace")
     except Exception:
         text = ""                      # cache the miss so we do not refetch
@@ -214,9 +229,21 @@ def git(*args):
 
 
 def soh_files_with_unnamed():
-    out = git("grep", "-lE", r"^[A-Za-z_].*\bfunc_[0-9A-Fa-f]{8}\s*\(",
+    """Files still holding ANY address-named symbol.
+
+    This used to look only for un-named FUNCTION definitions, which silently
+    skipped every file whose only un-named symbols were DATA -- 646 `D_` symbols
+    and 40 functions were never checked against upstream at all (found
+    2026-09-07 while working out an honest progress denominator). Match any
+    address name, and let the per-kind alignment sort out what is there.
+    """
+    out = git("grep", "-lE", r"\b(func_|D_)[0-9A-Fa-f]{8}\b",
               "HEAD", "--", "soh/src")
     return sorted(l.split(":", 1)[1] for l in out.split() if ":" in l)
+
+
+VERDICT_RANK = {"ADOPT": 0, "ADOPT_STRUCT": 1, "BOTH": 2,
+                "MISMATCH": 3, "UNSAFE": 4, "NOFILE": 5}
 
 
 def emit(kind, extract, path, soh_text, oot_text, rows, stats):
@@ -272,14 +299,30 @@ def main(argv):
         if not soh_text:
             continue
         oot_path = soh_to_oot(path)
-        oot_text = fetch(oot_path)
-        if oot_text is None:
-            stats["NOFILE"] += 1
+
+        # Best row per (kind, soh_name) across all revisions.
+        best = {}
+        seen_any = False
+        for rev in REVISIONS:
+            oot_text = fetch(oot_path, rev)
+            if oot_text is None:
+                continue
+            seen_any = True
+            candidate = []
+            for kind, extract in (("func", functions), ("data", data_symbols)):
+                emit(kind, extract, path, soh_text, oot_text, candidate, {})
+            for row in candidate:
+                key = (row[1], row[3])
+                if (key not in best
+                        or VERDICT_RANK[row[5]] < VERDICT_RANK[best[key][5]]):
+                    best[key] = row
+        if not seen_any:
+            stats["NOFILE"] = stats.get("NOFILE", 0) + 1
             rows.append((path, "-", "-", "-", "-", "NOFILE", "0.00"))
             continue
-
-        for kind, extract in (("func", functions), ("data", data_symbols)):
-            emit(kind, extract, path, soh_text, oot_text, rows, stats)
+        for row in best.values():
+            stats[row[5]] = stats.get(row[5], 0) + 1
+            rows.append(row)
 
     out_path = os.path.join(HERE, "oracle.tsv")
     with open(out_path, "w") as handle:

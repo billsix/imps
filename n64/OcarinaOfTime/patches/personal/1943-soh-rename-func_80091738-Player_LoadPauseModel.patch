@@ -1,0 +1,61 @@
+From 1468be20a625d5105fd36aaa094cb20c19ed2e26 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:05:33 +0000
+Subject: [PATCH 1943/3799] soh: rename func_80091738 -> Player_LoadPauseModel
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: DMAs gameplay_keep and the age-appropriate link object into a caller-supplied segment and inits the skeleton -- called only by kaleido with pauseCtx->playerSegment
+Defined in soh/src/code/z_player_lib.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_player_lib.c                                   | 3 ++-
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 4875be497..f94b3e94d 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1158,7 +1158,7 @@ u8 Player_UpdateWeaponInfo(PlayState* play, ColliderQuad* collider, WeaponInfo*
+                  Vec3f* newBase);
+ void Player_DrawGetItem(PlayState* play, Player* player);
+ void Player_PostLimbDrawGameplay(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* data);
+-u32 func_80091738(PlayState* play, u8* segment, SkelAnime* skelAnime);
++u32 Player_LoadPauseModel(PlayState* play, u8* segment, SkelAnime* skelAnime);  // was func_80091738 [LLM:HIGH]
+ void Player_DrawPause(PlayState* play, u8* segment, SkelAnime* skelAnime, Vec3f* pos, Vec3s* rot, f32 scale,
+                    s32 sword, s32 tunic, s32 shield, s32 boots);
+ void PreNMI_Init(GameState* thisx);
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index 65f0cdcaf..00411ea9d 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -2002,7 +2002,8 @@ void Player_PostLimbDrawGameplay(PlayState* play, s32 limbIndex, Gfx** dList, Ve
+     }
+ }
+ 
+-u32 func_80091738(PlayState* play, u8* segment, SkelAnime* skelAnime) {
++// LLM generated name (HIGH), was func_80091738: DMAs gameplay_keep and the age-appropriate link object into a caller-supplied segment and inits the skeleton -- called only by kaleido with pauseCtx->playerSegment
++u32 Player_LoadPauseModel(PlayState* play, u8* segment, SkelAnime* skelAnime) {
+     s16 linkObjectId = gLinkObjectIds[gSaveContext.linkAge];
+     size_t size;
+     void* ptr;
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 0f54f7a93..e310ba845 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -3885,7 +3885,7 @@ void KaleidoScope_Update(PlayState* play) {
+ 
+             pauseCtx->playerSegment = (void*)(((uintptr_t)play->objectCtx.spaceStart + 0x30) & ~0x3F);
+ 
+-            size1 = func_80091738(play, pauseCtx->playerSegment, &pauseCtx->playerSkelAnime);
++            size1 = Player_LoadPauseModel(play, pauseCtx->playerSegment, &pauseCtx->playerSkelAnime);  // was func_80091738 [LLM:HIGH]
+             osSyncPrintf("プレイヤー size1＝%x\n", size1);
+ 
+             pauseCtx->iconItemSegment = (void*)(((uintptr_t)pauseCtx->playerSegment + size1 + 0xF) & ~0xF);
+-- 
+2.55.0
+

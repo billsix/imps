@@ -1,0 +1,52 @@
+From 3631b93dd3cd98d1460e1bef867b9a466112ae8a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:33:16 +0000
+Subject: [PATCH 0974/3799] soh: rename func_80891CF4 ->
+ BgIceShutter_WaitForRoomClear
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits for the room's temp-clear flag, then sets the permanent clear flag, plays the sliding-door sfx and starts opening.
+Defined in soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c  | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c b/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
+index 48d64f94f..07ed1634b 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
+@@ -14,7 +14,8 @@ void BgIceShutter_Destroy(Actor* thisx, PlayState* play);
+ void BgIceShutter_Update(Actor* thisx, PlayState* play);
+ void BgIceShutter_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80891CF4(BgIceShutter* thisx, PlayState* play);
++// LLM generated name (HIGH), was func_80891CF4: waits for the room's temp-clear flag, then sets the permanent clear flag, plays the sliding-door sfx and starts opening.
++void BgIceShutter_WaitForRoomClear(BgIceShutter* thisx, PlayState* play);  // was func_80891CF4 [LLM:HIGH]
+ void func_80891D6C(BgIceShutter* thisx, PlayState* play);
+ void func_80891DD4(BgIceShutter* thisx, PlayState* play);
+ 
+@@ -68,7 +69,7 @@ void BgIceShutter_Init(Actor* thisx, PlayState* play) {
+         if (Flags_GetClear(play, this->dyna.actor.room)) {
+             Actor_Kill(&this->dyna.actor);
+         } else {
+-            this->actionFunc = func_80891CF4;
++            this->actionFunc = BgIceShutter_WaitForRoomClear;  // was func_80891CF4 [LLM:HIGH]
+         }
+ 
+     } else {
+@@ -96,7 +97,7 @@ void BgIceShutter_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80891CF4(BgIceShutter* this, PlayState* play) {
++void BgIceShutter_WaitForRoomClear(BgIceShutter* this, PlayState* play) {
+     if (Flags_GetTempClear(play, this->dyna.actor.room)) {
+         Flags_SetClear(play, this->dyna.actor.room);
+         SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 30, NA_SE_EV_SLIDE_DOOR_OPEN);
+-- 
+2.55.0
+

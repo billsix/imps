@@ -1,0 +1,90 @@
+From b38088281e9bfd2904723ec5784937e6f44d808d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:48 +0000
+Subject: [PATCH 3225/3799] soh: rename D_8082AD48 -> sStickYRepeatTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the repeat delay for vertical stick input
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../ovl_kaleido_scope/z_kaleido_scope_PAL.c   | 26 +++++++++----------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 8c1db243d..ca6166c8a 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -1457,7 +1457,7 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+     static s16 D_8082AD3C = 20;
+     static s16 sCursorColorPhase = 0;  // was D_8082AD40 [LLM:HIGH]
+     static s16 sStickXRepeatTimer = 0;  // was D_8082AD44 [LLM:HIGH]
+-    static s16 D_8082AD48 = 0;
++    static s16 sStickYRepeatTimer = 0;  // was D_8082AD48 [LLM:HIGH]
+     static s16 D_8082AD4C = 0;
+     static s16 D_8082AD50 = 0;
+     PauseContext* pauseCtx = &play->pauseCtx;
+@@ -1527,20 +1527,20 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+ 
+                 if (CHECK_BTN_ALL(input->cur.button, BTN_DDOWN)) {
+                     if (CHECK_BTN_ALL(input->press.button, BTN_DDOWN)) {
+-                        D_8082AD48 = XREG(8);
++                        sStickYRepeatTimer = XREG(8);  // was D_8082AD48 [LLM:HIGH]
+                         D_8082AD50 = -1;
+-                    } else if (--D_8082AD48 < 0) {
+-                        D_8082AD48 = XREG(6);
++                    } else if (--sStickYRepeatTimer < 0) {  // was D_8082AD48 [LLM:HIGH]
++                        sStickYRepeatTimer = XREG(6);  // was D_8082AD48 [LLM:HIGH]
+                         input->press.button |= BTN_DDOWN;
+                     }
+                 } else if (CHECK_BTN_ALL(input->rel.button, BTN_DDOWN)) {
+                     D_8082AD50 = 0;
+                 } else if (CHECK_BTN_ALL(input->cur.button, BTN_DUP)) {
+                     if (CHECK_BTN_ALL(input->press.button, BTN_DUP)) {
+-                        D_8082AD48 = XREG(8);
++                        sStickYRepeatTimer = XREG(8);  // was D_8082AD48 [LLM:HIGH]
+                         D_8082AD50 = 1;
+-                    } else if (--D_8082AD48 < 0) {
+-                        D_8082AD48 = XREG(6);
++                    } else if (--sStickYRepeatTimer < 0) {  // was D_8082AD48 [LLM:HIGH]
++                        sStickYRepeatTimer = XREG(6);  // was D_8082AD48 [LLM:HIGH]
+                         input->press.button |= BTN_DUP;
+                     }
+                 } else if (CHECK_BTN_ALL(input->rel.button, BTN_DUP)) {
+@@ -1576,24 +1576,24 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+ 
+             if (pauseCtx->stickRelY < -30) {
+                 if (D_8082AD50 == -1) {
+-                    if (--D_8082AD48 < 0) {
+-                        D_8082AD48 = XREG(6);
++                    if (--sStickYRepeatTimer < 0) {  // was D_8082AD48 [LLM:HIGH]
++                        sStickYRepeatTimer = XREG(6);  // was D_8082AD48 [LLM:HIGH]
+                     } else {
+                         pauseCtx->stickRelY = 0;
+                     }
+                 } else {
+-                    D_8082AD48 = XREG(8);
++                    sStickYRepeatTimer = XREG(8);  // was D_8082AD48 [LLM:HIGH]
+                     D_8082AD50 = -1;
+                 }
+             } else if (pauseCtx->stickRelY > 30) {
+                 if (D_8082AD50 == 1) {
+-                    if (--D_8082AD48 < 0) {
+-                        D_8082AD48 = XREG(6);
++                    if (--sStickYRepeatTimer < 0) {  // was D_8082AD48 [LLM:HIGH]
++                        sStickYRepeatTimer = XREG(6);  // was D_8082AD48 [LLM:HIGH]
+                     } else {
+                         pauseCtx->stickRelY = 0;
+                     }
+                 } else {
+-                    D_8082AD48 = XREG(8);
++                    sStickYRepeatTimer = XREG(8);  // was D_8082AD48 [LLM:HIGH]
+                     D_8082AD50 = 1;
+                 }
+             } else {
+-- 
+2.55.0
+

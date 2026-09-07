@@ -1,0 +1,60 @@
+From ab8698003d640cb5d3db86dfc3b6b82d425c0eae Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:58:38 +0000
+Subject: [PATCH 1217/3799] soh: rename func_8088E6D0 -> BgHidanSima_Sink
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: lowers the platform 100 units below home, re-arming the timer while the player is still standing on it, and returns to the rise once it expires.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c  | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c
+index 3ab3ae011..5f224ff24 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c
+@@ -18,7 +18,8 @@ void BgHidanSima_Draw(Actor* thisx, PlayState* play);
+ void BgHidanSima_Rise(BgHidanSima* this, PlayState* play);  // was func_8088E518 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_8088E5D0: jitters the platform in a circle for twenty frames with rumble and the block-shake sfx, then recentres it and starts sinking.
+ void BgHidanSima_Shake(BgHidanSima* this, PlayState* play);  // was func_8088E5D0 [LLM:HIGH]
+-void func_8088E6D0(BgHidanSima* this, PlayState* play);
++// LLM generated name (HIGH), was func_8088E6D0: lowers the platform 100 units below home, re-arming the timer while the player is still standing on it, and returns to the rise once it expires.
++void BgHidanSima_Sink(BgHidanSima* this, PlayState* play);  // was func_8088E6D0 [LLM:HIGH]
+ void func_8088E760(BgHidanSima* this, PlayState* play);
+ void func_8088E7A8(BgHidanSima* this, PlayState* play);
+ void func_8088E90C(BgHidanSima* this);
+@@ -127,7 +128,7 @@ void BgHidanSima_Rise(BgHidanSima* this, PlayState* play) {
+         if (this->dyna.actor.home.pos.y <= this->dyna.actor.world.pos.y) {
+             this->actionFunc = BgHidanSima_Shake;  // was func_8088E5D0 [LLM:HIGH]
+         } else {
+-            this->actionFunc = func_8088E6D0;
++            this->actionFunc = BgHidanSima_Sink;  // was func_8088E6D0 [LLM:HIGH]
+         }
+     }
+ }
+@@ -142,7 +143,7 @@ void BgHidanSima_Shake(BgHidanSima* this, PlayState* play) {
+         this->dyna.actor.world.pos.z =
+             Math_CosS(this->dyna.actor.world.rot.y + (this->timer * 0x4000)) * 5.0f + this->dyna.actor.home.pos.z;
+     } else {
+-        this->actionFunc = func_8088E6D0;
++        this->actionFunc = BgHidanSima_Sink;  // was func_8088E6D0 [LLM:HIGH]
+         this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x;
+         this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z;
+     }
+@@ -152,7 +153,7 @@ void BgHidanSima_Shake(BgHidanSima* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8088E6D0(BgHidanSima* this, PlayState* play) {
++void BgHidanSima_Sink(BgHidanSima* this, PlayState* play) {
+     if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+         this->timer = 20;
+     } else if (this->timer != 0) {
+-- 
+2.55.0
+

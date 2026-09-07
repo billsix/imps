@@ -1,0 +1,61 @@
+From ecfedba09e6521a02d0afea470291f26272e368a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:08:22 +0000
+Subject: [PATCH 1290/3799] soh: rename func_80889ACC ->
+ BgHidanKousi_SnapToOpen
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: places the fence at its per-variant travel distance from home along its slide direction; used both at Init when the switch is already set and on arrival.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c         | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+index bb89cbece..3ba5d186f 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+@@ -14,7 +14,8 @@ void BgHidanKousi_Destroy(Actor* thisx, PlayState* play);
+ void BgHidanKousi_Update(Actor* thisx, PlayState* play);
+ void BgHidanKousi_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80889ACC(BgHidanKousi* this);
++// LLM generated name (HIGH), was func_80889ACC: places the fence at its per-variant travel distance from home along its slide direction; used both at Init when the switch is already set and on arrival.
++void BgHidanKousi_SnapToOpen(BgHidanKousi* this);  // was func_80889ACC [LLM:HIGH]
+ void func_80889B5C(BgHidanKousi* this, PlayState* play);
+ void func_80889BC0(BgHidanKousi* this, PlayState* play);
+ void func_80889C18(BgHidanKousi* this, PlayState* play);
+@@ -84,7 +85,7 @@ void BgHidanKousi_Init(Actor* thisx, PlayState* play) {
+     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, thisx, colHeader);
+     thisx->world.rot.y = sTravelYaws[this->dyna.actor.params & 0xFF] + thisx->shape.rot.y;  // was D_80889E7C [LLM:HIGH]
+     if (Flags_GetSwitch(play, (thisx->params >> 8) & 0xFF)) {
+-        func_80889ACC(this);
++        BgHidanKousi_SnapToOpen(this);  // was func_80889ACC [LLM:HIGH]
+         BgHidanKousi_SetupAction(this, func_80889D28);
+     } else {
+         BgHidanKousi_SetupAction(this, func_80889B5C);
+@@ -96,7 +97,7 @@ void BgHidanKousi_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80889ACC(BgHidanKousi* this) {
++void BgHidanKousi_SnapToOpen(BgHidanKousi* this) {
+     s32 pad[2];
+     Vec3s* rot = &this->dyna.actor.world.rot;
+     f32 temp1 = sTravelDistances[this->dyna.actor.params & 0xFF] * Math_SinS(rot->y);  // was D_80889E40 [LLM:HIGH]
+@@ -135,7 +136,7 @@ void func_80889C90(BgHidanKousi* this, PlayState* play) {
+     Actor_UpdatePos(&this->dyna.actor);
+     if (sTravelDistances[this->dyna.actor.params & 0xFF] <  // was D_80889E40 [LLM:HIGH]
+         Math_Vec3f_DistXYZ(&this->dyna.actor.home.pos, &this->dyna.actor.world.pos)) {
+-        func_80889ACC(this);
++        BgHidanKousi_SnapToOpen(this);  // was func_80889ACC [LLM:HIGH]
+         BgHidanKousi_SetupAction(this, func_80889D28);
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_METALDOOR_STOP);
+     } else {
+-- 
+2.55.0
+

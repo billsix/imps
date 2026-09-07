@@ -1,0 +1,57 @@
+From 24e2fe2bc713f82603974d3b4e9647abe2412f3e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:10:57 +0000
+Subject: [PATCH 2041/3799] soh: rename func_80AB63A8 -> EnNiw_Airborne
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: holds until the cucco touches ground on the way down, then clears its motion state and returns to idle
+Defined in soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+index 48ca5ad57..25a53b224 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+@@ -22,7 +22,8 @@ void EnNiw_Reset(void);
+ void EnNiw_ResetAction(EnNiw* this, PlayState* play);
+ // LLM generated name (GUESS), was func_80AB6324: the params 0xD idle: does nothing until unk_308 is set, then launches upward; unk_308's setter is outside this overlay, so the trigger is inferred from the launch it performs
+ void EnNiw_WaitToFlyOff(EnNiw* this, PlayState* play);  // was func_80AB6324 [LLM:GUESS]
+-void func_80AB63A8(EnNiw* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AB63A8: holds until the cucco touches ground on the way down, then clears its motion state and returns to idle
++void EnNiw_Airborne(EnNiw* this, PlayState* play);  // was func_80AB63A8 [LLM:HIGH]
+ void func_80AB6450(EnNiw* this, PlayState* play);
+ void func_80AB6570(EnNiw* this, PlayState* play);
+ void func_80AB6A38(EnNiw* this, PlayState* play);
+@@ -437,12 +438,12 @@ void EnNiw_WaitToFlyOff(EnNiw* this, PlayState* play) {
+     if (this->unk_308 != 0) {
+         this->actor.velocity.y = Rand_ZeroFloat(2.0f) + 4.0f;
+         this->actor.speedXZ = Rand_ZeroFloat(2.0f) + 3.0f;
+-        this->actionFunc = func_80AB63A8;
++        this->actionFunc = EnNiw_Airborne;  // was func_80AB63A8 [LLM:HIGH]
+     }
+     EnNiw_AnimateLimbs(this, play, 1);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB63A8(EnNiw* this, PlayState* play) {
++void EnNiw_Airborne(EnNiw* this, PlayState* play) {
+     if (this->actor.bgCheckFlags & 1 && this->actor.velocity.y < 0.0f) {
+         this->unk_2AC.x = this->unk_2B8.x = this->actor.world.pos.x;
+         this->unk_2AC.y = this->unk_2B8.y = this->actor.world.pos.y;
+@@ -1110,7 +1111,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+             CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+         }
+         if (this->actionFunc != func_80AB6BF8 && this->actionFunc != func_80AB6D08 &&
+-            this->actionFunc != EnNiw_WaitToFlyOff && this->actionFunc != func_80AB63A8 &&  // was func_80AB6324 [LLM:GUESS]
++            this->actionFunc != EnNiw_WaitToFlyOff && this->actionFunc != EnNiw_Airborne &&  // was func_80AB6324 [LLM:GUESS]
+             this->actionFunc != func_80AB6450) {
+             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+         }
+-- 
+2.55.0
+

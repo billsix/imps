@@ -21,6 +21,35 @@ oot's function at `0x800A9F30`. oot has named most of the game. Cross-reference 
 - **BUT oot leaves a LOT of symbols address-named too.** When it does, an LLM/descriptive name is legitimate —
   just mark it as ours (see provenance convention). Roughly ~2/3 of what we hit had no oot name.
 
+## The second oracle: a file's own debug strings
+
+**Before deducing anything in a file, grep it for `osSyncPrintf`.** OoT shipped
+with its Japanese debug prints intact, and many of them embed the *original*
+function name — so the answer is sitting in the source, not in oot's repo. This
+is the strongest evidence short of an upstream name (the function says what it
+is called), and it costs one command:
+
+```sh
+grep -n osSyncPrintf <file.c>
+```
+
+Worked example, `z_en_zl3.c` (2026-09-08): five of the file's 203 symbols were
+named outright by their own prints — `En_Zl3_Actor_inFinal_Init`,
+`En_Zl3_inFinal_Check_DemoMode`, `En_Zl3_Actor_inFinal2_Init`,
+`En_Zl3_inFinal2_Check_DemoMode`, `En_Zl3_Get_path_info` — and those five are the
+spine of the file, so naming them first made the surrounding 198 legible. All
+five went in as HIGH with the string quoted in the reason.
+
+The prints also disambiguate *structure* even when they do not name a function:
+`En_Zl3_inFinal2_Check_DemoMode:そんな動作は無い` sits in the `default:` arm of a
+cue switch, which proves the switch dispatches "demo mode" cues and that the
+enclosing function is the dispatcher. Read the whole print, not just the
+identifier in it.
+
+Caveat: a print can name the function it *calls into* rather than the one it sits
+in, and a print in a helper may carry the caller's name. Confirm the body matches
+the name before adopting it, exactly as with an oot cross-reference.
+
 ## Provenance-comment convention (the maintainer's request)
 Every renamed symbol gets a **greppable** comment directly above its definition, in one of two forms:
 - `// LLM generated name (HIGH|GUESS), was <addr>: <reason from the code>` — our deduction (oot has no name).
@@ -44,9 +73,26 @@ extern u8 sAudioResetState;                        // was D_80133418 [LLM:HIGH]
 `[oot]` = authoritative upstream name; `[LLM:HIGH]` / `[LLM:GUESS]` = ours, with the confidence carried over
 from the definition comment. It stays greppable by the same handle (`git grep 'was func_'`), and deliberately
 does **not** repeat the prose or the citation URL — those stay at the definition, so the shared headers don't
-gain 60-odd long lines. **Call sites get nothing**; only the definition and the declaration.
+gain 60-odd long lines.
 Gate: `n64/OcarinaOfTime/tools/check_renames.py declarations` reports any header declaration still bare;
 `tools/tag_declarations.py` adds the missing ones (idempotent).
+
+**A GUESSED name is tagged at every CALL SITE too — an adopted one is not**
+(William Emerison Six <billsix@gmail.com>, 2026-09-07). The marking density tracks the uncertainty:
+
+- **`[oot]`** — upstream's own name, body- or structure-verified. Definition + declaration only. A reader
+  meeting it in the middle of a function needs no warning; it is as trustworthy as the rest of the decomp.
+- **`[LLM:HIGH]` / `[LLM:GUESS]`** — ours. Tagged at the definition, every declaration, **and every call
+  site**, so a reader who encounters the name anywhere knows immediately that it is inferred and can go
+  read the reasoning at the definition rather than trusting it:
+
+  ```c
+      EnKz_UpdateDialogChoice(this, play);  // [LLM:HIGH] was func_80A9CB18
+  ```
+
+  Append to the existing line, never insert a new one (see the rule below), so line counts stay stable.
+  This is what makes a wrong guess *findable* — `git grep '\[LLM:'` lists every place the decomp is leaning
+  on an inference.
 
 **The tag is always APPENDED to an existing line, never inserted as a new one.** That is load-bearing, not
 cosmetic: no file changes its line count, so `__LINE__`/`__FILE__` and every debug print built on them are
@@ -54,6 +100,54 @@ untouched, and the preprocessed translation units stay byte-identical. Where the
 comment, append after it with a comma (`} RumbleMgr; // size = 0x10E, was UnkRumbleStruct [LLM:HIGH]`).
 **Commented-out placeholder declarations** (`// ? Audio_ResetData(?);` in `functions.h`) are skipped — they
 are not declarations.
+
+**Never append a tag to a line whose code ends in a backslash.** A `\` at end of line is a macro
+continuation, so a trailing `// ...` comments the backslash out and silently truncates the macro. It broke
+`z_en_insect.c`'s `EN_INSECT_SHIP_SAVESTATE_FIELDS(F)` list on 2026-09-07 (29 cascading compile errors from
+one tag), and nothing in the rename gate can see it — the tagging is correct by every rule the gate checks;
+only the compiler notices. Leave such lines untagged; the definition's long provenance comment already
+records the rename. `apply_deduced_names.py` enforces this. A `/* ... */` comment *before* the backslash
+would also work, but untagged is simpler and the tag adds nothing on a macro field list.
+
+**A multi-line prototype is tagged on the line that CLOSES it, not the line that names it.** In
+`functions.h` a long prototype wraps, so the renamed name sits on a first line ending in `,` — appending
+`// ...` there comments out the rest of the parameter list. The tag goes on the line ending in `;`:
+
+```c
+void EffectSsDust_SpawnDrawFlags0(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel,
+                   Color_RGBA8* primColor, s16 scale);  // was func_8002829C [LLM:HIGH]
+```
+
+The failure this prevents is silent in the opposite direction from the backslash rule: the *build* stays
+clean and the gate goes red. `apply_deduced_names.py` defers the tag to the closing line, and
+`check_renames.py`'s declarations check accepts it there when the name-bearing line does not end in `;` or
+`{`. It bit the 11 `EffectSsDust_Spawn*` prototypes on 2026-09-07, because a wrapped prototype's first line
+looks exactly like a definition's opening line — the tagger read it as a definition and skipped the tag
+entirely. Header files hold only prototypes, so the tagger now treats *every* top-level match in a `.h` as
+a declaration rather than guessing from the line's punctuation.
+
+**A function-pointer declaration hides its name inside parens, and the gate has to
+know that.** `check_renames.py` builds its set of renamed symbols by parsing the
+declaration under each provenance comment, and the plain rule -- take the
+identifier before the first `(` -- returns the RETURN TYPE for
+`void (*gAudioCustomUpdateFunc)(void)` and for the array form
+`s32 (*sSpot09ObjChecks[])(args)`. That single bad entry poisons the whole set:
+with `void` in it, every `void` line in every header reads as an untagged
+declaration. On 2026-09-08 it turned five real renames into five false failures,
+and the naive fix -- matching only `(*name)` -- then let `s32` through from the
+array form and turned five failures into 774. `renames_common._declared_name`
+now matches both shapes, subscript included. The lesson generalises: **when the
+gate reports failures in files the batch never touched, suspect the symbol set
+before suspecting the tags.**
+
+**A short tag IS a citation -- the traceability check has to accept one.** A
+static declared inside a function body gets only the short tag; a long
+provenance comment in the middle of a body would be noise, and
+`apply_deduced_names.py` correctly declines to add one. `check_renames.py`'s
+traceability check originally read only long marker comments, so on 2026-09-08
+seventeen correctly-tagged function-local statics reported as untraceable. It
+now reads the short tag too, exactly as `renames_common.renamed_symbols()`
+already did. Both halves of the gate must agree on what counts as provenance.
 
 **TYPE renames follow the same convention.** A struct/typedef rename is not address-named, so the
 `git grep 'LLM generated name'` audit cannot see it and it is easy to ship untraceable — `UnkRumbleStruct` →

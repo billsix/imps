@@ -1,0 +1,60 @@
+From e60a9b68e7699eec4e32cfda5a5c07f3b57040f3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:27:42 +0000
+Subject: [PATCH 1577/3799] soh: rename func_80A40C78 -> EnGo_FinishGetItem
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: after a trade item changes hands it either ends the conversation or opens the follow-up line for the prescription and claim check, clearing the Biggoron sword day count for the latter.
+Defined in soh/src/overlays/actors/ovl_En_Go/z_en_go.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Go/z_en_go.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+index 79e6d02ad..0fbf9d1bc 100644
+--- a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
++++ b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+@@ -34,7 +34,8 @@ void EnGo_Sit(EnGo* this, PlayState* play);  // was func_80A408D8 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A40B1C: holds the Goron City doors Goron in the standing idle until INFTABLE_EB is set, then starts him walking his path.
+ void EnGo_WaitToWalk(EnGo* this, PlayState* play);  // was func_80A40B1C [LLM:HIGH]
+ void EnGo_GetItem(EnGo* this, PlayState* play);
+-void func_80A40C78(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A40C78: after a trade item changes hands it either ends the conversation or opens the follow-up line for the prescription and claim check, clearing the Biggoron sword day count for the latter.
++void EnGo_FinishGetItem(EnGo* this, PlayState* play);  // was func_80A40C78 [LLM:HIGH]
+ void EnGo_Eyedrops(EnGo* this, PlayState* play);
+ void func_80A40DCC(EnGo* this, PlayState* play);
+ 
+@@ -588,7 +589,7 @@ void func_80A3F908(EnGo* this, PlayState* play) {
+ 
+     if (this->actionFunc == EnGo_BiggoronActionFunc || this->actionFunc == EnGo_GoronLinkRolling ||
+         this->actionFunc == EnGo_FireGenericActionFunc || this->actionFunc == EnGo_Eyedrops ||
+-        this->actionFunc == func_80A40DCC || this->actionFunc == EnGo_GetItem || this->actionFunc == func_80A40C78 ||
++        this->actionFunc == func_80A40DCC || this->actionFunc == EnGo_GetItem || this->actionFunc == EnGo_FinishGetItem ||  // was func_80A40C78 [LLM:HIGH]
+         this->actionFunc == EnGo_WaitToWalk) {  // was func_80A40B1C [LLM:HIGH]
+ 
+         interactRange = (this->collider.dim.radius + 30.0f);
+@@ -964,7 +965,7 @@ void EnGo_GetItem(EnGo* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         this->interactInfo.talkState = NPC_TALK_STATE_ACTION;
+         this->actor.parent = NULL;
+-        EnGo_SetupAction(this, func_80A40C78);
++        EnGo_SetupAction(this, EnGo_FinishGetItem);  // was func_80A40C78 [LLM:HIGH]
+     } else {
+         this->unk_20C = 0;
+         if ((this->actor.params & 0xF0) == 0x90) {
+@@ -990,7 +991,7 @@ void EnGo_GetItem(EnGo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A40C78(EnGo* this, PlayState* play) {
++void EnGo_FinishGetItem(EnGo* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ITEM_GIVEN) {
+         EnGo_SetupAction(this, EnGo_BiggoronActionFunc);
+         if ((this->actor.params & 0xF0) != 0x90) {
+-- 
+2.55.0
+

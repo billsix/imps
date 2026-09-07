@@ -1,0 +1,78 @@
+From a020aefa8538e8e0d6888032d646dd1ad5668ee3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:37:42 +0000
+Subject: [PATCH 1701/3799] soh: rename func_80043F94 -> Camera_BGCheckLine
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: line-tests from a point toward a CamColChk target, extending the ray slightly, and fills the check's surface normal, polygon and bg id -- the normal is faked from the ray direction when nothing is hit. Named BGCheckLine rather than BGCheckInfo because the latter already exists in this file as its caller.
+Defined in soh/src/code/z_camera.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index fa38fc2c0..e37340c0f 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -278,7 +278,8 @@ s32 Camera_BGCheck(Camera* camera, Vec3f* from, Vec3f* to) {
+     return bgId;
+ }
+ 
+-s32 func_80043F94(Camera* camera, Vec3f* from, CamColChk* to) {
++// LLM generated name (GUESS), was func_80043F94: line-tests from a point toward a CamColChk target, extending the ray slightly, and fills the check's surface normal, polygon and bg id -- the normal is faked from the ray direction when nothing is hit. Named BGCheckLine rather than BGCheckInfo because the latter already exists in this file as its caller.
++s32 Camera_BGCheckLine(Camera* camera, Vec3f* from, CamColChk* to) {
+     CollisionContext* colCtx = &camera->play->colCtx;
+     Vec3f toNewPos;
+     Vec3f toPos;
+@@ -352,7 +353,7 @@ void Camera_BGCheckPos(Camera* camera, Vec3f* arg1, Vec3f* arg2) {
+     Vec3s unused;
+ 
+     sp20.pos = *arg2;
+-    func_80043F94(camera, arg1, &sp20);
++    Camera_BGCheckLine(camera, arg1, &sp20);  // was func_80043F94 [LLM:GUESS]
+     *arg2 = sp20.pos;
+ }
+ 
+@@ -1966,7 +1967,7 @@ s32 Camera_Normal2(Camera* camera) {
+             Camera_BGCheckInfo(camera, at, &bgChk);
+             *eye = bgChk.pos;
+         } else {
+-            func_80043F94(camera, at, &bgChk);
++            Camera_BGCheckLine(camera, at, &bgChk);  // was func_80043F94 [LLM:GUESS]
+             *eye = bgChk.pos;
+             OLib_Vec3fDiffToVecSphGeo(&adjSph, eye, at);
+             camera->inputDir.x = adjSph.pitch;
+@@ -2302,7 +2303,7 @@ s32 Camera_Parallel1(Camera* camera) {
+             Camera_BGCheckInfo(camera, at, &sp6C);
+             *eye = sp6C.pos;
+         } else {
+-            func_80043F94(camera, at, &sp6C);
++            Camera_BGCheckLine(camera, at, &sp6C);  // was func_80043F94 [LLM:GUESS]
+             *eye = sp6C.pos;
+             OLib_Vec3fDiffToVecSphGeo(&spA8, eye, at);
+             camera->inputDir.x = spA8.pitch;
+@@ -3111,7 +3112,7 @@ s32 Camera_Battle1(Camera* camera) {
+             if (!camera->play->envCtx.skyboxDisabled || batt1->flags & 1) {
+                 Camera_BGCheckInfo(camera, at, &spBC);
+             } else if (batt1->flags & 2) {
+-                func_80043F94(camera, at, &spBC);
++                Camera_BGCheckLine(camera, at, &spBC);  // was func_80043F94 [LLM:GUESS]
+             } else {
+                 OLib_Vec3fDistNormalize(&sp128, at, &spBC.pos);
+                 spBC.pos.x -= sp128.x;
+@@ -3442,7 +3443,7 @@ s32 Camera_KeepOn1(Camera* camera) {
+             if (!camera->play->envCtx.skyboxDisabled || keep1->interfaceFlags & 1) {
+                 Camera_BGCheckInfo(camera, at, &sp8C);
+             } else if (keep1->interfaceFlags & 2) {
+-                func_80043F94(camera, at, &sp8C);
++                Camera_BGCheckLine(camera, at, &sp8C);  // was func_80043F94 [LLM:GUESS]
+             } else {
+                 OLib_Vec3fDistNormalize(&sp120, at, &sp8C.pos);
+                 sp8C.pos.x -= sp120.x;
+-- 
+2.55.0
+

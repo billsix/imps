@@ -1,0 +1,76 @@
+From 16913626dd32e576350b1cad6b6bc6c0721eefd8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:54:38 +0000
+Subject: [PATCH 1172/3799] soh: rename func_80ABF28C ->
+ EnOkarinaTag_WaitForFixedSong
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the idle for the types whose song is fixed by the type itself (Zora's River, the windmill, the Door of Time, the royal tomb); it starts the matching OCARINA_ACTION_CHECK when the player plays nearby.
+Defined in soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c    | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
+index 962d4e036..d9bfd45b1 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
+@@ -19,7 +19,8 @@ void EnOkarinaTag_Update(Actor* thisx, PlayState* play);
+ // LLM generated name (HIGH), was func_80ABEF2C: the type 7 idle: when the player plays for the actor inside the configured range, it starts the ocarina check for the song number packed into params.
+ void EnOkarinaTag_WaitForConfiguredSong(EnOkarinaTag* this, PlayState* play);  // was func_80ABEF2C [LLM:HIGH]
+ void func_80ABF708(EnOkarinaTag* this, PlayState* play);
+-void func_80ABF28C(EnOkarinaTag* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ABF28C: the idle for the types whose song is fixed by the type itself (Zora's River, the windmill, the Door of Time, the royal tomb); it starts the matching OCARINA_ACTION_CHECK when the player plays nearby.
++void EnOkarinaTag_WaitForFixedSong(EnOkarinaTag* this, PlayState* play);  // was func_80ABF28C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80ABF0CC: reads msgCtx.ocarinaMode after that check; a correct song sets the switch flag and plays the chime, anything else just returns to the idle state.
+ void EnOkarinaTag_CheckConfiguredSong(EnOkarinaTag* this, PlayState* play);  // was func_80ABF0CC [LLM:HIGH]
+ void func_80ABF4C8(EnOkarinaTag* this, PlayState* play);
+@@ -98,7 +99,7 @@ void EnOkarinaTag_Init(Actor* thisx, PlayState* play) {
+             case 1:
+             case 4:
+             case 6:
+-                this->actionFunc = func_80ABF28C;
++                this->actionFunc = EnOkarinaTag_WaitForFixedSong;  // was func_80ABF28C [LLM:HIGH]
+                 break;
+             case 5:
+                 this->actor.textId = 0x5021;
+@@ -190,7 +191,7 @@ void EnOkarinaTag_CheckConfiguredSong(EnOkarinaTag* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ABF28C(EnOkarinaTag* this, PlayState* play) {
++void EnOkarinaTag_WaitForFixedSong(EnOkarinaTag* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->unk_15A++;
+@@ -240,7 +241,7 @@ void func_80ABF4C8(EnOkarinaTag* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (play->msgCtx.ocarinaMode == OCARINA_MODE_04) {
+-        this->actionFunc = func_80ABF28C;
++        this->actionFunc = EnOkarinaTag_WaitForFixedSong;  // was func_80ABF28C [LLM:HIGH]
+     } else if (play->msgCtx.ocarinaMode == OCARINA_MODE_03) {
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+         if (GameInteractor_Should(VB_OKARINA_TAG_COMPLETE, this->switchFlag >= 0, this)) {
+@@ -277,12 +278,12 @@ void func_80ABF4C8(EnOkarinaTag* this, PlayState* play) {
+                 break;
+         }
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+-        this->actionFunc = func_80ABF28C;
++        this->actionFunc = EnOkarinaTag_WaitForFixedSong;  // was func_80ABF28C [LLM:HIGH]
+     } else {
+         if (play->msgCtx.ocarinaMode >= OCARINA_MODE_05) {
+             if (play->msgCtx.ocarinaMode < OCARINA_MODE_0E) {
+                 play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+-                this->actionFunc = func_80ABF28C;
++                this->actionFunc = EnOkarinaTag_WaitForFixedSong;  // was func_80ABF28C [LLM:HIGH]
+                 return;
+             }
+         }
+-- 
+2.55.0
+

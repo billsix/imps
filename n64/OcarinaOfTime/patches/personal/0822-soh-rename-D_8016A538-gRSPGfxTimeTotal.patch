@@ -1,0 +1,66 @@
+From 9e9e2496d6cabd989735e00621b532640b331c02 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 19:50:45 +0000
+Subject: [PATCH 0822/3799] soh: rename D_8016A538 -> gRSPGfxTimeTotal
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/code/speed_meter.c.
+---
+ soh/include/variables.h    | 2 +-
+ soh/src/code/graph.c       | 2 +-
+ soh/src/code/speed_meter.c | 5 +++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index df8f56b6c..8be08b3ad 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -211,7 +211,7 @@ extern "C"
+ 	extern volatile OSTime gAudioThreadUpdateTimeTotalPerGfxTask;  // was D_8016A520 [oot]
+ 	extern volatile OSTime gGfxTaskSentToNextReadyMinusAudioThreadUpdateTime;  // was D_8016A528 [oot]
+ 	extern volatile OSTime gRSPAudioTimeTotal;  // was D_8016A530 [oot]
+-	extern volatile OSTime D_8016A538;
++	extern volatile OSTime gRSPGfxTimeTotal;  // was D_8016A538 [oot]
+ 	extern volatile OSTime D_8016A540;
+ 	extern volatile OSTime D_8016A548;
+ 	extern volatile OSTime gAudioThreadUpdateTimeStart;  // was D_8016A550 [oot]
+diff --git a/soh/src/code/graph.c b/soh/src/code/graph.c
+index cff3d7c75..44afb384e 100644
+--- a/soh/src/code/graph.c
++++ b/soh/src/code/graph.c
+@@ -395,7 +395,7 @@ void Graph_Update(GraphicsContext* gfxCtx, GameState* gameState) {
+         OSTime time = osGetTime();
+         s32 pad[4];
+ 
+-        D_8016A538 = gRSPGFXTotalTime;
++        gRSPGfxTimeTotal = gRSPGFXTotalTime;
+         gRSPAudioTimeTotal = gRSPAudioTotalTime;
+         D_8016A540 = gRDPTotalTime;
+         gRSPGFXTotalTime = 0;
+diff --git a/soh/src/code/speed_meter.c b/soh/src/code/speed_meter.c
+index 30ba6751e..712da1be8 100644
+--- a/soh/src/code/speed_meter.c
++++ b/soh/src/code/speed_meter.c
+@@ -8,7 +8,8 @@ volatile OSTime gAudioThreadUpdateTimeTotalPerGfxTask;
+ volatile OSTime gGfxTaskSentToNextReadyMinusAudioThreadUpdateTime;
+ // Name from zeldaret/oot (was D_8016A530): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
+ volatile OSTime gRSPAudioTimeTotal;
+-volatile OSTime D_8016A538;
++// Name from zeldaret/oot (was D_8016A538): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
++volatile OSTime gRSPGfxTimeTotal;
+ volatile OSTime D_8016A540;
+ volatile OSTime D_8016A548;
+ // Name from zeldaret/oot, was D_8016A550: OSTime start timestamp for audio thread update timing [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
+@@ -24,7 +25,7 @@ SpeedMeterTimeEntry* sSpeedMeterTimeEntryPtr;
+ 
+ SpeedMeterTimeEntry sSpeedMeterTimeEntryArray[] = {
+     { &gAudioThreadUpdateTimeTotalPerGfxTask, 0, 0, GPACK_RGBA5551(255, 0, 0, 1) }, { &gGfxTaskSentToNextReadyMinusAudioThreadUpdateTime, 0, 2, GPACK_RGBA5551(255, 255, 0, 1) },
+-    { &gRSPAudioTimeTotal, 0, 4, GPACK_RGBA5551(0, 0, 255, 1) }, { &D_8016A538, 0, 6, GPACK_RGBA5551(255, 128, 128, 1) },
++    { &gRSPAudioTimeTotal, 0, 4, GPACK_RGBA5551(0, 0, 255, 1) }, { &gRSPGfxTimeTotal, 0, 6, GPACK_RGBA5551(255, 128, 128, 1) },
+     { &D_8016A540, 0, 8, GPACK_RGBA5551(0, 255, 0, 1) }, { &D_8016A548, 0, 10, GPACK_RGBA5551(255, 0, 255, 1) },
+ };
+ 
+-- 
+2.55.0
+

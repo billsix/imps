@@ -1,0 +1,82 @@
+From 83ec58982cf9260212b29d1aaa6d801dccddcfbd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:22:00 +0000
+Subject: [PATCH 0911/3799] soh: rename D_80013960 -> gSchedTvTypeParam
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: u8 set from osTvType at boot (2 NTSC, 0x1E MPAL, 0x2C PAL) and passed to Sched_Init as arg3, which that function ignores; named for where it goes because what the value means is unrecoverable from this tree.
+Defined in soh/src/boot/idle.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/variables.h | 2 +-
+ soh/src/boot/idle.c     | 9 +++++----
+ soh/src/code/main.c     | 2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index ca818b33f..a217d17ff 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -57,7 +57,7 @@ extern "C"
+ 	extern u8 gBuildMakeOption[];
+ 	extern OSMesgQueue gPiMgrCmdQ;
+ 	extern OSViMode gViConfigMode;
+-	extern u8 D_80013960;
++	extern u8 gSchedTvTypeParam;  // was D_80013960 [LLM:GUESS]
+ 	extern OSMesgQueue __osPiAccessQueue;
+ 	extern OSPiHandle __Dom1SpeedParam;
+ 	extern OSPiHandle __Dom2SpeedParam;
+diff --git a/soh/src/boot/idle.c b/soh/src/boot/idle.c
+index 95b510036..2273bda4d 100644
+--- a/soh/src/boot/idle.c
++++ b/soh/src/boot/idle.c
+@@ -7,7 +7,8 @@ StackEntry sMainStackInfo;
+ OSMesg sPiMgrCmdBuff[50];
+ OSMesgQueue gPiMgrCmdQ;
+ OSViMode gViConfigMode;
+-u8 D_80013960;
++// LLM generated name (GUESS), was D_80013960: u8 set from osTvType at boot (2 NTSC, 0x1E MPAL, 0x2C PAL) and passed to Sched_Init as arg3, which that function ignores; named for where it goes because what the value means is unrecoverable from this tree.
++u8 gSchedTvTypeParam;  // was D_80013960 [LLM:GUESS]
+ 
+ s8 D_80009430 = 1;
+ vu8 gViConfigUseDefault = 1;
+@@ -58,17 +59,17 @@ void Idle_ThreadEntry(void* arg) {
+ 
+     switch (osTvType) {
+         case OS_TV_NTSC:
+-            D_80013960 = 2;
++            gSchedTvTypeParam = 2;  // was D_80013960 [LLM:GUESS]
+             gViConfigMode = osViModeNtscLan1;
+             break;
+ 
+         case OS_TV_MPAL:
+-            D_80013960 = 0x1E;
++            gSchedTvTypeParam = 0x1E;  // was D_80013960 [LLM:GUESS]
+             gViConfigMode = osViModeMpalLan1;
+             break;
+ 
+         case OS_TV_PAL:
+-            D_80013960 = 0x2C;
++            gSchedTvTypeParam = 0x2C;  // was D_80013960 [LLM:GUESS]
+             gViConfigMode = osViModeFpalLan1;
+             gViConfigYScale = 0.833f;
+             break;
+diff --git a/soh/src/code/main.c b/soh/src/code/main.c
+index e89ad728a..88e08da90 100644
+--- a/soh/src/code/main.c
++++ b/soh/src/code/main.c
+@@ -121,7 +121,7 @@ void Main(void* arg) {
+ 
+     osSyncPrintf("タスクスケジューラの初期化\n"); // "Initialize the task scheduler"
+     StackCheck_Init(&sSchedStackInfo, sSchedStack, sSchedStack + sizeof(sSchedStack), 0, 0x100, "sched");
+-    Sched_Init(&gSchedContext, &sAudioStack, Z_PRIORITY_SCHED, D_80013960, 1, &gIrqMgr);
++    Sched_Init(&gSchedContext, &sAudioStack, Z_PRIORITY_SCHED, gSchedTvTypeParam, 1, &gIrqMgr);  // was D_80013960 [LLM:GUESS]
+ 
+     IrqMgr_AddClient(&gIrqMgr, &irqClient, &irqMgrMsgQ);
+ 
+-- 
+2.55.0
+

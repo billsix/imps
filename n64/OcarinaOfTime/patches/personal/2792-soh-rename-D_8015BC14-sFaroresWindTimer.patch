@@ -1,0 +1,56 @@
+From 1c995c933615f425389a8cea6a55a631bbb6409e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:37 +0000
+Subject: [PATCH 2792/3799] soh: rename D_8015BC14 -> sFaroresWindTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts the frames of the Farore's Wind warp effect down
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_actor.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index c82c3cbd2..5707bc340 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -2356,7 +2356,8 @@ s32 Actor_CheckBlueBloodWall(PlayState* play, Actor* actor, CollisionPoly* poly,
+ // LLM generated name (HIGH), was D_8015BC00: the light placed at the Farore's Wind warp point
+ LightInfo sFaroresWindLight;  // was D_8015BC00 [LLM:HIGH]
+ LightNode* D_8015BC10;
+-s32 D_8015BC14;
++// LLM generated name (HIGH), was D_8015BC14: counts the frames of the Farore's Wind warp effect down
++s32 sFaroresWindTimer;  // was D_8015BC14 [LLM:HIGH]
+ f32 D_8015BC18;
+ 
+ // LLM generated name (HIGH), was func_8002FA60: copies the Farore's Wind save data into the top respawn slot and inserts its light
+@@ -2388,7 +2389,7 @@ void Actor_InitFaroresWindPoint(PlayState* play) {
+     Lights_PointNoGlowSetInfo(&sFaroresWindLight, lightPos.x, lightPos.y, lightPos.z, 0xFF, 0xFF, 0xFF, -1);  // was D_8015BC00 [LLM:HIGH]
+ 
+     D_8015BC10 = LightContext_InsertLight(play, &play->lightCtx, &sFaroresWindLight);  // was D_8015BC00 [LLM:HIGH]
+-    D_8015BC14 = 0;
++    sFaroresWindTimer = 0;  // was D_8015BC14 [LLM:HIGH]
+     D_8015BC18 = 0.0f;
+ }
+ 
+@@ -2409,10 +2410,10 @@ void Actor_DrawFaroresWindPointer(PlayState* play) {
+         if (temp < 0) {
+             gSaveContext.respawn[RESPAWN_MODE_TOP].data = ++params;
+             ratio = ABS(params) * 0.025f;
+-            D_8015BC14 = 60;
++            sFaroresWindTimer = 60;  // was D_8015BC14 [LLM:HIGH]
+             D_8015BC18 = 1.0f;
+-        } else if (D_8015BC14) {
+-            D_8015BC14 -= CVarGetInteger(CVAR_ENHANCEMENT("FastFarores"), 0) ? 5 : 1;
++        } else if (sFaroresWindTimer) {  // was D_8015BC14 [LLM:HIGH]
++            sFaroresWindTimer -= CVarGetInteger(CVAR_ENHANCEMENT("FastFarores"), 0) ? 5 : 1;  // was D_8015BC14 [LLM:HIGH]
+         } else if (D_8015BC18 > 0.0f) {
+             static Vec3f effectVel = { 0.0f, -0.05f, 0.0f };
+             static Vec3f effectAccel = { 0.0f, -0.025f, 0.0f };
+-- 
+2.55.0
+

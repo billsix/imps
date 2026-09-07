@@ -1,0 +1,47 @@
+From ec03b171023950ff71fb9350c0237648924ec1fc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:23:22 +0000
+Subject: [PATCH 1496/3799] soh: rename func_80A56994 ->
+ EnHeishi4_DyingGuardTalk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: tracks the player while he speaks and, once the message is advanced, sets INFTABLE_6C and moves on to his death.
+Defined in soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c b/soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c
+index 7ca4d5b95..c87f27512 100644
+--- a/soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c
++++ b/soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c
+@@ -25,7 +25,8 @@ void EnHeishi4_PickMarketText(EnHeishi4* this, PlayState* play);  // was func_80
+ void EnHeishi4_DyingGuardOfferTalk(EnHeishi4* this, PlayState* play);  // was func_80A56874 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A56900: switches to the talking-while-dying animation and installs the speech state.
+ void EnHeishi4_SetupDyingGuardTalk(EnHeishi4* this, PlayState* play);  // was func_80A56900 [LLM:HIGH]
+-void func_80A56994(EnHeishi4* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A56994: tracks the player while he speaks and, once the message is advanced, sets INFTABLE_6C and moves on to his death.
++void EnHeishi4_DyingGuardTalk(EnHeishi4* this, PlayState* play);  // was func_80A56994 [LLM:HIGH]
+ void func_80A56A50(EnHeishi4* this, PlayState* play);
+ void func_80A56ACC(EnHeishi4* this, PlayState* play);
+ 
+@@ -266,10 +267,10 @@ void EnHeishi4_SetupDyingGuardTalk(EnHeishi4* this, PlayState* play) {
+     f32 frames = Animation_GetLastFrame(&gEnHeishiDyingGuardTalkAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiDyingGuardTalkAnim, 1.0f, 0.0f, (s16)frames, ANIMMODE_LOOP, -10.0f);
+-    this->actionFunc = func_80A56994;
++    this->actionFunc = EnHeishi4_DyingGuardTalk;  // was func_80A56994 [LLM:HIGH]
+ }
+ 
+-void func_80A56994(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_DyingGuardTalk(EnHeishi4* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     Actor_TrackPlayer(play, &this->actor, &this->headRot, &this->torsoRot, this->actor.focus.pos);
+     if ((this->unk_282 == Message_GetState(&play->msgCtx)) && Message_ShouldAdvance(play)) {
+-- 
+2.55.0
+

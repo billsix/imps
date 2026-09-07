@@ -1,0 +1,62 @@
+From 6666bc41342ddb2ca0608dbd4a3344416faefd5b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:04:38 +0000
+Subject: [PATCH 3079/3799] soh: rename D_8012133C -> sCs4510KeyFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the keyframe set one-point cutscene 4510 installs
+Defined in soh/src/code/z_onepointdemo_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_onepointdemo.c        | 8 ++++----
+ soh/src/code/z_onepointdemo_data.inc | 3 ++-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_onepointdemo.c b/soh/src/code/z_onepointdemo.c
+index 906233ef1..1a09414e4 100644
+--- a/soh/src/code/z_onepointdemo.c
++++ b/soh/src/code/z_onepointdemo.c
+@@ -25,7 +25,7 @@ static s32 sPrevFrameCs1100 = -4096;
+     F(sCs2230KeyFrames)                                   \
+     F(D_80121184)                                   \
+     F(D_801211D4)                                   \
+-    F(D_8012133C)                                   \
++    F(sCs4510KeyFrames)                                   \
+     F(D_801213B4)                                   \
+     F(D_8012151C)                                   \
+     F(D_8012156C)                                   \
+@@ -320,11 +320,11 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4510:
+-            D_8012133C[0].eyeTargetInit = actor->world.pos;
+-            D_8012133C[0].eyeTargetInit.y = player->actor.world.pos.y + 40.0f;
++            sCs4510KeyFrames[0].eyeTargetInit = actor->world.pos;  // was D_8012133C [LLM:HIGH]
++            sCs4510KeyFrames[0].eyeTargetInit.y = player->actor.world.pos.y + 40.0f;  // was D_8012133C [LLM:HIGH]
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+ 
+-            csInfo->keyFrames = D_8012133C;
++            csInfo->keyFrames = sCs4510KeyFrames;  // was D_8012133C [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+diff --git a/soh/src/code/z_onepointdemo_data.inc b/soh/src/code/z_onepointdemo_data.inc
+index 53cf74ba2..ee147e209 100644
+--- a/soh/src/code/z_onepointdemo_data.inc
++++ b/soh/src/code/z_onepointdemo_data.inc
+@@ -264,7 +264,8 @@ static OnePointCsFull sCs5120KeyFrames[1] = {  // was D_80121314 [LLM:HIGH]
+     { 0x8F, 0x08, 0x4141, 1000, 0, 75.0f, 0.6f, { 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 100.0f } },
+ };
+ 
+-static OnePointCsFull D_8012133C[3] = {
++// LLM generated name (HIGH), was D_8012133C: the keyframe set one-point cutscene 4510 installs
++static OnePointCsFull sCs4510KeyFrames[3] = {  // was D_8012133C [LLM:HIGH]
+     { 0x8F, 0x01, 0x0141, 40, 0, 75.0f, 1.0f, { 0.0f, 60.0f, 0.0f }, { 0.0f, 0.0f, 100.0f } },
+     { 0x83, 0xFF, 0x2121, 20, 0, 60.0f, 0.2f, { 0.0f, -10.0f, -10.0f }, { 0.0f, 10.0f, -100.0f } },
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+-- 
+2.55.0
+

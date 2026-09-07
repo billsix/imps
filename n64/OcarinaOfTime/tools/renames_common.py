@@ -128,9 +128,12 @@ def renamed_symbols():
                     found[new] = (cited.group(1),
                                   "oot" if MARKERS[1] in line else "llm")
                 continue
-            # A short tag rides on the declaration itself.
+            # A short tag rides on a declaration -- but ALSO, since 2026-09-07,
+            # on every call site of a guessed name. A call site is indented and
+            # is not a declaration, so parsing a "name" out of it yields junk
+            # ("if", "actionFunc"). Only column-0 lines declare something.
             short = SHORT_TAG_CITE_RE.search(line)
-            if short:
+            if short and line[:1].strip() and not line.lstrip().startswith("//"):
                 new = _declared_name(code_part(line))
                 if new and new not in found:
                     found[new] = (short.group(1),
@@ -152,6 +155,18 @@ def _declared_name(decl):
     def first(chars):
         found = [decl.index(c) for c in chars if c in decl]
         return min(found) if found else len(decl)
+
+    # A function POINTER wraps its name in parens -- `void (*name)(args)` --
+    # so the plain "identifier before the first (" rule returns the return
+    # type instead. Left unhandled that poisons the renamed-symbol set with
+    # "void", and every `void` line in every header then reads as an untagged
+    # declaration (hit 2026-09-08 on gAudioCustomUpdateFunc). An ARRAY of
+    # function pointers -- `s32 (*name[])(args)` -- puts the subscript inside
+    # the same parens, so the pattern allows it (sSpot09ObjChecks).
+    pointer = re.search(
+        r"\(\s*\*+\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?:\[[^\]]*\]\s*)*\)\s*\(", decl)
+    if pointer:
+        return pointer.group(1)
 
     if first("(") < first("=["):
         match = re.search(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(", decl)

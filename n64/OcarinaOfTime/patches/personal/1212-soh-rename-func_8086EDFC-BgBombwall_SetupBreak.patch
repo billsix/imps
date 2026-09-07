@@ -1,0 +1,50 @@
+From 13354b955ca10ff9c528334a7d167583e8bd7cda Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:58:00 +0000
+Subject: [PATCH 1212/3799] soh: rename func_8086EDFC -> BgBombwall_SetupBreak
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: throws the dust, arms the one-frame delay and installs the breaking action.
+Defined in soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c b/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
+index c5c37fa54..d117c15be 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
+@@ -18,7 +18,8 @@ void BgBombwall_Draw(Actor* thisx, PlayState* play);
+ void BgBombwall_SetupWaitForBomb(BgBombwall* this, PlayState* play);  // was func_8086ED50 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_8086ED70: runs the AC check while the player is within 600 units and, on a hit, sets the switch flag and starts the break.
+ void BgBombwall_WaitForBomb(BgBombwall* this, PlayState* play);  // was func_8086ED70 [LLM:HIGH]
+-void func_8086EDFC(BgBombwall* this, PlayState* play);
++// LLM generated name (HIGH), was func_8086EDFC: throws the dust, arms the one-frame delay and installs the breaking action.
++void BgBombwall_SetupBreak(BgBombwall* this, PlayState* play);  // was func_8086EDFC [LLM:HIGH]
+ void func_8086EE40(BgBombwall* this, PlayState* play);
+ void func_8086EE94(BgBombwall* this, PlayState* play);
+ 
+@@ -217,14 +218,14 @@ void BgBombwall_SetupWaitForBomb(BgBombwall* this, PlayState* play) {
+ void BgBombwall_WaitForBomb(BgBombwall* this, PlayState* play) {
+     if (this->collider.base.acFlags & AC_HIT) {
+         this->collider.base.acFlags &= ~AC_HIT;
+-        func_8086EDFC(this, play);
++        BgBombwall_SetupBreak(this, play);  // was func_8086EDFC [LLM:HIGH]
+         Flags_SetSwitch(play, this->dyna.actor.params & 0x3F);
+     } else if (this->dyna.actor.xzDistToPlayer < 600.0f) {
+         CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+     }
+ }
+ 
+-void func_8086EDFC(BgBombwall* this, PlayState* play) {
++void BgBombwall_SetupBreak(BgBombwall* this, PlayState* play) {
+     this->dList = gBgBombwallNormalDL;
+     this->unk_2A0 = 1;
+     BgBombwall_SpawnDust(this, play);  // was func_8086EB5C [LLM:HIGH]
+-- 
+2.55.0
+

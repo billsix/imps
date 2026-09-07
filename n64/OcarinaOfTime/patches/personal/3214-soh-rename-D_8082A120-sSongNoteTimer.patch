@@ -1,0 +1,59 @@
+From 77b0ce47edfba1a2d05a36e9feb2f15ce5e8b90b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:00 +0000
+Subject: [PATCH 3214/3799] soh: rename D_8082A120 -> sSongNoteTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts down and, at zero, clears the played-note glyphs and alphas
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c   | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
+index 50951bf73..b7c2cab47 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
+@@ -31,7 +31,7 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+     static s16 sCursorFadeTimer = 20;  // was D_8082A114 [LLM:HIGH]
+     static s16 sCursorColorSetIdx = 0;  // was D_8082A118 [LLM:HIGH]
+     static s16 sSongNoteIdx = 0;  // was D_8082A11C [LLM:GUESS]
+-    static s16 D_8082A120 = 0;
++    static s16 sSongNoteTimer = 0;  // was D_8082A120 [LLM:HIGH]
+     static u8 D_8082A124[] = {
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     };
+@@ -197,7 +197,7 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+                     if (CHECK_QUEST_ITEM(pauseCtx->cursorPoint[PAUSE_QUEST])) {
+                         sp216 = pauseCtx->cursorSlot[PAUSE_QUEST];
+                         pauseCtx->ocarinaSongIdx = gOcarinaSongItemMap[sp216 - QUEST_SONG_MINUET];
+-                        D_8082A120 = 10;
++                        sSongNoteTimer = 10;  // was D_8082A120 [LLM:HIGH]
+ 
+                         for (phi_s3 = 0; phi_s3 < 8; phi_s3++) {
+                             D_8082A124[phi_s3] = 0xFF;
+@@ -228,7 +228,7 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+                 if (CHECK_BTN_ALL(input->press.button, BTN_A) && (sp216 >= QUEST_SONG_MINUET) &&
+                     (sp216 < QUEST_KOKIRI_EMERALD)) {
+                     pauseCtx->unk_1E4 = 9;
+-                    D_8082A120 = 10;
++                    sSongNoteTimer = 10;  // was D_8082A120 [LLM:HIGH]
+                 }
+             }
+         } else if (pauseCtx->cursorSpecialPos == PAUSE_CURSOR_PAGE_LEFT) {
+@@ -279,7 +279,7 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+         if (pauseCtx->unk_1E4 == 9) {
+             pauseCtx->cursorColorSet = 8;
+ 
+-            if (--D_8082A120 == 0) {
++            if (--sSongNoteTimer == 0) {  // was D_8082A120 [LLM:HIGH]
+                 for (phi_s3 = 0; phi_s3 < 8; phi_s3++) {
+                     D_8082A124[phi_s3] = 0xFF;
+                     D_8082A150[phi_s3] = 0;
+-- 
+2.55.0
+

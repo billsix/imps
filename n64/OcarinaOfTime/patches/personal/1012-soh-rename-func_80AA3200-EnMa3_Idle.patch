@@ -1,0 +1,56 @@
+From eefc40000ea2f158d107c578f40169615e492a4c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:35:18 +0000
+Subject: [PATCH 1012/3799] soh: rename func_80AA3200 -> EnMa3_Idle
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the actor's only action function: clears the auto-accept talk flag once a conversation reaches NPC_TALK_STATE_ACTION.
+Defined in soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c b/soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c
+index 1beca5a4a..26853b314 100644
+--- a/soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c
++++ b/soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c
+@@ -26,7 +26,8 @@ s32 EnMa3_GetSpawnState(EnMa3* this, PlayState* play);  // was func_80AA2EC8 [LL
+ // LLM generated name (HIGH), was func_80AA2F28: while the singing animation plays and nobody is talking, pins the blink timer at 0 and opens the mouth once the eyes reach index 2, returning 1 to suppress the caller's blink.
+ s32 EnMa3_HoldSingingFace(EnMa3* this);  // was func_80AA2F28 [LLM:HIGH]
+ void EnMa3_UpdateEyes(EnMa3* this);
+-void func_80AA3200(EnMa3* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AA3200: the actor's only action function: clears the auto-accept talk flag once a conversation reaches NPC_TALK_STATE_ACTION.
++void EnMa3_Idle(EnMa3* this, PlayState* play);  // was func_80AA3200 [LLM:HIGH]
+ 
+ const ActorInit En_Ma3_InitVars = {
+     ACTOR_EN_MA3,
+@@ -257,11 +258,11 @@ void EnMa3_Init(Actor* thisx, PlayState* play) {
+     switch (EnMa3_GetSpawnState(this, play)) {  // was func_80AA2EC8 [LLM:GUESS]
+         case 0:
+             EnMa3_ChangeAnim(this, ENMA3_ANIM_0);
+-            this->actionFunc = func_80AA3200;
++            this->actionFunc = EnMa3_Idle;  // was func_80AA3200 [LLM:HIGH]
+             break;
+         case 1:
+             EnMa3_ChangeAnim(this, ENMA3_ANIM_0);
+-            this->actionFunc = func_80AA3200;
++            this->actionFunc = EnMa3_Idle;  // was func_80AA3200 [LLM:HIGH]
+             break;
+         case 2:
+             Actor_Kill(&this->actor);
+@@ -280,7 +281,7 @@ void EnMa3_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80AA3200(EnMa3* this, PlayState* play) {
++void EnMa3_Idle(EnMa3* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+         this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
+-- 
+2.55.0
+

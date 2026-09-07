@@ -1,0 +1,76 @@
+From ee980d2ae23ae639f414a63db2de33a6affd45bf Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:05:33 +0000
+Subject: [PATCH 1938/3799] soh: rename func_8008EF44 ->
+ Player_SetShootingGalleryAmmo
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: stores ammo + 1 into play->shootingGalleryStatus
+Defined in soh/src/code/z_player_lib.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_player_lib.c                                   | 3 ++-
+ soh/src/overlays/actors/ovl_En_Syateki_Itm/z_en_syateki_itm.c | 2 +-
+ soh/src/overlays/actors/ovl_En_Syateki_Man/z_en_syateki_man.c | 2 +-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 60ae8ecc6..bd8e4e612 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1125,7 +1125,7 @@ void func_80837C0C(PlayState* play, Player* this, s32 arg2, f32 arg3, f32 arg4,
+ void Player_ReleaseLockOn(Player* player);
+ void Player_ClearZTargeting(Player* player);
+ void Player_SetAutoLockOnActor(PlayState* play, Actor* actor);
+-s32 func_8008EF44(PlayState* play, s32 ammo);
++s32 Player_SetShootingGalleryAmmo(PlayState* play, s32 ammo);  // was func_8008EF44 [LLM:HIGH]
+ s32 Player_IsBurningStickInRange(PlayState* play, Vec3f* pos, f32 radius, f32 arg3);
+ s32 Player_GetStrength(void);
+ u8 Player_GetMask(PlayState* play);
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index a857c3d71..7764cd04a 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -758,7 +758,8 @@ s32 Player_IsOnHorse(PlayState* play) {
+     return (this->stateFlags1 & PLAYER_STATE1_ON_HORSE);
+ }
+ 
+-s32 func_8008EF44(PlayState* play, s32 ammo) {
++// LLM generated name (HIGH), was func_8008EF44: stores ammo + 1 into play->shootingGalleryStatus
++s32 Player_SetShootingGalleryAmmo(PlayState* play, s32 ammo) {
+     play->shootingGalleryStatus = ammo + 1;
+     return 1;
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Syateki_Itm/z_en_syateki_itm.c b/soh/src/overlays/actors/ovl_En_Syateki_Itm/z_en_syateki_itm.c
+index f349277c8..01fd96773 100644
+--- a/soh/src/overlays/actors/ovl_En_Syateki_Itm/z_en_syateki_itm.c
++++ b/soh/src/overlays/actors/ovl_En_Syateki_Itm/z_en_syateki_itm.c
+@@ -112,7 +112,7 @@ void EnSyatekiItm_Idle(EnSyatekiItm* this, PlayState* play) {
+             0;
+         s32 ammunition = 15;
+         GameInteractor_Should(VB_SET_SHOOTING_GALLERY_AMMO, true, &ammunition);
+-        func_8008EF44(play, ammunition);
++        Player_SetShootingGalleryAmmo(play, ammunition);  // was func_8008EF44 [LLM:HIGH]
+         this->roundNum = this->hitCount = 0;
+         for (i = 0; i < 6; i++) {
+             this->roundFlags[i] = false;
+diff --git a/soh/src/overlays/actors/ovl_En_Syateki_Man/z_en_syateki_man.c b/soh/src/overlays/actors/ovl_En_Syateki_Man/z_en_syateki_man.c
+index c1a4ce5cc..dbbdd184a 100644
+--- a/soh/src/overlays/actors/ovl_En_Syateki_Man/z_en_syateki_man.c
++++ b/soh/src/overlays/actors/ovl_En_Syateki_Man/z_en_syateki_man.c
+@@ -382,7 +382,7 @@ void EnSyatekiMan_EndGame(EnSyatekiMan* this, PlayState* play) {
+                     this->timer = 20;
+                     s32 ammunition = 15;
+                     GameInteractor_Should(VB_SET_SHOOTING_GALLERY_AMMO, true, &ammunition);
+-                    func_8008EF44(play, ammunition);
++                    Player_SetShootingGalleryAmmo(play, ammunition);  // was func_8008EF44 [LLM:HIGH]
+                     this->actionFunc = EnSyatekiMan_RestartGame;
+                     break;
+                 default:
+-- 
+2.55.0
+

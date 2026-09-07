@@ -1,0 +1,51 @@
+From 23d86cd0f5df9294bc23039f02c4e8c9803a21c4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:35:18 +0000
+Subject: [PATCH 1011/3799] soh: rename func_80AA2F28 -> EnMa3_HoldSingingFace
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: while the singing animation plays and nobody is talking, pins the blink timer at 0 and opens the mouth once the eyes reach index 2, returning 1 to suppress the caller's blink.
+Defined in soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c b/soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c
+index 5450bd305..1beca5a4a 100644
+--- a/soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c
++++ b/soh/src/overlays/actors/ovl_En_Ma3/z_en_ma3.c
+@@ -23,7 +23,8 @@ s16 EnMa3_UpdateTalkState(PlayState* play, Actor* this);
+ void EnMa3_TrackPlayer(EnMa3* this, PlayState* play);  // was func_80AA2E54 [LLM:HIGH]
+ // LLM generated name (GUESS), was func_80AA2EC8: returns 2 when Malon should not exist (child Link, or Epona not yet won), 1 when the race-in-progress eventInf bit is set, and 0 otherwise; Init kills the actor on 2 and treats 0 and 1 identically, so what distinguishes those two is not observable here.
+ s32 EnMa3_GetSpawnState(EnMa3* this, PlayState* play);  // was func_80AA2EC8 [LLM:GUESS]
+-s32 func_80AA2F28(EnMa3* this);
++// LLM generated name (HIGH), was func_80AA2F28: while the singing animation plays and nobody is talking, pins the blink timer at 0 and opens the mouth once the eyes reach index 2, returning 1 to suppress the caller's blink.
++s32 EnMa3_HoldSingingFace(EnMa3* this);  // was func_80AA2F28 [LLM:HIGH]
+ void EnMa3_UpdateEyes(EnMa3* this);
+ void func_80AA3200(EnMa3* this, PlayState* play);
+ 
+@@ -211,7 +212,7 @@ s32 EnMa3_GetSpawnState(EnMa3* this, PlayState* play) {
+     return 0;
+ }
+ 
+-s32 func_80AA2F28(EnMa3* this) {
++s32 EnMa3_HoldSingingFace(EnMa3* this) {
+     if (this->skelAnime.animation != &gMalonAdultSingAnim) {
+         return 0;
+     }
+@@ -227,7 +228,7 @@ s32 func_80AA2F28(EnMa3* this) {
+ }
+ 
+ void EnMa3_UpdateEyes(EnMa3* this) {
+-    if ((!func_80AA2F28(this)) && (DECR(this->blinkTimer) == 0)) {
++    if ((!EnMa3_HoldSingingFace(this)) && (DECR(this->blinkTimer) == 0)) {  // was func_80AA2F28 [LLM:HIGH]
+         this->eyeIndex += 1;
+         if (this->eyeIndex >= 3) {
+             this->blinkTimer = Rand_S16Offset(30, 30);
+-- 
+2.55.0
+

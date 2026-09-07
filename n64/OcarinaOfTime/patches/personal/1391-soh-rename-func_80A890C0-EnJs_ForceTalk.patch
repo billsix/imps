@@ -1,0 +1,69 @@
+From 767b7f9d963b92538d4c70758d2bbb4263a85948 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:16:07 +0000
+Subject: [PATCH 1391/3799] soh: rename func_80A890C0 -> EnJs_ForceTalk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: offers talk from any distance until the player accepts, so the thank-you line cannot be walked away from.
+Defined in soh/src/overlays/actors/ovl_En_Js/z_en_js.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/soh/Enhancements/randomizer/hook_handlers.cpp | 2 +-
+ soh/src/overlays/actors/ovl_En_Js/z_en_js.c       | 5 +++--
+ soh/src/overlays/actors/ovl_En_Js/z_en_js.h       | 2 +-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 4d58df8af..239759591 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -1429,7 +1429,7 @@ void RandomizerOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_l
+                     -1);
+                 enJs->actor.parent = NULL;
+                 enJs->actor.textId = TEXT_CARPET_SALESMAN_ARMS_DEALER;
+-                enJs->actionFunc = (EnJsActionFunc)func_80A890C0;
++                enJs->actionFunc = (EnJsActionFunc)EnJs_ForceTalk;  // was func_80A890C0 [LLM:HIGH]
+                 enJs->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+                 Flags_SetRandomizerInf(RAND_INF_MERCHANTS_CARPET_SALESMAN);
+                 *should = true;
+diff --git a/soh/src/overlays/actors/ovl_En_Js/z_en_js.c b/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
+index 3df0ccd7c..012983975 100644
+--- a/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
++++ b/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
+@@ -113,7 +113,8 @@ void func_80A89078(EnJs* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A890C0(EnJs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A890C0: offers talk from any distance until the player accepts, so the thank-you line cannot be walked away from.
++void EnJs_ForceTalk(EnJs* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         En_Js_SetupAction(this, func_80A89078);
+     } else {
+@@ -125,7 +126,7 @@ void func_80A890C0(EnJs* this, PlayState* play) {
+ void EnJs_SetupThanks(EnJs* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         this->actor.textId = 0x6078;
+-        En_Js_SetupAction(this, func_80A890C0);
++        En_Js_SetupAction(this, EnJs_ForceTalk);  // was func_80A890C0 [LLM:HIGH]
+         this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Js/z_en_js.h b/soh/src/overlays/actors/ovl_En_Js/z_en_js.h
+index e5dcbd610..751c70186 100644
+--- a/soh/src/overlays/actors/ovl_En_Js/z_en_js.h
++++ b/soh/src/overlays/actors/ovl_En_Js/z_en_js.h
+@@ -22,6 +22,6 @@ typedef struct EnJs {
+     /* 0x028C */ EnJsActionFunc actionFunc;
+ } EnJs; // size = 0x0290
+ 
+-void func_80A890C0(EnJs* actor, PlayState* play);
++void EnJs_ForceTalk(EnJs* actor, PlayState* play);  // was func_80A890C0 [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

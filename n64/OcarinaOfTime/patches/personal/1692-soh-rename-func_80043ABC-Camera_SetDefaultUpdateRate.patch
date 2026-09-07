@@ -1,0 +1,61 @@
+From f6dc98d98059514fa36c30aee237428448b4bfd1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:37:35 +0000
+Subject: [PATCH 1692/3799] soh: rename func_80043ABC ->
+ Camera_SetDefaultUpdateRates
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: loads the camera's yaw, pitch, radius, offset and fov update rates from their default REG values.
+Defined in soh/src/code/z_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 99d51cac8..046997107 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -157,7 +157,8 @@ void Camera_LERPCeilVec3f(Vec3f* target, Vec3f* cur, f32 yStepScale, f32 xzStepS
+     cur->z = Camera_LERPCeilF(target->z, cur->z, xzStepScale, minDiff);
+ }
+ 
+-void func_80043ABC(Camera* camera) {
++// LLM generated name (HIGH), was func_80043ABC: loads the camera's yaw, pitch, radius, offset and fov update rates from their default REG values.
++void Camera_SetDefaultUpdateRates(Camera* camera) {
+     camera->yawUpdateRateInv = 100.0f;
+     camera->pitchUpdateRateInv = R_CAM_DEFA_PHI_UPDRATE;
+     camera->rUpdateRateInv = OREG(6);
+@@ -3824,7 +3825,7 @@ s32 Camera_KeepOn4(Camera* camera) {
+         case 0x14:
+             spCC[sp9C] = &camera->player->actor;
+             sp9C++;
+-            func_80043ABC(camera);
++            Camera_SetDefaultUpdateRates(camera);  // was func_80043ABC [LLM:HIGH]
+             camera->unk_14C &= ~(0x4 | 0x2);
+             unk20->unk_10 = keep4->unk_1E;
+             unk20->unk_08 = playerPosRot->pos.y - camera->playerPosDelta.y;
+@@ -4358,7 +4359,7 @@ s32 Camera_Subj3(Camera* camera) {
+         return true;
+     }
+ 
+-    func_80043ABC(camera);
++    Camera_SetDefaultUpdateRates(camera);  // was func_80043ABC [LLM:HIGH]
+     Camera_CopyPREGToModeValues(camera);
+     values = sCameraSettings[camera->setting].cameraModes[camera->mode].values;
+     subj3->eyeNextYOffset = NEXTPCT * playerHeight;
+@@ -5112,7 +5113,7 @@ s32 Camera_Unique6(Camera* camera) {
+ 
+     if (camera->animState == 0) {
+         camera->animState++;
+-        func_80043ABC(camera);
++        Camera_SetDefaultUpdateRates(camera);  // was func_80043ABC [LLM:HIGH]
+     }
+ 
+     if (camera->player != NULL) {
+-- 
+2.55.0
+

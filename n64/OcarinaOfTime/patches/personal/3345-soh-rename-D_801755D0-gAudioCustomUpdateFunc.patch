@@ -1,0 +1,119 @@
+From faef8d13c14f38cd0675ca2f980d8df0ae2e24d5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:14:48 +0000
+Subject: [PATCH 3345/3799] soh: rename D_801755D0 -> gAudioCustomUpdateFunc
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: an optional callback the audio thread runs once per update when it is not NULL; audio_load.c clears it
+Defined in soh/include/variables.h.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/variables.h             |  2 +-
+ soh/soh/Enhancements/savestates.cpp |  4 ++--
+ soh/src/code/audio_init_params.c    |  2 +-
+ soh/src/code/audio_load.c           |  2 +-
+ soh/src/code/audio_thread.c         | 10 +++++-----
+ 5 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index fe67a048b..3d9e4daaf 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -231,7 +231,7 @@ extern "C"
+ 	extern u8 gAudioSfxSwapMode[10];
+ 	extern ActiveSequence gActiveSeqs[4];
+ 	extern AudioContext gAudioContext;
+-	extern void(*D_801755D0)(void);
++	extern void(*gAudioCustomUpdateFunc)(void);  // was D_801755D0 [LLM:HIGH]
+ 
+ 	extern u32 __osMalloc_FreeBlockTest_Enable;
+ 	extern Arena gSystemArena;
+diff --git a/soh/soh/Enhancements/savestates.cpp b/soh/soh/Enhancements/savestates.cpp
+index 713ec3f45..d90d53dba 100644
+--- a/soh/soh/Enhancements/savestates.cpp
++++ b/soh/soh/Enhancements/savestates.cpp
+@@ -440,7 +440,7 @@ void SaveState::Save(void) {
+     memcpy(&info->gAudioSfxSwapTarget_copy, gAudioSfxSwapTarget, sizeof(info->gAudioSfxSwapTarget_copy));
+     memcpy(&info->gAudioSfxSwapMode_copy, gAudioSfxSwapMode, sizeof(info->gAudioSfxSwapMode_copy));
+ 
+-    info->D_801755D0_copy = D_801755D0;
++    info->D_801755D0_copy = gAudioCustomUpdateFunc;  // was D_801755D0 [LLM:HIGH]
+ 
+     memcpy(&info->saveContextCopy, &gSaveContext, sizeof(gSaveContext));
+     memcpy(&info->gameInfoCopy, gGameInfo, sizeof(*gGameInfo));
+@@ -474,7 +474,7 @@ void SaveState::Load(void) {
+     memcpy(gAudioSfxSwapMode, &info->gAudioSfxSwapMode_copy, sizeof(info->gAudioSfxSwapMode_copy));
+ 
+     // Various static data
+-    D_801755D0 = info->D_801755D0_copy;
++    gAudioCustomUpdateFunc = info->D_801755D0_copy;  // was D_801755D0 [LLM:HIGH]
+     LoadOverlayStaticData();
+     LoadTransitionActors();
+ }
+diff --git a/soh/src/code/audio_init_params.c b/soh/src/code/audio_init_params.c
+index b36ab3b1f..41e4e1b3b 100644
+--- a/soh/src/code/audio_init_params.c
++++ b/soh/src/code/audio_init_params.c
+@@ -3,7 +3,7 @@
+ // LLM generated name (HIGH), was D_8016F0E0: the in-tree comment on its declaration reads "// unused"; it is a 0xA0-byte buffer with no reader.
+ u8 gUnusedAudioBuffer[0xA0]; // unused, was D_8016F0E0 [LLM:HIGH]
+ AudioContext gAudioContext;
+-void (*D_801755D0)(void);
++void (*gAudioCustomUpdateFunc)(void);  // was D_801755D0 [LLM:HIGH]
+ // LLM generated name (HIGH), was D_801755D8: the in-tree comment on its declaration reads "// unused"; three s32 slots with no reader.
+ s32 gUnusedAudioValues[3]; // unused, was D_801755D8 [LLM:HIGH]
+ 
+diff --git a/soh/src/code/audio_load.c b/soh/src/code/audio_load.c
+index 4846f0ff0..d98d8f5b6 100644
+--- a/soh/src/code/audio_load.c
++++ b/soh/src/code/audio_load.c
+@@ -1249,7 +1249,7 @@ void AudioLoad_Init(void* heap, size_t heapSize) {
+     s32 i;
+     s32 j;
+ 
+-    D_801755D0 = NULL;
++    gAudioCustomUpdateFunc = NULL;  // was D_801755D0 [LLM:HIGH]
+     gAudioContext.resetTimer = 0;
+ 
+     memset(&gAudioContext, 0, sizeof(gAudioContext));
+diff --git a/soh/src/code/audio_thread.c b/soh/src/code/audio_thread.c
+index b6cb25cf8..64ef0582b 100644
+--- a/soh/src/code/audio_thread.c
++++ b/soh/src/code/audio_thread.c
+@@ -94,8 +94,8 @@ AudioTask* AudioThread_UpdateImpl(void) {
+ 
+     gAudioContext.totalTaskCnt++;
+     if (gAudioContext.totalTaskCnt % (gAudioContext.audioBufferParameters.specUnk4) != 0) {
+-        if (D_801755D0 != NULL) {
+-            D_801755D0();
++        if (gAudioCustomUpdateFunc != NULL) {  // was D_801755D0 [LLM:HIGH]
++            gAudioCustomUpdateFunc();  // was D_801755D0 [LLM:HIGH]
+         }
+ 
+         if ((gAudioContext.totalTaskCnt % gAudioContext.audioBufferParameters.specUnk4) + 1 ==
+@@ -121,8 +121,8 @@ AudioTask* AudioThread_UpdateImpl(void) {
+         }
+     }
+ 
+-    if (D_801755D0 != NULL) {
+-        D_801755D0();
++    if (gAudioCustomUpdateFunc != NULL) {  // was D_801755D0 [LLM:HIGH]
++        gAudioCustomUpdateFunc();  // was D_801755D0 [LLM:HIGH]
+     }
+ 
+     sp5C = gAudioContext.curAudioFrameDmaCount;
+@@ -322,7 +322,7 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
+             gAudioContext.audioResetSpecIdToLoad = cmd->asUInt;
+             return;
+         case 0xFB:
+-            D_801755D0 = (void (*)(void))cmd->asUInt;
++            gAudioCustomUpdateFunc = (void (*)(void))cmd->asUInt;  // was D_801755D0 [LLM:HIGH]
+             return;
+         case 0xE0:
+         case 0xE1:
+-- 
+2.55.0
+

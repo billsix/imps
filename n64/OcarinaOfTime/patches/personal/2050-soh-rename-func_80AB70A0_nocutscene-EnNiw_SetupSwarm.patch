@@ -1,0 +1,62 @@
+From 774694c4dfa1e19544012d556fced92a5e75559a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:10:57 +0000
+Subject: [PATCH 2050/3799] soh: rename func_80AB70A0_nocutscene ->
+ EnNiw_SetupSwarmNoCutscene
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the port's cutscene-free variant of EnNiw_SetupSwarmCutscene; renamed with it so its name does not cite a symbol that no longer exists
+Defined in soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../Enhancements/game-interactor/GameInteractor_RawAction.cpp  | 2 +-
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c                  | 3 ++-
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h                  | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
+index 45c729c8e..e48ad071a 100644
+--- a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
++++ b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
+@@ -573,7 +573,7 @@ GameInteractionEffectQueryResult GameInteractor::RawAction::SpawnActor(uint32_t
+         if (nameTag != "" && CVarGetInteger(CVAR_REMOTE_CROWD_CONTROL("EnemyNameTags"), 0)) {
+             NameTag_RegisterForActor((Actor*)cucco, nameTag.c_str());
+         }
+-        cucco->actionFunc = func_80AB70A0_nocutscene;
++        cucco->actionFunc = EnNiw_SetupSwarmNoCutscene;  // was func_80AB70A0_nocutscene [LLM:HIGH]
+         return GameInteractionEffectQueryResult::Possible;
+     } else if (actorId == ACTOR_EN_BOM) {
+         // Spawn a bomb, make it explode instantly when params is set to 1 to emulate spawning an explosion
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+index 1721eab78..5c63dd454 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+@@ -784,7 +784,8 @@ void EnNiw_SetupSwarmCutscene(EnNiw* this, PlayState* play) {
+     this->actionFunc = func_80AB70F8;
+ }
+ 
+-void func_80AB70A0_nocutscene(EnNiw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB70A0_nocutscene: the port's cutscene-free variant of EnNiw_SetupSwarmCutscene; renamed with it so its name does not cite a symbol that no longer exists
++void EnNiw_SetupSwarmNoCutscene(EnNiw* this, PlayState* play) {
+     this->timer5 = 10;
+     this->unk_2A2 = 1;
+     this->actionFunc = func_80AB70F8;
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h
+index fee06f50e..b759ddb1a 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h
+@@ -83,7 +83,7 @@ extern "C"
+ {
+ #endif
+     void EnNiw_SetupSwarmCutscene(EnNiw* this, PlayState* play);  // was func_80AB70A0 [LLM:HIGH]
+-    void func_80AB70A0_nocutscene(EnNiw* this, PlayState* play);
++    void EnNiw_SetupSwarmNoCutscene(EnNiw* this, PlayState* play);  // was func_80AB70A0_nocutscene [LLM:HIGH]
+ #ifdef __cplusplus
+ #undef this
+ };
+-- 
+2.55.0
+

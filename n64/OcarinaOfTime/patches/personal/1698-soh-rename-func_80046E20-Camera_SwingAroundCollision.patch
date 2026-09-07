@@ -1,0 +1,79 @@
+From 91e43d8245ca1963dc8be4e9c3b8e7d27257591d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:37:36 +0000
+Subject: [PATCH 1698/3799] soh: rename func_80046E20 ->
+ Camera_SwingAroundCollision
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the swing update: it runs the corner check and, depending on the result, peeks the eye around the corner, pulls it in to the minimum distance or lets it settle back out.
+Defined in soh/src/code/z_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 8fa41e711..d279a4e08 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -1325,7 +1325,8 @@ s16 Camera_CalcDefaultYaw(Camera* camera, s16 cur, s16 target, f32 arg3, f32 acc
+ }
+ 
+ // Follow player with collision
+-void func_80046E20(Camera* camera, VecSph* eyeAdjustment, f32 minDist, f32 arg3, f32* arg4, SwingAnimation* anim) {
++// LLM generated name (HIGH), was func_80046E20: the swing update: it runs the corner check and, depending on the result, peeks the eye around the corner, pulls it in to the minimum distance or lets it settle back out.
++void Camera_SwingAroundCollision(Camera* camera, VecSph* eyeAdjustment, f32 minDist, f32 arg3, f32* arg4, SwingAnimation* anim) {
+     static CamColChk atEyeColChk;
+     static CamColChk eyeAtColChk;
+     static CamColChk newEyeColChk;
+@@ -1753,7 +1754,7 @@ s32 Camera_Normal1(Camera* camera) {
+         anim->swingYawTarget = BINANG_ROT180(camera->playerPosRot.rot.y);
+         if (!CVarGetInteger(CVAR_ENHANCEMENT("FixCameraSwing"), 0)) {
+             if (anim->startSwingTimer > 0) {
+-                func_80046E20(camera, &eyeAdjustment, norm1->distMin, norm1->unk_0C, &sp98, &anim->swing);
++                Camera_SwingAroundCollision(camera, &eyeAdjustment, norm1->distMin, norm1->unk_0C, &sp98, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+             } else {
+                 sp88 = *eyeNext;
+                 anim->swing.swingUpdateRate = camera->yawUpdateRateInv = norm1->unk_0C * 2.0f;
+@@ -1770,7 +1771,7 @@ s32 Camera_Normal1(Camera* camera) {
+                 anim->swing.swingUpdateRate = camera->yawUpdateRateInv = norm1->unk_0C * 2.0f;
+                 anim->swing.unk_18 = 0;
+             }
+-            func_80046E20(camera, &eyeAdjustment, norm1->distMin, norm1->unk_0C, &sp98, &anim->swing);
++            Camera_SwingAroundCollision(camera, &eyeAdjustment, norm1->distMin, norm1->unk_0C, &sp98, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+         }
+         if (anim->swing.unk_18 != 0) {
+             camera->inputDir.y =
+@@ -2117,7 +2118,7 @@ s32 Camera_Normal3(Camera* camera) {
+     Camera_Vec3fVecSphGeoAdd(eyeNext, at, &sp84);
+ 
+     if (camera->status == CAM_STAT_ACTIVE) {
+-        func_80046E20(camera, &sp84, norm3->distMin, norm3->yawUpdateSpeed, &sp8C, &anim->swing);
++        Camera_SwingAroundCollision(camera, &sp84, norm3->distMin, norm3->yawUpdateSpeed, &sp8C, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+     } else {
+         *eye = *eyeNext;
+     }
+@@ -2465,7 +2466,7 @@ s32 Camera_Jump1(Camera* camera) {
+     eyeNext->z = newEye.z;
+     eyeNext->y += (newEye.y - eyeNext->y) * PCT(OREG(31));
+     if ((camera->status == CAM_STAT_ACTIVE) && !(jump1->interfaceFlags & 0x10)) {
+-        func_80046E20(camera, &eyeDiffSph, jump1->distMin, jump1->yawUpateRateTarget, &spA4, &anim->swing);
++        Camera_SwingAroundCollision(camera, &eyeDiffSph, jump1->distMin, jump1->yawUpateRateTarget, &spA4, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+         if (jump1->interfaceFlags & 4) {
+             camera->inputDir.x = -eyeAtOffset.pitch;
+             camera->inputDir.y = BINANG_ROT180(eyeAtOffset.yaw);
+@@ -2842,7 +2843,7 @@ s32 Camera_Jump3(Camera* camera) {
+ 
+     Camera_Vec3fVecSphGeoAdd(eyeNext, at, &eyeDiffSph);
+     if ((camera->status == CAM_STAT_ACTIVE) && !(jump3->interfaceFlags & 0x10)) {
+-        func_80046E20(camera, &eyeDiffSph, jump3->distMin, jump3->swingUpdateRate, &spBC, &anim->swing);
++        Camera_SwingAroundCollision(camera, &eyeDiffSph, jump3->distMin, jump3->swingUpdateRate, &spBC, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+         if (jump3->interfaceFlags & 4) {
+             camera->inputDir.x = -eyeAtOffset.pitch;
+             camera->inputDir.y = BINANG_ROT180(eyeAtOffset.yaw);
+-- 
+2.55.0
+

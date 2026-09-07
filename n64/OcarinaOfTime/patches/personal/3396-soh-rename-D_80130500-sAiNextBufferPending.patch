@@ -1,0 +1,45 @@
+From 4f736e7dd25e3e2b15a46480d645952fd8121028 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:19:05 +0000
+Subject: [PATCH 3396/3799] soh: rename D_80130500 -> sAiNextBufferPending
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: set once osAiSetNextBuffer has queued a first buffer
+Defined in soh/src/libultra/io/aisetnextbuf.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/libultra/io/aisetnextbuf.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/libultra/io/aisetnextbuf.c b/soh/src/libultra/io/aisetnextbuf.c
+index bc63b936c..5d8b224c8 100644
+--- a/soh/src/libultra/io/aisetnextbuf.c
++++ b/soh/src/libultra/io/aisetnextbuf.c
+@@ -4,17 +4,17 @@
+ //! osAiSetNextBuffer, see comments in the function
+ 
+ s32 osAiSetNextBuffer(void* buf, size_t size) {
+-    static u8 D_80130500 = false;
++    static u8 sAiNextBufferPending = false;  // was D_80130500 [LLM:HIGH]
+     uintptr_t bufAdjusted = (uintptr_t)buf;
+     s32 status;
+ 
+-    if (D_80130500) {
++    if (sAiNextBufferPending) {  // was D_80130500 [LLM:HIGH]
+         bufAdjusted = (uintptr_t)buf - 0x2000;
+     }
+     if ((((uintptr_t)buf + size) & 0x1FFF) == 0) {
+-        D_80130500 = true;
++        sAiNextBufferPending = true;  // was D_80130500 [LLM:HIGH]
+     } else {
+-        D_80130500 = false;
++        sAiNextBufferPending = false;  // was D_80130500 [LLM:HIGH]
+     }
+ 
+     // Originally a call to __osAiDeviceBusy
+-- 
+2.55.0
+

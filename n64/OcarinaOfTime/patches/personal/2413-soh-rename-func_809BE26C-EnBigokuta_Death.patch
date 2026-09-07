@@ -1,0 +1,85 @@
+From 89031c833e24a0c07593271552bd3ec8fa5449a3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:25:27 +0000
+Subject: [PATCH 2413/3799] soh: rename func_809BE26C -> EnBigokuta_Death
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: spins, puffs dust, shrinks away, clears the room and drops a collectible
+Defined in soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_En_Bigokuta/z_en_bigokuta.c        | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+index a15671139..562edd069 100644
+--- a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
++++ b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+@@ -34,7 +34,8 @@ void func_809BE518(EnBigokuta* this, PlayState* play);
+ void EnBigokuta_SpawnWakeSplash(EnBigokuta* this, PlayState* play);  // was func_809BCF68 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_809BDFC8: turns onto the recorded opposite heading, flips the circling direction and resumes
+ void EnBigokuta_TurnAround(EnBigokuta* this, PlayState* play);  // was func_809BDFC8 [LLM:HIGH]
+-void func_809BE26C(EnBigokuta* this, PlayState* play);
++// LLM generated name (HIGH), was func_809BE26C: spins, puffs dust, shrinks away, clears the room and drops a collectible
++void EnBigokuta_Death(EnBigokuta* this, PlayState* play);  // was func_809BE26C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_809BE180: rides the knockback arc, then either resumes or dies according to remaining health
+ void EnBigokuta_Damage(EnBigokuta* this, PlayState* play);  // was func_809BE180 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_809BE058: holds still for the stun, shoving the player off whichever collider they touch
+@@ -386,7 +387,7 @@ void EnBigokuta_SetupDeath(EnBigokuta* this) {
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_DAIOCTA_DEAD2);
+     this->unk_196 = 38;
+     this->unk_198 = 10;
+-    this->actionFunc = func_809BE26C;
++    this->actionFunc = EnBigokuta_Death;  // was func_809BE26C [LLM:HIGH]
+ }
+ 
+ // LLM generated name (HIGH), was func_809BD6B8: picks the spin duration from whether the octopus is facing the player and turns AC off
+@@ -647,7 +648,7 @@ void EnBigokuta_Damage(EnBigokuta* this, PlayState* play) {
+         }
+     }
+ }
+-void func_809BE26C(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Death(EnBigokuta* this, PlayState* play) {
+     Vec3f effectPos;
+ 
+     if (this->unk_196 != 0) {
+@@ -873,7 +874,7 @@ s32 EnBigokuta_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec
+         }
+     } else if (limbIndex == 10) {
+         OPEN_DISPS(play->state.gfxCtx);
+-        if (this->actionFunc == func_809BE26C) {
++        if (this->actionFunc == EnBigokuta_Death) {  // was func_809BE26C [LLM:HIGH]
+             intensity = this->unk_196 * (255.0f / 38);
+         } else {
+             intensity = 255;
+@@ -882,7 +883,7 @@ s32 EnBigokuta_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec
+         gDPSetEnvColor(POLY_OPA_DISP++, intensity, intensity, intensity, intensity);
+ 
+         CLOSE_DISPS(play->state.gfxCtx);
+-    } else if (limbIndex == 17 && this->actionFunc == func_809BE26C) {
++    } else if (limbIndex == 17 && this->actionFunc == EnBigokuta_Death) {  // was func_809BE26C [LLM:HIGH]
+         if (this->unk_198 < 5) {
+             Matrix_Scale((this->unk_198 * 0.2f * 0.25f) + 1.0f, 1.0f, 1.0f, MTXMODE_APPLY);
+         } else if (this->unk_198 < 8) {
+@@ -901,13 +902,13 @@ void EnBigokuta_Draw(Actor* thisx, PlayState* play) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-    if ((this->actionFunc != func_809BE26C) || (this->unk_196 != 0) || (this->unk_198 != 0)) {
++    if ((this->actionFunc != EnBigokuta_Death) || (this->unk_196 != 0) || (this->unk_198 != 0)) {  // was func_809BE26C [LLM:HIGH]
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+         gSPSegment(POLY_OPA_DISP++, 0x0C, &D_80116280[2]);
+         gDPSetEnvColor(POLY_OPA_DISP++, 255, 255, 255, 255);
+         if (this->unk_196 & 1) {
+             if ((this->actionFunc == EnBigokuta_Damage && this->unk_196 >= 8) ||  // was func_809BE180 [LLM:HIGH]
+-                (this->actionFunc == func_809BE26C && this->unk_196 >= 10)) {
++                (this->actionFunc == EnBigokuta_Death && this->unk_196 >= 10)) {  // was func_809BE26C [LLM:HIGH]
+                 f32 rotX = Rand_ZeroOne() * (M_PI * 2.0f);
+                 f32 rotY = Rand_ZeroOne() * (M_PI * 2.0f);
+ 
+-- 
+2.55.0
+

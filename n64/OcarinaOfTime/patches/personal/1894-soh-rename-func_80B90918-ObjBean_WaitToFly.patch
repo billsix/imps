@@ -1,0 +1,47 @@
+From c8c788f1f6a904d380cc7ef059add8bf1c17ef0c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:50:08 +0000
+Subject: [PATCH 1894/3799] soh: rename func_80B90918 -> ObjBean_WaitToFly
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: once the player is off the leaf it rebuilds the path, moves the plant back to its start and hands off to the regrow delay.
+Defined in soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+index b630859e4..2735fd71d 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
++++ b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+@@ -55,7 +55,8 @@ void ObjBean_Settle(ObjBean* this, PlayState* play);  // was func_80B90050 [LLM:
+ void ObjBean_SetupSettle(ObjBean* this);  // was func_80B90010 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80B908EC: hides the plant and installs the action that waits for the player to step off.
+ void ObjBean_SetupWaitToFly(ObjBean* this);  // was func_80B908EC [LLM:HIGH]
+-void func_80B90918(ObjBean* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B90918: once the player is off the leaf it rebuilds the path, moves the plant back to its start and hands off to the regrow delay.
++void ObjBean_WaitToFly(ObjBean* this, PlayState* play);  // was func_80B90918 [LLM:HIGH]
+ void func_80B90970(ObjBean* this);
+ void func_80B909B0(ObjBean* this, PlayState* play);
+ void func_80B909F8(ObjBean* this);
+@@ -835,11 +836,11 @@ void ObjBean_WaitForStepOff(ObjBean* this, PlayState* play) {
+ }
+ 
+ void ObjBean_SetupWaitToFly(ObjBean* this) {
+-    this->actionFunc = func_80B90918;
++    this->actionFunc = ObjBean_WaitToFly;  // was func_80B90918 [LLM:HIGH]
+     ObjBean_SetDrawMode(this, 0);
+ }
+ 
+-void func_80B90918(ObjBean* this, PlayState* play) {
++void ObjBean_WaitToFly(ObjBean* this, PlayState* play) {
+     if (!DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+         ObjBean_SetupPathCount(this, play);
+         ObjBean_SetupPath(this, play);
+-- 
+2.55.0
+

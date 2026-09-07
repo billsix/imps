@@ -1,0 +1,43 @@
+From 59c4e4b485db958afa3138b565100d7633c3f26e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:55 +0000
+Subject: [PATCH 2493/3799] soh: rename func_800F37B8 ->
+ Audio_ComputeSoundFilter
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: returns the low-pass filter index for a surround-mode sound from its Z depth and pan, in the style of the neighbouring Audio_ComputeSound* helpers
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/audio_general.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index a02df8bd7..28877bfad 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4134,7 +4134,8 @@ f32 Audio_ComputeSoundFreqScale(u8 bankId, u8 entryIdx) {
+     return freq;
+ }
+ 
+-u8 func_800F37B8(f32 behindScreenZ, SoundBankEntry* arg1, s8 arg2) {
++// LLM generated name (HIGH), was func_800F37B8: returns the low-pass filter index for a surround-mode sound from its Z depth and pan, in the style of the neighbouring Audio_ComputeSound* helpers
++u8 Audio_ComputeSoundFilter(f32 behindScreenZ, SoundBankEntry* arg1, s8 arg2) {
+     s8 phi_v0;
+     u8 phi_v1;
+     f32 phi_f0;
+@@ -4250,7 +4251,7 @@ void Audio_SetSfxProperties(u8 bankId, u8 entryIdx, u8 channelIdx) {
+             if ((baseFilter | sAudioExtraFilter) != 0) {
+                 filter = (baseFilter | sAudioExtraFilter);
+             } else if (sSoundOutputMode == 2 && (entry->sfxParams & 0x2000) == 0) {
+-                filter = func_800F37B8(behindScreenZ, entry, pan);
++                filter = Audio_ComputeSoundFilter(behindScreenZ, entry, pan);  // was func_800F37B8 [LLM:HIGH]
+             }
+             break;
+         case BANK_SYSTEM:
+-- 
+2.55.0
+

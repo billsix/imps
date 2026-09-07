@@ -1,0 +1,75 @@
+From 9f7065ec4fcfd9fb7b5c7a7f38ecc50f4e8d7af5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:49:49 +0000
+Subject: [PATCH 1120/3799] soh: rename func_80026860 -> Gfx_SetFogFadeXlu
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the translucent-list twin of Gfx_SetFogFadeOpa.
+Defined in soh/src/code/z_eff_ss_dead.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                         | 2 +-
+ soh/src/code/z_actor.c                          | 2 +-
+ soh/src/code/z_eff_ss_dead.c                    | 3 ++-
+ soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c | 2 +-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index df1ac04df..8535d42a9 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -206,7 +206,7 @@ void Gfx_SetFogPulseOpa(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3)
+ void Gfx_SetFogFadeOpa(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3);  // was func_80026400 [LLM:HIGH]
+ void Gfx_ResetFogOpa(PlayState* play);  // was func_80026608 [LLM:HIGH]
+ void Gfx_SetFogPulseXlu(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3);  // was func_80026690 [LLM:HIGH]
+-void func_80026860(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3);
++void Gfx_SetFogFadeXlu(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3);  // was func_80026860 [LLM:HIGH]
+ void func_80026A6C(PlayState* play);
+ PlayState* Effect_GetPlayState(void);
+ void* Effect_GetByIndex(s32 index);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index a68440406..65f2e484d 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -2796,7 +2796,7 @@ void Actor_Draw(PlayState* play, Actor* actor) {
+         }
+ 
+         if (actor->colorFilterParams & 0x2000) {
+-            func_80026860(play, &color, actor->colorFilterTimer, actor->colorFilterParams & 0xFF);
++            Gfx_SetFogFadeXlu(play, &color, actor->colorFilterTimer, actor->colorFilterParams & 0xFF);  // was func_80026860 [LLM:HIGH]
+         } else {
+             Gfx_SetFogFadeOpa(play, &color, actor->colorFilterTimer, actor->colorFilterParams & 0xFF);  // was func_80026400 [LLM:HIGH]
+         }
+diff --git a/soh/src/code/z_eff_ss_dead.c b/soh/src/code/z_eff_ss_dead.c
+index 83367c671..6fec4f389 100644
+--- a/soh/src/code/z_eff_ss_dead.c
++++ b/soh/src/code/z_eff_ss_dead.c
+@@ -87,7 +87,8 @@ void Gfx_SetFogPulseXlu(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3)
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80026860(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3) {
++// LLM generated name (HIGH), was func_80026860: the translucent-list twin of Gfx_SetFogFadeOpa.
++void Gfx_SetFogFadeXlu(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3) {
+     f32 cos;
+     Gfx* displayListHead;
+ 
+diff --git a/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c b/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
+index 31c41281c..1edb96cb1 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
++++ b/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
+@@ -3304,7 +3304,7 @@ void BossVa_Draw(Actor* thisx, PlayState* play) {
+                 if (this->actor.colorFilterTimer != 0) {
+                     Color_RGBA8 blue = { 0, 0, 255, 255 };
+ 
+-                    func_80026860(play, &blue, this->actor.colorFilterTimer, this->actor.colorFilterParams & 0xFF);
++                    Gfx_SetFogFadeXlu(play, &blue, this->actor.colorFilterTimer, this->actor.colorFilterParams & 0xFF);  // was func_80026860 [LLM:HIGH]
+                 }
+             }
+             break;
+-- 
+2.55.0
+

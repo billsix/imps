@@ -1,0 +1,878 @@
+From 5d5451aa463e34ce9d889c9fed43c86fe9416bd2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:33 +0000
+Subject: [PATCH 2752/3799] soh: rename func_8002EBCC -> Actor_ApplyHiliteOpa
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: builds the actor's opaque hilite from the scene light direction and binds it, optionally with its own segment display list
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                       |  2 +-
+ .../randomizer/ShuffleFairies.cpp             |  2 +-
+ .../Enhancements/randomizer/fishsanity.cpp    |  2 +-
+ .../Enhancements/randomizer/hook_handlers.cpp | 10 +--
+ soh/src/code/z_actor.c                        |  3 +-
+ soh/src/code/z_draw.c                         |  4 +-
+ soh/src/code/z_en_item00.c                    |  6 +-
+ .../actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c    |  2 +-
+ .../actors/ovl_Demo_Effect/z_demo_effect.c    | 10 +--
+ .../overlays/actors/ovl_Demo_Ik/z_demo_ik.c   |  4 +-
+ soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c |  2 +-
+ .../actors/ovl_En_Bom_Chu/z_en_bom_chu.c      |  2 +-
+ .../actors/ovl_En_Ex_Item/z_en_ex_item.c      | 12 ++--
+ .../actors/ovl_En_Ex_Ruppy/z_en_ex_ruppy.c    |  4 +-
+ .../actors/ovl_En_G_Switch/z_en_g_switch.c    |  4 +-
+ soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c |  2 +-
+ soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c |  2 +-
+ .../overlays/actors/ovl_En_GirlA/z_en_girla.c | 68 +++++++++----------
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c   |  4 +-
+ soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c   |  2 +-
+ .../overlays/actors/ovl_En_Part/z_en_part.c   |  2 +-
+ soh/src/overlays/actors/ovl_En_Sb/z_en_sb.c   |  2 +-
+ soh/src/overlays/actors/ovl_En_Si/z_en_si.c   |  2 +-
+ soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c   |  2 +-
+ .../overlays/actors/ovl_En_Test/z_en_test.c   |  2 +-
+ .../actors/ovl_En_Torch2/z_en_torch2.c        |  4 +-
+ soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c   |  2 +-
+ .../overlays/actors/ovl_En_Trap/z_en_trap.c   |  2 +-
+ soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c   |  8 +--
+ soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c   |  2 +-
+ .../ovl_Item_Etcetera/z_item_etcetera.c       |  4 +-
+ .../actors/ovl_Item_Inbox/z_item_inbox.c      |  2 +-
+ .../actors/ovl_Item_Ocarina/z_item_ocarina.c  |  2 +-
+ .../actors/ovl_player_actor/z_player.c        |  2 +-
+ 34 files changed, 93 insertions(+), 92 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index e1fc09d39..dca0bff6b 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -442,7 +442,7 @@ void Actor_UpdateBgCheckInfo(PlayState* play, Actor* actor, f32 wallCheckHeight,
+                              f32 ceilingCheckHeight, s32 flags);
+ Hilite* Actor_SetupHiliteOpa(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx);  // was func_8002EABC [LLM:HIGH]
+ Hilite* Actor_SetupHiliteXlu(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx);  // was func_8002EB44 [LLM:HIGH]
+-void func_8002EBCC(Actor* actor, PlayState* play, s32 flag);
++void Actor_ApplyHiliteOpa(Actor* actor, PlayState* play, s32 flag);  // was func_8002EBCC [LLM:HIGH]
+ void func_8002ED80(Actor* actor, PlayState* play, s32 flag);
+ PosRot* Actor_GetFocus(PosRot* arg0, Actor* actor);
+ PosRot* Actor_GetWorld(PosRot* arg0, Actor* actor);
+diff --git a/soh/soh/Enhancements/randomizer/ShuffleFairies.cpp b/soh/soh/Enhancements/randomizer/ShuffleFairies.cpp
+index 487b02602..b9de8a5f3 100644
+--- a/soh/soh/Enhancements/randomizer/ShuffleFairies.cpp
++++ b/soh/soh/Enhancements/randomizer/ShuffleFairies.cpp
+@@ -30,7 +30,7 @@ void ShuffleFairies_DrawRandomizedItem(EnElf* enElf, PlayState* play) {
+     }
+     Matrix_Push();
+     Matrix_Scale(37.5, 37.5, 37.5, MTXMODE_APPLY);
+-    func_8002EBCC(&enElf->actor, play, 0);
++    Actor_ApplyHiliteOpa(&enElf->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(&enElf->actor, play, 0);
+     EnItem00_CustomItemsParticles(&enElf->actor, play, randoGetItem);
+     GetItemEntry_Draw(play, randoGetItem);
+diff --git a/soh/soh/Enhancements/randomizer/fishsanity.cpp b/soh/soh/Enhancements/randomizer/fishsanity.cpp
+index 204a8062f..8bce12980 100644
+--- a/soh/soh/Enhancements/randomizer/fishsanity.cpp
++++ b/soh/soh/Enhancements/randomizer/fishsanity.cpp
+@@ -344,7 +344,7 @@ static void Fishsanity_DrawEnFish(Actor* actor, PlayState* play) {
+     Matrix_Push();
+     Matrix_Scale(30.0, 30.0, 30.0, MTXMODE_APPLY);
+ 
+-    func_8002EBCC(actor, play, 0);
++    Actor_ApplyHiliteOpa(actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(actor, play, 0);
+     EnItem00_CustomItemsParticles(actor, play, randoItem);
+     GetItemEntry_Draw(play, randoItem);
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 112079f67..6c230cb77 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -573,7 +573,7 @@ void EnExItem_DrawRandomizedItem(EnExItem* enExItem, PlayState* play) {
+     if (CVarGetInteger(CVAR_RANDOMIZER_ENHANCEMENT("MysteriousShuffle"), 0)) {
+         randoGetItem = GET_ITEM_MYSTERY;
+     }
+-    func_8002EBCC(&enExItem->actor, play, 0);
++    Actor_ApplyHiliteOpa(&enExItem->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(&enExItem->actor, play, 0);
+     EnItem00_CustomItemsParticles(&enExItem->actor, play, randoGetItem);
+     GetItemEntry_Draw(play, randoGetItem);
+@@ -605,7 +605,7 @@ void EnItem00_DrawRandomizedItem(EnItem00* enItem00, PlayState* play) {
+         enItem00->actor.params != ITEM00_SOH_GIVE_ITEM_ENTRY) {
+         randoItem = GET_ITEM_MYSTERY;
+     }
+-    func_8002EBCC(&enItem00->actor, play, 0);
++    Actor_ApplyHiliteOpa(&enItem00->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(&enItem00->actor, play, 0);
+     EnItem00_CustomItemsParticles(&enItem00->actor, play, randoItem);
+     GetItemEntry_Draw(play, randoItem);
+@@ -616,7 +616,7 @@ void ItemBHeart_DrawRandomizedItem(ItemBHeart* itemBHeart, PlayState* play) {
+     if (CVarGetInteger(CVAR_RANDOMIZER_ENHANCEMENT("MysteriousShuffle"), 0)) {
+         randoItem = GET_ITEM_MYSTERY;
+     }
+-    func_8002EBCC(&itemBHeart->actor, play, 0);
++    Actor_ApplyHiliteOpa(&itemBHeart->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(&itemBHeart->actor, play, 0);
+     EnItem00_CustomItemsParticles(&itemBHeart->actor, play, randoItem);
+     GetItemEntry_Draw(play, randoItem);
+@@ -639,7 +639,7 @@ void ItemEtcetera_DrawRandomizedItem(ItemEtcetera* itemEtcetera, PlayState* play
+         randoItem = GET_ITEM_MYSTERY;
+     }
+     EnItem00_CustomItemsParticles(&itemEtcetera->actor, play, randoItem);
+-    func_8002EBCC(&itemEtcetera->actor, play, 0);
++    Actor_ApplyHiliteOpa(&itemEtcetera->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(&itemEtcetera->actor, play, 0);
+     GetItemEntry_Draw(play, randoItem);
+ }
+@@ -2196,7 +2196,7 @@ void EnSi_DrawRandomizedItem(EnSi* enSi, PlayState* play) {
+         randoItem = GET_ITEM_MYSTERY;
+     }
+     func_8002ED80(&enSi->actor, play, 0);
+-    func_8002EBCC(&enSi->actor, play, 0);
++    Actor_ApplyHiliteOpa(&enSi->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     EnItem00_CustomItemsParticles(&enSi->actor, play, randoItem);
+     GetItemEntry_Draw(play, randoItem);
+ }
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index eaf1a7b4c..ec25d2b79 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1820,7 +1820,8 @@ Hilite* Actor_SetupHiliteXlu(Vec3f* object, Vec3f* eye, Vec3f* lightDir, Graphic
+     return hilite;
+ }
+ 
+-void func_8002EBCC(Actor* actor, PlayState* play, s32 flag) {
++// LLM generated name (HIGH), was func_8002EBCC: builds the actor's opaque hilite from the scene light direction and binds it, optionally with its own segment display list
++void Actor_ApplyHiliteOpa(Actor* actor, PlayState* play, s32 flag) {
+     Hilite* hilite;
+     Vec3f lightDir;
+     Gfx* displayListHead;
+diff --git a/soh/src/code/z_draw.c b/soh/src/code/z_draw.c
+index 4706aaf7a..5750835a2 100644
+--- a/soh/src/code/z_draw.c
++++ b/soh/src/code/z_draw.c
+@@ -496,7 +496,7 @@ void GetItem_DrawJewel(PlayState* play, s16 drawId) {
+     gDPSetEnvColor(POLY_XLU_DISP++, envXluColor[0], envXluColor[1], envXluColor[2], 255);
+     gSPDisplayList(POLY_XLU_DISP++, sDrawItemTable[drawId].dlists[0]);
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    // func_8002EBCC(&this->actor, play, 0);
++    // Actor_ApplyHiliteOpa(&this->actor, play, 0);, was func_8002EBCC [LLM:HIGH]
+     gDPSetPrimColor(POLY_OPA_DISP++, 0, 128, primOpaColor[0], primOpaColor[1], primOpaColor[2], 255);
+     gDPSetEnvColor(POLY_OPA_DISP++, envOpaColor[0], envOpaColor[1], envOpaColor[2], 255);
+     gSPDisplayList(POLY_OPA_DISP++, sDrawItemTable[drawId].dlists[1]);
+@@ -1076,4 +1076,4 @@ void GetItem_DrawFishingPole(PlayState* play, s16 drawId) {
+     Matrix_Pop();
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/code/z_en_item00.c b/soh/src/code/z_en_item00.c
+index 1df286fd3..a1e12b9e1 100644
+--- a/soh/src/code/z_en_item00.c
++++ b/soh/src/code/z_en_item00.c
+@@ -999,7 +999,7 @@ void EnItem00_Draw(Actor* thisx, PlayState* play) {
+ 
+     // Setup Hilites for 3D drops
+     if (CVarGetInteger(CVAR_ENHANCEMENT("NewDrops"), 0)) {
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         func_8002ED80(&this->actor, play, 0);
+     }
+ 
+@@ -1348,7 +1348,7 @@ void EnItem00_DrawRupee(EnItem00* this, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+ 
+     if (this->actor.params <= ITEM00_RUPEE_RED) {
+         texIndex = this->actor.params;
+@@ -1468,7 +1468,7 @@ void EnItem00_DrawHeartContainer(EnItem00* this, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_MODELVIEW | G_MTX_LOAD);
+     gSPDisplayList(POLY_OPA_DISP++, gHeartPieceExteriorDL);
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
+index 280b252ca..4ff3c6267 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
++++ b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
+@@ -213,7 +213,7 @@ void BgTokiSwd_Draw(Actor* thisx, PlayState* play2) {
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+ 
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+ 
+     gSPSegment(POLY_OPA_DISP++, 0x08,
+                Gfx_TexScrollEx(play->state.gfxCtx, 0, -(play->gameplayFrames % 0x80), 32, 32, 0, -1));
+diff --git a/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c b/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
+index 9adc23c5f..b81be2c82 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
++++ b/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
+@@ -1770,7 +1770,7 @@ void DemoEffect_DrawJewel(Actor* thisx, PlayState* play2) {
+             gDPSetEnvColor(POLY_XLU_DISP++, this->envXluColor[0], this->envXluColor[1], this->envXluColor[2], 255);
+             gSPDisplayList(POLY_XLU_DISP++, this->jewelDisplayList);
+             Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-            func_8002EBCC(&this->actor, play, 0);
++            Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+             gDPSetPrimColor(POLY_OPA_DISP++, 0, 128, this->primOpaColor[0], this->primOpaColor[1],
+                             this->primOpaColor[2], 255);
+             gDPSetEnvColor(POLY_OPA_DISP++, this->envOpaColor[0], this->envOpaColor[1], this->envOpaColor[2], 255);
+@@ -1884,7 +1884,7 @@ void DemoEffect_DrawGodLgt(Actor* thisx, PlayState* play) {
+         gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPDisplayList(POLY_XLU_DISP++, gGoldenGoddessAuraDL);
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         Matrix_Pop();
+ 
+         this->godLgt.rotation++;
+@@ -2049,7 +2049,7 @@ void DemoEffect_DrawTriforceSpot(Actor* thisx, PlayState* play) {
+                 gDPSetEnvColor(POLY_XLU_DISP++, 170, 140, 0, 255);
+                 gSPDisplayList(POLY_XLU_DISP++, gTriforceDL);
+             } else {
+-                func_8002EBCC(&this->actor, play, 0);
++                Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+                 Gfx_SetupDL_25Opa(play->state.gfxCtx);
+                 gDPSetRenderMode(POLY_OPA_DISP++, G_RM_PASS, G_RM_AA_ZB_OPA_SURF2);
+                 Matrix_RotateY(this->triforceSpot.rotation * (M_PI / 0x8000), MTXMODE_APPLY);
+@@ -2131,13 +2131,13 @@ void DemoEffect_DrawGetItem(Actor* thisx, PlayState* play) {
+                     getItemEntry = GetItemMystery();
+                 }
+                 this->getItem.drawId = getItemEntry.gid;
+-                func_8002EBCC(thisx, play, 0);
++                Actor_ApplyHiliteOpa(thisx, play, 0);  // was func_8002EBCC [LLM:HIGH]
+                 func_8002ED80(thisx, play, 0);
+                 GetItemEntry_Draw(play, getItemEntry);
+                 return;
+             }
+         }
+-        func_8002EBCC(thisx, play, 0);
++        Actor_ApplyHiliteOpa(thisx, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         func_8002ED80(thisx, play, 0);
+         GetItem_Draw(play, this->getItem.drawId);
+     }
+diff --git a/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c b/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
+index 529dfd9a2..1bf38cff3 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
++++ b/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
+@@ -285,7 +285,7 @@ void DemoIk_Type1Draw(DemoIk* this, PlayState* play) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     OPEN_DISPS(gfxCtx);
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     Gfx_SetupDL_25Opa(gfxCtx);
+     Gfx_SetupDL_25Xlu(gfxCtx);
+     gSPSegment(POLY_OPA_DISP++, 0x08, DemoIk_SetColors(gfxCtx, 245, 225, 155, 30, 30, 0));
+@@ -452,7 +452,7 @@ void DemoIk_Type2Draw(DemoIk* this, PlayState* play) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     OPEN_DISPS(gfxCtx);
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     Gfx_SetupDL_25Opa(gfxCtx);
+     Gfx_SetupDL_25Xlu(gfxCtx);
+     gSPSegment(POLY_OPA_DISP++, 0x08, DemoIk_SetColors(gfxCtx, 245, 225, 155, 30, 30, 0));
+diff --git a/soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c b/soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c
+index f4f4657f3..d42ecc4c2 100644
+--- a/soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c
++++ b/soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c
+@@ -396,7 +396,7 @@ void EnBom_Draw(Actor* thisx, PlayState* play) {
+         if (!CVarGetInteger(CVAR_ENHANCEMENT("DisableBombBillboarding"), 0)) {
+             Matrix_ReplaceRotation(&play->billboardMtxF);
+         }
+-        func_8002EBCC(thisx, play, 0);
++        Actor_ApplyHiliteOpa(thisx, play, 0);  // was func_8002EBCC [LLM:HIGH]
+ 
+         gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPDisplayList(POLY_OPA_DISP++, gBombCapDL);
+diff --git a/soh/src/overlays/actors/ovl_En_Bom_Chu/z_en_bom_chu.c b/soh/src/overlays/actors/ovl_En_Bom_Chu/z_en_bom_chu.c
+index 8a182aded..abb921832 100644
+--- a/soh/src/overlays/actors/ovl_En_Bom_Chu/z_en_bom_chu.c
++++ b/soh/src/overlays/actors/ovl_En_Bom_Chu/z_en_bom_chu.c
+@@ -494,7 +494,7 @@ void EnBomChu_Draw(Actor* thisx, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+ 
+     if (this->timer >= 40) {
+         blinkTime = this->timer % 20;
+diff --git a/soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c b/soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c
+index 7df9ca25e..c6349d67a 100644
+--- a/soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c
++++ b/soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c
+@@ -137,7 +137,7 @@ void EnExItem_WaitForObject(EnExItem* this, PlayState* play) {
+             case EXITEM_BOMB_BAG_COUNTER:
+                 onCounter = true;
+             case EXITEM_BOMB_BAG_BOWLING:
+-                this->unk_17C = func_8002EBCC;
++                this->unk_17C = Actor_ApplyHiliteOpa;  // was func_8002EBCC [LLM:HIGH]
+                 this->giDrawId = GID_BOMB_BAG_30;
+                 this->timer = 65;
+                 this->prizeRotateTimer = 35;
+@@ -167,7 +167,7 @@ void EnExItem_WaitForObject(EnExItem* this, PlayState* play) {
+             case EXITEM_BOMBCHUS_COUNTER:
+                 onCounter = true;
+             case EXITEM_BOMBCHUS_BOWLING:
+-                this->unk_17C = func_8002EBCC;
++                this->unk_17C = Actor_ApplyHiliteOpa;  // was func_8002EBCC [LLM:HIGH]
+                 this->giDrawId = GID_BOMBCHU;
+                 this->timer = 65;
+                 this->prizeRotateTimer = 35;
+@@ -180,7 +180,7 @@ void EnExItem_WaitForObject(EnExItem* this, PlayState* play) {
+                 break;
+             case EXITEM_BOMBS_BOWLING:
+             case EXITEM_BOMBS_COUNTER:
+-                this->unk_17C = func_8002EBCC;
++                this->unk_17C = Actor_ApplyHiliteOpa;  // was func_8002EBCC [LLM:HIGH]
+                 this->giDrawId = GID_BOMB;
+                 this->timer = 65;
+                 this->prizeRotateTimer = 35;
+@@ -195,7 +195,7 @@ void EnExItem_WaitForObject(EnExItem* this, PlayState* play) {
+                 break;
+             case EXITEM_PURPLE_RUPEE_BOWLING:
+             case EXITEM_PURPLE_RUPEE_COUNTER:
+-                this->unk_17C = func_8002EBCC;
++                this->unk_17C = Actor_ApplyHiliteOpa;  // was func_8002EBCC [LLM:HIGH]
+                 this->unk_180 = func_8002ED80;
+                 this->giDrawId = GID_RUPEE_PURPLE;
+                 this->timer = 65;
+@@ -214,7 +214,7 @@ void EnExItem_WaitForObject(EnExItem* this, PlayState* play) {
+             case EXITEM_RED_RUPEE_CHEST:
+             case EXITEM_13:
+             case EXITEM_14:
+-                this->unk_17C = func_8002EBCC;
++                this->unk_17C = Actor_ApplyHiliteOpa;  // was func_8002EBCC [LLM:HIGH]
+                 this->unk_180 = func_8002ED80;
+                 this->timer = 7;
+                 this->scale = 0.5f;
+@@ -243,7 +243,7 @@ void EnExItem_WaitForObject(EnExItem* this, PlayState* play) {
+                 this->actionFunc = EnExItem_FairyMagic;
+                 break;
+             case EXITEM_BULLET_BAG:
+-                this->unk_17C = func_8002EBCC;
++                this->unk_17C = Actor_ApplyHiliteOpa;  // was func_8002EBCC [LLM:HIGH]
+                 this->giDrawId = GID_BULLET_BAG;
+                 this->scale = 0.1f;
+                 this->timer = 80;
+diff --git a/soh/src/overlays/actors/ovl_En_Ex_Ruppy/z_en_ex_ruppy.c b/soh/src/overlays/actors/ovl_En_Ex_Ruppy/z_en_ex_ruppy.c
+index 0ad00ecd4..11e6bd89c 100644
+--- a/soh/src/overlays/actors/ovl_En_Ex_Ruppy/z_en_ex_ruppy.c
++++ b/soh/src/overlays/actors/ovl_En_Ex_Ruppy/z_en_ex_ruppy.c
+@@ -388,7 +388,7 @@ void EnExRuppy_Draw(Actor* thisx, PlayState* play) {
+         OPEN_DISPS(play->state.gfxCtx);
+ 
+         if (CVarGetInteger(CVAR_ENHANCEMENT("NewDrops"), 0)) {
+-            func_8002EBCC(&this->actor, play, 0);
++            Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+             func_8002ED80(&this->actor, play, 0);
+ 
+             // purple/gold rupees need less scaling
+@@ -427,7 +427,7 @@ void EnExRuppy_Draw(Actor* thisx, PlayState* play) {
+             }
+ 
+             Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-            func_8002EBCC(thisx, play, 0);
++            Actor_ApplyHiliteOpa(thisx, play, 0);  // was func_8002EBCC [LLM:HIGH]
+             gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+ 
+             if (shouldColor) {
+diff --git a/soh/src/overlays/actors/ovl_En_G_Switch/z_en_g_switch.c b/soh/src/overlays/actors/ovl_En_G_Switch/z_en_g_switch.c
+index db8dcd5f3..4058a647b 100644
+--- a/soh/src/overlays/actors/ovl_En_G_Switch/z_en_g_switch.c
++++ b/soh/src/overlays/actors/ovl_En_G_Switch/z_en_g_switch.c
+@@ -483,7 +483,7 @@ void EnGSwitch_DrawRupee(Actor* thisx, PlayState* play) {
+         OPEN_DISPS(play->state.gfxCtx);
+ 
+         if (CVarGetInteger(CVAR_ENHANCEMENT("NewDrops"), 0)) {
+-            func_8002EBCC(&this->actor, play, 0);
++            Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+             func_8002ED80(&this->actor, play, 0);
+ 
+             // purple/gold/silver rupees need less scaling
+@@ -546,7 +546,7 @@ void EnGSwitch_DrawRupee(Actor* thisx, PlayState* play) {
+             }
+ 
+             Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-            func_8002EBCC(&this->actor, play, 0);
++            Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+             gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+ 
+             if (shouldColor) {
+diff --git a/soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c b/soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c
+index aab0b6799..d8e6bd96e 100644
+--- a/soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c
++++ b/soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c
+@@ -666,7 +666,7 @@ void EnGe2_Draw(Actor* thisx, PlayState* play) {
+ 
+     Gfx_SetupDL_37Opa(play->state.gfxCtx);
+     gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(eyeTextures[this->eyeIndex]));
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnGe2_OverrideLimbDraw, EnGe2_PostLimbDraw, this);
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+diff --git a/soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c b/soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c
+index 0c50e4e8f..ba141e8b5 100644
+--- a/soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c
++++ b/soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c
+@@ -294,7 +294,7 @@ void EnGe3_Draw(Actor* thisx, PlayState* play2) {
+ 
+     Gfx_SetupDL_37Opa(play->state.gfxCtx);
+     gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(eyeTextures[this->eyeIndex]));
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnGe3_OverrideLimbDraw, EnGe3_PostLimbDraw, this);
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+diff --git a/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c b/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
+index 87e37023f..c6c34b526 100644
+--- a/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
++++ b/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
+@@ -168,13 +168,13 @@ static ShopItemEntry shopItemEntries[] = {
+     { OBJECT_GI_NUTS, GID_NUTS, func_8002ED80, 15, 5, 0x00B2, 0x007F, GI_NUTS_5_2, EnGirlA_CanBuy_DekuNuts,
+       EnGirlA_ItemGive_DekuNuts, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_ARROWS_30 */
+-    { OBJECT_GI_ARROW, GID_ARROWS_MEDIUM, func_8002EBCC, 60, 30, 0x00C1, 0x009B, GI_ARROWS_MEDIUM,
++    { OBJECT_GI_ARROW, GID_ARROWS_MEDIUM, Actor_ApplyHiliteOpa, 60, 30, 0x00C1, 0x009B, GI_ARROWS_MEDIUM,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_Arrows, EnGirlA_ItemGive_Arrows, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_ARROWS_50 */
+-    { OBJECT_GI_ARROW, GID_ARROWS_LARGE, func_8002EBCC, 90, 50, 0x00B0, 0x007D, GI_ARROWS_LARGE, EnGirlA_CanBuy_Arrows,
++    { OBJECT_GI_ARROW, GID_ARROWS_LARGE, Actor_ApplyHiliteOpa, 90, 50, 0x00B0, 0x007D, GI_ARROWS_LARGE, EnGirlA_CanBuy_Arrows,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_Arrows, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BOMBS_5_R25 */
+-    { OBJECT_GI_BOMB_1, GID_BOMB, func_8002EBCC, 25, 5, 0x00A3, 0x008B, GI_BOMBS_5, EnGirlA_CanBuy_Bombs,
++    { OBJECT_GI_BOMB_1, GID_BOMB, Actor_ApplyHiliteOpa, 25, 5, 0x00A3, 0x008B, GI_BOMBS_5, EnGirlA_CanBuy_Bombs,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_Bombs, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_DEKU_NUTS_10 */
+     { OBJECT_GI_NUTS, GID_NUTS, func_8002ED80, 30, 10, 0x00A2, 0x0087, GI_NUTS_10, EnGirlA_CanBuy_DekuNuts,
+@@ -183,28 +183,28 @@ static ShopItemEntry shopItemEntries[] = {
+     { OBJECT_GI_STICK, GID_STICK, NULL, 10, 1, 0x00A1, 0x0088, GI_STICKS_1, EnGirlA_CanBuy_DekuSticks,
+       EnGirlA_ItemGive_DekuSticks, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BOMBS_10 */
+-    { OBJECT_GI_BOMB_1, GID_BOMB, func_8002EBCC, 50, 10, 0x00B1, 0x007C, GI_BOMBS_10, EnGirlA_CanBuy_Bombs,
++    { OBJECT_GI_BOMB_1, GID_BOMB, Actor_ApplyHiliteOpa, 50, 10, 0x00B1, 0x007C, GI_BOMBS_10, EnGirlA_CanBuy_Bombs,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_Bombs, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_FISH */
+     { OBJECT_GI_FISH, GID_FISH, func_8002ED80, 200, 1, 0x00B3, 0x007E, GI_FISH, EnGirlA_CanBuy_Fish, NULL,
+       EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_RED_POTION_R30 */
+-    { OBJECT_GI_LIQUID, GID_POTION_RED, func_8002EBCC, 30, 1, 0x00A5, 0x008E, GI_POTION_RED, EnGirlA_CanBuy_RedPotion,
++    { OBJECT_GI_LIQUID, GID_POTION_RED, Actor_ApplyHiliteOpa, 30, 1, 0x00A5, 0x008E, GI_POTION_RED, EnGirlA_CanBuy_RedPotion,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_BottledItem, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_GREEN_POTION */
+-    { OBJECT_GI_LIQUID, GID_POTION_GREEN, func_8002EBCC, 30, 1, 0x00A6, 0x008F, GI_POTION_GREEN,
++    { OBJECT_GI_LIQUID, GID_POTION_GREEN, Actor_ApplyHiliteOpa, 30, 1, 0x00A6, 0x008F, GI_POTION_GREEN,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_GreenPotion, EnGirlA_ItemGive_BottledItem, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BLUE_POTION */
+-    { OBJECT_GI_LIQUID, GID_POTION_BLUE, func_8002EBCC, 60, 1, 0x00A7, 0x0090, GI_POTION_BLUE,
++    { OBJECT_GI_LIQUID, GID_POTION_BLUE, Actor_ApplyHiliteOpa, 60, 1, 0x00A7, 0x0090, GI_POTION_BLUE,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_BluePotion, EnGirlA_ItemGive_BottledItem, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_LONGSWORD */
+-    { OBJECT_GI_LONGSWORD, GID_SWORD_BGS, func_8002EBCC, 1000, 1, 0x00A8, 0x0091, GI_SWORD_KNIFE,
++    { OBJECT_GI_LONGSWORD, GID_SWORD_BGS, Actor_ApplyHiliteOpa, 1000, 1, 0x00A8, 0x0091, GI_SWORD_KNIFE,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_Longsword, EnGirlA_ItemGive_Longsword, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_HYLIAN_SHIELD */
+-    { OBJECT_GI_SHIELD_2, GID_SHIELD_HYLIAN, func_8002EBCC, 80, 1, 0x00A9, 0x0092, GI_SHIELD_HYLIAN,
++    { OBJECT_GI_SHIELD_2, GID_SHIELD_HYLIAN, Actor_ApplyHiliteOpa, 80, 1, 0x00A9, 0x0092, GI_SHIELD_HYLIAN,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_HylianShield, EnGirlA_ItemGive_HylianShield, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_DEKU_SHIELD */
+-    { OBJECT_GI_SHIELD_1, GID_SHIELD_DEKU, func_8002EBCC, 40, 1, 0x009F, 0x0089, GI_SHIELD_DEKU,
++    { OBJECT_GI_SHIELD_1, GID_SHIELD_DEKU, Actor_ApplyHiliteOpa, 40, 1, 0x009F, 0x0089, GI_SHIELD_DEKU,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_DekuShield, EnGirlA_ItemGive_DekuShield, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_GORON_TUNIC */
+     { OBJECT_GI_CLOTHES, GID_TUNIC_GORON, NULL, 200, 1, 0x00AA, 0x0093, GI_TUNIC_GORON, EnGirlA_CanBuy_GoronTunic,
+@@ -219,52 +219,52 @@ static ShopItemEntry shopItemEntries[] = {
+     { OBJECT_GI_MILK, GID_MILK, EnGirlA_SetupItemHilite, 100, 1, 0x00AD, 0x0097, GI_MILK_BOTTLE, EnGirlA_CanBuy_MilkBottle,
+       EnGirlA_ItemGive_MilkBottle, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_WEIRD_EGG */
+-    { OBJECT_GI_EGG, GID_EGG, func_8002EBCC, 100, 1, 0x00AE, 0x0099, GI_WEIRD_EGG, EnGirlA_CanBuy_WeirdEgg,
++    { OBJECT_GI_EGG, GID_EGG, Actor_ApplyHiliteOpa, 100, 1, 0x00AE, 0x0099, GI_WEIRD_EGG, EnGirlA_CanBuy_WeirdEgg,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_WeirdEgg, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_19 */
+     { OBJECT_GI_MILK, GID_MILK, EnGirlA_SetupItemHilite, 10000, 1, 0x00B4, 0x0085, GI_NONE, EnGirlA_CanBuy_Unk19,
+       EnGirlA_ItemGive_Unk19, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_20 */
+-    { OBJECT_GI_EGG, GID_EGG, func_8002EBCC, 10000, 1, 0x00B5, 0x0085, GI_NONE, EnGirlA_CanBuy_Unk20,
++    { OBJECT_GI_EGG, GID_EGG, Actor_ApplyHiliteOpa, 10000, 1, 0x00B5, 0x0085, GI_NONE, EnGirlA_CanBuy_Unk20,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_Unk20, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BOMBCHU_10_1 */
+-    { OBJECT_GI_BOMB_2, GID_BOMBCHU, func_8002EBCC, 100, 10, 0x00BC, 0x008C, GI_BOMBCHUS_10, EnGirlA_CanBuy_Bombchus,
++    { OBJECT_GI_BOMB_2, GID_BOMBCHU, Actor_ApplyHiliteOpa, 100, 10, 0x00BC, 0x008C, GI_BOMBCHUS_10, EnGirlA_CanBuy_Bombchus,  // was func_8002EBCC [LLM:HIGH]
+       NULL, EnGirlA_BuyEvent_ObtainBombchuPack },
+     /* SI_BOMBCHU_20_1 */
+-    { OBJECT_GI_BOMB_2, GID_BOMBCHU, func_8002EBCC, 180, 20, 0x0061, 0x002A, GI_BOMBCHUS_20, EnGirlA_CanBuy_Bombchus,
++    { OBJECT_GI_BOMB_2, GID_BOMBCHU, Actor_ApplyHiliteOpa, 180, 20, 0x0061, 0x002A, GI_BOMBCHUS_20, EnGirlA_CanBuy_Bombchus,  // was func_8002EBCC [LLM:HIGH]
+       NULL, EnGirlA_BuyEvent_ObtainBombchuPack },
+     /* SI_BOMBCHU_20_2 */
+-    { OBJECT_GI_BOMB_2, GID_BOMBCHU, func_8002EBCC, 180, 20, 0x0061, 0x002A, GI_BOMBCHUS_20, EnGirlA_CanBuy_Bombchus,
++    { OBJECT_GI_BOMB_2, GID_BOMBCHU, Actor_ApplyHiliteOpa, 180, 20, 0x0061, 0x002A, GI_BOMBCHUS_20, EnGirlA_CanBuy_Bombchus,  // was func_8002EBCC [LLM:HIGH]
+       NULL, EnGirlA_BuyEvent_ObtainBombchuPack },
+     /* SI_BOMBCHU_10_2 */
+-    { OBJECT_GI_BOMB_2, GID_BOMBCHU, func_8002EBCC, 100, 10, 0x00BC, 0x008C, GI_BOMBCHUS_10, EnGirlA_CanBuy_Bombchus,
++    { OBJECT_GI_BOMB_2, GID_BOMBCHU, Actor_ApplyHiliteOpa, 100, 10, 0x00BC, 0x008C, GI_BOMBCHUS_10, EnGirlA_CanBuy_Bombchus,  // was func_8002EBCC [LLM:HIGH]
+       NULL, EnGirlA_BuyEvent_ObtainBombchuPack },
+     /* SI_BOMBCHU_10_3 */
+-    { OBJECT_GI_BOMB_2, GID_BOMBCHU, func_8002EBCC, 100, 10, 0x00BC, 0x008C, GI_BOMBCHUS_10, EnGirlA_CanBuy_Bombchus,
++    { OBJECT_GI_BOMB_2, GID_BOMBCHU, Actor_ApplyHiliteOpa, 100, 10, 0x00BC, 0x008C, GI_BOMBCHUS_10, EnGirlA_CanBuy_Bombchus,  // was func_8002EBCC [LLM:HIGH]
+       NULL, EnGirlA_BuyEvent_ObtainBombchuPack },
+     /* SI_BOMBCHU_20_3 */
+-    { OBJECT_GI_BOMB_2, GID_BOMBCHU, func_8002EBCC, 180, 20, 0x0061, 0x002A, GI_BOMBCHUS_20, EnGirlA_CanBuy_Bombchus,
++    { OBJECT_GI_BOMB_2, GID_BOMBCHU, Actor_ApplyHiliteOpa, 180, 20, 0x0061, 0x002A, GI_BOMBCHUS_20, EnGirlA_CanBuy_Bombchus,  // was func_8002EBCC [LLM:HIGH]
+       NULL, EnGirlA_BuyEvent_ObtainBombchuPack },
+     /* SI_BOMBCHU_20_4 */
+-    { OBJECT_GI_BOMB_2, GID_BOMBCHU, func_8002EBCC, 180, 20, 0x0061, 0x002A, GI_BOMBCHUS_20, EnGirlA_CanBuy_Bombchus,
++    { OBJECT_GI_BOMB_2, GID_BOMBCHU, Actor_ApplyHiliteOpa, 180, 20, 0x0061, 0x002A, GI_BOMBCHUS_20, EnGirlA_CanBuy_Bombchus,  // was func_8002EBCC [LLM:HIGH]
+       NULL, EnGirlA_BuyEvent_ObtainBombchuPack },
+     /* SI_BOMBCHU_10_4 */
+-    { OBJECT_GI_BOMB_2, GID_BOMBCHU, func_8002EBCC, 100, 10, 0x00BC, 0x008C, GI_BOMBCHUS_10, EnGirlA_CanBuy_Bombchus,
++    { OBJECT_GI_BOMB_2, GID_BOMBCHU, Actor_ApplyHiliteOpa, 100, 10, 0x00BC, 0x008C, GI_BOMBCHUS_10, EnGirlA_CanBuy_Bombchus,  // was func_8002EBCC [LLM:HIGH]
+       NULL, EnGirlA_BuyEvent_ObtainBombchuPack },
+     /* SI_DEKU_SEEDS_30 */
+-    { OBJECT_GI_SEED, GID_SEEDS, func_8002EBCC, 30, 30, 0x00DF, 0x00DE, GI_SEEDS_30, EnGirlA_CanBuy_DekuSeeds,
++    { OBJECT_GI_SEED, GID_SEEDS, Actor_ApplyHiliteOpa, 30, 30, 0x00DF, 0x00DE, GI_SEEDS_30, EnGirlA_CanBuy_DekuSeeds,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_DekuSeeds, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_KEATON_MASK */
+-    { OBJECT_GI_KI_TAN_MASK, GID_MASK_KEATON, func_8002EBCC, 0, 1, 0x70B2, 0x70BE, GI_MASK_KEATON,
++    { OBJECT_GI_KI_TAN_MASK, GID_MASK_KEATON, Actor_ApplyHiliteOpa, 0, 1, 0x70B2, 0x70BE, GI_MASK_KEATON,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_DekuSeeds, EnGirlA_ItemGive_DekuSeeds, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_SPOOKY_MASK */
+-    { OBJECT_GI_REDEAD_MASK, GID_MASK_SPOOKY, func_8002EBCC, 0, 1, 0x70B1, 0x70BD, GI_MASK_SPOOKY,
++    { OBJECT_GI_REDEAD_MASK, GID_MASK_SPOOKY, Actor_ApplyHiliteOpa, 0, 1, 0x70B1, 0x70BD, GI_MASK_SPOOKY,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_DekuSeeds, EnGirlA_ItemGive_DekuSeeds, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_SKULL_MASK */
+-    { OBJECT_GI_SKJ_MASK, GID_MASK_SKULL, func_8002EBCC, 0, 1, 0x70B0, 0x70BC, GI_MASK_SKULL, EnGirlA_CanBuy_DekuSeeds,
++    { OBJECT_GI_SKJ_MASK, GID_MASK_SKULL, Actor_ApplyHiliteOpa, 0, 1, 0x70B0, 0x70BC, GI_MASK_SKULL, EnGirlA_CanBuy_DekuSeeds,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_DekuSeeds, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BUNNY_HOOD */
+-    { OBJECT_GI_RABIT_MASK, GID_MASK_BUNNY, func_8002EBCC, 0, 1, 0x70B3, 0x70BF, GI_MASK_BUNNY,
++    { OBJECT_GI_RABIT_MASK, GID_MASK_BUNNY, Actor_ApplyHiliteOpa, 0, 1, 0x70B3, 0x70BF, GI_MASK_BUNNY,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_CanBuy_DekuSeeds, EnGirlA_ItemGive_DekuSeeds, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_MASK_OF_TRUTH */
+     { OBJECT_GI_TRUTH_MASK, GID_MASK_TRUTH, EnGirlA_SetupItemHilite, 0, 1, 0x70AF, 0x70C3, GI_MASK_TRUTH,
+@@ -279,10 +279,10 @@ static ShopItemEntry shopItemEntries[] = {
+     { OBJECT_GI_GERUDOMASK, GID_MASK_GERUDO, NULL, 0, 1, 0x70BA, 0x70C2, GI_MASK_GERUDO, EnGirlA_CanBuy_DekuSeeds,
+       EnGirlA_ItemGive_DekuSeeds, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_SOLD_OUT */
+-    { OBJECT_GI_SOLDOUT, GID_SOLDOUT, func_8002EBCC, 0, 0, 0x00BD, 0x70C2, GI_MASK_GERUDO, EnGirlA_CanBuy_SoldOut, NULL,
++    { OBJECT_GI_SOLDOUT, GID_SOLDOUT, Actor_ApplyHiliteOpa, 0, 0, 0x00BD, 0x70C2, GI_MASK_GERUDO, EnGirlA_CanBuy_SoldOut, NULL,  // was func_8002EBCC [LLM:HIGH]
+       NULL },
+     /* SI_BLUE_FIRE */
+-    { OBJECT_GI_FIRE, GID_BLUE_FIRE, func_8002EBCC, 300, 1, 0x00B9, 0x00B8, GI_BLUE_FIRE, EnGirlA_CanBuy_BlueFire,
++    { OBJECT_GI_FIRE, GID_BLUE_FIRE, Actor_ApplyHiliteOpa, 300, 1, 0x00B9, 0x00B8, GI_BLUE_FIRE, EnGirlA_CanBuy_BlueFire,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_BottledItem, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BUGS */
+     { OBJECT_GI_INSECT, GID_BUG, EnGirlA_SetupItemHilite, 50, 1, 0x00BB, 0x00BA, GI_BUGS, EnGirlA_CanBuy_Bugs,
+@@ -297,22 +297,22 @@ static ShopItemEntry shopItemEntries[] = {
+     { OBJECT_GI_SOUL, GID_FAIRY, EnGirlA_SetupItemHilite, 50, 1, 0x00B7, 0x00B6, GI_FAIRY, EnGirlA_CanBuy_Fairy,
+       EnGirlA_ItemGive_BottledItem, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_ARROWS_10 */
+-    { OBJECT_GI_ARROW, GID_ARROWS_SMALL, func_8002EBCC, 20, 10, 0x00A0, 0x008A, GI_ARROWS_SMALL, EnGirlA_CanBuy_Arrows,
++    { OBJECT_GI_ARROW, GID_ARROWS_SMALL, Actor_ApplyHiliteOpa, 20, 10, 0x00A0, 0x008A, GI_ARROWS_SMALL, EnGirlA_CanBuy_Arrows,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_Arrows, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BOMBS_20 */
+-    { OBJECT_GI_BOMB_1, GID_BOMB, func_8002EBCC, 80, 20, 0x001C, 0x0006, GI_BOMBS_20, EnGirlA_CanBuy_Bombs,
++    { OBJECT_GI_BOMB_1, GID_BOMB, Actor_ApplyHiliteOpa, 80, 20, 0x001C, 0x0006, GI_BOMBS_20, EnGirlA_CanBuy_Bombs,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_Bombs, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BOMBS_30 */
+-    { OBJECT_GI_BOMB_1, GID_BOMB, func_8002EBCC, 120, 30, 0x001D, 0x001E, GI_BOMBS_30, EnGirlA_CanBuy_Bombs,
++    { OBJECT_GI_BOMB_1, GID_BOMB, Actor_ApplyHiliteOpa, 120, 30, 0x001D, 0x001E, GI_BOMBS_30, EnGirlA_CanBuy_Bombs,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_Bombs, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_BOMBS_5_R35 */
+-    { OBJECT_GI_BOMB_1, GID_BOMB, func_8002EBCC, 35, 5, 0x00CB, 0x00CA, GI_BOMBS_5, EnGirlA_CanBuy_Bombs,
++    { OBJECT_GI_BOMB_1, GID_BOMB, Actor_ApplyHiliteOpa, 35, 5, 0x00CB, 0x00CA, GI_BOMBS_5, EnGirlA_CanBuy_Bombs,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_Bombs, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_RED_POTION_R40 */
+-    { OBJECT_GI_LIQUID, GID_POTION_RED, func_8002EBCC, 40, 1, 0x0064, 0x0062, GI_POTION_RED, EnGirlA_CanBuy_RedPotion,
++    { OBJECT_GI_LIQUID, GID_POTION_RED, Actor_ApplyHiliteOpa, 40, 1, 0x0064, 0x0062, GI_POTION_RED, EnGirlA_CanBuy_RedPotion,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_BottledItem, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_RED_POTION_R50 */
+-    { OBJECT_GI_LIQUID, GID_POTION_RED, func_8002EBCC, 50, 1, 0x0065, 0x0063, GI_POTION_RED, EnGirlA_CanBuy_RedPotion,
++    { OBJECT_GI_LIQUID, GID_POTION_RED, Actor_ApplyHiliteOpa, 50, 1, 0x0065, 0x0063, GI_POTION_RED, EnGirlA_CanBuy_RedPotion,  // was func_8002EBCC [LLM:HIGH]
+       EnGirlA_ItemGive_BottledItem, EnGirlA_BuyEvent_ShieldDiscount },
+     /* SI_RANDOMIZED_ITEM */
+     { OBJECT_INVALID, GID_MAXIMUM, NULL, 40, 1, 0x9100, 0x9100 + NUM_SHOP_ITEMS, GI_NONE, EnGirlA_CanBuy_Randomizer,
+@@ -1435,7 +1435,7 @@ void EnGirlA_Update(Actor* thisx, PlayState* play) {
+ 
+ // LLM generated name (HIGH), was func_80A3C498: sets up the shop-item highlight/glow; used as hiliteFunc in item table.
+ void EnGirlA_SetupItemHilite(Actor* thisx, PlayState* play, s32 flags) {
+-    func_8002EBCC(thisx, play, 0);
++    Actor_ApplyHiliteOpa(thisx, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(thisx, play, 0);
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index c7eab8036..f1d170316 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -1291,7 +1291,7 @@ void EnIk_CsDrawDefeat(EnIk* this, PlayState* play) {
+ 
+     OPEN_DISPS(gfxCtx);
+ 
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     Gfx_SetupDL_25Opa(gfxCtx);
+     Gfx_SetupDL_25Xlu(gfxCtx);
+     gSPSegment(POLY_OPA_DISP++, 0x08, EnIk_AllocColorDList(gfxCtx, 245, 225, 155, 30, 30, 0));  // was func_80A761B0 [LLM:HIGH]
+@@ -1439,7 +1439,7 @@ void EnIk_CsDrawIntro(EnIk* this, PlayState* play) {
+ 
+     OPEN_DISPS(gfxCtx);
+ 
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     Gfx_SetupDL_25Opa(gfxCtx);
+     Gfx_SetupDL_25Xlu(gfxCtx);
+     gSPSegment(POLY_OPA_DISP++, 0x08, EnIk_AllocColorDList(gfxCtx, 245, 225, 155, 30, 30, 0));  // was func_80A761B0 [LLM:HIGH]
+diff --git a/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c b/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
+index a157e3b29..28cd4aae0 100644
+--- a/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
++++ b/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
+@@ -554,7 +554,7 @@ void EnNy_Draw(Actor* thisx, PlayState* play) {
+     gSPDisplayList(POLY_XLU_DISP++, gEnNyRockBodyDL);
+     if (this->unk_1E0 > 0.25f) {
+         Matrix_Scale(this->unk_1E0, this->unk_1E0, this->unk_1E0, MTXMODE_APPLY);
+-        func_8002EBCC(&this->actor, play, 1);
++        Actor_ApplyHiliteOpa(&this->actor, play, 1);  // was func_8002EBCC [LLM:HIGH]
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+         gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPDisplayList(POLY_OPA_DISP++, gEnNySpikeDL);
+diff --git a/soh/src/overlays/actors/ovl_En_Part/z_en_part.c b/soh/src/overlays/actors/ovl_En_Part/z_en_part.c
+index 8756c50ce..6585f3cb4 100644
+--- a/soh/src/overlays/actors/ovl_En_Part/z_en_part.c
++++ b/soh/src/overlays/actors/ovl_En_Part/z_en_part.c
+@@ -292,7 +292,7 @@ void EnPart_Draw(Actor* thisx, PlayState* play) {
+     }
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_8002EBCC(thisx, play, 0);
++    Actor_ApplyHiliteOpa(thisx, play, 0);  // was func_8002EBCC [LLM:HIGH]
+ 
+     if (thisx->params == 5) {
+         gSPSegment(POLY_OPA_DISP++, 0x08, EnPart_AllocColorDList(play->state.gfxCtx, 245, 255, 205, 30, 35, 0));  // was func_80ACEAC0 [LLM:HIGH]
+diff --git a/soh/src/overlays/actors/ovl_En_Sb/z_en_sb.c b/soh/src/overlays/actors/ovl_En_Sb/z_en_sb.c
+index b191e18af..b9555ebf7 100644
+--- a/soh/src/overlays/actors/ovl_En_Sb/z_en_sb.c
++++ b/soh/src/overlays/actors/ovl_En_Sb/z_en_sb.c
+@@ -487,7 +487,7 @@ void EnSb_Draw(Actor* thisx, PlayState* play) {
+     Vec3f* offset;
+     s16 fireDecr;
+ 
+-    func_8002EBCC(&this->actor, play, 1);
++    Actor_ApplyHiliteOpa(&this->actor, play, 1);  // was func_8002EBCC [LLM:HIGH]
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, NULL, EnSb_PostLimbDraw, this);
+     if (this->fire != 0) {
+         this->actor.colorFilterTimer++;
+diff --git a/soh/src/overlays/actors/ovl_En_Si/z_en_si.c b/soh/src/overlays/actors/ovl_En_Si/z_en_si.c
+index fc6a42f41..6f227d871 100644
+--- a/soh/src/overlays/actors/ovl_En_Si/z_en_si.c
++++ b/soh/src/overlays/actors/ovl_En_Si/z_en_si.c
+@@ -165,7 +165,7 @@ void EnSi_Draw(Actor* thisx, PlayState* play) {
+ 
+     if (this->actionFunc != EnSi_FinishCollect) {  // was func_80AFB950 [LLM:HIGH]
+         func_8002ED80(&this->actor, play, 0);
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         GetItem_Draw(play, GID_SKULL_TOKEN_2);
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c b/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
+index c2ad4b4ca..2927b0688 100644
+--- a/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
++++ b/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
+@@ -1038,7 +1038,7 @@ void EnSw_Draw(Actor* thisx, PlayState* play) {
+         if (this->actor.colChkInfo.health != 0) {
+             Matrix_Translate(0.0f, 0.0f, 200.0f, MTXMODE_APPLY);
+         }
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     } else if (this->actionFunc == EnSw_Chase) {  // was func_80B0E728 [LLM:HIGH]
+         EnSw_SetFogForDraw(play, &sp30, 0x14, 0x1E);  // was func_80B0EDB8 [LLM:HIGH]
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+index c918905ee..ec92a4e8b 100644
+--- a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
++++ b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+@@ -1972,7 +1972,7 @@ void EnTest_Draw(Actor* thisx, PlayState* play) {
+     EnTest* this = (EnTest*)thisx;
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_8002EBCC(&this->actor, play, 1);
++    Actor_ApplyHiliteOpa(&this->actor, play, 1);  // was func_8002EBCC [LLM:HIGH]
+ 
+     if ((thisx->params <= STALFOS_TYPE_CEILING) || (thisx->child == NULL)) {
+         SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnTest_OverrideLimbDraw, EnTest_PostLimbDraw, this);
+diff --git a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+index 6b4f3a7b0..f2e968dca 100644
+--- a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
++++ b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+@@ -800,7 +800,7 @@ void EnTorch2_Draw(Actor* thisx, PlayState* play2) {
+     if (sAlpha == 255) {
+         gDPSetEnvColor(POLY_OPA_DISP++, 255, 0, 0, sAlpha);
+         gSPSegment(POLY_OPA_DISP++, 0x0C, D_80116280 + 2);
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         func_8002ED80(&this->actor, play, 0);
+         POLY_OPA_DISP =
+             SkelAnime_DrawFlex(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
+@@ -808,7 +808,7 @@ void EnTorch2_Draw(Actor* thisx, PlayState* play2) {
+     } else {
+         gDPSetEnvColor(POLY_XLU_DISP++, 255, 0, 0, sAlpha);
+         gSPSegment(POLY_XLU_DISP++, 0x0C, D_80116280);
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         func_8002ED80(&this->actor, play, 0);
+         POLY_XLU_DISP =
+             SkelAnime_DrawFlex(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
+diff --git a/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c b/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
+index 391a34b73..611ee9629 100644
+--- a/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
++++ b/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
+@@ -449,7 +449,7 @@ void EnTr_Draw(Actor* thisx, PlayState* play) {
+         OPEN_DISPS(play->state.gfxCtx);
+         Gfx_SetupDL_37Opa(play->state.gfxCtx);
+         gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sEyeTextures[this->eyeIndex]));
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnTr_OverrideLimbDraw, NULL, this);
+         CLOSE_DISPS(play->state.gfxCtx);
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c b/soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c
+index 210977374..8ad660751 100644
+--- a/soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c
++++ b/soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c
+@@ -388,6 +388,6 @@ void EnTrap_Update(Actor* thisx, PlayState* play) {
+ }
+ 
+ void EnTrap_Draw(Actor* thisx, PlayState* play) {
+-    func_8002EBCC(thisx, play, 1);
++    Actor_ApplyHiliteOpa(thisx, play, 1);  // was func_8002EBCC [LLM:HIGH]
+     Gfx_DrawDListOpa(play, gSlidingBladeTrapDL);
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+index 96b73dc0c..30f7fc610 100644
+--- a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
++++ b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+@@ -1126,7 +1126,7 @@ void EnXc_DrawPullingOutHarp(Actor* thisx, PlayState* play) {
+     gDPSetEnvColor(POLY_OPA_DISP++, 60, 0, 0, 0);
+ 
+     Gfx_SetupDL_25Opa(gfxCtx);
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     SkelAnime_DrawSkeletonOpa(play, skelAnime, EnXc_PullingOutHarpOverrideLimbDraw, NULL, this);
+     CLOSE_DISPS(gfxCtx);
+ }
+@@ -1148,7 +1148,7 @@ void EnXc_DrawHarp(Actor* thisx, PlayState* play) {
+     gDPSetEnvColor(POLY_OPA_DISP++, 60, 0, 0, 0);
+ 
+     Gfx_SetupDL_25Opa(gfxCtx);
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     SkelAnime_DrawSkeletonOpa(play, skelAnime, EnXc_HarpOverrideLimbDraw, NULL, this);
+     CLOSE_DISPS(gfxCtx);
+ }
+@@ -1779,7 +1779,7 @@ void EnXc_DrawTriforce(Actor* thisx, PlayState* play) {
+         gSPDisplayList(POLY_XLU_DISP++, gSheikDL_012970);
+     }
+ 
+-    func_8002EBCC(thisx, play, 0);
++    Actor_ApplyHiliteOpa(thisx, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(eyeTexture));
+     gSPSegment(POLY_OPA_DISP++, 0x09, SEGMENTED_TO_VIRTUAL(eyeTexture));
+@@ -2447,7 +2447,7 @@ void EnXc_DrawDefault(Actor* thisx, PlayState* play) {
+     GraphicsContext* gfxCtx = localGfxCtx;
+ 
+     OPEN_DISPS(gfxCtx);
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     Gfx_SetupDL_25Opa(gfxCtx);
+     gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(eyeSegment));
+     gSPSegment(POLY_OPA_DISP++, 0x09, SEGMENTED_TO_VIRTUAL(eyeSegment));
+diff --git a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+index 90ed84e30..51ef9dffb 100644
+--- a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
++++ b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+@@ -2263,7 +2263,7 @@ void EnZf_Draw(Actor* thisx, PlayState* play) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-    func_8002EBCC(thisx, play, 1);
++    Actor_ApplyHiliteOpa(thisx, play, 1);  // was func_8002EBCC [LLM:HIGH]
+ 
+     gSPTexture(sTextureSettingDList, IREG(0), IREG(1), 0, G_TX_RENDERTILE, G_ON);  // was D_80B4A2F8 [LLM:HIGH]
+ 
+diff --git a/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c b/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
+index 214d61f6c..687354c4b 100644
+--- a/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
++++ b/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
+@@ -207,7 +207,7 @@ void ItemEtcetera_Update(Actor* thisx, PlayState* play) {
+ void ItemEtcetera_DrawThroughLens(Actor* thisx, PlayState* play) {
+     ItemEtcetera* this = (ItemEtcetera*)thisx;
+     if (play->actorCtx.lensActive) {
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         func_8002ED80(&this->actor, play, 0);
+         GetItem_Draw(play, this->giDrawId);
+     }
+@@ -216,7 +216,7 @@ void ItemEtcetera_DrawThroughLens(Actor* thisx, PlayState* play) {
+ void ItemEtcetera_Draw(Actor* thisx, PlayState* play) {
+     ItemEtcetera* this = (ItemEtcetera*)thisx;
+ 
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(&this->actor, play, 0);
+     GetItem_Draw(play, this->giDrawId);
+ }
+diff --git a/soh/src/overlays/actors/ovl_Item_Inbox/z_item_inbox.c b/soh/src/overlays/actors/ovl_Item_Inbox/z_item_inbox.c
+index 204358af1..20b59fe3b 100644
+--- a/soh/src/overlays/actors/ovl_Item_Inbox/z_item_inbox.c
++++ b/soh/src/overlays/actors/ovl_Item_Inbox/z_item_inbox.c
+@@ -53,7 +53,7 @@ void ItemInbox_Update(Actor* thisx, PlayState* play) {
+ void ItemInbox_Draw(Actor* thisx, PlayState* play) {
+     ItemInbox* this = (ItemInbox*)thisx;
+ 
+-    func_8002EBCC(&this->actor, play, 0);
++    Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(&this->actor, play, 0);
+     GetItem_Draw(play, this->actor.params & 0xFF);
+ }
+diff --git a/soh/src/overlays/actors/ovl_Item_Ocarina/z_item_ocarina.c b/soh/src/overlays/actors/ovl_Item_Ocarina/z_item_ocarina.c
+index 84a4cb4c6..142a9a5bd 100644
+--- a/soh/src/overlays/actors/ovl_Item_Ocarina/z_item_ocarina.c
++++ b/soh/src/overlays/actors/ovl_Item_Ocarina/z_item_ocarina.c
+@@ -207,7 +207,7 @@ void ItemOcarina_Update(Actor* thisx, PlayState* play) {
+ void ItemOcarina_Draw(Actor* thisx, PlayState* play) {
+     ItemOcarina* this = (ItemOcarina*)thisx;
+ 
+-    func_8002EBCC(thisx, play, 0);
++    Actor_ApplyHiliteOpa(thisx, play, 0);  // was func_8002EBCC [LLM:HIGH]
+     func_8002ED80(thisx, play, 0);
+ 
+     if (IS_RANDO) {
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 2b1e34b93..2cf76bfcb 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -12482,7 +12482,7 @@ void Player_Draw(Actor* thisx, PlayState* play2) {
+                                         4000 - (s32)(Math_CosS(this->damageFlickerAnimCounter * 256) * 2000.0f));
+         }
+ 
+-        func_8002EBCC(&this->actor, play, 0);
++        Actor_ApplyHiliteOpa(&this->actor, play, 0);  // was func_8002EBCC [LLM:HIGH]
+         func_8002ED80(&this->actor, play, 0);
+ 
+         if (this->unk_6AD != 0) {
+-- 
+2.55.0
+

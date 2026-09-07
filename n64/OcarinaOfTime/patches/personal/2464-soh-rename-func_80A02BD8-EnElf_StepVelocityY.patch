@@ -1,0 +1,68 @@
+From 329dbc62089d504e3b7a87e8e715eaba532e957a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:29:57 +0000
+Subject: [PATCH 2464/3799] soh: rename func_80A02BD8 -> EnElf_StepVelocityY
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: eases the vertical velocity toward the offset target, clamped to 20
+Defined in soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+index 4a1c40a61..6fd22500c 100644
+--- a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
++++ b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+@@ -486,7 +486,8 @@ void EnElf_UpdateOrbitOffsetPlayerAligned(EnElf* this, PlayState* play) {
+     this->unk_2AC += this->unk_2B0;
+ }
+ 
+-void func_80A02BD8(EnElf* this, Vec3f* targetPos, f32 arg2) {
++// LLM generated name (HIGH), was func_80A02BD8: eases the vertical velocity toward the offset target, clamped to 20
++void EnElf_StepVelocityY(EnElf* this, Vec3f* targetPos, f32 arg2) {
+     f32 yVelTarget;
+     f32 yVelDirection;
+ 
+@@ -515,14 +516,14 @@ void func_80A02C98(EnElf* this, Vec3f* targetPos, f32 arg2) {
+     xVelTarget = CLAMP(xVelTarget, 0.0f, 20.0f) * xVelDirection;
+     zVelTarget = CLAMP(zVelTarget, 0.0f, 20.0f) * zVelDirection;
+ 
+-    func_80A02BD8(this, targetPos, arg2);
++    EnElf_StepVelocityY(this, targetPos, arg2);  // was func_80A02BD8 [LLM:HIGH]
+     Math_StepToF(&this->actor.velocity.x, xVelTarget, 1.5f);
+     Math_StepToF(&this->actor.velocity.z, zVelTarget, 1.5f);
+     Actor_UpdatePos(&this->actor);
+ }
+ 
+ void func_80A02E30(EnElf* this, Vec3f* targetPos) {
+-    func_80A02BD8(this, targetPos, 0.2f);
++    EnElf_StepVelocityY(this, targetPos, 0.2f);  // was func_80A02BD8 [LLM:HIGH]
+     this->actor.velocity.x = (targetPos->x + this->unk_28C.x) - this->actor.world.pos.x;
+     this->actor.velocity.z = (targetPos->z + this->unk_28C.z) - this->actor.world.pos.z;
+     Actor_UpdatePos(&this->actor);
+@@ -531,7 +532,7 @@ void func_80A02E30(EnElf* this, Vec3f* targetPos) {
+ }
+ 
+ void func_80A02EC0(EnElf* this, Vec3f* targetPos) {
+-    func_80A02BD8(this, targetPos, 0.2f);
++    EnElf_StepVelocityY(this, targetPos, 0.2f);  // was func_80A02BD8 [LLM:HIGH]
+     this->actor.velocity.x = this->actor.velocity.z = 0.0f;
+     Actor_UpdatePos(&this->actor);
+     this->actor.world.pos.x = targetPos->x + this->unk_28C.x;
+@@ -594,7 +595,7 @@ void func_80A03148(EnElf* this, Vec3f* arg1, f32 arg2, f32 arg3, f32 arg4) {
+     arg4 += 0.3f;
+     arg3 += 30.0f;
+ 
+-    func_80A02BD8(this, arg1, arg4);
++    EnElf_StepVelocityY(this, arg1, arg4);  // was func_80A02BD8 [LLM:HIGH]
+ 
+     xzVelocity = sqrtf(SQ(xVelTarget) + SQ(zVelTarget));
+ 
+-- 
+2.55.0
+

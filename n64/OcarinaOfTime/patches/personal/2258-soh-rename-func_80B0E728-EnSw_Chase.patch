@@ -1,0 +1,63 @@
+From 5cdd92fafe512007a9c526b3e1599004feed76c2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:19:19 +0000
+Subject: [PATCH 2258/3799] soh: rename func_80B0E728 -> EnSw_Chase
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: tracks the player while the lunge timer runs, then dashes at the recorded point or gives up and returns home
+Defined in soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c b/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
+index 8eb9c23d6..e59ca95df 100644
+--- a/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
++++ b/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
+@@ -18,7 +18,8 @@ void EnSw_WallIdle(EnSw* this, PlayState* play);  // was func_80B0E5E0 [LLM:HIGH
+ void EnSw_Cling(EnSw* this, PlayState* play);  // was func_80B0D590 [LLM:HIGH]
+ void func_80B0E90C(EnSw* this, PlayState* play);
+ void func_80B0E9BC(EnSw* this, PlayState* play);
+-void func_80B0E728(EnSw* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B0E728: tracks the player while the lunge timer runs, then dashes at the recorded point or gives up and returns home
++void EnSw_Chase(EnSw* this, PlayState* play);  // was func_80B0E728 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80B0DC7C: sparks for ten frames on the ground, then drops a random collectible and kills the actor
+ void EnSw_Burn(EnSw* this, PlayState* play);  // was func_80B0DC7C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80B0C0CC: probes ahead of and behind the skulltula for a surface to cling to and, when told to, moves it onto the hit and re-bases it
+@@ -855,11 +856,11 @@ void EnSw_WallIdle(EnSw* this, PlayState* play) {
+     if ((DECR(this->unk_442) == 0) && (EnSw_ShouldChasePlayer(this, play, 1))) {  // was func_80B0DEA8 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_STALWALL_LAUGH);
+         this->unk_442 = 20;
+-        this->actionFunc = func_80B0E728;
++        this->actionFunc = EnSw_Chase;  // was func_80B0E728 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B0E728(EnSw* this, PlayState* play) {
++void EnSw_Chase(EnSw* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 pad;
+ 
+@@ -1032,13 +1033,13 @@ void EnSw_Draw(Actor* thisx, PlayState* play) {
+             Matrix_Translate(0.0f, 0.0f, 200.0f, MTXMODE_APPLY);
+         }
+         func_8002EBCC(&this->actor, play, 0);
+-    } else if (this->actionFunc == func_80B0E728) {
++    } else if (this->actionFunc == EnSw_Chase) {  // was func_80B0E728 [LLM:HIGH]
+         func_80B0EDB8(play, &sp30, 0x14, 0x1E);
+     }
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnSw_OverrideLimbDraw, EnSw_PostLimbDraw, this);
+-    if (this->actionFunc == func_80B0E728) {
++    if (this->actionFunc == EnSw_Chase) {  // was func_80B0E728 [LLM:HIGH]
+         func_80B0EEA4(play);
+     }
+ }
+-- 
+2.55.0
+

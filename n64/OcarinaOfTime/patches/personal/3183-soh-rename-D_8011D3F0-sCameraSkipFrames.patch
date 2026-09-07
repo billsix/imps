@@ -1,0 +1,67 @@
+From fd84dbb6bed03877973380cb38b51c024544bf19 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:03 +0000
+Subject: [PATCH 3183/3799] soh: rename D_8011D3F0 -> sCameraSkipFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: set to 3 on a camera reset and counted down so the main camera skips that many updates
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c        | 8 ++++----
+ soh/src/code/z_camera_data.inc | 3 ++-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 12b11392c..cd41369ca 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -7069,7 +7069,7 @@ void Camera_Init(Camera* camera, View* view, CollisionContext* colCtx, PlayState
+     camera->atLERPStepScale = 1;
+     sCameraInterfaceFlags = 0xFF00;
+     sDbgModeIdx = -1;
+-    D_8011D3F0 = 3;
++    sCameraSkipFrames = 3;  // was D_8011D3F0 [LLM:HIGH]
+     osSyncPrintf(VT_FGCOL(BLUE) "camera: initialize --- " VT_RST " UID %d\n", camera->uid);
+ }
+ 
+@@ -7643,8 +7643,8 @@ Vec3s Camera_Update(Camera* camera) {
+         if ((gSaveContext.gameMode != GAMEMODE_NORMAL) && (gSaveContext.gameMode != GAMEMODE_END_CREDITS)) {
+             sCameraInterfaceFlags = 0;
+             Camera_UpdateInterface(sCameraInterfaceFlags);
+-        } else if ((D_8011D3F0 != 0) && (camera->thisIdx == CAM_ID_MAIN)) {
+-            D_8011D3F0--;
++        } else if ((sCameraSkipFrames != 0) && (camera->thisIdx == CAM_ID_MAIN)) {  // was D_8011D3F0 [LLM:HIGH]
++            sCameraSkipFrames--;  // was D_8011D3F0 [LLM:HIGH]
+             sCameraInterfaceFlags = 0x3200;
+             Camera_UpdateInterface(sCameraInterfaceFlags);
+         } else if (camera->play->transitionMode != TRANS_MODE_OFF) {
+@@ -8383,7 +8383,7 @@ s16 Camera_SetFinishedFlag(Camera* camera) {
+     F(sTargetCategory)                       \
+     F(sDemo5PrevAction12Frame)          \
+     F(sDemo5PrevSfxFrame)               \
+-    F(D_8011D3F0)                       \
++    F(sCameraSkipFrames)                       \
+     F(D_8011D6AC)                       \
+     F(D_8011D724)                       \
+     F(D_8011D79C)                       \
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index f97ede9d4..9af680960 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2246,7 +2246,8 @@ s16 sAttentionPitchOffsets[] = {  // was D_8011D3CC [LLM:HIGH]
+ s32 sUpdateCameraDirection = 0;
+ // LLM generated name (GUESS), was D_8011D3EC: an s32 beside sUpdateCameraDirection that nothing in the tree reads or writes
+ s32 sUnusedCameraFlag = 0;  // was D_8011D3EC [LLM:GUESS]
+-static s32 D_8011D3F0 = 0;
++// LLM generated name (HIGH), was D_8011D3F0: set to 3 on a camera reset and counted down so the main camera skips that many updates
++static s32 sCameraSkipFrames = 0;  // was D_8011D3F0 [LLM:HIGH]
+ 
+ static s32 sDemo5PrevAction12Frame = -16;
+ 
+-- 
+2.55.0
+

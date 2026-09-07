@@ -1,0 +1,90 @@
+From b7b7c34f37571b27afd72a7cc852bb1baa34b9d8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:33:26 +0000
+Subject: [PATCH 1659/3799] soh: rename func_800849EC ->
+ Interface_SwapGiantsKnife
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: toggles the Giant's Knife between whole and broken in the equipment flags and puts the matching item on the B button.
+Defined in soh/src/code/z_parameter.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/soh/SohGui/SohMenuEnhancements.cpp              | 2 +-
+ soh/src/code/z_parameter.c                          | 3 ++-
+ soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c   | 2 +-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 2 +-
+ 5 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 9fc46a443..c6521fbca 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1067,7 +1067,7 @@ void Interface_ChangeHudVisibilityMode(u16 alphaType);
+ void Interface_SetSceneRestrictions(PlayState* play);
+ void Inventory_SwapAgeEquipment(void);
+ void Interface_InitHorsebackArchery(PlayState* play);
+-void func_800849EC(PlayState* play);
++void Interface_SwapGiantsKnife(PlayState* play);  // was func_800849EC [LLM:HIGH]
+ void Interface_LoadItemIcon1(PlayState* play, u16 button);
+ void Interface_LoadItemIcon2(PlayState* play, u16 button);
+ void func_80084BF4(PlayState* play, u16 flag);
+diff --git a/soh/soh/SohGui/SohMenuEnhancements.cpp b/soh/soh/SohGui/SohMenuEnhancements.cpp
+index 84db38733..8694c0512 100644
+--- a/soh/soh/SohGui/SohMenuEnhancements.cpp
++++ b/soh/soh/SohGui/SohMenuEnhancements.cpp
+@@ -1250,7 +1250,7 @@ void SohMenu::AddMenuEnhancements() {
+             bool knifeIsBroken = gSaveContext.swordHealth == 0.0f;
+ 
+             if (hasGiantsKnife && (hasBrokenKnife != knifeIsBroken)) {
+-                func_800849EC(gPlayState);
++                Interface_SwapGiantsKnife(gPlayState);  // was func_800849EC [LLM:HIGH]
+             }
+         })
+         .Options(
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index c9d55d9d8..433b7affd 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -1708,7 +1708,8 @@ void Interface_InitHorsebackArchery(PlayState* play) {
+     }
+ }
+ 
+-void func_800849EC(PlayState* play) {
++// LLM generated name (HIGH), was func_800849EC: toggles the Giant's Knife between whole and broken in the equipment flags and puts the matching item on the B button.
++void Interface_SwapGiantsKnife(PlayState* play) {
+     gSaveContext.inventory.equipment |= OWNED_EQUIP_FLAG(EQUIP_TYPE_SWORD, EQUIP_INV_SWORD_BIGGORON);
+     gSaveContext.inventory.equipment ^= OWNED_EQUIP_FLAG_ALT(EQUIP_TYPE_SWORD, EQUIP_INV_SWORD_BROKENGIANTKNIFE);
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c b/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
+index d3ddf46ff..87e37023f 100644
+--- a/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
++++ b/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
+@@ -945,7 +945,7 @@ void EnGirlA_ItemGive_Longsword(PlayState* play, EnGirlA* this) {
+     GetItemEntry entry = ItemTable_Retrieve(this->getItemId);
+     gSaveContext.ship.pendingSale = entry.itemId;
+     gSaveContext.ship.pendingSaleMod = entry.modIndex;
+-    func_800849EC(play);
++    Interface_SwapGiantsKnife(play);  // was func_800849EC [LLM:HIGH]
+     gSaveContext.swordHealth = 8;
+     Rupees_ChangeBy(-this->basePrice);
+ }
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 2f260aa0c..3caf20c0f 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -9099,7 +9099,7 @@ s32 func_80842B7C(PlayState* play, Player* this) {
+             if ((gSaveContext.swordHealth -= 1.0f) <= 0.0f) {
+                 EffectSsStick_Spawn(play, &this->bodyPartsPos[PLAYER_BODYPART_R_HAND],
+                                     this->actor.shape.rot.y + 0x8000);
+-                func_800849EC(play);
++                Interface_SwapGiantsKnife(play);  // was func_800849EC [LLM:HIGH]
+                 Player_PlaySfx(this, NA_SE_IT_MAJIN_SWORD_BROKEN);
+             }
+         }
+-- 
+2.55.0
+

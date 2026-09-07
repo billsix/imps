@@ -1,0 +1,51 @@
+From 79a9fb31d1bbc276fc09386c2a536f28f99dc43f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:04:01 +0000
+Subject: [PATCH 1248/3799] soh: rename D_801614B8 -> sArenaFaultClient
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the FaultClient registered with ZeldaArena_Display in Play_Init and removed in Play_Destroy.
+Defined in soh/src/code/z_play.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_play.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 4805040a0..ae020b9ab 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -22,7 +22,8 @@ s32 gTrnsnUnkState;
+ VisMono gPlayVisMono;
+ Color_RGBA8_u32 gVisMonoColor;
+ 
+-FaultClient D_801614B8;
++// LLM generated name (HIGH), was D_801614B8: the FaultClient registered with ZeldaArena_Display in Play_Init and removed in Play_Destroy.
++FaultClient sArenaFaultClient;  // was D_801614B8 [LLM:HIGH]
+ 
+ s16 sTransitionFillTimer;
+ 
+@@ -238,7 +239,7 @@ void Play_Destroy(GameState* thisx) {
+     KaleidoManager_Destroy();
+     ZeldaArena_Cleanup();
+ 
+-    Fault_RemoveClient(&D_801614B8);
++    Fault_RemoveClient(&sArenaFaultClient);  // was D_801614B8 [LLM:HIGH]
+ 
+     disableBetaQuest();
+ 
+@@ -558,7 +559,7 @@ void Play_Init(GameState* thisx) {
+     osSyncPrintf("ゼルダヒープ %08x-%08x\n", zAllocAligned,
+                  (u8*)zAllocAligned + zAllocSize - (s32)(zAllocAligned - zAlloc));
+ 
+-    Fault_AddClient(&D_801614B8, ZeldaArena_Display, NULL, NULL);
++    Fault_AddClient(&sArenaFaultClient, ZeldaArena_Display, NULL, NULL);  // was D_801614B8 [LLM:HIGH]
+ 
+     // Handle Rocs Feather requirement
+     gItemAgeReqs[ITEM_ROCS_FEATHER] = AGE_REQ_NONE;
+-- 
+2.55.0
+

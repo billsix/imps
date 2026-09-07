@@ -1,0 +1,42 @@
+From 3d032bfd74db42b5ba7c6a9b8c3e47dc303b489b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 19:23:51 +0000
+Subject: [PATCH 0801/3799] soh: rename func_80A6E740 -> EnHs_OfferOddMushroom
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: action func for the Cojiro trade: offers GI_ODD_MUSHROOM until the player takes it, then sets RAND_INF_ADULT_TRADES_LW_TRADE_COJIRO and advances to the timer-start action.
+Defined in soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c b/soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c
+index 478f33772..0bd365f67 100644
+--- a/soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c
++++ b/soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c
+@@ -161,7 +161,8 @@ void EnHs_OddMushroomNo(EnHs* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A6E740(EnHs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A6E740: action func for the Cojiro trade: offers GI_ODD_MUSHROOM until the player takes it, then sets RAND_INF_ADULT_TRADES_LW_TRADE_COJIRO and advances to the timer-start action.
++void EnHs_OfferOddMushroom(EnHs* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play) || !GameInteractor_Should(VB_TRADE_COJIRO, true, this)) {
+         this->actor.parent = NULL;
+         Flags_SetRandomizerInf(RAND_INF_ADULT_TRADES_LW_TRADE_COJIRO);
+@@ -178,7 +179,7 @@ void EnHs_OddMushroomChoice(EnHs* this, PlayState* play) {
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE) && Message_ShouldAdvance(play)) {
+         switch (play->msgCtx.choiceIndex) {
+             case 0:
+-                EnHs_SetActionFunc(this, func_80A6E740);
++                EnHs_SetActionFunc(this, EnHs_OfferOddMushroom);  // was func_80A6E740 [LLM:HIGH]
+                 if (GameInteractor_Should(VB_TRADE_COJIRO, true, this)) {
+                     Actor_OfferGetItem(&this->actor, play, GI_ODD_MUSHROOM, 10000.0f, 50.0f);
+                 }
+-- 
+2.55.0
+

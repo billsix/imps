@@ -1,0 +1,78 @@
+From 31e734a90beed8387eb71cbe8da77667b2f27440 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:53:56 +0000
+Subject: [PATCH 2835/3799] soh: rename func_80ADAAA4 -> EnPoSisters_Damage
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: rides the knockback out, then flees or dies according to remaining health
+Defined in soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_En_Po_Sisters/z_en_po_sisters.c      | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+index 0db946a74..aced4b508 100644
+--- a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
++++ b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+@@ -34,7 +34,8 @@ void EnPoSisters_Attack(EnPoSisters* this, PlayState* play);  // was func_80ADA7
+ void EnPoSisters_Charge(EnPoSisters* this, PlayState* play);  // was func_80ADA8C0 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80ADA9E8: backs away with the float animation and a softened collider
+ void EnPoSisters_Retreat(EnPoSisters* this, PlayState* play);  // was func_80ADA9E8 [LLM:HIGH]
+-void func_80ADAAA4(EnPoSisters* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ADAAA4: rides the knockback out, then flees or dies according to remaining health
++void EnPoSisters_Damage(EnPoSisters* this, PlayState* play);  // was func_80ADAAA4 [LLM:HIGH]
+ void func_80ADAC70(EnPoSisters* this, PlayState* play);
+ void func_80ADAD54(EnPoSisters* this, PlayState* play);
+ void func_80ADAE6C(EnPoSisters* this, PlayState* play);
+@@ -335,7 +336,7 @@ void EnPoSisters_SetupDamage(EnPoSisters* this) {
+     }
+     this->unk_199 &= ~0xB;
+     Actor_SetColorFilter(&this->actor, 0x4000, 0xFF, 0, 0x10);
+-    this->actionFunc = func_80ADAAA4;
++    this->actionFunc = EnPoSisters_Damage;  // was func_80ADAAA4 [LLM:HIGH]
+ }
+ 
+ // LLM generated name (HIGH), was func_80AD96A4: loops gPoeSistersFleeAnim heading away at speed 5
+@@ -366,7 +367,7 @@ void EnPoSisters_UpdateHoverHeight(EnPoSisters* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 sp20;
+ 
+-    if (this->unk_195 == 0 || this->actionFunc != func_80ADAAA4) {
++    if (this->unk_195 == 0 || this->actionFunc != EnPoSisters_Damage) {  // was func_80ADAAA4 [LLM:HIGH]
+         if ((player->meleeWeaponState == 0 || player->meleeWeaponAnimation >= 24) &&
+             player->actor.world.pos.y - player->actor.floorHeight < 1.0f) {
+             Math_StepToF(&this->unk_294, 110.0f, 3.0f);
+@@ -739,7 +740,7 @@ void EnPoSisters_Retreat(EnPoSisters* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADAAA4(EnPoSisters* this, PlayState* play) {
++void EnPoSisters_Damage(EnPoSisters* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime) && !(this->actor.flags & ACTOR_FLAG_ATTACHED_TO_ARROW)) {
+         if (this->actor.colChkInfo.health != 0) {
+             if (this->unk_194 != 0) {
+@@ -1017,7 +1018,7 @@ void func_80ADB770(EnPoSisters* this, PlayState* play) {
+     } else if (this->unk_195 != 0) {
+         EnPoSisters* realMeg = (EnPoSisters*)this->actor.parent;
+ 
+-        if (realMeg->actionFunc == func_80ADAAA4) {
++        if (realMeg->actionFunc == EnPoSisters_Damage) {  // was func_80ADAAA4 [LLM:HIGH]
+             EnPoSisters_SetupDamage(this);  // was func_80AD95D8 [LLM:HIGH]
+         }
+     } else if (this->unk_19C == 0) {
+@@ -1160,7 +1161,7 @@ void func_80ADC034(EnPoSisters* this, PlayState* play) {
+             this->unk_19C--;
+         }
+     }
+-    if (this->actionFunc != EnPoSisters_Attack && this->actionFunc != EnPoSisters_Charge && this->actionFunc != func_80ADAAA4) {  // was func_80ADA7F0 [LLM:HIGH]
++    if (this->actionFunc != EnPoSisters_Attack && this->actionFunc != EnPoSisters_Charge && this->actionFunc != EnPoSisters_Damage) {  // was func_80ADA7F0 [LLM:HIGH]
+         if (this->unk_197 == 0) {
+             EnPoSisters_SetupDisappear(this);  // was func_80AD9718 [LLM:HIGH]
+         } else if (this->unk_19C == 0 && this->unk_22E.a == 0) {
+-- 
+2.55.0
+

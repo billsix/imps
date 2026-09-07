@@ -1,0 +1,61 @@
+From 34f4227c09af9674759ac6ae7a678ac555f86ea1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:22:01 +0000
+Subject: [PATCH 0914/3799] soh: rename D_8012FBA8 -> gDefaultAdpcmBook
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: s16 codebook installed as gAudioContext.curLoadedBook when bookOffset is 1, in place of the sample's own book; mostly zeroes with 500 in every fourth slot. Called "default" from that substitution, its actual derivation is unknown.
+Defined in soh/src/code/audio_data.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/variables.h        | 2 +-
+ soh/src/code/audio_data.c      | 3 ++-
+ soh/src/code/audio_synthesis.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index c2f63580c..b620e1a74 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -138,7 +138,7 @@ extern "C"
+ 	extern NoteSubEu gZeroNoteSub;
+ 	extern NoteSubEu gDefaultNoteSub;
+ 	extern u16 gHeadsetPanQuantization[64];
+-	extern s16 D_8012FBA8[];
++	extern s16 gDefaultAdpcmBook[];  // was D_8012FBA8 [LLM:GUESS]
+ 	extern f32 gHeadsetPanVolume[128];
+ 	extern f32 gStereoPanVolume[128];
+ 	extern f32 gDefaultPanVolume[128];
+diff --git a/soh/src/code/audio_data.c b/soh/src/code/audio_data.c
+index ba8c2c277..1f2255a4e 100644
+--- a/soh/src/code/audio_data.c
++++ b/soh/src/code/audio_data.c
+@@ -566,7 +566,8 @@ u16 gHeadsetPanQuantization[64] = {
+ s32 gUnusedAudioValue = 0;  // was D_8012FBA4 [LLM:GUESS]
+ 
+ // clang-format off
+-s16 D_8012FBA8[] = {
++// LLM generated name (GUESS), was D_8012FBA8: s16 codebook installed as gAudioContext.curLoadedBook when bookOffset is 1, in place of the sample's own book; mostly zeroes with 500 in every fourth slot. Called "default" from that substitution, its actual derivation is unknown.
++s16 gDefaultAdpcmBook[] = {  // was D_8012FBA8 [LLM:GUESS]
+     0, 0, 0, 0,   0, 0, 0, 0,
+     0, 0, 0, 0,   0, 0, 0, 0,
+     0, 0, 0, 0,   0, 0, 0, 0,
+diff --git a/soh/src/code/audio_synthesis.c b/soh/src/code/audio_synthesis.c
+index 114a6d0d0..b61e9050f 100644
+--- a/soh/src/code/audio_synthesis.c
++++ b/soh/src/code/audio_synthesis.c
+@@ -805,7 +805,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSubEu, NoteSynthesisS
+                     u32 nEntries;
+                     switch (bookOffset) {
+                         case 1:
+-                            gAudioContext.curLoadedBook = &D_8012FBA8[1];
++                            gAudioContext.curLoadedBook = &gDefaultAdpcmBook[1];  // was D_8012FBA8 [LLM:GUESS]
+                             break;
+                         case 2:
+                         case 3:
+-- 
+2.55.0
+

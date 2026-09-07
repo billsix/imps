@@ -1,0 +1,70 @@
+From f6f2cb795dbe0c4845a0052ed23442cdaca86610 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:34 +0000
+Subject: [PATCH 2765/3799] soh: rename func_800342EC -> Actor_MakeHiliteOpa
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: builds an opaque hilite at a point using the scene's first directional light
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h | 2 +-
+ soh/src/code/z_actor.c  | 3 ++-
+ soh/src/code/z_room.c   | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index bdbdeecb9..e52565a4b 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -529,7 +529,7 @@ f32 Rand_CenteredFloat(f32 f);
+ void Actor_DrawDoorLock(PlayState* play, s32 arg1, s32 arg2);
+ void Actor_SpawnShieldParticlesMetal(PlayState* play, Vec3f* arg1);  // was func_8003424C [LLM:HIGH]
+ void Actor_SetColorFilter(Actor* actor, s16 colorFlag, s16 colorIntensityMax, s16 xluFlag, s16 duration);
+-Hilite* func_800342EC(Vec3f* object, PlayState* play);
++Hilite* Actor_MakeHiliteOpa(Vec3f* object, PlayState* play);  // was func_800342EC [LLM:HIGH]
+ Hilite* func_8003435C(Vec3f* object, PlayState* play);
+ s32 Npc_UpdateTalking(PlayState* play, Actor* actor, s16* talkState, f32 interactRange,
+                       NpcGetTextIdFunc getTextId, NpcUpdateTalkStateFunc updateTalkState);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 3d72e091e..0f9225753 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -4293,7 +4293,8 @@ void Actor_SetColorFilter(Actor* actor, s16 colorFlag, s16 colorIntensityMax, s1
+     actor->colorFilterTimer = duration;
+ }
+ 
+-Hilite* func_800342EC(Vec3f* object, PlayState* play) {
++// LLM generated name (HIGH), was func_800342EC: builds an opaque hilite at a point using the scene's first directional light
++Hilite* Actor_MakeHiliteOpa(Vec3f* object, PlayState* play) {
+     Vec3f lightDir;
+ 
+     lightDir.x = play->envCtx.dirLight1.params.dir.x;
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index 648f6edde..9938f5295 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -61,7 +61,7 @@ void Room_DrawNormal(PlayState* play, Room* room, u32 flags) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     if (flags & 1) {
+-        func_800342EC(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
++        Actor_MakeHiliteOpa(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
+         gSPSegment(POLY_OPA_DISP++, 0x03, room->segment);
+         Gfx_SetupDL_25OpaForRoom(play);  // was func_80093C80 [LLM:HIGH]
+         gSPMatrix(POLY_OPA_DISP++, &gMtxClear, G_MTX_MODELVIEW | G_MTX_LOAD);
+@@ -122,7 +122,7 @@ void Room_DrawCullable(PlayState* play, Room* room, u32 flags) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+     if (flags & 1) {
+-        func_800342EC(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
++        Actor_MakeHiliteOpa(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
+         // gSPSegment(POLY_OPA_DISP++, 0x03, room->segment);
+         Gfx_SetupDL_25OpaForRoom(play);  // was func_80093C80 [LLM:HIGH]
+         gSPMatrix(POLY_OPA_DISP++, &gMtxClear, G_MTX_MODELVIEW | G_MTX_LOAD);
+-- 
+2.55.0
+

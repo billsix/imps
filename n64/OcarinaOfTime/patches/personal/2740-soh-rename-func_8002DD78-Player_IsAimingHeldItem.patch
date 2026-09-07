@@ -1,0 +1,244 @@
+From 808c3e3767ac175aef81f38a69d12ed51f2b26fc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:31 +0000
+Subject: [PATCH 2740/3799] soh: rename func_8002DD78 ->
+ Player_IsAimingHeldItem
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: item in hand and Player.unk_834 set; the second field is unnamed, so the aiming reading comes from the callers that use this to suppress mounting and grabbing
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                       |  2 +-
+ .../Enhancements/Items/AdditionalReticles.cpp |  4 +--
+ soh/src/code/z_actor.c                        |  5 ++--
+ soh/src/code/z_player_lib.c                   |  2 +-
+ .../actors/ovl_Bg_Po_Event/z_bg_po_event.c    |  4 +--
+ .../overlays/actors/ovl_En_Horse/z_en_horse.c |  2 +-
+ .../actors/ovl_player_actor/z_player.c        | 26 +++++++++----------
+ 7 files changed, 23 insertions(+), 22 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 184ba6d11..4d139e366 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -420,7 +420,7 @@ f32 Player_GetHeight(Player* player);
+ s32 Player_ActionHandler_2(Player* player, PlayState* play);
+ f32 Player_GetRunSpeedLimit(Player* player);  // was func_8002DCE4 [LLM:HIGH]
+ s32 Player_HasItemInHand(Player* player);  // was func_8002DD6C [LLM:HIGH]
+-s32 func_8002DD78(Player* player);
++s32 Player_IsAimingHeldItem(Player* player);  // was func_8002DD78 [LLM:GUESS]
+ s32 func_8002DDE4(PlayState* play);
+ s32 func_8002DDF4(PlayState* play);
+ void Actor_SwapHookshotAttachment(PlayState* play, Actor* actorA, Actor* actorB);
+diff --git a/soh/soh/Enhancements/Items/AdditionalReticles.cpp b/soh/soh/Enhancements/Items/AdditionalReticles.cpp
+index fe7b17f35..f47978f66 100644
+--- a/soh/soh/Enhancements/Items/AdditionalReticles.cpp
++++ b/soh/soh/Enhancements/Items/AdditionalReticles.cpp
+@@ -49,7 +49,7 @@ void RegisterAdditionalReticles() {
+                 Matrix_RotateZYX(0, -15216, -17496, MTXMODE_APPLY);
+                 Matrix_Get(&sp44);
+ 
+-                if (func_8002DD78(player) != 0) {
++                if (Player_IsAimingHeldItem(player) != 0) {  // was func_8002DD78 [LLM:GUESS]
+                     Matrix_Translate(500.0f, 300.0f, 0.0f, MTXMODE_APPLY);
+                     Player_DrawHookshotReticle(gPlayState, player, RETICLE_MAX);
+                 }
+@@ -72,4 +72,4 @@ void RegisterAdditionalReticles() {
+ }
+ 
+ static RegisterShipInitFunc initFunc(RegisterAdditionalReticles,
+-                                     { CVAR_ENHANCEMENT("BowReticle"), CVAR_ENHANCEMENT("BoomerangReticle") });
+\ No newline at end of file
++                                     { CVAR_ENHANCEMENT("BowReticle"), CVAR_ENHANCEMENT("BoomerangReticle") });
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index cd6427382..c7802ef62 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1426,14 +1426,15 @@ s32 Player_HasItemInHand(Player* player) {
+     return player->stateFlags1 & PLAYER_STATE1_ITEM_IN_HAND;
+ }
+ 
+-s32 func_8002DD78(Player* player) {
++// LLM generated name (GUESS), was func_8002DD78: item in hand and Player.unk_834 set; the second field is unnamed, so the aiming reading comes from the callers that use this to suppress mounting and grabbing
++s32 Player_IsAimingHeldItem(Player* player) {
+     return Player_HasItemInHand(player) && player->unk_834;  // was func_8002DD6C [LLM:HIGH]
+ }
+ 
+ s32 func_8002DDA8(PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+-    return (player->stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR) || func_8002DD78(player);
++    return (player->stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR) || Player_IsAimingHeldItem(player);  // was func_8002DD78 [LLM:GUESS]
+ }
+ 
+ s32 func_8002DDE4(PlayState* play) {
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index 534467a30..b50e78953 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -1968,7 +1968,7 @@ void Player_PostLimbDrawGameplay(PlayState* play, s32 limbIndex, Gfx** dList, Ve
+                     Matrix_MtxFToYXZRotS(&sp44, &heldActor->world.rot, 0);
+                     heldActor->shape.rot = heldActor->world.rot;
+ 
+-                    if (func_8002DD78(this) != 0) {
++                    if (Player_IsAimingHeldItem(this) != 0) {  // was func_8002DD78 [LLM:GUESS]
+                         Matrix_Translate(500.0f, 300.0f, 0.0f, MTXMODE_APPLY);
+                         Player_DrawHookshotReticle(
+                             play, this,
+diff --git a/soh/src/overlays/actors/ovl_Bg_Po_Event/z_bg_po_event.c b/soh/src/overlays/actors/ovl_Bg_Po_Event/z_bg_po_event.c
+index 8fd915650..0e95d0ff0 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Po_Event/z_bg_po_event.c
++++ b/soh/src/overlays/actors/ovl_Bg_Po_Event/z_bg_po_event.c
+@@ -531,7 +531,7 @@ void BgPoEvent_PaintingPresent(BgPoEvent* this, PlayState* play) {
+     DECR(this->timer);
+ 
+     if (((this->timer == 0) || ((thisx->xzDistToPlayer < 150.0f) && (thisx->yDistToPlayer < 50.0f)) ||
+-         (func_8002DD78(player) && (thisx->xzDistToPlayer < 320.0f) &&
++         (Player_IsAimingHeldItem(player) && (thisx->xzDistToPlayer < 320.0f) &&  // was func_8002DD78 [LLM:GUESS]
+           ((this->index != 2) ? (thisx->yDistToPlayer < 100.0f) : (thisx->yDistToPlayer < 0.0f)) &&
+           Player_IsFacingActor(thisx, 0x2000, play))) &&
+         ((thisx->parent != NULL) || (thisx->child != NULL))) {
+@@ -647,4 +647,4 @@ void BgPoEvent_Reset(void) {
+     sBlocksAtRest = 0;
+     sPuzzleState = 0;
+     blockPushDist = 0.0f;
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+index a78e0d7df..bb3910e7f 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
++++ b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+@@ -731,7 +731,7 @@ void EnHorse_ResetRace(EnHorse* this, PlayState* play) {
+ s32 EnHorse_PlayerCanMove(EnHorse* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+-    if ((player->stateFlags1 & PLAYER_STATE1_LOADING) || func_8002DD78(GET_PLAYER(play)) == 1 ||
++    if ((player->stateFlags1 & PLAYER_STATE1_LOADING) || Player_IsAimingHeldItem(GET_PLAYER(play)) == 1 ||  // was func_8002DD78 [LLM:GUESS]
+         (player->stateFlags1 & PLAYER_STATE1_FIRST_PERSON) || ((this->stateFlags & ENHORSE_FLAG_19) && !this->inRace) ||
+         this->action == ENHORSE_ACT_HBA || player->actor.flags & ACTOR_FLAG_TALK || play->csCtx.state != 0) {
+         return false;
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 1c57d4f10..193824261 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -2167,7 +2167,7 @@ LinkAnimationHeader* func_80833528(Player* this) {
+ }
+ 
+ LinkAnimationHeader* func_8083356C(Player* this) {
+-    if (func_8002DD78(this)) {
++    if (Player_IsAimingHeldItem(this)) {  // was func_8002DD78 [LLM:GUESS]
+         return &gPlayerAnim_link_bow_side_walk;
+     } else {
+         return GET_PLAYER_ANIM(PLAYER_ANIMGROUP_side_walk, this->modelAnimType);
+@@ -7075,7 +7075,7 @@ void func_8083DC54(Player* this, PlayState* play) {
+     Vec3f sp34;
+ 
+     if (this->focusActor != NULL) {
+-        if (func_8002DD78(this) || func_808334B4(this)) {
++        if (Player_IsAimingHeldItem(this) || func_808334B4(this)) {  // was func_8002DD78 [LLM:GUESS]
+             func_8083DB98(this, true);
+         } else {
+             func_8083DB98(this, false);
+@@ -7096,11 +7096,11 @@ void func_8083DC54(Player* this, PlayState* play) {
+         Math_SmoothStepToS(&this->actor.focus.rot.x, sp46, 14, 4000, 30);
+     }
+ 
+-    func_80836AB8(this, func_8002DD78(this) || func_808334B4(this));
++    func_80836AB8(this, Player_IsAimingHeldItem(this) || func_808334B4(this));  // was func_8002DD78 [LLM:GUESS]
+ }
+ 
+ void func_8083DDC8(Player* this, PlayState* play) {
+-    if (!func_8002DD78(this) && !func_808334B4(this) && (this->linearVelocity > 5.0f)) {
++    if (!Player_IsAimingHeldItem(this) && !func_808334B4(this) && (this->linearVelocity > 5.0f)) {  // was func_8002DD78 [LLM:GUESS]
+         s16 targetPitch;
+         s16 targetRoll;
+ 
+@@ -7920,7 +7920,7 @@ s32 func_8083FC68(Player* this, f32 arg1, s16 arg2) {
+     f32 temp;
+ 
+     if (this->focusActor != NULL) {
+-        func_8083DB98(this, func_8002DD78(this) || func_808334B4(this));
++        func_8083DB98(this, Player_IsAimingHeldItem(this) || func_808334B4(this));  // was func_8002DD78 [LLM:GUESS]
+     }
+ 
+     temp = fabsf(sp1C) / 32768.0f;
+@@ -7938,7 +7938,7 @@ s32 func_8083FD78(Player* this, f32* arg1, s16* arg2, PlayState* play) {
+     s16 sp2E = *arg2 - this->parallelYaw;
+     u16 sp2C = ABS(sp2E);
+ 
+-    if ((func_8002DD78(this) || func_808334B4(this)) && (this->focusActor == NULL)) {
++    if ((Player_IsAimingHeldItem(this) || func_808334B4(this)) && (this->focusActor == NULL)) {  // was func_8002DD78 [LLM:GUESS]
+         *arg1 *= Math_SinS(sp2C);
+ 
+         if (*arg1 != 0.0f) {
+@@ -11018,7 +11018,7 @@ void Player_UpdateInterface(PlayState* play, Player* this) {
+                         } else {
+                             doAction = DO_ACTION_CHECK;
+                         }
+-                    } else if (!func_8002DD78(this) && !(this->stateFlags1 & PLAYER_STATE1_FIRST_PERSON)) {
++                    } else if (!Player_IsAimingHeldItem(this) && !(this->stateFlags1 & PLAYER_STATE1_FIRST_PERSON)) {  // was func_8002DD78 [LLM:GUESS]
+                         doAction = DO_ACTION_FASTER;
+                     }
+                 } else if ((this->stateFlags2 & PLAYER_STATE2_CAN_ACCEPT_TALK_OFFER) && (this->talkActor != NULL)) {
+@@ -11501,7 +11501,7 @@ void Player_UpdateCamAndSeqModes(PlayState* play, Player* this) {
+                     camMode = CAM_MODE_HANG;
+                 }
+             } else if (this->stateFlags1 & (PLAYER_STATE1_PARALLEL | PLAYER_STATE1_LOCK_ON_FORCED_TO_RELEASE)) {
+-                if (func_8002DD78(this) || func_808334B4(this)) {
++                if (Player_IsAimingHeldItem(this) || func_808334B4(this)) {  // was func_8002DD78 [LLM:GUESS]
+                     camMode = CAM_MODE_Z_AIM;
+                 } else if (this->stateFlags1 & PLAYER_STATE1_CLIMBING_LADDER) {
+                     camMode = CAM_MODE_CLIMBZ;
+@@ -12582,7 +12582,7 @@ s16 func_8084ABD8(PlayState* play, Player* this, s32 arg2, s16 arg3) {
+ 
+     GameInteractor_ExecuteOnPlayerFirstPersonControl(this);
+ 
+-    if (!func_8002DD78(this) && !func_808334B4(this) && (arg2 == 0)) { // First person without weapon
++    if (!Player_IsAimingHeldItem(this) && !func_808334B4(this) && (arg2 == 0)) { // First person without weapon, was func_8002DD78 [LLM:GUESS]
+         // Y Axis
+         if (!(CVarGetInteger(CVAR_SETTING("MoveInFirstPerson"), 0) &&
+               CVarGetInteger(CVAR_SETTING("Controls.RightStickAim"), 0))) {
+@@ -12686,7 +12686,7 @@ s16 func_8084ABD8(PlayState* play, Player* this, s32 arg2, s16 arg3) {
+     }
+ 
+     this->unk_6AE_rotFlags |= UNK6AE_ROT_FOCUS_Y;
+-    return func_80836AB8(this, (play->shootingGalleryStatus != 0) || func_8002DD78(this) || func_808334B4(this)) - arg3;
++    return func_80836AB8(this, (play->shootingGalleryStatus != 0) || Player_IsAimingHeldItem(this) || func_808334B4(this)) - arg3;  // was func_8002DD78 [LLM:GUESS]
+ }
+ 
+ void func_8084AEEC(Player* this, f32* arg1, f32 arg2, s16 arg3) {
+@@ -12827,7 +12827,7 @@ void Player_Action_8084B1D8(Player* this, PlayState* play) {
+         (this->focusActor != NULL) || !func_8083AD4C(play, this) ||
+         (((this->unk_6AD == 2) &&
+           (CHECK_BTN_ANY(sControlInput->press.button, BTN_A | BTN_B | BTN_R) || Player_FriendlyLockOnOrParallel(this) ||
+-           (!func_8002DD78(this) && !func_808334B4(this)))) ||
++           (!Player_IsAimingHeldItem(this) && !func_808334B4(this)))) ||  // was func_8002DD78 [LLM:GUESS]
+          ((this->unk_6AD == 1) && CHECK_BTN_ANY(sControlInput->press.button, buttonsToCheck)))) {
+         func_8083C148(this, play);
+         Sfx_PlaySfxCentered(NA_SE_SY_CAMERA_ZOOM_UP);
+@@ -13700,7 +13700,7 @@ void Player_Action_8084CC98(Player* this, PlayState* play) {
+ 
+         if ((this->csAction != 0) || (!func_8084C9BC(this, play) && !Player_ActionHandler_13(this, play))) {
+             if (this->focusActor != NULL) {
+-                if (func_8002DD78(this) != 0) {
++                if (Player_IsAimingHeldItem(this) != 0) {  // was func_8002DD78 [LLM:GUESS]
+                     this->upperLimbRot.y = func_8083DB98(this, 1) - this->actor.shape.rot.y;
+                     this->upperLimbRot.y = CLAMP(this->upperLimbRot.y, -0x4AAA, 0x4AAA);
+                     this->actor.focus.rot.y = this->actor.shape.rot.y + this->upperLimbRot.y;
+@@ -13710,7 +13710,7 @@ void Player_Action_8084CC98(Player* this, PlayState* play) {
+                     func_8083DB98(this, 0);
+                 }
+             } else {
+-                if (func_8002DD78(this) != 0) {
++                if (Player_IsAimingHeldItem(this) != 0) {  // was func_8002DD78 [LLM:GUESS]
+                     this->upperLimbRot.y = func_8084ABD8(play, this, 1, -5000) - this->actor.shape.rot.y;
+                     this->upperLimbRot.y += 5000;
+                     this->upperLimbYawSecondary = -5000;
+-- 
+2.55.0
+

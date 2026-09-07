@@ -1,0 +1,78 @@
+From 797f473794142535061490a5c768c6dfaed21fdb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:59 +0000
+Subject: [PATCH 2528/3799] soh: rename D_8016B7D8 -> sRateVolScale
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the rate-derived volume Audio_PlaySfxScaledByRate and Audio_PlaySfxAtInterval pass
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/audio_general.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 81b78173a..ef2fc9539 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -1271,7 +1271,8 @@ f32 sSpeedFreqScale;  // was D_8016B7B0 [LLM:HIGH]
+ f32 sUnusedScale;  // was D_8016B7B4 [LLM:GUESS]
+ FreqLerp sRiverFreqScaleLerp;
+ FreqLerp sWaterfallFreqScaleLerp;
+-f32 D_8016B7D8;
++// LLM generated name (HIGH), was D_8016B7D8: the rate-derived volume Audio_PlaySfxScaledByRate and Audio_PlaySfxAtInterval pass
++f32 sRateVolScale;  // was D_8016B7D8 [LLM:HIGH]
+ s8 D_8016B7DC;
+ f32 D_8016B7E0;
+ u16 D_8016B7E4; // decomp: debug only
+@@ -1363,7 +1364,7 @@ s32 sAudioUpdateTaskEnd;      // decomp: debug only
+     F(sUnusedScale)                                      \
+     F(sRiverFreqScaleLerp)                             \
+     F(sWaterfallFreqScaleLerp)                         \
+-    F(D_8016B7D8)                                      \
++    F(sRateVolScale)                                      \
+     F(D_8016B7DC)                                      \
+     F(D_8016B7E0)                                      \
+     F(sRiverSoundMainBgmVol)                           \
+@@ -4481,13 +4482,13 @@ void Audio_PlaySwordChargeSfx(Vec3f* pos, u8 level) {
+ // LLM generated name (HIGH), was func_800F436C: scales the volume by a machine's motion rate, compressing it below 0.75 and skipping the sound entirely below 0.5
+ void Audio_PlaySfxScaledByRate(Vec3f* pos, u16 sfxId, f32 arg2) {
+     if (arg2 < 0.75f) {
+-        D_8016B7D8 = ((arg2 / 0.75f) * 0.25f) + 0.5f;
++        sRateVolScale = ((arg2 / 0.75f) * 0.25f) + 0.5f;  // was D_8016B7D8 [LLM:HIGH]
+     } else {
+-        D_8016B7D8 = arg2;
++        sRateVolScale = arg2;  // was D_8016B7D8 [LLM:HIGH]
+     }
+ 
+-    if (D_8016B7D8 > 0.5f) {
+-        Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7D8, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
++    if (sRateVolScale > 0.5f) {  // was D_8016B7D8 [LLM:HIGH]
++        Audio_PlaySfxGeneral(sfxId, pos, 4, &sRateVolScale, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);  // was D_8016B7D8 [LLM:HIGH]
+     }
+ }
+ 
+@@ -4495,7 +4496,7 @@ void Audio_PlaySfxScaledByRate(Vec3f* pos, u16 sfxId, f32 arg2) {
+ void Audio_PlaySfxAtInterval(Vec3f* pos, u16 sfxId, f32 arg2) {
+     sSfxIntervalCounter--;  // was D_801305B8 [LLM:HIGH]
+     if (sSfxIntervalCounter == 0) {  // was D_801305B8 [LLM:HIGH]
+-        Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7D8, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
++        Audio_PlaySfxGeneral(sfxId, pos, 4, &sRateVolScale, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);  // was D_8016B7D8 [LLM:HIGH]
+ 
+         if (arg2 > 2.0f) {
+             arg2 = 2.0f;
+@@ -5483,7 +5484,7 @@ void Audio_ResetData(void) {
+     sWaterfallFreqScaleLerp.remainingFrames = 0;
+     sRiverFreqScaleLerp.value = 1.0f;
+     sWaterfallFreqScaleLerp.value = 1.0f;
+-    D_8016B7D8 = 1.0f;
++    sRateVolScale = 1.0f;  // was D_8016B7D8 [LLM:HIGH]
+     sRiverSoundMainBgmVol = 0x7F;
+     sRiverSoundMainBgmCurrentVol = 0x7F;
+     sRiverSoundMainBgmLower = 0;
+-- 
+2.55.0
+

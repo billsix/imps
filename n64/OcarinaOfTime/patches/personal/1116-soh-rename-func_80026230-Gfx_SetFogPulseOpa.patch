@@ -1,0 +1,118 @@
+From ccec6684273381106b8c406fc312d9d50c70f427 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:49:49 +0000
+Subject: [PATCH 1116/3799] soh: rename func_80026230 -> Gfx_SetFogPulseOpa
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: emits a fog colour and position into POLY_OPA_DISP with the fog distance driven by the absolute cosine over a full half-turn, so it dips and returns over the caller's timer; the colour defaults to red when NULL is passed.
+Defined in soh/src/code/z_eff_ss_dead.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_eff_ss_dead.c                                  | 3 ++-
+ soh/src/overlays/actors/ovl_Bg_Haka_Trap/z_bg_haka_trap.c     | 4 ++--
+ soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c       | 2 +-
+ soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c       | 4 ++--
+ soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c | 2 +-
+ 6 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 55274d8c5..789dc03eb 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -202,7 +202,7 @@ void EffectSpark_Init(void* thisx, void* initParamsx);
+ void EffectSpark_Destroy(void* thisx);
+ s32 EffectSpark_Update(void* thisx);
+ void EffectSpark_Draw(void* thisx, GraphicsContext* gfxCtx);
+-void func_80026230(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3);
++void Gfx_SetFogPulseOpa(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3);  // was func_80026230 [LLM:HIGH]
+ void func_80026400(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3);
+ void func_80026608(PlayState* play);
+ void func_80026690(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3);
+diff --git a/soh/src/code/z_eff_ss_dead.c b/soh/src/code/z_eff_ss_dead.c
+index 65015b44f..0c2fc84e2 100644
+--- a/soh/src/code/z_eff_ss_dead.c
++++ b/soh/src/code/z_eff_ss_dead.c
+@@ -1,6 +1,7 @@
+ #include "global.h"
+ 
+-void func_80026230(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3) {
++// LLM generated name (HIGH), was func_80026230: emits a fog colour and position into POLY_OPA_DISP with the fog distance driven by the absolute cosine over a full half-turn, so it dips and returns over the caller's timer; the colour defaults to red when NULL is passed.
++void Gfx_SetFogPulseOpa(PlayState* play, Color_RGBA8* color, s16 arg2, s16 arg3) {
+     f32 cos;
+     Gfx* displayListHead;
+     f32 absCos;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Haka_Trap/z_bg_haka_trap.c b/soh/src/overlays/actors/ovl_Bg_Haka_Trap/z_bg_haka_trap.c
+index f75212277..a76c557b4 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Haka_Trap/z_bg_haka_trap.c
++++ b/soh/src/overlays/actors/ovl_Bg_Haka_Trap/z_bg_haka_trap.c
+@@ -535,7 +535,7 @@ void BgHakaTrap_Draw(Actor* thisx, PlayState* play) {
+     Vec3f sp2C;
+ 
+     if (this->actionFunc == BgHakaTrap_SpikedWall_Burn) {
+-        func_80026230(play, &D_8088103C, this->timer + 20, 0x28);
++        Gfx_SetFogPulseOpa(play, &D_8088103C, this->timer + 20, 0x28);  // was func_80026230 [LLM:HIGH]
+     }
+ 
+     Gfx_DrawDListOpa(play, sDLists[this->dyna.actor.params]);
+@@ -562,4 +562,4 @@ void BgHakaTrap_Reset(void) {
+     sIsSpikeWallBurning = 0;
+     sSpikedCrusherFlip = 0;
+     sSpikedWallFlags = 0;
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c b/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
+index baa854991..db10ec76c 100644
+--- a/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
++++ b/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
+@@ -1115,7 +1115,7 @@ void EnFloormas_Draw(Actor* thisx, PlayState* play) {
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     if (this->collider.base.colType == COLTYPE_HARD) {
+-        func_80026230(play, &sMergeColor, this->actionTarget % 0x28, 0x28);
++        Gfx_SetFogPulseOpa(play, &sMergeColor, this->actionTarget % 0x28, 0x28);  // was func_80026230 [LLM:HIGH]
+     }
+ 
+     POLY_OPA_DISP =
+diff --git a/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c b/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
+index 095f0c981..853df3650 100644
+--- a/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
++++ b/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
+@@ -478,7 +478,7 @@ void EnKarebaba_Draw(Actor* thisx, PlayState* play) {
+             gSPDisplayList(POLY_OPA_DISP++, gDekuBabaStickDropDL);
+         }
+     } else if (this->actionFunc != EnKarebaba_Dead) {
+-        func_80026230(play, &black, 1, 2);
++        Gfx_SetFogPulseOpa(play, &black, 1, 2);  // was func_80026230 [LLM:HIGH]
+         SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, NULL, NULL, NULL);
+         Matrix_Translate(this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z, MTXMODE_NEW);
+ 
+@@ -510,7 +510,7 @@ void EnKarebaba_Draw(Actor* thisx, PlayState* play) {
+         func_80026608(play);
+     }
+ 
+-    func_80026230(play, &black, 1, 2);
++    Gfx_SetFogPulseOpa(play, &black, 1, 2);  // was func_80026230 [LLM:HIGH]
+     Matrix_Translate(this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, MTXMODE_NEW);
+ 
+     if (this->actionFunc != EnKarebaba_Grow) {
+diff --git a/soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c b/soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c
+index e65ea51ce..a9efb32ec 100644
+--- a/soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c
+@@ -697,7 +697,7 @@ void EnSyatekiNiw_Draw(Actor* thisx, PlayState* play) {
+     if (this->actionFunc != EnSyatekiNiw_SetupRemove) {
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+         if (this->sootTimer != 0) {
+-            func_80026230(play, &sp30, 0, 0x14);
++            Gfx_SetFogPulseOpa(play, &sp30, 0, 0x14);  // was func_80026230 [LLM:HIGH]
+         }
+ 
+         SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, SyatekiNiw_OverrideLimbDraw, NULL, this);
+-- 
+2.55.0
+

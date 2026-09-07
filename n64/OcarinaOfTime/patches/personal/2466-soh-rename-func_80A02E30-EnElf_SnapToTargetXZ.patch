@@ -1,0 +1,60 @@
+From 1886f3e4a7ffd10d512f31599d669a05e05093b8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:29:57 +0000
+Subject: [PATCH 2466/3799] soh: rename func_80A02E30 -> EnElf_SnapToTargetXZ
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: eases the height but pins the XZ position exactly onto the target plus the offset
+Defined in soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+index a21719fbe..bd3d56352 100644
+--- a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
++++ b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+@@ -523,7 +523,8 @@ void EnElf_StepVelocityToTarget(EnElf* this, Vec3f* targetPos, f32 arg2) {
+     Actor_UpdatePos(&this->actor);
+ }
+ 
+-void func_80A02E30(EnElf* this, Vec3f* targetPos) {
++// LLM generated name (HIGH), was func_80A02E30: eases the height but pins the XZ position exactly onto the target plus the offset
++void EnElf_SnapToTargetXZ(EnElf* this, Vec3f* targetPos) {
+     EnElf_StepVelocityY(this, targetPos, 0.2f);  // was func_80A02BD8 [LLM:HIGH]
+     this->actor.velocity.x = (targetPos->x + this->unk_28C.x) - this->actor.world.pos.x;
+     this->actor.velocity.z = (targetPos->z + this->unk_28C.z) - this->actor.world.pos.z;
+@@ -778,7 +779,7 @@ void func_80A03814(EnElf* this, PlayState* play) {
+     this->unk_28C.x = Math_CosS(this->unk_2AC) * this->unk_2B8;
+     this->unk_28C.z = Math_SinS(this->unk_2AC) * -this->unk_2B8;
+     this->unk_2AC += this->unk_2B0;
+-    func_80A02E30(this, &player->bodyPartsPos[0]);
++    EnElf_SnapToTargetXZ(this, &player->bodyPartsPos[0]);  // was func_80A02E30 [LLM:HIGH]
+     this->unk_2BC = Math_Atan2S(this->actor.velocity.z, this->actor.velocity.x);
+     EnElf_SpawnSparkles(this, play, 32);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EV_FIATY_HEAL - SFX_FLAG);
+@@ -802,7 +803,7 @@ void func_80A03990(EnElf* this, PlayState* play) {
+         this->unk_2B8 = 1.0f;
+     }
+ 
+-    func_80A02E30(this, &player->bodyPartsPos[0]);
++    EnElf_SnapToTargetXZ(this, &player->bodyPartsPos[0]);  // was func_80A02E30 [LLM:HIGH]
+     Actor_SetScale(&this->actor, (1.0f - (SQ(this->unk_2B4) * SQ(1.0f / 9.0f))) * 0.008f);
+     this->unk_2BC = Math_Atan2S(this->actor.velocity.z, this->actor.velocity.x);
+     EnElf_SpawnSparkles(this, play, 32);
+@@ -927,7 +928,7 @@ void func_80A03CF8(EnElf* this, PlayState* play) {
+             case 11:
+                 nextPos = player->bodyPartsPos[8];
+                 nextPos.y += 1500.0f * this->actor.scale.y;
+-                func_80A02E30(this, &nextPos);
++                EnElf_SnapToTargetXZ(this, &nextPos);  // was func_80A02E30 [LLM:HIGH]
+                 EnElf_SpawnSparkles(this, play, 16);
+ 
+                 if (this->unk_2B8 <= 19.0f) {
+-- 
+2.55.0
+

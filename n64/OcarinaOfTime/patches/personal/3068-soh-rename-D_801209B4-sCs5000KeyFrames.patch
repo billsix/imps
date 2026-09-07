@@ -1,0 +1,69 @@
+From d950771a07ab97b151d3f569c3d9dd187a527bfd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:04:37 +0000
+Subject: [PATCH 3068/3799] soh: rename D_801209B4 -> sCs5000KeyFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the keyframe set one-point cutscene 5000 installs
+Defined in soh/src/code/z_onepointdemo_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_onepointdemo.c        | 14 +++++++-------
+ soh/src/code/z_onepointdemo_data.inc |  3 ++-
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/code/z_onepointdemo.c b/soh/src/code/z_onepointdemo.c
+index 3cf46f23c..753731690 100644
+--- a/soh/src/code/z_onepointdemo.c
++++ b/soh/src/code/z_onepointdemo.c
+@@ -18,7 +18,7 @@ static s32 sPrevFrameCs1100 = -4096;
+     F(sCs3400EyePoints)                                   \
+     F(sCs1020KeyFrames)                                   \
+     F(sCs1030KeyFrames)                                   \
+-    F(D_801209B4)                                   \
++    F(sCs5000KeyFrames)                                   \
+     F(D_80120ACC)                                   \
+     F(D_80120B94)                                   \
+     F(D_80120D4C)                                   \
+@@ -145,15 +145,15 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 5000:
+-            D_801209B4[0].atTargetInit = D_801209B4[1].atTargetInit = play->view.lookAt;
+-            D_801209B4[0].eyeTargetInit = play->view.eye;
+-            D_801209B4[0].fovTargetInit = D_801209B4[2].fovTargetInit = play->view.fovy;
++            sCs5000KeyFrames[0].atTargetInit = sCs5000KeyFrames[1].atTargetInit = play->view.lookAt;  // was D_801209B4 [LLM:HIGH]
++            sCs5000KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_801209B4 [LLM:HIGH]
++            sCs5000KeyFrames[0].fovTargetInit = sCs5000KeyFrames[2].fovTargetInit = play->view.fovy;  // was D_801209B4 [LLM:HIGH]
+             OLib_Vec3fDiffToVecSphGeo(&spD0, &actor->focus.pos, &mainCam->at);
+             spD0.r = mainCam->dist;
+-            OnePointCutscene_AddVecSphToVec3f(&D_801209B4[1].eyeTargetInit, &D_801209B4[1].atTargetInit, &spD0);
+-            D_801209B4[1].atTargetInit.y += 20.0f;
++            OnePointCutscene_AddVecSphToVec3f(&sCs5000KeyFrames[1].eyeTargetInit, &sCs5000KeyFrames[1].atTargetInit, &spD0);  // was D_801209B4 [LLM:HIGH]
++            sCs5000KeyFrames[1].atTargetInit.y += 20.0f;  // was D_801209B4 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_801209B4;
++            csInfo->keyFrames = sCs5000KeyFrames;  // was D_801209B4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+diff --git a/soh/src/code/z_onepointdemo_data.inc b/soh/src/code/z_onepointdemo_data.inc
+index af56a7fb2..a553f5ecc 100644
+--- a/soh/src/code/z_onepointdemo_data.inc
++++ b/soh/src/code/z_onepointdemo_data.inc
+@@ -153,7 +153,8 @@ static OnePointCsFull sCs1030KeyFrames[2] = {  // was D_80120964 [LLM:HIGH]
+     { 0x81, 0xFF, 0xA121, 1, 0, 75.0f, 0.6f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+ };
+ 
+-static OnePointCsFull D_801209B4[4] = {
++// LLM generated name (HIGH), was D_801209B4: the keyframe set one-point cutscene 5000 installs
++static OnePointCsFull sCs5000KeyFrames[4] = {  // was D_801209B4 [LLM:HIGH]
+     { 0x8F, 0x08, 0x0101, 1, 0, 60.0f, 0.9f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x84, 0x01, 0x0100, 29, 0, 45.0f, 0.1f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+     { 0x83, 0xFF, 0x0000, 10, 0, 60.0f, 0.2f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+-- 
+2.55.0
+

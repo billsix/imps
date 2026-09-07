@@ -1,0 +1,59 @@
+From 7fae9e1dd016965b601792fdc6f90dea718b49fb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:04:36 +0000
+Subject: [PATCH 3055/3799] soh: rename D_801204D4 -> sCs3400AtPoints
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the at points for one-point cutscene 3400
+Defined in soh/src/code/z_onepointdemo_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_onepointdemo.c        | 6 +++---
+ soh/src/code/z_onepointdemo_data.inc | 3 ++-
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/z_onepointdemo.c b/soh/src/code/z_onepointdemo.c
+index a5b357785..456036f79 100644
+--- a/soh/src/code/z_onepointdemo.c
++++ b/soh/src/code/z_onepointdemo.c
+@@ -14,7 +14,7 @@ static s32 sPrevFrameCs1100 = -4096;
+     F(sPrevFrameCs1100)                             \
+     F(sCs3050AtPoints)                                   \
+     F(sCs3050EyePoints)                                   \
+-    F(D_801204D4)                                   \
++    F(sCs3400AtPoints)                                   \
+     F(D_801205B4)                                   \
+     F(D_801208EC)                                   \
+     F(D_80120964)                                   \
+@@ -691,9 +691,9 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+         case 3400:
+             Play_CameraChangeSetting(play, camIdx, CAM_SET_CS_3);
+             Player_SetCsAction(play, &player->actor, 8);
+-            OnePointCutscene_SetCsCamPoints(csCam, D_8012069C | 0x2000, D_80120698, D_801204D4, D_801205B4);
++            OnePointCutscene_SetCsCamPoints(csCam, D_8012069C | 0x2000, D_80120698, sCs3400AtPoints, D_801205B4);  // was D_801204D4 [LLM:HIGH]
+             OnePointCutscene_Vec3sToVec3f(&mainCam->eye, &D_801205B4[D_80120694 - 2].pos);
+-            OnePointCutscene_Vec3sToVec3f(&mainCam->at, &D_801204D4[D_80120694 - 2].pos);
++            OnePointCutscene_Vec3sToVec3f(&mainCam->at, &sCs3400AtPoints[D_80120694 - 2].pos);  // was D_801204D4 [LLM:HIGH]
+ 
+             i = Quake_Add(csCam, 1);
+             Quake_SetSpeed(i, 0x4E20);
+diff --git a/soh/src/code/z_onepointdemo_data.inc b/soh/src/code/z_onepointdemo_data.inc
+index b6c189fa9..e3b9aeae8 100644
+--- a/soh/src/code/z_onepointdemo_data.inc
++++ b/soh/src/code/z_onepointdemo_data.inc
+@@ -65,7 +65,8 @@ static CutsceneCameraPoint sCs9602EyePoints[10] = {  // was D_80120434 [LLM:HIGH
+     { CS_CMD_STOP, 0, 0, 60.0f, { 0, 62, -119 } },     { CS_CMD_STOP, 0, 0, 60.0f, { 0, 62, -119 } },
+ };
+ 
+-static CutsceneCameraPoint D_801204D4[14] = {
++// LLM generated name (HIGH), was D_801204D4: the at points for one-point cutscene 3400
++static CutsceneCameraPoint sCs3400AtPoints[14] = {  // was D_801204D4 [LLM:HIGH]
+     { CS_CMD_CONTINUE, -15, 40, 80.600006f, { -60, 332, 183 } },
+     { CS_CMD_CONTINUE, -22, 30, 80.600006f, { -60, 332, 183 } },
+     { CS_CMD_CONTINUE, -20, 38, 80.600006f, { -118, 344, 41 } },
+-- 
+2.55.0
+

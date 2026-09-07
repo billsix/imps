@@ -1,0 +1,61 @@
+From f2f20926b70a14b3cda6315257416ed84b81d778 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:04:01 +0000
+Subject: [PATCH 1246/3799] soh: rename func_800C0D34 -> Play_GetDoorFacingYaw
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: for an ACTORCAT_DOOR transition actor whose two sides are different rooms, writes the yaw that faces out of the actor's own room and returns 1; the camera uses it when framing a door.
+Defined in soh/src/code/z_play.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h | 2 +-
+ soh/src/code/z_camera.c | 2 +-
+ soh/src/code/z_play.c   | 3 ++-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 78e68d7bc..0b7e4defa 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1571,7 +1571,7 @@ void Play_TriggerVoidOut(PlayState* play);
+ void Play_TriggerRespawn(PlayState* play);
+ s32 Play_CamIsNotFixed(PlayState* play);
+ s32 FrameAdvance_IsEnabled(PlayState* play);
+-s32 func_800C0D34(PlayState* play, Actor* actor, s16* yaw);
++s32 Play_GetDoorFacingYaw(PlayState* play, Actor* actor, s16* yaw);  // was func_800C0D34 [LLM:HIGH]
+ s32 func_800C0DB4(PlayState* play, Vec3f* pos);
+ void Play_PerformSave(PlayState* play);
+ void PreRender_SetValuesSave(PreRender* this, u32 width, u32 height, void* fbuf, void* zbuf, void* cvg);
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index cd223b729..a09a00020 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -6139,7 +6139,7 @@ s32 Camera_Demo5(Camera* camera) {
+         // the target is a door.
+         D_8011D954[0].timerInit = camera->timer - 5;
+         sp4A = 0;
+-        if (!func_800C0D34(camera->play, camera->target, &sp4A)) {
++        if (!Play_GetDoorFacingYaw(camera->play, camera->target, &sp4A)) {  // was func_800C0D34 [LLM:HIGH]
+             osSyncPrintf(VT_COL(YELLOW, BLACK) "camera: attention demo: this door is dummy door!\n" VT_RST);
+             if (ABS(playerTargetGeo.yaw - camera->target->shape.rot.y) >= 0x4000) {
+                 sp4A = camera->target->shape.rot.y;
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 03c02e211..b0080469d 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -2133,7 +2133,8 @@ s32 FrameAdvance_IsEnabled(PlayState* play) {
+     return !!play->frameAdvCtx.enabled;
+ }
+ 
+-s32 func_800C0D34(PlayState* play, Actor* actor, s16* yaw) {
++// LLM generated name (HIGH), was func_800C0D34: for an ACTORCAT_DOOR transition actor whose two sides are different rooms, writes the yaw that faces out of the actor's own room and returns 1; the camera uses it when framing a door.
++s32 Play_GetDoorFacingYaw(PlayState* play, Actor* actor, s16* yaw) {
+     TransitionActorEntry* transitionActor;
+     s32 frontRoom;
+ 
+-- 
+2.55.0
+

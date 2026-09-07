@@ -1,0 +1,55 @@
+From eb64f6fbda1a3d2f00dca7c73b5f00d4495459ed Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:02 +0000
+Subject: [PATCH 3176/3799] soh: rename D_8015BD70 -> sKeepOn4ScratchC
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the third such scratch slot
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 569e353ed..cfdc1fbc6 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -3659,7 +3659,7 @@ s32 Camera_KeepOn3(Camera* camera) {
+ s32 Camera_KeepOn4(Camera* camera) {
+     static Vec3f sKeepOn4ScratchA;  // was D_8015BD50 [LLM:GUESS]
+     static Vec3f sKeepOn4ScratchB;  // was D_8015BD60 [LLM:GUESS]
+-    static Vec3f D_8015BD70;
++    static Vec3f sKeepOn4ScratchC;  // was D_8015BD70 [LLM:GUESS]
+     Vec3f* eye = &camera->eye;
+     Vec3f* at = &camera->at;
+     Vec3f* eyeNext = &camera->eyeNext;
+@@ -3875,18 +3875,18 @@ s32 Camera_KeepOn4(Camera* camera) {
+             spB8.pitch = spA2;
+             spB8.yaw = spA0;
+             spB8.r = keep4->unk_04;
+-            Camera_Vec3fVecSphGeoAdd(&D_8015BD70, &sKeepOn4ScratchA, &spB8);  // was D_8015BD50 [LLM:GUESS]
++            Camera_Vec3fVecSphGeoAdd(&sKeepOn4ScratchC, &sKeepOn4ScratchA, &spB8);  // was D_8015BD50 [LLM:GUESS]
+             if (!(keep4->unk_1C & 1)) {
+                 angleCnt = ARRAY_COUNT(D_8011D3B0);
+                 for (i = 0; i < angleCnt; i++) {
+-                    if (!CollisionCheck_LineOCCheck(camera->play, &camera->play->colChkCtx, &sKeepOn4ScratchA, &D_8015BD70,  // was D_8015BD50 [LLM:GUESS]
++                    if (!CollisionCheck_LineOCCheck(camera->play, &camera->play->colChkCtx, &sKeepOn4ScratchA, &sKeepOn4ScratchC,  // was D_8015BD50 [LLM:GUESS]
+                                                     spCC, sp9C) &&
+-                        !Camera_BGCheck(camera, &sKeepOn4ScratchA, &D_8015BD70)) {  // was D_8015BD50 [LLM:GUESS]
++                        !Camera_BGCheck(camera, &sKeepOn4ScratchA, &sKeepOn4ScratchC)) {  // was D_8015BD50 [LLM:GUESS]
+                         break;
+                     }
+                     spB8.yaw = D_8011D3B0[i] + spA0;
+                     spB8.pitch = D_8011D3CC[i] + spA2;
+-                    Camera_Vec3fVecSphGeoAdd(&D_8015BD70, &sKeepOn4ScratchA, &spB8);  // was D_8015BD50 [LLM:GUESS]
++                    Camera_Vec3fVecSphGeoAdd(&sKeepOn4ScratchC, &sKeepOn4ScratchA, &spB8);  // was D_8015BD50 [LLM:GUESS]
+                 }
+                 osSyncPrintf("camera: item: BG&collision check %d time(s)\n", i);
+             }
+-- 
+2.55.0
+

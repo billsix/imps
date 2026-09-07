@@ -1,0 +1,53 @@
+From 6032ede0f02faaac7b2d86871e908db74aa21afa Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 19:50:47 +0000
+Subject: [PATCH 0840/3799] soh: rename D_80A6E240 -> sHorseFieldPositions
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.89.
+Defined in soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c.
+---
+ .../actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c         | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c b/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
+index c7313e249..8f7af020b 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
+@@ -88,7 +88,8 @@ typedef struct {
+     /* 0x6 */ u8 unk_6;
+ } unknownStruct; // size = 0x8
+ 
+-static unknownStruct D_80A6E240[] = {
++// Name from zeldaret/oot (was D_80A6E240): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c]
++static unknownStruct sHorseFieldPositions[] = {
+     { -1682, -500, 12578, 0x07 }, { -3288, -500, 13013, 0x07 }, { -5142, -417, 11630, 0x07 },
+     { -5794, -473, 9573, 0x07 },  { -6765, -500, 8364, 0x07 },  { -6619, -393, 6919, 0x07 },
+     { -5193, 124, 5433, 0x07 },   { -2970, 2, 4537, 0x07 },     { -2949, -35, 4527, 0x07 },
+@@ -116,12 +117,12 @@ void EnHorseZelda_Move(EnHorseZelda* this, PlayState* play) {
+     Vec3f sp28;
+     s16 yawDiff;
+ 
+-    EnHorseZelda_GetFieldPosition(D_80A6E240, this->fieldPosIndex, &sp28);
++    EnHorseZelda_GetFieldPosition(sHorseFieldPositions, this->fieldPosIndex, &sp28);
+     if (Math3D_Vec3f_DistXYZ(&sp28, &this->actor.world.pos) <= 400.0f) {
+         this->fieldPosIndex++;
+         if (this->fieldPosIndex >= 14) {
+             this->fieldPosIndex = 0;
+-            EnHorseZelda_GetFieldPosition(D_80A6E240, 0, &sp28);
++            EnHorseZelda_GetFieldPosition(sHorseFieldPositions, 0, &sp28);
+         }
+     }
+     yawDiff = Math_Vec3f_Yaw(&this->actor.world.pos, &sp28) - this->actor.world.rot.y;
+@@ -140,7 +141,7 @@ void EnHorseZelda_Move(EnHorseZelda* this, PlayState* play) {
+         } else {
+             this->actor.speedXZ -= 1.0f;
+         }
+-    } else if (this->actor.speedXZ < D_80A6E240[this->fieldPosIndex].unk_6) {
++    } else if (this->actor.speedXZ < sHorseFieldPositions[this->fieldPosIndex].unk_6) {
+         this->actor.speedXZ += 0.5f;
+     } else {
+         this->actor.speedXZ -= 0.5f;
+-- 
+2.55.0
+

@@ -1,0 +1,60 @@
+From 703ae49d0c66f70e6f00344899eb7d1df3579271 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:28:09 +0000
+Subject: [PATCH 2436/3799] soh: rename func_80ADF574 -> EnPoh_SpinAway
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: spins the poe as it drifts backwards, then returns to the idle
+Defined in soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+index 388e74069..04d6168a1 100644
+--- a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
++++ b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+@@ -36,7 +36,8 @@ void EnPoh_ComposerAppear(EnPoh* this, PlayState* play);
+ void EnPoh_RegularAppear(EnPoh* this, PlayState* play);  // was func_80ADEF38 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80ADF15C: rings EffectSsDeadDb outward as the body breaks up, ending with NA_SE_EN_PO_DEAD2
+ void EnPoh_Dissolve(EnPoh* this, PlayState* play);  // was func_80ADF15C [LLM:HIGH]
+-void func_80ADF574(EnPoh* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ADF574: spins the poe as it drifts backwards, then returns to the idle
++void EnPoh_SpinAway(EnPoh* this, PlayState* play);  // was func_80ADF574 [LLM:HIGH]
+ void func_80ADF5E0(EnPoh* this, PlayState* play);
+ void EnPoh_Disappear(EnPoh* this, PlayState* play);
+ void EnPoh_Appear(EnPoh* this, PlayState* play);
+@@ -354,7 +355,7 @@ void EnPoh_SetupDissolve(EnPoh* this) {
+ // LLM generated name (HIGH), was func_80ADE4C8: plays the idle animation once while backing off at -5 speed
+ void EnPoh_SetupSpinAway(EnPoh* this) {
+     Animation_PlayOnce(&this->skelAnime, this->info->idleAnim2);
+-    this->actionFunc = func_80ADF574;
++    this->actionFunc = EnPoh_SpinAway;  // was func_80ADF574 [LLM:HIGH]
+     this->actor.speedXZ = -5.0f;
+ }
+ 
+@@ -670,7 +671,7 @@ void EnPoh_Dissolve(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADF574(EnPoh* this, PlayState* play) {
++void EnPoh_SpinAway(EnPoh* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->actor.world.rot.y = this->actor.shape.rot.y;
+         EnPoh_SetupIdle(this);
+@@ -1028,7 +1029,7 @@ void EnPoh_UpdateLiving(Actor* thisx, PlayState* play) {
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->colliderCyl.base);
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->colliderSph.base);
+     Actor_SetFocus(&this->actor, 42.0f);
+-    if (this->actionFunc != EnPoh_Damage && this->actionFunc != func_80ADF574) {  // was func_80ADEECC [LLM:HIGH]
++    if (this->actionFunc != EnPoh_Damage && this->actionFunc != EnPoh_SpinAway) {  // was func_80ADEECC [LLM:HIGH]
+         if (this->actionFunc == func_80ADF894) {
+             this->actor.shape.rot.y = this->actor.world.rot.y + 0x8000;
+         } else {
+-- 
+2.55.0
+

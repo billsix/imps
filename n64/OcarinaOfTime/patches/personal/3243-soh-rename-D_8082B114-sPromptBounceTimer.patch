@@ -1,0 +1,58 @@
+From 4560391d110be562c65199cb1429c5f131669e10 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:50 +0000
+Subject: [PATCH 3243/3799] soh: rename D_8082B114 -> sPromptBounceTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts that bounce down
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c       | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 025d76973..7e31672ba 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -2792,7 +2792,7 @@ static const char* gPageVtxColorCvars[][4] = {
+ // LLM generated name (HIGH), was func_80823A0C: fills a page of quads from the shared and per-page position tables and tints their corners from the page colour set
+ s16 KaleidoScope_SetPageVtx(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3) {
+     static s16 sPromptBounceOffset = 0;  // was D_8082B110 [LLM:HIGH]
+-    static s16 D_8082B114 = 1;
++    static s16 sPromptBounceTimer = 1;  // was D_8082B114 [LLM:HIGH]
+     static s16 D_8082B118 = 0;
+     static const Color_RGBA8 pageColors[][4] = {
+         {
+@@ -2964,21 +2964,21 @@ s16 KaleidoScope_SetPageVtx(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3)
+             vtxIndex += 12;
+ 
+             if (pauseCtx->tradeQuestLocation != 0xFF) {
+-                if (D_8082B114 == 0) {
++                if (sPromptBounceTimer == 0) {  // was D_8082B114 [LLM:HIGH]
+                     D_8082B118++;
+                     switch (D_8082B118) {
+                         case 1:
+                             sPromptBounceOffset = 3;  // was D_8082B110 [LLM:HIGH]
+-                            D_8082B114 = 8;
++                            sPromptBounceTimer = 8;  // was D_8082B114 [LLM:HIGH]
+                             break;
+                         case 2:
+                             sPromptBounceOffset = 0;  // was D_8082B110 [LLM:HIGH]
+-                            D_8082B114 = 6;
++                            sPromptBounceTimer = 6;  // was D_8082B114 [LLM:HIGH]
+                             D_8082B118 = 0;
+                             break;
+                     }
+                 } else {
+-                    D_8082B114--;
++                    sPromptBounceTimer--;  // was D_8082B114 [LLM:HIGH]
+                 }
+ 
+                 colorIndex = phi_s2 + (pauseCtx->tradeQuestLocation * 4) + 64;
+-- 
+2.55.0
+

@@ -1,0 +1,89 @@
+From 8685f369b9da468c80877f950c30ae93689cc8f6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:05:33 +0000
+Subject: [PATCH 1936/3799] soh: rename func_8008EC70 ->
+ Player_ApplyHeldItemAction
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: copies heldItemAction into itemAction and switches the model group to match
+Defined in soh/src/code/z_player_lib.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/src/code/z_player_lib.c                         | 3 ++-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 8 ++++----
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 5f179a514..60ae8ecc6 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1118,7 +1118,7 @@ s32 Player_ActionToModelGroup(Player* player, s32 itemAction);
+ void Player_SetModelsForHoldingShield(Player* player);
+ void Player_SetModels(Player* player, s32 modelGroup);
+ void Player_SetModelGroup(Player* player, s32 modelGroup);
+-void func_8008EC70(Player* player);
++void Player_ApplyHeldItemAction(Player* player);  // was func_8008EC70 [LLM:HIGH]
+ void Player_SetEquipmentData(PlayState* play, Player* player);
+ void Player_UpdateBottleHeld(PlayState* play, Player* player, s32 item, s32 itemAction);
+ void func_80837C0C(PlayState* play, Player* this, s32 arg2, f32 arg3, f32 arg4, s16 arg5, s32 arg6);
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index b4b5a4a73..b42f0acec 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -669,7 +669,8 @@ void Player_SetModelGroup(Player* this, s32 modelGroup) {
+     Player_SetModels(this, modelGroup);
+ }
+ 
+-void func_8008EC70(Player* this) {
++// LLM generated name (HIGH), was func_8008EC70: copies heldItemAction into itemAction and switches the model group to match
++void Player_ApplyHeldItemAction(Player* this) {
+     this->itemAction = this->heldItemAction;
+     Player_SetModelGroup(this, Player_ActionToModelGroup(this, this->heldItemAction));
+     this->unk_6AD = 0;
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 65f7cd83f..734da9126 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -2771,7 +2771,7 @@ void func_80834894(Player* this) {
+     Player_SetUpperActionFunc(this, func_80834C74);
+ 
+     if (this->itemAction < 0) {
+-        func_8008EC70(this);
++        Player_ApplyHeldItemAction(this);  // was func_8008EC70 [LLM:HIGH]
+     }
+ 
+     Animation_Reverse(&this->upperSkelAnime);
+@@ -3317,7 +3317,7 @@ s32 Player_SetupAction(PlayState* play, Player* this, PlayerActionFunc actionFun
+ 
+     if ((this->itemAction != this->heldItemAction) &&
+         (!(flags & 1) || !(this->stateFlags1 & PLAYER_STATE1_SHIELDING))) {
+-        func_8008EC70(this);
++        Player_ApplyHeldItemAction(this);  // was func_8008EC70 [LLM:HIGH]
+     }
+ 
+     if (!(flags & 1) && !(this->stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR)) {
+@@ -3372,7 +3372,7 @@ void Player_SetupActionPreserveItemAction(PlayState* play, Player* this, PlayerA
+     if (this->itemAction >= PLAYER_IA_NONE) {
+         savedItemAction = this->itemAction;
+ 
+-        // Setting `itemAction` to `heldItemAction` will prevent `func_8008EC70` from running when
++        // Setting `itemAction` to `heldItemAction` will prevent `Player_ApplyHeldItemAction` from running when, was func_8008EC70 [LLM:HIGH]
+         // `Player_SetupAction` is called.
+         this->itemAction = this->heldItemAction;
+ 
+@@ -9317,7 +9317,7 @@ void Player_Action_80843188(Player* this, PlayState* play) {
+                     Player_StartAnimMovement(play, this, 4);
+                 } else {
+                     if (this->itemAction < 0) {
+-                        func_8008EC70(this);
++                        Player_ApplyHeldItemAction(this);  // was func_8008EC70 [LLM:HIGH]
+                     }
+                     func_8083A098(this, GET_PLAYER_ANIM(PLAYER_ANIMGROUP_defense_end, this->modelAnimType), play);
+                 }
+-- 
+2.55.0
+

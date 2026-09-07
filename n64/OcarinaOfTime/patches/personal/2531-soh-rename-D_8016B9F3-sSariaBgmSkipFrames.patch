@@ -1,0 +1,62 @@
+From c1da41a152440be33f119d6655a25369641a6522 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:59 +0000
+Subject: [PATCH 2531/3799] soh: rename D_8016B9F3 -> sSariaBgmSkipFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: set to 1 by the audio reset so the first Audio_PlaySariaBgm call after it is skipped
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/audio_general.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 2111087d2..a1c12c199 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -1293,7 +1293,8 @@ char sBinToStrBuf[0x20]; // decomp: debug only
+ u8 sMalonSingingTimer;
+ u8 sAudioSpecPeakNumNotes[0x12]; // decomp: debug only
+ u8 sMalonSingingDisabled;
+-u8 D_8016B9F3;
++// LLM generated name (HIGH), was D_8016B9F3: set to 1 by the audio reset so the first Audio_PlaySariaBgm call after it is skipped
++u8 sSariaBgmSkipFrames;  // was D_8016B9F3 [LLM:HIGH]
+ u8 sFanfareStartTimer;
+ u16 sFanfareSeqId;
+ 
+@@ -1377,7 +1378,7 @@ s32 sAudioUpdateTaskEnd;      // decomp: debug only
+     F(sSfxChannelState)                                \
+     F(sMalonSingingTimer)                              \
+     F(sMalonSingingDisabled)                           \
+-    F(D_8016B9F3)                                      \
++    F(sSariaBgmSkipFrames)                                      \
+     F(sFanfareStartTimer)                              \
+     F(sFanfareSeqId)                                   \
+     F(sRecordingState)                                 \
+@@ -4817,8 +4818,8 @@ void Audio_PlaySariaBgm(Vec3f* pos, u16 seqId, u16 distMax) {
+     u8 vol;
+     f32 prevDist;
+ 
+-    if (D_8016B9F3 != 0) {
+-        D_8016B9F3--;
++    if (sSariaBgmSkipFrames != 0) {  // was D_8016B9F3 [LLM:HIGH]
++        sSariaBgmSkipFrames--;  // was D_8016B9F3 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -5499,7 +5500,7 @@ void Audio_ResetData(void) {
+     Audio_QueueCmdS8(0x46 << 24 | SEQ_PLAYER_BGM_MAIN << 16, -1);
+     sSariaBgmPtr = NULL;
+     sFanfareStartTimer = 0;
+-    D_8016B9F3 = 1;
++    sSariaBgmSkipFrames = 1;  // was D_8016B9F3 [LLM:HIGH]
+     sMalonSingingDisabled = 0;
+ }
+ 
+-- 
+2.55.0
+

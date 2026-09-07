@@ -1,0 +1,64 @@
+From 97530f1d8ab320f2facc7a830640e6cc0f9b1e1f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:42:36 +0000
+Subject: [PATCH 1765/3799] soh: rename D_801612EA -> sSelectedCutLetter
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the letter of the cut the user has selected, or '*' when none is.
+Defined in soh/src/code/db_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/db_camera.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index eec33569b..9a03aec03 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -1436,7 +1436,8 @@ static DbCameraCut sDbCameraCuts[16];
+ // LLM generated name (HIGH), was D_80161250: a 0x80-byte table indexed by a cut's letter, holding 'O' when that letter has a recorded cut and 'X' when it does not, for the on-screen list.
+ static char sCutLetterMarks[0x80];  // was D_80161250 [LLM:HIGH]
+ static char sLetters[26];
+-static char D_801612EA;
++// LLM generated name (HIGH), was D_801612EA: the letter of the cut the user has selected, or '*' when none is.
++static char sSelectedCutLetter;  // was D_801612EA [LLM:HIGH]
+ static s32 sAllocSize;
+ 
+ s32 DbCamera_GetFirstAvailableLetter(void) {
+@@ -1746,7 +1747,7 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+ void DbCamera_Reset(Camera* cam, DbCamera* dbCam) {
+     s32 i;
+ 
+-    D_801612EA = '*';
++    sSelectedCutLetter = '*';  // was D_801612EA [LLM:HIGH]
+     for (i = 0; i < ARRAY_COUNT(sLetters); i++) {
+         sLetters[i] = 'X';
+     }
+@@ -2100,10 +2101,10 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+             if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_L)) {
+                 if (sp74[sCurFileIdx] == '?') {
+                     sLastFileIdx = -1;
+-                    D_801612EA = '*';
++                    sSelectedCutLetter = '*';  // was D_801612EA [LLM:HIGH]
+                 } else {
+                     sLastFileIdx = sCurFileIdx;
+-                    D_801612EA = sDbCameraCuts[idx1].letter;
++                    sSelectedCutLetter = sDbCameraCuts[idx1].letter;  // was D_801612EA [LLM:HIGH]
+                 }
+             } else if (!CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_L)) {
+                 if (sLastFileIdx != -1) {
+@@ -2240,7 +2241,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+             DebugCamera_CopyText(4, 7, 5, cameraStrings[28]);  // was func_8006376C [LLM:HIGH]
+             sp74[1] = 0;
+             if (sLastFileIdx != -1) {
+-                sp74[0] = D_801612EA;
++                sp74[0] = sSelectedCutLetter;  // was D_801612EA [LLM:HIGH]
+                 DebugCamera_CopyText(sLastFileIdx + 5, 7, 2, sp74);  // was func_8006376C [LLM:HIGH]
+             } else {
+                 sp74[0] = '_';
+-- 
+2.55.0
+

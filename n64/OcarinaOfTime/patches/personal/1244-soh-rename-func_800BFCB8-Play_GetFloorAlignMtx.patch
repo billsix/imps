@@ -1,0 +1,75 @@
+From c690bac01b1ef06e4d8fef7ec1234a412a574473 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:04:00 +0000
+Subject: [PATCH 1244/3799] soh: rename func_800BFCB8 -> Play_GetFloorAlignMtx
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: raycasts for the floor under a position and fills the caller's MtxF with a transform aligned to that floor's normal and translated to the contact point, falling back to an axis-aligned matrix at the given position when there is no floor; it returns the floor height.
+Defined in soh/src/code/z_play.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_actor.c                                        | 2 +-
+ soh/src/code/z_play.c                                         | 3 ++-
+ soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c | 2 +-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 51da2ede9..78e68d7bc 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1547,7 +1547,7 @@ u8 CheckMedallionCount();
+ u8 CheckDungeonCount();
+ u8 CheckBridgeRewardCount();
+ s32 Play_InCsMode(PlayState* play);
+-f32 func_800BFCB8(PlayState* play, MtxF* mf, Vec3f* vec);
++f32 Play_GetFloorAlignMtx(PlayState* play, MtxF* mf, Vec3f* vec);  // was func_800BFCB8 [LLM:HIGH]
+ void* Play_LoadFile(PlayState* play, RomFile* file);
+ void Play_SpawnScene(PlayState* play, s32 sceneId, s32 spawn);
+ void Play_GetScreenPos(PlayState* play, Vec3f* src, Vec3f* dest);  // was func_800C016C [oot]
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 9105e1a87..634381a8f 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -220,7 +220,7 @@ void ActorShadow_DrawFeet(Actor* actor, Lights* lights, PlayState* play) {
+ 
+         for (i = 0; i < 2; i++) {
+             feetPosPtr->y += 50.0f;
+-            *floorHeightPtr = func_800BFCB8(play, &floorMtx, feetPosPtr);
++            *floorHeightPtr = Play_GetFloorAlignMtx(play, &floorMtx, feetPosPtr);  // was func_800BFCB8 [LLM:HIGH]
+             feetPosPtr->y -= 50.0f;
+             actor->shape.feetFloorFlags <<= 1;
+             distToFloor = feetPosPtr->y - *floorHeightPtr;
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index fef89151e..9112d7000 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1715,7 +1715,8 @@ s32 Play_InCsMode(PlayState* play) {
+     return (play->csCtx.state != CS_STATE_IDLE) || Player_InCsMode(play);
+ }
+ 
+-f32 func_800BFCB8(PlayState* play, MtxF* mf, Vec3f* pos) {
++// LLM generated name (HIGH), was func_800BFCB8: raycasts for the floor under a position and fills the caller's MtxF with a transform aligned to that floor's normal and translated to the contact point, falling back to an axis-aligned matrix at the given position when there is no floor; it returns the floor height.
++f32 Play_GetFloorAlignMtx(PlayState* play, MtxF* mf, Vec3f* pos) {
+     CollisionPoly poly;
+     f32 temp1;
+     f32 temp2;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c b/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
+index 6778a7cd1..61228f8b3 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
+@@ -67,7 +67,7 @@ void EffectSsBlast_Draw(PlayState* play, u32 index, EffectSs* this) {
+ 
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+     gDPSetEnvColor(POLY_XLU_DISP++, this->rEnvColorR, this->rEnvColorG, this->rEnvColorB, this->rEnvColorA);
+-    func_800BFCB8(play, &mf, &this->pos);
++    Play_GetFloorAlignMtx(play, &mf, &this->pos);  // was func_800BFCB8 [LLM:HIGH]
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, this->rPrimColorR, this->rPrimColorG, this->rPrimColorB, this->rPrimColorA);
+     Matrix_Put(&mf);
+     Matrix_Scale(radius, radius, radius, MTXMODE_APPLY);
+-- 
+2.55.0
+

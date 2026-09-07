@@ -1,0 +1,49 @@
+From 7ba7d7b39fe1f4331effc8c7ea6b8baf14198ba6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:16:32 +0000
+Subject: [PATCH 1400/3799] soh: rename func_80AFD47C -> EnSkb_SetupRecoil
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: rewinds the attack animation from the frame it connected on and installs the recoil action.
+Defined in soh/src/overlays/actors/ovl_En_Skb/z_en_skb.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Skb/z_en_skb.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Skb/z_en_skb.c b/soh/src/overlays/actors/ovl_En_Skb/z_en_skb.c
+index 34de4e87e..8a03a7435 100644
+--- a/soh/src/overlays/actors/ovl_En_Skb/z_en_skb.c
++++ b/soh/src/overlays/actors/ovl_En_Skb/z_en_skb.c
+@@ -26,7 +26,8 @@ void EnSkb_Advance(EnSkb* this, PlayState* play);
+ // LLM generated name (HIGH), was func_80AFD33C: starts the attacking animation, stops the Stalchild and installs EnSkb_SetupAttack.
+ void EnSkb_SetupSwing(EnSkb* this);  // was func_80AFD33C [LLM:HIGH]
+ void EnSkb_SetupAttack(EnSkb* this, PlayState* play);
+-void func_80AFD47C(EnSkb* this);
++// LLM generated name (HIGH), was func_80AFD47C: rewinds the attack animation from the frame it connected on and installs the recoil action.
++void EnSkb_SetupRecoil(EnSkb* this);  // was func_80AFD47C [LLM:HIGH]
+ void func_80AFD508(EnSkb* this, PlayState* play);
+ void EnSkb_SetupStunned(EnSkb* this);
+ // Name from zeldaret/oot (was func_80AFD59C): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Skb/z_en_skb.c]
+@@ -331,13 +332,13 @@ void EnSkb_SetupAttack(EnSkb* this, PlayState* play) {
+     }
+     if (this->collider.base.atFlags & 4) {
+         this->collider.base.atFlags &= ~6;
+-        func_80AFD47C(this);
++        EnSkb_SetupRecoil(this);  // was func_80AFD47C [LLM:HIGH]
+     } else if (SkelAnime_Update(&this->skelAnime) != 0) {
+         EnSkb_ChooseAction(this);  // was func_80AFCD60 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AFD47C(EnSkb* this) {
++void EnSkb_SetupRecoil(EnSkb* this) {
+     Animation_Change(&this->skelAnime, &gStalchildAttackingAnim, -0.4f, this->skelAnime.curFrame - 1.0f, 0.0f,
+                      ANIMMODE_ONCE_INTERP, 0.0f);
+     this->collider.base.atFlags &= ~4;
+-- 
+2.55.0
+

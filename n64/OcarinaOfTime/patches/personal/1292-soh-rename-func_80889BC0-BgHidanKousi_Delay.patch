@@ -1,0 +1,49 @@
+From b09b765be4854b23c3151ab22226cfa2a49245d7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:08:23 +0000
+Subject: [PATCH 1292/3799] soh: rename func_80889BC0 -> BgHidanKousi_Delay
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts that delay down, cutting it short once the camera is done with the actor, then starts the slide.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c  | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+index a1e77f4c0..e498b88dc 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+@@ -18,7 +18,8 @@ void BgHidanKousi_Draw(Actor* thisx, PlayState* play);
+ void BgHidanKousi_SnapToOpen(BgHidanKousi* this);  // was func_80889ACC [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80889B5C: waits for the fence's switch flag, then aims the attention camera at it and arms the 200-frame delay.
+ void BgHidanKousi_WaitForSwitch(BgHidanKousi* this, PlayState* play);  // was func_80889B5C [LLM:HIGH]
+-void func_80889BC0(BgHidanKousi* this, PlayState* play);
++// LLM generated name (HIGH), was func_80889BC0: counts that delay down, cutting it short once the camera is done with the actor, then starts the slide.
++void BgHidanKousi_Delay(BgHidanKousi* this, PlayState* play);  // was func_80889BC0 [LLM:HIGH]
+ void func_80889C18(BgHidanKousi* this, PlayState* play);
+ void func_80889C90(BgHidanKousi* this, PlayState* play);
+ void func_80889D28(BgHidanKousi* this, PlayState* play);
+@@ -110,13 +111,13 @@ void BgHidanKousi_SnapToOpen(BgHidanKousi* this) {
+ 
+ void BgHidanKousi_WaitForSwitch(BgHidanKousi* this, PlayState* play) {
+     if (Flags_GetSwitch(play, (this->dyna.actor.params >> 8) & 0xFF)) {
+-        BgHidanKousi_SetupAction(this, func_80889BC0);
++        BgHidanKousi_SetupAction(this, BgHidanKousi_Delay);  // was func_80889BC0 [LLM:HIGH]
+         OnePointCutscene_Attention(play, &this->dyna.actor);
+         this->unk_168 = 0xC8;
+     }
+ }
+ 
+-void func_80889BC0(BgHidanKousi* this, PlayState* play) {
++void BgHidanKousi_Delay(BgHidanKousi* this, PlayState* play) {
+     this->unk_168 -= 1;
+     if (this->dyna.actor.category == func_8005B198() || (this->unk_168 <= 0)) {
+         BgHidanKousi_SetupAction(this, func_80889C18);
+-- 
+2.55.0
+

@@ -1,0 +1,120 @@
+From a63cf504a5554eb02de4efb4689e577b50eae703 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:35 +0000
+Subject: [PATCH 2769/3799] soh: rename func_80034BA0 ->
+ Actor_DrawFlexSkeletonOpaWithEnvAlpha
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: draws a flex skeleton opaque with a black env colour at the caller's alpha
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                     | 4 ++--
+ soh/src/code/z_actor.c                      | 3 ++-
+ soh/src/overlays/actors/ovl_En_Du/z_en_du.c | 2 +-
+ soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c | 2 +-
+ soh/src/overlays/actors/ovl_En_Md/z_en_md.c | 2 +-
+ soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c | 2 +-
+ soh/src/overlays/actors/ovl_En_Zo/z_en_zo.c | 2 +-
+ 7 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 33167b7bf..52cbc27a8 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -535,8 +535,8 @@ s32 Npc_UpdateTalking(PlayState* play, Actor* actor, s16* talkState, f32 interac
+                       NpcGetTextIdFunc getTextId, NpcUpdateTalkStateFunc updateTalkState);
+ s16 Npc_GetTrackingPresetMaxPlayerYaw(s16 presetIndex);
+ void Npc_TrackPoint(Actor* actor, NpcInteractInfo* interactInfo, s16 presetIndex, s16 trackingMode);
+-void func_80034BA0(PlayState* play, SkelAnime* skelAnime, OverrideLimbDraw overrideLimbDraw,
+-                   PostLimbDraw postLimbDraw, Actor* actor, s16 alpha);
++void Actor_DrawFlexSkeletonOpaWithEnvAlpha(PlayState* play, SkelAnime* skelAnime, OverrideLimbDraw overrideLimbDraw,
++                   PostLimbDraw postLimbDraw, Actor* actor, s16 alpha);  // was func_80034BA0 [LLM:HIGH]
+ void func_80034CC4(PlayState* play, SkelAnime* skelAnime, OverrideLimbDraw overrideLimbDraw,
+                    PostLimbDraw postLimbDraw, Actor* actor, s16 alpha);
+ s16 Actor_UpdateAlphaByDistance(Actor* actor, PlayState* play, s16 arg2, f32 arg3);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 5fed7230a..4c2962108 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -4616,7 +4616,8 @@ Gfx* Actor_AllocXluRenderModeDList(GraphicsContext* gfxCtx) {
+     return displayList;
+ }
+ 
+-void func_80034BA0(PlayState* play, SkelAnime* skelAnime, OverrideLimbDraw overrideLimbDraw, PostLimbDraw postLimbDraw,
++// LLM generated name (HIGH), was func_80034BA0: draws a flex skeleton opaque with a black env colour at the caller's alpha
++void Actor_DrawFlexSkeletonOpaWithEnvAlpha(PlayState* play, SkelAnime* skelAnime, OverrideLimbDraw overrideLimbDraw, PostLimbDraw postLimbDraw,
+                    Actor* actor, s16 alpha) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+index bba6de7a2..dd3843e44 100644
+--- a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
++++ b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+@@ -700,7 +700,7 @@ void EnDu_Draw(Actor* thisx, PlayState* play) {
+     gSPSegment(POLY_OPA_DISP++, 0x09, SEGMENTED_TO_VIRTUAL(mouthTextures[this->mouthTexIndex]));
+     gSPSegment(POLY_OPA_DISP++, 0x0A, SEGMENTED_TO_VIRTUAL(noseTextures[this->noseTexIndex]));
+ 
+-    func_80034BA0(play, &this->skelAnime, EnDu_OverrideLimbDraw, EnDu_PostLimbDraw, &this->actor, 255);
++    Actor_DrawFlexSkeletonOpaWithEnvAlpha(play, &this->skelAnime, EnDu_OverrideLimbDraw, EnDu_PostLimbDraw, &this->actor, 255);  // was func_80034BA0 [LLM:HIGH]
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+index 1408a5999..ac68b5829 100644
+--- a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
++++ b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+@@ -1401,7 +1401,7 @@ void EnKo_Draw(Actor* thisx, PlayState* play) {
+                    EnKo_SetEnvColor(play->state.gfxCtx, tunicColor.r, tunicColor.g, tunicColor.b, 255));
+         gSPSegment(POLY_OPA_DISP++, 0x09,
+                    EnKo_SetEnvColor(play->state.gfxCtx, bootsColor.r, bootsColor.g, bootsColor.b, 255));
+-        func_80034BA0(play, &this->skelAnime, EnKo_OverrideLimbDraw, EnKo_PostLimbDraw, &this->actor, this->modelAlpha);
++        Actor_DrawFlexSkeletonOpaWithEnvAlpha(play, &this->skelAnime, EnKo_OverrideLimbDraw, EnKo_PostLimbDraw, &this->actor, this->modelAlpha);  // was func_80034BA0 [LLM:HIGH]
+     } else if ((s16)this->modelAlpha != 0) {
+         tunicColor.a = this->modelAlpha;
+         bootsColor.a = this->modelAlpha;
+diff --git a/soh/src/overlays/actors/ovl_En_Md/z_en_md.c b/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
+index fdfa7d9b9..8c8d52f11 100644
+--- a/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
++++ b/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
+@@ -883,7 +883,7 @@ void EnMd_Draw(Actor* thisx, PlayState* play) {
+ 
+     if (this->alpha == 255) {
+         gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sEyeTextures[this->eyeIdx]));
+-        func_80034BA0(play, &this->skelAnime, EnMd_OverrideLimbDraw, EnMd_PostLimbDraw, &this->actor, this->alpha);
++        Actor_DrawFlexSkeletonOpaWithEnvAlpha(play, &this->skelAnime, EnMd_OverrideLimbDraw, EnMd_PostLimbDraw, &this->actor, this->alpha);  // was func_80034BA0 [LLM:HIGH]
+     } else if (this->alpha != 0) {
+         gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sEyeTextures[this->eyeIdx]));
+         func_80034CC4(play, &this->skelAnime, EnMd_OverrideLimbDraw, EnMd_PostLimbDraw, &this->actor, this->alpha);
+diff --git a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
+index cb5a84471..f880424f8 100644
+--- a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
++++ b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
+@@ -842,7 +842,7 @@ void EnSa_Draw(Actor* thisx, PlayState* play) {
+         gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(eyeTextures[this->rightEyeIndex]));
+         gSPSegment(POLY_OPA_DISP++, 0x09, SEGMENTED_TO_VIRTUAL(eyeTextures[this->leftEyeIndex]));
+         gSPSegment(POLY_OPA_DISP++, 0x0A, SEGMENTED_TO_VIRTUAL(mouthTextures[this->mouthIndex]));
+-        func_80034BA0(play, &this->skelAnime, EnSa_OverrideLimbDraw, EnSa_PostLimbDraw, &this->actor, this->alpha);
++        Actor_DrawFlexSkeletonOpaWithEnvAlpha(play, &this->skelAnime, EnSa_OverrideLimbDraw, EnSa_PostLimbDraw, &this->actor, this->alpha);  // was func_80034BA0 [LLM:HIGH]
+     } else if (this->alpha != 0) {
+         gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(eyeTextures[this->rightEyeIndex]));
+         gSPSegment(POLY_XLU_DISP++, 0x09, SEGMENTED_TO_VIRTUAL(eyeTextures[this->leftEyeIndex]));
+diff --git a/soh/src/overlays/actors/ovl_En_Zo/z_en_zo.c b/soh/src/overlays/actors/ovl_En_Zo/z_en_zo.c
+index c527f59d0..6e1a4d669 100644
+--- a/soh/src/overlays/actors/ovl_En_Zo/z_en_zo.c
++++ b/soh/src/overlays/actors/ovl_En_Zo/z_en_zo.c
+@@ -807,7 +807,7 @@ void EnZo_Draw(Actor* thisx, PlayState* play) {
+ 
+         if (this->alpha == 255.0f) {
+             gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(eyeTextures[this->eyeTexture]));
+-            func_80034BA0(play, &this->skelAnime, EnZo_OverrideLimbDraw, EnZo_PostLimbDraw, thisx, this->alpha);
++            Actor_DrawFlexSkeletonOpaWithEnvAlpha(play, &this->skelAnime, EnZo_OverrideLimbDraw, EnZo_PostLimbDraw, thisx, this->alpha);  // was func_80034BA0 [LLM:HIGH]
+         } else {
+             gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(eyeTextures[this->eyeTexture]));
+             func_80034CC4(play, &this->skelAnime, EnZo_OverrideLimbDraw, EnZo_PostLimbDraw, thisx, this->alpha);
+-- 
+2.55.0
+

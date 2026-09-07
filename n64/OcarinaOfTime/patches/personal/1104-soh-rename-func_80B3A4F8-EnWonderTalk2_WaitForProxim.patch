@@ -1,0 +1,58 @@
+From c82a3a7afbae7ba6154ab4a8984a423556d57220 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:48:26 +0000
+Subject: [PATCH 1104/3799] soh: rename func_80B3A4F8 ->
+ EnWonderTalk2_WaitForProximity
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the forced variant: starts the textbox on its own the moment the player is inside the configured XZ range and within 100 units vertically, outside a cutscene.
+Defined in soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c       | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c b/soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c
+index c0e1ffe0d..56c7c9bee 100644
+--- a/soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c
++++ b/soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c
+@@ -16,7 +16,8 @@ void EnWonderTalk2_Update(Actor* thisx, PlayState* play);
+ 
+ // LLM generated name (HIGH), was func_80B3A10C: builds actor.textId from 0x200 plus baseMsgId, then routes to the proximity-triggered or the talk-offer waiting state according to talkMode.
+ void EnWonderTalk2_SetupTextId(EnWonderTalk2* this, PlayState* play);  // was func_80B3A10C [LLM:HIGH]
+-void func_80B3A4F8(EnWonderTalk2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B3A4F8: the forced variant: starts the textbox on its own the moment the player is inside the configured XZ range and within 100 units vertically, outside a cutscene.
++void EnWonderTalk2_WaitForProximity(EnWonderTalk2* this, PlayState* play);  // was func_80B3A4F8 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80B3A15C: the talk-offer variant: offers talk inside the configured range and, when the player accepts, sets the switch flag and returns to the setup state.
+ void EnWonderTalk2_WaitForTalk(EnWonderTalk2* this, PlayState* play);  // was func_80B3A15C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80B3A3D4: waits for the forced textbox to finish, then sets the switch flag, drops the attention and culling flags and hands control back to the player.
+@@ -108,7 +109,7 @@ void EnWonderTalk2_SetupTextId(EnWonderTalk2* this, PlayState* play) {
+     this->actor.textId = 0x200;
+     this->actor.textId |= this->baseMsgId;
+     if (this->talkMode == 1 || this->talkMode == 4) {
+-        this->actionFunc = func_80B3A4F8;
++        this->actionFunc = EnWonderTalk2_WaitForProximity;  // was func_80B3A4F8 [LLM:HIGH]
+     } else {
+         this->actionFunc = EnWonderTalk2_WaitForTalk;  // was func_80B3A15C [LLM:HIGH]
+     }
+@@ -203,12 +204,12 @@ void EnWonderTalk2_WaitForMessageDone(EnWonderTalk2* this, PlayState* play) {
+                 Player_SetCsActionWithHaltedActors(play, NULL, 7);
+             }
+             this->unk_156 = true;
+-            this->actionFunc = func_80B3A4F8;
++            this->actionFunc = EnWonderTalk2_WaitForProximity;  // was func_80B3A4F8 [LLM:HIGH]
+             break;
+     }
+ }
+ 
+-void func_80B3A4F8(EnWonderTalk2* this, PlayState* play) {
++void EnWonderTalk2_WaitForProximity(EnWonderTalk2* this, PlayState* play) {
+     Player* player;
+ 
+     player = GET_PLAYER(play);
+-- 
+2.55.0
+

@@ -1,0 +1,51 @@
+From 846f9256e29130c6ea8416f636c0053dc9114ad8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:13:53 +0000
+Subject: [PATCH 1375/3799] soh: rename func_80AAF668 -> EnMm2_WaitAtFinish
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the params 1 idle at the finish line: picks the win or lose line by comparing the sub-timer against the record, records a new record when the player talks, and gives up and leaves if the race flag is cleared out from under him.
+Defined in soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c b/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
+index 532674621..2649bb7e9 100644
+--- a/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
++++ b/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
+@@ -33,7 +33,8 @@ void EnMm2_Draw(Actor* thisx, PlayState* play);
+ void EnMm2_Talk(EnMm2* this, PlayState* play);  // was func_80AAF3C0 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80AAF57C: the params 0 idle: refreshes the text id each frame and offers talk, setting the offered-race flag the first time the challenge line comes up.
+ void EnMm2_Idle(EnMm2* this, PlayState* play);  // was func_80AAF57C [LLM:HIGH]
+-void func_80AAF668(EnMm2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AAF668: the params 1 idle at the finish line: picks the win or lose line by comparing the sub-timer against the record, records a new record when the player talks, and gives up and leaves if the race flag is cleared out from under him.
++void EnMm2_WaitAtFinish(EnMm2* this, PlayState* play);  // was func_80AAF668 [LLM:HIGH]
+ s32 EnMm2_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx);
+ void EnMm2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx);
+ 
+@@ -144,7 +145,7 @@ void EnMm2_Init(Actor* thisx, PlayState* play2) {
+     this->unk_1F4 |= 1;
+     this->actor.gravity = -1.0f;
+     if (this->actor.params == 1) {
+-        this->actionFunc = func_80AAF668;
++        this->actionFunc = EnMm2_WaitAtFinish;  // was func_80AAF668 [LLM:HIGH]
+     } else {
+         EnMm2_UpdateTextId(this, play);  // was func_80AAEF70 [LLM:HIGH]
+         this->actionFunc = EnMm2_Idle;  // was func_80AAF57C [LLM:HIGH]
+@@ -269,7 +270,7 @@ void EnMm2_TalkAtFinish(EnMm2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AAF668(EnMm2* this, PlayState* play) {
++void EnMm2_WaitAtFinish(EnMm2* this, PlayState* play) {
+     this->actor.world.rot.y = -0x3E80;
+     this->actor.shape.rot.y = this->actor.world.rot.y;
+     SkelAnime_Update(&this->skelAnime);
+-- 
+2.55.0
+

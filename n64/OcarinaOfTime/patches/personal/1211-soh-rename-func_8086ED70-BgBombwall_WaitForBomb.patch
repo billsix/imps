@@ -1,0 +1,69 @@
+From 9f18531a1f5b2010cc8d600f2aa016366a2320b0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:58:00 +0000
+Subject: [PATCH 1211/3799] soh: rename func_8086ED70 -> BgBombwall_WaitForBomb
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: runs the AC check while the player is within 600 units and, on a hit, sets the switch flag and starts the break.
+Defined in soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/soh/Network/Anchor/HookHandlers.cpp                 | 4 ++--
+ soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c | 7 ++++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/soh/Network/Anchor/HookHandlers.cpp b/soh/soh/Network/Anchor/HookHandlers.cpp
+index 4b0532649..1adc478ea 100644
+--- a/soh/soh/Network/Anchor/HookHandlers.cpp
++++ b/soh/soh/Network/Anchor/HookHandlers.cpp
+@@ -32,7 +32,7 @@ extern "C" {
+ #include "objects/gameplay_keep/gameplay_keep.h"
+ extern PlayState* gPlayState;
+ extern MapData* gMapData;
+-void func_8086ED70(BgBombwall* bgBombwall, PlayState* play);
++void BgBombwall_WaitForBomb(BgBombwall* bgBombwall, PlayState* play);  // was func_8086ED70 [LLM:HIGH]
+ void BgBreakwall_Wait(BgBreakwall* bgBreakwall, PlayState* play);
+ void BgHakaZou_WaitForHit(BgHakaZou* bgHakaZou, PlayState* play);
+ void func_808887C4(BgHidanHamstep* bgHidanHamstep, PlayState* play);
+@@ -215,7 +215,7 @@ void Anchor::RegisterHooks() {
+     COND_ID_HOOK(ShouldActorUpdate, ACTOR_BG_BOMBWALL, isConnected, [&](void* refActor, bool* should) {
+         BgBombwall* actor = static_cast<BgBombwall*>(refActor);
+ 
+-        if (actor->actionFunc == func_8086ED70 && Flags_GetSwitch(gPlayState, actor->dyna.actor.params & 0x3F)) {
++        if (actor->actionFunc == BgBombwall_WaitForBomb && Flags_GetSwitch(gPlayState, actor->dyna.actor.params & 0x3F)) {  // was func_8086ED70 [LLM:HIGH]
+             actor->collider.base.acFlags |= AC_HIT;
+         }
+     });
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c b/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
+index 6ec520f4f..c5c37fa54 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
+@@ -16,7 +16,8 @@ void BgBombwall_Draw(Actor* thisx, PlayState* play);
+ 
+ // LLM generated name (HIGH), was func_8086ED50: selects the intact display list and installs the waiting action.
+ void BgBombwall_SetupWaitForBomb(BgBombwall* this, PlayState* play);  // was func_8086ED50 [LLM:HIGH]
+-void func_8086ED70(BgBombwall* this, PlayState* play);
++// LLM generated name (HIGH), was func_8086ED70: runs the AC check while the player is within 600 units and, on a hit, sets the switch flag and starts the break.
++void BgBombwall_WaitForBomb(BgBombwall* this, PlayState* play);  // was func_8086ED70 [LLM:HIGH]
+ void func_8086EDFC(BgBombwall* this, PlayState* play);
+ void func_8086EE40(BgBombwall* this, PlayState* play);
+ void func_8086EE94(BgBombwall* this, PlayState* play);
+@@ -210,10 +211,10 @@ void BgBombwall_SpawnDust(BgBombwall* this, PlayState* play) {
+ 
+ void BgBombwall_SetupWaitForBomb(BgBombwall* this, PlayState* play) {
+     this->dList = gBgBombwallNormalDL;
+-    this->actionFunc = func_8086ED70;
++    this->actionFunc = BgBombwall_WaitForBomb;  // was func_8086ED70 [LLM:HIGH]
+ }
+ 
+-void func_8086ED70(BgBombwall* this, PlayState* play) {
++void BgBombwall_WaitForBomb(BgBombwall* this, PlayState* play) {
+     if (this->collider.base.acFlags & AC_HIT) {
+         this->collider.base.acFlags &= ~AC_HIT;
+         func_8086EDFC(this, play);
+-- 
+2.55.0
+

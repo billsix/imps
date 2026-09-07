@@ -1,0 +1,51 @@
+From 61f1ec90484c8154911fe115cfb13d48245c2f65 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:51:21 +0000
+Subject: [PATCH 1130/3799] soh: rename D_80BA1B58 -> sThrownSpinTargetY
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the Y counterpart of sThrownSpinTargetX.
+Defined in soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c b/soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c
+index 8dd7a0619..67678f292 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c
++++ b/soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c
+@@ -36,7 +36,8 @@ void ObjTsubo_Thrown(ObjTsubo* this, PlayState* play);
+ static s16 sThrownSpinTargetX = 0;  // was D_80BA1B50 [LLM:HIGH]
+ // LLM generated name (HIGH), was D_80BA1B54: the current X spin rate, stepped toward sThrownSpinTargetX and added to shape.rot.x every frame while the pot is airborne.
+ static s16 sThrownSpinX = 0;  // was D_80BA1B54 [LLM:HIGH]
+-static s16 D_80BA1B58 = 0;
++// LLM generated name (HIGH), was D_80BA1B58: the Y counterpart of sThrownSpinTargetX.
++static s16 sThrownSpinTargetY = 0;  // was D_80BA1B58 [LLM:HIGH]
+ static s16 D_80BA1B5C = 0;
+ 
+ const ActorInit Obj_Tsubo_InitVars = {
+@@ -302,7 +303,7 @@ void ObjTsubo_SetupThrown(ObjTsubo* this) {
+     this->actor.velocity.z = Math_CosS(this->actor.world.rot.y) * this->actor.speedXZ;
+     this->actor.colChkInfo.mass = 240;
+     sThrownSpinTargetX = (Rand_ZeroOne() - 0.7f) * 2800.0f;  // was D_80BA1B50 [LLM:HIGH]
+-    D_80BA1B58 = (Rand_ZeroOne() - 0.5f) * 2000.0f;
++    sThrownSpinTargetY = (Rand_ZeroOne() - 0.5f) * 2000.0f;  // was D_80BA1B58 [LLM:HIGH]
+     sThrownSpinX = 0;  // was D_80BA1B54 [LLM:HIGH]
+     D_80BA1B5C = 0;
+     this->actionFunc = ObjTsubo_Thrown;
+@@ -325,7 +326,7 @@ void ObjTsubo_Thrown(ObjTsubo* this, PlayState* play) {
+         ObjTsubo_ApplyGravity(this);
+         Actor_UpdatePos(&this->actor);
+         Math_StepToS(&sThrownSpinX, sThrownSpinTargetX, 0x64);  // was D_80BA1B50 [LLM:HIGH]
+-        Math_StepToS(&D_80BA1B5C, D_80BA1B58, 0x64);
++        Math_StepToS(&D_80BA1B5C, sThrownSpinTargetY, 0x64);  // was D_80BA1B58 [LLM:HIGH]
+         this->actor.shape.rot.x += sThrownSpinX;  // was D_80BA1B54 [LLM:HIGH]
+         this->actor.shape.rot.y += D_80BA1B5C;
+         Actor_UpdateBgCheckInfo(play, &this->actor, 5.0f, 15.0f, 0.0f, 0x85);
+-- 
+2.55.0
+

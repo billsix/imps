@@ -1,0 +1,87 @@
+From df0c349fabb892934eff8a68511a3e28f6db89e6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:10:57 +0000
+Subject: [PATCH 2045/3799] soh: rename func_80AB6BF8 -> EnNiw_Held
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: tumbles randomly while the player carries it and picks the next action on release
+Defined in soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+index 980116860..63782e5af 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+@@ -30,7 +30,8 @@ void EnNiw_WaitToBeLifted(EnNiw* this, PlayState* play);  // was func_80AB6450 [
+ void EnNiw_Idle(EnNiw* this, PlayState* play);  // was func_80AB6570 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80AB6A38: walks the setup path waypoint by waypoint, hopping toward each with EnNiw_HopTowardTarget
+ void EnNiw_FollowPath(EnNiw* this, PlayState* play);  // was func_80AB6A38 [LLM:HIGH]
+-void func_80AB6BF8(EnNiw* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AB6BF8: tumbles randomly while the player carries it and picks the next action on release
++void EnNiw_Held(EnNiw* this, PlayState* play);  // was func_80AB6BF8 [LLM:HIGH]
+ void func_80AB6D08(EnNiw* this, PlayState* play);
+ void func_80AB6EB4(EnNiw* this, PlayState* play);
+ void func_80AB70F8(EnNiw* this, PlayState* play);
+@@ -477,7 +478,7 @@ void EnNiw_WaitToBeLifted(EnNiw* this, PlayState* play) {
+         this->timer4 = 30;
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+         this->actor.speedXZ = 0.0f;
+-        this->actionFunc = func_80AB6BF8;
++        this->actionFunc = EnNiw_Held;  // was func_80AB6BF8 [LLM:HIGH]
+     } else {
+         // GI_NONE in this case allows the player to lift the actor
+         Actor_OfferGetItem(&this->actor, play, GI_NONE, 25.0f, 10.0f);
+@@ -499,7 +500,7 @@ void EnNiw_Idle(EnNiw* this, PlayState* play) {
+             this->timer4 = 30;
+             this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+             this->actor.speedXZ = 0.0f;
+-            this->actionFunc = func_80AB6BF8;
++            this->actionFunc = EnNiw_Held;  // was func_80AB6BF8 [LLM:HIGH]
+             return;
+         }
+         Actor_OfferCarry(&this->actor, play);
+@@ -633,7 +634,7 @@ void EnNiw_FollowPath(EnNiw* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB6BF8(EnNiw* this, PlayState* play) {
++void EnNiw_Held(EnNiw* this, PlayState* play) {
+     if (this->timer4 == 0) {
+         this->unk_2A6 = 2;
+         this->timer4 = 10;
+@@ -704,7 +705,7 @@ void func_80AB6D08(EnNiw* this, PlayState* play) {
+         this->timer4 = 30;
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+         this->actor.speedXZ = 0.0f;
+-        this->actionFunc = func_80AB6BF8;
++        this->actionFunc = EnNiw_Held;  // was func_80AB6BF8 [LLM:HIGH]
+     } else {
+         if (this->timer5 >= 6) {
+             Actor_OfferCarry(&this->actor, play);
+@@ -1094,7 +1095,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+ 
+     func_80AB747C(this, play);
+ 
+-    if (this->sfxTimer2 == 0 && this->actionFunc == func_80AB6BF8) {
++    if (this->sfxTimer2 == 0 && this->actionFunc == EnNiw_Held) {  // was func_80AB6BF8 [LLM:HIGH]
+         this->sfxTimer2 = 7;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_DEKU_WAKEUP);
+     }
+@@ -1113,7 +1114,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+         if (thisx->params != 0xA && thisx->params != 0xD && thisx->params != 0xE && thisx->params != 4) {
+             CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+         }
+-        if (this->actionFunc != func_80AB6BF8 && this->actionFunc != func_80AB6D08 &&
++        if (this->actionFunc != EnNiw_Held && this->actionFunc != func_80AB6D08 &&  // was func_80AB6BF8 [LLM:HIGH]
+             this->actionFunc != EnNiw_WaitToFlyOff && this->actionFunc != EnNiw_Airborne &&  // was func_80AB6324 [LLM:GUESS]
+             this->actionFunc != EnNiw_WaitToBeLifted) {  // was func_80AB6450 [LLM:HIGH]
+             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+-- 
+2.55.0
+

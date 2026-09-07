@@ -1,0 +1,76 @@
+From fe0e0d20404fbd57effa1459b01f368e6ca70911 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 18:50:28 +0000
+Subject: [PATCH 0792/3799] soh: rename func_800A6360 -> Skin_DrawOverrideLimb
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: Skin_DrawImpl wrapper that additionally exposes the overrideLimbDraw callback; callers pass EnHorse_OverrideLimbDraw and friends.
+Defined in soh/src/code/z_skin.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_skin.c                                         | 3 ++-
+ soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c             | 4 ++--
+ .../actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c    | 2 +-
+ 4 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 2f0c84a1d..a51b3687f 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1354,7 +1354,7 @@ void Skin_UpdateVertices(MtxF* mtx, SkinVertex* skinVertices, SkinLimbModif* mod
+ void Skin_DrawAnimatedLimb(GraphicsContext* gfxCtx, Skin* skin, s32 limbIndex, s32 arg3, s32 drawFlags);
+ void Skin_DrawLimb(GraphicsContext* gfxCtx, Skin* skin, s32 limbIndex, Gfx* dlistOverride, s32 drawFlags);
+ void Skin_Draw(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation);  // was func_800A6330 [LLM:HIGH]
+-void func_800A6360(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation);
++void Skin_DrawOverrideLimb(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation);  // was func_800A6360 [LLM:HIGH]
+ void func_800A6394(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6);
+ void func_800A63CC(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6, s32 drawFlags);
+ void Skin_GetLimbPos(Skin* skin, s32 limbIndex, Vec3f* arg2, Vec3f* dst);
+diff --git a/soh/src/code/z_skin.c b/soh/src/code/z_skin.c
+index c5c08586c..187e6a5c8 100644
+--- a/soh/src/code/z_skin.c
++++ b/soh/src/code/z_skin.c
+@@ -245,7 +245,8 @@ void Skin_Draw(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw,
+ }
+ 
+ // allows specifying OverrideLimbDraw, PostLimbDraw and setTranslation
+-void func_800A6360(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw,
++// LLM generated name (HIGH), was func_800A6360: Skin_DrawImpl wrapper that additionally exposes the overrideLimbDraw callback; callers pass EnHorse_OverrideLimbDraw and friends.
++void Skin_DrawOverrideLimb(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw,
+                    SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation) {
+     Skin_DrawImpl(actor, play, skin, postDraw, overrideLimbDraw, setTranslation, false, 0);
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+index 088b5f67c..037fb0a1e 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
++++ b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+@@ -3862,9 +3862,9 @@ void EnHorse_Draw(Actor* thisx, PlayState* play) {
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+         this->stateFlags |= ENHORSE_DRAW;
+         if (this->stateFlags & ENHORSE_JUMPING) {
+-            func_800A6360(thisx, play, &this->skin, EnHorse_PostDraw, EnHorse_OverrideLimbDraw, false);
++            Skin_DrawOverrideLimb(thisx, play, &this->skin, EnHorse_PostDraw, EnHorse_OverrideLimbDraw, false);  // was func_800A6360 [LLM:HIGH]
+         } else {
+-            func_800A6360(thisx, play, &this->skin, EnHorse_PostDraw, EnHorse_OverrideLimbDraw, true);
++            Skin_DrawOverrideLimb(thisx, play, &this->skin, EnHorse_PostDraw, EnHorse_OverrideLimbDraw, true);  // was func_800A6360 [LLM:HIGH]
+         }
+         if (this->postDrawFunc != NULL) {
+             this->postDrawFunc(this, play);
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c b/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
+index 2c51b102a..165e93d43 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
+@@ -621,5 +621,5 @@ void EnHorseLinkChild_Draw(Actor* thisx, PlayState* play) {
+     EnHorseLinkChild* this = (EnHorseLinkChild*)thisx;
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_800A6360(&this->actor, play, &this->skin, EnHorseLinkChild_PostDraw, EnHorseLinkChild_OverrideLimbDraw, true);
++    Skin_DrawOverrideLimb(&this->actor, play, &this->skin, EnHorseLinkChild_PostDraw, EnHorseLinkChild_OverrideLimbDraw, true);  // was func_800A6360 [LLM:HIGH]
+ }
+-- 
+2.55.0
+

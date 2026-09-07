@@ -1,0 +1,60 @@
+From 074c69d4dd0bf4c0433eeb6f25ceda8650450248 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:27:41 +0000
+Subject: [PATCH 1571/3799] soh: rename func_80A4008C -> EnGo_SlowToStop
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits for the rolling Goron to bounce to a halt, then zeroes his shape offset and curls him up.
+Defined in soh/src/overlays/actors/ovl_En_Go/z_en_go.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Go/z_en_go.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+index e4131d842..d4997a179 100644
+--- a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
++++ b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+@@ -16,7 +16,8 @@ void EnGo_Draw(Actor* thisx, PlayState* play);
+ // LLM generated name (HIGH), was func_80A3FEB4: holds the rolling Goron dormant until the player is within 1200 units, then starts him rolling.
+ void EnGo_WaitForPlayerNear(EnGo* this, PlayState* play);  // was func_80A3FEB4 [LLM:HIGH]
+ void EnGo_StopRolling(EnGo* this, PlayState* play);
+-void func_80A4008C(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A4008C: waits for the rolling Goron to bounce to a halt, then zeroes his shape offset and curls him up.
++void EnGo_SlowToStop(EnGo* this, PlayState* play);  // was func_80A4008C [LLM:HIGH]
+ void EnGo_GoronLinkRolling(EnGo* this, PlayState* play);
+ void EnGo_FireGenericActionFunc(EnGo* this, PlayState* play);
+ void EnGo_CurledUp(EnGo* this, PlayState* play);
+@@ -733,7 +734,7 @@ void EnGo_StopRolling(EnGo* this, PlayState* play) {
+         }
+ 
+         this->actor.speedXZ = 0.0f;
+-        EnGo_SetupAction(this, func_80A4008C);
++        EnGo_SetupAction(this, EnGo_SlowToStop);  // was func_80A4008C [LLM:HIGH]
+     }
+ 
+     this->actor.shape.rot = this->actor.world.rot;
+@@ -743,7 +744,7 @@ void EnGo_StopRolling(EnGo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A4008C(EnGo* this, PlayState* play) {
++void EnGo_SlowToStop(EnGo* this, PlayState* play) {
+     if (EnGo_IsRollingOnGround(this, 3, 6.0f)) {
+         if (this->unk_21A == 0) {
+             this->actor.shape.yOffset = 0.0f;
+@@ -758,7 +759,7 @@ void EnGo_GoronLinkRolling(EnGo* this, PlayState* play) {
+     if ((EnGo_FollowPath(this, play) == true) && Flags_GetSwitch(play, this->actor.params >> 8) &&
+         (this->unk_218 == 0)) {
+         this->actor.speedXZ = 0.0f;
+-        EnGo_SetupAction(this, func_80A4008C);
++        EnGo_SetupAction(this, EnGo_SlowToStop);  // was func_80A4008C [LLM:HIGH]
+         Flags_SetInfTable(INFTABLE_GORON_CITY_DOORS_UNLOCKED);
+     }
+ 
+-- 
+2.55.0
+

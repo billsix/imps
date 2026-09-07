@@ -1,0 +1,60 @@
+From ef8d079023b3053ff3d28a78e54b0576a276627c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:07:51 +0000
+Subject: [PATCH 1990/3799] soh: rename func_80A99048 -> EnKo_WaitForObjects
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: holds until the animation and model objects load, then builds the skeleton and collider and installs the first real action
+Defined in soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+index b15f92333..3cb9f8bf3 100644
+--- a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
++++ b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+@@ -22,7 +22,8 @@ void EnKo_Destroy(Actor* thisx, PlayState* play);
+ void EnKo_Update(Actor* thisx, PlayState* play);
+ void EnKo_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A99048(EnKo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A99048: holds until the animation and model objects load, then builds the skeleton and collider and installs the first real action
++void EnKo_WaitForObjects(EnKo* this, PlayState* play);  // was func_80A99048 [LLM:HIGH]
+ void func_80A995CC(EnKo* this, PlayState* play);
+ void func_80A99384(EnKo* this, PlayState* play);
+ void func_80A99438(EnKo* this, PlayState* play);
+@@ -1158,7 +1159,7 @@ void EnKo_Init(Actor* thisx, PlayState* play) {
+     if (!EnKo_CanSpawn(this, play)) {
+         Actor_Kill(thisx);
+     }
+-    this->actionFunc = func_80A99048;
++    this->actionFunc = EnKo_WaitForObjects;  // was func_80A99048 [LLM:HIGH]
+ }
+ 
+ void EnKo_Destroy(Actor* thisx, PlayState* play) {
+@@ -1166,7 +1167,7 @@ void EnKo_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80A99048(EnKo* this, PlayState* play) {
++void EnKo_WaitForObjects(EnKo* this, PlayState* play) {
+     if (EnKo_IsOsAnimeLoaded(this, play) && EnKo_AreObjectsLoaded(this, play)) {
+         this->actor.flags &= ~ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+         this->actor.objBankIndex = this->legsObjectBankIdx;
+@@ -1289,7 +1290,7 @@ void EnKo_Update(Actor* thisx, PlayState* play) {
+     EnKo* this = (EnKo*)thisx;
+     s32 pad;
+ 
+-    if (this->actionFunc != func_80A99048) {
++    if (this->actionFunc != EnKo_WaitForObjects) {  // was func_80A99048 [LLM:HIGH]
+         if ((s32)this->modelAlpha != 0) {
+             gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->osAnimeBankIndex].segment);
+             SkelAnime_Update(&this->skelAnime);
+-- 
+2.55.0
+

@@ -1,0 +1,52 @@
+From db39b09a87b77c40b685ce53497d9026bd8084b7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:47:36 +0000
+Subject: [PATCH 1091/3799] soh: rename func_80AFB89C ->
+ EnSi_AttachedToHookshot
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: keeps scaling and spinning while ACTOR_FLAG_HOOKSHOT_ATTACHED is set, and awards the token the moment the hookshot lets go.
+Defined in soh/src/overlays/actors/ovl_En_Si/z_en_si.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Si/z_en_si.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Si/z_en_si.c b/soh/src/overlays/actors/ovl_En_Si/z_en_si.c
+index 0db3e894e..172045bd6 100644
+--- a/soh/src/overlays/actors/ovl_En_Si/z_en_si.c
++++ b/soh/src/overlays/actors/ovl_En_Si/z_en_si.c
+@@ -19,7 +19,8 @@ void EnSi_Draw(Actor* thisx, PlayState* play);
+ s32 EnSi_ClearAcHit(EnSi* this, PlayState* play);  // was func_80AFB748 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80AFB768: the token's resting action: eases the scale to 0.25, spins it, and on an OC hit awards ITEM_SKULL_TOKEN and starts the collect sequence; a hookshot attachment diverts it to the pulled state.
+ void EnSi_Idle(EnSi* this, PlayState* play);  // was func_80AFB768 [LLM:HIGH]
+-void func_80AFB89C(EnSi* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AFB89C: keeps scaling and spinning while ACTOR_FLAG_HOOKSHOT_ATTACHED is set, and awards the token the moment the hookshot lets go.
++void EnSi_AttachedToHookshot(EnSi* this, PlayState* play);  // was func_80AFB89C [LLM:HIGH]
+ void func_80AFB950(EnSi* this, PlayState* play);
+ 
+ static ColliderCylinderInit sCylinderInit = {
+@@ -86,7 +87,7 @@ void EnSi_Idle(EnSi* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (CHECK_FLAG_ALL(this->actor.flags, ACTOR_FLAG_HOOKSHOT_ATTACHED)) {
+-        this->actionFunc = func_80AFB89C;
++        this->actionFunc = EnSi_AttachedToHookshot;  // was func_80AFB89C [LLM:HIGH]
+     } else {
+         Math_SmoothStepToF(&this->actor.scale.x, 0.25f, 0.4f, 1.0f, 0.0f);
+         Actor_SetScale(&this->actor, this->actor.scale.x);
+@@ -115,7 +116,7 @@ void EnSi_Idle(EnSi* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AFB89C(EnSi* this, PlayState* play) {
++void EnSi_AttachedToHookshot(EnSi* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     Math_SmoothStepToF(&this->actor.scale.x, 0.25f, 0.4f, 1.0f, 0.0f);
+-- 
+2.55.0
+

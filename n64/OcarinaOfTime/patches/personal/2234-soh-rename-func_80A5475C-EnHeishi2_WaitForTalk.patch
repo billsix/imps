@@ -1,0 +1,124 @@
+From 3d445132a194ab4e3c3891e4e11f37441b140328 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:18:25 +0000
+Subject: [PATCH 2234/3799] soh: rename func_80A5475C -> EnHeishi2_WaitForTalk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: offers the talk and routes an accepted one to the bribe or gate branch according to type and text state
+Defined in soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../Enhancements/randomizer/hook_handlers.cpp |  4 ++--
+ .../actors/ovl_En_Heishi2/z_en_heishi2.c      | 19 ++++++++++---------
+ 2 files changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 2c23825a1..112079f67 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -938,7 +938,7 @@ void RandomizerOnDialogMessageHandler() {
+     }
+ }
+ 
+-extern "C" void func_80A5475C(EnHeishi2* CastleGuard, PlayState* play);
++extern "C" void EnHeishi2_WaitForTalk(EnHeishi2* CastleGuard, PlayState* play);  // was func_80A5475C [LLM:HIGH]
+ 
+ static ScrubIdentity IdentifyScrub(s32 sceneNum, s32 actorParams, s32 respawnData) {
+     struct ScrubIdentity scrubIdentity;
+@@ -1154,7 +1154,7 @@ void RandomizerOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_l
+             guard->actor.textId = 0x7072;
+             guard->unk_300 = TEXT_STATE_CHOICE;
+             guard->unk_30E = 1;
+-            guard->actionFunc = func_80A5475C;
++            guard->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+             *should = false;
+             break;
+         }
+diff --git a/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c b/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
+index 5065b2c04..858404bff 100644
+--- a/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
++++ b/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
+@@ -41,7 +41,8 @@ void EnHeishi2_ChooseGateText(EnHeishi2* this, PlayState* play);  // was func_80
+ void EnHeishi2_SlamSpearFence(EnHeishi2* this, PlayState* play);  // was func_80A53638 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A5372C: returns to the idle animation and parks a sub-camera on the fence for 200 frames
+ void EnHeishi2_SetupWatchFence(EnHeishi2* this, PlayState* play);  // was func_80A5372C [LLM:HIGH]
+-void func_80A5475C(EnHeishi2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A5475C: offers the talk and routes an accepted one to the bribe or gate branch according to type and text state
++void EnHeishi2_WaitForTalk(EnHeishi2* this, PlayState* play);  // was func_80A5475C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A53AD4: offers the letter exchange and chimes when the player hands Zelda's letter over
+ void EnHeishi2_WaitForZeldasLetter(EnHeishi2* this, PlayState* play);  // was func_80A53AD4 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A53C0C: waits out the letter textbox, halts the actors and starts the spear slam
+@@ -215,7 +216,7 @@ void EnHeishi2_ChooseBribeText(EnHeishi2* this, PlayState* play) {
+             this->actor.textId = Text_GetFaceReaction(play, 5);
+             this->unk_30B = 1;
+             this->unk_300 = TEXT_STATE_DONE;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+         } else if ((Flags_GetEventChkInf(EVENTCHKINF_USED_DEKU_TREE_BLUE_WARP)) &&
+                    (Flags_GetEventChkInf(EVENTCHKINF_USED_DODONGOS_CAVERN_BLUE_WARP)) &&
+                    (Flags_GetEventChkInf(EVENTCHKINF_USED_JABU_JABUS_BELLY_BLUE_WARP))) {
+@@ -223,20 +224,20 @@ void EnHeishi2_ChooseBribeText(EnHeishi2* this, PlayState* play) {
+             osSyncPrintf(VT_FGCOL(GREEN) " ☆☆☆☆☆ 全部の精霊石GET！ ☆☆☆☆☆ \n" VT_RST);
+             this->unk_300 = TEXT_STATE_DONE;
+             this->actor.textId = 0x7006;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+         } else if (!IS_DAY) {
+             // "Sleep early for children!"
+             osSyncPrintf(VT_FGCOL(YELLOW) " ☆☆☆☆☆ 子供ははやくネロ！ ☆☆☆☆☆ \n" VT_RST);
+             this->unk_300 = TEXT_STATE_DONE;
+             this->actor.textId = 0x7002;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+ 
+         } else if (this->unk_30C != 0) {
+             // "Anything passes"
+             osSyncPrintf(VT_FGCOL(BLUE) " ☆☆☆☆☆ なんでも通るよ ☆☆☆☆☆ \n" VT_RST);
+             this->unk_300 = TEXT_STATE_DONE;
+             this->actor.textId = 0x7099;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+         } else if (Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_POCKET_EGG)) {
+             if (this->unk_30E == 0) {
+                 // "Start under the first sleeve!"
+@@ -249,14 +250,14 @@ void EnHeishi2_ChooseBribeText(EnHeishi2* this, PlayState* play) {
+                 this->actor.textId = 0x7072;
+             }
+             this->unk_300 = TEXT_STATE_CHOICE;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+ 
+         } else {
+             // "That's okay"
+             osSyncPrintf(VT_FGCOL(CYAN) " ☆☆☆☆☆ それはとおらんよぉ ☆☆☆☆☆ \n" VT_RST);
+             this->unk_300 = TEXT_STATE_DONE;
+             this->actor.textId = 0x7029;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+         }
+     }
+ }
+@@ -416,7 +417,7 @@ void EnHeishi2_ChooseGateText(EnHeishi2* this, PlayState* play) {
+                 this->unk_30E = 0;
+             }
+         }
+-        this->actionFunc = func_80A5475C;
++        this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+     } else {
+         // "I don't know"
+         osSyncPrintf(VT_FGCOL(PURPLE) " ☆☆☆☆☆ とおしゃしねぇちゅーの ☆☆☆☆☆ \n" VT_RST);
+@@ -724,7 +725,7 @@ void EnHeishi2_RecoverAndVanish(EnHeishi2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A5475C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WaitForTalk(EnHeishi2* this, PlayState* play) {
+     s16 yawDiff;
+ 
+     SkelAnime_Update(&this->skelAnime);
+-- 
+2.55.0
+

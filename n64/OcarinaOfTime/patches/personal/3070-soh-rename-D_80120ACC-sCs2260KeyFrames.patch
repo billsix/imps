@@ -1,0 +1,64 @@
+From 439bbfc2e12cac85341cf0d71e1b76f13146f0e8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:04:37 +0000
+Subject: [PATCH 3070/3799] soh: rename D_80120ACC -> sCs2260KeyFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the keyframe set one-point cutscene 2260 installs
+Defined in soh/src/code/z_onepointdemo_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_onepointdemo.c        | 8 ++++----
+ soh/src/code/z_onepointdemo_data.inc | 3 ++-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_onepointdemo.c b/soh/src/code/z_onepointdemo.c
+index b638bf3a7..57e86a1f4 100644
+--- a/soh/src/code/z_onepointdemo.c
++++ b/soh/src/code/z_onepointdemo.c
+@@ -19,7 +19,7 @@ static s32 sPrevFrameCs1100 = -4096;
+     F(sCs1020KeyFrames)                                   \
+     F(sCs1030KeyFrames)                                   \
+     F(sCs5000KeyFrames)                                   \
+-    F(D_80120ACC)                                   \
++    F(sCs2260KeyFrames)                                   \
+     F(D_80120B94)                                   \
+     F(D_80120D4C)                                   \
+     F(D_80120FA4)                                   \
+@@ -169,13 +169,13 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 2260:
+-            D_80120ACC[0].atTargetInit.x = D_80120ACC[2].atTargetInit.x =
++            sCs2260KeyFrames[0].atTargetInit.x = sCs2260KeyFrames[2].atTargetInit.x =  // was D_80120ACC [LLM:HIGH]
+                 ((mainCam->play->state.frames & 1) ? -10.0f : 10.0f) + (Rand_ZeroOne() * 8.0f);
+ 
+-            D_80120ACC[0].eyeTargetInit.x = D_80120ACC[2].eyeTargetInit.x =
++            sCs2260KeyFrames[0].eyeTargetInit.x = sCs2260KeyFrames[2].eyeTargetInit.x =  // was D_80120ACC [LLM:HIGH]
+                 ((mainCam->play->state.frames & 1) ? 20.0f : -20.0f) + (Rand_ZeroOne() * 5.0f);
+ 
+-            csInfo->keyFrames = D_80120ACC;
++            csInfo->keyFrames = sCs2260KeyFrames;  // was D_80120ACC [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+diff --git a/soh/src/code/z_onepointdemo_data.inc b/soh/src/code/z_onepointdemo_data.inc
+index 365adde17..30c2d7168 100644
+--- a/soh/src/code/z_onepointdemo_data.inc
++++ b/soh/src/code/z_onepointdemo_data.inc
+@@ -168,7 +168,8 @@ static OnePointCsFull sCs9500KeyFrames[3] = {  // was D_80120A54 [LLM:HIGH]
+     { 0x8B, 0xFF, 0x0022, 5000, 0, 75.0f, 0.005f, { 0.0f, 0.0f, -10.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80120ACC[5] = {
++// LLM generated name (HIGH), was D_80120ACC: the keyframe set one-point cutscene 2260 installs
++static OnePointCsFull sCs2260KeyFrames[5] = {  // was D_80120ACC [LLM:HIGH]
+     { 0x8F, 0xFF, 0x0442, 10, 0, 40.0f, 1.0f, { -10.0f, 45.0f, 20.0f }, { 20.0f, 30.0f, 160.0f } },
+     { 0x95, 0xFF, 0x0000, 1, 0, 40.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x8F, 0x01, 0x0442, 10, 0, 40.0f, 1.0f, { -10.0f, 45.0f, 20.0f }, { 20.0f, 30.0f, 160.0f } },
+-- 
+2.55.0
+

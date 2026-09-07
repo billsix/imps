@@ -1,0 +1,51 @@
+From 5380e6274b0ca237b3f9110fe30ed67c8fce8f7e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:02:28 +0000
+Subject: [PATCH 1230/3799] soh: rename func_80096F6C -> Room_DrawImage
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the in-tree comment above it reads "Room Draw Polygon Type 1"; it is sRoomDrawHandlers[1] and dispatches on the polygon's format to the single- or multi-image drawer. Named to match the file's Room_DrawNormal and Room_DrawCullable.
+Defined in soh/src/code/z_room.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_room.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index 3fe1cc758..ee5370a4c 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -17,7 +17,8 @@
+ void Room_DrawNormal(PlayState* play, Room* room, u32 flags);
+ // Name from zeldaret/oot (was func_80095D04): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_room.c]
+ void Room_DrawCullable(PlayState* play, Room* room, u32 flags);
+-void func_80096F6C(PlayState* play, Room* room, u32 flags);
++// LLM generated name (HIGH), was func_80096F6C: the in-tree comment above it reads "Room Draw Polygon Type 1"; it is sRoomDrawHandlers[1] and dispatches on the polygon's format to the single- or multi-image drawer. Named to match the file's Room_DrawNormal and Room_DrawCullable.
++void Room_DrawImage(PlayState* play, Room* room, u32 flags);  // was func_80096F6C [LLM:HIGH]
+ 
+ Vec3f D_801270A0 = { 0.0f, 0.0f, 0.0f };
+ 
+@@ -41,7 +42,7 @@ s32 OTRfunc_800973FC(PlayState* play, RoomContext* roomCtx);
+ 
+ void (*sRoomDrawHandlers[])(PlayState* play, Room* room, u32 flags) = {
+     Room_DrawNormal,
+-    func_80096F6C,
++    Room_DrawImage,  // was func_80096F6C [LLM:HIGH]
+     Room_DrawCullable,
+ };
+ 
+@@ -504,7 +505,7 @@ void func_80096B6C(PlayState* play, Room* room, u32 flags) {
+ }
+ 
+ // Room Draw Polygon Type 1
+-void func_80096F6C(PlayState* play, Room* room, u32 flags) {
++void Room_DrawImage(PlayState* play, Room* room, u32 flags) {
+     PolygonType1* polygon1 = &room->meshHeader->polygon1;
+ 
+     if (polygon1->format == 1) {
+-- 
+2.55.0
+

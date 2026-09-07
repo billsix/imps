@@ -1,0 +1,57 @@
+From aa596d7b8de0cc79798ecbad272ea88433ba85dc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:54:05 +0000
+Subject: [PATCH 1159/3799] soh: rename func_80A904D8 -> EnKakasi2_SetupRise
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: starts the looping animation and plays the emerging sfx.
+Defined in soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c b/soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c
+index 1ca07fdc6..35fabe1ef 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c
+@@ -42,7 +42,8 @@ void func_80A90948(Actor* thisx, PlayState* play);
+ void func_80A9062C(EnKakasi2* this, PlayState* play);
+ // LLM generated name (HIGH), was func_80A90264: the buried state: watches for the player playing the scarecrow's song nearby (or the debug/skip path), then builds the skeleton and collider, sets the switch flag, plays the chime and starts the rise.
+ void EnKakasi2_WaitToAppear(EnKakasi2* this, PlayState* play);  // was func_80A90264 [LLM:HIGH]
+-void func_80A904D8(EnKakasi2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A904D8: starts the looping animation and plays the emerging sfx.
++void EnKakasi2_SetupRise(EnKakasi2* this, PlayState* play);  // was func_80A904D8 [LLM:HIGH]
+ void func_80A90578(EnKakasi2* this, PlayState* play);
+ void func_80A906C4(EnKakasi2* this, PlayState* play);
+ 
+@@ -138,7 +139,7 @@ void EnKakasi2_WaitToAppear(EnKakasi2* this, PlayState* play) {
+         }
+ 
+         osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ SAVE 終了 ☆☆☆☆☆ %d\n" VT_RST, this->switchFlag);
+-        this->actionFunc = func_80A904D8;
++        this->actionFunc = EnKakasi2_SetupRise;  // was func_80A904D8 [LLM:HIGH]
+     } else if ((this->actor.xzDistToPlayer < this->maxSpawnDistance.x) &&
+                (fabsf(player->actor.world.pos.y - this->actor.world.pos.y) < this->maxSpawnDistance.y) &&
+                (Flags_GetEventChkInf(EVENTCHKINF_PLAYED_SONG_FOR_SCARECROW_AS_ADULT))) {
+@@ -158,12 +159,12 @@ void EnKakasi2_WaitToAppear(EnKakasi2* this, PlayState* play) {
+             Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+ 
+             this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_LOCK_ON_DISABLED;
+-            this->actionFunc = func_80A904D8;
++            this->actionFunc = EnKakasi2_SetupRise;  // was func_80A904D8 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A904D8(EnKakasi2* this, PlayState* play) {
++void EnKakasi2_SetupRise(EnKakasi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&object_ka_Anim_000214);
+ 
+     Animation_Change(&this->skelAnime, &object_ka_Anim_000214, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+-- 
+2.55.0
+

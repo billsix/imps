@@ -1,0 +1,56 @@
+From b209179fea80ff2dcd293bbc2fac406f99a70b4f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:18:20 +0000
+Subject: [PATCH 1426/3799] soh: rename func_80A45360 -> EnGo2_UpdateAlpha
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: fades the Goron's alpha and shadow alpha out during the first 32 frames of the curl-up animation and back in otherwise.
+Defined in soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c | 5 +++--
+ soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h | 2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+index 70e0cede1..440956b0d 100644
+--- a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
++++ b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+@@ -1114,7 +1114,8 @@ void EnGo2_UpdateTrackingAndTalk(EnGo2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A45360(EnGo2* this, f32* alpha) {
++// LLM generated name (HIGH), was func_80A45360: fades the Goron's alpha and shadow alpha out during the first 32 frames of the curl-up animation and back in otherwise.
++void EnGo2_UpdateAlpha(EnGo2* this, f32* alpha) {
+     f32 alphaTarget =
+         (this->skelAnime.animation == &gGoronAnim_004930) && (this->skelAnime.curFrame <= 32.0f) ? 0.0f : 255.0f;
+ 
+@@ -2010,7 +2011,7 @@ void EnGo2_GoronFireGenericAction(EnGo2* this, PlayState* play) {
+ void EnGo2_Update(Actor* thisx, PlayState* play) {
+     EnGo2* this = (EnGo2*)thisx;
+ 
+-    func_80A45360(this, &this->alpha);
++    EnGo2_UpdateAlpha(this, &this->alpha);  // was func_80A45360 [LLM:HIGH]
+     EnGo2_SitDownAnimation(this);
+     SkelAnime_Update(&this->skelAnime);
+     EnGo2_RollForward(this);
+diff --git a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h
+index 81c53f882..972b2640d 100644
+--- a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h
++++ b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h
+@@ -88,7 +88,7 @@ typedef struct EnGo2 {
+     /* 0x0216 */ u8 unk_216; // Set to z rotation, checked by waypoint
+     /* 0x0218 */ f32 interactRange;
+     /* 0x021C */ char unk_21C[0x04];
+-    /* 0x0220 */ f32 alpha; // Set to 0, used by func_80A45360, smoothed to this->actor.shape.unk_14 from either 0 or 255.0f
++    /* 0x0220 */ f32 alpha; // Set to 0, used by EnGo2_UpdateAlpha, smoothed to this->actor.shape.unk_14 from either 0 or 255.0f, was func_80A45360 [LLM:HIGH]
+     /* 0x0224 */ s16 blinkTimer; 
+     /* 0x0226 */ s16 fidgetTableY[18]; // Remains unknown
+     /* 0x024A */ s16 fidgetTableZ[18]; // Remains unknown
+-- 
+2.55.0
+

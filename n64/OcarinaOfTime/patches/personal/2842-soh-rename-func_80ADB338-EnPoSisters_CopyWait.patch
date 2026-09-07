@@ -1,0 +1,87 @@
+From 9a586463b50891ffcbd9459b45b93807f18f3710 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:53:57 +0000
+Subject: [PATCH 2842/3799] soh: rename func_80ADB338 -> EnPoSisters_CopyWait
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: holds a decoy near its home until the player comes close or the real Meg calls it; the parent field it reads is unnamed
+Defined in soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../Enhancements/TimeSavers/timesaver_hook_handlers.cpp  | 2 +-
+ .../overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c  | 9 +++++----
+ .../overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.h  | 2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+index ee29b761b..22f83cc2c 100644
+--- a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
++++ b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+@@ -1145,7 +1145,7 @@ void TimeSaverOnActorInitHandler(void* actorRef) {
+                 if (innerActor->id == ACTOR_EN_PO_SISTERS && innerActor->params == 28 &&
+                     (CVarGetInteger(CVAR_ENHANCEMENT("TimeSavers.SkipMiscInteractions"), IS_RANDO))) {
+                     EnPoSisters* enPoSisters = static_cast<EnPoSisters*>(innerActorRef);
+-                    if (enPoSisters->actionFunc == func_80ADB338) {
++                    if (enPoSisters->actionFunc == EnPoSisters_CopyWait) {  // was func_80ADB338 [LLM:GUESS]
+                         enPoSisters->unk_19C = 0;
+                     }
+                 }
+diff --git a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+index 652da25c3..613af857d 100644
+--- a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
++++ b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+@@ -48,7 +48,8 @@ void EnPoSisters_DeathSpiral(EnPoSisters* this, PlayState* play);  // was func_8
+ void EnPoSisters_BurnOut(EnPoSisters* this, PlayState* play);  // was func_80ADB17C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80ADB2B8: cries on the animation loop and starts Meg's appearance once the player is within 130 units
+ void EnPoSisters_WaitForPlayer(EnPoSisters* this, PlayState* play);  // was func_80ADB2B8 [LLM:HIGH]
+-void func_80ADB338(EnPoSisters* this, PlayState* play);
++// LLM generated name (GUESS), was func_80ADB338: holds a decoy near its home until the player comes close or the real Meg calls it; the parent field it reads is unnamed
++void EnPoSisters_CopyWait(EnPoSisters* this, PlayState* play);  // was func_80ADB338 [LLM:GUESS]
+ void func_80ADB9F0(EnPoSisters* this, PlayState* play);
+ void func_80ADB4B0(EnPoSisters* this, PlayState* play);
+ void func_80ADB51C(EnPoSisters* this, PlayState* play);
+@@ -477,7 +478,7 @@ void EnPoSisters_HideCopy(EnPoSisters* this, PlayState* play) {
+                              0);
+     }
+     Lights_PointSetColorAndRadius(&this->lightInfo, 0, 0, 0, 0);
+-    this->actionFunc = func_80ADB338;
++    this->actionFunc = EnPoSisters_CopyWait;  // was func_80ADB338 [LLM:GUESS]
+ }
+ 
+ void EnPoSisters_SetupReappear(EnPoSisters* this) {
+@@ -889,7 +890,7 @@ void EnPoSisters_WaitForPlayer(EnPoSisters* this, PlayState* play) {
+     this->actor.shape.rot.y = this->actor.yawTowardsPlayer;
+ }
+ 
+-void func_80ADB338(EnPoSisters* this, PlayState* play) {
++void EnPoSisters_CopyWait(EnPoSisters* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     EnPoSisters* realMeg = (EnPoSisters*)this->actor.parent;
+ 
+@@ -1267,7 +1268,7 @@ void EnPoSisters_Update(Actor* thisx, PlayState* play) {
+         if (this->unk_199 & 1) {
+             CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+         }
+-        if (this->actionFunc != func_80ADB338) {
++        if (this->actionFunc != EnPoSisters_CopyWait) {  // was func_80ADB338 [LLM:GUESS]
+             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+         }
+         Actor_SetFocus(&this->actor, 40.0f);
+diff --git a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.h b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.h
+index 5f42856a4..8b3128cdf 100644
+--- a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.h
++++ b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.h
+@@ -32,6 +32,6 @@ typedef struct EnPoSisters {
+     u32 epoch;
+ } EnPoSisters; // size = 0x0338
+ 
+-void func_80ADB338(EnPoSisters* enPoSisters, PlayState* play);
++void EnPoSisters_CopyWait(EnPoSisters* enPoSisters, PlayState* play);  // was func_80ADB338 [LLM:GUESS]
+ 
+ #endif
+-- 
+2.55.0
+

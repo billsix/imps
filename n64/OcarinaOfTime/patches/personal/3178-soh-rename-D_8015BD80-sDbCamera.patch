@@ -1,0 +1,96 @@
+From 2f47c93dbaa59c1b097c4ca09ca9c7684e42f697 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:03 +0000
+Subject: [PATCH 3178/3799] soh: rename D_8015BD80 -> sDbCamera
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the debug camera state Camera_Update hands out
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c        | 18 +++++++++---------
+ soh/src/code/z_camera_data.inc |  3 ++-
+ 2 files changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 4e2572c9b..9b92990a3 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -7011,12 +7011,12 @@ void Camera_Init(Camera* camera, View* view, CollisionContext* colCtx, PlayState
+             R_CAM_DATA(i) = sCamDataRegsInit[i];
+         }
+ 
+-        DbCamera_Reset(camera, &D_8015BD80);
++        DbCamera_Reset(camera, &sDbCamera);  // was D_8015BD80 [LLM:HIGH]
+         sInitRegs = false;
+         PREG(88) = -1;
+     }
+     camera->play = sCameraPlayState = play;  // was D_8015BD7C [LLM:HIGH]
+-    DbCamera_Init(&D_8015BD80, camera);
++    DbCamera_Init(&sDbCamera, camera);  // was D_8015BD80 [LLM:HIGH]
+     curUID = sNextUID;
+     sNextUID++;
+     while (curUID != 0) {
+@@ -7674,7 +7674,7 @@ Vec3s Camera_Update(Camera* camera) {
+         CHECK_BTN_ALL(sCameraPlayState->state.input[2].press.button, BTN_START)) {  // was D_8015BD7C [LLM:HIGH]
+         gDbgCamEnabled ^= 1;
+         if (gDbgCamEnabled) {
+-            DbgCamera_Enable(&D_8015BD80, camera);
++            DbgCamera_Enable(&sDbCamera, camera);  // was D_8015BD80 [LLM:HIGH]
+         } else if (camera->play->csCtx.state != CS_STATE_IDLE) {
+             Cutscene_StopManual(camera->play, &camera->play->csCtx);
+         }
+@@ -7682,13 +7682,13 @@ Vec3s Camera_Update(Camera* camera) {
+ 
+     // Debug cam update
+     if (gDbgCamEnabled) {
+-        camera->play->view.fovy = D_8015BD80.fov;
+-        DbCamera_Update(&D_8015BD80, camera);
+-        func_800AA358(&camera->play->view, &D_8015BD80.eye, &D_8015BD80.at, &D_8015BD80.unk_1C);
++        camera->play->view.fovy = sDbCamera.fov;  // was D_8015BD80 [LLM:HIGH]
++        DbCamera_Update(&sDbCamera, camera);  // was D_8015BD80 [LLM:HIGH]
++        func_800AA358(&camera->play->view, &sDbCamera.eye, &sDbCamera.at, &sDbCamera.unk_1C);  // was D_8015BD80 [LLM:HIGH]
+         if (R_DBG_CAM_UPDATE) {
+             osSyncPrintf("camera: debug out\n");
+         }
+-        return D_8015BD80.sub.unk_104A;
++        return sDbCamera.sub.unk_104A;  // was D_8015BD80 [LLM:HIGH]
+     }
+ 
+     OREG(0) &= ~8;
+@@ -8069,7 +8069,7 @@ s32 Camera_ChangeDataIdx(Camera* camera, s32 camDataIdx) {
+ 
+ Vec3s* Camera_GetInputDir(Vec3s* dst, Camera* camera) {
+     if (gDbgCamEnabled) {
+-        *dst = D_8015BD80.sub.unk_104A;
++        *dst = sDbCamera.sub.unk_104A;  // was D_8015BD80 [LLM:HIGH]
+         return dst;
+     } else {
+         *dst = camera->inputDir;
+@@ -8093,7 +8093,7 @@ s16 Camera_GetInputDirYaw(Camera* camera) {
+ 
+ Vec3s* Camera_GetCamDir(Vec3s* dst, Camera* camera) {
+     if (gDbgCamEnabled) {
+-        *dst = D_8015BD80.sub.unk_104A;
++        *dst = sDbCamera.sub.unk_104A;  // was D_8015BD80 [LLM:HIGH]
+         return dst;
+     } else {
+         *dst = camera->camDir;
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index 4ff5d0681..13d41925e 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2402,5 +2402,6 @@ s16 D_8011DAFC[] = {
+ 
+ // LLM generated name (HIGH), was D_8015BD7C: the PlayState the camera code reads controller input through
+ PlayState* sCameraPlayState;  // was D_8015BD7C [LLM:HIGH]
+-DbCamera D_8015BD80;
++// LLM generated name (HIGH), was D_8015BD80: the debug camera state Camera_Update hands out
++DbCamera sDbCamera;  // was D_8015BD80 [LLM:HIGH]
+ CollisionPoly* playerFloorPoly;
+-- 
+2.55.0
+

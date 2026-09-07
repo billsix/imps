@@ -1,0 +1,52 @@
+From e85a59a6eb69b1399c16b3dc8b0924d273fddb34 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:50 +0000
+Subject: [PATCH 3244/3799] soh: rename D_8082B118 -> sPromptBouncePhase
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: which half of the bounce cycle is running
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 7e31672ba..ccc1bb99b 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -2793,7 +2793,7 @@ static const char* gPageVtxColorCvars[][4] = {
+ s16 KaleidoScope_SetPageVtx(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3) {
+     static s16 sPromptBounceOffset = 0;  // was D_8082B110 [LLM:HIGH]
+     static s16 sPromptBounceTimer = 1;  // was D_8082B114 [LLM:HIGH]
+-    static s16 D_8082B118 = 0;
++    static s16 sPromptBouncePhase = 0;  // was D_8082B118 [LLM:HIGH]
+     static const Color_RGBA8 pageColors[][4] = {
+         {
+             { 10, 50, 80, 255 },
+@@ -2965,8 +2965,8 @@ s16 KaleidoScope_SetPageVtx(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3)
+ 
+             if (pauseCtx->tradeQuestLocation != 0xFF) {
+                 if (sPromptBounceTimer == 0) {  // was D_8082B114 [LLM:HIGH]
+-                    D_8082B118++;
+-                    switch (D_8082B118) {
++                    sPromptBouncePhase++;  // was D_8082B118 [LLM:HIGH]
++                    switch (sPromptBouncePhase) {  // was D_8082B118 [LLM:HIGH]
+                         case 1:
+                             sPromptBounceOffset = 3;  // was D_8082B110 [LLM:HIGH]
+                             sPromptBounceTimer = 8;  // was D_8082B114 [LLM:HIGH]
+@@ -2974,7 +2974,7 @@ s16 KaleidoScope_SetPageVtx(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3)
+                         case 2:
+                             sPromptBounceOffset = 0;  // was D_8082B110 [LLM:HIGH]
+                             sPromptBounceTimer = 6;  // was D_8082B114 [LLM:HIGH]
+-                            D_8082B118 = 0;
++                            sPromptBouncePhase = 0;  // was D_8082B118 [LLM:HIGH]
+                             break;
+                     }
+                 } else {
+-- 
+2.55.0
+

@@ -1,0 +1,66 @@
+From f6c29c77c642c8b12886fee2590ad25df3f119f6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:02:38 +0000
+Subject: [PATCH 1235/3799] soh: rename D_801270A0 -> sRoomZeroVec
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: a zero Vec3f handed to the opaque and translucent room-lighting setup calls in every room draw handler. Prefixed with the file's subject because a file-local sZeroVec already exists in z_effect_soft_sprite_old_init.c and this symbol is not static.
+Defined in soh/src/code/z_room.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_room.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index 4530c5f71..9d868e7e9 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -20,7 +20,8 @@ void Room_DrawCullable(PlayState* play, Room* room, u32 flags);
+ // LLM generated name (HIGH), was func_80096F6C: the in-tree comment above it reads "Room Draw Polygon Type 1"; it is sRoomDrawHandlers[1] and dispatches on the polygon's format to the single- or multi-image drawer. Named to match the file's Room_DrawNormal and Room_DrawCullable.
+ void Room_DrawImage(PlayState* play, Room* room, u32 flags);  // was func_80096F6C [LLM:HIGH]
+ 
+-Vec3f D_801270A0 = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_801270A0: a zero Vec3f handed to the opaque and translucent room-lighting setup calls in every room draw handler. Prefixed with the file's subject because a file-local sZeroVec already exists in z_effect_soft_sprite_old_init.c and this symbol is not static.
++Vec3f sRoomZeroVec = { 0.0f, 0.0f, 0.0f };  // was D_801270A0 [LLM:HIGH]
+ 
+ // unused
+ // LLM generated name (HIGH), was D_801270B0: the in-tree comment above it reads "// unused"; it is a complete render-mode setup display list with no reference anywhere.
+@@ -60,14 +61,14 @@ void Room_DrawNormal(PlayState* play, Room* room, u32 flags) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     if (flags & 1) {
+-        func_800342EC(&D_801270A0, play);
++        func_800342EC(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
+         gSPSegment(POLY_OPA_DISP++, 0x03, room->segment);
+         func_80093C80(play);
+         gSPMatrix(POLY_OPA_DISP++, &gMtxClear, G_MTX_MODELVIEW | G_MTX_LOAD);
+     }
+ 
+     if (flags & 2) {
+-        func_8003435C(&D_801270A0, play);
++        func_8003435C(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
+         gSPSegment(POLY_XLU_DISP++, 0x03, room->segment);
+         Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+         gSPMatrix(POLY_XLU_DISP++, &gMtxClear, G_MTX_MODELVIEW | G_MTX_LOAD);
+@@ -121,13 +122,13 @@ void Room_DrawCullable(PlayState* play, Room* room, u32 flags) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+     if (flags & 1) {
+-        func_800342EC(&D_801270A0, play);
++        func_800342EC(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
+         // gSPSegment(POLY_OPA_DISP++, 0x03, room->segment);
+         func_80093C80(play);
+         gSPMatrix(POLY_OPA_DISP++, &gMtxClear, G_MTX_MODELVIEW | G_MTX_LOAD);
+     }
+     if (flags & 2) {
+-        func_8003435C(&D_801270A0, play);
++        func_8003435C(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
+         // gSPSegment(POLY_XLU_DISP++, 0x03, room->segment);
+         Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+         gSPMatrix(POLY_XLU_DISP++, &gMtxClear, G_MTX_MODELVIEW | G_MTX_LOAD);
+-- 
+2.55.0
+

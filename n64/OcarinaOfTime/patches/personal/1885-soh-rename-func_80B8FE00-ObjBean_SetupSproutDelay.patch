@@ -1,0 +1,89 @@
+From 1016b58a3a054c3ce505fa1df651e995c58387f8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:50:06 +0000
+Subject: [PATCH 1885/3799] soh: rename func_80B8FE00 ->
+ ObjBean_SetupSproutDelay
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: shows the leaves and arms the 60-frame pause before the plant sprouts.
+Defined in soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/soh/Enhancements/randomizer/hook_handlers.cpp | 4 ++--
+ soh/soh/Enhancements/randomizer/randomizer.cpp    | 2 +-
+ soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c | 7 ++++---
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 5f0ec83d3..2c23825a1 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -70,7 +70,7 @@ static ObjectExtension::Register<ScrubIdentity> RegisterScrubIdentity;
+ extern SaveContext gSaveContext;
+ extern PlayState* gPlayState;
+ extern void func_8084DFAC(PlayState* play, Player* player);
+-extern void func_80B8FE00(ObjBean*); // trigger planting
++extern void ObjBean_SetupSproutDelay(ObjBean*); // trigger planting
+ extern void Player_SetupActionPreserveAnimMovement(PlayState* play, Player* player, PlayerActionFunc actionFunc,
+                                                    s32 flags);
+ extern s32 Player_SetupWaitForPutAway(PlayState* play, Player* player, AfterPutAwayFunc func);
+@@ -479,7 +479,7 @@ static void PlantAllBeans() {
+     }
+     ObjBean* bean = (ObjBean*)Actor_Find(&gPlayState->actorCtx, ACTOR_OBJ_BEAN, ACTORCAT_BG);
+     if (bean != nullptr) {
+-        func_80B8FE00(bean);
++        ObjBean_SetupSproutDelay(bean);  // was func_80B8FE00 [LLM:HIGH]
+     }
+     AMMO(ITEM_BEAN) = 0;
+ }
+diff --git a/soh/soh/Enhancements/randomizer/randomizer.cpp b/soh/soh/Enhancements/randomizer/randomizer.cpp
+index 8f8ade08f..74a136b80 100644
+--- a/soh/soh/Enhancements/randomizer/randomizer.cpp
++++ b/soh/soh/Enhancements/randomizer/randomizer.cpp
+@@ -28,7 +28,7 @@ extern "C" {
+ #include <functions.h>
+ #include "../../../src/overlays/actors/ovl_En_GirlA/z_en_girla.h"
+ #include "src/overlays/actors/ovl_Obj_Bean/z_obj_bean.h"
+-extern void func_80B8FE00(ObjBean*); // trigger planting
++extern void ObjBean_SetupSproutDelay(ObjBean*); // trigger planting
+ extern PlayState* gPlayState;
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+index a1d03e4e3..060aec489 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
++++ b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+@@ -37,7 +37,8 @@ void ObjBean_ShakeLeaves(ObjBean* this);
+ void ObjBean_SetupWaitForBean(ObjBean* this);
+ void ObjBean_WaitForBean(ObjBean* this, PlayState* play);
+ void func_80B8FE3C(ObjBean* this, PlayState* play);
+-void func_80B8FE00(ObjBean* this);
++// LLM generated name (HIGH), was func_80B8FE00: shows the leaves and arms the 60-frame pause before the plant sprouts.
++void ObjBean_SetupSproutDelay(ObjBean* this);  // was func_80B8FE00 [LLM:HIGH]
+ void func_80B8FE6C(ObjBean* this);
+ void func_80B8FEAC(ObjBean* this, PlayState* play);
+ void func_80B8FF50(ObjBean* this);
+@@ -544,7 +545,7 @@ void ObjBean_SetupWaitForBean(ObjBean* this) {
+ void ObjBean_WaitForBean(ObjBean* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->dyna.actor, play)) {
+         if (Actor_GetPlayerExchangeItemId(play) == EXCH_ITEM_BEAN) {
+-            func_80B8FE00(this);
++            ObjBean_SetupSproutDelay(this);  // was func_80B8FE00 [LLM:HIGH]
+             Flags_SetSwitch(play, this->dyna.actor.params & 0x3F);
+         }
+     } else {
+@@ -552,7 +553,7 @@ void ObjBean_WaitForBean(ObjBean* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B8FE00(ObjBean* this) {
++void ObjBean_SetupSproutDelay(ObjBean* this) {
+     this->actionFunc = func_80B8FE3C;
+     ObjBean_SetDrawMode(this, BEAN_STATE_DRAW_LEAVES);
+     if (GameInteractor_Should(VB_PLAY_BEAN_PLANTING_CS, true)) {
+-- 
+2.55.0
+

@@ -1,0 +1,88 @@
+From e2da269abfb92dfe2d7b3cb062adf3f0f7d0dbc5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:04:00 +0000
+Subject: [PATCH 1931/3799] soh: rename func_809FE890 ->
+ EnDu_PerformCutsceneAction
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: drives position, rotation and animation from csCtx.npcActions[2], including the dance cues 7 and 8
+Defined in soh/src/overlays/actors/ovl_En_Du/z_en_du.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Du/z_en_du.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+index 881d56d65..234a795f3 100644
+--- a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
++++ b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+@@ -16,7 +16,8 @@ void EnDu_DoNothing(EnDu* this, PlayState* play);  // was func_809FE3B4 [LLM:HIG
+ void EnDu_WaitForOcarina(EnDu* this, PlayState* play);  // was func_809FE3C0 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_809FE638: once the player leaves its cutscene, opens a OnePointCutscene, faces the player at Darunia and plays NA_BGM_APPEAR
+ void EnDu_FireTempleStartScene(EnDu* this, PlayState* play);  // was func_809FE638 [LLM:HIGH]
+-void func_809FE890(EnDu* this, PlayState* play);
++// LLM generated name (HIGH), was func_809FE890: drives position, rotation and animation from csCtx.npcActions[2], including the dance cues 7 and 8
++void EnDu_PerformCutsceneAction(EnDu* this, PlayState* play);  // was func_809FE890 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_809FE4A4: reads msgCtx.ocarinaMode and triggers either gGoronCityDaruniaCorrectCs or gGoronCityDaruniaWrongCs
+ void EnDu_CheckOcarinaSong(EnDu* this, PlayState* play);  // was func_809FE4A4 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_809FE6CC: counts unk_1E2 down from 0x32, then opens textbox 0x3039
+@@ -201,7 +202,7 @@ void EnDu_TrackPlayer(EnDu* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         trackingMode = NPC_TRACKING_NONE;
+     }
+-    if (this->actionFunc == func_809FE890) {
++    if (this->actionFunc == EnDu_PerformCutsceneAction) {  // was func_809FE890 [LLM:HIGH]
+         trackingMode = NPC_TRACKING_NONE;
+     }
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -346,7 +347,7 @@ void EnDu_Init(Actor* thisx, PlayState* play) {
+     if (gSaveContext.cutsceneIndex >= 0xFFF0) {
+         play->csCtx.segment = SEGMENTED_TO_VIRTUAL(gGoronCityDarunia01Cs);
+         gSaveContext.cutsceneTrigger = 1;
+-        EnDu_SetupAction(this, func_809FE890);
++        EnDu_SetupAction(this, EnDu_PerformCutsceneAction);  // was func_809FE890 [LLM:HIGH]
+     } else if (play->sceneNum == SCENE_FIRE_TEMPLE) {
+         EnDu_SetupAction(this, EnDu_FireTempleStartScene);  // was func_809FE638 [LLM:HIGH]
+     } else if (!LINK_IS_ADULT) {
+@@ -397,7 +398,7 @@ void EnDu_CheckOcarinaSong(EnDu* this, PlayState* play) {
+             gSaveContext.cutsceneTrigger = 1;
+         }
+         this->unk_1E8 = 1;
+-        EnDu_SetupAction(this, func_809FE890);
++        EnDu_SetupAction(this, EnDu_PerformCutsceneAction);  // was func_809FE890 [LLM:HIGH]
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+     } else if (play->msgCtx.ocarinaMode == OCARINA_MODE_03) {
+         Audio_PlaySfxGeneral(NA_SE_SY_CORRECT_CHIME, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -407,7 +408,7 @@ void EnDu_CheckOcarinaSong(EnDu* this, PlayState* play) {
+             gSaveContext.cutsceneTrigger = 1;
+         }
+         this->unk_1E8 = 0;
+-        EnDu_SetupAction(this, func_809FE890);
++        EnDu_SetupAction(this, EnDu_PerformCutsceneAction);  // was func_809FE890 [LLM:HIGH]
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+     } else {
+         player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+@@ -484,7 +485,7 @@ void EnDu_FireTempleDepart(EnDu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809FE890(EnDu* this, PlayState* play) {
++void EnDu_PerformCutsceneAction(EnDu* this, PlayState* play) {
+     f32 frame;
+     Vec3f startPos;
+     Vec3f endPos;
+@@ -625,7 +626,7 @@ void EnDu_Update(Actor* thisx, PlayState* play) {
+     EnDu_UpdateFace(this);  // was func_809FDE9C [LLM:HIGH]
+     EnDu_TrackPlayer(this, play);  // was func_809FDE24 [LLM:HIGH]
+ 
+-    if (this->actionFunc == func_809FE890) {
++    if (this->actionFunc == EnDu_PerformCutsceneAction) {  // was func_809FE890 [LLM:HIGH]
+         this->actor.world.pos.x += this->actor.velocity.x;
+         this->actor.world.pos.y += this->actor.velocity.y;
+         this->actor.world.pos.z += this->actor.velocity.z;
+-- 
+2.55.0
+

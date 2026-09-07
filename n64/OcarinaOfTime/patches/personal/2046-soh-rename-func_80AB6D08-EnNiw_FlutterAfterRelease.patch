@@ -1,0 +1,58 @@
+From 746a63ff0971ef1bed6bac552f8cc0fc7b6f314c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:10:57 +0000
+Subject: [PATCH 2046/3799] soh: rename func_80AB6D08 ->
+ EnNiw_FlutterAfterRelease
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the post-release state: flaps back to 4 y-velocity whenever it lands and counts down the stay timer; whether this is gliding or hovering is not settled by the code, so the name records the flap-and-descend loop
+Defined in soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+index 63782e5af..8e83b3014 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+@@ -32,7 +32,8 @@ void EnNiw_Idle(EnNiw* this, PlayState* play);  // was func_80AB6570 [LLM:HIGH]
+ void EnNiw_FollowPath(EnNiw* this, PlayState* play);  // was func_80AB6A38 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80AB6BF8: tumbles randomly while the player carries it and picks the next action on release
+ void EnNiw_Held(EnNiw* this, PlayState* play);  // was func_80AB6BF8 [LLM:HIGH]
+-void func_80AB6D08(EnNiw* this, PlayState* play);
++// LLM generated name (GUESS), was func_80AB6D08: the post-release state: flaps back to 4 y-velocity whenever it lands and counts down the stay timer; whether this is gliding or hovering is not settled by the code, so the name records the flap-and-descend loop
++void EnNiw_FlutterAfterRelease(EnNiw* this, PlayState* play);  // was func_80AB6D08 [LLM:GUESS]
+ void func_80AB6EB4(EnNiw* this, PlayState* play);
+ void func_80AB70F8(EnNiw* this, PlayState* play);
+ void func_80AB714C(EnNiw* this, PlayState* play);
+@@ -656,12 +657,12 @@ void EnNiw_Held(EnNiw* this, PlayState* play) {
+         this->actor.shape.rot.y = this->actor.shape.rot.z;
+         this->actor.shape.rot.x = this->actor.shape.rot.z;
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+-        this->actionFunc = func_80AB6D08;
++        this->actionFunc = EnNiw_FlutterAfterRelease;  // was func_80AB6D08 [LLM:GUESS]
+     }
+     EnNiw_AnimateLimbs(this, play, 2);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB6D08(EnNiw* this, PlayState* play) {
++void EnNiw_FlutterAfterRelease(EnNiw* this, PlayState* play) {
+     if (this->path == 0) {
+         if (!(this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+             return;
+@@ -1114,7 +1115,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+         if (thisx->params != 0xA && thisx->params != 0xD && thisx->params != 0xE && thisx->params != 4) {
+             CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+         }
+-        if (this->actionFunc != EnNiw_Held && this->actionFunc != func_80AB6D08 &&  // was func_80AB6BF8 [LLM:HIGH]
++        if (this->actionFunc != EnNiw_Held && this->actionFunc != EnNiw_FlutterAfterRelease &&  // was func_80AB6BF8 [LLM:HIGH]
+             this->actionFunc != EnNiw_WaitToFlyOff && this->actionFunc != EnNiw_Airborne &&  // was func_80AB6324 [LLM:GUESS]
+             this->actionFunc != EnNiw_WaitToBeLifted) {  // was func_80AB6450 [LLM:HIGH]
+             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+-- 
+2.55.0
+

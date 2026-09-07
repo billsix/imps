@@ -1,0 +1,51 @@
+From fc4a9b1cdf92b380f5dd09761a6258f1f1cb4fc2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:30:09 +0000
+Subject: [PATCH 0948/3799] soh: rename func_809AAD6C ->
+ EffectSsKiraKira_UpdatePulsingScale
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the update installed when life is passed in negative; it does nothing but drive rScale through a full sine over the particle's lifespan.
+Defined in soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c     | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c b/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
+index cd8a64ecd..8d21e5ea8 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
+@@ -27,7 +27,8 @@ void EffectSsKiraKira_Draw(PlayState* play, u32 index, EffectSs* this);
+ void EffectSsKiraKira_UpdateDrifting(PlayState* play, u32 index, EffectSs* this);  // was func_809AABF0 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_809AACAC: the updateMode 1 update: identical to the drifting one except it first damps velocity.x and velocity.z by 0.95 each frame.
+ void EffectSsKiraKira_UpdateDecelerating(PlayState* play, u32 index, EffectSs* this);  // was func_809AACAC [LLM:HIGH]
+-void func_809AAD6C(PlayState* play, u32 index, EffectSs* this);
++// LLM generated name (HIGH), was func_809AAD6C: the update installed when life is passed in negative; it does nothing but drive rScale through a full sine over the particle's lifespan.
++void EffectSsKiraKira_UpdatePulsingScale(PlayState* play, u32 index, EffectSs* this);  // was func_809AAD6C [LLM:HIGH]
+ 
+ EffectSsInit Effect_Ss_KiraKira_InitVars = {
+     EFFECT_SS_KIRAKIRA,
+@@ -44,7 +45,7 @@ u32 EffectSsKiraKira_Init(PlayState* play, u32 index, EffectSs* this, void* init
+     if ((this->life = initParams->life) < 0) {
+         this->life = -this->life;
+         this->gfx = SEGMENTED_TO_VIRTUAL(gEffSparklesDL);
+-        this->update = func_809AAD6C;
++        this->update = EffectSsKiraKira_UpdatePulsingScale;  // was func_809AAD6C [LLM:HIGH]
+         this->rEnvColorA = initParams->scale;
+         this->rScale = 0;
+     } else {
+@@ -149,6 +150,6 @@ void EffectSsKiraKira_UpdateDecelerating(PlayState* play, u32 index, EffectSs* t
+     this->rYaw += this->rRotSpeed;
+ }
+ 
+-void func_809AAD6C(PlayState* play, u32 index, EffectSs* this) {
++void EffectSsKiraKira_UpdatePulsingScale(PlayState* play, u32 index, EffectSs* this) {
+     this->rScale = this->rEnvColorA * Math_SinS((32768.0f / this->rLifespan) * this->life);
+ }
+-- 
+2.55.0
+

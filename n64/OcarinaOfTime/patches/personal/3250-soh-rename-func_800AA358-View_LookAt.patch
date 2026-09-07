@@ -1,0 +1,140 @@
+From f77d227d082a33571c249329812bedb05210fb21 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:09:39 +0000
+Subject: [PATCH 3250/3799] soh: rename func_800AA358 -> View_LookAt
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: stores the eye, look-at and up vectors, nudging the eye off a perfectly vertical line first
+Defined in soh/src/code/z_view.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_camera.c                                       | 4 ++--
+ soh/src/code/z_parameter.c                                    | 2 +-
+ soh/src/code/z_sample.c                                       | 2 +-
+ soh/src/code/z_view.c                                         | 3 ++-
+ soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c   | 2 +-
+ soh/src/overlays/gamestates/ovl_title/z_title.c               | 2 +-
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c | 2 +-
+ 8 files changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index a43fc36b6..0e548117d 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1394,7 +1394,7 @@ void Rumble_SetUpdateEnabled(u32);  // was func_800AA178 [oot]
+ View* View_New(GraphicsContext* gfxCtx);
+ void View_Free(View* view);
+ void View_Init(View*, GraphicsContext*);
+-void func_800AA358(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up);
++void View_LookAt(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up);  // was func_800AA358 [LLM:HIGH]
+ void func_800AA3F0(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up);
+ void View_SetScale(View* view, f32 scale);
+ void View_GetScale(View* view, f32* scale);
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index c341e7261..82d9baffc 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -7684,7 +7684,7 @@ Vec3s Camera_Update(Camera* camera) {
+     if (gDbgCamEnabled) {
+         camera->play->view.fovy = sDbCamera.fov;  // was D_8015BD80 [LLM:HIGH]
+         DbCamera_Update(&sDbCamera, camera);  // was D_8015BD80 [LLM:HIGH]
+-        func_800AA358(&camera->play->view, &sDbCamera.eye, &sDbCamera.at, &sDbCamera.unk_1C);  // was D_8015BD80 [LLM:HIGH]
++        View_LookAt(&camera->play->view, &sDbCamera.eye, &sDbCamera.at, &sDbCamera.unk_1C);  // was D_8015BD80 [LLM:HIGH]
+         if (R_DBG_CAM_UPDATE) {
+             osSyncPrintf("camera: debug out\n");
+         }
+@@ -7735,7 +7735,7 @@ Vec3s Camera_Update(Camera* camera) {
+         View_SetScale(&camera->play->view, 1.0f);
+     }
+     camera->play->view.fovy = viewFov;
+-    func_800AA358(&camera->play->view, &viewEye, &viewAt, &viewUp);
++    View_LookAt(&camera->play->view, &viewEye, &viewAt, &viewUp);  // was func_800AA358 [LLM:HIGH]
+     camera->camDir.x = eyeAtAngle.pitch;
+     camera->camDir.y = eyeAtAngle.yaw;
+     camera->camDir.z = 0;
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 298adfad6..789e86c86 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -5081,7 +5081,7 @@ void Interface_SetViewport(PlayState* play, s32 topY, s32 bottomY, s32 leftX, s3
+     up.x = up.z = 0.0f;
+     up.y = 1.0f;
+ 
+-    func_800AA358(&interfaceCtx->view, &eye, &lookAt, &up);
++    View_LookAt(&interfaceCtx->view, &eye, &lookAt, &up);  // was func_800AA358 [LLM:HIGH]
+ 
+     interfaceCtx->viewport.topY = topY;
+     interfaceCtx->viewport.bottomY = bottomY;
+diff --git a/soh/src/code/z_sample.c b/soh/src/code/z_sample.c
+index 21d5b441f..4b34f395b 100644
+--- a/soh/src/code/z_sample.c
++++ b/soh/src/code/z_sample.c
+@@ -72,7 +72,7 @@ void Sample_SetupView(SampleContext* this) {
+         up.z = 0.0f;
+         up.y = 1.0f;
+ 
+-        func_800AA358(view, &eye, &lookAt, &up);
++        View_LookAt(view, &eye, &lookAt, &up);  // was func_800AA358 [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/code/z_view.c b/soh/src/code/z_view.c
+index a3515bec6..017f765d6 100644
+--- a/soh/src/code/z_view.c
++++ b/soh/src/code/z_view.c
+@@ -80,7 +80,8 @@ void View_GetParams(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up) {
+     // view->flags |= 1;
+ }
+ 
+-void func_800AA358(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up) {
++// LLM generated name (HIGH), was func_800AA358: stores the eye, look-at and up vectors, nudging the eye off a perfectly vertical line first
++void View_LookAt(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up) {
+     if (eye->x == lookAt->x && eye->z == lookAt->z) {
+         eye->x += 0.1f;
+     }
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+index 51548ab05..2d8fc4635 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+@@ -176,7 +176,7 @@ void FileChoose_SetView(FileChooseContext* this, f32 eyeX, f32 eyeY, f32 eyeZ) {
+ 
+     up.y = 1.0f;
+ 
+-    func_800AA358(&this->view, &eye, &lookAt, &up);
++    View_LookAt(&this->view, &eye, &lookAt, &up);  // was func_800AA358 [LLM:HIGH]
+     func_800AAA50(&this->view, 0x7F);
+ }
+ 
+diff --git a/soh/src/overlays/gamestates/ovl_title/z_title.c b/soh/src/overlays/gamestates/ovl_title/z_title.c
+index f94ce99cf..376786c13 100644
+--- a/soh/src/overlays/gamestates/ovl_title/z_title.c
++++ b/soh/src/overlays/gamestates/ovl_title/z_title.c
+@@ -54,7 +54,7 @@ void Title_SetupView(TitleContext* this, f32 x, f32 y, f32 z) {
+     up.y = 1.0f;
+ 
+     View_SetPerspective(view, 30.0f, 10.0f, 12800.0f);
+-    func_800AA358(view, &eye, &lookAt, &up);
++    View_LookAt(view, &eye, &lookAt, &up);  // was func_800AA358 [LLM:HIGH]
+     func_800AAA50(view, 0xF);
+ }
+ 
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 52397f710..6cb3ad58f 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -2580,7 +2580,7 @@ void KaleidoScope_SetView(PauseContext* pauseCtx, f32 x, f32 y, f32 z) {
+     up.x = up.z = 0.0f;
+     up.y = 1.0f;
+ 
+-    func_800AA358(&pauseCtx->view, &eye, &lookAt, &up);
++    View_LookAt(&pauseCtx->view, &eye, &lookAt, &up);  // was func_800AA358 [LLM:HIGH]
+     func_800AAA50(&pauseCtx->view, 127);
+ }
+ 
+-- 
+2.55.0
+

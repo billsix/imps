@@ -1,0 +1,61 @@
+From 03e1297f3709d11251cf26a626ad4090dbb68f5c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:04:01 +0000
+Subject: [PATCH 1247/3799] soh: rename func_800C0DB4 -> Play_IsPosUnderwater
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: returns true when a water surface exists above the given position and a floor exists beneath that surface point.
+Defined in soh/src/code/z_play.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_play.c                                         | 3 ++-
+ soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 0b7e4defa..fe7b8c161 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1572,7 +1572,7 @@ void Play_TriggerRespawn(PlayState* play);
+ s32 Play_CamIsNotFixed(PlayState* play);
+ s32 FrameAdvance_IsEnabled(PlayState* play);
+ s32 Play_GetDoorFacingYaw(PlayState* play, Actor* actor, s16* yaw);  // was func_800C0D34 [LLM:HIGH]
+-s32 func_800C0DB4(PlayState* play, Vec3f* pos);
++s32 Play_IsPosUnderwater(PlayState* play, Vec3f* pos);  // was func_800C0DB4 [LLM:HIGH]
+ void Play_PerformSave(PlayState* play);
+ void PreRender_SetValuesSave(PreRender* this, u32 width, u32 height, void* fbuf, void* zbuf, void* cvg);
+ void PreRender_Init(PreRender* this);
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index b0080469d..4805040a0 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -2158,7 +2158,8 @@ s32 Play_GetDoorFacingYaw(PlayState* play, Actor* actor, s16* yaw) {
+     return 1;
+ }
+ 
+-s32 func_800C0DB4(PlayState* play, Vec3f* pos) {
++// LLM generated name (HIGH), was func_800C0DB4: returns true when a water surface exists above the given position and a floor exists beneath that surface point.
++s32 Play_IsPosUnderwater(PlayState* play, Vec3f* pos) {
+     WaterBox* waterBox;
+     CollisionPoly* poly;
+     Vec3f waterSurfacePos;
+diff --git a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+index 40180ee3d..871d55937 100644
+--- a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
++++ b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+@@ -350,7 +350,7 @@ void EnDivingGame_SetupRupeeThrow(EnDivingGame* this, PlayState* play) {
+ // Throws rupee when this->spawnRuppyTimer == 0
+ void EnDivingGame_RupeeThrow(EnDivingGame* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+-    if (func_800C0DB4(play, &this->actor.projectedPos)) {
++    if (Play_IsPosUnderwater(play, &this->actor.projectedPos)) {  // was func_800C0DB4 [LLM:HIGH]
+         Audio_SetExtraFilter(0);
+     }
+     if (this->subCamId != 0) {
+-- 
+2.55.0
+

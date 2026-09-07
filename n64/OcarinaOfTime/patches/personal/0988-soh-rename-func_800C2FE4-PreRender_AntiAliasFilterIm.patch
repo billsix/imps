@@ -1,0 +1,57 @@
+From 1448a68aa60a040d53d942f8e34d72ba2143172e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:33:18 +0000
+Subject: [PATCH 0988/3799] soh: rename func_800C2FE4 ->
+ PreRender_AntiAliasFilterImage
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: CPU-side pass over every row of fbufSave, blending each pixel with its horizontal neighbours wherever cvgSave reports partial coverage; PreRender_Calc runs it as the whole-image alternative to the per-pixel PreRender_AntiAliasFilter.
+Defined in soh/src/code/PreRender.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/PreRender.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 719f38a8a..55274d8c5 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1592,7 +1592,7 @@ void PreRender_BlendWithCoverage(PreRender* this, Gfx** gfxp);  // was func_800C
+ void PreRender_RestoreFramebuffer(PreRender* this, Gfx** gfxp);  // was func_800C24BC [oot]
+ void PreRender_CopyImageRegion(PreRender* this, Gfx** gfxp);  // was func_800C24E0 [oot]
+ void PreRender_AntiAliasFilter(PreRender* this, s32 x, s32 y);  // was func_800C2500 [oot]
+-void func_800C2FE4(PreRender* this);
++void PreRender_AntiAliasFilterImage(PreRender* this);  // was func_800C2FE4 [LLM:HIGH]
+ void PreRender_Calc(PreRender* this);
+ void THGA_Ct(TwoHeadGfxArena* thga, Gfx* start, size_t size);
+ void THGA_Dt(TwoHeadGfxArena* thga);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index 364bdb136..6f701400d 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -485,7 +485,8 @@ void PreRender_AntiAliasFilter(PreRender* this, s32 x, s32 y) {
+     this->fbufSave[x + y * this->width] = pxOut.rgba;
+ }
+ 
+-void func_800C2FE4(PreRender* this) {
++// LLM generated name (HIGH), was func_800C2FE4: CPU-side pass over every row of fbufSave, blending each pixel with its horizontal neighbours wherever cvgSave reports partial coverage; PreRender_Calc runs it as the whole-image alternative to the per-pixel PreRender_AntiAliasFilter.
++void PreRender_AntiAliasFilterImage(PreRender* this) {
+     s32 x;
+     s32 y;
+     s32 phi_v0;
+@@ -580,7 +581,7 @@ void PreRender_Calc(PreRender* this) {
+         }
+ 
+         if (HREG(80) == 0xF ? HREG(81) : 0) {
+-            func_800C2FE4(this);
++            PreRender_AntiAliasFilterImage(this);  // was func_800C2FE4 [LLM:HIGH]
+         }
+     }
+ }
+-- 
+2.55.0
+

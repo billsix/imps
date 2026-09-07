@@ -1,0 +1,80 @@
+From f15ff22303f7d7ef62f72a0f1c27a683c36cf765 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:56 +0000
+Subject: [PATCH 2508/3799] soh: rename func_800F5BF0 ->
+ Audio_PlayNatureAmbienceWithRestore
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: stacks the current main BGM before starting a nature ambience sequence
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                       | 2 +-
+ soh/src/code/audio_general.c                  | 5 +++--
+ soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c | 4 ++--
+ 3 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index c3c6e0094..0684e7cc3 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2109,7 +2109,7 @@ s32 Audio_IsSequencePlaying(u8);
+ void Audio_PlayMiniBossBgm(u16 seqId);  // was func_800F5ACC [LLM:HIGH]
+ void PreviewSequence(u16 seqId);
+ void Audio_RestorePrevBgm(void);  // was func_800F5B58 [LLM:HIGH]
+-void func_800F5BF0(u8 natureAmbienceId);
++void Audio_PlayNatureAmbienceWithRestore(u8 natureAmbienceId);  // was func_800F5BF0 [LLM:HIGH]
+ void Audio_PlayFanfare(u16);
+ void Audio_PlayFanfare_Rando(GetItemEntry getItem);
+ void func_800F5C2C(void);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index c50e70c83..542ed0279 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -5016,7 +5016,8 @@ void Audio_RestorePrevBgm(void) {
+ /**
+  * Plays the nature ambience sequence on the main bgm player, but stores the previous sequence to return to later
+  */
+-void func_800F5BF0(u8 natureAmbienceId) {
++// LLM generated name (HIGH), was func_800F5BF0: stacks the current main BGM before starting a nature ambience sequence
++void Audio_PlayNatureAmbienceWithRestore(u8 natureAmbienceId) {
+     u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if (curSeqId != NA_BGM_NATURE_AMBIENCE) {
+@@ -5027,7 +5028,7 @@ void func_800F5BF0(u8 natureAmbienceId) {
+ }
+ 
+ /**
+- * Restores the previous sequence to the main bgm player before func_800F5BF0 was called
++ * Restores the previous sequence to the main bgm player before Audio_PlayNatureAmbienceWithRestore was called
+  */
+ void func_800F5C2C(void) {
+     if (sPrevMainBgmSeqId != NA_BGM_DISABLED) {
+diff --git a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+index 1e1edd3c1..184cb805d 100644
+--- a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
++++ b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+@@ -1387,7 +1387,7 @@ void EnSkj_SetupWaitForOcarina(EnSkj* this, PlayState* play) {
+ 
+         if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+             player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+-            func_800F5BF0(NATURE_ID_KOKIRI_REGION);
++            Audio_PlayNatureAmbienceWithRestore(NATURE_ID_KOKIRI_REGION);  // was func_800F5BF0 [LLM:HIGH]
+             EnSkj_TurnPlayer(this, player);
+             player->unk_6A8 = &this->actor;
+             Message_StartTextbox(play, 0x10BE, &this->actor);
+@@ -1403,7 +1403,7 @@ void EnSkj_WaitForOcarina(EnSkj* this, PlayState* play) {
+ 
+     if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+         player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+-        func_800F5BF0(NATURE_ID_KOKIRI_REGION);
++        Audio_PlayNatureAmbienceWithRestore(NATURE_ID_KOKIRI_REGION);  // was func_800F5BF0 [LLM:HIGH]
+         EnSkj_TurnPlayer(this, player);
+         player->unk_6A8 = &this->actor;
+         Message_StartTextbox(play, 0x10BE, &this->actor);
+-- 
+2.55.0
+

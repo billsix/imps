@@ -1,0 +1,79 @@
+From d28dee4d4cbd8f39c2807053c811552279f51409 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:42:36 +0000
+Subject: [PATCH 1767/3799] soh: rename func_800B3FF4 ->
+ DbCamera_PlayerRelToWorld
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the inverse: rotates a player-relative Vec3f back by the player's yaw and adds their position.
+Defined in soh/src/code/db_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h  |  2 +-
+ soh/src/code/db_camera.c | 13 +++++++------
+ 2 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index b007678cb..8ebedf8b0 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1488,7 +1488,7 @@ void ShrinkWindow_Update(s32 updateRate);
+ // ? DbCamera_CopyVec3f(?);
+ // ? DbCamera_Vec3SToF2(?);
+ // ? DbCamera_WorldToPlayerRelS(?);, was func_800B3F94 [LLM:HIGH]
+-// ? func_800B3FF4(?);
++// ? DbCamera_PlayerRelToWorld(?);, was func_800B3FF4 [LLM:HIGH]
+ // ? func_800B404C(?);
+ // ? func_800B4088(?);
+ // ? func_800B41DC(?);
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index 51367db67..a050c3ee4 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -164,7 +164,8 @@ void DbCamera_WorldToPlayerRelS(PosRot* posRot, Vec3f* vec, Vec3s* out) {
+     DbCamera_Vec3FToS(&tempVec, out);
+ }
+ 
+-void func_800B3FF4(PosRot* posRot, Vec3f* vec, Vec3f* out) {
++// LLM generated name (HIGH), was func_800B3FF4: the inverse: rotates a player-relative Vec3f back by the player's yaw and adds their position.
++void DbCamera_PlayerRelToWorld(PosRot* posRot, Vec3f* vec, Vec3f* out) {
+     VecSph sph;
+     Vec3f tempVec;
+     DbCamera_CopyVec3f(vec, &tempVec);
+@@ -176,7 +177,7 @@ void func_800B3FF4(PosRot* posRot, Vec3f* vec, Vec3f* out) {
+ void func_800B404C(PosRot* posRot, Vec3s* vec, Vec3f* out) {
+     Vec3f tempVec;
+     DbCamera_Vec3SToF(vec, &tempVec);
+-    func_800B3FF4(posRot, &tempVec, out);
++    DbCamera_PlayerRelToWorld(posRot, &tempVec, out);  // was func_800B3FF4 [LLM:HIGH]
+ }
+ 
+ s32 func_800B4088(DbCamera* dbCamera, Camera* cam) {
+@@ -323,8 +324,8 @@ void func_800B44E0(DbCamera* dbCamera, Camera* cam) {
+             DbCamera_CopyVec3f(&sDbCamAnim.positionPos, &dbCamera->eye);
+             DbCamera_CopyVec3f(&sDbCamAnim.lookAtPos, &dbCamera->at);
+         } else {
+-            func_800B3FF4(&cam->playerPosRot, &sDbCamAnim.lookAtPos, &dbCamera->at);
+-            func_800B3FF4(&cam->playerPosRot, &sDbCamAnim.positionPos, &dbCamera->eye);
++            DbCamera_PlayerRelToWorld(&cam->playerPosRot, &sDbCamAnim.lookAtPos, &dbCamera->at);  // was func_800B3FF4 [LLM:HIGH]
++            DbCamera_PlayerRelToWorld(&cam->playerPosRot, &sDbCamAnim.positionPos, &dbCamera->eye);  // was func_800B3FF4 [LLM:HIGH]
+         }
+ 
+         dbCamera->fov = sDbCamAnim.fov;
+@@ -1720,8 +1721,8 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+             DbCamera_CopyVec3f(&sDbCamAnim.positionPos, &dbCamera->eye);
+             DbCamera_CopyVec3f(&sDbCamAnim.lookAtPos, &dbCamera->at);
+         } else {
+-            func_800B3FF4(&cam->playerPosRot, &sDbCamAnim.lookAtPos, &dbCamera->at);
+-            func_800B3FF4(&cam->playerPosRot, &sDbCamAnim.positionPos, &dbCamera->eye);
++            DbCamera_PlayerRelToWorld(&cam->playerPosRot, &sDbCamAnim.lookAtPos, &dbCamera->at);  // was func_800B3FF4 [LLM:HIGH]
++            DbCamera_PlayerRelToWorld(&cam->playerPosRot, &sDbCamAnim.positionPos, &dbCamera->eye);  // was func_800B3FF4 [LLM:HIGH]
+         }
+ 
+         dbCamera->fov = sDbCamAnim.fov;
+-- 
+2.55.0
+

@@ -1,0 +1,53 @@
+From 5fd02cb2e766735bb847843d01d70ac9d69273a0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:47:35 +0000
+Subject: [PATCH 1080/3799] soh: rename func_80A1D94C -> EnFu_OfferTalk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: shared talk helper: installs the caller's action and returns true when the player accepts, otherwise sets the given textId and offers talk while the player is within 100 units and roughly in front.
+Defined in soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c b/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
+index 89c83f9ff..3367c7be4 100644
+--- a/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
++++ b/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
+@@ -104,7 +104,8 @@ void EnFu_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-s32 func_80A1D94C(EnFu* this, PlayState* play, u16 textID, EnFuActionFunc actionFunc) {
++// LLM generated name (HIGH), was func_80A1D94C: shared talk helper: installs the caller's action and returns true when the player accepts, otherwise sets the given textId and offers talk while the player is within 100 units and roughly in front.
++s32 EnFu_OfferTalk(EnFu* this, PlayState* play, u16 textID, EnFuActionFunc actionFunc) {
+     s16 yawDiff;
+ 
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+@@ -142,8 +143,8 @@ void EnFu_WaitChild(EnFu* this, PlayState* play) {
+     }
+ 
+     // if ACTOR_FLAG_PLAYER_TALKED_TO is set and textID is 0x5033, change animation
+-    // if func_80A1D94C returns 1, actionFunc is set to func_80A1DA04
+-    if (func_80A1D94C(this, play, textID, func_80A1DA04)) {
++    // if EnFu_OfferTalk returns 1, actionFunc is set to func_80A1DA04, was func_80A1D94C [LLM:HIGH]
++    if (EnFu_OfferTalk(this, play, textID, func_80A1DA04)) {  // was func_80A1D94C [LLM:HIGH]
+         if (textID == 0x5033) {
+             Animation_Change(&this->skelanime, &gWindmillManPlayAndMoveHeadAnim, 1.0f, 0.0f,
+                              Animation_GetLastFrame(&gWindmillManPlayAndMoveHeadAnim), ANIMMODE_ONCE, -4.0f);
+@@ -223,7 +224,7 @@ void EnFu_WaitAdult(EnFu* this, PlayState* play) {
+ 
+     yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+     if ((Flags_GetEventChkInf(EVENTCHKINF_LEARNED_SONG_OF_STORMS))) {
+-        func_80A1D94C(this, play, 0x508E, func_80A1DBA0);
++        EnFu_OfferTalk(this, play, 0x508E, func_80A1DBA0);  // was func_80A1D94C [LLM:HIGH]
+     } else if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+         this->actor.textId = 0x5035;
+         Message_StartTextbox(play, this->actor.textId, NULL);
+-- 
+2.55.0
+

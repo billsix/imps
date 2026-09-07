@@ -1,0 +1,57 @@
+From 05f89dd4b16f0f9f19b2d291656f5ce039cd4762 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:33:17 +0000
+Subject: [PATCH 0985/3799] soh: rename func_800C170C ->
+ PreRender_CopyImageTintedImpl
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: tiled blit from fbuf into fbufSave, differing from PreRender_CopyImage in that it runs in G_CYC_1CYCLE with a combiner that modulates the texel by the env colour rather than in copy mode; the r/g/b/a arguments are that env colour. Only its white-passing wrapper calls it, so "tinted" describes the capability, not any observed use.
+Defined in soh/src/code/PreRender.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/PreRender.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 75eed641e..4bdecbbb3 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1580,7 +1580,7 @@ void PreRender_SetValues(PreRender* this, u32 width, u32 height, void* fbuf, voi
+ void PreRender_Destroy(PreRender* this);
+ void PreRender_CopyImage(PreRender* this, Gfx** gfxp, void* buf, void* bufSave);  // was func_800C0F28 [oot]
+ void PreRender_CopyImageRegionImpl(PreRender* this, Gfx** gfxp);  // was func_800C1258 [oot]
+-void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a);
++void PreRender_CopyImageTintedImpl(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a);  // was func_800C170C [LLM:GUESS]
+ void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave);
+ void PreRender_CoverageRgba16ToI8(PreRender* this, Gfx** gfxp, void* fbuf, void* cvgSave);  // was func_800C1B24 [oot]
+ void PreRender_SaveZBuffer(PreRender* this, Gfx** gfxp);  // was func_800C1E9C [oot]
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index 6ff229509..b8d93d9b4 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -136,7 +136,8 @@ void PreRender_CopyImageRegionImpl(PreRender* this, Gfx** gfxp) {
+     *gfxp = gfx;
+ }
+ 
+-void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a) {
++// LLM generated name (GUESS), was func_800C170C: tiled blit from fbuf into fbufSave, differing from PreRender_CopyImage in that it runs in G_CYC_1CYCLE with a combiner that modulates the texel by the env colour rather than in copy mode; the r/g/b/a arguments are that env colour. Only its white-passing wrapper calls it, so "tinted" describes the capability, not any observed use.
++void PreRender_CopyImageTintedImpl(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a) {
+     Gfx* gfx;
+     s32 x;
+     s32 x2;
+@@ -189,7 +190,7 @@ void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32
+ }
+ 
+ void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave) {
+-    func_800C170C(this, gfxp, fbuf, fbufSave, 255, 255, 255, 255);
++    PreRender_CopyImageTintedImpl(this, gfxp, fbuf, fbufSave, 255, 255, 255, 255);  // was func_800C170C [LLM:GUESS]
+ }
+ 
+ // Name from zeldaret/oot (was func_800C1B24): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
+-- 
+2.55.0
+

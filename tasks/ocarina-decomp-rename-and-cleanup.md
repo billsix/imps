@@ -10,19 +10,31 @@ body is a win; don't hold up a rename batch on a risky readability rewrite.
 
 ## ORACLE EXHAUSTED (2026-09-07) — deduction work split out
 
-**765 of 4,235 symbols renamed (18.1%)**, every one of them sourced from
+**770 of 4,235 symbols renamed (18.2%)**, every one of them sourced from
 zeldaret/oot and verified. The oracle has converged: re-running it yields one
 candidate, and that one is a name collision it correctly refuses
 (`EnDivingGame_TalkDuringMinigame` is already taken by a different SoH
-function). `personal` is **784 patches**; the tree compiles.
+function). `personal` is **789 patches**; the tree compiles.
 
-**The remaining 3,470 need names DEDUCED, not adopted** — 2,565 of them are
+**Querying TWO oot revisions, not one, was the last real lever.** `main` has the
+most names but has drifted years from SoH's snapshot: files move away and
+function sequences diverge past what alignment can bridge. Adding a 2022-05-31
+revision (`fa1ea37d`) as a fallback and keeping the best verdict per symbol cut
+the mechanical failures from 146 to **38** — UNSAFE 76→23, MISMATCH 66→13,
+NOFILE 4→2 — and recovered 5 more names. The rest were correctly reclassified as
+`BOTH` (upstream has no name either), which is information, not failure.
+
+Only **2 NOFILE** remain, both genuinely absent upstream: `code_800FBCE0.c`
+(RCP — deliberately skipped since 2026-07-31) and `system_heap.c`.
+
+**The remaining 3,465 need names DEDUCED, not adopted** — 2,719 of them are
 address-named in oot too, so upstream has nothing to give. That is a different
 kind of work with a different risk profile, and it lives in its own task:
 [`tasks/ocarina-deduce-remaining-decomp-names.md`](ocarina-deduce-remaining-decomp-names.md).
-It also inherits 146 rows (76 UNSAFE, 66 MISMATCH, 4 NOFILE) that failed for
-mechanical reasons rather than absence of an upstream name, and should be
-retried against a closer oot revision **before** any guessing starts.
+It inherits just **38** rows (23 UNSAFE, 13 MISMATCH, 2 NOFILE) that still fail
+for mechanical reasons — down from 146 once a second oot revision was queried.
+Those are worth one more look before any guessing, but the oracle is otherwise
+spent.
 
 ## BUILD-VERIFIED (2026-09-07) — the renames compile
 
@@ -48,7 +60,7 @@ the sandbox image ships neither). Do NOT reuse `n64/OcarinaOfTime/build-cmake/`
 — that cache belongs to the maintainer's host and cmake refuses a different
 source path anyway.
 
-## Batch 2 — 738 upstream names adopted (2026-09-07)
+## Batch 2 — 559 upstream names adopted (2026-09-07)
 
 **Done:** 559 more symbols renamed, taking the total from 206 to **765 of 4,235
 (18.1%)**; 3,470 remain. All gates green, the `personal` stream regenerated to
@@ -116,20 +128,24 @@ read-every-function work, not a bulk operation, and it is where the remaining
 effort lies. 228 MISMATCH (aligned, but the bodies diverged too far to trust) + 77 UNSAFE +
 7 NOFILE also need individual attention.
 
-## STOPPING POINT — resume here (2026-07-31, session end)
-Stopped at a clean milestone (the maintainer's call); task stays **open** — the bulk of the renaming remains.
-- **Done:** 18/19 `code_<addr>.c` files renamed (only `code_800FBCE0.c` left — RCP, oot leaves it
-  address-named too); ~206 symbols renamed and cross-checked against zeldaret/oot (65 oot-cited, 141
-  marked LLM because oot leaves them address-named). That's the `code_` files + every file that had only
-  1–2 un-named funcs. All grep-complete, **NOT build-verified** — the maintainer's build is the gate.
-- **Remaining:** **~3,988 un-named `func_` defs across ~175 denser files** (3+ un-named funcs each) +
-  the whole **de-obfuscation goal (goal 3, untouched)** + the open questions below.
-- **How to resume:** read **[`tasks/reference/ocarina/decomp-renaming.md`](reference/ocarina/decomp-renaming.md)** first
-  (the method, the oot cross-referencing oracle, the gotchas, the naming decisions), then re-run the
-  survey (per-file un-named-func count, smallest first) and continue the batch loop.
-- **Discretion-flags for the maintainer to eyeball** (in the review-pass log below): `Math_FMod` not renamed to
-  oot's `fmodf` (libc clash); `TransitionUnk_Start` left (Update name taken); full `Message_StartOcarina`
-  oot alignment deferred (touches a widely-called existing symbol).
+## History — the 2026-07-31 batch (superseded; kept for the record)
+
+The first pass renamed the 19 `code_<addr>.c` files (all but `code_800FBCE0.c`,
+RCP, which oot also leaves address-named) plus every file that had only 1-2
+un-named functions: **206 symbols**, of which 64 carried oot citations and 141
+were LLM deductions. It was grep-complete but never compiled, and it shipped as
+a single 6,854-line commit.
+
+Both of those were fixed later: the commit was split one-rename-per-commit
+(archived at
+[`tasks/archive/ocarina/2026/09/07/ocarina-split-rename-patch.md`](archive/ocarina/2026/09/07/ocarina-split-rename-patch.md)),
+and the tree now compiles. Its two discretion-flags still stand and are
+unresolved: `Math_FMod` was not renamed to oot's `fmodf` (it would clash with
+libc in a PC port), and `TransitionUnk_Start` was left alone (oot's
+`TransitionUnk_Update` name was already taken in SoH). The full
+`Message_StartOcarina` realignment with oot is likewise still deferred.
+
+**Do not resume from this section** — resume from the current state below.
 
 ## Goal
 Three intertwined jobs across the un-reverse-engineered OoT decomp (`soh/src/`):
@@ -143,9 +159,12 @@ Three intertwined jobs across the un-reverse-engineered OoT decomp (`soh/src/`):
    raw pointer/offset arithmetic, throwaway temps, an `if/else` ladder that's really a `switch`),
    rewrite it into readable, idiomatic C **without changing behavior**.
 
-## Where the work is (surveyed 2026-07-31)
-Scale is large: **~10,781 `func_*` + ~4,546 `D_*`** un-named symbols across `soh/src`. This is a
-multi-session effort — treat the survey below as a work-list, not a one-sitting job.
+## Where the work is (surveyed 2026-07-31; counts re-measured 2026-09-07)
+Scale is large. Two different numbers get quoted, so be clear which is which:
+**~10,781 `func_*` + ~4,546 `D_*` OCCURRENCES** (every reference) against
+**4,235 DISTINCT symbols** at the pin, which is what the gates count and what
+the percentages in this doc mean. This is a multi-session effort — treat the
+survey below as a work-list, not a one-sitting job.
 - **Start here (your stated entry point): the 19 `soh/src/code/code_<address>.c` files** — decomp
   segments named by ROM address, full of `func_<address>` functions. Good first targets because
   **their signatures are often already typed** (e.g. `code_800430A0.c:4`

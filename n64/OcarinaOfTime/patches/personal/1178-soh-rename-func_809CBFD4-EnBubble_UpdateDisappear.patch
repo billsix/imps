@@ -1,0 +1,43 @@
+From dd5d201dcc5df1629cf685335303b2d9906f3811 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:55:04 +0000
+Subject: [PATCH 1178/3799] soh: rename func_809CBFD4 ->
+ EnBubble_UpdateDisappear
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the unused EnBubble_Disappear action's helper: returns -1 while the countdown runs and, on expiry, hands back EnBubble_SetupDisappear's regrow countdown.
+Defined in soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c b/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
+index abe238cd9..513536345 100644
+--- a/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
++++ b/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
+@@ -156,7 +156,8 @@ s32 EnBubble_Explosion(EnBubble* this, PlayState* play) {
+ }
+ 
+ // only called in an unused actionFunc
+-u32 func_809CBFD4(EnBubble* this) {
++// LLM generated name (HIGH), was func_809CBFD4: the unused EnBubble_Disappear action's helper: returns -1 while the countdown runs and, on expiry, hands back EnBubble_SetupDisappear's regrow countdown.
++u32 EnBubble_UpdateDisappear(EnBubble* this) {
+     if (DECR(this->explosionCountdown) != 0) {
+         return -1;
+     }
+@@ -383,7 +384,7 @@ void EnBubble_Pop(EnBubble* this, PlayState* play) {
+ void EnBubble_Disappear(EnBubble* this, PlayState* play) {
+     s32 temp_v0;
+ 
+-    temp_v0 = func_809CBFD4(this);
++    temp_v0 = EnBubble_UpdateDisappear(this);  // was func_809CBFD4 [LLM:HIGH]
+     if (temp_v0 >= 0) {
+         this->actor.shape.shadowDraw = ActorShadow_DrawCircle;
+         this->explosionCountdown = temp_v0;
+-- 
+2.55.0
+

@@ -1,0 +1,49 @@
+From 34b4c94f486bb212c8d39e0314a344a5ba141d7f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:26:57 +0000
+Subject: [PATCH 1566/3799] soh: rename func_80A2FC0C -> EnGb_FinishGiveBottle
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits out the get-item textbox, refreshes the greeting and returns to the idle.
+Defined in soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c b/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
+index dd50d3e9d..be3421ec9 100644
+--- a/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
++++ b/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
+@@ -29,7 +29,8 @@ void EnGb_Talk(EnGb* this, PlayState* play);  // was func_80A2F94C [LLM:HIGH]
+ void EnGb_OfferBottle(EnGb* this, PlayState* play);  // was func_80A2FB40 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A2FBB0: re-offers the bottle until the player takes it.
+ void EnGb_GiveBottle(EnGb* this, PlayState* play);  // was func_80A2FBB0 [LLM:HIGH]
+-void func_80A2FC0C(EnGb* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A2FC0C: waits out the get-item textbox, refreshes the greeting and returns to the idle.
++void EnGb_FinishGiveBottle(EnGb* this, PlayState* play);  // was func_80A2FC0C [LLM:HIGH]
+ 
+ void EnGb_DrawCagedSouls(EnGb* this, PlayState* play);
+ void EnGb_UpdateCagedSouls(EnGb* this, PlayState* play);
+@@ -376,13 +377,13 @@ void EnGb_OfferBottle(EnGb* this, PlayState* play) {
+ void EnGb_GiveBottle(EnGb* this, PlayState* play) {
+     if (Actor_HasParent(&this->dyna.actor, play)) {
+         this->dyna.actor.parent = NULL;
+-        this->actionFunc = func_80A2FC0C;
++        this->actionFunc = EnGb_FinishGiveBottle;  // was func_80A2FC0C [LLM:HIGH]
+     } else {
+         Actor_OfferGetItem(&this->dyna.actor, play, GI_BOTTLE, 100.0f, 10.0f);
+     }
+ }
+ 
+-void func_80A2FC0C(EnGb* this, PlayState* play) {
++void EnGb_FinishGiveBottle(EnGb* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_DONE && Message_ShouldAdvance(play)) {
+         Actor_ProcessTalkRequest(&this->dyna.actor, play);
+         EnGb_UpdateTextId(this);  // was func_80A2F180 [LLM:HIGH]
+-- 
+2.55.0
+

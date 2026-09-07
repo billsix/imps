@@ -1,0 +1,69 @@
+From 0a547967afa6f365a91c865dddd53cb3e42bc2c2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:58 +0000
+Subject: [PATCH 2522/3799] soh: rename D_80130608 -> sAudioPaused
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: set while the pause menu is open, and read to hold off the river-sound BGM restore
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/audio_general.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 8a567d38c..c67460fc0 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -134,7 +134,8 @@ f32 sSfxSwordChargeFreq = 1.0f;
+ u8 sGanonsTowerLevelsVol[8] = { 127, 80, 75, 73, 70, 68, 65, 60 };
+ u8 sEnterGanonsTowerTimer = 0;
+ s8 sSoundOutputMode = 2;
+-s8 D_80130608 = 0;
++// LLM generated name (HIGH), was D_80130608: set while the pause menu is open, and read to hold off the river-sound BGM restore
++s8 sAudioPaused = 0;  // was D_80130608 [LLM:HIGH]
+ s8 sAudioCutsceneFlag = 0;
+ s8 sSpecReverb = 0;
+ s8 sAudioEnvReverb = 0;
+@@ -1332,7 +1333,7 @@ s32 sAudioUpdateTaskEnd;      // decomp: debug only
+     F(sPrevChargeLevel)                                \
+     F(sSfxSwordChargeFreq)                             \
+     F(sEnterGanonsTowerTimer)                          \
+-    F(D_80130608)                                      \
++    F(sAudioPaused)                                      \
+     F(sAudioCutsceneFlag)                              \
+     F(sSpecReverb)                                     \
+     F(sAudioEnvReverb)                                 \
+@@ -4648,7 +4649,7 @@ void Audio_UpdateRiverSoundVolumes(void) {
+             sRiverSoundMainBgmRestore = 1;
+         }
+         sRiverSoundMainBgmLower = 0;
+-    } else if (sRiverSoundMainBgmRestore == 1 && D_80130608 == 0) {
++    } else if (sRiverSoundMainBgmRestore == 1 && sAudioPaused == 0) {  // was D_80130608 [LLM:HIGH]
+         Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 0, 0x7F, 0xA);
+         sRiverSoundMainBgmCurrentVol = 0x7F;
+         sRiverSoundMainBgmRestore = 0;
+@@ -5262,7 +5263,7 @@ void Audio_UpdateMalonSinging(f32 dist, u16 arg1) {
+ 
+ // LLM generated name (HIGH), was func_800F64E0: records the pause flag and plays the window open or close sound; kaleido passes 1 on opening and 0 on closing
+ void Audio_SetPauseState(u8 arg0) {
+-    D_80130608 = arg0;
++    sAudioPaused = arg0;  // was D_80130608 [LLM:HIGH]
+     if (arg0 != 0) {
+         Audio_PlaySfxGeneral(NA_SE_SY_WIN_OPEN, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+@@ -5485,7 +5486,7 @@ void Audio_ResetData(void) {
+     sGanonsTowerVol = 0xFF;
+     sMalonSingingTimer = 0;
+     sSpecReverb = sSpecReverbs[gAudioSpecId];
+-    D_80130608 = 0;
++    sAudioPaused = 0;  // was D_80130608 [LLM:HIGH]
+     sPrevMainBgmSeqId = NA_BGM_DISABLED;
+     Audio_QueueCmdS8(0x46 << 24 | SEQ_PLAYER_BGM_MAIN << 16, -1);
+     sSariaBgmPtr = NULL;
+-- 
+2.55.0
+

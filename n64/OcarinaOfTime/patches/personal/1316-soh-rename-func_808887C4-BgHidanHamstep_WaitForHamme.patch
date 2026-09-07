@@ -1,0 +1,75 @@
+From 0f6ce4c9c0a51dda008a3b69a837d4b3500f18d3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:09:57 +0000
+Subject: [PATCH 1316/3799] soh: rename func_808887C4 ->
+ BgHidanHamstep_WaitForHammer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: sActionFuncs[0]: runs the AC check until the switch is struck, then plays the hammer-switch sfx, sets the switch flag and starts the fall.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/soh/Network/Anchor/HookHandlers.cpp                    | 4 ++--
+ .../actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c       | 7 ++++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/soh/Network/Anchor/HookHandlers.cpp b/soh/soh/Network/Anchor/HookHandlers.cpp
+index 1adc478ea..ac4cb511a 100644
+--- a/soh/soh/Network/Anchor/HookHandlers.cpp
++++ b/soh/soh/Network/Anchor/HookHandlers.cpp
+@@ -35,7 +35,7 @@ extern MapData* gMapData;
+ void BgBombwall_WaitForBomb(BgBombwall* bgBombwall, PlayState* play);  // was func_8086ED70 [LLM:HIGH]
+ void BgBreakwall_Wait(BgBreakwall* bgBreakwall, PlayState* play);
+ void BgHakaZou_WaitForHit(BgHakaZou* bgHakaZou, PlayState* play);
+-void func_808887C4(BgHidanHamstep* bgHidanHamstep, PlayState* play);
++void BgHidanHamstep_WaitForHammer(BgHidanHamstep* bgHidanHamstep, PlayState* play);  // was func_808887C4 [LLM:HIGH]
+ void BgHidanHrock_WaitForHit(BgHidanHrock* bgHidanHrock, PlayState* play);  // was func_808896B8 [LLM:HIGH]
+ void BgIceShelter_Idle(BgIceShelter* bgIceShelter, PlayState* play);
+ void BgIceShelter_SetupMelt(BgIceShelter* bgIceShelter);
+@@ -239,7 +239,7 @@ void Anchor::RegisterHooks() {
+     COND_ID_HOOK(ShouldActorUpdate, ACTOR_BG_HIDAN_HAMSTEP, isConnected, [&](void* refActor, bool* should) {
+         BgHidanHamstep* actor = static_cast<BgHidanHamstep*>(refActor);
+ 
+-        if (actor->actionFunc == func_808887C4 && Flags_GetSwitch(gPlayState, (actor->dyna.actor.params >> 8) & 0xFF)) {
++        if (actor->actionFunc == BgHidanHamstep_WaitForHammer && Flags_GetSwitch(gPlayState, (actor->dyna.actor.params >> 8) & 0xFF)) {  // was func_808887C4 [LLM:HIGH]
+             actor->collider.base.acFlags |= AC_HIT;
+         }
+     });
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
+index cafcddb82..87dd55e64 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
+@@ -14,7 +14,8 @@ void BgHidanHamstep_Destroy(Actor* thisx, PlayState* play);
+ void BgHidanHamstep_Update(Actor* thisx, PlayState* play);
+ void BgHidanHamstep_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_808887C4(BgHidanHamstep* this, PlayState* play);
++// LLM generated name (HIGH), was func_808887C4: sActionFuncs[0]: runs the AC check until the switch is struck, then plays the hammer-switch sfx, sets the switch flag and starts the fall.
++void BgHidanHamstep_WaitForHammer(BgHidanHamstep* this, PlayState* play);  // was func_808887C4 [LLM:HIGH]
+ void func_80888860(BgHidanHamstep* this, PlayState* play);
+ void func_808889B8(BgHidanHamstep* this, PlayState* play);
+ void func_80888A58(BgHidanHamstep* this, PlayState* play);
+@@ -76,7 +77,7 @@ const ActorInit Bg_Hidan_Hamstep_InitVars = {
+ };
+ 
+ static BgHidanHamstepActionFunc sActionFuncs[] = {
+-    func_808887C4, func_80888860, func_808889B8, func_80888A58, BgHidanHamstep_DoNothing,
++    BgHidanHamstep_WaitForHammer, func_80888860, func_808889B8, func_80888A58, BgHidanHamstep_DoNothing,  // was func_808887C4 [LLM:HIGH]
+ };
+ 
+ static InitChainEntry sInitChain[] = {
+@@ -281,7 +282,7 @@ void BgHidanHamstep_FollowParent(BgHidanHamstep* this) {
+     }
+ }
+ 
+-void func_808887C4(BgHidanHamstep* this, PlayState* play) {
++void BgHidanHamstep_WaitForHammer(BgHidanHamstep* this, PlayState* play) {
+     if (this->collider.base.acFlags & AC_HIT) {
+         OnePointCutscene_Init(play, 3310, 100, &this->dyna.actor, CAM_ID_MAIN);
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_HAMMER_SWITCH);
+-- 
+2.55.0
+

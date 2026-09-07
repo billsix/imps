@@ -1,0 +1,64 @@
+From 90ab701818fcbf750451582463ab940c40bf11c2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:21:16 +0000
+Subject: [PATCH 2293/3799] soh: rename D_80AB4318 -> sCsRunning
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: overlay-wide latch that a cutscene was running, so its end can be detected on the next update
+Defined in soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c b/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
+index 8d7e1ca88..f089030b2 100644
+--- a/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
++++ b/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
+@@ -84,7 +84,8 @@ static void* sEyeTextures[] = {
+     gNabooruEyeClosedTex,
+ };
+ 
+-static s32 D_80AB4318 = 0;
++// LLM generated name (HIGH), was D_80AB4318: overlay-wide latch that a cutscene was running, so its end can be detected on the next update
++static s32 sCsRunning = 0;  // was D_80AB4318 [LLM:HIGH]
+ 
+ #include "z_en_nb_cutscene_data.c" EARLY
+ 
+@@ -146,7 +147,7 @@ void EnNb_UpdateCollider(EnNb* this, PlayState* play) {
+ void EnNb_Destroy(Actor* thisx, PlayState* play) {
+     EnNb* this = (EnNb*)thisx;
+ 
+-    D_80AB4318 = 0;
++    sCsRunning = 0;  // was D_80AB4318 [LLM:HIGH]
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+@@ -212,17 +213,17 @@ void EnNb_WatchCutsceneEnd(EnNb* this, PlayState* play) {
+     s32 one; // required to match
+ 
+     if (play->csCtx.state == CS_STATE_IDLE) {
+-        if (D_80AB4318) {
++        if (sCsRunning) {  // was D_80AB4318 [LLM:HIGH]
+             if (this->actor.params == NB_TYPE_DEMO02) {
+                 EnNb_SetupHiddenAfterCs(this);  // was func_80AB11EC [LLM:HIGH]
+             }
+ 
+-            D_80AB4318 = 0;
++            sCsRunning = 0;  // was D_80AB4318 [LLM:HIGH]
+         }
+     } else {
+         one = 1;
+-        if (!D_80AB4318) {
+-            D_80AB4318 = one;
++        if (!sCsRunning) {  // was D_80AB4318 [LLM:HIGH]
++            sCsRunning = one;  // was D_80AB4318 [LLM:HIGH]
+         }
+     }
+ }
+-- 
+2.55.0
+

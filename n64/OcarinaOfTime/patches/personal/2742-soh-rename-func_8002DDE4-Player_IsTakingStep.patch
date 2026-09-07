@@ -1,0 +1,112 @@
+From 4d6c877bcd7bd38c7cff40e69f19d27d3fbebdcc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:31 +0000
+Subject: [PATCH 2742/3799] soh: rename func_8002DDE4 -> Player_IsTakingStep
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: returns stateFlags2 & PLAYER_STATE2_FOOTSTEP
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                       | 2 +-
+ soh/src/code/z_actor.c                        | 3 ++-
+ soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c | 2 +-
+ soh/src/overlays/actors/ovl_En_Mb/z_en_mb.c   | 4 ++--
+ soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c   | 2 +-
+ soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c | 2 +-
+ 6 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 4d139e366..525eb129b 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -421,7 +421,7 @@ s32 Player_ActionHandler_2(Player* player, PlayState* play);
+ f32 Player_GetRunSpeedLimit(Player* player);  // was func_8002DCE4 [LLM:HIGH]
+ s32 Player_HasItemInHand(Player* player);  // was func_8002DD6C [LLM:HIGH]
+ s32 Player_IsAimingHeldItem(Player* player);  // was func_8002DD78 [LLM:GUESS]
+-s32 func_8002DDE4(PlayState* play);
++s32 Player_IsTakingStep(PlayState* play);  // was func_8002DDE4 [LLM:HIGH]
+ s32 func_8002DDF4(PlayState* play);
+ void Actor_SwapHookshotAttachment(PlayState* play, Actor* actorA, Actor* actorB);
+ void Actor_RequestHorseCameraSetting(PlayState* play, Player* player);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 182045df0..930848d61 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1438,7 +1438,8 @@ s32 Player_IsCarryingOrAiming(PlayState* play) {
+     return (player->stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR) || Player_IsAimingHeldItem(player);  // was func_8002DD78 [LLM:GUESS]
+ }
+ 
+-s32 func_8002DDE4(PlayState* play) {
++// LLM generated name (HIGH), was func_8002DDE4: returns stateFlags2 & PLAYER_STATE2_FOOTSTEP
++s32 Player_IsTakingStep(PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     return player->stateFlags2 & PLAYER_STATE2_FOOTSTEP;
+diff --git a/soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c b/soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c
+index b2a53b577..aab0b6799 100644
+--- a/soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c
++++ b/soh/src/overlays/actors/ovl_En_Ge2/z_en_ge2.c
+@@ -193,7 +193,7 @@ s32 Ge2_DetectPlayerInAction(PlayState* play, EnGe2* this) {
+         return 2;
+     }
+ 
+-    if (func_8002DDE4(play)) {
++    if (Player_IsTakingStep(play)) {  // was func_8002DDE4 [LLM:HIGH]
+         return 1;
+     }
+     return 0;
+diff --git a/soh/src/overlays/actors/ovl_En_Mb/z_en_mb.c b/soh/src/overlays/actors/ovl_En_Mb/z_en_mb.c
+index 2eae2d8e0..5e767f788 100644
+--- a/soh/src/overlays/actors/ovl_En_Mb/z_en_mb.c
++++ b/soh/src/overlays/actors/ovl_En_Mb/z_en_mb.c
+@@ -671,7 +671,7 @@ void EnMb_SpearPatrolTurnTowardsWaypoint(EnMb* this, PlayState* play) {
+ 
+     if (ABS(this->actor.yDistToPlayer) <= 20.0f && EnMb_IsPlayerInCorridor(this, play)) {
+         relYawFromPlayer = this->actor.shape.rot.y - this->actor.yawTowardsPlayer;
+-        if (ABS(relYawFromPlayer) <= 0x4000 || (func_8002DDE4(play) && this->actor.xzDistToPlayer < 160.0f)) {
++        if (ABS(relYawFromPlayer) <= 0x4000 || (Player_IsTakingStep(play) && this->actor.xzDistToPlayer < 160.0f)) {  // was func_8002DDE4 [LLM:HIGH]
+             EnMb_FindWaypointTowardsPlayer(this, play);
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_MORIBLIN_VOICE);
+             EnMb_SetupSpearPrepareAndCharge(this);
+@@ -1226,7 +1226,7 @@ void EnMb_SpearPatrolWalkTowardsWaypoint(EnMb* this, PlayState* play) {
+     yDistToPlayerAbs = (this->actor.yDistToPlayer >= 0.0f) ? this->actor.yDistToPlayer : -this->actor.yDistToPlayer;
+     if (yDistToPlayerAbs <= 20.0f && EnMb_IsPlayerInCorridor(this, play)) {
+         relYawTowardsPlayer = (this->actor.shape.rot.y - this->actor.yawTowardsPlayer);
+-        if (ABS(relYawTowardsPlayer) <= 0x4000 || (func_8002DDE4(play) && this->actor.xzDistToPlayer < 160.0f)) {
++        if (ABS(relYawTowardsPlayer) <= 0x4000 || (Player_IsTakingStep(play) && this->actor.xzDistToPlayer < 160.0f)) {  // was func_8002DDE4 [LLM:HIGH]
+             EnMb_FindWaypointTowardsPlayer(this, play);
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_MORIBLIN_VOICE);
+             EnMb_SetupSpearPrepareAndCharge(this);
+diff --git a/soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c b/soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c
+index 9571f8473..fe7d587f6 100644
+--- a/soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c
++++ b/soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c
+@@ -250,7 +250,7 @@ void EnRd_Idle(EnRd* this, PlayState* play) {
+ 
+         this->isMourning = 0;
+ 
+-        if (this->actor.xzDistToPlayer <= 150.0f && func_8002DDE4(play)) {
++        if (this->actor.xzDistToPlayer <= 150.0f && Player_IsTakingStep(play)) {  // was func_8002DDE4 [LLM:HIGH]
+             // Add a height check to redeads/gibdos freeze when Enemy Randomizer is on.
+             // Without the height check, redeads/gibdos can freeze the player from insane distances in
+             // vertical rooms (like the first room in Deku Tree), making these rooms nearly unplayable.
+diff --git a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+index c5300f8d9..abc511270 100644
+--- a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
++++ b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+@@ -643,7 +643,7 @@ s32 EnSkj_IsPlayerEngaging(EnSkj* this, PlayState* play) {
+ 
+     if (this->actor.xzDistToPlayer < this->unk_2EC) {
+         this = this;
+-        if (func_8002DDE4(play) != 0) {
++        if (Player_IsTakingStep(play) != 0) {  // was func_8002DDE4 [LLM:HIGH]
+             return 1;
+         }
+     }
+-- 
+2.55.0
+

@@ -1,0 +1,140 @@
+From 5745fd97e9615831dd2809a5afa9e022453ca335 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:15:29 +0000
+Subject: [PATCH 3357/3799] soh: rename D_8011FC1C -> sTimeBasedSkyboxConfigs
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: per-scene rows of time ranges, blend flag and the skybox indices each covers
+Defined in soh/src/code/z_kankyo.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/variables.h |  2 +-
+ soh/src/code/z_kankyo.c | 43 +++++++++++++++++++++--------------------
+ soh/src/code/z_vr_box.c | 14 +++++++-------
+ 3 files changed, 30 insertions(+), 29 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 3d9e4daaf..56fbad074 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -78,7 +78,7 @@ extern "C"
+ 	extern u8 gInterruptSongOfStorms;  // was D_8011FB38 [oot]
+ 	extern u8 gSkyboxBlendingEnabled;
+ 	extern u16 gTimeSpeed;
+-	extern struct_8011FC1C D_8011FC1C[][9];
++	extern struct_8011FC1C sTimeBasedSkyboxConfigs[][9];  // was D_8011FC1C [LLM:HIGH]
+ 	extern SkyboxFile gSkyboxFiles[];
+ 	extern s32 gZeldaArenaLogSeverity;
+ 	extern MapData gMapDataTable;
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index da10e82ae..3789f3b5b 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -117,7 +117,8 @@ struct_8011FB48 sTimeBasedLightConfigs[][7] = {  // was D_8011FB48 [LLM:HIGH]
+     },
+ };
+ 
+-struct_8011FC1C D_8011FC1C[][9] = {
++// LLM generated name (HIGH), was D_8011FC1C: per-scene rows of time ranges, blend flag and the skybox indices each covers
++struct_8011FC1C sTimeBasedSkyboxConfigs[][9] = {  // was D_8011FC1C [LLM:HIGH]
+     {
+         { 0x0000, 0x2AAC, 0, 3, 3 },
+         { 0x2AAC, 0x3556, 1, 3, 0 },
+@@ -634,13 +635,13 @@ void Environment_UpdateSkybox(PlayState* play, u8 skyboxId, EnvironmentContext*
+     if (skyboxId == SKYBOX_CUTSCENE_MAP) {
+         envCtx->unk_17 = 3;
+ 
+-        for (i = 0; i < ARRAY_COUNT(D_8011FC1C[envCtx->unk_17]); i++) {
+-            if (gSaveContext.skyboxTime >= D_8011FC1C[envCtx->unk_17][i].startTime &&
+-                (gSaveContext.skyboxTime < D_8011FC1C[envCtx->unk_17][i].endTime ||
+-                 D_8011FC1C[envCtx->unk_17][i].endTime == 0xFFFF)) {
+-                if (D_8011FC1C[envCtx->unk_17][i].blend) {
+-                    envCtx->skyboxBlend = Environment_LerpWeight(D_8011FC1C[envCtx->unk_17][i].endTime,
+-                                                                 D_8011FC1C[envCtx->unk_17][i].startTime,
++        for (i = 0; i < ARRAY_COUNT(sTimeBasedSkyboxConfigs[envCtx->unk_17]); i++) {  // was D_8011FC1C [LLM:HIGH]
++            if (gSaveContext.skyboxTime >= sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime &&  // was D_8011FC1C [LLM:HIGH]
++                (gSaveContext.skyboxTime < sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime ||  // was D_8011FC1C [LLM:HIGH]
++                 sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime == 0xFFFF)) {  // was D_8011FC1C [LLM:HIGH]
++                if (sTimeBasedSkyboxConfigs[envCtx->unk_17][i].blend) {  // was D_8011FC1C [LLM:HIGH]
++                    envCtx->skyboxBlend = Environment_LerpWeight(sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime,  // was D_8011FC1C [LLM:HIGH]
++                                                                 sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime,  // was D_8011FC1C [LLM:HIGH]
+                                                                  ((void)0, gSaveContext.skyboxTime)) *
+                                           255;
+                 } else {
+@@ -650,22 +651,22 @@ void Environment_UpdateSkybox(PlayState* play, u8 skyboxId, EnvironmentContext*
+             }
+         }
+     } else if (skyboxId == SKYBOX_NORMAL_SKY && !envCtx->skyboxDisabled) {
+-        for (i = 0; i < ARRAY_COUNT(D_8011FC1C[envCtx->unk_17]); i++) {
+-            if (gSaveContext.skyboxTime >= D_8011FC1C[envCtx->unk_17][i].startTime &&
+-                (gSaveContext.skyboxTime < D_8011FC1C[envCtx->unk_17][i].endTime ||
+-                 D_8011FC1C[envCtx->unk_17][i].endTime == 0xFFFF)) {
+-                newSkybox1Index = D_8011FC1C[envCtx->unk_17][i].skybox1Index;
+-                newSkybox2Index = D_8011FC1C[envCtx->unk_17][i].skybox2Index;
+-                gSkyboxBlendingEnabled = D_8011FC1C[envCtx->unk_17][i].blend;
++        for (i = 0; i < ARRAY_COUNT(sTimeBasedSkyboxConfigs[envCtx->unk_17]); i++) {  // was D_8011FC1C [LLM:HIGH]
++            if (gSaveContext.skyboxTime >= sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime &&  // was D_8011FC1C [LLM:HIGH]
++                (gSaveContext.skyboxTime < sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime ||  // was D_8011FC1C [LLM:HIGH]
++                 sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime == 0xFFFF)) {  // was D_8011FC1C [LLM:HIGH]
++                newSkybox1Index = sTimeBasedSkyboxConfigs[envCtx->unk_17][i].skybox1Index;  // was D_8011FC1C [LLM:HIGH]
++                newSkybox2Index = sTimeBasedSkyboxConfigs[envCtx->unk_17][i].skybox2Index;  // was D_8011FC1C [LLM:HIGH]
++                gSkyboxBlendingEnabled = sTimeBasedSkyboxConfigs[envCtx->unk_17][i].blend;  // was D_8011FC1C [LLM:HIGH]
+ 
+                 if (gSkyboxBlendingEnabled) {
+-                    skyboxBlend = Environment_LerpWeight(D_8011FC1C[envCtx->unk_17][i].endTime,
+-                                                         D_8011FC1C[envCtx->unk_17][i].startTime,
++                    skyboxBlend = Environment_LerpWeight(sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime,  // was D_8011FC1C [LLM:HIGH]
++                                                         sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime,  // was D_8011FC1C [LLM:HIGH]
+                                                          ((void)0, gSaveContext.skyboxTime)) *
+                                   255;
+                 } else {
+-                    skyboxBlend = Environment_LerpWeight(D_8011FC1C[envCtx->unk_17][i].endTime,
+-                                                         D_8011FC1C[envCtx->unk_17][i].startTime,
++                    skyboxBlend = Environment_LerpWeight(sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime,  // was D_8011FC1C [LLM:HIGH]
++                                                         sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime,  // was D_8011FC1C [LLM:HIGH]
+                                                          ((void)0, gSaveContext.skyboxTime)) *
+                                   255;
+ 
+@@ -683,8 +684,8 @@ void Environment_UpdateSkybox(PlayState* play, u8 skyboxId, EnvironmentContext*
+         Environment_UpdateStorm(envCtx, skyboxBlend);
+ 
+         if (envCtx->unk_19 >= 3) {
+-            newSkybox1Index = D_8011FC1C[envCtx->unk_17][i].skybox1Index;
+-            newSkybox2Index = D_8011FC1C[envCtx->unk_18][i].skybox2Index;
++            newSkybox1Index = sTimeBasedSkyboxConfigs[envCtx->unk_17][i].skybox1Index;  // was D_8011FC1C [LLM:HIGH]
++            newSkybox2Index = sTimeBasedSkyboxConfigs[envCtx->unk_18][i].skybox2Index;  // was D_8011FC1C [LLM:HIGH]
+ 
+             skyboxBlend = ((f32)envCtx->unk_24 - envCtx->unk_1A--) / (f32)envCtx->unk_24 * 255;
+ 
+diff --git a/soh/src/code/z_vr_box.c b/soh/src/code/z_vr_box.c
+index 4b8ae3658..4d947a832 100644
+--- a/soh/src/code/z_vr_box.c
++++ b/soh/src/code/z_vr_box.c
+@@ -574,14 +574,14 @@ void Skybox_Setup(PlayState* play, SkyboxContext* skyboxCtx, s16 skyboxId) {
+             }
+ 
+             for (i = 0; i < 9; i++) {
+-                if (gSaveContext.skyboxTime >= D_8011FC1C[phi_v1][i].startTime &&
+-                    (gSaveContext.skyboxTime < D_8011FC1C[phi_v1][i].endTime ||
+-                     D_8011FC1C[phi_v1][i].endTime == 0xFFFF)) {
+-                    play->envCtx.skybox1Index = sp41 = D_8011FC1C[phi_v1][i].skybox1Index;
+-                    play->envCtx.skybox2Index = sp40 = D_8011FC1C[phi_v1][i].skybox2Index;
+-                    if (D_8011FC1C[phi_v1][i].blend != 0) {
++                if (gSaveContext.skyboxTime >= sTimeBasedSkyboxConfigs[phi_v1][i].startTime &&  // was D_8011FC1C [LLM:HIGH]
++                    (gSaveContext.skyboxTime < sTimeBasedSkyboxConfigs[phi_v1][i].endTime ||  // was D_8011FC1C [LLM:HIGH]
++                     sTimeBasedSkyboxConfigs[phi_v1][i].endTime == 0xFFFF)) {  // was D_8011FC1C [LLM:HIGH]
++                    play->envCtx.skybox1Index = sp41 = sTimeBasedSkyboxConfigs[phi_v1][i].skybox1Index;  // was D_8011FC1C [LLM:HIGH]
++                    play->envCtx.skybox2Index = sp40 = sTimeBasedSkyboxConfigs[phi_v1][i].skybox2Index;  // was D_8011FC1C [LLM:HIGH]
++                    if (sTimeBasedSkyboxConfigs[phi_v1][i].blend != 0) {  // was D_8011FC1C [LLM:HIGH]
+                         play->envCtx.skyboxBlend =
+-                            Environment_LerpWeight(D_8011FC1C[phi_v1][i].endTime, D_8011FC1C[phi_v1][i].startTime,
++                            Environment_LerpWeight(sTimeBasedSkyboxConfigs[phi_v1][i].endTime, sTimeBasedSkyboxConfigs[phi_v1][i].startTime,  // was D_8011FC1C [LLM:HIGH]
+                                                    ((void)0, gSaveContext.skyboxTime)) *
+                             255.0f;
+                     } else {
+-- 
+2.55.0
+

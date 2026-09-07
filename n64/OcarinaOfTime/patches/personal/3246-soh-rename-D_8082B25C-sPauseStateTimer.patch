@@ -1,0 +1,98 @@
+From 882b9d7323f1f8770a040391f8c90d9aadf5cabb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:50 +0000
+Subject: [PATCH 3246/3799] soh: rename D_8082B25C -> sPauseStateTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts that transition, and the save prompt, down
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../ovl_kaleido_scope/z_kaleido_scope_PAL.c   | 22 +++++++++----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 6bca01227..c1845a650 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -3883,7 +3883,7 @@ void KaleidoScope_UpdateDungeonMap(PlayState* play) {
+ 
+ void KaleidoScope_Update(PlayState* play) {
+     static s16 sNextPauseState = 0;  // was D_8082B258 [LLM:HIGH]
+-    static s16 D_8082B25C = 10;
++    static s16 sPauseStateTimer = 10;  // was D_8082B25C [LLM:HIGH]
+     static s16 D_8082B260 = 0;
+     PauseContext* pauseCtx = &play->pauseCtx;
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+@@ -4389,20 +4389,20 @@ void KaleidoScope_Update(PlayState* play) {
+                         Audio_PlaySfxGeneral(NA_SE_SY_TRE_BOX_APPEAR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                         sNextPauseState = 0;  // was D_8082B258 [LLM:HIGH]
+-                        D_8082B25C = 30;
++                        sPauseStateTimer = 30;  // was D_8082B25C [LLM:HIGH]
+                         pauseCtx->unk_1E4 = 6;
+                     } else if (pauseCtx->ocarinaStaff->state == 0xFF) {
+                         Audio_PlaySfxGeneral(NA_SE_SY_OCARINA_ERROR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                         sNextPauseState = 4;  // was D_8082B258 [LLM:HIGH]
+-                        D_8082B25C = 20;
++                        sPauseStateTimer = 20;  // was D_8082B25C [LLM:HIGH]
+                         pauseCtx->unk_1E4 = 6;
+                     }
+                     break;
+ 
+                 case 6:
+-                    D_8082B25C--;
+-                    if (D_8082B25C == 0) {
++                    sPauseStateTimer--;  // was D_8082B25C [LLM:HIGH]
++                    if (sPauseStateTimer == 0) {  // was D_8082B25C [LLM:HIGH]
+                         pauseCtx->unk_1E4 = sNextPauseState;  // was D_8082B258 [LLM:HIGH]
+                         if (pauseCtx->unk_1E4 == 0) {
+                             AudioOcarina_SetInstrument(OCARINA_INSTRUMENT_OFF);
+@@ -4482,7 +4482,7 @@ void KaleidoScope_Update(PlayState* play) {
+                                                      &gSfxDefaultReverb);
+                                 Play_PerformSave(play);
+                                 pauseCtx->unk_1EC = 4;
+-                                D_8082B25C = CVarGetInteger(CVAR_ENHANCEMENT("SkipSaveConfirmation"), 0)
++                                sPauseStateTimer = CVarGetInteger(CVAR_ENHANCEMENT("SkipSaveConfirmation"), 0)  // was D_8082B25C [LLM:HIGH]
+                                                  ? 3 /* 0.1 sec */
+                                                  : 90 /* 3 secs */;
+                             }
+@@ -4504,7 +4504,7 @@ void KaleidoScope_Update(PlayState* play) {
+ 
+                     case 4:
+                         if (CHECK_BTN_ALL(input->press.button, BTN_B) || CHECK_BTN_ALL(input->press.button, BTN_A) ||
+-                            CHECK_BTN_ALL(input->press.button, BTN_START) || (--D_8082B25C == 0)) {
++                            CHECK_BTN_ALL(input->press.button, BTN_START) || (--sPauseStateTimer == 0)) {  // was D_8082B25C [LLM:HIGH]
+                             Interface_SetDoAction(play, DO_ACTION_NONE);
+                             gSaveContext.buttonStatus[0] = gSaveContext.buttonStatus[1] = gSaveContext.buttonStatus[2] =
+                                 gSaveContext.buttonStatus[3] = BTN_ENABLED;
+@@ -4736,18 +4736,18 @@ void KaleidoScope_Update(PlayState* play) {
+                     gSaveContext.savedSceneNum = play->sceneNum;
+                     Save_SaveFile();
+                     pauseCtx->state = 0xF;
+-                    D_8082B25C =
++                    sPauseStateTimer =  // was D_8082B25C [LLM:HIGH]
+                         CVarGetInteger(CVAR_ENHANCEMENT("SkipSaveConfirmation"), 0) ? 3 /* 0.1 sec */ : 90 /* 3 secs */;
+                 }
+             }
+             break;
+ 
+         case 0xF:
+-            D_8082B25C--;
+-            if (D_8082B25C == 0) {
++            sPauseStateTimer--;  // was D_8082B25C [LLM:HIGH]
++            if (sPauseStateTimer == 0) {  // was D_8082B25C [LLM:HIGH]
+                 pauseCtx->state = 0x10;
+                 gameOverCtx->state++;
+-            } else if ((D_8082B25C <= 80) &&
++            } else if ((sPauseStateTimer <= 80) &&  // was D_8082B25C [LLM:HIGH]
+                        (CHECK_BTN_ALL(input->press.button, BTN_A) || CHECK_BTN_ALL(input->press.button, BTN_START))) {
+                 pauseCtx->state = 0x10;
+                 gameOverCtx->state++;
+-- 
+2.55.0
+

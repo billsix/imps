@@ -1,0 +1,81 @@
+From c83bbf1fdc1e4c60210964262e7d6db568075e68 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:04 +0000
+Subject: [PATCH 3191/3799] soh: rename D_8011D8DC -> sAttentionSwingKeyFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the keyframes that swing around the target, scaled by its distance
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c        | 24 ++++++++++++------------
+ soh/src/code/z_camera_data.inc |  3 ++-
+ 2 files changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 279b74926..d0e954698 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -6125,22 +6125,22 @@ s32 Camera_Demo5(Camera* camera) {
+                 camera->timer += sAttentionCloseAltKeyFrames[1].timerInit;  // was D_8011D88C [LLM:HIGH]
+             }
+         } else {
+-            D_8011D8DC[0].atTargetInit.z = eyeTargetDist * 0.6f;
+-            D_8011D8DC[0].eyeTargetInit.z = eyeTargetDist + 50.0f;
+-            D_8011D8DC[0].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;
++            sAttentionSwingKeyFrames[0].atTargetInit.z = eyeTargetDist * 0.6f;  // was D_8011D8DC [LLM:HIGH]
++            sAttentionSwingKeyFrames[0].eyeTargetInit.z = eyeTargetDist + 50.0f;  // was D_8011D8DC [LLM:HIGH]
++            sAttentionSwingKeyFrames[0].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;  // was D_8011D8DC [LLM:HIGH]
+             if (BINANG_SUB(eyePlayerGeo.yaw, playerTargetGeo.yaw) > 0) {
+-                D_8011D8DC[0].atTargetInit.x = -D_8011D8DC[0].atTargetInit.x;
+-                D_8011D8DC[0].eyeTargetInit.x = -D_8011D8DC[0].eyeTargetInit.x;
+-                D_8011D8DC[0].rollTargetInit = -D_8011D8DC[0].rollTargetInit;
++                sAttentionSwingKeyFrames[0].atTargetInit.x = -sAttentionSwingKeyFrames[0].atTargetInit.x;  // was D_8011D8DC [LLM:HIGH]
++                sAttentionSwingKeyFrames[0].eyeTargetInit.x = -sAttentionSwingKeyFrames[0].eyeTargetInit.x;  // was D_8011D8DC [LLM:HIGH]
++                sAttentionSwingKeyFrames[0].rollTargetInit = -sAttentionSwingKeyFrames[0].rollTargetInit;  // was D_8011D8DC [LLM:HIGH]
+             }
+-            D_8011D8DC[0].timerInit = camera->timer;
+-            D_8011D8DC[1].timerInit = (s16)(eyeTargetDist * 0.005f) + 8;
+-            ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D8DC;
+-            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D8DC);
++            sAttentionSwingKeyFrames[0].timerInit = camera->timer;  // was D_8011D8DC [LLM:HIGH]
++            sAttentionSwingKeyFrames[1].timerInit = (s16)(eyeTargetDist * 0.005f) + 8;  // was D_8011D8DC [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionSwingKeyFrames;  // was D_8011D8DC [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionSwingKeyFrames);  // was D_8011D8DC [LLM:HIGH]
+             if (camera->parentCamIdx != CAM_ID_MAIN) {
+                 ONEPOINT_CS_INFO(camera)->keyFrameCnt -= 2;
+             } else {
+-                camera->timer += D_8011D8DC[1].timerInit + D_8011D8DC[2].timerInit;
++                camera->timer += sAttentionSwingKeyFrames[1].timerInit + sAttentionSwingKeyFrames[2].timerInit;  // was D_8011D8DC [LLM:HIGH]
+             }
+         }
+     } else if (camera->target->category == ACTORCAT_DOOR) {
+@@ -8389,7 +8389,7 @@ s16 Camera_SetFinishedFlag(Camera* camera) {
+     F(sAttentionDefaultKeyFrames)                       \
+     F(sAttentionCloseKeyFrames)                       \
+     F(sAttentionCloseAltKeyFrames)                       \
+-    F(D_8011D8DC)                       \
++    F(sAttentionSwingKeyFrames)                       \
+     F(D_8011D954)                       \
+     F(D_8011D9F4)                       \
+     F(depthPhase)                       \
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index 8aad9074a..16b61d885 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2370,7 +2370,8 @@ static OnePointCsFull sAttentionCloseAltKeyFrames[] = {  // was D_8011D88C [LLM:
+ };
+ 
+ // same as above, but the target is NOT within the screen area.
+-static OnePointCsFull D_8011D8DC[] = {
++// LLM generated name (HIGH), was D_8011D8DC: the keyframes that swing around the target, scaled by its distance
++static OnePointCsFull sAttentionSwingKeyFrames[] = {  // was D_8011D8DC [LLM:HIGH]
+     { 0x8F, 0xFF, 0x0404, 0x0014, 0x0001, 50.0f, 1.0f, { 0.0f, 5.0f, 10.0f }, { 0.0f, 10.0f, -80.0f } },
+     { 0x82, 0xFF, 0x2121, 0x0005, 0x0000, 60.0f, 1.0f, { 0.0f, 5.0f, 0.0f }, { 5.0f, 5.0f, -200.0f } },
+     { 0x12, 0xFF, 0x0000, 0x0001, 0x0000, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+-- 
+2.55.0
+

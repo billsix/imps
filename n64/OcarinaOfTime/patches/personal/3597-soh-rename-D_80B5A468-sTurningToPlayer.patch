@@ -1,0 +1,67 @@
+From ee5f28a9c36eb08ee670161ac478f6e26185a329 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 02:01:37 +0000
+Subject: [PATCH 3597/3799] soh: rename D_80B5A468 -> sTurningToPlayer
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: set to 1 once the yaw error to the player exceeds 0x1556 and cleared when EnZl3_StepYawTowardsPlayer reports the turn finished; gates that turn in EnZl3_UpdateTurnToPlayer. Reset by EnZl3_Reset and listed in EN_ZL3_SHIP_SAVESTATE_FIELDS
+Defined in soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c b/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
+index 327c7369f..225621ecc 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
++++ b/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
+@@ -47,7 +47,8 @@ static void* sEyeTextures[] = { gZelda2EyeOpenTex, gZelda2EyeHalfTex, gZelda2Eye
+ 
+ static void* sMouthTextures[] = { gZelda2MouthSeriousTex, gZelda2MouthHappyTex, gZelda2MouthOpenTex };
+ 
+-static s32 D_80B5A468 = 0;
++// LLM generated name (GUESS), was D_80B5A468: set to 1 once the yaw error to the player exceeds 0x1556 and cleared when EnZl3_StepYawTowardsPlayer reports the turn finished; gates that turn in EnZl3_UpdateTurnToPlayer. Reset by EnZl3_Reset and listed in EN_ZL3_SHIP_SAVESTATE_FIELDS
++static s32 sTurningToPlayer = 0;  // was D_80B5A468 [LLM:GUESS]
+ 
+ static Vec3f D_80B5A46C = { 0.0f, 0.0f, 0.0f };
+ 
+@@ -68,7 +69,7 @@ static Vec3f D_80B5A4B0 = { 42.0f, 260.0f, 13.0f };
+ static u32 D_80B5A4BC = 0;
+ 
+ #define EN_ZL3_SHIP_SAVESTATE_FIELDS(F) \
+-    F(D_80B5A468)                       \
++    F(sTurningToPlayer)                       \
+     F(D_80B5A494)                       \
+     F(D_80B5A4BC)
+ 
+@@ -195,12 +196,12 @@ void func_80B538B0(EnZl3* this) {
+     s16* rotY = &this->actor.world.rot.y;
+ 
+     if (ABS((s16)(yawTowardsPlayer - *rotY)) >= 0x1556) {
+-        D_80B5A468 = 1;
++        sTurningToPlayer = 1;  // was D_80B5A468 [LLM:GUESS]
+     }
+ 
+-    if (D_80B5A468 != 0) {
++    if (sTurningToPlayer != 0) {  // was D_80B5A468 [LLM:GUESS]
+         if (!func_80B537E8(this)) {
+-            D_80B5A468 = 0;
++            sTurningToPlayer = 0;  // was D_80B5A468 [LLM:GUESS]
+         }
+     } else {
+         this->unk_3D0 = 0;
+@@ -2788,7 +2789,7 @@ const ActorInit En_Zl3_InitVars = {
+ };
+ 
+ void EnZl3_Reset(void) {
+-    D_80B5A468 = 0;
++    sTurningToPlayer = 0;  // was D_80B5A468 [LLM:GUESS]
+     D_80B5A494 = -1;
+     D_80B5A4BC = 0;
+ }
+-- 
+2.55.0
+

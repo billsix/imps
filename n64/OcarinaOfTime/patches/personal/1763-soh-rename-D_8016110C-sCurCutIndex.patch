@@ -1,0 +1,175 @@
+From 9b6b5d83af14c52e1c5fc6fb38718c2364aa77af Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:42:36 +0000
+Subject: [PATCH 1763/3799] soh: rename D_8016110C -> sCurCutIndex
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: which entry of sDbCameraCuts the debug camera is currently playing back; the playback routine skips unused slots by advancing it and the on-screen list marks it with a caret.
+Defined in soh/src/code/db_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/db_camera.c | 53 ++++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 26 deletions(-)
+
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index c90ec8d9c..27bd8ed06 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -23,7 +23,8 @@ s32 DbCamera_ClearCallback(char* c);
+ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam);
+ 
+ static DbCamera* sDbCamPtr;
+-static s16 D_8016110C;
++// LLM generated name (HIGH), was D_8016110C: which entry of sDbCameraCuts the debug camera is currently playing back; the playback routine skips unused slots by advancing it and the on-screen list marks it with a caret.
++static s16 sCurCutIndex;  // was D_8016110C [LLM:HIGH]
+ static DbCameraAnim sDbCamAnim;
+ 
+ Vec3f* DbCamera_AddVecSph(Vec3f* out, Vec3f* in, VecSph* sph) {
+@@ -1673,27 +1674,27 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+     s32 pointCount;
+     s32 curPoint;
+ 
+-    while (sDbCameraCuts[D_8016110C].letter == '?') {
+-        D_8016110C++;
+-        if (D_8016110C >= ARRAY_COUNT(sDbCameraCuts) - 1) {
++    while (sDbCameraCuts[sCurCutIndex].letter == '?') {  // was D_8016110C [LLM:HIGH]
++        sCurCutIndex++;  // was D_8016110C [LLM:HIGH]
++        if (sCurCutIndex >= ARRAY_COUNT(sDbCameraCuts) - 1) {  // was D_8016110C [LLM:HIGH]
+             sDbCamAnim.curFrame = 0.0f;
+             sDbCamAnim.unk_04 = 0;
+             sDbCamAnim.keyframe = 0;
+             sDbCamAnim.unk_0A = 0;
+-            D_8016110C = 0;
++            sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+             return 0;
+         }
+     }
+ 
+-    if (!CutsceneCamera_UpdateSpline(&sDbCamAnim.positionPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[D_8016110C].position,
++    if (!CutsceneCamera_UpdateSpline(&sDbCamAnim.positionPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[sCurCutIndex].position,  // was D_8016110C [LLM:HIGH]
+                        &sDbCamAnim.keyframe, &sDbCamAnim.curFrame) &&
+-        !CutsceneCamera_UpdateSpline(&sDbCamAnim.lookAtPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[D_8016110C].lookAt,
++        !CutsceneCamera_UpdateSpline(&sDbCamAnim.lookAtPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[sCurCutIndex].lookAt,  // was D_8016110C [LLM:HIGH]
+                        &sDbCamAnim.keyframe, &sDbCamAnim.curFrame)) {
+ 
+         cameraStrings[73][7] = ((sDbCamAnim.keyframe + 1) / 10) + '0';
+         cameraStrings[73][8] = ((sDbCamAnim.keyframe + 1) % 10) + '0';
+-        cameraStrings[73][10] = ((sDbCameraCuts[D_8016110C].nPoints - 5) / 10) + '0';
+-        cameraStrings[73][11] = ((sDbCameraCuts[D_8016110C].nPoints - 5) % 10) + '0';
++        cameraStrings[73][10] = ((sDbCameraCuts[sCurCutIndex].nPoints - 5) / 10) + '0';  // was D_8016110C [LLM:HIGH]
++        cameraStrings[73][11] = ((sDbCameraCuts[sCurCutIndex].nPoints - 5) % 10) + '0';  // was D_8016110C [LLM:HIGH]
+         DbCamera_SetTextValue(sDbCamAnim.unk_04, &cameraStrings[71][10], 4);
+         DebugCamera_CopyText(0xF, 0x16, 3, cameraStrings[71]);  // was func_8006376C [LLM:HIGH]
+         DbCamera_SetTextValue(sDbCamAnim.unk_0C, &cameraStrings[72][10], 4);
+@@ -1704,15 +1705,15 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+         sDbCamAnim.unk_04++;
+         sDbCamAnim.unk_0C++;
+ 
+-        if (sDbCameraCuts[D_8016110C].nFrames > 0 && sDbCameraCuts[D_8016110C].nFrames < sDbCamAnim.unk_04) {
+-            D_8016110C++;
++        if (sDbCameraCuts[sCurCutIndex].nFrames > 0 && sDbCameraCuts[sCurCutIndex].nFrames < sDbCamAnim.unk_04) {  // was D_8016110C [LLM:HIGH]
++            sCurCutIndex++;  // was D_8016110C [LLM:HIGH]
+             sDbCamAnim.curFrame = 0.0f;
+             sDbCamAnim.unk_04 = 0;
+             sDbCamAnim.keyframe = 0;
+-            return D_8016110C | 0x8000;
++            return sCurCutIndex | 0x8000;  // was D_8016110C [LLM:HIGH]
+         }
+ 
+-        if (sDbCameraCuts[D_8016110C].mode != 1) {
++        if (sDbCameraCuts[sCurCutIndex].mode != 1) {  // was D_8016110C [LLM:HIGH]
+             DbCamera_CopyVec3f(&sDbCamAnim.positionPos, &dbCamera->eye);
+             DbCamera_CopyVec3f(&sDbCamAnim.lookAtPos, &dbCamera->at);
+         } else {
+@@ -1725,12 +1726,12 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+         dbCamera->rollDegrees = sDbCamAnim.roll * (360.0f / 256.0f);
+ 
+     } else {
+-        D_8016110C++;
++        sCurCutIndex++;  // was D_8016110C [LLM:HIGH]
+         sDbCamAnim.keyframe = 0;
+         sDbCamAnim.curFrame = 0.0f;
+         sDbCamAnim.unk_04 = 0;
+-        if (D_8016110C == ARRAY_COUNT(sDbCameraCuts) - 1) {
+-            D_8016110C = 0;
++        if (sCurCutIndex == ARRAY_COUNT(sDbCameraCuts) - 1) {  // was D_8016110C [LLM:HIGH]
++            sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+             sDbCamAnim.curFrame = 0.0f;
+             sDbCamAnim.keyframe = 0;
+             sDbCamAnim.unk_0A = 0;
+@@ -1738,7 +1739,7 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+         }
+     }
+ 
+-    return D_8016110C | 0x8000;
++    return sCurCutIndex | 0x8000;  // was D_8016110C [LLM:HIGH]
+ }
+ 
+ void DbCamera_Reset(Camera* cam, DbCamera* dbCam) {
+@@ -1753,7 +1754,7 @@ void DbCamera_Reset(Camera* cam, DbCamera* dbCam) {
+         DbCamera_ResetCut(i, false);
+     }
+     sDbCamPtr = dbCam;
+-    D_8016110C = 0;
++    sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+     sCurFileIdx = 0;
+     sLastFileIdx = -1;
+     sDbCamAnim.unk_0A = 0;
+@@ -2043,19 +2044,19 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+ 
+             if (sDbCamAnim.unk_0A != 0) {
+                 DebugCamera_CopyText(4, 7, 5, cameraStrings[27]);  // was func_8006376C [LLM:HIGH]
+-                DebugCamera_CopyText(D_8016110C * 2 + 6, 7, 7, ">");  // was func_8006376C [LLM:HIGH]
++                DebugCamera_CopyText(sCurCutIndex * 2 + 6, 7, 7, ">");  // was func_8006376C [LLM:HIGH]
+ 
+                 if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_CUP)) {
+-                    if (D_8016110C > 0) {
+-                        D_8016110C--;
++                    if (sCurCutIndex > 0) {  // was D_8016110C [LLM:HIGH]
++                        sCurCutIndex--;  // was D_8016110C [LLM:HIGH]
+                     }
+ 
+                     sDbCamAnim.curFrame = 0.0f;
+                     sDbCamAnim.keyframe = 0;
+                     sDbCamAnim.unk_04 = 0;
+                 } else if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_CDOWN)) {
+-                    if (D_8016110C < 14) {
+-                        D_8016110C++;
++                    if (sCurCutIndex < 14) {  // was D_8016110C [LLM:HIGH]
++                        sCurCutIndex++;  // was D_8016110C [LLM:HIGH]
+                     }
+ 
+                     sDbCamAnim.curFrame = 0.0f;
+@@ -2065,7 +2066,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+                     sDbCamAnim.unk_0A = 0;
+                     Interface_ChangeHudVisibilityMode(HUD_VISIBILITY_NOTHING_ALT);
+                     Letterbox_SetSizeTarget(0);
+-                    D_8016110C = 0;
++                    sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+                     return 2;
+                 }
+ 
+@@ -2090,7 +2091,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+                 sDbCamAnim.unk_04 = 0;
+                 sDbCamAnim.unk_0A = 1;
+                 sDbCamAnim.unk_0C = 0;
+-                D_8016110C = 0;
++                sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+                 Audio_PlaySfxGeneral(NA_SE_SY_HP_RECOVER, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             }
+@@ -2230,7 +2231,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+                 sDbCamAnim.unk_0C = 0;
+                 Interface_ChangeHudVisibilityMode(50);
+                 Letterbox_SetSizeTarget(0x20);
+-                D_8016110C = 0;
++                sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+                 Audio_PlaySfxGeneral(NA_SE_SY_HP_RECOVER, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             }
+-- 
+2.55.0
+

@@ -1,0 +1,121 @@
+From a588545c1203ee410f9c81c01d6a64e3644dcfb8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:32 +0000
+Subject: [PATCH 2750/3799] soh: rename func_8002EABC -> Actor_SetupHiliteOpa
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the opaque-pass wrapper of Actor_SetupHilite
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                 | 2 +-
+ soh/soh/Enhancements/cosmetics/CustomLogoTitle.cpp      | 2 +-
+ soh/src/code/z_actor.c                                  | 7 ++++---
+ soh/src/code/z_player_lib.c                             | 2 +-
+ soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c | 2 +-
+ soh/src/overlays/gamestates/ovl_title/z_title.c         | 2 +-
+ 6 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 4cde13077..cf56b0be5 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -440,7 +440,7 @@ s32 Actor_IsFacingAndNearPlayer(Actor* actor, f32 range, s16 angle);
+ s32 Actor_ActorAIsFacingAndNearActorB(Actor* actorA, Actor* actorB, f32 range, s16 angle);
+ void Actor_UpdateBgCheckInfo(PlayState* play, Actor* actor, f32 wallCheckHeight, f32 wallCheckRadius,
+                              f32 ceilingCheckHeight, s32 flags);
+-Hilite* func_8002EABC(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx);
++Hilite* Actor_SetupHiliteOpa(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx);  // was func_8002EABC [LLM:HIGH]
+ Hilite* func_8002EB44(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx);
+ void func_8002EBCC(Actor* actor, PlayState* play, s32 flag);
+ void func_8002ED80(Actor* actor, PlayState* play, s32 flag);
+diff --git a/soh/soh/Enhancements/cosmetics/CustomLogoTitle.cpp b/soh/soh/Enhancements/cosmetics/CustomLogoTitle.cpp
+index 638916568..1dea22af5 100644
+--- a/soh/soh/Enhancements/cosmetics/CustomLogoTitle.cpp
++++ b/soh/soh/Enhancements/cosmetics/CustomLogoTitle.cpp
+@@ -46,7 +46,7 @@ extern "C" void CustomLogoTitle_Draw(TitleContext* titleContext, uint8_t logoToD
+     v1.z = 0.0f;
+     v2.z = 1119.0837f;
+ 
+-    func_8002EABC(&v1, &v2, &v3, titleContext->state.gfxCtx);
++    Actor_SetupHiliteOpa(&v1, &v2, &v3, titleContext->state.gfxCtx);  // was func_8002EABC [LLM:HIGH]
+     gSPSetLights1(POLY_OPA_DISP++, sTitleLights);
+     Title_SetupView(titleContext, 0, 150.0, 300.0);
+     Gfx_SetupDL_25Opa(titleContext->state.gfxCtx);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 2ba35b4c0..562250025 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1794,7 +1794,8 @@ Gfx* Actor_SetupHilite(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsConte
+     return gfx;
+ }
+ 
+-Hilite* func_8002EABC(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx) {
++// LLM generated name (HIGH), was func_8002EABC: the opaque-pass wrapper of Actor_SetupHilite
++Hilite* Actor_SetupHiliteOpa(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx) {
+     Hilite* hilite;
+ 
+     OPEN_DISPS(gfxCtx);
+@@ -1833,7 +1834,7 @@ void func_8002EBCC(Actor* actor, PlayState* play, s32 flag) {
+                      play->view.eye.z);
+     }
+ 
+-    hilite = func_8002EABC(&actor->world.pos, &play->view.eye, &lightDir, play->state.gfxCtx);
++    hilite = Actor_SetupHiliteOpa(&actor->world.pos, &play->view.eye, &lightDir, play->state.gfxCtx);  // was func_8002EABC [LLM:HIGH]
+ 
+     if (flag != 0) {
+         displayList = Graph_Alloc(play->state.gfxCtx, 2 * sizeof(Gfx));
+@@ -4285,7 +4286,7 @@ Hilite* func_800342EC(Vec3f* object, PlayState* play) {
+     lightDir.y = play->envCtx.dirLight1.params.dir.y;
+     lightDir.z = play->envCtx.dirLight1.params.dir.z;
+ 
+-    return func_8002EABC(object, &play->view.eye, &lightDir, play->state.gfxCtx);
++    return Actor_SetupHiliteOpa(object, &play->view.eye, &lightDir, play->state.gfxCtx);  // was func_8002EABC [LLM:HIGH]
+ }
+ 
+ Hilite* func_8003435C(Vec3f* object, PlayState* play) {
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index b50e78953..278d8e166 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -2225,7 +2225,7 @@ void Player_DrawPauseImpl(PlayState* play, void* gameplayKeep, void* linkObject,
+ 
+     POLY_OPA_DISP = Gfx_SetFog2(POLY_OPA_DISP++, 0, 0, 0, 0, 997, 1000);
+ 
+-    func_8002EABC(pos, &play->view.eye, &lightDir, play->state.gfxCtx);
++    Actor_SetupHiliteOpa(pos, &play->view.eye, &lightDir, play->state.gfxCtx);  // was func_8002EABC [LLM:HIGH]
+ 
+     gSPSegment(POLY_OPA_DISP++, 0x0C, gCullBackDList);
+ 
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index e54910df8..50f40c9e2 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -3031,7 +3031,7 @@ void BossGanon2_DrawEffects(PlayState* play) {
+             spA0.x = play->envCtx.dirLight1.params.dir.x;
+             spA0.y = play->envCtx.dirLight1.params.dir.y;
+             spA0.z = play->envCtx.dirLight1.params.dir.z;
+-            func_8002EABC(&effect->position, &play->view.eye, &spA0, play->state.gfxCtx);
++            Actor_SetupHiliteOpa(&effect->position, &play->view.eye, &spA0, play->state.gfxCtx);  // was func_8002EABC [LLM:HIGH]
+             Matrix_Translate(effect->position.x, effect->position.y, effect->position.z, MTXMODE_NEW);
+             Matrix_Scale(0.03f, 0.03f, 0.03f, MTXMODE_APPLY);
+             Matrix_RotateY(effect->unk_38.z, MTXMODE_APPLY);
+diff --git a/soh/src/overlays/gamestates/ovl_title/z_title.c b/soh/src/overlays/gamestates/ovl_title/z_title.c
+index 24550f027..f94ce99cf 100644
+--- a/soh/src/overlays/gamestates/ovl_title/z_title.c
++++ b/soh/src/overlays/gamestates/ovl_title/z_title.c
+@@ -82,7 +82,7 @@ void Title_Draw(TitleContext* this) {
+     v1.z = 0;
+     v2.z = 1119.0837;
+ 
+-    func_8002EABC(&v1, &v2, &v3, this->state.gfxCtx);
++    Actor_SetupHiliteOpa(&v1, &v2, &v3, this->state.gfxCtx);  // was func_8002EABC [LLM:HIGH]
+     gSPSetLights1(POLY_OPA_DISP++, sTitleLights);
+     Title_SetupView(this, 0, 150.0, 300.0);
+     Gfx_SetupDL_25Opa(this->state.gfxCtx);
+-- 
+2.55.0
+

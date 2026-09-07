@@ -1,0 +1,58 @@
+From b6f2aa39e683247c7b42b871c6952202159a1edf Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:37:33 +0000
+Subject: [PATCH 1032/3799] soh: rename func_808A91AC ->
+ BgRelayObjects_WaitToClose
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: ticks the race timer with its warning sfx and closes the door when the time runs out or the player reaches this door's room.
+Defined in soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c     | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c b/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
+index ddbfc3903..213a24ee7 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
+@@ -24,7 +24,8 @@ void BgRelayObjects_Reset(void);
+ 
+ // LLM generated name (HIGH), was func_808A90F4: once the switch flag is set, raises the Dampe race door 120 units, plays the sliding-door sfx and arms the run's time limit.
+ void BgRelayObjects_OpenDoor(BgRelayObjects* this, PlayState* play);  // was func_808A90F4 [LLM:HIGH]
+-void func_808A91AC(BgRelayObjects* this, PlayState* play);
++// LLM generated name (HIGH), was func_808A91AC: ticks the race timer with its warning sfx and closes the door when the time runs out or the player reaches this door's room.
++void BgRelayObjects_WaitToClose(BgRelayObjects* this, PlayState* play);  // was func_808A91AC [LLM:HIGH]
+ void func_808A9234(BgRelayObjects* this, PlayState* play);
+ void BgRelayObjects_DoNothing(BgRelayObjects* this, PlayState* play);
+ void func_808A932C(BgRelayObjects* this, PlayState* play);
+@@ -106,7 +107,7 @@ void BgRelayObjects_Init(Actor* thisx, PlayState* play) {
+             }
+         } else {
+             Flags_SetSwitch(play, this->switchFlag);
+-            this->actionFunc = func_808A91AC;
++            this->actionFunc = BgRelayObjects_WaitToClose;  // was func_808A91AC [LLM:HIGH]
+             thisx->world.pos.y += 120.0f;
+             D_808A9508 |= 1;
+         }
+@@ -134,12 +135,12 @@ void BgRelayObjects_OpenDoor(BgRelayObjects* this, PlayState* play) {
+             }
+         }
+         if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y + 120.0f, 12.0f)) {
+-            this->actionFunc = func_808A91AC;
++            this->actionFunc = BgRelayObjects_WaitToClose;  // was func_808A91AC [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_808A91AC(BgRelayObjects* this, PlayState* play) {
++void BgRelayObjects_WaitToClose(BgRelayObjects* this, PlayState* play) {
+     if (this->unk_169 != 5) {
+         if (GameInteractor_Should(VB_SWITCH_TIMER_TICK, this->timer != 0, this, &this->timer)) {
+             this->timer--;
+-- 
+2.55.0
+

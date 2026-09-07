@@ -1,0 +1,51 @@
+From 67e0817995f6fca6bc838b587c4879229f4f2943 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:19:10 +0000
+Subject: [PATCH 3433/3799] soh: rename D_80125B60 -> sInterfaceFlashState
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: a u8 Interface_Update keeps across frames; read as the phase of a flashing element
+Defined in soh/src/code/z_parameter.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_parameter.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 467bb7c50..6e13c41a1 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -6515,7 +6515,7 @@ void Interface_DrawTotalGameplayTimer(PlayState* play) {
+ }
+ 
+ void Interface_Update(PlayState* play) {
+-    static u8 D_80125B60 = 0;
++    static u8 sInterfaceFlashState = 0;  // was D_80125B60 [LLM:GUESS]
+     static s16 sPrevTimeSpeed = 0;
+     MessageContext* msgCtx = &play->msgCtx;
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+@@ -6882,15 +6882,15 @@ void Interface_Update(PlayState* play) {
+         // handle suns song in areas where time moves
+         if (play->envCtx.timeIncrement != 0) {
+             if (gSaveContext.sunsSongState != SUNSSONG_SPEED_TIME) {
+-                D_80125B60 = 0;
++                sInterfaceFlashState = 0;  // was D_80125B60 [LLM:GUESS]
+                 if ((gSaveContext.dayTime >= 0x4555) && (gSaveContext.dayTime <= 0xC001)) {
+-                    D_80125B60 = 1;
++                    sInterfaceFlashState = 1;  // was D_80125B60 [LLM:GUESS]
+                 }
+ 
+                 gSaveContext.sunsSongState = SUNSSONG_SPEED_TIME;
+                 sPrevTimeSpeed = gTimeSpeed;
+                 gTimeSpeed = 400;
+-            } else if (D_80125B60 == 0) {
++            } else if (sInterfaceFlashState == 0) {  // was D_80125B60 [LLM:GUESS]
+                 if ((gSaveContext.dayTime >= 0x4555) && (gSaveContext.dayTime <= 0xC001)) {
+                     gSaveContext.sunsSongState = SUNSSONG_INACTIVE;
+                     gTimeSpeed = sPrevTimeSpeed;
+-- 
+2.55.0
+

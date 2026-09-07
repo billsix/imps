@@ -1,0 +1,48 @@
+From d7958804d779b262a53c97466ab20e6c69370f85 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:37:33 +0000
+Subject: [PATCH 1033/3799] soh: rename func_808A9234 ->
+ BgRelayObjects_CloseDoor
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: drops the door back to home.pos.y under gravity with rumble and the stone-bound sfx, then either ends the race or starts the failure countdown.
+Defined in soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c       | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c b/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
+index 213a24ee7..854b944ac 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
+@@ -26,7 +26,8 @@ void BgRelayObjects_Reset(void);
+ void BgRelayObjects_OpenDoor(BgRelayObjects* this, PlayState* play);  // was func_808A90F4 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_808A91AC: ticks the race timer with its warning sfx and closes the door when the time runs out or the player reaches this door's room.
+ void BgRelayObjects_WaitToClose(BgRelayObjects* this, PlayState* play);  // was func_808A91AC [LLM:HIGH]
+-void func_808A9234(BgRelayObjects* this, PlayState* play);
++// LLM generated name (HIGH), was func_808A9234: drops the door back to home.pos.y under gravity with rumble and the stone-bound sfx, then either ends the race or starts the failure countdown.
++void BgRelayObjects_CloseDoor(BgRelayObjects* this, PlayState* play);  // was func_808A9234 [LLM:HIGH]
+ void BgRelayObjects_DoNothing(BgRelayObjects* this, PlayState* play);
+ void func_808A932C(BgRelayObjects* this, PlayState* play);
+ void func_808A939C(BgRelayObjects* this, PlayState* play);
+@@ -149,11 +150,11 @@ void BgRelayObjects_WaitToClose(BgRelayObjects* this, PlayState* play) {
+     }
+     if ((this->timer == 0) || (this->unk_169 == play->roomCtx.curRoom.num)) {
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_SLIDE_DOOR_CLOSE);
+-        this->actionFunc = func_808A9234;
++        this->actionFunc = BgRelayObjects_CloseDoor;  // was func_808A9234 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808A9234(BgRelayObjects* this, PlayState* play) {
++void BgRelayObjects_CloseDoor(BgRelayObjects* this, PlayState* play) {
+     this->dyna.actor.velocity.y += this->dyna.actor.gravity;
+     if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y, this->dyna.actor.velocity.y)) {
+         Rumble_Request(this->dyna.actor.xyzDistToPlayerSq, 180, 20, 100);
+-- 
+2.55.0
+

@@ -1,0 +1,60 @@
+From fb017d9336cf01710ae9a808af0eda6c3859f25a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:24:04 +0000
+Subject: [PATCH 2360/3799] soh: rename func_8086D730 ->
+ BgBdanSwitch_SetupPressed
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: snaps the switch fully down and installs the pressed action with a six-frame debounce
+Defined in soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c         | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c b/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
+index 0981a2311..4db166e00 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
+@@ -23,7 +23,8 @@ void BgBdanSwitch_Idle(BgBdanSwitch* this, PlayState* play);  // was func_8086D5
+ void BgBdanSwitch_SetupPress(BgBdanSwitch* this);  // was func_8086D67C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_8086D694: sinks the switch by 0.2 a frame once the camera looks at it or the wait expires, then locks it down with a rumble
+ void BgBdanSwitch_Press(BgBdanSwitch* this, PlayState* play);  // was func_8086D694 [LLM:HIGH]
+-void func_8086D730(BgBdanSwitch* this);
++// LLM generated name (HIGH), was func_8086D730: snaps the switch fully down and installs the pressed action with a six-frame debounce
++void BgBdanSwitch_SetupPressed(BgBdanSwitch* this);  // was func_8086D730 [LLM:HIGH]
+ void func_8086D754(BgBdanSwitch* this, PlayState* play);
+ void func_8086D7FC(BgBdanSwitch* this);
+ void func_8086D80C(BgBdanSwitch* this, PlayState* play);
+@@ -178,7 +179,7 @@ void BgBdanSwitch_Init(Actor* thisx, PlayState* play) {
+         case BLUE:
+         case YELLOW:
+             if (flag) {
+-                func_8086D730(this);
++                BgBdanSwitch_SetupPressed(this);  // was func_8086D730 [LLM:HIGH]
+             } else {
+                 BgBdanSwitch_SetupIdle(this);  // was func_8086D5C4 [LLM:HIGH]
+             }
+@@ -283,14 +284,14 @@ void BgBdanSwitch_Press(BgBdanSwitch* this, PlayState* play) {
+     if ((Camera_GetTargetCategory() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {  // was func_8005B198 [LLM:HIGH]
+         this->unk_1C8 -= 0.2f;
+         if (this->unk_1C8 <= 0.1f) {
+-            func_8086D730(this);
++            BgBdanSwitch_SetupPressed(this);  // was func_8086D730 [LLM:HIGH]
+             Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_FOOT_SWITCH);
+             Rumble_Request(this->dyna.actor.xyzDistToPlayerSq, 0x78, 0x14, 0xA);
+         }
+     }
+ }
+ 
+-void func_8086D730(BgBdanSwitch* this) {
++void BgBdanSwitch_SetupPressed(BgBdanSwitch* this) {
+     this->unk_1C8 = 0.1f;
+     this->actionFunc = func_8086D754;
+     this->unk_1D8 = 6;
+-- 
+2.55.0
+

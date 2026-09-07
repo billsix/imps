@@ -1,0 +1,53 @@
+From 640af27625840f23902765a4339ca8d09ae30fcf Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:47:36 +0000
+Subject: [PATCH 1081/3799] soh: rename func_80A1DA04 -> EnFu_TalkChild
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the child-era conversation state: waits for the textbox to close, clears the wait flag and returns to EnFu_WaitChild, swapping the head-moving animation back to the still one.
+Defined in soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c b/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
+index 3367c7be4..54b38ffe7 100644
+--- a/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
++++ b/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
+@@ -22,7 +22,8 @@ void EnFu_Update(Actor* thisx, PlayState* play);
+ void EnFu_Draw(Actor* thisx, PlayState* play);
+ 
+ void EnFu_WaitChild(EnFu* this, PlayState* play);
+-void func_80A1DA04(EnFu* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A1DA04: the child-era conversation state: waits for the textbox to close, clears the wait flag and returns to EnFu_WaitChild, swapping the head-moving animation back to the still one.
++void EnFu_TalkChild(EnFu* this, PlayState* play);  // was func_80A1DA04 [LLM:HIGH]
+ 
+ void EnFu_WaitAdult(EnFu* this, PlayState* play);
+ void EnFu_TeachSong(EnFu* this, PlayState* play);
+@@ -123,7 +124,7 @@ s32 EnFu_OfferTalk(EnFu* this, PlayState* play, u16 textID, EnFuActionFunc actio
+     return false;
+ }
+ 
+-void func_80A1DA04(EnFu* this, PlayState* play) {
++void EnFu_TalkChild(EnFu* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         this->behaviorFlags &= ~FU_WAIT;
+         this->actionFunc = EnFu_WaitChild;
+@@ -143,8 +144,8 @@ void EnFu_WaitChild(EnFu* this, PlayState* play) {
+     }
+ 
+     // if ACTOR_FLAG_PLAYER_TALKED_TO is set and textID is 0x5033, change animation
+-    // if EnFu_OfferTalk returns 1, actionFunc is set to func_80A1DA04, was func_80A1D94C [LLM:HIGH]
+-    if (EnFu_OfferTalk(this, play, textID, func_80A1DA04)) {  // was func_80A1D94C [LLM:HIGH]
++    // if EnFu_OfferTalk returns 1, actionFunc is set to EnFu_TalkChild, was func_80A1D94C [LLM:HIGH]
++    if (EnFu_OfferTalk(this, play, textID, EnFu_TalkChild)) {  // was func_80A1D94C [LLM:HIGH]
+         if (textID == 0x5033) {
+             Animation_Change(&this->skelanime, &gWindmillManPlayAndMoveHeadAnim, 1.0f, 0.0f,
+                              Animation_GetLastFrame(&gWindmillManPlayAndMoveHeadAnim), ANIMMODE_ONCE, -4.0f);
+-- 
+2.55.0
+

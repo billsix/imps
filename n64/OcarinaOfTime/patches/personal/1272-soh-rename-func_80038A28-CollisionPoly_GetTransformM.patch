@@ -1,0 +1,156 @@
+From f3d08bdb937ae936afd3ad977013c819ccb0a0ff Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:07:15 +0000
+Subject: [PATCH 1272/3799] soh: rename func_80038A28 ->
+ CollisionPoly_GetTransformMtx
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: its doc comment reads "Compute transform matrix mapping +y (up) to the collision poly's normal"; callers use it to stand actors and effects upright on a slope.
+Defined in soh/src/code/z_bgcheck.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_actor.c                                        | 4 ++--
+ soh/src/code/z_bgcheck.c                                      | 3 ++-
+ soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c       | 4 ++--
+ soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c       | 2 +-
+ soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c                 | 2 +-
+ soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c         | 2 +-
+ .../overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c | 4 ++--
+ 8 files changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 2c2265750..4018ba247 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -578,7 +578,7 @@ s32 Actor_TrackPlayer(PlayState* play, Actor* actor, Vec3s* arg2, Vec3s* arg3, V
+ 
+ // ? func_80038600(?);
+ u16 DynaSSNodeList_GetNextNodeIdx(DynaSSNodeList*);
+-void func_80038A28(CollisionPoly* poly, f32 tx, f32 ty, f32 tz, MtxF* dest);
++void CollisionPoly_GetTransformMtx(CollisionPoly* poly, f32 tx, f32 ty, f32 tz, MtxF* dest);  // was func_80038A28 [LLM:HIGH]
+ f32 CollisionPoly_GetPointDistanceFromPlane(CollisionPoly* poly, Vec3f* point);
+ CollisionHeader* BgCheck_GetCollisionHeader(CollisionContext* colCtx, s32 bgId);
+ void CollisionPoly_GetVerticesByBgId(CollisionPoly* poly, s32 bgId, CollisionContext* colCtx, Vec3f* dest);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 634381a8f..bfb9c0ec7 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -124,7 +124,7 @@ void ActorShadow_Draw(Actor* actor, Lights* lights, PlayState* play, Gfx* dlist,
+                 gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, 0, 0, 0, (u32)(actor->shape.shadowAlpha * temp2) & 0xFF);
+             }
+ 
+-            func_80038A28(actor->floorPoly, actor->world.pos.x, actor->floorHeight, actor->world.pos.z, &sp60);
++            CollisionPoly_GetTransformMtx(actor->floorPoly, actor->world.pos.x, actor->floorHeight, actor->world.pos.z, &sp60);  // was func_80038A28 [LLM:HIGH]
+             Matrix_Put(&sp60);
+ 
+             if (dlist != gCircleShadowDL) {
+@@ -4133,7 +4133,7 @@ void func_80033C30(Vec3f* arg0, Vec3f* arg1, u8 alpha, PlayState* play) {
+     var = BgCheck_EntityRaycastFloor2(play, &play->colCtx, &sp4C, &sp50);
+ 
+     if (sp4C != NULL) {
+-        func_80038A28(sp4C, arg0->x, var, arg0->z, &sp60);
++        CollisionPoly_GetTransformMtx(sp4C, arg0->x, var, arg0->z, &sp60);  // was func_80038A28 [LLM:HIGH]
+         Matrix_Put(&sp60);
+     } else {
+         Matrix_Translate(arg0->x, arg0->y, arg0->z, MTXMODE_NEW);
+diff --git a/soh/src/code/z_bgcheck.c b/soh/src/code/z_bgcheck.c
+index cd68edb4e..f07e1d795 100644
+--- a/soh/src/code/z_bgcheck.c
++++ b/soh/src/code/z_bgcheck.c
+@@ -203,7 +203,8 @@ void CollisionPoly_GetNormalF(CollisionPoly* poly, f32* nx, f32* ny, f32* nz) {
+ /**
+  * Compute transform matrix mapping +y (up) to the collision poly's normal
+  */
+-void func_80038A28(CollisionPoly* poly, f32 tx, f32 ty, f32 tz, MtxF* dest) {
++// LLM generated name (HIGH), was func_80038A28: its doc comment reads "Compute transform matrix mapping +y (up) to the collision poly's normal"; callers use it to stand actors and effects upright on a slope.
++void CollisionPoly_GetTransformMtx(CollisionPoly* poly, f32 tx, f32 ty, f32 tz, MtxF* dest) {
+     f32 nx;
+     f32 ny;
+     f32 nz;
+diff --git a/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c b/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
+index 4e0340a97..b208840e2 100644
+--- a/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
++++ b/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
+@@ -1258,7 +1258,7 @@ void EnDekubaba_DrawBaseShadow(EnDekubaba* this, PlayState* play) {
+ 
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, 255);
+ 
+-    func_80038A28(this->boundFloor, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, &mtx);
++    CollisionPoly_GetTransformMtx(this->boundFloor, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, &mtx);  // was func_80038A28 [LLM:HIGH]
+     Matrix_Mult(&mtx, MTXMODE_NEW);
+ 
+     horizontalScale = this->size * 0.15f;
+@@ -1320,4 +1320,4 @@ void EnDekubaba_Draw(Actor* thisx, PlayState* play) {
+ // OTRTODO fix this one
+ void EnDekuBaba_Reset(void) {
+     // DMG_ENTRY(2, DEKUBABA_DMGEFF_SWORD)
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c b/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
+index 314cee308..f52bb555b 100644
+--- a/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
++++ b/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
+@@ -449,7 +449,7 @@ void EnKarebaba_DrawBaseShadow(EnKarebaba* this, PlayState* play) {
+     Gfx_SetupDL_44Xlu(play->state.gfxCtx);
+ 
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, 255);
+-    func_80038A28(this->boundFloor, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, &mf);
++    CollisionPoly_GetTransformMtx(this->boundFloor, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, &mf);  // was func_80038A28 [LLM:HIGH]
+     Matrix_Mult(&mf, MTXMODE_NEW);
+     Matrix_Scale(0.15f, 1.0f, 0.15f, MTXMODE_APPLY);
+     gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+diff --git a/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c b/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
+index f42dbc36e..81cd1bb6d 100644
+--- a/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
++++ b/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
+@@ -194,7 +194,7 @@ void EnNwc_DrawChicks(EnNwc* this, PlayState* play) {
+     for (i = 0; i < this->count; i++, chick++) {
+         if ((chick->type != CHICK_NONE) && (chick->floorPoly != NULL)) {
+             FrameInterpolation_RecordOpenChild(chick, chick->epoch * 25);
+-            func_80038A28(chick->floorPoly, chick->pos.x, chick->floorY, chick->pos.z, &floorMat);
++            CollisionPoly_GetTransformMtx(chick->floorPoly, chick->pos.x, chick->floorY, chick->pos.z, &floorMat);  // was func_80038A28 [LLM:HIGH]
+             Matrix_Put(&floorMat);
+             Matrix_RotateY(chick->rot.y * (M_PI / 0x8000), MTXMODE_APPLY);
+             Matrix_Scale(1.0f, 1.0f, 1.0f, MTXMODE_APPLY);
+diff --git a/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c b/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
+index 223ca6349..26bdc2052 100644
+--- a/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
++++ b/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
+@@ -620,7 +620,7 @@ void EnWallmas_DrawXlu(EnWallmas* this, PlayState* play) {
+     Gfx_SetupDL_44Xlu(play->state.gfxCtx);
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, 255);
+ 
+-    func_80038A28(this->actor.floorPoly, this->actor.world.pos.x, this->actor.floorHeight, this->actor.world.pos.z,
++    CollisionPoly_GetTransformMtx(this->actor.floorPoly, this->actor.world.pos.x, this->actor.floorHeight, this->actor.world.pos.z,  // was func_80038A28 [LLM:HIGH]
+                   &mf);
+     Matrix_Mult(&mf, MTXMODE_NEW);
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c b/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
+index 6466f9606..64af594c8 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
+@@ -72,14 +72,14 @@ void EffectSsDeadDs_Draw(PlayState* play, u32 index, EffectSs* this) {
+         sp44.z = pos.z - this->velocity.z;
+ 
+         if (BgCheck_EntitySphVsWall1(&play->colCtx, &this->pos, &pos, &sp44, 1.5f, &floorPoly, 1.0f)) {
+-            func_80038A28(floorPoly, this->pos.x, this->pos.y, this->pos.z, &mf);
++            CollisionPoly_GetTransformMtx(floorPoly, this->pos.x, this->pos.y, this->pos.z, &mf);  // was func_80038A28 [LLM:HIGH]
+             Matrix_Put(&mf);
+         } else {
+             pos.y++;
+             temp = BgCheck_EntityRaycastFloor1(&play->colCtx, &floorPoly, &pos);
+ 
+             if (floorPoly != NULL) {
+-                func_80038A28(floorPoly, this->pos.x, temp + 1.5f, this->pos.z, &mf);
++                CollisionPoly_GetTransformMtx(floorPoly, this->pos.x, temp + 1.5f, this->pos.z, &mf);  // was func_80038A28 [LLM:HIGH]
+                 Matrix_Put(&mf);
+             } else {
+                 Matrix_Translate(this->pos.x, this->pos.y, this->pos.z, MTXMODE_NEW);
+-- 
+2.55.0
+

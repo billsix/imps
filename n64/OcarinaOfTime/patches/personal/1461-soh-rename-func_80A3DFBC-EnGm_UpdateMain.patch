@@ -1,0 +1,51 @@
+From bdb6e922c1bb01de2bfc4abbcdace48cd129391a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:20:43 +0000
+Subject: [PATCH 1461/3799] soh: rename func_80A3DFBC -> EnGm_UpdateMain
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the update installed once the object is loaded: it rebinds segment 6, runs the action function, keeps the focus rotation in step and drives the blink and skeleton updates.
+Defined in soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c b/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
+index 80e0b8514..ec1e958fb 100644
+--- a/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
++++ b/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
+@@ -20,7 +20,8 @@ void EnGm_Draw(Actor* thisx, PlayState* play);
+ 
+ // LLM generated name (HIGH), was func_80A3D838: the first update: waits for the Goron object bank, then builds the skeleton, collider and shape and installs the real update and the waiting action.
+ void EnGm_WaitForObject(EnGm* this, PlayState* play);  // was func_80A3D838 [LLM:HIGH]
+-void func_80A3DFBC(EnGm* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A3DFBC: the update installed once the object is loaded: it rebinds segment 6, runs the action function, keeps the focus rotation in step and drives the blink and skeleton updates.
++void EnGm_UpdateMain(EnGm* this, PlayState* play);  // was func_80A3DFBC [LLM:HIGH]
+ void func_80A3DB04(EnGm* this, PlayState* play);
+ void func_80A3DC44(EnGm* this, PlayState* play);
+ void func_80A3DBF4(EnGm* this, PlayState* play);
+@@ -125,7 +126,7 @@ void EnGm_WaitForObject(EnGm* this, PlayState* play) {
+         this->eyeTexIndex = 0;
+         this->blinkTimer = 20;
+         this->actor.textId = 0x3049;
+-        this->updateFunc = func_80A3DFBC;
++        this->updateFunc = EnGm_UpdateMain;  // was func_80A3DFBC [LLM:HIGH]
+         this->actionFunc = func_80A3DB04;
+         this->actor.speedXZ = 0.0f;
+         this->actor.gravity = -1.0f;
+@@ -280,7 +281,7 @@ void func_80A3DF60(EnGm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A3DFBC(EnGm* this, PlayState* play) {
++void EnGm_UpdateMain(EnGm* this, PlayState* play) {
+     gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->objGmBankIndex].segment);
+     this->timer++;
+     this->actionFunc(this, play);
+-- 
+2.55.0
+

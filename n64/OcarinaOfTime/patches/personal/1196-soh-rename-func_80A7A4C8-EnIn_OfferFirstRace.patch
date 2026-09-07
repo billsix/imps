@@ -1,0 +1,69 @@
+From ecb272cf308ceb61a4419044544d060edfe640a1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:56:46 +0000
+Subject: [PATCH 1196/3799] soh: rename func_80A7A4C8 -> EnIn_OfferFirstRace
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the default idle: when the player accepts the conversation it starts the race transition, sets the race state to 1 and switches the BGM to NA_BGM_HORSE.
+Defined in soh/src/overlays/actors/ovl_En_In/z_en_in.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_In/z_en_in.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_In/z_en_in.c b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+index 40a0c1c3c..2a552c496 100644
+--- a/soh/src/overlays/actors/ovl_En_In/z_en_in.c
++++ b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+@@ -14,7 +14,8 @@ void EnIn_Reset(void);
+ void EnIn_WaitForObject(EnIn* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A7A304): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+ void EnIn_Racing(EnIn* this, PlayState* play);
+-void func_80A7A4C8(EnIn* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A7A4C8: the default idle: when the player accepts the conversation it starts the race transition, sets the race state to 1 and switches the BGM to NA_BGM_HORSE.
++void EnIn_OfferFirstRace(EnIn* this, PlayState* play);  // was func_80A7A4C8 [LLM:HIGH]
+ void func_80A7A568(EnIn* this, PlayState* play);
+ void func_80A7A848(EnIn* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A7ABD4): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+@@ -271,7 +272,7 @@ s16 EnIn_UpdateTalkStateOnChoice(PlayState* play, Actor* thisx) {
+                 gSaveContext.eventInf[0] &= ~0xF;
+                 gSaveContext.eventInf[0] &= ~0x20;
+                 gSaveContext.eventInf[0] &= ~0x40;
+-                this->actionFunc = func_80A7A4C8;
++                this->actionFunc = EnIn_OfferFirstRace;  // was func_80A7A4C8 [LLM:HIGH]
+             }
+             break;
+     }
+@@ -591,7 +592,7 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+                     case 0:
+                     case 2:
+                         EnIn_ChangeAnim(this, ENIN_ANIM_2);
+-                        this->actionFunc = func_80A7A4C8;
++                        this->actionFunc = EnIn_OfferFirstRace;  // was func_80A7A4C8 [LLM:HIGH]
+                         gSaveContext.eventInf[0] = 0;
+                         break;
+                     case 1:
+@@ -654,7 +655,7 @@ void EnIn_Racing(EnIn* this, PlayState* play) {
+ void EnIn_Idle(EnIn* this, PlayState* play) {
+ }
+ 
+-void func_80A7A4C8(EnIn* this, PlayState* play) {
++void EnIn_OfferFirstRace(EnIn* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         EnIn_StartTransition(this, play, 1, TRANS_TYPE_CIRCLE(TCA_NORMAL, TCC_BLACK, TCS_FAST));
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x000F) | 0x0001;
+@@ -739,7 +740,7 @@ void func_80A7A848(EnIn* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         if ((play->msgCtx.choiceIndex == 0 && gSaveContext.rupees < 50) || play->msgCtx.choiceIndex == 1) {
+             gSaveContext.eventInf[0] &= ~0xF;
+-            this->actionFunc = func_80A7A4C8;
++            this->actionFunc = EnIn_OfferFirstRace;  // was func_80A7A4C8 [LLM:HIGH]
+         } else {
+             if (GameInteractor_Should(VB_RACE_INGO, true, 2)) {
+                 EnIn_StartTransition(this, play, 2, TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_BLACK, TCS_FAST));
+-- 
+2.55.0
+

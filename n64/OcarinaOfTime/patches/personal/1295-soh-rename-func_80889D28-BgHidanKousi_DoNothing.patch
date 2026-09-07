@@ -1,0 +1,59 @@
+From 10cbfa2fba975c25cc580b98ebc7a0b077ebe9db Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:08:23 +0000
+Subject: [PATCH 1295/3799] soh: rename func_80889D28 -> BgHidanKousi_DoNothing
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the empty terminal action installed once the fence is open.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c         | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+index 0b05b63bf..051c4da78 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+@@ -24,7 +24,8 @@ void BgHidanKousi_Delay(BgHidanKousi* this, PlayState* play);  // was func_80889
+ void BgHidanKousi_Accelerate(BgHidanKousi* this, PlayState* play);  // was func_80889C18 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80889C90: keeps moving until the fence has covered its variant's travel distance, then snaps it to the exact open position and plays the stop sfx.
+ void BgHidanKousi_Slide(BgHidanKousi* this, PlayState* play);  // was func_80889C90 [LLM:HIGH]
+-void func_80889D28(BgHidanKousi* this, PlayState* play);
++// LLM generated name (HIGH), was func_80889D28: the empty terminal action installed once the fence is open.
++void BgHidanKousi_DoNothing(BgHidanKousi* this, PlayState* play);  // was func_80889D28 [LLM:HIGH]
+ 
+ // LLM generated name (HIGH), was D_80889E40: how far each fence variant slides from home; used to place it at its final position and as the arrival test while it moves.
+ static f32 sTravelDistances[] = { 120.0f, 150.0f, 150.0f };  // was D_80889E40 [LLM:HIGH]
+@@ -90,7 +91,7 @@ void BgHidanKousi_Init(Actor* thisx, PlayState* play) {
+     thisx->world.rot.y = sTravelYaws[this->dyna.actor.params & 0xFF] + thisx->shape.rot.y;  // was D_80889E7C [LLM:HIGH]
+     if (Flags_GetSwitch(play, (thisx->params >> 8) & 0xFF)) {
+         BgHidanKousi_SnapToOpen(this);  // was func_80889ACC [LLM:HIGH]
+-        BgHidanKousi_SetupAction(this, func_80889D28);
++        BgHidanKousi_SetupAction(this, BgHidanKousi_DoNothing);  // was func_80889D28 [LLM:HIGH]
+     } else {
+         BgHidanKousi_SetupAction(this, BgHidanKousi_WaitForSwitch);  // was func_80889B5C [LLM:HIGH]
+     }
+@@ -141,14 +142,14 @@ void BgHidanKousi_Slide(BgHidanKousi* this, PlayState* play) {
+     if (sTravelDistances[this->dyna.actor.params & 0xFF] <  // was D_80889E40 [LLM:HIGH]
+         Math_Vec3f_DistXYZ(&this->dyna.actor.home.pos, &this->dyna.actor.world.pos)) {
+         BgHidanKousi_SnapToOpen(this);  // was func_80889ACC [LLM:HIGH]
+-        BgHidanKousi_SetupAction(this, func_80889D28);
++        BgHidanKousi_SetupAction(this, BgHidanKousi_DoNothing);  // was func_80889D28 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_METALDOOR_STOP);
+     } else {
+         Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_METALDOOR_SLIDE - SFX_FLAG);
+     }
+ }
+ 
+-void func_80889D28(BgHidanKousi* this, PlayState* play) {
++void BgHidanKousi_DoNothing(BgHidanKousi* this, PlayState* play) {
+ }
+ 
+ void BgHidanKousi_Update(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

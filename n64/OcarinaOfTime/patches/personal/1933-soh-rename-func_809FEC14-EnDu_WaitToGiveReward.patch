@@ -1,0 +1,51 @@
+From 299f4a578118a2cd2b4dadc7ae41871162c207b1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:04:01 +0000
+Subject: [PATCH 1933/3799] soh: rename func_809FEC14 -> EnDu_WaitToGiveReward
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits for the talk state to reach NPC_TALK_STATE_ACTION, then enters the give-item action immediately
+Defined in soh/src/overlays/actors/ovl_En_Du/z_en_du.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Du/z_en_du.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+index d2878f01c..7e695db04 100644
+--- a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
++++ b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+@@ -26,7 +26,8 @@ void EnDu_FireTempleWaitToTalk(EnDu* this, PlayState* play);  // was func_809FE6
+ void EnDu_FireTempleWaitTalkDone(EnDu* this, PlayState* play);  // was func_809FE740 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_809FE798: slides Darunia out through the door with the unlock/open/close/thud sounds, then kills the actor and sets INFTABLE_SPOKE_TO_DARUNIA_IN_FIRE_TEMPLE
+ void EnDu_FireTempleDepart(EnDu* this, PlayState* play);  // was func_809FE798 [LLM:HIGH]
+-void func_809FEC14(EnDu* this, PlayState* play);
++// LLM generated name (HIGH), was func_809FEC14: waits for the talk state to reach NPC_TALK_STATE_ACTION, then enters the give-item action immediately
++void EnDu_WaitToGiveReward(EnDu* this, PlayState* play);  // was func_809FEC14 [LLM:HIGH]
+ void func_809FEC70(EnDu* this, PlayState* play);
+ void func_809FECE4(EnDu* this, PlayState* play);
+ // LLM generated name (HIGH), was func_809FEB08: resets the face, and either returns to the ocarina wait (wrong song) or starts the reward text
+@@ -575,7 +576,7 @@ void EnDu_EndDanceCutscene(EnDu* this, PlayState* play) {
+     if (GameInteractor_Should(VB_BE_ELIGIBLE_FOR_DARUNIAS_JOY_REWARD, CUR_UPG_VALUE(UPG_STRENGTH) <= 0)) {
+         Flags_SetRandomizerInf(RAND_INF_DARUNIAS_JOY);
+         this->actor.textId = 0x301C;
+-        EnDu_SetupAction(this, func_809FEC14);
++        EnDu_SetupAction(this, EnDu_WaitToGiveReward);  // was func_809FEC14 [LLM:HIGH]
+     } else {
+         this->actor.textId = 0x301F;
+         EnDu_SetupAction(this, EnDu_WaitForOcarina);  // was func_809FE3C0 [LLM:HIGH]
+@@ -585,7 +586,7 @@ void EnDu_EndDanceCutscene(EnDu* this, PlayState* play) {
+     this->interactInfo.talkState = NPC_TALK_STATE_TALKING;
+ }
+ 
+-void func_809FEC14(EnDu* this, PlayState* play) {
++void EnDu_WaitToGiveReward(EnDu* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+         EnDu_SetupAction(this, func_809FEC70);
+-- 
+2.55.0
+

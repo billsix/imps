@@ -1,0 +1,61 @@
+From ea6ea995850f1551ce6e4c98f93b8c7090d8f420 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:09:00 +0000
+Subject: [PATCH 3249/3799] soh: rename D_8082AD3C -> sPageCursorFadeTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts that fade down and reloads from the ZREG step lengths; named to match sPageCursorColorSets
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c   | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 1309e3fd6..52397f710 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -1454,7 +1454,7 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+         sPageCursorColorSets[7] = CVarGetColor24(CVAR_COSMETIC("HUD.CButtons.Value"), sPageCursorColorSets[7]);  // was D_8082ACF4 [LLM:HIGH]
+     }
+ 
+-    static s16 D_8082AD3C = 20;
++    static s16 sPageCursorFadeTimer = 20;  // was D_8082AD3C [LLM:HIGH]
+     static s16 sCursorColorPhase = 0;  // was D_8082AD40 [LLM:HIGH]
+     static s16 sStickXRepeatTimer = 0;  // was D_8082AD44 [LLM:HIGH]
+     static s16 sStickYRepeatTimer = 0;  // was D_8082AD48 [LLM:HIGH]
+@@ -1471,9 +1471,9 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+ 
+     if ((pauseCtx->state < 8) || (pauseCtx->state > 0x11)) {
+         if (pauseCtx->state != 7) {
+-            stepR = ABS(sCursorPrimR - sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].r) / D_8082AD3C;  // was D_8082AB8C [LLM:HIGH]
+-            stepG = ABS(sCursorPrimG - sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].g) / D_8082AD3C;  // was D_8082AB90 [LLM:HIGH]
+-            stepB = ABS(sCursorPrimB - sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].b) / D_8082AD3C;  // was D_8082AB94 [LLM:HIGH]
++            stepR = ABS(sCursorPrimR - sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].r) / sPageCursorFadeTimer;  // was D_8082AB8C [LLM:HIGH]
++            stepG = ABS(sCursorPrimG - sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].g) / sPageCursorFadeTimer;  // was D_8082AB90 [LLM:HIGH]
++            stepB = ABS(sCursorPrimB - sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].b) / sPageCursorFadeTimer;  // was D_8082AB94 [LLM:HIGH]
+             if (sCursorPrimR >= sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].r) {  // was D_8082AB8C [LLM:HIGH]
+                 sCursorPrimR -= stepR;  // was D_8082AB8C [LLM:HIGH]
+             } else {
+@@ -1490,12 +1490,12 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+                 sCursorPrimB += stepB;  // was D_8082AB94 [LLM:HIGH]
+             }
+ 
+-            D_8082AD3C--;
+-            if (D_8082AD3C == 0) {
++            sPageCursorFadeTimer--;  // was D_8082AD3C [LLM:HIGH]
++            if (sPageCursorFadeTimer == 0) {  // was D_8082AD3C [LLM:HIGH]
+                 sCursorPrimR = sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].r;  // was D_8082AB8C [LLM:HIGH]
+                 sCursorPrimG = sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].g;  // was D_8082AB90 [LLM:HIGH]
+                 sCursorPrimB = sPageCursorColorSets[pauseCtx->cursorColorSet + sCursorColorPhase].b;  // was D_8082AB94 [LLM:HIGH]
+-                D_8082AD3C = ZREG(28 + sCursorColorPhase);  // was D_8082AD40 [LLM:HIGH]
++                sPageCursorFadeTimer = ZREG(28 + sCursorColorPhase);  // was D_8082AD40 [LLM:HIGH]
+                 sCursorColorPhase++;  // was D_8082AD40 [LLM:HIGH]
+                 if (sCursorColorPhase >= 4) {  // was D_8082AD40 [LLM:HIGH]
+                     sCursorColorPhase = 0;  // was D_8082AD40 [LLM:HIGH]
+-- 
+2.55.0
+

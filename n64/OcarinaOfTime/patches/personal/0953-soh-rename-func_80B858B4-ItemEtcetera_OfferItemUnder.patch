@@ -1,0 +1,52 @@
+From b771ec34b3f94aecaccd82c745dbe7cf2e6a98d1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:30:09 +0000
+Subject: [PATCH 0953/3799] soh: rename func_80B858B4 ->
+ ItemEtcetera_OfferItemUnderwater
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: same offer-and-kill loop as ItemEtcetera_OfferItem, plus a periodic EffectSsBubble_Spawn.
+Defined in soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c    | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c b/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
+index 2b153e190..0f6539bc4 100644
+--- a/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
++++ b/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
+@@ -18,7 +18,8 @@ void ItemEtcetera_Draw(Actor* thisx, PlayState* play);
+ void ItemEtcetera_WaitForObject(ItemEtcetera* this, PlayState* play);
+ // LLM generated name (HIGH), was func_80B85824: offers the get-item every frame; once the player takes it, sets the Ruto's-letter flags for params 1 and kills the actor.
+ void ItemEtcetera_OfferItem(ItemEtcetera* this, PlayState* play);  // was func_80B85824 [LLM:HIGH]
+-void func_80B858B4(ItemEtcetera* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B858B4: same offer-and-kill loop as ItemEtcetera_OfferItem, plus a periodic EffectSsBubble_Spawn.
++void ItemEtcetera_OfferItemUnderwater(ItemEtcetera* this, PlayState* play);  // was func_80B858B4 [LLM:HIGH]
+ void ItemEtcetera_SpawnSparkles(ItemEtcetera* this, PlayState* play);
+ void ItemEtcetera_MoveFireArrowDown(ItemEtcetera* this, PlayState* play);
+ void func_80B85B28(ItemEtcetera* this, PlayState* play);
+@@ -83,7 +84,7 @@ void ItemEtcetera_Init(Actor* thisx, PlayState* play) {
+     switch (type) {
+         case ITEM_ETC_LETTER:
+             Actor_SetScale(&this->actor, 0.5f);
+-            this->futureActionFunc = func_80B858B4;
++            this->futureActionFunc = ItemEtcetera_OfferItemUnderwater;  // was func_80B858B4 [LLM:HIGH]
+             if (Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_RUTOS_LETTER)) {
+                 Actor_Kill(&this->actor);
+             }
+@@ -131,7 +132,7 @@ void ItemEtcetera_OfferItem(ItemEtcetera* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B858B4(ItemEtcetera* this, PlayState* play) {
++void ItemEtcetera_OfferItemUnderwater(ItemEtcetera* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         if ((this->actor.params & 0xFF) == 1) {
+             Flags_SetEventChkInf(EVENTCHKINF_OBTAINED_RUTOS_LETTER);
+-- 
+2.55.0
+

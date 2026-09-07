@@ -1,0 +1,65 @@
+From 44f1fd3dc94297518d44efb86116444f410b13e0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:02:28 +0000
+Subject: [PATCH 1229/3799] soh: rename func_80095AA0 -> Room_HandleDebugInput
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: an empty function called once per frame for the current and previous room with the second controller's input; controller 2 is this codebase's debug controller, so that is where the name comes from, but nothing about the stripped body confirms it.
+Defined in soh/src/code/z_room.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h | 2 +-
+ soh/src/code/z_play.c   | 4 ++--
+ soh/src/code/z_room.c   | 3 ++-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 7e9189c24..c6e63c168 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1238,7 +1238,7 @@ Gfx* Gfx_TwoTexScrollEnvColorEx(GraphicsContext* gfxCtx, s32 tile1, u32 x1, u32
+ Gfx* Gfx_EnvColor(GraphicsContext* gfxCtx, s32 r, s32 g, s32 b, s32 a);
+ void Gfx_SetupFrame(GraphicsContext* gfxCtx, u8 r, u8 g, u8 b);
+ void func_80095974(GraphicsContext* gfxCtx);
+-void func_80095AA0(PlayState* play, Room* room, Input* arg2, UNK_TYPE arg3);
++void Room_HandleDebugInput(PlayState* play, Room* room, Input* arg2, UNK_TYPE arg3);  // was func_80095AA0 [LLM:GUESS]
+ void Room_DrawBackground2D(Gfx** gfxP, void* tex, void* tlut, u16 width, u16 height, u8 fmt, u8 siz, u16 tlutMode,
+                            u16 tlutCount, f32 offsetX, f32 offsetY);
+ void Room_Init(PlayState* play, Room* room);  // was func_80096FD4 [oot]
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 141e79c4b..d754b7059 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1191,10 +1191,10 @@ void Play_Update(PlayState* play) {
+             }
+ 
+             PLAY_LOG(3672);
+-            func_80095AA0(play, &play->roomCtx.curRoom, &input[1], 0);
++            Room_HandleDebugInput(play, &play->roomCtx.curRoom, &input[1], 0);  // was func_80095AA0 [LLM:GUESS]
+ 
+             PLAY_LOG(3675);
+-            func_80095AA0(play, &play->roomCtx.prevRoom, &input[1], 1);
++            Room_HandleDebugInput(play, &play->roomCtx.prevRoom, &input[1], 1);  // was func_80095AA0 [LLM:GUESS]
+ 
+             PLAY_LOG(3677);
+ 
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index b000893db..3fe1cc758 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -45,7 +45,8 @@ void (*sRoomDrawHandlers[])(PlayState* play, Room* room, u32 flags) = {
+     Room_DrawCullable,
+ };
+ 
+-void func_80095AA0(PlayState* play, Room* room, Input* arg2, UNK_TYPE arg3) {
++// LLM generated name (GUESS), was func_80095AA0: an empty function called once per frame for the current and previous room with the second controller's input; controller 2 is this codebase's debug controller, so that is where the name comes from, but nothing about the stripped body confirms it.
++void Room_HandleDebugInput(PlayState* play, Room* room, Input* arg2, UNK_TYPE arg3) {
+ }
+ 
+ // Room Draw Polygon Type 0
+-- 
+2.55.0
+

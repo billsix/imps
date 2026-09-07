@@ -1,0 +1,50 @@
+From 3bfe1273b15c04b9b5b7abf83a50a4605d79191b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:05:49 +0000
+Subject: [PATCH 3161/3799] soh: rename D_8015E4C0 -> sQuadVsTrisTri0
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the first triangle the AT quad is split into in that check
+Defined in soh/src/code/z_collision_check.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_collision_check.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/z_collision_check.c b/soh/src/code/z_collision_check.c
+index 7175e2fb9..64a159785 100644
+--- a/soh/src/code/z_collision_check.c
++++ b/soh/src/code/z_collision_check.c
+@@ -2404,7 +2404,7 @@ void CollisionCheck_AC_TrisVsQuad(PlayState* play, CollisionCheckContext* colChk
+  */
+ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+     static Vec3f sQuadVsTrisHitPos;  // was D_8015E4B0 [LLM:HIGH]
+-    static TriNorm D_8015E4C0;
++    static TriNorm sQuadVsTrisTri0;  // was D_8015E4C0 [LLM:HIGH]
+     static TriNorm D_8015E4F8;
+     ColliderQuad* at = (ColliderQuad*)colAT;
+     ColliderTris* ac = (ColliderTris*)colAC;
+@@ -2414,7 +2414,7 @@ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChk
+         if (CollisionCheck_SkipTouch(&at->info) == 1) {
+             return;
+         }
+-        Math3D_TriNorm(&D_8015E4C0, &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);
++        Math3D_TriNorm(&sQuadVsTrisTri0, &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);  // was D_8015E4C0 [LLM:HIGH]
+         Math3D_TriNorm(&D_8015E4F8, &at->dim.quad[1], &at->dim.quad[0], &at->dim.quad[2]);
+         for (acElem = ac->elements; acElem < ac->elements + ac->count; acElem++) {
+             if (CollisionCheck_SkipBump(&acElem->info) == 1) {
+@@ -2423,7 +2423,7 @@ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChk
+             if (CollisionCheck_NoSharedFlags(&at->info, &acElem->info) == 1) {
+                 continue;
+             }
+-            if (Math3D_TriVsTriIntersect(&D_8015E4C0, &acElem->dim, &sQuadVsTrisHitPos) == 1 ||  // was D_8015E4B0 [LLM:HIGH]
++            if (Math3D_TriVsTriIntersect(&sQuadVsTrisTri0, &acElem->dim, &sQuadVsTrisHitPos) == 1 ||  // was D_8015E4B0 [LLM:HIGH]
+                 Math3D_TriVsTriIntersect(&D_8015E4F8, &acElem->dim, &sQuadVsTrisHitPos) == 1) {  // was D_8015E4B0 [LLM:HIGH]
+                 if (Collider_QuadSetNearestAC(play, at, &sQuadVsTrisHitPos)) {  // was D_8015E4B0 [LLM:HIGH]
+                     Vec3f atPos;
+-- 
+2.55.0
+

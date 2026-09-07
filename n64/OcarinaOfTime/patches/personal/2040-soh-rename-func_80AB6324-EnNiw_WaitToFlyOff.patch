@@ -1,0 +1,60 @@
+From 9c5f97fb3dcbd489c1b035cb0fc8600a303762f4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:10:56 +0000
+Subject: [PATCH 2040/3799] soh: rename func_80AB6324 -> EnNiw_WaitToFlyOff
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the params 0xD idle: does nothing until unk_308 is set, then launches upward; unk_308's setter is outside this overlay, so the trigger is inferred from the launch it performs
+Defined in soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+index e2b357fc4..48ca5ad57 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+@@ -20,7 +20,8 @@ void EnNiw_Draw(Actor* thisx, PlayState* play);
+ void EnNiw_Reset(void);
+ 
+ void EnNiw_ResetAction(EnNiw* this, PlayState* play);
+-void func_80AB6324(EnNiw* this, PlayState* play);
++// LLM generated name (GUESS), was func_80AB6324: the params 0xD idle: does nothing until unk_308 is set, then launches upward; unk_308's setter is outside this overlay, so the trigger is inferred from the launch it performs
++void EnNiw_WaitToFlyOff(EnNiw* this, PlayState* play);  // was func_80AB6324 [LLM:GUESS]
+ void func_80AB63A8(EnNiw* this, PlayState* play);
+ void func_80AB6450(EnNiw* this, PlayState* play);
+ void func_80AB6570(EnNiw* this, PlayState* play);
+@@ -424,7 +425,7 @@ void EnNiw_ResetAction(EnNiw* this, PlayState* play) {
+             this->actionFunc = func_80AB6450;
+             break;
+         case 0xD:
+-            this->actionFunc = func_80AB6324;
++            this->actionFunc = EnNiw_WaitToFlyOff;  // was func_80AB6324 [LLM:GUESS]
+             break;
+         default:
+             this->actionFunc = func_80AB6570;
+@@ -432,7 +433,7 @@ void EnNiw_ResetAction(EnNiw* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB6324(EnNiw* this, PlayState* play) {
++void EnNiw_WaitToFlyOff(EnNiw* this, PlayState* play) {
+     if (this->unk_308 != 0) {
+         this->actor.velocity.y = Rand_ZeroFloat(2.0f) + 4.0f;
+         this->actor.speedXZ = Rand_ZeroFloat(2.0f) + 3.0f;
+@@ -1109,7 +1110,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+             CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+         }
+         if (this->actionFunc != func_80AB6BF8 && this->actionFunc != func_80AB6D08 &&
+-            this->actionFunc != func_80AB6324 && this->actionFunc != func_80AB63A8 &&
++            this->actionFunc != EnNiw_WaitToFlyOff && this->actionFunc != func_80AB63A8 &&  // was func_80AB6324 [LLM:GUESS]
+             this->actionFunc != func_80AB6450) {
+             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+         }
+-- 
+2.55.0
+

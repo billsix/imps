@@ -1,0 +1,57 @@
+From ee2cb3ee3c649df6a2bd43402db8194b17c3898c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:27:42 +0000
+Subject: [PATCH 1578/3799] soh: rename func_80A40DCC ->
+ EnGo_WaitForEyedropsText
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits out the eye-drops line, resets the animation and hands over to the get-item state.
+Defined in soh/src/overlays/actors/ovl_En_Go/z_en_go.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Go/z_en_go.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+index 0fbf9d1bc..52ec88538 100644
+--- a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
++++ b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+@@ -37,7 +37,8 @@ void EnGo_GetItem(EnGo* this, PlayState* play);
+ // LLM generated name (HIGH), was func_80A40C78: after a trade item changes hands it either ends the conversation or opens the follow-up line for the prescription and claim check, clearing the Biggoron sword day count for the latter.
+ void EnGo_FinishGetItem(EnGo* this, PlayState* play);  // was func_80A40C78 [LLM:HIGH]
+ void EnGo_Eyedrops(EnGo* this, PlayState* play);
+-void func_80A40DCC(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A40DCC: waits out the eye-drops line, resets the animation and hands over to the get-item state.
++void EnGo_WaitForEyedropsText(EnGo* this, PlayState* play);  // was func_80A40DCC [LLM:HIGH]
+ 
+ void EnGo_SpawnEffectDust(EnGo* this, Vec3f* pos, Vec3f* velocity, Vec3f* accel, u8 initialTimer, f32 scale,
+                           f32 scaleStep);
+@@ -589,7 +590,7 @@ void func_80A3F908(EnGo* this, PlayState* play) {
+ 
+     if (this->actionFunc == EnGo_BiggoronActionFunc || this->actionFunc == EnGo_GoronLinkRolling ||
+         this->actionFunc == EnGo_FireGenericActionFunc || this->actionFunc == EnGo_Eyedrops ||
+-        this->actionFunc == func_80A40DCC || this->actionFunc == EnGo_GetItem || this->actionFunc == EnGo_FinishGetItem ||  // was func_80A40C78 [LLM:HIGH]
++        this->actionFunc == EnGo_WaitForEyedropsText || this->actionFunc == EnGo_GetItem || this->actionFunc == EnGo_FinishGetItem ||  // was func_80A40C78 [LLM:HIGH]
+         this->actionFunc == EnGo_WaitToWalk) {  // was func_80A40B1C [LLM:HIGH]
+ 
+         interactRange = (this->collider.dim.radius + 30.0f);
+@@ -1017,11 +1018,11 @@ void EnGo_Eyedrops(EnGo* this, PlayState* play) {
+         this->actor.textId = 0x305A;
+         Message_ContinueTextbox(play, this->actor.textId);
+         this->interactInfo.talkState = NPC_TALK_STATE_TALKING;
+-        EnGo_SetupAction(this, func_80A40DCC);
++        EnGo_SetupAction(this, EnGo_WaitForEyedropsText);  // was func_80A40DCC [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A40DCC(EnGo* this, PlayState* play) {
++void EnGo_WaitForEyedropsText(EnGo* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         EnGo_ChangeAnim(this, ENGO_ANIM_1);
+         this->skelAnime.curFrame = Animation_GetLastFrame(&gGoronAnim_004930);
+-- 
+2.55.0
+

@@ -1,0 +1,61 @@
+From aa918fb252333ef54082ea03964896d2428a41f1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:04:42 +0000
+Subject: [PATCH 3119/3799] soh: rename D_80122E44 -> sCs8700KeyFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the keyframe set one-point cutscene 8700 installs
+Defined in soh/src/code/z_onepointdemo_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_onepointdemo.c        | 8 ++++----
+ soh/src/code/z_onepointdemo_data.inc | 3 ++-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_onepointdemo.c b/soh/src/code/z_onepointdemo.c
+index 0e76aa551..a2c0b5a33 100644
+--- a/soh/src/code/z_onepointdemo.c
++++ b/soh/src/code/z_onepointdemo.c
+@@ -38,7 +38,7 @@ static s32 sPrevFrameCs1100 = -4096;
+     F(sCs4120KeyFrames)                                   \
+     F(sCs3260KeyFrames)                                   \
+     F(sCs3261KeyFrames)                                   \
+-    F(D_80122E44)                                   \
++    F(sCs8700KeyFrames)                                   \
+     F(D_8012313C)                                   \
+     F(D_801231B4)                                   \
+     F(D_80123254)                                   \
+@@ -972,10 +972,10 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+         case 8700:
+             Actor_GetFocus(&spA0, actor);
+             Actor_GetFocus(&sp8C, &player->actor);
+-            D_80122E44[timer & 1][0].atTargetInit.y = ((spA0.pos.y - sp8C.pos.y) / 10.0f) + 90.0f;
+-            D_80122E44[timer & 1][5].atTargetInit = mainCam->at;
++            sCs8700KeyFrames[timer & 1][0].atTargetInit.y = ((spA0.pos.y - sp8C.pos.y) / 10.0f) + 90.0f;  // was D_80122E44 [LLM:HIGH]
++            sCs8700KeyFrames[timer & 1][5].atTargetInit = mainCam->at;  // was D_80122E44 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80122E44[timer & 1];
++            csInfo->keyFrames = sCs8700KeyFrames[timer & 1];  // was D_80122E44 [LLM:HIGH]
+             csInfo->keyFrameCnt = 7;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+diff --git a/soh/src/code/z_onepointdemo_data.inc b/soh/src/code/z_onepointdemo_data.inc
+index 10140fa46..e1b438147 100644
+--- a/soh/src/code/z_onepointdemo_data.inc
++++ b/soh/src/code/z_onepointdemo_data.inc
+@@ -609,7 +609,8 @@ static OnePointCsFull sCs8002KeyFrames[3] = {  // was D_80122DCC [LLM:HIGH]
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80122E44[2][7] = {
++// LLM generated name (HIGH), was D_80122E44: the keyframe set one-point cutscene 8700 installs
++static OnePointCsFull sCs8700KeyFrames[2][7] = {  // was D_80122E44 [LLM:HIGH]
+     {
+         { 0x83, 0xFF, 0x2222, 10, 5, 90.0f, 0.2f, { 50.0f, 100.0f, 140.0f }, { -30.0f, 10.0f, -20.0f } },
+         { 0x8F, 0xFF, 0x0000, 20, 0, 90.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+-- 
+2.55.0
+

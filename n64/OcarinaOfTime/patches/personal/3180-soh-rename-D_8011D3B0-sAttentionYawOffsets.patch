@@ -1,0 +1,73 @@
+From 77d3f6ccb71bef96e33e5024be2adf0cd01ffc3f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:03 +0000
+Subject: [PATCH 3180/3799] soh: rename D_8011D3B0 -> sAttentionYawOffsets
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the yaw offsets the attention camera tries when it needs a clear line to the target
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c        | 8 ++++----
+ soh/src/code/z_camera_data.inc | 3 ++-
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index d35436e8b..5c0f3f200 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -3589,7 +3589,7 @@ s32 Camera_KeepOn3(Camera* camera) {
+         playerHeadPos = camPlayerPosRot->pos;
+         playerHeadPos.y += playerHeight;
+         Camera_Vec3fVecSphGeoAdd(&anim->atTarget, &playerHeadPos, &targetToPlayerDir);
+-        angleCnt = ARRAY_COUNT(D_8011D3B0);
++        angleCnt = ARRAY_COUNT(sAttentionYawOffsets);  // was D_8011D3B0 [LLM:HIGH]
+         i = 0;
+         targetToPlayerDir.r = prevTargetPlayerDist;
+         atToEyeAdj.r = ((keep3->minDist + (targetToPlayerDir.r * (1 - 0.5f))) - atToEyeNextDir.r) + atToEyeNextDir.r;
+@@ -3601,7 +3601,7 @@ s32 Camera_KeepOn3(Camera* camera) {
+                     !Camera_BGCheck(camera, &anim->atTarget, &lineChkPointB)) {
+                     break;
+                 }
+-                atToEyeAdj.yaw = sp80 + D_8011D3B0[i];
++                atToEyeAdj.yaw = sp80 + sAttentionYawOffsets[i];  // was D_8011D3B0 [LLM:HIGH]
+                 atToEyeAdj.pitch = sp82 + D_8011D3CC[i];
+                 Camera_Vec3fVecSphGeoAdd(&lineChkPointB, &anim->atTarget, &atToEyeAdj);
+                 i++;
+@@ -3877,14 +3877,14 @@ s32 Camera_KeepOn4(Camera* camera) {
+             spB8.r = keep4->unk_04;
+             Camera_Vec3fVecSphGeoAdd(&sKeepOn4ScratchC, &sKeepOn4ScratchA, &spB8);  // was D_8015BD50 [LLM:GUESS]
+             if (!(keep4->unk_1C & 1)) {
+-                angleCnt = ARRAY_COUNT(D_8011D3B0);
++                angleCnt = ARRAY_COUNT(sAttentionYawOffsets);  // was D_8011D3B0 [LLM:HIGH]
+                 for (i = 0; i < angleCnt; i++) {
+                     if (!CollisionCheck_LineOCCheck(camera->play, &camera->play->colChkCtx, &sKeepOn4ScratchA, &sKeepOn4ScratchC,  // was D_8015BD50 [LLM:GUESS]
+                                                     spCC, sp9C) &&
+                         !Camera_BGCheck(camera, &sKeepOn4ScratchA, &sKeepOn4ScratchC)) {  // was D_8015BD50 [LLM:GUESS]
+                         break;
+                     }
+-                    spB8.yaw = D_8011D3B0[i] + spA0;
++                    spB8.yaw = sAttentionYawOffsets[i] + spA0;  // was D_8011D3B0 [LLM:HIGH]
+                     spB8.pitch = D_8011D3CC[i] + spA2;
+                     Camera_Vec3fVecSphGeoAdd(&sKeepOn4ScratchC, &sKeepOn4ScratchA, &spB8);  // was D_8015BD50 [LLM:GUESS]
+                 }
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index 162e68afa..9ead07de6 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2233,7 +2233,8 @@ static s32 sCameraShrinkWindowVal = 0x20;
+ // LLM generated name (HIGH), was D_8011D3AC: the actor category of the camera's current target, published for Camera_GetTargetCategory
+ s32 sTargetCategory = -1;  // was D_8011D3AC [LLM:HIGH]
+ 
+-s16 D_8011D3B0[] = {
++// LLM generated name (HIGH), was D_8011D3B0: the yaw offsets the attention camera tries when it needs a clear line to the target
++s16 sAttentionYawOffsets[] = {  // was D_8011D3B0 [LLM:HIGH]
+     0x0AAA, 0xF556, 0x1555, 0xEAAB, 0x2AAA, 0xD556, 0x3FFF, 0xC001, 0x5555, 0xAAAB, 0x6AAA, 0x9556, 0x7FFF, 0x0000,
+ };
+ 
+-- 
+2.55.0
+

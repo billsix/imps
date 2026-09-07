@@ -1,0 +1,55 @@
+From 8025dc75ba070719cc5497daa96fa7b9aa03deed Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:35:37 +0000
+Subject: [PATCH 2551/3799] soh: rename func_80900104 -> BossGanon2_Stunned
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: plays the stun start, holds the loop for 80 frames and plays the end before walking again
+Defined in soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index 8d60c7bfa..7ba92fc85 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -34,7 +34,8 @@ void BossGanon2_SetupIdle(BossGanon2* this, PlayState* play);  // was func_808FF
+ void BossGanon2_Idle(BossGanon2* this, PlayState* play);  // was func_808FFEBC [LLM:HIGH]
+ // LLM generated name (HIGH), was func_808FFFE0: sweeps the head from side to side on a sine while the window runs out
+ void BossGanon2_LookAround(BossGanon2* this, PlayState* play);  // was func_808FFFE0 [LLM:HIGH]
+-void func_80900104(BossGanon2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80900104: plays the stun start, holds the loop for 80 frames and plays the end before walking again
++void BossGanon2_Stunned(BossGanon2* this, PlayState* play);  // was func_80900104 [LLM:HIGH]
+ void func_8090026C(BossGanon2* this, PlayState* play);
+ void func_809002CC(BossGanon2* this, PlayState* play);
+ void func_80900344(BossGanon2* this, PlayState* play);
+@@ -1186,10 +1187,10 @@ void BossGanon2_SetupStunned(BossGanon2* this, PlayState* play) {
+     Animation_MorphToLoop(&this->skelAnime, &gGanonStunStartAnim, -2.0f);
+     this->unk_194 = Animation_GetLastFrame(&gGanonStunStartAnim);
+     this->unk_1AC = 0;
+-    this->actionFunc = func_80900104;
++    this->actionFunc = BossGanon2_Stunned;  // was func_80900104 [LLM:HIGH]
+ }
+ 
+-void func_80900104(BossGanon2* this, PlayState* play) {
++void BossGanon2_Stunned(BossGanon2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     Math_ApproachZeroF(&this->actor.speedXZ, 0.5f, 1.0f);
+ 
+@@ -2117,7 +2118,7 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+         this->unk_370.y = 12000.0f;
+         Math_ApproachF(&this->unk_370.x, 1500.0f, 0.1f, 100.0f);
+         if ((this->actionFunc == BossGanon2_Idle) || (this->actionFunc == BossGanon2_LookAround) ||  // was func_808FFEBC [LLM:HIGH]
+-            (this->actionFunc == func_80900104)) {
++            (this->actionFunc == BossGanon2_Stunned)) {  // was func_80900104 [LLM:HIGH]
+             Math_ApproachF(&this->unk_360.z, 1000.0f, 0.1f, 100.0f);
+             Math_ApproachF(&this->unk_370.z, 1000.0f, 0.1f, 100.0f);
+             Math_ApproachS(&this->unk_346, -0xFA0, 0xA, 0x64);
+-- 
+2.55.0
+

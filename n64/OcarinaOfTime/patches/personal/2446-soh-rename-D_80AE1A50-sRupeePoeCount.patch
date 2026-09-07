@@ -1,0 +1,53 @@
+From 000b12fc01cea939fc3f2a3c572c57a554d4681f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:28:10 +0000
+Subject: [PATCH 2446/3799] soh: rename D_80AE1A50 -> sRupeePoeCount
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts the live EN_POH_RUPEE poes; the third and later ones kill themselves instead of dropping a rupee
+Defined in soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+index 4829f49c0..23ee84d01 100644
+--- a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
++++ b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+@@ -53,7 +53,8 @@ void EnPoh_SoulVanish(EnPoh* this, PlayState* play);  // was func_80AE009C [LLM:
+ void EnPoh_TalkRegular(EnPoh* this, PlayState* play);
+ void EnPoh_TalkComposer(EnPoh* this, PlayState* play);
+ 
+-static s16 D_80AE1A50 = 0;
++// LLM generated name (HIGH), was D_80AE1A50: counts the live EN_POH_RUPEE poes; the third and later ones kill themselves instead of dropping a rupee
++static s16 sRupeePoeCount = 0;  // was D_80AE1A50 [LLM:HIGH]
+ 
+ const ActorInit En_Poh_InitVars = {
+     ACTOR_EN_POH,
+@@ -222,8 +223,8 @@ void EnPoh_Init(Actor* thisx, PlayState* play) {
+         this->actor.params = EN_POH_NORMAL;
+     }
+     if (this->actor.params == EN_POH_RUPEE) {
+-        D_80AE1A50++;
+-        if (D_80AE1A50 >= 3) {
++        sRupeePoeCount++;  // was D_80AE1A50 [LLM:HIGH]
++        if (sRupeePoeCount >= 3) {  // was D_80AE1A50 [LLM:HIGH]
+             Actor_Kill(&this->actor);
+         } else {
+             collectible = Item_DropCollectible(play, &this->actor.world.pos, 0x4000 | ITEM00_RUPEE_BLUE);
+@@ -266,7 +267,7 @@ void EnPoh_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyJntSph(play, &this->colliderSph);
+     Collider_DestroyCylinder(play, &this->colliderCyl);
+     if (this->actor.params == EN_POH_RUPEE) {
+-        D_80AE1A50--;
++        sRupeePoeCount--;  // was D_80AE1A50 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

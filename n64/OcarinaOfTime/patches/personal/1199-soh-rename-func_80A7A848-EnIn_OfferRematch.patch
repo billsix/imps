@@ -1,0 +1,60 @@
+From f38f83100d31e74aaacb94ddcc8b2f60b4c6d259 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:56:46 +0000
+Subject: [PATCH 1199/3799] soh: rename func_80A7A848 -> EnIn_OfferRematch
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: resolves the race-again prompt: yes starts the second race, no (or too few rupees) returns to the first-race offer.
+Defined in soh/src/overlays/actors/ovl_En_In/z_en_in.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_In/z_en_in.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_In/z_en_in.c b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+index 750cd6bf9..d08618f27 100644
+--- a/soh/src/overlays/actors/ovl_En_In/z_en_in.c
++++ b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+@@ -18,7 +18,8 @@ void EnIn_Racing(EnIn* this, PlayState* play);
+ void EnIn_OfferFirstRace(EnIn* this, PlayState* play);  // was func_80A7A4C8 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A7A568: runs while the rented horse's timer is counting; expiry hands off to EnIn_RentalTimeExpired's follow-up state, and talking charges 50 rupees for another race or ends the rental.
+ void EnIn_HorseRentalActive(EnIn* this, PlayState* play);  // was func_80A7A568 [LLM:HIGH]
+-void func_80A7A848(EnIn* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A7A848: resolves the race-again prompt: yes starts the second race, no (or too few rupees) returns to the first-race offer.
++void EnIn_OfferRematch(EnIn* this, PlayState* play);  // was func_80A7A848 [LLM:HIGH]
+ // Name from zeldaret/oot (was func_80A7ABD4): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+ void EnIn_ClosingGate(EnIn* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A7AEF0): adopted upstream's name for this address; body verified to match upstream at 0.97. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+@@ -621,7 +622,7 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+                         break;
+                     case 7:
+                         EnIn_ChangeAnim(this, ENIN_ANIM_2);
+-                        this->actionFunc = func_80A7A848;
++                        this->actionFunc = EnIn_OfferRematch;  // was func_80A7A848 [LLM:HIGH]
+                         break;
+                 }
+         }
+@@ -727,7 +728,7 @@ void EnIn_ChargeRaceFee(EnIn* this, PlayState* play) {
+         Rupees_ChangeBy(-50);
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+         EnIn_ChangeAnim(this, ENIN_ANIM_3);
+-        this->actionFunc = func_80A7A848;
++        this->actionFunc = EnIn_OfferRematch;  // was func_80A7A848 [LLM:HIGH]
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x0F) | 7;
+         this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & 0xFFFF) | 0x20;
+@@ -738,7 +739,7 @@ void EnIn_ChargeRaceFee(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7A848(EnIn* this, PlayState* play) {
++void EnIn_OfferRematch(EnIn* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         if ((play->msgCtx.choiceIndex == 0 && gSaveContext.rupees < 50) || play->msgCtx.choiceIndex == 1) {
+             gSaveContext.eventInf[0] &= ~0xF;
+-- 
+2.55.0
+

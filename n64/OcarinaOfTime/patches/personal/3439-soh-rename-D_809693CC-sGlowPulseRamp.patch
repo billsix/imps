@@ -1,0 +1,41 @@
+From faafea70171604f99da2017b551df881d69164be Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:19:11 +0000
+Subject: [PATCH 3439/3799] soh: rename D_809693CC -> sGlowPulseRamp
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the sixteen-step ramp Demo6K_DrawGlow scales the glow by
+Defined in soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c b/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
+index 455ef2f6b..a6913e1cd 100644
+--- a/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
++++ b/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
+@@ -799,7 +799,7 @@ void Demo6K_DrawGanonBlastSpawn(Actor* thisx, PlayState* play) {
+ }
+ 
+ void Demo6K_DrawGlow(Actor* thisx, PlayState* play) {
+-    static u8 D_809693CC[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1 };
++    static u8 sGlowPulseRamp[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1 };  // was D_809693CC [LLM:HIGH]
+     Demo6K* this = (Demo6K*)thisx;
+     Gfx* displayList = Graph_Alloc(play->state.gfxCtx, 4 * sizeof(Gfx));
+     u16 frames = play->gameplayFrames;
+@@ -809,7 +809,7 @@ void Demo6K_DrawGlow(Actor* thisx, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+-    scaleFactor = ((s16)D_809693CC[(frames * 4) & 0xF] * 0.01f) + 1.0f;
++    scaleFactor = ((s16)sGlowPulseRamp[(frames * 4) & 0xF] * 0.01f) + 1.0f;  // was D_809693CC [LLM:HIGH]
+     Matrix_Scale(this->actor.scale.x * scaleFactor, this->actor.scale.y * scaleFactor,
+                  this->actor.scale.z * scaleFactor, MTXMODE_APPLY);
+     gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+-- 
+2.55.0
+

@@ -38,6 +38,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from renames_common import (ADDR_RE, CITED_RE, CHECKOUT, INLINE_TAG_RE,
+                            SHORT_TAG_CITE_RE,
                             MARKERS, SOURCE_PATHS, code_part, git,
                             is_comment_only, is_marker_line, pin_sha,
                             rename_range, renamed_symbols)
@@ -64,8 +65,18 @@ def check_traceable():
 
     cited = set()
     for line in git("diff", rename_range()).splitlines():
-        if line.startswith("+") and is_marker_line(line):
+        if not line.startswith("+"):
+            continue
+        if is_marker_line(line):
             cited.update(CITED_RE.findall(line))
+            continue
+        # A static declared INSIDE a function body gets only the SHORT tag --
+        # a long provenance comment in the middle of a body would be noise,
+        # and the tagger correctly declines to add one. The short tag is a
+        # citation too, so read it here as renamed_symbols() already does.
+        # Without this, every function-local static reads as untraceable
+        # (17 of them on 2026-09-08, all correctly tagged).
+        cited.update(m.group(1) for m in SHORT_TAG_CITE_RE.finditer(line))
 
     untraceable = sorted(renamed - cited)
     incomplete = sorted(cited & after)
@@ -105,6 +116,22 @@ def check_declarations():
                 continue
             if any(is_marker_line(a) for a in lines[max(0, index - 3):index]):
                 continue
+            # A prototype split across several lines carries its name on the
+            # FIRST line, which ends in ',' -- appending a "//" tag there would
+            # comment out the rest of the parameter list.  Its tag therefore
+            # goes on the line that closes the prototype with ';'.
+            if not line.rstrip().endswith((";", "{")):
+                for ahead in range(index + 1, min(len(lines), index + 8)):
+                    if INLINE_TAG_RE.search(lines[ahead]):
+                        tagged_ahead = True
+                        break
+                    if lines[ahead].rstrip().endswith(";"):
+                        tagged_ahead = False
+                        break
+                else:
+                    tagged_ahead = False
+                if tagged_ahead:
+                    continue
             # A typedef names itself on its CLOSING brace, so its comment sits
             # above the "typedef struct {" -- far outside a 3-line window.
             if line.lstrip().startswith("}"):

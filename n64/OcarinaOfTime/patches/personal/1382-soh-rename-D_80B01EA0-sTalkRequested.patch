@@ -1,0 +1,123 @@
+From c06ed229b8715db5f795fd0ed6fcd9c6b0af4e2b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:14:20 +0000
+Subject: [PATCH 1382/3799] soh: rename D_80B01EA0 -> sTalkRequested
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the in-tree comment on its declaration reads "gets set if ACTOR_FLAG_TALK is set"; three states assign Actor_ProcessTalkRequest's result to it and the rest read it to see whether the player started a conversation this frame.
+Defined in soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c | 23 ++++++++++---------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+index d66a5c727..c76b79960 100644
+--- a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
++++ b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+@@ -293,7 +293,8 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(targetArrowOffset, 30, ICHAIN_STOP),
+ };
+ 
+-static s32 D_80B01EA0; // gets set if ACTOR_FLAG_TALK is set
++// LLM generated name (HIGH), was D_80B01EA0: the in-tree comment on its declaration reads "gets set if ACTOR_FLAG_TALK is set"; three states assign Actor_ProcessTalkRequest's result to it and the rest read it to see whether the player started a conversation this frame.
++static s32 sTalkRequested; // gets set if ACTOR_FLAG_TALK is set, was D_80B01EA0 [LLM:HIGH]
+ 
+ void EnSkj_ChangeAnim(EnSkj* this, u8 index) {
+     f32 endFrame = Animation_GetLastFrame(sAnimationInfo[index].animation);
+@@ -590,7 +591,7 @@ s32 EnSkj_CollisionCheck(EnSkj* this, PlayState* play) {
+     s16 yawDiff;
+     Vec3f effectPos;
+ 
+-    if (!((this->unk_2D3 == 0) || (D_80B01EA0 != 0) || !(this->collider.base.acFlags & AC_HIT))) {
++    if (!((this->unk_2D3 == 0) || (sTalkRequested != 0) || !(this->collider.base.acFlags & AC_HIT))) {  // was D_80B01EA0 [LLM:HIGH]
+         this->collider.base.acFlags &= ~AC_HIT;
+         if (this->actor.colChkInfo.damageEffect != 0) {
+             if (this->actor.colChkInfo.damageEffect == 0xF) {
+@@ -923,7 +924,7 @@ void EnSkj_WaitInRange(EnSkj* this, PlayState* play) {
+         EnSkj_TurnPlayer(sSmallStumpSkullKid.skullkid, player);
+         Message_StartOcarinaSunsSongDisabled(play, OCARINA_ACTION_CHECK_SARIA);
+         EnSkj_SetupWaitForSong(this);
+-    } else if (D_80B01EA0 != 0) {
++    } else if (sTalkRequested != 0) {  // was D_80B01EA0 [LLM:HIGH]
+         player->actor.world.pos.x = sSmallStumpSkullKid.skullkid->actor.world.pos.x;
+         player->actor.world.pos.y = sSmallStumpSkullKid.skullkid->actor.world.pos.y;
+         player->actor.world.pos.z = sSmallStumpSkullKid.skullkid->actor.world.pos.z;
+@@ -1028,7 +1029,7 @@ void EnSkj_SetupAfterSong(EnSkj* this) {
+ }
+ 
+ void EnSkj_AfterSong(EnSkj* this, PlayState* play) {
+-    if (D_80B01EA0 != 0) {
++    if (sTalkRequested != 0) {  // was D_80B01EA0 [LLM:HIGH]
+         EnSkj_SetupTalk(this);
+     } else {
+         Actor_OfferTalk(&this->actor, play, EnSkj_GetItemXzRange(this));
+@@ -1203,7 +1204,7 @@ void EnSkj_SetupWrongSong(EnSkj* this) {
+ }
+ 
+ void EnSkj_WrongSong(EnSkj* this, PlayState* play) {
+-    if (D_80B01EA0 != 0) {
++    if (sTalkRequested != 0) {  // was D_80B01EA0 [LLM:HIGH]
+         EnSkj_SetupWaitForTextClear(this);
+     } else {
+         Actor_OfferTalk(&this->actor, play, EnSkj_GetItemXzRange(this));
+@@ -1305,7 +1306,7 @@ void EnSkj_Update(Actor* thisx, PlayState* play) {
+     s32 pad;
+     EnSkj* this = (EnSkj*)thisx;
+ 
+-    D_80B01EA0 = Actor_ProcessTalkRequest(&this->actor, play);
++    sTalkRequested = Actor_ProcessTalkRequest(&this->actor, play);  // was D_80B01EA0 [LLM:HIGH]
+ 
+     this->timer++;
+ 
+@@ -1344,7 +1345,7 @@ void EnSkj_Update(Actor* thisx, PlayState* play) {
+     EnSkj_CollisionCheck(this, play);
+     Collider_UpdateCylinder(&this->actor, &this->collider);
+ 
+-    if ((this->unk_2D3 != 0) && (D_80B01EA0 == 0)) {
++    if ((this->unk_2D3 != 0) && (sTalkRequested == 0)) {  // was D_80B01EA0 [LLM:HIGH]
+         CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
+ 
+         if (this->actor.colorFilterTimer == 0) {
+@@ -1361,7 +1362,7 @@ void EnSkj_Update(Actor* thisx, PlayState* play) {
+ void EnSkj_SariasSongShortStumpUpdate(Actor* thisx, PlayState* play) {
+     EnSkj* this = (EnSkj*)thisx;
+ 
+-    D_80B01EA0 = Actor_ProcessTalkRequest(&this->actor, play);
++    sTalkRequested = Actor_ProcessTalkRequest(&this->actor, play);  // was D_80B01EA0 [LLM:HIGH]
+ 
+     if (BREG(0) != 0) {
+         DebugDisplay_AddObject(this->actor.world.pos.x, this->actor.world.pos.y, this->actor.world.pos.z,
+@@ -1503,7 +1504,7 @@ void EnSkj_WaitForPlayback(EnSkj* this, PlayState* play) {
+ }
+ 
+ void EnSkj_FailedMiniGame(EnSkj* this, PlayState* play) {
+-    if (D_80B01EA0) {
++    if (sTalkRequested) {  // was D_80B01EA0 [LLM:HIGH]
+         this->actionFunc = EnSkj_WaitForNextRound;
+     } else {
+         Actor_OfferTalk(&this->actor, play, 26.0f);
+@@ -1540,7 +1541,7 @@ void EnSkj_WaitForOfferResponse(EnSkj* this, PlayState* play) {
+ }
+ 
+ void EnSkj_WonOcarinaMiniGame(EnSkj* this, PlayState* play) {
+-    if (D_80B01EA0) {
++    if (sTalkRequested) {  // was D_80B01EA0 [LLM:HIGH]
+         if (GameInteractor_Should(VB_GIVE_ITEM_FROM_OCARINA_MEMORY_GAME, true, this)) {
+             this->actionFunc = EnSkj_WaitToGiveReward;
+         }
+@@ -1601,7 +1602,7 @@ void EnSkj_CleanupOcarinaGame(EnSkj* this, PlayState* play) {
+ void EnSkj_OcarinaMinigameShortStumpUpdate(Actor* thisx, PlayState* play) {
+     EnSkj* this = (EnSkj*)thisx;
+ 
+-    D_80B01EA0 = Actor_ProcessTalkRequest(&this->actor, play);
++    sTalkRequested = Actor_ProcessTalkRequest(&this->actor, play);  // was D_80B01EA0 [LLM:HIGH]
+     this->timer++;
+ 
+     this->actor.focus.pos.x = 1230.0f;
+-- 
+2.55.0
+

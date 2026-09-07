@@ -1,0 +1,68 @@
+From ce66eae71c339788a1b3db441f68bfa1373b93e6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:04 +0000
+Subject: [PATCH 3187/3799] soh: rename D_8011D724 ->
+ sAttentionPlayerNearKeyFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the same for a player target with the eye close in
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c        | 12 ++++++------
+ soh/src/code/z_camera_data.inc |  3 ++-
+ 2 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 685fa0f6a..4d9acad7a 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -6069,14 +6069,14 @@ s32 Camera_Demo5(Camera* camera) {
+                 camera->timer += sAttentionPlayerFarKeyFrames[2].timerInit;  // was D_8011D6AC [LLM:HIGH]
+             }
+         } else {
+-            D_8011D724[1].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;
+-            D_8011D724[1].timerInit = camera->timer - 1;
+-            ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D724;
+-            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D724);
++            sAttentionPlayerNearKeyFrames[1].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;  // was D_8011D724 [LLM:HIGH]
++            sAttentionPlayerNearKeyFrames[1].timerInit = camera->timer - 1;  // was D_8011D724 [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionPlayerNearKeyFrames;  // was D_8011D724 [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionPlayerNearKeyFrames);  // was D_8011D724 [LLM:HIGH]
+             if (camera->parentCamIdx != CAM_ID_MAIN) {
+                 ONEPOINT_CS_INFO(camera)->keyFrameCnt--;
+             } else {
+-                camera->timer += D_8011D724[2].timerInit;
++                camera->timer += sAttentionPlayerNearKeyFrames[2].timerInit;  // was D_8011D724 [LLM:HIGH]
+             }
+         }
+     } else if (playerTargetGeo.r < 30.0f) {
+@@ -8385,7 +8385,7 @@ s16 Camera_SetFinishedFlag(Camera* camera) {
+     F(sDemo5PrevSfxFrame)               \
+     F(sCameraSkipFrames)                       \
+     F(sAttentionPlayerFarKeyFrames)                       \
+-    F(D_8011D724)                       \
++    F(sAttentionPlayerNearKeyFrames)                       \
+     F(D_8011D79C)                       \
+     F(D_8011D83C)                       \
+     F(D_8011D88C)                       \
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index 245b1c844..95e3a9077 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2327,7 +2327,8 @@ static OnePointCsFull sAttentionPlayerFarKeyFrames[] = {  // was D_8011D6AC [LLM
+ };
+ 
+ // target is player close to current eye
+-static OnePointCsFull D_8011D724[] = {
++// LLM generated name (HIGH), was D_8011D724: the same for a player target with the eye close in
++static OnePointCsFull sAttentionPlayerNearKeyFrames[] = {  // was D_8011D724 [LLM:HIGH]
+     { 0x8F, 0xFF, 0x2424, 0x0001, 0x0000, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 10.0f, -20.0f } },
+     { 0x81, 0xFF, 0x2121, 0x0013, 0x0000, 50.0f, 1.0f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 60.0f } },
+     { 0x12, 0xFF, 0x0000, 0x0001, 0x0000, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+-- 
+2.55.0
+

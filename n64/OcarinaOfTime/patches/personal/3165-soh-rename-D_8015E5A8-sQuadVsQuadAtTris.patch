@@ -1,0 +1,50 @@
+From 182d48a3f61a79dd9e4ecbe245cd06713955c0df Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:05:50 +0000
+Subject: [PATCH 3165/3799] soh: rename D_8015E5A8 -> sQuadVsQuadAtTris
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the two triangles the AT quad is split into in that same check
+Defined in soh/src/code/z_collision_check.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_collision_check.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/z_collision_check.c b/soh/src/code/z_collision_check.c
+index 2482ed75b..c4bc6e050 100644
+--- a/soh/src/code/z_collision_check.c
++++ b/soh/src/code/z_collision_check.c
+@@ -2453,7 +2453,7 @@ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChk
+ void CollisionCheck_AC_QuadVsQuad(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+     static TriNorm sQuadVsQuadAcTris[2];  // was D_8015E530 [LLM:HIGH]
+     static Vec3f sQuadVsQuadHitPos;  // was D_8015E598 [LLM:HIGH]
+-    static TriNorm D_8015E5A8[2];
++    static TriNorm sQuadVsQuadAtTris[2];  // was D_8015E5A8 [LLM:HIGH]
+     ColliderQuad* at = (ColliderQuad*)colAT;
+     ColliderQuad* ac = (ColliderQuad*)colAC;
+     s32 i;
+@@ -2469,14 +2469,14 @@ void CollisionCheck_AC_QuadVsQuad(PlayState* play, CollisionCheckContext* colChk
+         return;
+     }
+ 
+-    Math3D_TriNorm(&D_8015E5A8[0], &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);
+-    Math3D_TriNorm(&D_8015E5A8[1], &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);
++    Math3D_TriNorm(&sQuadVsQuadAtTris[0], &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);  // was D_8015E5A8 [LLM:HIGH]
++    Math3D_TriNorm(&sQuadVsQuadAtTris[1], &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);  // was D_8015E5A8 [LLM:HIGH]
+     Math3D_TriNorm(&sQuadVsQuadAcTris[0], &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);  // was D_8015E530 [LLM:HIGH]
+     Math3D_TriNorm(&sQuadVsQuadAcTris[1], &ac->dim.quad[2], &ac->dim.quad[1], &ac->dim.quad[0]);  // was D_8015E530 [LLM:HIGH]
+ 
+     for (i = 0; i < 2; i++) {
+         for (j = 0; j < 2; j++) {
+-            if (Math3D_TriVsTriIntersect(&D_8015E5A8[j], &sQuadVsQuadAcTris[i], &sQuadVsQuadHitPos) == 1) {  // was D_8015E530 [LLM:HIGH]
++            if (Math3D_TriVsTriIntersect(&sQuadVsQuadAtTris[j], &sQuadVsQuadAcTris[i], &sQuadVsQuadHitPos) == 1) {  // was D_8015E530 [LLM:HIGH]
+                 if (Collider_QuadSetNearestAC(play, at, &sQuadVsQuadHitPos)) {  // was D_8015E598 [LLM:HIGH]
+                     Vec3f atPos;
+                     Vec3f acPos;
+-- 
+2.55.0
+

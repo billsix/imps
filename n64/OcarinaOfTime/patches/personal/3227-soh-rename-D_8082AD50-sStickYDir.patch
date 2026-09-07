@@ -1,0 +1,95 @@
+From 31eb84dc0389b2c6a103bef8074736e68f9bfee9 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:48 +0000
+Subject: [PATCH 3227/3799] soh: rename D_8082AD50 -> sStickYDir
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the vertical direction that repeat is currently firing in
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../ovl_kaleido_scope/z_kaleido_scope_PAL.c   | 20 +++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 5daececb2..332b2e428 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -1459,7 +1459,7 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+     static s16 sStickXRepeatTimer = 0;  // was D_8082AD44 [LLM:HIGH]
+     static s16 sStickYRepeatTimer = 0;  // was D_8082AD48 [LLM:HIGH]
+     static s16 sStickXDir = 0;  // was D_8082AD4C [LLM:HIGH]
+-    static s16 D_8082AD50 = 0;
++    static s16 sStickYDir = 0;  // was D_8082AD50 [LLM:HIGH]
+     PauseContext* pauseCtx = &play->pauseCtx;
+     Input* input = &play->state.input[0];
+     s16 stepR;
+@@ -1528,23 +1528,23 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+                 if (CHECK_BTN_ALL(input->cur.button, BTN_DDOWN)) {
+                     if (CHECK_BTN_ALL(input->press.button, BTN_DDOWN)) {
+                         sStickYRepeatTimer = XREG(8);  // was D_8082AD48 [LLM:HIGH]
+-                        D_8082AD50 = -1;
++                        sStickYDir = -1;  // was D_8082AD50 [LLM:HIGH]
+                     } else if (--sStickYRepeatTimer < 0) {  // was D_8082AD48 [LLM:HIGH]
+                         sStickYRepeatTimer = XREG(6);  // was D_8082AD48 [LLM:HIGH]
+                         input->press.button |= BTN_DDOWN;
+                     }
+                 } else if (CHECK_BTN_ALL(input->rel.button, BTN_DDOWN)) {
+-                    D_8082AD50 = 0;
++                    sStickYDir = 0;  // was D_8082AD50 [LLM:HIGH]
+                 } else if (CHECK_BTN_ALL(input->cur.button, BTN_DUP)) {
+                     if (CHECK_BTN_ALL(input->press.button, BTN_DUP)) {
+                         sStickYRepeatTimer = XREG(8);  // was D_8082AD48 [LLM:HIGH]
+-                        D_8082AD50 = 1;
++                        sStickYDir = 1;  // was D_8082AD50 [LLM:HIGH]
+                     } else if (--sStickYRepeatTimer < 0) {  // was D_8082AD48 [LLM:HIGH]
+                         sStickYRepeatTimer = XREG(6);  // was D_8082AD48 [LLM:HIGH]
+                         input->press.button |= BTN_DUP;
+                     }
+                 } else if (CHECK_BTN_ALL(input->rel.button, BTN_DUP)) {
+-                    D_8082AD50 = 0;
++                    sStickYDir = 0;  // was D_8082AD50 [LLM:HIGH]
+                 }
+             }
+ 
+@@ -1575,7 +1575,7 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+             }
+ 
+             if (pauseCtx->stickRelY < -30) {
+-                if (D_8082AD50 == -1) {
++                if (sStickYDir == -1) {  // was D_8082AD50 [LLM:HIGH]
+                     if (--sStickYRepeatTimer < 0) {  // was D_8082AD48 [LLM:HIGH]
+                         sStickYRepeatTimer = XREG(6);  // was D_8082AD48 [LLM:HIGH]
+                     } else {
+@@ -1583,10 +1583,10 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+                     }
+                 } else {
+                     sStickYRepeatTimer = XREG(8);  // was D_8082AD48 [LLM:HIGH]
+-                    D_8082AD50 = -1;
++                    sStickYDir = -1;  // was D_8082AD50 [LLM:HIGH]
+                 }
+             } else if (pauseCtx->stickRelY > 30) {
+-                if (D_8082AD50 == 1) {
++                if (sStickYDir == 1) {  // was D_8082AD50 [LLM:HIGH]
+                     if (--sStickYRepeatTimer < 0) {  // was D_8082AD48 [LLM:HIGH]
+                         sStickYRepeatTimer = XREG(6);  // was D_8082AD48 [LLM:HIGH]
+                     } else {
+@@ -1594,10 +1594,10 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+                     }
+                 } else {
+                     sStickYRepeatTimer = XREG(8);  // was D_8082AD48 [LLM:HIGH]
+-                    D_8082AD50 = 1;
++                    sStickYDir = 1;  // was D_8082AD50 [LLM:HIGH]
+                 }
+             } else {
+-                D_8082AD50 = 0;
++                sStickYDir = 0;  // was D_8082AD50 [LLM:HIGH]
+             }
+         }
+ 
+-- 
+2.55.0
+

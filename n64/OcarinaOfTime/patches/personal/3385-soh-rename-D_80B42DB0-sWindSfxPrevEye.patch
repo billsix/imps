@@ -1,0 +1,54 @@
+From 67f031c0bc0a6622dc1b369da8bfd712a2c345b4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:17:04 +0000
+Subject: [PATCH 3385/3799] soh: rename D_80B42DB0 -> sWindSfxPrevEye
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the camera eye position that speed is measured from
+Defined in soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+index 84a75590c..bd81be3b1 100644
+--- a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
++++ b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+@@ -509,7 +509,7 @@ void EnXc_SetColossusWindSFX(PlayState* play) {
+     if (gSaveContext.sceneLayer == 4) {
+         static Vec3f sPos = { 0.0f, 0.0f, 0.0f };
+         static f32 sMaxSpeed = 0.0f;
+-        static Vec3f D_80B42DB0;
++        static Vec3f sWindSfxPrevEye;  // was D_80B42DB0 [LLM:HIGH]
+         s32 pad;
+         s16 sceneNum = play->sceneNum;
+ 
+@@ -522,7 +522,7 @@ void EnXc_SetColossusWindSFX(PlayState* play) {
+                 Vec3f* eye = &play->view.eye;
+ 
+                 if (sWindSfxStarted != 0) {  // was D_80B41D90 [LLM:HIGH]
+-                    f32 speed = Math3D_Vec3f_DistXYZ(&D_80B42DB0, eye) / 7.058922f;
++                    f32 speed = Math3D_Vec3f_DistXYZ(&sWindSfxPrevEye, eye) / 7.058922f;  // was D_80B42DB0 [LLM:HIGH]
+ 
+                     sMaxSpeed = CLAMP_MIN(sMaxSpeed, speed);
+ 
+@@ -532,9 +532,9 @@ void EnXc_SetColossusWindSFX(PlayState* play) {
+                     Audio_PlaySfxScaledByRate(&sPos, NA_SE_EV_FLYING_AIR - SFX_FLAG, 0.6f + (0.4f * speed));  // was func_800F436C [LLM:HIGH]
+                 }
+ 
+-                D_80B42DB0.x = eye->x;
+-                D_80B42DB0.y = eye->y;
+-                D_80B42DB0.z = eye->z;
++                sWindSfxPrevEye.x = eye->x;  // was D_80B42DB0 [LLM:HIGH]
++                sWindSfxPrevEye.y = eye->y;  // was D_80B42DB0 [LLM:HIGH]
++                sWindSfxPrevEye.z = eye->z;  // was D_80B42DB0 [LLM:HIGH]
+                 sWindSfxStarted = 1;  // was D_80B41D90 [LLM:HIGH]
+             }
+         }
+-- 
+2.55.0
+

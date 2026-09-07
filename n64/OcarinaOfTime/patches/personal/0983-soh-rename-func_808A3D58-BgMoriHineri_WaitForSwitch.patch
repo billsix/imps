@@ -1,0 +1,61 @@
+From df053a83adda563b8064cb05ea0e41e1be1dafd4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:33:17 +0000
+Subject: [PATCH 0983/3799] soh: rename func_808A3D58 ->
+ BgMoriHineri_WaitForSwitch
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits until the switch flag matches this instance's params, then starts the two one-point cutscenes that show the hallway flipping.
+Defined in soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c         | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c b/soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c
+index 9c7e67996..96302ef64 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c
+@@ -29,7 +29,8 @@ void func_808A3E54(BgMoriHineri* this, PlayState* play);
+ void BgMoriHineri_Twist(BgMoriHineri* this, PlayState* play);  // was func_808A3C8C [LLM:HIGH]
+ void BgMoriHineri_SpawnBossKeyChest(BgMoriHineri* this, PlayState* play);
+ void BgMoriHineri_DoNothing(BgMoriHineri* this, PlayState* play);
+-void func_808A3D58(BgMoriHineri* this, PlayState* play);
++// LLM generated name (HIGH), was func_808A3D58: waits until the switch flag matches this instance's params, then starts the two one-point cutscenes that show the hallway flipping.
++void BgMoriHineri_WaitForSwitch(BgMoriHineri* this, PlayState* play);  // was func_808A3D58 [LLM:HIGH]
+ 
+ s32 Object_Spawn(ObjectContext* objectCtx, s16 objectId);
+ 
+@@ -141,7 +142,7 @@ void BgMoriHineri_WaitForObjects(BgMoriHineri* this, PlayState* play) {
+             if (this->moriHineriObjIdx < 0) {
+                 Actor_Kill(&this->dyna.actor);
+             } else {
+-                this->actionFunc = func_808A3D58;
++                this->actionFunc = BgMoriHineri_WaitForSwitch;  // was func_808A3D58 [LLM:HIGH]
+             }
+         } else {
+             Actor_SetObjectDependency(play, &this->dyna.actor);
+@@ -196,7 +197,7 @@ void BgMoriHineri_Twist(BgMoriHineri* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808A3D58(BgMoriHineri* this, PlayState* play) {
++void BgMoriHineri_WaitForSwitch(BgMoriHineri* this, PlayState* play) {
+     s16 mainCamChildIdx;
+ 
+     if ((Flags_GetSwitch(play, this->switchFlag) && (this->dyna.actor.params == 0 || this->dyna.actor.params == 2)) ||
+@@ -227,7 +228,7 @@ void func_808A3E54(BgMoriHineri* this, PlayState* play) {
+             Sfx_PlaySfxCentered(NA_SE_SY_TRE_BOX_APPEAR);
+         } else {
+             this->dyna.actor.draw = NULL;
+-            this->actionFunc = func_808A3D58;
++            this->actionFunc = BgMoriHineri_WaitForSwitch;  // was func_808A3D58 [LLM:HIGH]
+             sSubCamId = SUBCAM_NONE;
+         }
+     }
+-- 
+2.55.0
+

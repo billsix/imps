@@ -1,0 +1,60 @@
+From 971d52c40222e05a6bafe6c67d8c318561a8b60a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:07:53 +0000
+Subject: [PATCH 1993/3799] soh: rename func_80A99504 -> EnKo_FadoGiveSaw
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: offers GI_SAW until the player takes it
+Defined in soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+index 481c1b3f6..6c62a3c75 100644
+--- a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
++++ b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+@@ -29,7 +29,8 @@ void func_80A995CC(EnKo* this, PlayState* play);
+ void EnKo_FadoWaitToTrade(EnKo* this, PlayState* play);  // was func_80A99384 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A99438: holds ENKO_ANIM_LAUGHING until the text changes or the trade begins
+ void EnKo_FadoLaugh(EnKo* this, PlayState* play);  // was func_80A99438 [LLM:HIGH]
+-void func_80A99504(EnKo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A99504: offers GI_SAW until the player takes it
++void EnKo_FadoGiveSaw(EnKo* this, PlayState* play);  // was func_80A99504 [LLM:HIGH]
+ void func_80A99560(EnKo* this, PlayState* play);
+ 
+ // LLM generated name (HIGH), was func_80A98ECC: dispatches to the per-quest-state update, short-circuiting to EnKo_UpdateTrackNearbyPlayer for Fado in the Lost Woods
+@@ -1225,7 +1226,7 @@ void EnKo_FadoWaitToTrade(EnKo* this, PlayState* play) {
+         Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_LAUGHING);
+         this->actionFunc = EnKo_FadoLaugh;  // was func_80A99438 [LLM:HIGH]
+     } else if (ENKO_TYPE == ENKO_TYPE_CHILD_FADO && this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+-        this->actionFunc = func_80A99504;
++        this->actionFunc = EnKo_FadoGiveSaw;  // was func_80A99504 [LLM:HIGH]
+         play->msgCtx.stateTimer = 4;
+         play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
+     }
+@@ -1234,7 +1235,7 @@ void EnKo_FadoWaitToTrade(EnKo* this, PlayState* play) {
+ void EnKo_FadoLaugh(EnKo* this, PlayState* play) {
+     if (ENKO_TYPE == ENKO_TYPE_CHILD_FADO && this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_IDLE);
+-        this->actionFunc = func_80A99504;
++        this->actionFunc = EnKo_FadoGiveSaw;  // was func_80A99504 [LLM:HIGH]
+         play->msgCtx.stateTimer = 4;
+         play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
+     } else if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE || this->actor.textId != 0x10B9) {
+@@ -1243,7 +1244,7 @@ void EnKo_FadoLaugh(EnKo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A99504(EnKo* this, PlayState* play) {
++void EnKo_FadoGiveSaw(EnKo* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play) || !GameInteractor_Should(VB_TRADE_ODD_POTION, true, this)) {
+         this->actor.parent = NULL;
+         this->actionFunc = func_80A99560;
+-- 
+2.55.0
+

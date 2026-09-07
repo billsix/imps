@@ -1,0 +1,82 @@
+From d6f4a6eaa3d5ec380f69e3ea0f9e98bc2f714b86 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:49 +0000
+Subject: [PATCH 3239/3799] soh: rename D_808321A2 -> sInfoPanelG
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the current green of the info panel text
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index d5d4c61fc..8649b5482 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -1970,7 +1970,7 @@ void KaleidoScope_DrawInfoPanel(PlayState* play) {
+         21, 20, 19, 18, 11, 14, 10, 15, 16, 13, 12, 17,
+     };
+     static s16 sInfoPanelR;  // was D_808321A0 [LLM:HIGH]
+-    static s16 D_808321A2;
++    static s16 sInfoPanelG;  // was D_808321A2 [LLM:HIGH]
+     static s16 D_808321A4;
+     static s16 D_808321A6;
+     PauseContext* pauseCtx = &play->pauseCtx;
+@@ -1992,7 +1992,7 @@ void KaleidoScope_DrawInfoPanel(PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     stepR = ABS(sInfoPanelR - sInfoPanelColorSets[sInfoPanelColorIdx][0]) / sInfoPanelFadeTimer;  // was D_8082ADF0 [LLM:HIGH]
+-    stepG = ABS(D_808321A2 - sInfoPanelColorSets[sInfoPanelColorIdx][1]) / sInfoPanelFadeTimer;  // was D_8082ADF0 [LLM:HIGH]
++    stepG = ABS(sInfoPanelG - sInfoPanelColorSets[sInfoPanelColorIdx][1]) / sInfoPanelFadeTimer;  // was D_8082ADF0 [LLM:HIGH]
+     stepB = ABS(D_808321A4 - sInfoPanelColorSets[sInfoPanelColorIdx][2]) / sInfoPanelFadeTimer;  // was D_8082ADF0 [LLM:HIGH]
+     stepA = ABS(D_808321A6 - sInfoPanelColorSets[sInfoPanelColorIdx][3]) / sInfoPanelFadeTimer;  // was D_8082ADF0 [LLM:HIGH]
+     if (sInfoPanelR >= sInfoPanelColorSets[sInfoPanelColorIdx][0]) {  // was D_8082ADF0 [LLM:HIGH]
+@@ -2000,10 +2000,10 @@ void KaleidoScope_DrawInfoPanel(PlayState* play) {
+     } else {
+         sInfoPanelR += stepR;  // was D_808321A0 [LLM:HIGH]
+     }
+-    if (D_808321A2 >= sInfoPanelColorSets[sInfoPanelColorIdx][1]) {  // was D_8082ADF0 [LLM:HIGH]
+-        D_808321A2 -= stepG;
++    if (sInfoPanelG >= sInfoPanelColorSets[sInfoPanelColorIdx][1]) {  // was D_8082ADF0 [LLM:HIGH]
++        sInfoPanelG -= stepG;  // was D_808321A2 [LLM:HIGH]
+     } else {
+-        D_808321A2 += stepG;
++        sInfoPanelG += stepG;  // was D_808321A2 [LLM:HIGH]
+     }
+     if (D_808321A4 >= sInfoPanelColorSets[sInfoPanelColorIdx][2]) {  // was D_8082ADF0 [LLM:HIGH]
+         D_808321A4 -= stepB;
+@@ -2019,7 +2019,7 @@ void KaleidoScope_DrawInfoPanel(PlayState* play) {
+     sInfoPanelFadeTimer--;  // was D_8082AE00 [LLM:HIGH]
+     if (sInfoPanelFadeTimer == 0) {  // was D_8082AE00 [LLM:HIGH]
+         sInfoPanelR = sInfoPanelColorSets[sInfoPanelColorIdx][0];  // was D_8082ADF0 [LLM:HIGH]
+-        D_808321A2 = sInfoPanelColorSets[sInfoPanelColorIdx][1];  // was D_8082ADF0 [LLM:HIGH]
++        sInfoPanelG = sInfoPanelColorSets[sInfoPanelColorIdx][1];  // was D_8082ADF0 [LLM:HIGH]
+         D_808321A4 = sInfoPanelColorSets[sInfoPanelColorIdx][2];  // was D_8082ADF0 [LLM:HIGH]
+         D_808321A6 = sInfoPanelColorSets[sInfoPanelColorIdx][3];  // was D_8082ADF0 [LLM:HIGH]
+         sInfoPanelFadeTimer = ZREG(28);  // was D_8082AE00 [LLM:HIGH]
+@@ -2132,7 +2132,7 @@ void KaleidoScope_DrawInfoPanel(PlayState* play) {
+     }
+ 
+     if ((pauseCtx->cursorSpecialPos == PAUSE_CURSOR_PAGE_LEFT) && (pauseCtx->unk_1E4 == 0)) {
+-        gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, sInfoPanelR, D_808321A2, D_808321A4, D_808321A6);  // was D_808321A0 [LLM:HIGH]
++        gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, sInfoPanelR, sInfoPanelG, D_808321A4, D_808321A6);  // was D_808321A0 [LLM:HIGH]
+     } else {
+         if (CVarGetInteger(CVAR_ENHANCEMENT("FixMenuLR"), 0) != 0) {
+             gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, 180, 210, 255, 255);
+@@ -2146,7 +2146,7 @@ void KaleidoScope_DrawInfoPanel(PlayState* play) {
+     }
+ 
+     if ((pauseCtx->cursorSpecialPos == PAUSE_CURSOR_PAGE_RIGHT) && (pauseCtx->unk_1E4 == 0)) {
+-        gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, sInfoPanelR, D_808321A2, D_808321A4, D_808321A6);  // was D_808321A0 [LLM:HIGH]
++        gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, sInfoPanelR, sInfoPanelG, D_808321A4, D_808321A6);  // was D_808321A0 [LLM:HIGH]
+     } else {
+         if (CVarGetInteger(CVAR_ENHANCEMENT("FixMenuLR"), 0) != 0) {
+             gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, 180, 210, 255, 255);
+-- 
+2.55.0
+

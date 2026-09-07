@@ -1,0 +1,78 @@
+From d026fde4c5c72bdd473d7ef9b8f68b829e56c7ba Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:33:17 +0000
+Subject: [PATCH 0982/3799] soh: rename func_808A3C8C -> BgMoriHineri_Twist
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: drives shape.rot.z from the player's distance along Z so the hallway appears to twist, and forces the CAM_SET_DUNGEON1 camera.
+Defined in soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c    | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c b/soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c
+index b2da6f2d2..9c7e67996 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mori_Hineri/z_bg_mori_hineri.c
+@@ -25,7 +25,8 @@ void BgMoriHineri_Reset(void);
+ // LLM generated name (HIGH), was func_808A39FC: waits for the hallway, texture and box objects to load, then installs the collision header, the draw function and the per-params action.
+ void BgMoriHineri_WaitForObjects(BgMoriHineri* this, PlayState* play);  // was func_808A39FC [LLM:HIGH]
+ void func_808A3E54(BgMoriHineri* this, PlayState* play);
+-void func_808A3C8C(BgMoriHineri* this, PlayState* play);
++// LLM generated name (HIGH), was func_808A3C8C: drives shape.rot.z from the player's distance along Z so the hallway appears to twist, and forces the CAM_SET_DUNGEON1 camera.
++void BgMoriHineri_Twist(BgMoriHineri* this, PlayState* play);  // was func_808A3C8C [LLM:HIGH]
+ void BgMoriHineri_SpawnBossKeyChest(BgMoriHineri* this, PlayState* play);
+ void BgMoriHineri_DoNothing(BgMoriHineri* this, PlayState* play);
+ void func_808A3D58(BgMoriHineri* this, PlayState* play);
+@@ -147,7 +148,7 @@ void BgMoriHineri_WaitForObjects(BgMoriHineri* this, PlayState* play) {
+             colHeader = NULL;
+             this->dyna.actor.draw = BgMoriHineri_DrawHallAndRoom;
+             if (this->dyna.actor.params == 0) {
+-                // In vanilla this actionFunc is set to func_808A3C8C, and the boss key chest is rendered from scratch
++                // In vanilla this actionFunc is set to BgMoriHineri_Twist, and the boss key chest is rendered from scratch, was func_808A3C8C [LLM:HIGH]
+                 // in BgMoriHineri_DrawHallAndRoom In SOH we instead spawn the en_box actor, which allows the rendering
+                 // to be handled consistently with the rest of the chests in the game
+                 this->actionFunc = BgMoriHineri_SpawnBossKeyChest;
+@@ -159,7 +160,7 @@ void BgMoriHineri_WaitForObjects(BgMoriHineri* this, PlayState* play) {
+                 this->actionFunc = BgMoriHineri_DoNothing;
+                 CollisionHeader_GetVirtual(&object_mori_hineri2_Col_0043D0, &colHeader);
+             } else {
+-                this->actionFunc = func_808A3C8C;
++                this->actionFunc = BgMoriHineri_Twist;  // was func_808A3C8C [LLM:HIGH]
+                 CollisionHeader_GetVirtual(&object_mori_hineri2a_Col_006078, &colHeader);
+             }
+             this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &this->dyna.actor, colHeader);
+@@ -174,7 +175,7 @@ void BgMoriHineri_SpawnBossKeyChest(BgMoriHineri* this, PlayState* play) {
+     if (this->dyna.actor.params == 0) {
+         Object_Spawn(&play->objectCtx, OBJECT_BOX);
+         Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOX, -1515.0f, 1440.0f, -3475.0f, -0x4000, 0x4000, 0, 0x27EE);
+-        this->actionFunc = func_808A3C8C;
++        this->actionFunc = BgMoriHineri_Twist;  // was func_808A3C8C [LLM:HIGH]
+     } else {
+         Actor_Spawn(&play->actorCtx, play, ACTOR_EN_BOX, this->dyna.actor.world.pos.x + 147.0f,
+                     this->dyna.actor.world.pos.y + -245.0f, this->dyna.actor.world.pos.z + -453.0f, 0, 0x4000, 0,
+@@ -183,7 +184,7 @@ void BgMoriHineri_SpawnBossKeyChest(BgMoriHineri* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808A3C8C(BgMoriHineri* this, PlayState* play) {
++void BgMoriHineri_Twist(BgMoriHineri* this, PlayState* play) {
+     f32 f0;
+     Player* player = GET_PLAYER(play);
+ 
+@@ -255,7 +256,7 @@ void BgMoriHineri_DrawHallAndRoom(Actor* thisx, PlayState* play) {
+     if (this->boxObjIdx > 0) {
+         Matrix_Get(&mtx);
+     }
+-    if ((this->actionFunc == func_808A3C8C) && (this->dyna.actor.shape.rot.z != 0)) {
++    if ((this->actionFunc == BgMoriHineri_Twist) && (this->dyna.actor.shape.rot.z != 0)) {  // was func_808A3C8C [LLM:HIGH]
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+         if (this->dyna.actor.params == 0) {
+             Matrix_Translate(-1761.0f, 1278.0f, -1821.0f, MTXMODE_NEW);
+-- 
+2.55.0
+

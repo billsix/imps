@@ -1,0 +1,74 @@
+From 3d271d444d61423ad0ca3a96ee7d210c915ba5c7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:42:36 +0000
+Subject: [PATCH 1769/3799] soh: rename func_800B4088 -> DbCamera_EndCut
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: marks the current spline point as the last one, giving it the terminating continue flag and copying the roll and fov into both its position and look-at points.
+Defined in soh/src/code/db_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/db_camera.c | 9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index b15b887b0..d6c864574 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1490,7 +1490,7 @@ void ShrinkWindow_Update(s32 updateRate);
+ // ? DbCamera_WorldToPlayerRelS(?);, was func_800B3F94 [LLM:HIGH]
+ // ? DbCamera_PlayerRelToWorld(?);, was func_800B3FF4 [LLM:HIGH]
+ // ? DbCamera_PlayerRelSToWorld(?);, was func_800B404C [LLM:HIGH]
+-// ? func_800B4088(?);
++// ? DbCamera_EndCut(?);, was func_800B4088 [LLM:HIGH]
+ // ? func_800B41DC(?);
+ // ? func_800B42C0(?);
+ // ? func_800B4370(?);
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index a8e62ebe4..bb5003646 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -181,7 +181,8 @@ void DbCamera_PlayerRelSToWorld(PosRot* posRot, Vec3s* vec, Vec3f* out) {
+     DbCamera_PlayerRelToWorld(posRot, &tempVec, out);  // was func_800B3FF4 [LLM:HIGH]
+ }
+ 
+-s32 func_800B4088(DbCamera* dbCamera, Camera* cam) {
++// LLM generated name (HIGH), was func_800B4088: marks the current spline point as the last one, giving it the terminating continue flag and copying the roll and fov into both its position and look-at points.
++s32 DbCamera_EndCut(DbCamera* dbCamera, Camera* cam) {
+     CutsceneCameraPoint* position;
+     CutsceneCameraPoint* lookAt;
+     s32 i;
+@@ -489,7 +490,7 @@ void DbgCamera_Enable(DbCamera* dbCamera, Camera* cam) {
+     dbCamera->unk_78 = 0;
+     dbCamera->unk_7A = 0;
+     dbCamera->rollDegrees = 0.0f;
+-    func_800B4088(dbCamera, cam);
++    DbCamera_EndCut(dbCamera, cam);  // was func_800B4088 [LLM:HIGH]
+ }
+ 
+ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+@@ -873,7 +874,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                 Audio_PlaySfxGeneral(NA_SE_SY_CANCEL, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                 dbCamera->sub.nPoints = dbCamera->sub.unkIdx + 1;
+-                func_800B4088(dbCamera, cam);
++                DbCamera_EndCut(dbCamera, cam);  // was func_800B4088 [LLM:HIGH]
+             } else if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_R)) {
+                 if (dbCamera->sub.unkIdx == 0x80) {
+                     Audio_PlaySfxGeneral(NA_SE_SY_ERROR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -885,7 +886,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                     if (dbCamera->sub.unkIdx == (dbCamera->sub.nPoints - 1)) {
+                         dbCamera->sub.unkIdx++;
+                         dbCamera->sub.nPoints++;
+-                        func_800B4088(dbCamera, cam);
++                        DbCamera_EndCut(dbCamera, cam);  // was func_800B4088 [LLM:HIGH]
+                     }
+                 }
+             }
+-- 
+2.55.0
+

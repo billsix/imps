@@ -1,0 +1,87 @@
+From 7eeedcb8ef3a978a76c6fb8bd94072c4c1e3d508 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:10:57 +0000
+Subject: [PATCH 2042/3799] soh: rename func_80AB6450 -> EnNiw_WaitToBeLifted
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the params 4 idle: offers itself with GI_NONE so the player can pick it up, and reacts to being stood on
+Defined in soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+index 25a53b224..5f8421726 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+@@ -24,7 +24,8 @@ void EnNiw_ResetAction(EnNiw* this, PlayState* play);
+ void EnNiw_WaitToFlyOff(EnNiw* this, PlayState* play);  // was func_80AB6324 [LLM:GUESS]
+ // LLM generated name (HIGH), was func_80AB63A8: holds until the cucco touches ground on the way down, then clears its motion state and returns to idle
+ void EnNiw_Airborne(EnNiw* this, PlayState* play);  // was func_80AB63A8 [LLM:HIGH]
+-void func_80AB6450(EnNiw* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AB6450: the params 4 idle: offers itself with GI_NONE so the player can pick it up, and reacts to being stood on
++void EnNiw_WaitToBeLifted(EnNiw* this, PlayState* play);  // was func_80AB6450 [LLM:HIGH]
+ void func_80AB6570(EnNiw* this, PlayState* play);
+ void func_80AB6A38(EnNiw* this, PlayState* play);
+ void func_80AB6BF8(EnNiw* this, PlayState* play);
+@@ -423,7 +424,7 @@ void EnNiw_ResetAction(EnNiw* this, PlayState* play) {
+ 
+     switch (this->actor.params) {
+         case 4:
+-            this->actionFunc = func_80AB6450;
++            this->actionFunc = EnNiw_WaitToBeLifted;  // was func_80AB6450 [LLM:HIGH]
+             break;
+         case 0xD:
+             this->actionFunc = EnNiw_WaitToFlyOff;  // was func_80AB6324 [LLM:GUESS]
+@@ -459,7 +460,7 @@ void EnNiw_Airborne(EnNiw* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB6450(EnNiw* this, PlayState* play) {
++void EnNiw_WaitToBeLifted(EnNiw* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (this->actor.xzDistToPlayer < 30.0f && fabsf(this->actor.world.pos.y - player->actor.world.pos.y) < 5.0f) {
+@@ -872,7 +873,7 @@ void func_80AB7420(EnNiw* this, PlayState* play) {
+ }
+ 
+ void func_80AB747C(EnNiw* this, PlayState* play) {
+-    if (this->unk_2A8 == 0 && this->actor.params != 0xA && this->actionFunc != func_80AB6450 &&
++    if (this->unk_2A8 == 0 && this->actor.params != 0xA && this->actionFunc != EnNiw_WaitToBeLifted &&  // was func_80AB6450 [LLM:HIGH]
+         this->collider.base.acFlags & AC_HIT) {
+         this->collider.base.acFlags &= ~AC_HIT;
+         this->sfxTimer1 = 30;
+@@ -985,7 +986,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+     Actor_SetFocus(&this->actor, this->unk_304);
+     Actor_MoveXZGravity(&this->actor);
+ 
+-    if (this->actionFunc != func_80AB6EB4 && this->actionFunc != func_80AB6450 && play->sceneNum != SCENE_ZORAS_RIVER) {
++    if (this->actionFunc != func_80AB6EB4 && this->actionFunc != EnNiw_WaitToBeLifted && play->sceneNum != SCENE_ZORAS_RIVER) {  // was func_80AB6450 [LLM:HIGH]
+         Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 20.0f, 60.0f, 31);
+     }
+     if (play->sceneNum == SCENE_ZORAS_RIVER) {
+@@ -1112,7 +1113,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+         }
+         if (this->actionFunc != func_80AB6BF8 && this->actionFunc != func_80AB6D08 &&
+             this->actionFunc != EnNiw_WaitToFlyOff && this->actionFunc != EnNiw_Airborne &&  // was func_80AB6324 [LLM:GUESS]
+-            this->actionFunc != func_80AB6450) {
++            this->actionFunc != EnNiw_WaitToBeLifted) {  // was func_80AB6450 [LLM:HIGH]
+             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+         }
+     }
+@@ -1150,7 +1151,7 @@ void EnNiw_Draw(Actor* thisx, PlayState* play) {
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnNiw_OverrideLimbDraw, NULL, this);
+ 
+-    if (this->actionFunc == func_80AB6450) {
++    if (this->actionFunc == EnNiw_WaitToBeLifted) {  // was func_80AB6450 [LLM:HIGH]
+         func_80033C30(&this->actor.world.pos, &scale, 255, play);
+     }
+ 
+-- 
+2.55.0
+

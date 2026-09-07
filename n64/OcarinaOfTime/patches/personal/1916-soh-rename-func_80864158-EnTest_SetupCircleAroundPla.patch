@@ -1,0 +1,46 @@
+From 54628c9939371ffb18a2e45a177afe996a2b1d9d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:03:12 +0000
+Subject: [PATCH 1916/3799] soh: rename func_80864158 ->
+ EnTest_SetupCircleAroundPlayerWithSpeed
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the same circling setup as EnTest_SetupCircleAroundPlayer but taking the strafe speed from the caller
+Defined in soh/src/overlays/actors/ovl_En_Test/z_en_test.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Test/z_en_test.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+index 9f4937ee0..7295aad7e 100644
+--- a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
++++ b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+@@ -1992,7 +1992,8 @@ void EnTest_Draw(Actor* thisx, PlayState* play) {
+ }
+ 
+ // a variation of sidestep
+-void func_80864158(EnTest* this, f32 xzSpeed) {
++// LLM generated name (HIGH), was func_80864158: the same circling setup as EnTest_SetupCircleAroundPlayer but taking the strafe speed from the caller
++void EnTest_SetupCircleAroundPlayerWithSpeed(EnTest* this, f32 xzSpeed) {
+     Animation_MorphToLoop(&this->skelAnime, &gStalfosSidestepAnim, -2.0f);
+     this->actor.speedXZ = xzSpeed;
+     this->actor.world.rot.y = this->actor.shape.rot.y + 0x3FFF;
+@@ -2053,9 +2054,9 @@ s32 EnTest_ReactToProjectile(PlayState* play, EnTest* this) {
+             }
+ 
+             if (directionFlag) {
+-                func_80864158(this, 4.0f);
++                EnTest_SetupCircleAroundPlayerWithSpeed(this, 4.0f);  // was func_80864158 [LLM:HIGH]
+             } else {
+-                func_80864158(this, -4.0f);
++                EnTest_SetupCircleAroundPlayerWithSpeed(this, -4.0f);  // was func_80864158 [LLM:HIGH]
+             }
+         } else if (ABS(yawToProjectile) < 0x6000) {
+             directionFlag = play->gameplayFrames % 2;
+-- 
+2.55.0
+

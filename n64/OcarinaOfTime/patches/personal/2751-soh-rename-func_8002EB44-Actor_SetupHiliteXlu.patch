@@ -1,0 +1,107 @@
+From 8748b2008988b264a2c7bc424c0eb53942ced262 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:32 +0000
+Subject: [PATCH 2751/3799] soh: rename func_8002EB44 -> Actor_SetupHiliteXlu
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the translucent-pass wrapper of Actor_SetupHilite
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                    | 2 +-
+ soh/src/code/z_actor.c                                     | 7 ++++---
+ soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c            | 2 +-
+ soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c      | 2 +-
+ .../effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c         | 2 +-
+ 5 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index cf56b0be5..e1fc09d39 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -441,7 +441,7 @@ s32 Actor_ActorAIsFacingAndNearActorB(Actor* actorA, Actor* actorB, f32 range, s
+ void Actor_UpdateBgCheckInfo(PlayState* play, Actor* actor, f32 wallCheckHeight, f32 wallCheckRadius,
+                              f32 ceilingCheckHeight, s32 flags);
+ Hilite* Actor_SetupHiliteOpa(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx);  // was func_8002EABC [LLM:HIGH]
+-Hilite* func_8002EB44(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx);
++Hilite* Actor_SetupHiliteXlu(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx);  // was func_8002EB44 [LLM:HIGH]
+ void func_8002EBCC(Actor* actor, PlayState* play, s32 flag);
+ void func_8002ED80(Actor* actor, PlayState* play, s32 flag);
+ PosRot* Actor_GetFocus(PosRot* arg0, Actor* actor);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 562250025..eaf1a7b4c 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1807,7 +1807,8 @@ Hilite* Actor_SetupHiliteOpa(Vec3f* object, Vec3f* eye, Vec3f* lightDir, Graphic
+     return hilite;
+ }
+ 
+-Hilite* func_8002EB44(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx) {
++// LLM generated name (HIGH), was func_8002EB44: the translucent-pass wrapper of Actor_SetupHilite
++Hilite* Actor_SetupHiliteXlu(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsContext* gfxCtx) {
+     Hilite* hilite;
+ 
+     OPEN_DISPS(gfxCtx);
+@@ -1860,7 +1861,7 @@ void func_8002ED80(Actor* actor, PlayState* play, s32 flag) {
+     lightDir.y = play->envCtx.dirLight1.params.dir.y;
+     lightDir.z = play->envCtx.dirLight1.params.dir.z;
+ 
+-    hilite = func_8002EB44(&actor->world.pos, &play->view.eye, &lightDir, play->state.gfxCtx);
++    hilite = Actor_SetupHiliteXlu(&actor->world.pos, &play->view.eye, &lightDir, play->state.gfxCtx);  // was func_8002EB44 [LLM:HIGH]
+ 
+     if (flag != 0) {
+         displayList = Graph_Alloc(play->state.gfxCtx, 2 * sizeof(Gfx));
+@@ -4296,7 +4297,7 @@ Hilite* func_8003435C(Vec3f* object, PlayState* play) {
+     lightDir.y = play->envCtx.dirLight1.params.dir.y;
+     lightDir.z = play->envCtx.dirLight1.params.dir.z;
+ 
+-    return func_8002EB44(object, &play->view.eye, &lightDir, play->state.gfxCtx);
++    return Actor_SetupHiliteXlu(object, &play->view.eye, &lightDir, play->state.gfxCtx);  // was func_8002EB44 [LLM:HIGH]
+ }
+ 
+ /**
+diff --git a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+index e5e474b4e..cf5b13f82 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+@@ -2536,7 +2536,7 @@ void BossMo_DrawTentacle(BossMo* this, PlayState* play) {
+         gSPMatrix(POLY_XLU_DISP++, matrix, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+ 
+         if (i == 0) {
+-            func_8002EB44(&this->tentPos[i], &play->view.eye, &sp110, play->state.gfxCtx);
++            Actor_SetupHiliteXlu(&this->tentPos[i], &play->view.eye, &sp110, play->state.gfxCtx);  // was func_8002EB44 [LLM:HIGH]
+         }
+ 
+         if (i == 0) {
+diff --git a/soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c b/soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c
+index 40c8280a0..c83f8b1e6 100644
+--- a/soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c
++++ b/soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c
+@@ -974,7 +974,7 @@ void DoorWarp1_DrawPurpleCrystal(DoorWarp1* this, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+-    func_8002EB44(&this->actor.world.pos, &eye, &eye, play->state.gfxCtx);
++    Actor_SetupHiliteXlu(&this->actor.world.pos, &eye, &eye, play->state.gfxCtx);  // was func_8002EB44 [LLM:HIGH]
+ 
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, (u8)this->crystalAlpha);
+     gDPSetEnvColor(POLY_XLU_DISP++, 150, 0, 100, (u8)this->crystalAlpha);
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c b/soh/src/overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c
+index f301a5d22..4129b85e4 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c
+@@ -120,7 +120,7 @@ void EffectSsEnIce_Draw(PlayState* play, u32 index, EffectSs* this) {
+     hiliteLightDir.z = 89.8f;
+ 
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+-    func_8002EB44(&this->pos, &play->view.eye, &hiliteLightDir, play->state.gfxCtx);
++    Actor_SetupHiliteXlu(&this->pos, &play->view.eye, &hiliteLightDir, play->state.gfxCtx);  // was func_8002EB44 [LLM:HIGH]
+     gSPSegment(POLY_XLU_DISP++, 0x08,
+                Gfx_TwoTexScrollEx(play->state.gfxCtx, 0, 0, gameplayFrames & 0xFF, 0x20, 0x10, 1, 0,
+                                   (gameplayFrames * 2) & 0xFF, 0x40, 0x20, 0, 1, 0, 2));
+-- 
+2.55.0
+

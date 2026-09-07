@@ -1,0 +1,62 @@
+From 49975b49df5390d292e9631d56f944d9879fc8f8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:56 +0000
+Subject: [PATCH 2505/3799] soh: rename func_800F4C58 ->
+ Audio_SetSfxIoForActiveSfxId
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: sends channel io value 6 to every SFX channel currently playing the given sfx id
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h      | 2 +-
+ soh/src/code/audio_general.c | 3 ++-
+ soh/src/code/z_actor.c       | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 86fc3f006..399422919 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2092,7 +2092,7 @@ void Audio_LowerMainBgmVolume(u8);  // was func_800F4A54 [oot]
+ void Audio_PlaySoundIncreasinglyTransposed(Vec3f* pos, s16 sfxId, u8* semitones);
+ void Audio_ResetIncreasingTranspose(void);
+ void Audio_PlaySoundTransposed(Vec3f* pos, u16 sfxId, s8 semitone);
+-void func_800F4C58(Vec3f* pos, u16 sfxId, u8);
++void Audio_SetSfxIoForActiveSfxId(Vec3f* pos, u16 sfxId, u8);  // was func_800F4C58 [LLM:HIGH]
+ void func_800F4E30(Vec3f* pos, f32);
+ void Audio_ClearSariaBgm(void);
+ void Audio_ClearSariaBgmAtPos(Vec3f* pos);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 8cd930d9b..b396bf216 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4675,7 +4675,8 @@ void Audio_PlaySoundTransposed(Vec3f* pos, u16 sfxId, s8 semitone) {
+                          &gSfxDefaultReverb);
+ }
+ 
+-void func_800F4C58(Vec3f* pos, u16 sfxId, u8 arg2) {
++// LLM generated name (HIGH), was func_800F4C58: sends channel io value 6 to every SFX channel currently playing the given sfx id
++void Audio_SetSfxIoForActiveSfxId(Vec3f* pos, u16 sfxId, u8 arg2) {
+     u8 phi_s1 = 0;
+     u8 i;
+     u8 bankId;
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index ef759db77..7ab63a1a1 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -2831,7 +2831,7 @@ void Actor_UpdateFlaggedAudio(Actor* actor) {
+     } else if (actor->flags & ACTOR_AUDIO_FLAG_SFX_CENTERED_2) {
+         Sfx_PlaySfxCentered2(actor->sfx);
+     } else if (actor->flags & ACTOR_FLAG_SFX_TIMER) {
+-        func_800F4C58(&gSfxDefaultPos, NA_SE_SY_TIMER - SFX_FLAG, (s8)(actor->sfx - 1));
++        Audio_SetSfxIoForActiveSfxId(&gSfxDefaultPos, NA_SE_SY_TIMER - SFX_FLAG, (s8)(actor->sfx - 1));  // was func_800F4C58 [LLM:HIGH]
+     } else {
+         Sfx_PlaySfxAtPos(&actor->projectedPos, actor->sfx);
+     }
+-- 
+2.55.0
+

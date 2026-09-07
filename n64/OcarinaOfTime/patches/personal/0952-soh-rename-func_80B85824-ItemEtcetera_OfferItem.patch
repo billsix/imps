@@ -1,0 +1,60 @@
+From 133bf0d435dcc96d13770f168171713d985738f8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:30:09 +0000
+Subject: [PATCH 0952/3799] soh: rename func_80B85824 -> ItemEtcetera_OfferItem
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: offers the get-item every frame; once the player takes it, sets the Ruto's-letter flags for params 1 and kills the actor.
+Defined in soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c  | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c b/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
+index bb29d5170..2b153e190 100644
+--- a/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
++++ b/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
+@@ -16,7 +16,8 @@ void ItemEtcetera_DrawThroughLens(Actor* thisx, PlayState* play);
+ void ItemEtcetera_Draw(Actor* thisx, PlayState* play);
+ 
+ void ItemEtcetera_WaitForObject(ItemEtcetera* this, PlayState* play);
+-void func_80B85824(ItemEtcetera* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B85824: offers the get-item every frame; once the player takes it, sets the Ruto's-letter flags for params 1 and kills the actor.
++void ItemEtcetera_OfferItem(ItemEtcetera* this, PlayState* play);  // was func_80B85824 [LLM:HIGH]
+ void func_80B858B4(ItemEtcetera* this, PlayState* play);
+ void ItemEtcetera_SpawnSparkles(ItemEtcetera* this, PlayState* play);
+ void ItemEtcetera_MoveFireArrowDown(ItemEtcetera* this, PlayState* play);
+@@ -75,7 +76,7 @@ void ItemEtcetera_Init(Actor* thisx, PlayState* play) {
+     }
+     this->giDrawId = sDrawItemIndexes[type];
+     this->getItemId = sGetItemIds[type];
+-    this->futureActionFunc = func_80B85824;
++    this->futureActionFunc = ItemEtcetera_OfferItem;  // was func_80B85824 [LLM:HIGH]
+     this->drawFunc = ItemEtcetera_Draw;
+     Actor_SetScale(&this->actor, 0.25f);
+     ItemEtcetera_SetupAction(this, ItemEtcetera_WaitForObject);
+@@ -118,7 +119,7 @@ void ItemEtcetera_WaitForObject(ItemEtcetera* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B85824(ItemEtcetera* this, PlayState* play) {
++void ItemEtcetera_OfferItem(ItemEtcetera* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         if ((this->actor.params & 0xFF) == 1) {
+             Flags_SetEventChkInf(EVENTCHKINF_OBTAINED_RUTOS_LETTER);
+@@ -171,7 +172,7 @@ void ItemEtcetera_MoveFireArrowDown(ItemEtcetera* this, PlayState* play) {
+         ItemEtcetera_SpawnSparkles(this, play);
+     }
+     this->actor.shape.rot.y += 0x400;
+-    func_80B85824(this, play);
++    ItemEtcetera_OfferItem(this, play);  // was func_80B85824 [LLM:HIGH]
+ }
+ 
+ void func_80B85B28(ItemEtcetera* this, PlayState* play) {
+-- 
+2.55.0
+

@@ -1,0 +1,133 @@
+From f0bfec65c0381bcc691cf1210809227cc50b62a7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:37:35 +0000
+Subject: [PATCH 1693/3799] soh: rename func_80043B60 ->
+ Camera_SetSnapUpdateRates
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: sets every update rate to the same REG value and the three offset rates to 0.001, so the camera snaps rather than easing.
+Defined in soh/src/code/z_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 046997107..28d917f9e 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -167,7 +167,8 @@ void Camera_SetDefaultUpdateRates(Camera* camera) {
+     camera->fovUpdateRate = PCT(OREG(4));
+ }
+ 
+-void func_80043B60(Camera* camera) {
++// LLM generated name (HIGH), was func_80043B60: sets every update rate to the same REG value and the three offset rates to 0.001, so the camera snaps rather than easing.
++void Camera_SetSnapUpdateRates(Camera* camera) {
+     camera->rUpdateRateInv = OREG(27);
+     camera->yawUpdateRateInv = OREG(27);
+     camera->pitchUpdateRateInv = OREG(27);
+@@ -3631,7 +3632,7 @@ s32 Camera_KeepOn3(Camera* camera) {
+ 
+     if (camera->unk_14C & 8) {
+         sCameraInterfaceFlags = 0;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         camera->atLERPStepScale = 0.0f;
+ 
+         if (camera->xzSpeed > 0.001f || CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+@@ -4060,7 +4061,7 @@ s32 Camera_Fixed1(Camera* camera) {
+ 
+     if (camera->animState == 0) {
+         camera->animState++;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         if (anim->fov != -1) {
+             fixd1->fov = PCT(anim->fov);
+         }
+@@ -4146,7 +4147,7 @@ s32 Camera_Fixed2(Camera* camera) {
+     atTarget.z = playerPosRot->pos.z + camera->posOffset.z;
+     if (camera->animState == 0) {
+         camera->animState++;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         if (!(fixd2->interfaceFlags & 1)) {
+             *eye = *eyeNext = initParams->eye;
+             camera->at = atTarget;
+@@ -4281,7 +4282,7 @@ s32 Camera_Fixed4(Camera* camera) {
+     if (camera->animState == 0) {
+         camera->animState++;
+         if (!(fixed4->interfaceFlags & 4)) {
+-            func_80043B60(camera);
++            Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         }
+         anim->followSpeed = fixed4->followSpeed;
+     }
+@@ -4645,7 +4646,7 @@ s32 Camera_Data4(Camera* camera) {
+ 
+     if (camera->animState == 0) {
+         camera->animState++;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+     }
+ 
+     OLib_Vec3fDiffToVecSphGeo(&eyeNextAtOffset, at, eyeNext);
+@@ -4812,7 +4813,7 @@ s32 Camera_Unique2(Camera* camera) {
+ 
+     if (camera->animState == 0) {
+         camera->animState = 1;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         unk10->unk_00 = 200.0f;
+         if (uniq2->interfaceFlags & 0x10) {
+             camera->unk_14C &= ~4;
+@@ -4879,7 +4880,7 @@ s32 Camera_Unique3(Camera* camera) {
+     sCameraInterfaceFlags = params->interfaceFlags;
+     switch (camera->animState) {
+         case 0:
+-            func_80043B60(camera);
++            Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+             camera->unk_14C &= ~(0x8 | 0x4);
+             anim->initialFov = camera->fov;
+             anim->initialDist = OLib_Vec3fDist(at, &camera->eye);
+@@ -4997,7 +4998,7 @@ s32 Camera_Unique0(Camera* camera) {
+     sCameraInterfaceFlags = params->interfaceFlags;
+ 
+     if (camera->animState == 0) {
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         camera->unk_14C &= ~4;
+         sceneCamData = Camera_GetCamBGData(camera);
+         Camera_Vec3sToVec3f(&anim->sceneCamPosPlayerLine.a, &BGCAM_POS(sceneCamData));
+@@ -5255,7 +5256,7 @@ s32 Camera_Unique9(Camera* camera) {
+         anim->playerPos.y = playerPosRot.pos.y;
+         anim->playerPos.z = playerPosRot.pos.z;
+         camera->atLERPStepScale = 0.0f;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+     }
+ 
+     if (anim->unk_38 == 0 && anim->keyFrameTimer > 0) {
+@@ -5836,7 +5837,7 @@ s32 Camera_Demo3(Camera* camera) {
+     switch (camera->animState) {
+         case 0:
+             camera->unk_14C &= ~(0x8 | 0x4);
+-            func_80043B60(camera);
++            Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+             camera->fov = demo3->fov;
+             camera->roll = anim->animFrame = 0;
+             anim->initialAt = camPlayerPosRot->pos;
+@@ -8266,7 +8267,7 @@ s32 Camera_Copy(Camera* dstCamera, Camera* srcCamera) {
+     dstCamera->dist = OLib_Vec3fDist(&dstCamera->at, &dstCamera->eye);
+     dstCamera->fov = srcCamera->fov;
+     dstCamera->roll = srcCamera->roll;
+-    func_80043B60(dstCamera);
++    Camera_SetSnapUpdateRates(dstCamera);  // was func_80043B60 [LLM:HIGH]
+ 
+     if (dstCamera->player != NULL) {
+         Actor_GetWorld(&dstCamera->playerPosRot, &dstCamera->player->actor);
+-- 
+2.55.0
+

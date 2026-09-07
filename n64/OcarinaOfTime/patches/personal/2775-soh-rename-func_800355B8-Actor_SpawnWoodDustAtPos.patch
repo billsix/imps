@@ -1,0 +1,131 @@
+From aae674a4855a6a5e3886b479f29698f0e5c2fc53 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:36 +0000
+Subject: [PATCH 2775/3799] soh: rename func_800355B8 ->
+ Actor_SpawnWoodDustAtPos
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: Actor_SpawnWoodDust with the file's shared velocity and acceleration
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                          |  2 +-
+ soh/src/code/z_actor.c                           |  3 ++-
+ .../overlays/actors/ovl_En_GeldB/z_en_geldb.c    |  4 ++--
+ soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c  | 16 ++++++++--------
+ soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c      |  4 ++--
+ soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c      |  4 ++--
+ 6 files changed, 17 insertions(+), 16 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 9d6269e40..e0d06ed0d 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -548,7 +548,7 @@ void Gfx_DrawDListXlu(PlayState* play, Gfx* dlist);
+ Actor* Actor_FindNearby(PlayState* play, Actor* refActor, s16 actorId, u8 actorCategory, f32 range);
+ s32 Actor_IsPlayerSwingingToward(PlayState* play, Actor* actor, f32 range, s16 arg3, s16 arg4, s16 arg5);  // was func_800354B4 [LLM:GUESS]
+ void Actor_SpawnWoodDust(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel);  // was func_8003555C [LLM:GUESS]
+-void func_800355B8(PlayState* play, Vec3f* pos);
++void Actor_SpawnWoodDustAtPos(PlayState* play, Vec3f* pos);  // was func_800355B8 [LLM:GUESS]
+ u8 func_800355E4(PlayState* play, Collider* collider);
+ u8 Actor_ApplyDamage(Actor* actor);
+ void Actor_SetDropFlag(Actor* actor, ColliderInfo* colBody, s32 freezeFlag);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 115b1a0a5..52a50056b 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -4805,7 +4805,8 @@ Gfx D_80116280[] = {
+     gsSPEndDisplayList(),
+ };
+ 
+-void func_800355B8(PlayState* play, Vec3f* pos) {
++// LLM generated name (GUESS), was func_800355B8: Actor_SpawnWoodDust with the file's shared velocity and acceleration
++void Actor_SpawnWoodDustAtPos(PlayState* play, Vec3f* pos) {
+     Actor_SpawnWoodDust(play, pos, &D_80116268, &D_80116274);  // was func_8003555C [LLM:GUESS]
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c b/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
+index 78e77c402..f5a90f96b 100644
+--- a/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
++++ b/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
+@@ -1099,8 +1099,8 @@ void EnGeldB_SetupJump(EnGeldB* this) {
+ void EnGeldB_Jump(EnGeldB* this, PlayState* play) {
+     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 1, 0xFA0, 1);
+     if (this->actor.velocity.y >= 5.0f) {
+-        func_800355B8(play, &this->leftFootPos);
+-        func_800355B8(play, &this->rightFootPos);
++        Actor_SpawnWoodDustAtPos(play, &this->leftFootPos);  // was func_800355B8 [LLM:GUESS]
++        Actor_SpawnWoodDustAtPos(play, &this->rightFootPos);  // was func_800355B8 [LLM:GUESS]
+     }
+     if (SkelAnime_Update(&this->skelAnime) && (this->actor.bgCheckFlags & 3)) {
+         this->actor.world.rot.y = this->actor.shape.rot.y = this->actor.yawTowardsPlayer;
+diff --git a/soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c b/soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c
+index 98c703586..d815e31dd 100644
+--- a/soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c
++++ b/soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c
+@@ -360,10 +360,10 @@ void EnTite_Attack(EnTite* this, PlayState* play) {
+             // Generate sparkles at feet upon landing, set jumping animation and hurtbox and check if hit player
+             if (this->actor.velocity.y >= 5.0f) {
+                 if (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
+-                    func_800355B8(play, &this->frontLeftFootPos);
+-                    func_800355B8(play, &this->frontRightFootPos);
+-                    func_800355B8(play, &this->backRightFootPos);
+-                    func_800355B8(play, &this->backLeftFootPos);
++                    Actor_SpawnWoodDustAtPos(play, &this->frontLeftFootPos);  // was func_800355B8 [LLM:GUESS]
++                    Actor_SpawnWoodDustAtPos(play, &this->frontRightFootPos);  // was func_800355B8 [LLM:GUESS]
++                    Actor_SpawnWoodDustAtPos(play, &this->backRightFootPos);  // was func_800355B8 [LLM:GUESS]
++                    Actor_SpawnWoodDustAtPos(play, &this->backLeftFootPos);  // was func_800355B8 [LLM:GUESS]
+                 }
+             }
+             if (!(this->collider.base.atFlags & AT_HIT) && (this->actor.flags & ACTOR_FLAG_INSIDE_CULLING_VOLUME)) {
+@@ -596,10 +596,10 @@ void EnTite_MoveTowardPlayer(EnTite* this, PlayState* play) {
+         Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 1, 1000, 0);
+         if (this->actor.velocity.y >= 6.0f) {
+             if (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
+-                func_800355B8(play, &this->frontLeftFootPos);
+-                func_800355B8(play, &this->frontRightFootPos);
+-                func_800355B8(play, &this->backRightFootPos);
+-                func_800355B8(play, &this->backLeftFootPos);
++                Actor_SpawnWoodDustAtPos(play, &this->frontLeftFootPos);  // was func_800355B8 [LLM:GUESS]
++                Actor_SpawnWoodDustAtPos(play, &this->frontRightFootPos);  // was func_800355B8 [LLM:GUESS]
++                Actor_SpawnWoodDustAtPos(play, &this->backRightFootPos);  // was func_800355B8 [LLM:GUESS]
++                Actor_SpawnWoodDustAtPos(play, &this->backLeftFootPos);  // was func_800355B8 [LLM:GUESS]
+             }
+         }
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c b/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
+index 434be0fee..a0891c6df 100644
+--- a/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
++++ b/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
+@@ -979,8 +979,8 @@ void EnWf_SomersaultAndAttack(EnWf* this, PlayState* play) {
+ 
+     if (this->actor.velocity.y >= 5.0f) {
+         //! @bug unk_4C8 and unk_4BC are used but not set (presumably intended to be feet positions like other actors)
+-        func_800355B8(play, &this->unk_4C8);
+-        func_800355B8(play, &this->unk_4BC);
++        Actor_SpawnWoodDustAtPos(play, &this->unk_4C8);  // was func_800355B8 [LLM:GUESS]
++        Actor_SpawnWoodDustAtPos(play, &this->unk_4BC);  // was func_800355B8 [LLM:GUESS]
+     }
+ 
+     if (SkelAnime_Update(&this->skelAnime) && (this->actor.bgCheckFlags & (1 | 2))) {
+diff --git a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+index 80b49f864..514b4d341 100644
+--- a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
++++ b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+@@ -1729,8 +1729,8 @@ void EnZf_SetupJumpUp(EnZf* this) {
+ void EnZf_JumpUp(EnZf* this, PlayState* play) {
+     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 1, 4000, 1);
+     if (this->actor.velocity.y >= 5.0f) {
+-        func_800355B8(play, &this->leftFootPos);
+-        func_800355B8(play, &this->rightFootPos);
++        Actor_SpawnWoodDustAtPos(play, &this->leftFootPos);  // was func_800355B8 [LLM:GUESS]
++        Actor_SpawnWoodDustAtPos(play, &this->rightFootPos);  // was func_800355B8 [LLM:GUESS]
+     }
+ 
+     if (SkelAnime_Update(&this->skelAnime)) {
+-- 
+2.55.0
+

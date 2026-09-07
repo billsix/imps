@@ -1,0 +1,81 @@
+From 4dca1b404b7ad38562b468a8b40121f6f69dc9af Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:35 +0000
+Subject: [PATCH 2774/3799] soh: rename func_8003555C -> Actor_SpawnWoodDust
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: spawns brown dust with a documented alpha bug; the colours suggest wood or earth, which the callers do not confirm
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                               | 2 +-
+ soh/src/code/z_actor.c                                | 5 +++--
+ soh/src/overlays/actors/ovl_Bg_Ddan_Kd/z_bg_ddan_kd.c | 6 +++---
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 1442d1e00..9d6269e40 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -547,7 +547,7 @@ void Gfx_DrawDListOpa(PlayState* play, Gfx* dlist);
+ void Gfx_DrawDListXlu(PlayState* play, Gfx* dlist);
+ Actor* Actor_FindNearby(PlayState* play, Actor* refActor, s16 actorId, u8 actorCategory, f32 range);
+ s32 Actor_IsPlayerSwingingToward(PlayState* play, Actor* actor, f32 range, s16 arg3, s16 arg4, s16 arg5);  // was func_800354B4 [LLM:GUESS]
+-void func_8003555C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel);
++void Actor_SpawnWoodDust(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel);  // was func_8003555C [LLM:GUESS]
+ void func_800355B8(PlayState* play, Vec3f* pos);
+ u8 func_800355E4(PlayState* play, Collider* collider);
+ u8 Actor_ApplyDamage(Actor* actor);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 7044be2c9..115b1a0a5 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -4778,7 +4778,8 @@ s32 Actor_IsPlayerSwingingToward(PlayState* play, Actor* actor, f32 range, s16 a
+     }
+ }
+ 
+-void func_8003555C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel) {
++// LLM generated name (GUESS), was func_8003555C: spawns brown dust with a documented alpha bug; the colours suggest wood or earth, which the callers do not confirm
++void Actor_SpawnWoodDust(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel) {
+     Color_RGBA8 color1;
+     Color_RGBA8 color2;
+ 
+@@ -4805,7 +4806,7 @@ Gfx D_80116280[] = {
+ };
+ 
+ void func_800355B8(PlayState* play, Vec3f* pos) {
+-    func_8003555C(play, pos, &D_80116268, &D_80116274);
++    Actor_SpawnWoodDust(play, pos, &D_80116268, &D_80116274);  // was func_8003555C [LLM:GUESS]
+ }
+ 
+ u8 func_800355E4(PlayState* play, Collider* collider) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ddan_Kd/z_bg_ddan_kd.c b/soh/src/overlays/actors/ovl_Bg_Ddan_Kd/z_bg_ddan_kd.c
+index 8bee044e4..0e26b3d59 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ddan_Kd/z_bg_ddan_kd.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ddan_Kd/z_bg_ddan_kd.c
+@@ -168,8 +168,8 @@ void BgDdanKd_LowerStairs(BgDdanKd* this, PlayState* play) {
+             velocity.x = Rand_CenteredFloat(3.0f);
+             velocity.z = Rand_CenteredFloat(3.0f);
+ 
+-            func_8003555C(play, &pos1, &velocity, &accel);
+-            func_8003555C(play, &pos2, &velocity, &accel);
++            Actor_SpawnWoodDust(play, &pos1, &velocity, &accel);  // was func_8003555C [LLM:GUESS]
++            Actor_SpawnWoodDust(play, &pos2, &velocity, &accel);  // was func_8003555C [LLM:GUESS]
+ 
+             pos1 = this->dyna.actor.world.pos;
+             pos1.z += 560.0f + Rand_ZeroOne() * 5.0f;
+@@ -177,7 +177,7 @@ void BgDdanKd_LowerStairs(BgDdanKd* this, PlayState* play) {
+             pos1.y = Rand_ZeroOne() * 3.0f + (this->dyna.actor.floorHeight + 20.0f);
+ 
+             Actor_SpawnDustCloud(play, &pos1, 20.0f, 1, effectStrength * 135.0f, 60, 1);  // was func_80033480 [LLM:HIGH]
+-            func_8003555C(play, &pos1, &velocity, &accel);
++            Actor_SpawnWoodDust(play, &pos1, &velocity, &accel);  // was func_8003555C [LLM:GUESS]
+         }
+         Camera_AddQuake(&play->mainCamera, 0, effectStrength * 0.6f, 3);
+         Audio_PlaySfxGeneral(NA_SE_EV_PILLAR_SINK - SFX_FLAG, &this->dyna.actor.projectedPos, 4,
+-- 
+2.55.0
+

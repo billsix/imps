@@ -1,0 +1,42 @@
+From 8a332317823acfaf8ab10bb3df21c9e3966d9960 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:07:48 +0000
+Subject: [PATCH 1977/3799] soh: rename func_80A97C7C -> EnKo_UsesGravity
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the caller runs Actor_UpdateBgCheckInfo and sets gravity -1 when this is true, gravity 0 when false
+Defined in soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+index b18fc4c3b..326fea5eb 100644
+--- a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
++++ b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+@@ -650,7 +650,8 @@ f32 EnKo_GetTrackYOffset(EnKo* this) {
+     return D_80A9A62C[ENKO_TYPE][EnKo_GetForestQuestState(this)];
+ }
+ 
+-u8 func_80A97C7C(EnKo* this) {
++// LLM generated name (HIGH), was func_80A97C7C: the caller runs Actor_UpdateBgCheckInfo and sets gravity -1 when this is true, gravity 0 when false
++u8 EnKo_UsesGravity(EnKo* this) {
+     u8 D_80A9A730[13][5] = {
+         /* ENKO_TYPE_CHILD_0    */ { 1, 1, 1, 0, 1 },
+         /* ENKO_TYPE_CHILD_1    */ { 1, 1, 1, 1, 1 },
+@@ -1289,7 +1290,7 @@ void EnKo_Update(Actor* thisx, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         Actor_MoveXZGravity(&this->actor);
+     }
+-    if (func_80A97C7C(this)) {
++    if (EnKo_UsesGravity(this)) {  // was func_80A97C7C [LLM:HIGH]
+         Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+         this->actor.gravity = -1.0f;
+     } else {
+-- 
+2.55.0
+

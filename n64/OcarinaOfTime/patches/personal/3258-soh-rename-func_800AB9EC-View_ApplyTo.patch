@@ -1,0 +1,84 @@
+From c55123336c75146bb52c2668d95a8e1a389246d0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:09:40 +0000
+Subject: [PATCH 3258/3799] soh: rename func_800AB9EC -> View_ApplyTo
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the flag-driven apply that writes into a caller-supplied display list rather than the context
+Defined in soh/src/code/z_view.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h    | 2 +-
+ soh/src/code/speed_meter.c | 4 ++--
+ soh/src/code/z_play.c      | 2 +-
+ soh/src/code/z_view.c      | 3 ++-
+ 4 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index dc8db5ebb..b89823be2 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1417,7 +1417,7 @@ s32 View_ApplyOrtho(View* view);  // was func_800AB0A8 [LLM:HIGH]
+ s32 View_ApplyOrthoToOverlay(View* view);  // was func_800AB2C4 [LLM:HIGH]
+ s32 View_ApplyPerspectiveToOverlay(View* view);  // was func_800AB560 [LLM:HIGH]
+ s32 View_UpdateViewingMatrix(View* view);  // was func_800AB944 [LLM:HIGH]
+-s32 func_800AB9EC(View* view, s32 arg1, Gfx** p);
++s32 View_ApplyTo(View* view, s32 arg1, Gfx** p);  // was func_800AB9EC [LLM:HIGH]
+ s32 func_800ABE74(f32 eyeX, f32 eyeY, f32 eyeZ);
+ void ViMode_LogPrint(OSViMode* viMode);
+ void ViMode_Configure(ViMode* viMode, s32 mode, s32 type, s32 unk_70, s32 unk_74, s32 unk_78, s32 unk_7C, s32 width,
+diff --git a/soh/src/code/speed_meter.c b/soh/src/code/speed_meter.c
+index 8717ae4a5..556f9aa71 100644
+--- a/soh/src/code/speed_meter.c
++++ b/soh/src/code/speed_meter.c
+@@ -85,7 +85,7 @@ void SpeedMeter_DrawTimeEntries(SpeedMeter* this, GraphicsContext* gfxCtx) {
+     SET_FULLSCREEN_VIEWPORT(&view);
+ 
+     gfx = OVERLAY_DISP;
+-    func_800AB9EC(&view, 0xF, &gfx);
++    View_ApplyTo(&view, 0xF, &gfx);  // was func_800AB9EC [LLM:HIGH]
+ 
+     gDPPipeSync(gfx++);
+     gDPSetOtherMode(gfx++,
+@@ -141,7 +141,7 @@ void SpeedMeter_DrawAllocEntry(SpeedMeterAllocEntry* this, GraphicsContext* gfxC
+         SET_FULLSCREEN_VIEWPORT(&view);
+ 
+         gfx = OVERLAY_DISP;
+-        func_800AB9EC(&view, 0xF, &gfx);
++        View_ApplyTo(&view, 0xF, &gfx);  // was func_800AB9EC [LLM:HIGH]
+ 
+         gDPPipeSync(gfx++);
+         gDPSetOtherMode(gfx++,
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index ffe294fd8..9eb82edd7 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1408,7 +1408,7 @@ void Play_Draw(PlayState* play) {
+ 
+                 SET_FULLSCREEN_VIEWPORT(&view);
+ 
+-                func_800AB9EC(&view, 15, &gfxP);
++                View_ApplyTo(&view, 15, &gfxP);  // was func_800AB9EC [LLM:HIGH]
+                 play->transitionCtx.draw(&play->transitionCtx.data, &gfxP);
+             }
+ 
+diff --git a/soh/src/code/z_view.c b/soh/src/code/z_view.c
+index 6cd8b7194..5235a755f 100644
+--- a/soh/src/code/z_view.c
++++ b/soh/src/code/z_view.c
+@@ -653,7 +653,8 @@ s32 View_UpdateViewingMatrix(View* view) {
+     return 1;
+ }
+ 
+-s32 func_800AB9EC(View* view, s32 arg1, Gfx** gfxp) {
++// LLM generated name (HIGH), was func_800AB9EC: the flag-driven apply that writes into a caller-supplied display list rather than the context
++s32 View_ApplyTo(View* view, s32 arg1, Gfx** gfxp) {
+     Gfx* gfx = *gfxp;
+     GraphicsContext* gfxCtx = view->gfxCtx;
+     s32 width;
+-- 
+2.55.0
+

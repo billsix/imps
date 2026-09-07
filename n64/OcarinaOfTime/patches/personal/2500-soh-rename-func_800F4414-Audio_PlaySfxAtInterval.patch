@@ -1,0 +1,86 @@
+From daece1c139181d90cf9f22b6a37002f7f0d7e14a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:55 +0000
+Subject: [PATCH 2500/3799] soh: rename func_800F4414 ->
+ Audio_PlaySfxAtInterval
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: fires the sound on a countdown whose period shortens as the caller's rate rises
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                       | 4 ++--
+ soh/src/code/audio_general.c                  | 5 +++--
+ soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c | 4 ++--
+ 3 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index b736cb33e..1e87d4a9f 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2076,12 +2076,12 @@ void Audio_PlaySoundRandom(Vec3f* pos, u16 baseSfxId, u8 randLim);
+ void Audio_PlaySfxWithSpeedScales(Vec3f* pos, u16 sfxId, f32);  // was func_800F4138 [LLM:HIGH]
+ void Audio_PlaySfxWithFixedScales(Vec3f* pos, u16 sfxId);  // was func_800F4190 [LLM:HIGH]
+ void Audio_PlaySfxScaledByRate(Vec3f* pos, u16 sfxId, f32 arg2);  // was func_800F436C [LLM:HIGH]
+-void func_800F4414(Vec3f* pos, u16 sfxId, f32);
++void Audio_PlaySfxAtInterval(Vec3f* pos, u16 sfxId, f32);  // was func_800F4414 [LLM:HIGH]
+ void func_800F44EC(s8 arg0, s8 arg1);
+ void func_800F4524(Vec3f* pos, u16 sfxId, s8 arg2);
+ void Audio_PlaySwordChargeSfx(Vec3f* pos, u8 arg1);  // was func_800F4254 [oot]
+ void Audio_PlaySfxScaledByRate(Vec3f*, u16 sfxId, f32 arg2);  // was func_800F436C [LLM:HIGH]
+-void func_800F4414(Vec3f*, u16 sfxId, f32 arg2);
++void Audio_PlaySfxAtInterval(Vec3f*, u16 sfxId, f32 arg2);  // was func_800F4414 [LLM:HIGH]
+ void Audio_PlaySoundRiver(Vec3f* pos, f32 freqScale);
+ void Audio_PlaySoundWaterfall(Vec3f* pos, f32 freqScale);
+ void Audio_SetBgmVolumeOffDuringFanfare(void);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index e4993e73f..aa55e5f96 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4480,7 +4480,8 @@ void Audio_PlaySfxScaledByRate(Vec3f* pos, u16 sfxId, f32 arg2) {
+     }
+ }
+ 
+-void func_800F4414(Vec3f* pos, u16 sfxId, f32 arg2) {
++// LLM generated name (HIGH), was func_800F4414: fires the sound on a countdown whose period shortens as the caller's rate rises
++void Audio_PlaySfxAtInterval(Vec3f* pos, u16 sfxId, f32 arg2) {
+     D_801305B8--;
+     if (D_801305B8 == 0) {
+         Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7D8, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+@@ -4509,7 +4510,7 @@ void func_800F4578(Vec3f* pos, u16 sfxId, f32 arg2) {
+ }
+ 
+ void func_800F45D0(f32 arg0) {
+-    func_800F4414(&gSfxDefaultPos, NA_SE_IT_FISHING_REEL_SLOW - SFX_FLAG, arg0);
++    Audio_PlaySfxAtInterval(&gSfxDefaultPos, NA_SE_IT_FISHING_REEL_SLOW - SFX_FLAG, arg0);  // was func_800F4414 [LLM:HIGH]
+     Audio_PlaySfxScaledByRate(&gSfxDefaultPos, 0, (0.15f * arg0) + 1.4f);  // was func_800F436C [LLM:HIGH]
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c b/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
+index 543037742..7ba54f3ee 100644
+--- a/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
++++ b/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
+@@ -750,7 +750,7 @@ void func_80ACB748(EnOwl* this, PlayState* play) {
+         case 7:
+             Audio_PlaySfxScaledByRate(&D_80ACD62C, NA_SE_EV_FLYING_AIR - SFX_FLAG, weight * 2.0f);  // was func_800F436C [LLM:HIGH]
+             if ((play->csCtx.frames > 324) || ((play->csCtx.frames >= 142 && (play->csCtx.frames <= 266)))) {
+-                func_800F4414(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);
++                Audio_PlaySfxAtInterval(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);  // was func_800F4414 [LLM:HIGH]
+             }
+             if (play->csCtx.frames == 85) {
+                 Audio_PlaySfxScaledByRate(&D_80ACD62C, NA_SE_EV_PASS_AIR, weight * 2.0f);  // was func_800F436C [LLM:HIGH]
+@@ -760,7 +760,7 @@ void func_80ACB748(EnOwl* this, PlayState* play) {
+         case 9:
+             Audio_PlaySfxScaledByRate(&D_80ACD62C, NA_SE_EV_FLYING_AIR - SFX_FLAG, weight * 2.0f);  // was func_800F436C [LLM:HIGH]
+             if ((play->csCtx.frames >= 420) || ((0xC1 < play->csCtx.frames && (play->csCtx.frames <= 280)))) {
+-                func_800F4414(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);
++                Audio_PlaySfxAtInterval(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);  // was func_800F4414 [LLM:HIGH]
+             }
+             if (play->csCtx.frames == 217) {
+                 Audio_PlaySfxScaledByRate(&D_80ACD62C, NA_SE_EV_PASS_AIR, weight * 2.0f);  // was func_800F436C [LLM:HIGH]
+-- 
+2.55.0
+

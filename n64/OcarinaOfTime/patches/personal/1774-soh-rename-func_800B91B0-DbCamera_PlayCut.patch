@@ -1,0 +1,65 @@
+From 686f0b7a211915ecee9dde6bf9716c2dba642601 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:42:37 +0000
+Subject: [PATCH 1774/3799] soh: rename func_800B91B0 -> DbCamera_PlayCut
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: advances the current cut's splines by one frame, skipping empty slots and rolling on to the next cut when this one's frame count runs out.
+Defined in soh/src/code/db_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/db_camera.c | 7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 1ac37ebc0..589624565 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1510,7 +1510,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam);
+ // ? DbCamera_GetMempakAllocSize(?);
+ // ? DbCamera_DrawSlotLetters(?);
+ // ? DbCamera_PrintAllCuts(?);
+-// ? func_800B91B0(?);
++// ? DbCamera_PlayCut(?);, was func_800B91B0 [LLM:HIGH]
+ void DbCamera_Reset(Camera* cam, DbCamera* dbCam);
+ // ? DbCamera_UpdateDemoControl(?);
+ void CutsceneCamera_CalcSpline(f32 u, Vec3f* pos, f32* roll, f32* viewAngle, f32* point0, f32* point1, f32* point2, f32* point3);  // was func_800BB0A0 [LLM:HIGH]
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index 5856941e2..5e104c86e 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -1680,7 +1680,8 @@ void DbCamera_PrintAllCuts(Camera* cam) {
+     osSyncPrintf("@@@\n@@@\n@@@/* ****** spline point data ** finish! ***** */\n@@@\n");
+ }
+ 
+-s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
++// LLM generated name (HIGH), was func_800B91B0: advances the current cut's splines by one frame, skipping empty slots and rolling on to the next cut when this one's frame count runs out.
++s32 DbCamera_PlayCut(Camera* cam, DbCamera* dbCamera) {
+     s32 pointCount;
+     s32 curPoint;
+ 
+@@ -2080,7 +2081,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+                     return 2;
+                 }
+ 
+-                if (func_800B91B0(cam, dbCamera) == 0) {
++                if (DbCamera_PlayCut(cam, dbCamera) == 0) {  // was func_800B91B0 [LLM:HIGH]
+                     Interface_ChangeHudVisibilityMode(HUD_VISIBILITY_NOTHING_ALT);
+                     Letterbox_SetSizeTarget(0);
+                     Audio_PlaySfxGeneral(NA_SE_SY_GET_RUPY, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -2264,7 +2265,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+ }
+ 
+ void func_800BB03C(Camera* cam) {
+-    func_800B91B0(cam, sDbCamPtr);
++    DbCamera_PlayCut(cam, sDbCamPtr);  // was func_800B91B0 [LLM:HIGH]
+ }
+ 
+ void func_800BB060(void) {
+-- 
+2.55.0
+

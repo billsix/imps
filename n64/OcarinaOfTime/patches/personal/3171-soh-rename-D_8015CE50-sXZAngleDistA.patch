@@ -1,0 +1,78 @@
+From 8527c008d48ca54899b7f979ccee2cdbf55fdaef Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:02 +0000
+Subject: [PATCH 3171/3799] soh: rename D_8015CE50 -> sXZAngleDistA
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: one of two f32 scratch values Camera_XZAngle keeps static to stay off the stack; what each holds is not established beyond feeding that angle
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 8ba89f1e9..236670794 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -578,7 +578,7 @@ s16 Camera_XZAngle(Vec3f* to, Vec3f* from) {
+     return DEGF_TO_BINANG(RADF_TO_DEGF(Math_FAtan2F(from->x - to->x, from->z - to->z)));
+ }
+ 
+-static f32 D_8015CE50;
++static f32 sXZAngleDistA;  // was D_8015CE50 [LLM:GUESS]
+ static f32 D_8015CE54;
+ static CamColChk D_8015CE58;
+ // Name from zeldaret/oot (was func_80044ADC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
+@@ -616,7 +616,7 @@ s16 Camera_GetPitchAdjFromFloorHeightDiffs(Camera* camera, s16 yaw, s16 arg2) {
+         D_8015CE58.pos.z = playerPos.z + (sp2C * cosYaw);
+         Camera_BGCheckInfo(camera, &playerPos, &D_8015CE58);
+         if (arg2) {
+-            D_8015CE50 = D_8015CE54 = camera->playerGroundY;
++            sXZAngleDistA = D_8015CE54 = camera->playerGroundY;  // was D_8015CE50 [LLM:GUESS]
+         }
+     } else {
+         sp2C = OLib_Vec3fDistXZ(&playerPos, &D_8015CE58.pos);
+@@ -625,21 +625,21 @@ s16 Camera_GetPitchAdjFromFloorHeightDiffs(Camera* camera, s16 yaw, s16 arg2) {
+         D_8015CE58.pos.z += D_8015CE58.norm.z * 5.0f;
+         if (sp2C < sp30) {
+             sp30 = sp2C;
+-            D_8015CE50 = D_8015CE54 = Camera_GetFloorYLayer(camera, &floorNorm, &D_8015CE58.pos, &bgId);
++            sXZAngleDistA = D_8015CE54 = Camera_GetFloorYLayer(camera, &floorNorm, &D_8015CE58.pos, &bgId);  // was D_8015CE50 [LLM:GUESS]
+         } else {
+-            D_8015CE50 = Camera_GetFloorYLayer(camera, &floorNorm, &rotatedPos, &bgId);
++            sXZAngleDistA = Camera_GetFloorYLayer(camera, &floorNorm, &rotatedPos, &bgId);  // was D_8015CE50 [LLM:GUESS]
+             D_8015CE54 = Camera_GetFloorYLayer(camera, &floorNorm, &D_8015CE58.pos, &bgId);
+         }
+ 
+-        if (D_8015CE50 == BGCHECK_Y_MIN) {
+-            D_8015CE50 = camera->playerGroundY;
++        if (sXZAngleDistA == BGCHECK_Y_MIN) {  // was D_8015CE50 [LLM:GUESS]
++            sXZAngleDistA = camera->playerGroundY;  // was D_8015CE50 [LLM:GUESS]
+         }
+ 
+         if (D_8015CE54 == BGCHECK_Y_MIN) {
+-            D_8015CE54 = D_8015CE50;
++            D_8015CE54 = sXZAngleDistA;  // was D_8015CE50 [LLM:GUESS]
+         }
+     }
+-    phi_f16 = PCT(OREG(20)) * (D_8015CE50 - camera->playerGroundY);
++    phi_f16 = PCT(OREG(20)) * (sXZAngleDistA - camera->playerGroundY);  // was D_8015CE50 [LLM:GUESS]
+     phi_f18 = (1.0f - PCT(OREG(20))) * (D_8015CE54 - camera->playerGroundY);
+     temp_s0 = DEGF_TO_BINANG(RADF_TO_DEGF(Math_FAtan2F(phi_f16, sp30)));
+     temp_s1 = DEGF_TO_BINANG(RADF_TO_DEGF(Math_FAtan2F(phi_f18, sp2C)));
+@@ -8395,7 +8395,7 @@ s16 Camera_SetFinishedFlag(Camera* camera) {
+     F(depthPhase)                       \
+     F(screenPlanePhase)                 \
+     F(sOOBTimer)                        \
+-    F(D_8015CE50)                       \
++    F(sXZAngleDistA)                       \
+     F(D_8015CE54)                       \
+     F(D_8015CE58)
+ SHIP_SAVESTATE_DEFINE(Camera, CAMERA_SHIP_SAVESTATE_FIELDS)
+-- 
+2.55.0
+

@@ -1,0 +1,57 @@
+From 5a3aff153dbb8ecbc21860b9e785a72dc9d959bc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:50 +0000
+Subject: [PATCH 3245/3799] soh: rename D_8082B258 -> sNextPauseState
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the pause state installed once the transition timer expires
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index ccc1bb99b..6bca01227 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -3882,7 +3882,7 @@ void KaleidoScope_UpdateDungeonMap(PlayState* play) {
+ }
+ 
+ void KaleidoScope_Update(PlayState* play) {
+-    static s16 D_8082B258 = 0;
++    static s16 sNextPauseState = 0;  // was D_8082B258 [LLM:HIGH]
+     static s16 D_8082B25C = 10;
+     static s16 D_8082B260 = 0;
+     PauseContext* pauseCtx = &play->pauseCtx;
+@@ -4388,13 +4388,13 @@ void KaleidoScope_Update(PlayState* play) {
+                     } else if (pauseCtx->ocarinaStaff->state == pauseCtx->ocarinaSongIdx) {
+                         Audio_PlaySfxGeneral(NA_SE_SY_TRE_BOX_APPEAR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-                        D_8082B258 = 0;
++                        sNextPauseState = 0;  // was D_8082B258 [LLM:HIGH]
+                         D_8082B25C = 30;
+                         pauseCtx->unk_1E4 = 6;
+                     } else if (pauseCtx->ocarinaStaff->state == 0xFF) {
+                         Audio_PlaySfxGeneral(NA_SE_SY_OCARINA_ERROR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-                        D_8082B258 = 4;
++                        sNextPauseState = 4;  // was D_8082B258 [LLM:HIGH]
+                         D_8082B25C = 20;
+                         pauseCtx->unk_1E4 = 6;
+                     }
+@@ -4403,7 +4403,7 @@ void KaleidoScope_Update(PlayState* play) {
+                 case 6:
+                     D_8082B25C--;
+                     if (D_8082B25C == 0) {
+-                        pauseCtx->unk_1E4 = D_8082B258;
++                        pauseCtx->unk_1E4 = sNextPauseState;  // was D_8082B258 [LLM:HIGH]
+                         if (pauseCtx->unk_1E4 == 0) {
+                             AudioOcarina_SetInstrument(OCARINA_INSTRUMENT_OFF);
+                         }
+-- 
+2.55.0
+

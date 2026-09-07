@@ -1,0 +1,92 @@
+From 65526a4a81573afe2c28de299150bcc4c60cc2e1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:35:35 +0000
+Subject: [PATCH 2534/3799] soh: rename func_808FD080 ->
+ BossGanon2_SetSphereCenter
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: moves one jntsph element onto a world point and rescales its radius
+Defined in soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c | 13 +++++++------
+ .../actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c     |  4 ++--
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index 66b87a513..1cf930b9d 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -109,7 +109,8 @@ f32 BossGanon2_RandZeroOne(void) {
+     return fabsf(randFloat);
+ }
+ 
+-void func_808FD080(s32 idx, ColliderJntSph* collider, Vec3f* arg2) {
++// LLM generated name (HIGH), was func_808FD080: moves one jntsph element onto a world point and rescales its radius
++void BossGanon2_SetSphereCenter(s32 idx, ColliderJntSph* collider, Vec3f* arg2) {
+     collider->elements[idx].dim.worldSphere.center.x = arg2->x;
+     collider->elements[idx].dim.worldSphere.center.y = arg2->y;
+     collider->elements[idx].dim.worldSphere.center.z = arg2->z;
+@@ -2638,7 +2639,7 @@ void BossGanon2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+     temp_v0 = sLimbTrailIndices[limbIndex];  // was D_8090709C [LLM:GUESS]
+     if (temp_v0 >= 0) {
+         Matrix_MultVec3f(&sOrigin, &sp4C);  // was D_80906D60 [LLM:HIGH]
+-        func_808FD080(temp_v0, &this->unk_424, &sp4C);
++        BossGanon2_SetSphereCenter(temp_v0, &this->unk_424, &sp4C);  // was func_808FD080 [LLM:HIGH]
+     }
+ 
+     if ((limbIndex == 7) || (limbIndex == 13)) {
+@@ -2658,12 +2659,12 @@ void BossGanon2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+     if (*dList != NULL) {
+         if ((limbIndex == 7) && (this->unk_312 == 1)) {
+             Matrix_MultVec3f(&sSwordTrailAnchorOffset, &this->unk_218);  // was D_809070FC [LLM:GUESS]
+-            func_808FD080(0, &this->unk_444, &this->unk_218);
++            BossGanon2_SetSphereCenter(0, &this->unk_444, &this->unk_218);  // was func_808FD080 [LLM:HIGH]
+             Matrix_MultVec3f(&sSwordTipOffset, &this->unk_200);  // was D_80907120 [LLM:HIGH]
+             Matrix_MultVec3f(&sSwordBaseOffset, &this->unk_20C);  // was D_8090712C [LLM:HIGH]
+         } else if ((limbIndex == 13) && (this->unk_312 == 2)) {
+             Matrix_MultVec3f(&sSwordTrailAnchorOffset, &this->unk_218);  // was D_809070FC [LLM:GUESS]
+-            func_808FD080(1, &this->unk_444, &this->unk_218);
++            BossGanon2_SetSphereCenter(1, &this->unk_444, &this->unk_218);  // was func_808FD080 [LLM:HIGH]
+             Matrix_MultVec3f(&sSwordTipOffset, &this->unk_200);  // was D_80907120 [LLM:HIGH]
+             Matrix_MultVec3f(&sSwordBaseOffset, &this->unk_20C);  // was D_8090712C [LLM:HIGH]
+         }
+@@ -2837,8 +2838,8 @@ void BossGanon2_Draw(Actor* thisx, PlayState* play) {
+         case 2:
+             BossGanon2_SetObjectSegment(this, play, OBJECT_GANON2, true);
+             gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sEyeTextures[this->unk_310]));
+-            func_808FD080(0, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
+-            func_808FD080(1, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
++            BossGanon2_SetSphereCenter(0, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
++            BossGanon2_SetSphereCenter(1, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
+             this->unk_218 = sBeamAnchorOffset;  // was D_8090717C [LLM:GUESS]
+             if (this->unk_342 & 1) {
+                 POLY_OPA_DISP = Gfx_SetFog(POLY_OPA_DISP, 0xFF, 0, 0, 0xFF, 0x384, 0x44B);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
+index e5e044411..3e42e375c 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
+@@ -267,7 +267,7 @@ static u8 sSwordTrailTipVtx[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 };  // w
+ // LLM generated name (HIGH), was D_80907090: the eleven gGanonSwordTrailVtx indices fed from the recorded sword-base trail
+ static u8 sSwordTrailBaseVtx[] = { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21 };  // was D_80907090 [LLM:HIGH]
+ 
+-// LLM generated name (GUESS), was D_8090709C: per-limb index handed to func_808FD080 with unk_424; that function's role is not established, so the trail reading is inferred from its pairing with the sword trail
++// LLM generated name (GUESS), was D_8090709C: per-limb index handed to BossGanon2_SetSphereCenter with unk_424; that function's role is not established, so the trail reading is inferred from its pairing with the sword trail
+ static s8 sLimbTrailIndices[] = {  // was D_8090709C [LLM:GUESS]
+     0xFF, 0xFF, 0x01, 0xFF, 0x03, 0x04, 0xFF, 0xFF, 0x05, 0xFF, 0x06, 0x07, 0xFF, 0xFF, 0x08, 0xFF,
+     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -314,7 +314,7 @@ static void* sEyeTextures[] = {
+     gGanonEyeClosedTex,
+ };
+ 
+-// LLM generated name (GUESS), was D_8090717C: passed to func_808FD080 for both hands and copied into unk_218; named for the effect it anchors rather than an identified point
++// LLM generated name (GUESS), was D_8090717C: passed to BossGanon2_SetSphereCenter for both hands and copied into unk_218; named for the effect it anchors rather than an identified point
+ static Vec3f sBeamAnchorOffset = { 0.0f, -2000.0f, 0.0f };  // was D_8090717C [LLM:GUESS]
+ 
+ // LLM generated name (HIGH), was D_80907188: the six row half-widths of the narrowest limb stripe stamped into the shadow texture
+-- 
+2.55.0
+

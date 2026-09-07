@@ -1,0 +1,42 @@
+From 2ff16c7a08645bb928e3c961a7ed1ef785e1ad48 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:16:07 +0000
+Subject: [PATCH 1392/3799] soh: rename func_80A89078 -> EnJs_FinishTalk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits for that textbox to close, clears the auto-accept flag and returns the merchant to idle.
+Defined in soh/src/overlays/actors/ovl_En_Js/z_en_js.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Js/z_en_js.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Js/z_en_js.c b/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
+index 012983975..6c2ccfe31 100644
+--- a/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
++++ b/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
+@@ -106,7 +106,8 @@ void EnJs_SetupIdle(EnJs* this) {
+                      Animation_GetLastFrame(&gCarpetMerchantSlappingKneeAnim), ANIMMODE_ONCE, -4.0f);
+ }
+ 
+-void func_80A89078(EnJs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A89078: waits for that textbox to close, clears the auto-accept flag and returns the merchant to idle.
++void EnJs_FinishTalk(EnJs* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         EnJs_SetupIdle(this);  // was func_80A89008 [LLM:HIGH]
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+@@ -116,7 +117,7 @@ void func_80A89078(EnJs* this, PlayState* play) {
+ // LLM generated name (HIGH), was func_80A890C0: offers talk from any distance until the player accepts, so the thank-you line cannot be walked away from.
+ void EnJs_ForceTalk(EnJs* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+-        En_Js_SetupAction(this, func_80A89078);
++        En_Js_SetupAction(this, EnJs_FinishTalk);  // was func_80A89078 [LLM:HIGH]
+     } else {
+         Actor_OfferTalk(&this->actor, play, 1000.0f);
+     }
+-- 
+2.55.0
+

@@ -1,0 +1,62 @@
+From 3b17c7e8b6af1f7761de04b682e1a6cacccf3335 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:34 +0000
+Subject: [PATCH 2764/3799] soh: rename func_8003424C ->
+ Actor_SpawnShieldParticlesMetal
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: forwards CollisionCheck_SpawnShieldParticlesMetal
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                     | 2 +-
+ soh/src/code/z_actor.c                      | 3 ++-
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 1d4e6cc52..bdbdeecb9 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -527,7 +527,7 @@ void Actor_RequestQuakeAndRumble(Actor* actor, PlayState* play, s16 arg2, s16 ar
+ f32 Rand_ZeroFloat(f32 f);
+ f32 Rand_CenteredFloat(f32 f);
+ void Actor_DrawDoorLock(PlayState* play, s32 arg1, s32 arg2);
+-void func_8003424C(PlayState* play, Vec3f* arg1);
++void Actor_SpawnShieldParticlesMetal(PlayState* play, Vec3f* arg1);  // was func_8003424C [LLM:HIGH]
+ void Actor_SetColorFilter(Actor* actor, s16 colorFlag, s16 colorIntensityMax, s16 xluFlag, s16 duration);
+ Hilite* func_800342EC(Vec3f* object, PlayState* play);
+ Hilite* func_8003435C(Vec3f* object, PlayState* play);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 4a509a523..3d72e091e 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -4279,7 +4279,8 @@ void Actor_DrawDoorLock(PlayState* play, s32 frame, s32 type) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_8003424C(PlayState* play, Vec3f* arg1) {
++// LLM generated name (HIGH), was func_8003424C: forwards CollisionCheck_SpawnShieldParticlesMetal
++void Actor_SpawnShieldParticlesMetal(PlayState* play, Vec3f* arg1) {
+     CollisionCheck_SpawnShieldParticlesMetal(play, arg1);
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index f1d170316..6fad4a530 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -335,7 +335,7 @@ void EnIk_StandUp(EnIk* this, PlayState* play) {
+         sp24 = this->actor.world.pos;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_IRONNACK_ARMOR_HIT);
+         sp24.y += 30.0f;
+-        func_8003424C(play, &sp24);
++        Actor_SpawnShieldParticlesMetal(play, &sp24);  // was func_8003424C [LLM:HIGH]
+         this->skelAnime.playSpeed = 1.0f;
+         // Disable miniboss music with Enemy Randomizer because the music would keep
+         // playing if the enemy was never defeated, which is common with Enemy Randomizer.
+-- 
+2.55.0
+

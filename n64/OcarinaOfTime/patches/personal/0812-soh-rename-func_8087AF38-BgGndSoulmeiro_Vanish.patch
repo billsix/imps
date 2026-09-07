@@ -1,0 +1,51 @@
+From 7059f1b73155826d54afba08f2e3fdf953fa4137 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 19:47:01 +0000
+Subject: [PATCH 0812/3799] soh: rename func_8087AF38 -> BgGndSoulmeiro_Vanish
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: entered once the soul is hit: counts the timer down, and at 20 sets the switch flag and clears actor.draw so the soul disappears, spawning its effects on the way out.
+Defined in soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c       | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c b/soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c
+index bdb1fc178..c40c70db3 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c
++++ b/soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c
+@@ -15,7 +15,8 @@ void BgGndSoulmeiro_Destroy(Actor* thisx, PlayState* play);
+ void BgGndSoulmeiro_Update(Actor* thisx, PlayState* play);
+ void BgGndSoulmeiro_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8087AF38(BgGndSoulmeiro* this, PlayState* play);
++// LLM generated name (HIGH), was func_8087AF38: entered once the soul is hit: counts the timer down, and at 20 sets the switch flag and clears actor.draw so the soul disappears, spawning its effects on the way out.
++void BgGndSoulmeiro_Vanish(BgGndSoulmeiro* this, PlayState* play);  // was func_8087AF38 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_8087B284: the params-0 action: keeps the soul visible while its switch flag is unset and runs its AC collider; on a hit it plays the success chime, arms the 40-frame vanish timer and hands off to the vanish action.
+ void BgGndSoulmeiro_WaitForHit(BgGndSoulmeiro* this, PlayState* play);  // was func_8087B284 [LLM:HIGH]
+ void func_8087B350(BgGndSoulmeiro* this, PlayState* play);
+@@ -103,7 +104,7 @@ void BgGndSoulmeiro_Destroy(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_8087AF38(BgGndSoulmeiro* this, PlayState* play) {
++void BgGndSoulmeiro_Vanish(BgGndSoulmeiro* this, PlayState* play) {
+     static Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
+     Vec3f vecA;
+     Vec3f vecB;
+@@ -167,7 +168,7 @@ void BgGndSoulmeiro_WaitForHit(BgGndSoulmeiro* this, PlayState* play) {
+             Audio_PlaySfxGeneral(NA_SE_SY_CORRECT_CHIME, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             this->unk_198 = 40;
+-            this->actionFunc = func_8087AF38;
++            this->actionFunc = BgGndSoulmeiro_Vanish;  // was func_8087AF38 [LLM:HIGH]
+         } else {
+             Collider_UpdateCylinder(&this->actor, &this->collider);
+             CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+-- 
+2.55.0
+

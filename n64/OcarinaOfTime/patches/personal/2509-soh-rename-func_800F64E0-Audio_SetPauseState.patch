@@ -1,0 +1,166 @@
+From 97cc4a3d6488485efed4ef02bd4f889aefadc61b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:57 +0000
+Subject: [PATCH 2509/3799] soh: rename func_800F64E0 -> Audio_SetPauseState
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: records the pause flag and plays the window open or close sound; kaleido passes 1 on opening and 0 on closing
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                            |  2 +-
+ soh/soh/Enhancements/QoL/BetterSaveMenu.cpp        |  4 ++--
+ soh/soh/Enhancements/QoL/PauseWarp.cpp             |  2 +-
+ soh/src/code/audio_general.c                       |  3 ++-
+ soh/src/code/z_kaleido_setup.c                     |  2 +-
+ .../misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c   | 14 +++++++-------
+ 6 files changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 0684e7cc3..5614d1b9b 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2117,7 +2117,7 @@ void Audio_PlaySequenceWithSeqPlayerIO(u8 playerIdx, u16 seqId, u8 fadeTimer, s8
+ void Audio_SetSequenceMode(u8 seqMode);
+ void Audio_SetBgmEnemyVolume(f32 dist);
+ void Audio_UpdateMalonSinging(f32 dist, u16);
+-void func_800F64E0(u8 arg0);
++void Audio_SetPauseState(u8 arg0);  // was func_800F64E0 [LLM:HIGH]
+ void Audio_ToggleMalonSinging(u8 arg0);
+ void Audio_SetEnvReverb(s8 reverb);
+ void Audio_SetCodeReverb(s8 reverb);
+diff --git a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+index 2de021cfd..fbc23be2f 100644
+--- a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
++++ b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+@@ -94,7 +94,7 @@ void HandleSaveMenu(bool* should, PlayState* play) {
+                     pauseCtx->unk_1EC = 2;
+                     WREG(2) = -6240;
+                     YREG(8) = static_cast<int16_t>(pauseCtx->unk_204);
+-                    func_800F64E0(0);
++                    Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                 }
+             }
+             break;
+@@ -114,7 +114,7 @@ void HandleSaveMenu(bool* should, PlayState* play) {
+                         pauseCtx->unk_1EC = 5;
+                         WREG(2) = -6240;
+                         YREG(8) = static_cast<int16_t>(pauseCtx->unk_204);
+-                        func_800F64E0(0);
++                        Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                         break;
+                     case 1:
+                         // Reset (Dungeon) / Return to Spawn (Overworld)
+diff --git a/soh/soh/Enhancements/QoL/PauseWarp.cpp b/soh/soh/Enhancements/QoL/PauseWarp.cpp
+index 21d93fc66..e6693f473 100644
+--- a/soh/soh/Enhancements/QoL/PauseWarp.cpp
++++ b/soh/soh/Enhancements/QoL/PauseWarp.cpp
+@@ -70,7 +70,7 @@ static void ActivateWarp(PauseContext* pauseCtx, int song) {
+     Interface_SetDoAction(gPlayState, DO_ACTION_NONE);
+     pauseCtx->state = 0x12;
+     WREG(2) = -6240;
+-    func_800F64E0(0);
++    Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+     pauseCtx->unk_1E4 = 0;
+     int idx = song - QUEST_SONG_MINUET;
+     gPlayState->msgCtx.lastPlayedSong = ocarinaSongMap[idx];
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 542ed0279..d27ea8c3e 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -5255,7 +5255,8 @@ void Audio_UpdateMalonSinging(f32 dist, u16 arg1) {
+     }
+ }
+ 
+-void func_800F64E0(u8 arg0) {
++// LLM generated name (HIGH), was func_800F64E0: records the pause flag and plays the window open or close sound; kaleido passes 1 on opening and 0 on closing
++void Audio_SetPauseState(u8 arg0) {
+     D_80130608 = arg0;
+     if (arg0 != 0) {
+         Audio_PlaySfxGeneral(NA_SE_SY_WIN_OPEN, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+diff --git a/soh/src/code/z_kaleido_setup.c b/soh/src/code/z_kaleido_setup.c
+index 9beda9e5a..a0242cd68 100644
+--- a/soh/src/code/z_kaleido_setup.c
++++ b/soh/src/code/z_kaleido_setup.c
+@@ -63,7 +63,7 @@ void KaleidoSetup_Update(PlayState* play) {
+                 Letterbox_SetSizeTarget(0);
+             }
+ 
+-            func_800F64E0(1);
++            Audio_SetPauseState(1);  // was func_800F64E0 [LLM:HIGH]
+         }
+     }
+ }
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index e310ba845..dc2ab3319 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -4266,7 +4266,7 @@ void KaleidoScope_Update(PlayState* play) {
+                         Interface_SetDoAction(play, DO_ACTION_NONE);
+                         pauseCtx->state = 0x12;
+                         WREG(2) = -6240;
+-                        func_800F64E0(0);
++                        Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                     } else if (CHECK_BTN_ALL(input->press.button, BTN_B)) {
+                         pauseCtx->mode = 0;
+                         pauseCtx->promptChoice = 0;
+@@ -4316,7 +4316,7 @@ void KaleidoScope_Update(PlayState* play) {
+                         Interface_SetDoAction(play, DO_ACTION_NONE);
+                         pauseCtx->state = 0x12;
+                         WREG(2) = -6240;
+-                        func_800F64E0(0);
++                        Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                         pauseCtx->unk_1E4 = 0;
+                         break;
+                     } else if (CHECK_BTN_ALL(input->press.button, BTN_B)) {
+@@ -4369,7 +4369,7 @@ void KaleidoScope_Update(PlayState* play) {
+                         Interface_SetDoAction(play, DO_ACTION_NONE);
+                         pauseCtx->state = 0x12;
+                         WREG(2) = -6240;
+-                        func_800F64E0(0);
++                        Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                         pauseCtx->unk_1E4 = 0;
+                     } else if (CHECK_BTN_ALL(input->press.button, BTN_B)) {
+                         AudioOcarina_SetInstrument(OCARINA_INSTRUMENT_OFF);
+@@ -4425,7 +4425,7 @@ void KaleidoScope_Update(PlayState* play) {
+                                 pauseCtx->unk_1EC = 2;
+                                 WREG(2) = -6240;
+                                 YREG(8) = pauseCtx->unk_204;
+-                                func_800F64E0(0);
++                                Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                             } else {
+                                 Audio_PlaySfxGeneral(NA_SE_SY_PIECE_OF_HEART, &gSfxDefaultPos, 4,
+                                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale,
+@@ -4442,7 +4442,7 @@ void KaleidoScope_Update(PlayState* play) {
+                             pauseCtx->unk_1EC = 2;
+                             WREG(2) = -6240;
+                             YREG(8) = pauseCtx->unk_204;
+-                            func_800F64E0(0);
++                            Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                             gSaveContext.buttonStatus[0] = gSaveContext.buttonStatus[1] = gSaveContext.buttonStatus[2] =
+                                 gSaveContext.buttonStatus[3] = BTN_ENABLED;
+                             gSaveContext.buttonStatus[5] = gSaveContext.buttonStatus[6] = gSaveContext.buttonStatus[7] =
+@@ -4465,7 +4465,7 @@ void KaleidoScope_Update(PlayState* play) {
+                             pauseCtx->unk_1EC = 5;
+                             WREG(2) = -6240;
+                             YREG(8) = pauseCtx->unk_204;
+-                            func_800F64E0(0);
++                            Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                         }
+                         break;
+ 
+@@ -4701,7 +4701,7 @@ void KaleidoScope_Update(PlayState* play) {
+                        (CHECK_BTN_ALL(input->press.button, BTN_A) || CHECK_BTN_ALL(input->press.button, BTN_START))) {
+                 pauseCtx->state = 0x10;
+                 gameOverCtx->state++;
+-                func_800F64E0(0);
++                Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+             }
+             break;
+ 
+-- 
+2.55.0
+

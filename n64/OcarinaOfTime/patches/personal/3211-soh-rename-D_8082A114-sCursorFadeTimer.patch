@@ -1,0 +1,62 @@
+From 38103a4f419d262145696c9829a33fc5523ae962 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:00 +0000
+Subject: [PATCH 3211/3799] soh: rename D_8082A114 -> sCursorFadeTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts the cursor colour fade down and picks the next colour set at zero
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../misc/ovl_kaleido_scope/z_kaleido_collect.c     | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
+index 15e14b0d0..de9f53a1e 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
+@@ -28,7 +28,7 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+     static s16 sCursorG = 0;  // was D_8082A108 [LLM:HIGH]
+     static s16 sCursorB = 0;  // was D_8082A10C [LLM:HIGH]
+     static s16 sCursorA = 0;  // was D_8082A110 [LLM:HIGH]
+-    static s16 D_8082A114 = 20;
++    static s16 sCursorFadeTimer = 20;  // was D_8082A114 [LLM:HIGH]
+     static s16 D_8082A118 = 0;
+     static s16 D_8082A11C = 0;
+     static s16 D_8082A120 = 0;
+@@ -414,10 +414,10 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+         }
+     }
+ 
+-    sp226 = ABS(sCursorR - sCursorColorSets[D_8082A118][0]) / D_8082A114;  // was D_8082A070 [LLM:HIGH]
+-    sp224 = ABS(sCursorG - sCursorColorSets[D_8082A118][1]) / D_8082A114;  // was D_8082A070 [LLM:HIGH]
+-    sp222 = ABS(sCursorB - sCursorColorSets[D_8082A118][2]) / D_8082A114;  // was D_8082A070 [LLM:HIGH]
+-    sp220 = ABS(sCursorA - sCursorColorSets[D_8082A118][3]) / D_8082A114;  // was D_8082A070 [LLM:HIGH]
++    sp226 = ABS(sCursorR - sCursorColorSets[D_8082A118][0]) / sCursorFadeTimer;  // was D_8082A070 [LLM:HIGH]
++    sp224 = ABS(sCursorG - sCursorColorSets[D_8082A118][1]) / sCursorFadeTimer;  // was D_8082A070 [LLM:HIGH]
++    sp222 = ABS(sCursorB - sCursorColorSets[D_8082A118][2]) / sCursorFadeTimer;  // was D_8082A070 [LLM:HIGH]
++    sp220 = ABS(sCursorA - sCursorColorSets[D_8082A118][3]) / sCursorFadeTimer;  // was D_8082A070 [LLM:HIGH]
+     if (sCursorR >= sCursorColorSets[D_8082A118][0]) {  // was D_8082A070 [LLM:HIGH]
+         sCursorR -= sp226;  // was D_8082A104 [LLM:HIGH]
+     } else {
+@@ -439,12 +439,12 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+         sCursorA += sp220;  // was D_8082A110 [LLM:HIGH]
+     }
+ 
+-    if (--D_8082A114 == 0) {
++    if (--sCursorFadeTimer == 0) {  // was D_8082A114 [LLM:HIGH]
+         sCursorR = sCursorColorSets[D_8082A118][0];  // was D_8082A070 [LLM:HIGH]
+         sCursorG = sCursorColorSets[D_8082A118][1];  // was D_8082A070 [LLM:HIGH]
+         sCursorB = sCursorColorSets[D_8082A118][2];  // was D_8082A070 [LLM:HIGH]
+         sCursorA = sCursorColorSets[D_8082A118][3];  // was D_8082A070 [LLM:HIGH]
+-        D_8082A114 = ZREG(24 + D_8082A118);
++        sCursorFadeTimer = ZREG(24 + D_8082A118);  // was D_8082A114 [LLM:HIGH]
+         if (++D_8082A118 >= 4) {
+             D_8082A118 = 0;
+         }
+-- 
+2.55.0
+

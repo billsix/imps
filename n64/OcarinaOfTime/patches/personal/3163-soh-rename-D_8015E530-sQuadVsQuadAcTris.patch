@@ -1,0 +1,48 @@
+From e4a31dc786290671b5f1c02fcfc32f8e55a135e7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:05:50 +0000
+Subject: [PATCH 3163/3799] soh: rename D_8015E530 -> sQuadVsQuadAcTris
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the two triangles the AC quad is split into in CollisionCheck_AC_QuadVsQuad
+Defined in soh/src/code/z_collision_check.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_collision_check.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/z_collision_check.c b/soh/src/code/z_collision_check.c
+index 39ecafcae..d4683fa07 100644
+--- a/soh/src/code/z_collision_check.c
++++ b/soh/src/code/z_collision_check.c
+@@ -2451,7 +2451,7 @@ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChk
+  * AC overlap check. Calculates the center of each collider element and the point of contact.
+  */
+ void CollisionCheck_AC_QuadVsQuad(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+-    static TriNorm D_8015E530[2];
++    static TriNorm sQuadVsQuadAcTris[2];  // was D_8015E530 [LLM:HIGH]
+     static Vec3f D_8015E598;
+     static TriNorm D_8015E5A8[2];
+     ColliderQuad* at = (ColliderQuad*)colAT;
+@@ -2471,12 +2471,12 @@ void CollisionCheck_AC_QuadVsQuad(PlayState* play, CollisionCheckContext* colChk
+ 
+     Math3D_TriNorm(&D_8015E5A8[0], &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);
+     Math3D_TriNorm(&D_8015E5A8[1], &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);
+-    Math3D_TriNorm(&D_8015E530[0], &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);
+-    Math3D_TriNorm(&D_8015E530[1], &ac->dim.quad[2], &ac->dim.quad[1], &ac->dim.quad[0]);
++    Math3D_TriNorm(&sQuadVsQuadAcTris[0], &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);  // was D_8015E530 [LLM:HIGH]
++    Math3D_TriNorm(&sQuadVsQuadAcTris[1], &ac->dim.quad[2], &ac->dim.quad[1], &ac->dim.quad[0]);  // was D_8015E530 [LLM:HIGH]
+ 
+     for (i = 0; i < 2; i++) {
+         for (j = 0; j < 2; j++) {
+-            if (Math3D_TriVsTriIntersect(&D_8015E5A8[j], &D_8015E530[i], &D_8015E598) == 1) {
++            if (Math3D_TriVsTriIntersect(&D_8015E5A8[j], &sQuadVsQuadAcTris[i], &D_8015E598) == 1) {  // was D_8015E530 [LLM:HIGH]
+                 if (Collider_QuadSetNearestAC(play, at, &D_8015E598)) {
+                     Vec3f atPos;
+                     Vec3f acPos;
+-- 
+2.55.0
+

@@ -1,0 +1,60 @@
+From 056ffda3f0f43d51c821237c5c498184841dc538 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:14:19 +0000
+Subject: [PATCH 1376/3799] soh: rename func_80AFEDF8 -> EnSkj_IsPlayerEngaging
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: returns 1 when the player is within the actor's current engage distance and using an item, or is standing inside its facing cone; the fight states use it to decide whether to keep going.
+Defined in soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+index 37812b7d6..1ff5ec967 100644
+--- a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
++++ b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+@@ -630,7 +630,8 @@ s32 EnSkj_CollisionCheck(EnSkj* this, PlayState* play) {
+     return 0;
+ }
+ 
+-s32 func_80AFEDF8(EnSkj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AFEDF8: returns 1 when the player is within the actor's current engage distance and using an item, or is standing inside its facing cone; the fight states use it to decide whether to keep going.
++s32 EnSkj_IsPlayerEngaging(EnSkj* this, PlayState* play) {
+     s16 yawDiff;
+ 
+     if (this->actor.xzDistToPlayer < this->unk_2EC) {
+@@ -730,7 +731,7 @@ void EnSkj_SariasSongKidIdle(EnSkj* this, PlayState* play) {
+             }
+         }
+     } else {
+-        if (func_80AFEDF8(this, play) != 0) {
++        if (EnSkj_IsPlayerEngaging(this, play) != 0) {  // was func_80AFEDF8 [LLM:HIGH]
+             func_80AFF334(this);
+         }
+     }
+@@ -794,7 +795,7 @@ void func_80AFF334(EnSkj* this) {
+ void EnSkj_ResetFight(EnSkj* this, PlayState* play) {
+     if (this->battleExitTimer == 0) {
+         EnSkj_SetupResetFight(this);
+-    } else if (func_80AFEDF8(this, play) != 0) {
++    } else if (EnSkj_IsPlayerEngaging(this, play) != 0) {  // was func_80AFEDF8 [LLM:HIGH]
+         this->battleExitTimer = 600;
+         EnSkj_SetupStand(this);
+     }
+@@ -843,7 +844,7 @@ void EnSkj_Fight(EnSkj* this, PlayState* play) {
+ 
+         this->skelAnime.playSpeed = (yawDistToPlayer < 0) ? -(1.0f + phi_f14) : (1.0f + phi_f14);
+ 
+-    } else if (func_80AFEDF8(this, play) != 0) {
++    } else if (EnSkj_IsPlayerEngaging(this, play) != 0) {  // was func_80AFEDF8 [LLM:HIGH]
+         this->backflipFlag = 1;
+         EnSkj_Backflip(this);
+     } else {
+-- 
+2.55.0
+

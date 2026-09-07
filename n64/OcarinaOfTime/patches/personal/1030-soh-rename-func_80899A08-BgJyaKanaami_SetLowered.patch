@@ -1,0 +1,61 @@
+From aa8955ce5f398365d4c8c46e6c9d195bde10a0b4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:37:32 +0000
+Subject: [PATCH 1030/3799] soh: rename func_80899A08 ->
+ BgJyaKanaami_SetLowered
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the terminal state: pins world.rot.x at 0x4000 and clears actionFunc so nothing runs again.
+Defined in soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c         | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c b/soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c
+index c1a8cb1e5..1497f9a05 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c
+@@ -22,7 +22,8 @@ void BgJyaKanaami_Wait(BgJyaKanaami* this, PlayState* play);  // was func_808998
+ void BgJyaKanaami_SetupSwingDown(BgJyaKanaami* this);  // was func_8089993C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80899950: accelerates world.rot.x round to 0x4000, then plays the trap-bound sfx and shakes the camera.
+ void BgJyaKanaami_SwingDown(BgJyaKanaami* this, PlayState* play);  // was func_80899950 [LLM:HIGH]
+-void func_80899A08(BgJyaKanaami* this);
++// LLM generated name (HIGH), was func_80899A08: the terminal state: pins world.rot.x at 0x4000 and clears actionFunc so nothing runs again.
++void BgJyaKanaami_SetLowered(BgJyaKanaami* this);  // was func_80899A08 [LLM:HIGH]
+ 
+ const ActorInit Bg_Jya_Kanaami_InitVars = {
+     ACTOR_BG_JYA_KANAAMI,
+@@ -64,7 +65,7 @@ void BgJyaKanaami_Init(Actor* thisx, PlayState* play) {
+     BgJyaKanaami_InitDynaPoly(this, play, &gKanaamiCol, DPM_UNK);
+     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
+     if (Flags_GetSwitch(play, this->dyna.actor.params & 0x3F)) {
+-        func_80899A08(this);
++        BgJyaKanaami_SetLowered(this);  // was func_80899A08 [LLM:HIGH]
+     } else {
+         BgJyaKanaami_SetupWait(this);  // was func_80899880 [LLM:HIGH]
+     }
+@@ -105,7 +106,7 @@ void BgJyaKanaami_SwingDown(BgJyaKanaami* this, PlayState* play) {
+ 
+     this->unk_168 += 0x20;
+     if (Math_ScaledStepToS(&this->dyna.actor.world.rot.x, 0x4000, this->unk_168)) {
+-        func_80899A08(this);
++        BgJyaKanaami_SetLowered(this);  // was func_80899A08 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_TRAP_BOUND);
+         quakeId = Quake_Add(GET_ACTIVE_CAM(play), 3);
+         Quake_SetSpeed(quakeId, 25000);
+@@ -114,7 +115,7 @@ void BgJyaKanaami_SwingDown(BgJyaKanaami* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80899A08(BgJyaKanaami* this) {
++void BgJyaKanaami_SetLowered(BgJyaKanaami* this) {
+     this->actionFunc = 0;
+     this->dyna.actor.world.rot.x = 0x4000;
+ }
+-- 
+2.55.0
+

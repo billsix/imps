@@ -1,0 +1,50 @@
+From 57fc190ccf5564c950f344bdc8d2fa598cd0b5f1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:12:00 +0000
+Subject: [PATCH 0873/3799] soh: rename func_808BB128 -> BgTokiSwd_FadeInLight
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the terminal action: while environment flag 1 is set, raises the room's light level by 5 per frame up to 0xFF -- the glow that fills the chamber after the sword moves.
+Defined in soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
+index 10f3c31ea..280b252ca 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
++++ b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
+@@ -20,7 +20,8 @@ void BgTokiSwd_Draw(Actor* thisx, PlayState* play);
+ void BgTokiSwd_WaitForPlayer(BgTokiSwd* this, PlayState* play);  // was func_808BAF40 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_808BB0AC: runs once the player interacts: when the sword gains a parent it was pulled (child, stop drawing) or placed (adult, draw it), then hands off to the light-fade action; otherwise it offers itself as the interact-range actor.
+ void BgTokiSwd_HandlePullOrPlace(BgTokiSwd* this, PlayState* play);  // was func_808BB0AC [LLM:HIGH]
+-void func_808BB128(BgTokiSwd* this, PlayState* play);
++// LLM generated name (HIGH), was func_808BB128: the terminal action: while environment flag 1 is set, raises the room's light level by 5 per frame up to 0xFF -- the glow that fills the chamber after the sword moves.
++void BgTokiSwd_FadeInLight(BgTokiSwd* this, PlayState* play);  // was func_808BB128 [LLM:HIGH]
+ 
+ // Name from zeldaret/oot (was D_808BB2F0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c]
+ extern CutsceneData gPullMasterSwordCs[];
+@@ -177,14 +178,14 @@ void BgTokiSwd_HandlePullOrPlace(BgTokiSwd* this, PlayState* play) {
+         } else {
+             this->actor.draw = BgTokiSwd_Draw; // sword has been placed, draw the master sword
+         }
+-        BgTokiSwd_SetupAction(this, func_808BB128);
++        BgTokiSwd_SetupAction(this, BgTokiSwd_FadeInLight);  // was func_808BB128 [LLM:HIGH]
+     } else {
+         player = GET_PLAYER(play);
+         player->interactRangeActor = &this->actor;
+     }
+ }
+ 
+-void func_808BB128(BgTokiSwd* this, PlayState* play) {
++void BgTokiSwd_FadeInLight(BgTokiSwd* this, PlayState* play) {
+     if (Flags_GetEnv(play, 1) && (play->roomCtx.unk_74[0] < 0xFF)) {
+         play->roomCtx.unk_74[0] += 5;
+     }
+-- 
+2.55.0
+

@@ -1,0 +1,71 @@
+From 9a87ff27a8edc4f2ebd7411cee5f199dd439bb7f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:55 +0000
+Subject: [PATCH 2497/3799] soh: rename func_800F4138 ->
+ Audio_PlaySfxWithSpeedScales
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: plays a sound with the frequency and volume scales derived from the caller's speed
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/src/code/audio_general.c                        | 3 ++-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 07d1a6ff4..e371298d4 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2073,7 +2073,7 @@ void Audio_SetSfxProperties(u8 bankId, u8 entryIdx, u8 channelIdx);
+ void Audio_PlayCutsceneEffectsSequence(u8);  // was func_800F3F3C [oot]
+ void Audio_PlayWalkSfx(Vec3f* pos, u16 sfxId, f32);  // was func_800F4010 [LLM:GUESS]
+ void Audio_PlaySoundRandom(Vec3f* pos, u16 baseSfxId, u8 randLim);
+-void func_800F4138(Vec3f* pos, u16 sfxId, f32);
++void Audio_PlaySfxWithSpeedScales(Vec3f* pos, u16 sfxId, f32);  // was func_800F4138 [LLM:HIGH]
+ void func_800F4190(Vec3f* pos, u16 sfxId);
+ void func_800F436C(Vec3f* pos, u16 sfxId, f32 arg2);
+ void func_800F4414(Vec3f* pos, u16 sfxId, f32);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 19f90083c..a0939a012 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4425,7 +4425,8 @@ void Audio_PlayWalkSfx(Vec3f* pos, u16 sfxId, f32 arg2) {
+     }
+ }
+ 
+-void func_800F4138(Vec3f* pos, u16 sfxId, f32 arg2) {
++// LLM generated name (HIGH), was func_800F4138: plays a sound with the frequency and volume scales derived from the caller's speed
++void Audio_PlaySfxWithSpeedScales(Vec3f* pos, u16 sfxId, f32 arg2) {
+     Audio_SetSfxScalesFromSpeed(arg2);  // was func_800F3F84 [LLM:HIGH]
+     Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7B0, &D_8016B7A8, &gSfxDefaultReverb);
+ }
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index d4d06fd8c..479535e5a 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -11926,7 +11926,7 @@ void Player_UpdateCommon(Player* this, PlayState* play, Input* input) {
+                 }
+ 
+                 if ((this->linearVelocity == 0.0f) && (this->actor.speedXZ != 0.0f)) {
+-                    func_800F4138(&this->actor.projectedPos, 0xD0, this->actor.speedXZ);
++                    Audio_PlaySfxWithSpeedScales(&this->actor.projectedPos, 0xD0, this->actor.speedXZ);  // was func_800F4138 [LLM:HIGH]
+                 }
+             } else {
+                 this->actor.speedXZ = this->linearVelocity;
+@@ -14677,7 +14677,7 @@ void Player_Action_SlideOnSlope(Player* this, PlayState* play) {
+     this->stateFlags2 |= PLAYER_STATE2_DISABLE_ROTATION_Z_TARGET | PLAYER_STATE2_DISABLE_ROTATION_ALWAYS;
+     LinkAnimation_Update(play, &this->skelAnime);
+     func_8084269C(play, this);
+-    func_800F4138(&this->actor.projectedPos, NA_SE_PL_SLIP_LEVEL - SFX_FLAG, this->actor.speedXZ);
++    Audio_PlaySfxWithSpeedScales(&this->actor.projectedPos, NA_SE_PL_SLIP_LEVEL - SFX_FLAG, this->actor.speedXZ);  // was func_800F4138 [LLM:HIGH]
+ 
+     if (Player_ActionHandler_13(this, play) == 0) {
+         CollisionPoly* floorPoly = this->actor.floorPoly;
+-- 
+2.55.0
+

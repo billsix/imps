@@ -1,0 +1,100 @@
+From 1d548cc66545df3dc9c8c5aea7d92a1823653414 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:06:35 +0000
+Subject: [PATCH 1965/3799] soh: rename D_8094C86F -> sShieldFlashTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: countdown that decides whether sShieldFlashAlpha rises or falls
+Defined in soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Boss_Tw/z_boss_tw.c   | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+index 2128e0d81..a60ad0d0e 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
++++ b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+@@ -193,7 +193,8 @@ static u8 sFreezeState;
+ static Vec3f sShieldHitPos;
+ static s16 sShieldHitYaw;
+ static u8 sBeamDivertTimer;
+-static u8 D_8094C86F;
++// LLM generated name (HIGH), was D_8094C86F: countdown that decides whether sShieldFlashAlpha rises or falls
++static u8 sShieldFlashTimer;  // was D_8094C86F [LLM:HIGH]
+ static u8 D_8094C870;
+ static s16 D_8094C872;
+ static s16 D_8094C874;
+@@ -472,7 +473,7 @@ void BossTw_Init(Actor* thisx, PlayState* play2) {
+         play->envCtx.unk_BD = 1;
+         play->envCtx.unk_D8 = 0.0f;
+ 
+-        D_8094C874 = D_8094C876 = D_8094C878 = D_8094C87A = D_8094C87C = D_8094C87E = D_8094C870 = D_8094C86F =
++        D_8094C874 = D_8094C876 = D_8094C878 = D_8094C87A = D_8094C87C = D_8094C87E = D_8094C870 = sShieldFlashTimer =  // was D_8094C86F [LLM:HIGH]
+             D_8094C872 = sBeamDivertTimer = sEnvType = sGroundBlastType = sFreezeState = sTwinrovaBlastType =
+                 sFixedBlatSeq = sShieldFireCharge = sShieldIceCharge = 0;
+ 
+@@ -3735,10 +3736,10 @@ void BossTw_ShieldChargeDraw(BossTw* this, PlayState* play) {
+         }
+     }
+ 
+-    if (D_8094C86F != 0) {
++    if (sShieldFlashTimer != 0) {  // was D_8094C86F [LLM:HIGH]
+         f32 step = D_8094C872 > 0 ? 100.0f : 60.0f;
+ 
+-        D_8094C86F--;
++        sShieldFlashTimer--;  // was D_8094C86F [LLM:HIGH]
+         Math_ApproachF(&sShieldFlashAlpha, 255.0f, 1.0f, step);  // was D_8094C858 [LLM:HIGH]
+     } else {
+         f32 step = D_8094C872 > 0 ? 40.0f : 20.0f;
+@@ -3948,7 +3949,7 @@ void BossTw_BlastFire(BossTw* this, PlayState* play) {
+                         Math_ApproachS(&this->magicDir.y, blastDir.y, 0xA, 0x800);
+ 
+                         if (this->timers[0] == 50) {
+-                            D_8094C86F = 10;
++                            sShieldFlashTimer = 10;  // was D_8094C86F [LLM:HIGH]
+                             D_8094C872 = 7;
+                             play->envCtx.unk_D8 = 1.0f;
+                         }
+@@ -4137,7 +4138,7 @@ void BossTw_BlastIce(BossTw* this, PlayState* play) {
+                         Math_ApproachS(&this->magicDir.y, reflDir.y, 0xA, 0x800);
+ 
+                         if (this->timers[0] == 50) {
+-                            D_8094C86F = 10;
++                            sShieldFlashTimer = 10;  // was D_8094C86F [LLM:HIGH]
+                             D_8094C872 = 7;
+                             play->envCtx.unk_D8 = 1.0f;
+                         }
+@@ -4331,7 +4332,7 @@ s32 BossTw_BlastShieldCheck(BossTw* this, PlayState* play) {
+                         } else {
+                             BossTw_AddShieldHitEffect(play, 10.0f, 1);
+                             sShieldFireCharge++;
+-                            D_8094C86F = (sShieldFireCharge * 2) + 8;
++                            sShieldFlashTimer = (sShieldFireCharge * 2) + 8;  // was D_8094C86F [LLM:HIGH]
+                             D_8094C872 = -7;
+                         }
+                     } else {
+@@ -4341,7 +4342,7 @@ s32 BossTw_BlastShieldCheck(BossTw* this, PlayState* play) {
+                         } else {
+                             BossTw_AddShieldHitEffect(play, 10.0f, 0);
+                             sShieldIceCharge++;
+-                            D_8094C86F = (sShieldIceCharge * 2) + 8;
++                            sShieldFlashTimer = (sShieldIceCharge * 2) + 8;  // was D_8094C86F [LLM:HIGH]
+                             D_8094C872 = -7;
+                         }
+                     }
+@@ -4352,7 +4353,7 @@ s32 BossTw_BlastShieldCheck(BossTw* this, PlayState* play) {
+                         Matrix_MtxFToYXZRotS(&player->shieldMf, &this->magicDir, 0);
+                         this->magicDir.y += 0x8000;
+                         this->magicDir.x = -this->magicDir.x;
+-                        D_8094C86F = 8;
++                        sShieldFlashTimer = 8;  // was D_8094C86F [LLM:HIGH]
+                     } else {
+                         this->csState1 = 2;
+                         this->timers[0] = 20;
+-- 
+2.55.0
+

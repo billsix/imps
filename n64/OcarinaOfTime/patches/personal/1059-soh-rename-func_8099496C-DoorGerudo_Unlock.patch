@@ -1,0 +1,51 @@
+From 1696209165582a86a54a380a14dc071d3650cc83 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:39:39 +0000
+Subject: [PATCH 1059/3799] soh: rename func_8099496C -> DoorGerudo_Unlock
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts down the lock animation timer that the draw function also reads, then plays the sliding-door sfx and starts the opening slide.
+Defined in soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c b/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
+index c53f64afb..2c3bc752c 100644
+--- a/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
++++ b/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
+@@ -19,7 +19,8 @@ void DoorGerudo_Draw(Actor* thisx, PlayState* play);
+ void DoorGerudo_Idle(DoorGerudo* this, PlayState* play);  // was func_8099485C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80994750: returns 1 or -1 for the side the player is standing on when they are within 40 units of the door plane and facing it, and 0 otherwise.
+ s32 DoorGerudo_GetApproachDirection(DoorGerudo* this, PlayState* play);  // was func_80994750 [LLM:HIGH]
+-void func_8099496C(DoorGerudo* this, PlayState* play);
++// LLM generated name (HIGH), was func_8099496C: counts down the lock animation timer that the draw function also reads, then plays the sliding-door sfx and starts the opening slide.
++void DoorGerudo_Unlock(DoorGerudo* this, PlayState* play);  // was func_8099496C [LLM:HIGH]
+ void func_809949C8(DoorGerudo* this, PlayState* play);
+ 
+ const ActorInit Door_Gerudo_InitVars = {
+@@ -103,7 +104,7 @@ s32 DoorGerudo_GetApproachDirection(DoorGerudo* this, PlayState* play) {
+ 
+ void DoorGerudo_Idle(DoorGerudo* this, PlayState* play) {
+     if (this->unk_164 != 0) {
+-        this->actionFunc = func_8099496C;
++        this->actionFunc = DoorGerudo_Unlock;  // was func_8099496C [LLM:HIGH]
+         gSaveContext.inventory.dungeonKeys[gSaveContext.mapIndex] -= 1;
+         Flags_SetSwitch(play, this->dyna.actor.params & 0x3F);
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_CHAIN_KEY_UNLOCK);
+@@ -128,7 +129,7 @@ void DoorGerudo_Idle(DoorGerudo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8099496C(DoorGerudo* this, PlayState* play) {
++void DoorGerudo_Unlock(DoorGerudo* this, PlayState* play) {
+     if (DECR(this->unk_166) == 0) {
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_SLIDE_DOOR_OPEN);
+         this->actionFunc = func_809949C8;
+-- 
+2.55.0
+

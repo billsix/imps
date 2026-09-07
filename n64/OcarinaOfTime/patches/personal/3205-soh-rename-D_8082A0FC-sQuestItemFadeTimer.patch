@@ -1,0 +1,65 @@
+From 95c7b1cbb3c8b74d253f6939653840a3befd5b9e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:08:00 +0000
+Subject: [PATCH 3205/3799] soh: rename D_8082A0FC -> sQuestItemFadeTimer
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: counts the quest slot colour fade down
+Defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../misc/ovl_kaleido_scope/z_kaleido_collect.c   | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
+index 23ec40ce2..33fe023d5 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
+@@ -22,7 +22,7 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+     static s16 sQuestItemR[] = { 255, 255, 255, 255, 255, 255 };  // was D_8082A0D8 [LLM:HIGH]
+     static s16 sQuestItemG[] = { 255, 255, 255, 255, 255, 255 };  // was D_8082A0E4 [LLM:HIGH]
+     static s16 sQuestItemB[] = { 150, 150, 150, 150, 150, 150 };  // was D_8082A0F0 [LLM:HIGH]
+-    static s16 D_8082A0FC = 20;
++    static s16 sQuestItemFadeTimer = 20;  // was D_8082A0FC [LLM:HIGH]
+     static s16 D_8082A100 = 0;
+     static s16 D_8082A104 = 0;
+     static s16 D_8082A108 = 0;
+@@ -313,16 +313,16 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+     gDPSetCombineLERP(POLY_OPA_DISP++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0, PRIMITIVE,
+                       ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+ 
+-    D_8082A0FC--;
++    sQuestItemFadeTimer--;  // was D_8082A0FC [LLM:HIGH]
+ 
+     for (sp218 = 0, sp21A = 0; sp218 < 6; sp218++, sp21A += 4) {
+         if ((D_8082A100 != 1) && (D_8082A100 != 3)) {
+             phi_v1 = (D_8082A100 != 0) ? sp218 + 6 : sp218;
+ 
+-            if (D_8082A0FC != 0) {
+-                sp226 = ABS(sQuestItemR[sp218] - sQuestItemColorSets[phi_v1][0]) / D_8082A0FC;  // was D_8082A090 [LLM:HIGH]
+-                sp224 = ABS(sQuestItemG[sp218] - sQuestItemColorSets[phi_v1][1]) / D_8082A0FC;  // was D_8082A090 [LLM:HIGH]
+-                sp222 = ABS(sQuestItemB[sp218] - sQuestItemColorSets[phi_v1][2]) / D_8082A0FC;  // was D_8082A090 [LLM:HIGH]
++            if (sQuestItemFadeTimer != 0) {  // was D_8082A0FC [LLM:HIGH]
++                sp226 = ABS(sQuestItemR[sp218] - sQuestItemColorSets[phi_v1][0]) / sQuestItemFadeTimer;  // was D_8082A090 [LLM:HIGH]
++                sp224 = ABS(sQuestItemG[sp218] - sQuestItemColorSets[phi_v1][1]) / sQuestItemFadeTimer;  // was D_8082A090 [LLM:HIGH]
++                sp222 = ABS(sQuestItemB[sp218] - sQuestItemColorSets[phi_v1][2]) / sQuestItemFadeTimer;  // was D_8082A090 [LLM:HIGH]
+                 if (sQuestItemR[sp218] >= sQuestItemColorSets[phi_v1][0]) {  // was D_8082A090 [LLM:HIGH]
+                     sQuestItemR[sp218] -= sp226;  // was D_8082A0D8 [LLM:HIGH]
+                 } else {
+@@ -355,8 +355,8 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+         }
+     }
+ 
+-    if (D_8082A0FC == 0) {
+-        D_8082A0FC = ZREG(61 + D_8082A100);
++    if (sQuestItemFadeTimer == 0) {  // was D_8082A0FC [LLM:HIGH]
++        sQuestItemFadeTimer = ZREG(61 + D_8082A100);  // was D_8082A0FC [LLM:HIGH]
+         if (++D_8082A100 >= 4) {
+             D_8082A100 = 0;
+         }
+-- 
+2.55.0
+

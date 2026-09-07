@@ -1,0 +1,60 @@
+From d774690bc1ac1491caf0125ab3b8b25c796326dc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:20:38 +0000
+Subject: [PATCH 0907/3799] soh: rename D_80B8E670 -> sReflectionDrawn
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: file-static flag cleared by every MirRay_Update and set to 1 by the first MirRay_Draw that actually renders the mirror-shield reflection, so only one Mir_Ray draws it per frame.
+Defined in soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c b/soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c
+index ae1b130bd..15529b312 100644
+--- a/soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c
++++ b/soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c
+@@ -45,7 +45,8 @@ const ActorInit Mir_Ray_InitVars = {
+     NULL,
+ };
+ 
+-static u8 D_80B8E670 = 0;
++// LLM generated name (HIGH), was D_80B8E670: file-static flag cleared by every MirRay_Update and set to 1 by the first MirRay_Draw that actually renders the mirror-shield reflection, so only one Mir_Ray draws it per frame.
++static u8 sReflectionDrawn = 0;  // was D_80B8E670 [LLM:HIGH]
+ 
+ static ColliderQuadInit sQuadInit = {
+     {
+@@ -244,7 +245,7 @@ void MirRay_Update(Actor* thisx, PlayState* play) {
+     MirRay* this = (MirRay*)thisx;
+     Player* player = GET_PLAYER(play);
+ 
+-    D_80B8E670 = 0;
++    sReflectionDrawn = 0;  // was D_80B8E670 [LLM:HIGH]
+ 
+     if (!this->unLit) {
+         if (sMirRayData[this->actor.params].params & 2) {
+@@ -485,7 +486,7 @@ void MirRay_Draw(Actor* thisx, PlayState* play) {
+     s32 temp;
+ 
+     this->reflectIntensity = 0.0f;
+-    if ((D_80B8E670 == 0) && !this->unLit && Player_HasMirrorShieldSetToDraw(play)) {
++    if ((sReflectionDrawn == 0) && !this->unLit && Player_HasMirrorShieldSetToDraw(play)) {  // was D_80B8E670 [LLM:HIGH]
+         Matrix_Mult(&player->shieldMf, MTXMODE_NEW);
+         MirRay_SetIntensity(this, play);
+         if (!(this->reflectIntensity <= 0.0f)) {
+@@ -526,7 +527,7 @@ void MirRay_Draw(Actor* thisx, PlayState* play) {
+                 }
+             }
+ 
+-            D_80B8E670 = 1;
++            sReflectionDrawn = 1;  // was D_80B8E670 [LLM:HIGH]
+ 
+             CLOSE_DISPS(play->state.gfxCtx);
+         }
+-- 
+2.55.0
+

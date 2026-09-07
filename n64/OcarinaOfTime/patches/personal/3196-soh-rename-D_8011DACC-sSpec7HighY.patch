@@ -1,0 +1,53 @@
+From ccc5a3e4eb5ae9b892e908822c0a703ed99f6543 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:05 +0000
+Subject: [PATCH 3196/3799] soh: rename D_8011DACC -> sSpec7HighY
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the upper height threshold per spec 7 index
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c        | 4 ++--
+ soh/src/code/z_camera_data.inc | 3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index acbfdc323..358607dbe 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -6690,12 +6690,12 @@ s32 Camera_Special7(Camera* camera) {
+         camera->roll = 0;
+     }
+ 
+-    if (camera->at.y < D_8011DACC[spec7->idx]) {
++    if (camera->at.y < sSpec7HighY[spec7->idx]) {  // was D_8011DACC [LLM:HIGH]
+         atTarget = playerPosRot->pos;
+         atTarget.y -= 20.0f;
+         Camera_LERPCeilVec3f(&atTarget, &camera->at, 0.4f, 0.4f, 0.10f);
+         camera->eye = camera->eyeNext = sSpec7EyeHighPoints[spec7->idx];  // was D_8011DA6C [LLM:HIGH]
+-        temp_f0 = (playerPosRot->pos.y - D_8011DADC[spec7->idx]) / (D_8011DACC[spec7->idx] - D_8011DADC[spec7->idx]);
++        temp_f0 = (playerPosRot->pos.y - D_8011DADC[spec7->idx]) / (sSpec7HighY[spec7->idx] - D_8011DADC[spec7->idx]);  // was D_8011DACC [LLM:HIGH]
+         camera->roll = D_8011DAEC[spec7->idx] * temp_f0;
+         camera->fov = (20.0f * temp_f0) + 60.0f;
+     } else {
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index a7733aade..1cbeabc73 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2407,7 +2407,8 @@ Vec3f sSpec7EyeLowPoints[] = {  // was D_8011DA9C [LLM:HIGH]
+     { -50.0f, 600.0f, -75.0f },
+ };
+ 
+-f32 D_8011DACC[] = { 1570.0f, 3680.0f, 3700.0f, 395.0f };
++// LLM generated name (HIGH), was D_8011DACC: the upper height threshold per spec 7 index
++f32 sSpec7HighY[] = { 1570.0f, 3680.0f, 3700.0f, 395.0f };  // was D_8011DACC [LLM:HIGH]
+ 
+ f32 D_8011DADC[] = { 320.0f, 320.0f, 320.0f, 0.0f };
+ 
+-- 
+2.55.0
+

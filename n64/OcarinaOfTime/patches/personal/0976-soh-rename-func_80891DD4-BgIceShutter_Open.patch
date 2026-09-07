@@ -1,0 +1,57 @@
+From 30eb2191bd410d257f17548814cfc4583e186ff9 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:33:17 +0000
+Subject: [PATCH 0976/3799] soh: rename func_80891DD4 -> BgIceShutter_Open
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: accelerates the shutter to speed 30 and slides it 210 units along its axis, then kills the actor.
+Defined in soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c         | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c b/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
+index c230c773d..d90c15aa9 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
+@@ -18,7 +18,8 @@ void BgIceShutter_Draw(Actor* thisx, PlayState* play);
+ void BgIceShutter_WaitForRoomClear(BgIceShutter* thisx, PlayState* play);  // was func_80891CF4 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80891D6C: the switch-flag variant of the same wait, used when the shutter is keyed to a switch rather than to clearing the room.
+ void BgIceShutter_WaitForSwitch(BgIceShutter* thisx, PlayState* play);  // was func_80891D6C [LLM:HIGH]
+-void func_80891DD4(BgIceShutter* thisx, PlayState* play);
++// LLM generated name (HIGH), was func_80891DD4: accelerates the shutter to speed 30 and slides it 210 units along its axis, then kills the actor.
++void BgIceShutter_Open(BgIceShutter* thisx, PlayState* play);  // was func_80891DD4 [LLM:HIGH]
+ 
+ const ActorInit Bg_Ice_Shutter_InitVars = {
+     ACTOR_BG_ICE_SHUTTER,
+@@ -102,7 +103,7 @@ void BgIceShutter_WaitForRoomClear(BgIceShutter* this, PlayState* play) {
+     if (Flags_GetTempClear(play, this->dyna.actor.room)) {
+         Flags_SetClear(play, this->dyna.actor.room);
+         SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 30, NA_SE_EV_SLIDE_DOOR_OPEN);
+-        this->actionFunc = func_80891DD4;
++        this->actionFunc = BgIceShutter_Open;  // was func_80891DD4 [LLM:HIGH]
+         if (this->dyna.actor.shape.rot.x == 0) {
+             OnePointCutscene_Attention(play, &this->dyna.actor);
+         }
+@@ -112,12 +113,12 @@ void BgIceShutter_WaitForRoomClear(BgIceShutter* this, PlayState* play) {
+ void BgIceShutter_WaitForSwitch(BgIceShutter* this, PlayState* play) {
+     if (Flags_GetSwitch(play, this->dyna.actor.params)) {
+         SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 30, NA_SE_EV_SLIDE_DOOR_OPEN);
+-        this->actionFunc = func_80891DD4;
++        this->actionFunc = BgIceShutter_Open;  // was func_80891DD4 [LLM:HIGH]
+         OnePointCutscene_Attention(play, &this->dyna.actor);
+     }
+ }
+ 
+-void func_80891DD4(BgIceShutter* this, PlayState* play) {
++void BgIceShutter_Open(BgIceShutter* this, PlayState* play) {
+     Math_StepToF(&this->dyna.actor.speedXZ, 30.0f, 2.0f);
+     if (Math_StepToF(&this->dyna.actor.velocity.y, 210.0f, this->dyna.actor.speedXZ)) {
+         Actor_Kill(&this->dyna.actor);
+-- 
+2.55.0
+

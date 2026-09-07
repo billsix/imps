@@ -1,0 +1,60 @@
+From 41ee838a9700f94e3f99998dd673f3b55b3690d8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:12:42 +0000
+Subject: [PATCH 1357/3799] soh: rename func_80A8F9C8 -> EnKakasi_Talk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits for the textbox to be advanced, then starts the one-point cutscene and the scarecrow's-song playback prompt.
+Defined in soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c b/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
+index 8dc3a191b..893af3909 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
+@@ -21,7 +21,8 @@ void EnKakasi_SetupIdle(EnKakasi* this, PlayState* play);  // was func_80A8F660
+ void EnKakasi_Idle(EnKakasi* this, PlayState* play);  // was func_80A8F75C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A8F8D0: dances to each note while the player has the ocarina out, and when it is put away either starts the "I remember it" text or returns to the idle setup.
+ void EnKakasi_WaitForSongEnd(EnKakasi* this, PlayState* play);  // was func_80A8F8D0 [LLM:HIGH]
+-void func_80A8F9C8(EnKakasi* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A8F9C8: waits for the textbox to be advanced, then starts the one-point cutscene and the scarecrow's-song playback prompt.
++void EnKakasi_Talk(EnKakasi* this, PlayState* play);  // was func_80A8F9C8 [LLM:HIGH]
+ void func_80A8FBB8(EnKakasi* this, PlayState* play);
+ void func_80A8FAA4(EnKakasi* this, PlayState* play);
+ 
+@@ -206,7 +207,7 @@ void EnKakasi_Idle(EnKakasi* this, PlayState* play) {
+     this->camId = SUBCAM_NONE;
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if (this->unk_196 == TEXT_STATE_EVENT) {
+-            this->actionFunc = func_80A8F9C8;
++            this->actionFunc = EnKakasi_Talk;  // was func_80A8F9C8 [LLM:HIGH]
+         } else {
+             this->actionFunc = EnKakasi_SetupIdle;  // was func_80A8F660 [LLM:HIGH]
+         }
+@@ -250,7 +251,7 @@ void EnKakasi_WaitForSongEnd(EnKakasi* this, PlayState* play) {
+             this->actor.textId = 0x4077;
+             this->unk_196 = TEXT_STATE_EVENT;
+             Message_StartTextbox(play, this->actor.textId, NULL);
+-            this->actionFunc = func_80A8F9C8;
++            this->actionFunc = EnKakasi_Talk;  // was func_80A8F9C8 [LLM:HIGH]
+         } else {
+             OnePointCutscene_EndCutscene(play, this->camId);
+             this->camId = SUBCAM_NONE;
+@@ -262,7 +263,7 @@ void EnKakasi_WaitForSongEnd(EnKakasi* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A8F9C8(EnKakasi* this, PlayState* play) {
++void EnKakasi_Talk(EnKakasi* this, PlayState* play) {
+     EnKakasi_ReturnToRest(this);  // was func_80A8F28C [LLM:HIGH]
+     SkelAnime_Update(&this->skelanime);
+     Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-- 
+2.55.0
+

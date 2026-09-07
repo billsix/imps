@@ -1,0 +1,94 @@
+From c81641e494f22a2a99e4c96c19e467637482fe7c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:42:36 +0000
+Subject: [PATCH 1766/3799] soh: rename func_800B3F94 ->
+ DbCamera_WorldToPlayerRelS
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: converts a world point into a position relative to the player's frame and stores it as a Vec3s.
+Defined in soh/src/code/db_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h  |  2 +-
+ soh/src/code/db_camera.c | 19 ++++++++++---------
+ 2 files changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 196edfa2b..b007678cb 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1487,7 +1487,7 @@ void ShrinkWindow_Update(s32 updateRate);
+ // ? DbCamera_Vec3FToS(?);
+ // ? DbCamera_CopyVec3f(?);
+ // ? DbCamera_Vec3SToF2(?);
+-// ? func_800B3F94(?);
++// ? DbCamera_WorldToPlayerRelS(?);, was func_800B3F94 [LLM:HIGH]
+ // ? func_800B3FF4(?);
+ // ? func_800B404C(?);
+ // ? func_800B4088(?);
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index 9a03aec03..51367db67 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -154,7 +154,8 @@ void DbCamera_Vec3SToF2(Vec3s* in, Vec3f* out) {
+     out->z = in->z;
+ }
+ 
+-void func_800B3F94(PosRot* posRot, Vec3f* vec, Vec3s* out) {
++// LLM generated name (HIGH), was func_800B3F94: converts a world point into a position relative to the player's frame and stores it as a Vec3s.
++void DbCamera_WorldToPlayerRelS(PosRot* posRot, Vec3f* vec, Vec3s* out) {
+     VecSph sph;
+     Vec3f tempVec;
+     OLib_Vec3fDiffToVecSphGeo(&sph, &posRot->pos, vec);
+@@ -197,8 +198,8 @@ s32 func_800B4088(DbCamera* dbCamera, Camera* cam) {
+         DbCamera_Vec3FToS(&dbCamera->eye, &position->pos);
+         DbCamera_Vec3FToS(&dbCamera->at, &lookAt->pos);
+     } else {
+-        func_800B3F94(&cam->playerPosRot, &dbCamera->at, &lookAt->pos);
+-        func_800B3F94(&cam->playerPosRot, &dbCamera->eye, &position->pos);
++        DbCamera_WorldToPlayerRelS(&cam->playerPosRot, &dbCamera->at, &lookAt->pos);  // was func_800B3F94 [LLM:HIGH]
++        DbCamera_WorldToPlayerRelS(&cam->playerPosRot, &dbCamera->eye, &position->pos);  // was func_800B3F94 [LLM:HIGH]
+     }
+ 
+     for (i = 0; i < (dbCamera->sub.nPoints - 2); i++) {
+@@ -239,8 +240,8 @@ s32 func_800B42C0(DbCamera* dbCamera, Camera* cameraPtr) {
+         DbCamera_Vec3FToS(&dbCamera->eye, &position->pos);
+         DbCamera_Vec3FToS(&dbCamera->at, &lookAt->pos);
+     } else {
+-        func_800B3F94(&cameraPtr->playerPosRot, &dbCamera->at, &lookAt->pos);
+-        func_800B3F94(&cameraPtr->playerPosRot, &dbCamera->eye, &position->pos);
++        DbCamera_WorldToPlayerRelS(&cameraPtr->playerPosRot, &dbCamera->at, &lookAt->pos);  // was func_800B3F94 [LLM:HIGH]
++        DbCamera_WorldToPlayerRelS(&cameraPtr->playerPosRot, &dbCamera->eye, &position->pos);  // was func_800B3F94 [LLM:HIGH]
+     }
+ 
+     return dbCamera->sub.unkIdx;
+@@ -1093,9 +1094,9 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                                     dbCamera->unk_78 = 2;
+                                     for (i = 0; i < dbCamera->sub.nPoints; i++) {
+                                         DbCamera_Vec3SToF2(&dbCamera->sub.lookAt[i].pos, &spD8);
+-                                        func_800B3F94(temp_s6, &spD8, &dbCamera->sub.lookAt[i].pos);
++                                        DbCamera_WorldToPlayerRelS(temp_s6, &spD8, &dbCamera->sub.lookAt[i].pos);  // was func_800B3F94 [LLM:HIGH]
+                                         DbCamera_Vec3SToF2(&dbCamera->sub.position[i].pos, &spD8);
+-                                        func_800B3F94(temp_s6, &spD8, &dbCamera->sub.position[i].pos);
++                                        DbCamera_WorldToPlayerRelS(temp_s6, &spD8, &dbCamera->sub.position[i].pos);  // was func_800B3F94 [LLM:HIGH]
+                                     }
+                                 } else {
+                                     for (i = 0; i < dbCamera->sub.nPoints; i++) {
+@@ -1182,9 +1183,9 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                                     dbCamera->unk_78 = 2;
+                                     for (i = 0; i < dbCamera->sub.nPoints; i++) {
+                                         DbCamera_Vec3SToF2(&dbCamera->sub.lookAt[i].pos, &spD8);
+-                                        func_800B3F94(temp_s6, &spD8, &dbCamera->sub.lookAt[i].pos);
++                                        DbCamera_WorldToPlayerRelS(temp_s6, &spD8, &dbCamera->sub.lookAt[i].pos);  // was func_800B3F94 [LLM:HIGH]
+                                         DbCamera_Vec3SToF2(&dbCamera->sub.position[i].pos, &spD8);
+-                                        func_800B3F94(temp_s6, &spD8, &dbCamera->sub.position[i].pos);
++                                        DbCamera_WorldToPlayerRelS(temp_s6, &spD8, &dbCamera->sub.position[i].pos);  // was func_800B3F94 [LLM:HIGH]
+                                     }
+                                 } else {
+                                     for (i = 0; i < dbCamera->sub.nPoints; i++) {
+-- 
+2.55.0
+

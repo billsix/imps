@@ -1,0 +1,65 @@
+From ec73d9a91cd45f66e603ad74b23770224a268196 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:04 +0000
+Subject: [PATCH 3189/3799] soh: rename D_8011D83C -> sAttentionCloseKeyFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the keyframes used when both the target and the player are close to the camera
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c        | 10 +++++-----
+ soh/src/code/z_camera_data.inc |  3 ++-
+ 2 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 4d41708b8..34528ebcc 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -6103,13 +6103,13 @@ s32 Camera_Demo5(Camera* camera) {
+     } else if (eyeTargetDist < 300.0f && eyePlayerGeo.r < 30.0f) {
+         // distance from the camera's current positon and the target is less than 300 units
+         // and the distance fromthe camera's current position to the player is less than 30 units
+-        D_8011D83C[0].timerInit = camera->timer;
+-        ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D83C;
+-        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D83C);
++        sAttentionCloseKeyFrames[0].timerInit = camera->timer;  // was D_8011D83C [LLM:HIGH]
++        ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionCloseKeyFrames;  // was D_8011D83C [LLM:HIGH]
++        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionCloseKeyFrames);  // was D_8011D83C [LLM:HIGH]
+         if (camera->parentCamIdx != CAM_ID_MAIN) {
+             ONEPOINT_CS_INFO(camera)->keyFrameCnt--;
+         } else {
+-            camera->timer += D_8011D83C[1].timerInit;
++            camera->timer += sAttentionCloseKeyFrames[1].timerInit;  // was D_8011D83C [LLM:HIGH]
+         }
+     } else if (eyeTargetDist < 700.0f && ABS(sp4A) < 0x36B0) {
+         // The distance between the camera's current position and the target is less than 700 units
+@@ -8387,7 +8387,7 @@ s16 Camera_SetFinishedFlag(Camera* camera) {
+     F(sAttentionPlayerFarKeyFrames)                       \
+     F(sAttentionPlayerNearKeyFrames)                       \
+     F(sAttentionDefaultKeyFrames)                       \
+-    F(D_8011D83C)                       \
++    F(sAttentionCloseKeyFrames)                       \
+     F(D_8011D88C)                       \
+     F(D_8011D8DC)                       \
+     F(D_8011D954)                       \
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index 90588989a..af4aa4c06 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2354,7 +2354,8 @@ static OnePointCsFull sAttentionDefaultKeyFrames[] = {  // was D_8011D79C [LLM:H
+ };
+ 
+ // target is within 300 units of eye, and player is within 30 units of eye
+-static OnePointCsFull D_8011D83C[] = {
++// LLM generated name (HIGH), was D_8011D83C: the keyframes used when both the target and the player are close to the camera
++static OnePointCsFull sAttentionCloseKeyFrames[] = {  // was D_8011D83C [LLM:HIGH]
+     { 0x83, 0xFF, 0x2141, 0x0014, 0x0000, 45.0f, 0.2f, { 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 10.0f } },
+     { 0x12, 0xFF, 0x0000, 0x0001, 0x0000, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+-- 
+2.55.0
+

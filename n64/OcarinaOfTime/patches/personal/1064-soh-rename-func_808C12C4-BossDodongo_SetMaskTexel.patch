@@ -1,0 +1,56 @@
+From 63a9d2734eacf3c57e7a4909c866480005ab1460 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:39:39 +0000
+Subject: [PATCH 1064/3799] soh: rename func_808C12C4 ->
+ BossDodongo_SetMaskTexel
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: when sMaskFillPattern's byte for the given index is nonzero, marks the corresponding cell in each of the five sMaskTex arrays, so sweeping the index reveals the mask progressively.
+Defined in soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c    | 5 +++--
+ .../overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c   | 2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index a440ceaa8..353a0f995 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -172,7 +172,8 @@ void BossDodongo_RegisterBlendedLavaTextureUpdate() {
+     Gfx_TextureCacheDelete(sLavaFloorModifiedTex);
+ }
+ 
+-void func_808C12C4(u8* arg1, s16 arg2) {
++// LLM generated name (HIGH), was func_808C12C4: when sMaskFillPattern's byte for the given index is nonzero, marks the corresponding cell in each of the five sMaskTex arrays, so sweeping the index reveals the mask progressively.
++void BossDodongo_SetMaskTexel(u8* arg1, s16 arg2) {
+     if (arg2[arg1] != 0) {
+         sMaskTex8x16[arg2 / 2] = 1;
+ 
+@@ -1698,7 +1699,7 @@ void BossDodongo_DeathCutscene(BossDodongo* this, PlayState* play) {
+             }
+             if (this->unk_1DA < 854) {
+                 for (i = 0; i < 2; i++) {
+-                    func_808C12C4(sMaskFillPattern, this->unk_1CC);  // was D_808C7000 [LLM:HIGH]
++                    BossDodongo_SetMaskTexel(sMaskFillPattern, this->unk_1CC);  // was D_808C7000 [LLM:HIGH]
+                     if (this->unk_1CC < 0xFF) {
+                         this->unk_1CC++;
+                     }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c
+index a77181778..962eb37ab 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c
+@@ -1,6 +1,6 @@
+ #include "z_boss_dodongo.h"
+ 
+-// LLM generated name (HIGH), was D_808C7000: 0/1 byte pattern swept by unk_1CC; func_808C12C4 fills the corresponding cells of sMaskTex8x16 … sMaskTex32x16 wherever the entry is nonzero, so the table is the order the mask textures are revealed in.
++// LLM generated name (HIGH), was D_808C7000: 0/1 byte pattern swept by unk_1CC; BossDodongo_SetMaskTexel fills the corresponding cells of sMaskTex8x16 … sMaskTex32x16 wherever the entry is nonzero, so the table is the order the mask textures are revealed in.
+ static u8 sMaskFillPattern[] = {  // was D_808C7000 [LLM:HIGH]
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1,
+     1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0,
+-- 
+2.55.0
+

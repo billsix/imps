@@ -1,0 +1,52 @@
+From 7cabae1e352a7634d45f91f55ac7ca389efe28a6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:30:09 +0000
+Subject: [PATCH 0947/3799] soh: rename func_809AACAC ->
+ EffectSsKiraKira_UpdateDecelerating
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the updateMode 1 update: identical to the drifting one except it first damps velocity.x and velocity.z by 0.95 each frame.
+Defined in soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c     | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c b/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
+index 449ee2d0e..cd8a64ecd 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
+@@ -25,7 +25,8 @@ u32 EffectSsKiraKira_Init(PlayState* play, u32 index, EffectSs* this, void* init
+ void EffectSsKiraKira_Draw(PlayState* play, u32 index, EffectSs* this);
+ // LLM generated name (HIGH), was func_809AABF0: the updateMode 0 update: random XZ acceleration, alpha ping-ponged by rAlphaStep, and rYaw advanced by rRotSpeed. No velocity damping, unlike the other mode.
+ void EffectSsKiraKira_UpdateDrifting(PlayState* play, u32 index, EffectSs* this);  // was func_809AABF0 [LLM:HIGH]
+-void func_809AACAC(PlayState* play, u32 index, EffectSs* this);
++// LLM generated name (HIGH), was func_809AACAC: the updateMode 1 update: identical to the drifting one except it first damps velocity.x and velocity.z by 0.95 each frame.
++void EffectSsKiraKira_UpdateDecelerating(PlayState* play, u32 index, EffectSs* this);  // was func_809AACAC [LLM:HIGH]
+ void func_809AAD6C(PlayState* play, u32 index, EffectSs* this);
+ 
+ EffectSsInit Effect_Ss_KiraKira_InitVars = {
+@@ -52,7 +53,7 @@ u32 EffectSsKiraKira_Init(PlayState* play, u32 index, EffectSs* this, void* init
+         if (initParams->updateMode == 0) {
+             this->update = EffectSsKiraKira_UpdateDrifting;  // was func_809AABF0 [LLM:HIGH]
+         } else {
+-            this->update = func_809AACAC;
++            this->update = EffectSsKiraKira_UpdateDecelerating;  // was func_809AACAC [LLM:HIGH]
+         }
+ 
+         this->rEnvColorA = initParams->envColor.a;
+@@ -130,7 +131,7 @@ void EffectSsKiraKira_UpdateDrifting(PlayState* play, u32 index, EffectSs* this)
+     this->rYaw += this->rRotSpeed;
+ }
+ 
+-void func_809AACAC(PlayState* play, u32 index, EffectSs* this) {
++void EffectSsKiraKira_UpdateDecelerating(PlayState* play, u32 index, EffectSs* this) {
+     this->velocity.x *= 0.95f;
+     this->velocity.z *= 0.95f;
+     this->accel.x = Rand_CenteredFloat(0.2f);
+-- 
+2.55.0
+

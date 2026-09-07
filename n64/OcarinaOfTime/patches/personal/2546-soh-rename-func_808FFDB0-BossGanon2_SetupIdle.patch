@@ -1,0 +1,87 @@
+From efdeba057d9e22d00878f03b8412cbcd96dacbac Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:35:36 +0000
+Subject: [PATCH 2546/3799] soh: rename func_808FFDB0 -> BossGanon2_SetupIdle
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits for the object, then loops the guard idle and arms the idle timer
+Defined in soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Boss_Ganon2/z_boss_ganon2.c        | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index c3e42eda6..e8acf0b70 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -28,7 +28,8 @@ void BossGanon2_Reset(void);
+ void BossGanon2_SetupIntroCs(BossGanon2* this, PlayState* play);  // was func_808FD5C4 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_808FD5F4: the long intro: spawns Zelda, drives the sub-camera through its states and plays the burst-out animation
+ void BossGanon2_IntroCs(BossGanon2* this, PlayState* play);  // was func_808FD5F4 [LLM:HIGH]
+-void func_808FFDB0(BossGanon2* this, PlayState* play);
++// LLM generated name (HIGH), was func_808FFDB0: waits for the object, then loops the guard idle and arms the idle timer
++void BossGanon2_SetupIdle(BossGanon2* this, PlayState* play);  // was func_808FFDB0 [LLM:HIGH]
+ void func_808FFEBC(BossGanon2* this, PlayState* play);
+ void func_808FFFE0(BossGanon2* this, PlayState* play);
+ void func_80900104(BossGanon2* this, PlayState* play);
+@@ -946,7 +947,7 @@ void BossGanon2_IntroCs(BossGanon2* this, PlayState* play) {
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+                 this->csState = 0;
+                 this->unk_337 = 1;
+-                func_808FFDB0(this, play);
++                BossGanon2_SetupIdle(this, play);  // was func_808FFDB0 [LLM:HIGH]
+                 this->unk_1A2[1] = 50;
+                 this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+                 sZelda->unk_3C8 = 7;
+@@ -1109,7 +1110,7 @@ void BossGanon2_CheckSwingRange(BossGanon2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808FFDB0(BossGanon2* this, PlayState* play) {
++void BossGanon2_SetupIdle(BossGanon2* this, PlayState* play) {
+     s32 sp28;
+     s32 objectIdx = Object_GetIndex(&play->objectCtx, OBJECT_GANON2);
+ 
+@@ -1129,7 +1130,7 @@ void func_808FFDB0(BossGanon2* this, PlayState* play) {
+         this->unk_228 = 1.0f;
+         this->unk_224 = 1.0f;
+     } else {
+-        this->actionFunc = func_808FFDB0;
++        this->actionFunc = BossGanon2_SetupIdle;  // was func_808FFDB0 [LLM:HIGH]
+     }
+ }
+ 
+@@ -1275,7 +1276,7 @@ void func_80900344(BossGanon2* this, PlayState* play) {
+     Math_ApproachF(&this->actor.speedXZ, phi_f0, 0.5f, 1.0f);
+ 
+     if (this->unk_1A2[0] == 0) {
+-        func_808FFDB0(this, play);
++        BossGanon2_SetupIdle(this, play);  // was func_808FFDB0 [LLM:HIGH]
+     } else {
+         BossGanon2_CheckSwingRange(this, play);  // was func_808FFCFC [LLM:HIGH]
+     }
+@@ -1324,7 +1325,7 @@ void func_80900650(BossGanon2* this, PlayState* play) {
+         if ((this->unk_311 == 1) && (this->actor.xzDistToPlayer < 250.0f) && this->unk_313) {
+             func_80900580(this, play);
+         } else {
+-            func_808FFDB0(this, play);
++            BossGanon2_SetupIdle(this, play);  // was func_808FFDB0 [LLM:HIGH]
+         }
+     }
+ 
+@@ -1488,7 +1489,7 @@ void func_80900890(BossGanon2* this, PlayState* play) {
+             Math_ApproachF(&this->unk_324, 255.0f, 1.0f, 10.0f);
+             Math_ApproachZeroF(&play->envCtx.unk_D8, 1.0f, 2.0f / 51.0f);
+             if (Animation_OnFrame(&this->skelAnime, this->unk_194)) {
+-                func_808FFDB0(this, play);
++                BossGanon2_SetupIdle(this, play);  // was func_808FFDB0 [LLM:HIGH]
+                 if (this->unk_334 == 0) {
+                     this->actor.colChkInfo.health = 25;
+                 }
+-- 
+2.55.0
+

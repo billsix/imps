@@ -25,22 +25,29 @@ personal branches — the patch series is the whole delta.
 ## Patches
 
 **Stream order is pinned here — `personal` FIRST.** `patches/ORDER` lists it,
-and `apply.sh` honours that. The renames touch ~206 symbols and 18 filenames, so
+and `apply.sh` honours that. The renames touch 3,781 symbols and 18 filenames, so
 **any stream added later must be written against the renamed tree**; without the
 pin, a future `book/` stream would sort alphabetically ahead of `personal/` and
 try to patch symbols that no longer exist under those names. The stream folders
 stay separate regardless — that is what keeps `upstream-candidates/` submittable
 on its own (see `../CLAUDE.md`).
 
-- `patches/personal/0001…0225-*.patch` — the decomp rename series, **one
+- `patches/personal/0001…3799-*.patch` — the decomp rename series, **one
   rename per patch**: 18 patches renaming address-named
-  `soh/src/code/code_<addr>.c` files, then 207 renaming a single `func_`/
-  `D_`/type symbol each (everywhere it occurs), cross-checked against
-  zeldaret/oot. Median patch 50 lines. Every renamed symbol carries a
+  `soh/src/code/code_<addr>.c` files, then 3,781 renaming a single `func_`/
+  `D_`/type symbol each (everywhere it occurs). Provenance per symbol:
+  **665 adopted from zeldaret/oot**, **2,844 deduced at HIGH confidence**,
+  **272 deduced as GUESS**. Every renamed symbol carries a
   provenance comment at its definition **and** a short `// was func_… [oot]`
-  / `[LLM:HIGH]` tag at each header declaration, so a reader of
-  `functions.h` can tell an upstream name from one of our guesses (141 of
-  206 are guesses — oot leaves those address-named too).
+  / `[LLM:HIGH]` tag at each header declaration (and, for a guess, at every
+  call site), so a reader of `functions.h` can tell an upstream name from one
+  of our deductions. `git grep '\[LLM:'` lists every place the decomp leans on
+  an inference.
+  **Every address-named symbol in the tree now has a name except four**, all in
+  declared exclusions: `func_800FBCE0` / `func_800FBFD8` (the RCP block in
+  `code_800FBCE0.c`) and `func_80837C0C` / `func_80838940` (`z_player.c`).
+  Segmented asset addresses (`D_0xxxxxxx`) and OTR asset identifiers are out of
+  scope by construction — the identifier IS the archive key.
   **Split from a single 6,854-line commit on 2026-09-07**; the split is
   content-neutral (only the new comments differ from the pre-split tree),
   proven by `tools/prove_comment_only.sh` at the imps root (it has gcc strip
@@ -51,8 +58,11 @@ on its own (see `../CLAUDE.md`).
   upstream-added identifiers were checked for references to renamed-away
   symbols (none). The **pre-split** tree was build- and run-verified
   on-host 2026-09-01 (William Emerison Six <billsix@gmail.com>); the split
-  series has **not** been rebuilt on-host yet.
-  The renaming effort continues in
+  series has **not** been rebuilt or re-run on-host yet — it builds clean
+  in-sandbox (`soh.elf` links) and `tools/check_renames.py all` is green.
+  The deduction effort is tracked in
+  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/ocarina-deduce-remaining-decomp-names.md)
+  and its parent
   [`../../tasks/ocarina-decomp-rename-and-cleanup.md`](../../tasks/ocarina-decomp-rename-and-cleanup.md);
   method, the comment convention, and the one-rename-per-commit rule in
   [`../../tasks/reference/ocarina/decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md).

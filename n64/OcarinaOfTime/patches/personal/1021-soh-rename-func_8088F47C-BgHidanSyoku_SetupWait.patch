@@ -1,0 +1,51 @@
+From ffac6534fd21f721cbec433f1d21a5670c631fb7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:37:31 +0000
+Subject: [PATCH 1021/3799] soh: rename func_8088F47C -> BgHidanSyoku_SetupWait
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: arms the 60-frame pause, plays the landing sfx and installs the waiting action; called at the end of both travel directions.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c  | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
+index a535dfec1..dccbb4942 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
+@@ -54,7 +54,8 @@ void BgHidanSyoku_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_8088F47C(BgHidanSyoku* this) {
++// LLM generated name (HIGH), was func_8088F47C: arms the 60-frame pause, plays the landing sfx and installs the waiting action; called at the end of both travel directions.
++void BgHidanSyoku_SetupWait(BgHidanSyoku* this) {
+     this->timer = 60;
+     Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_BLOCK_BOUND);
+     this->actionFunc = func_8088F62C;
+@@ -73,7 +74,7 @@ void func_8088F514(BgHidanSyoku* this, PlayState* play) {
+     }
+     this->dyna.actor.world.pos.y = (cosf(this->timer * (M_PI / 140)) * 540.0f) + this->dyna.actor.home.pos.y;
+     if (this->timer == 0) {
+-        func_8088F47C(this);
++        BgHidanSyoku_SetupWait(this);  // was func_8088F47C [LLM:HIGH]
+     } else {
+         Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_ELEVATOR_MOVE3 - SFX_FLAG);
+     }
+@@ -85,7 +86,7 @@ void func_8088F5A0(BgHidanSyoku* this, PlayState* play) {
+     }
+     this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y - (cosf(this->timer * (M_PI / 140)) * 540.0f);
+     if (this->timer == 0) {
+-        func_8088F47C(this);
++        BgHidanSyoku_SetupWait(this);  // was func_8088F47C [LLM:HIGH]
+     } else {
+         Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_ELEVATOR_MOVE3 - SFX_FLAG);
+     }
+-- 
+2.55.0
+

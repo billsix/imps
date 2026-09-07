@@ -1,0 +1,60 @@
+From 51d0de4c599440a9a3817e33190d1838b5901f83 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:42:36 +0000
+Subject: [PATCH 1764/3799] soh: rename D_80161250 -> sCutLetterMarks
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: a 0x80-byte table indexed by a cut's letter, holding 'O' when that letter has a recorded cut and 'X' when it does not, for the on-screen list.
+Defined in soh/src/code/db_camera.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/db_camera.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index 27bd8ed06..eec33569b 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -1433,7 +1433,8 @@ static s16 sCurFileIdx;
+ static s16 sLastFileIdx; // holds the file index of the slot to move
+ // is the size correct? todo: add ALIGN32 for sizeof in Mempak functions, replace 0xF with sizeof()
+ static DbCameraCut sDbCameraCuts[16];
+-static char D_80161250[0x80];
++// LLM generated name (HIGH), was D_80161250: a 0x80-byte table indexed by a cut's letter, holding 'O' when that letter has a recorded cut and 'X' when it does not, for the on-screen list.
++static char sCutLetterMarks[0x80];  // was D_80161250 [LLM:HIGH]
+ static char sLetters[26];
+ static char D_801612EA;
+ static s32 sAllocSize;
+@@ -1457,7 +1458,7 @@ char DbCamera_InitCut(s32 idx, DbCameraSub* sub) {
+ 
+     sDbCameraCuts[idx].unk_01 = 0x61;
+     sDbCameraCuts[idx].letter = DbCamera_GetFirstAvailableLetter();
+-    D_80161250[0x3F + sDbCameraCuts[idx].letter] = 'O';
++    sCutLetterMarks[0x3F + sDbCameraCuts[idx].letter] = 'O';  // was D_80161250 [LLM:HIGH]
+ 
+     i = sub->nPoints * sizeof(CutsceneCameraPoint);
+     sDbCameraCuts[idx].lookAt = DEBUG_ARENA_MALLOC_DEBUG(i);
+@@ -1490,7 +1491,7 @@ char DbCamera_InitCut(s32 idx, DbCameraSub* sub) {
+ 
+ void DbCamera_ResetCut(s32 idx, s32 shouldFree) {
+     if (sDbCameraCuts[idx].letter != '?') {
+-        D_80161250[0x3F + sDbCameraCuts[idx].letter] = 'X';
++        sCutLetterMarks[0x3F + sDbCameraCuts[idx].letter] = 'X';  // was D_80161250 [LLM:HIGH]
+     }
+ 
+     if (shouldFree) {
+@@ -1567,7 +1568,7 @@ s32 DbCamera_LoadCallback(char* c) {
+             }
+             off += ALIGN32(size);
+ 
+-            D_80161250[0x3F + sDbCameraCuts[i].letter] = 'O';
++            sCutLetterMarks[0x3F + sDbCameraCuts[i].letter] = 'O';  // was D_80161250 [LLM:HIGH]
+         }
+     }
+ 
+-- 
+2.55.0
+

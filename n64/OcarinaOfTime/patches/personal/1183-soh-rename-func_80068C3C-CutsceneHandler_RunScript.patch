@@ -1,0 +1,70 @@
+From 4acc330804056c8a736daa252cd4496ffc59cdfd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:55:35 +0000
+Subject: [PATCH 1183/3799] soh: rename func_80068C3C ->
+ CutsceneHandler_RunScript
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the handler installed for the running states in the same table as CutsceneHandler_DoNothing, CutsceneHandler_StartScript and CutsceneHandler_StopScript; it draws the debug overlay and steps the cutscene script.
+Defined in soh/src/code/z_demo.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_demo.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 737671d87..13969c13c 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -49,7 +49,8 @@ void CutsceneHandler_DoNothing(PlayState* play, CutsceneContext* csCtx);
+ void CutsceneHandler_StartManual(PlayState* play, CutsceneContext* csCtx);
+ // Name from zeldaret/oot (was func_800647C0): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ void CutsceneHandler_StartScript(PlayState* play, CutsceneContext* csCtx);
+-void func_80068C3C(PlayState* play, CutsceneContext* csCtx);
++// LLM generated name (HIGH), was func_80068C3C: the handler installed for the running states in the same table as CutsceneHandler_DoNothing, CutsceneHandler_StartScript and CutsceneHandler_StopScript; it draws the debug overlay and steps the cutscene script.
++void CutsceneHandler_RunScript(PlayState* play, CutsceneContext* csCtx);  // was func_80068C3C [LLM:HIGH]
+ // Name from zeldaret/oot (was func_80068D84): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ void CutsceneHandler_StopManual(PlayState* play, CutsceneContext* csCtx);
+ // Name from zeldaret/oot (was func_80068DC0): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+@@ -60,7 +61,7 @@ CutsceneStateHandler sCsStateHandlers1[] = {
+ };
+ 
+ CutsceneStateHandler sCsStateHandlers2[] = {
+-    CutsceneHandler_DoNothing, CutsceneHandler_StartScript, func_80068C3C, CutsceneHandler_StopScript, func_80068C3C,
++    CutsceneHandler_DoNothing, CutsceneHandler_StartScript, CutsceneHandler_RunScript, CutsceneHandler_StopScript, CutsceneHandler_RunScript,  // was func_80068C3C [LLM:HIGH]
+ };
+ 
+ u8 sTitleCsState = 0;
+@@ -224,7 +225,7 @@ void CutsceneHandler_StartManual(PlayState* play, CutsceneContext* csCtx) {
+ }
+ 
+ void CutsceneHandler_StartScript(PlayState* play, CutsceneContext* csCtx) {
+-    func_80068C3C(play, csCtx);
++    CutsceneHandler_RunScript(play, csCtx);  // was func_80068C3C [LLM:HIGH]
+     Interface_ChangeHudVisibilityMode(1);
+     Letterbox_SetSizeTarget(0x20);
+ 
+@@ -2079,7 +2080,7 @@ void Cutscene_ProcessCommands(PlayState* play, CutsceneContext* csCtx, u8* cutsc
+     }
+ }
+ 
+-void func_80068C3C(PlayState* play, CutsceneContext* csCtx) {
++void CutsceneHandler_RunScript(PlayState* play, CutsceneContext* csCtx) {
+     Gfx* displayList;
+     Gfx* prevDisplayList;
+ 
+@@ -2192,7 +2193,7 @@ void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx) {
+                 csCtx->state++;
+             }
+ 
+-            func_80068C3C(play, csCtx);
++            CutsceneHandler_RunScript(play, csCtx);  // was func_80068C3C [LLM:HIGH]
+         }
+ 
+         gSaveContext.cutsceneTrigger = 0;
+-- 
+2.55.0
+

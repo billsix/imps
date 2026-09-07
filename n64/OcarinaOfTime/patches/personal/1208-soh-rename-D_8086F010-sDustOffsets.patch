@@ -1,0 +1,49 @@
+From 95aa205b2e21ee0a587f40c9100d771982168f14 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:57:59 +0000
+Subject: [PATCH 1208/3799] soh: rename D_8086F010 -> sDustOffsets
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: seven local-space offsets rotated by the wall's yaw and used as the spawn points for the dust clouds thrown when it blows apart.
+Defined in soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c   | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c b/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
+index 160dc15f9..95e09e896 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bombwall/z_bg_bombwall.c
+@@ -172,7 +172,8 @@ void BgBombwall_Destroy(Actor* thisx, PlayState* play) {
+     BgBombwall_DestroyCollision(this, play);
+ }
+ 
+-static Vec3s D_8086F010[] = {
++// LLM generated name (HIGH), was D_8086F010: seven local-space offsets rotated by the wall's yaw and used as the spawn points for the dust clouds thrown when it blows apart.
++static Vec3s sDustOffsets[] = {  // was D_8086F010 [LLM:HIGH]
+     { 40, 85, 21 }, { -43, 107, 14 }, { -1, 142, 14 }, { -27, 44, 27 }, { 28, 24, 20 }, { -39, 54, 21 }, { 49, 50, 20 },
+ };
+ 
+@@ -188,11 +189,11 @@ void func_8086EB5C(BgBombwall* this, PlayState* play) {
+     f32 new_var;
+ 
+     for (i = 0; i < 7; i++) {
+-        new_var = D_8086F010[i].x;
++        new_var = sDustOffsets[i].x;  // was D_8086F010 [LLM:HIGH]
+         temp = new_var * cos;
+-        sp88.x = ((sin * D_8086F010[i].z) + ((f32)temp)) + pos->x;
+-        sp88.y = pos->y + D_8086F010[i].y;
+-        sp88.z = ((D_8086F010[i].z * cos) - (sin * D_8086F010[i].x)) + pos->z;
++        sp88.x = ((sin * sDustOffsets[i].z) + ((f32)temp)) + pos->x;  // was D_8086F010 [LLM:HIGH]
++        sp88.y = pos->y + sDustOffsets[i].y;  // was D_8086F010 [LLM:HIGH]
++        sp88.z = ((sDustOffsets[i].z * cos) - (sin * sDustOffsets[i].x)) + pos->z;  // was D_8086F010 [LLM:HIGH]
+         rand = ((s16)(Rand_ZeroOne() * 120.0f)) + 0x14;
+         rand2 = ((s16)(Rand_ZeroOne() * 240.0f)) + 0x14;
+         func_80033480(play, &sp88, 50.0f, 2, rand, rand2, 1);
+-- 
+2.55.0
+

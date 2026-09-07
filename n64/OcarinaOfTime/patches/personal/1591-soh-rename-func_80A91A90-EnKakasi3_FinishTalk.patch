@@ -1,0 +1,69 @@
+From 8795077414a9025a8613f88d7d35be55a0f1c260 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:29:27 +0000
+Subject: [PATCH 1591/3799] soh: rename func_80A91A90 -> EnKakasi3_FinishTalk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: holds the rest pose until the closing line is advanced, sets the played-for-scarecrow event flag when the song was learned, ends the camera shot and hands control back to the player.
+Defined in soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c b/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
+index 139e48ffe..7af95be5e 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
+@@ -33,7 +33,8 @@ void EnKakasi3_WaitForPlayback(EnKakasi3* this, PlayState* play);  // was func_8
+ void EnKakasi3_StartSongCheck(EnKakasi3* this, PlayState* play);  // was func_80A9187C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A918E4: dances to the notes during that check and opens either the success or the failure line when it ends, recording the success so the scarecrow can be summoned elsewhere.
+ void EnKakasi3_WaitForSongCheck(EnKakasi3* this, PlayState* play);  // was func_80A918E4 [LLM:HIGH]
+-void func_80A91A90(EnKakasi3* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A91A90: holds the rest pose until the closing line is advanced, sets the played-for-scarecrow event flag when the song was learned, ends the camera shot and hands control back to the player.
++void EnKakasi3_FinishTalk(EnKakasi3* this, PlayState* play);  // was func_80A91A90 [LLM:HIGH]
+ 
+ static ColliderCylinderInit sCylinderInit = {
+     {
+@@ -308,7 +309,7 @@ void EnKakasi3_WaitForRecording(EnKakasi3* this, PlayState* play) {
+         this->dialogState = TEXT_STATE_EVENT;
+         Message_StartTextbox(play, 0x40A5, NULL);
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        this->actionFunc = func_80A91A90;
++        this->actionFunc = EnKakasi3_FinishTalk;  // was func_80A91A90 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -366,7 +367,7 @@ void EnKakasi3_WaitForSongCheck(EnKakasi3* this, PlayState* play) {
+         OnePointCutscene_EndCutscene(play, this->camId);
+         this->camId = SUBCAM_NONE;
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        this->actionFunc = func_80A91A90;
++        this->actionFunc = EnKakasi3_FinishTalk;  // was func_80A91A90 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -381,7 +382,7 @@ void EnKakasi3_WaitForSongCheck(EnKakasi3* this, PlayState* play) {
+         Message_StartTextbox(play, 0x40A7, NULL);
+         this->dialogState = TEXT_STATE_EVENT;
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        this->actionFunc = func_80A91A90;
++        this->actionFunc = EnKakasi3_FinishTalk;  // was func_80A91A90 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -391,7 +392,7 @@ void EnKakasi3_WaitForSongCheck(EnKakasi3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A91A90(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_FinishTalk(EnKakasi3* this, PlayState* play) {
+     EnKakasi3_ReturnToRest(this);  // was func_80A90E28 [LLM:HIGH]
+     SkelAnime_Update(&this->skelAnime);
+     Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-- 
+2.55.0
+

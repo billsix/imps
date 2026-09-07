@@ -1,0 +1,81 @@
+From 60c9d0f1e8e38b2df7c1f06fcbce1ed21e765afd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:28:09 +0000
+Subject: [PATCH 2435/3799] soh: rename func_80ADF15C -> EnPoh_Dissolve
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: rings EffectSsDeadDb outward as the body breaks up, ending with NA_SE_EN_PO_DEAD2
+Defined in soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+index 0533c6185..388e74069 100644
+--- a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
++++ b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+@@ -34,7 +34,8 @@ void func_80ADF894(EnPoh* this, PlayState* play);
+ void EnPoh_ComposerAppear(EnPoh* this, PlayState* play);
+ // LLM generated name (HIGH), was func_80ADEF38: fades the ordinary poe in over its appear animation, the counterpart of EnPoh_ComposerAppear
+ void EnPoh_RegularAppear(EnPoh* this, PlayState* play);  // was func_80ADEF38 [LLM:HIGH]
+-void func_80ADF15C(EnPoh* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ADF15C: rings EffectSsDeadDb outward as the body breaks up, ending with NA_SE_EN_PO_DEAD2
++void EnPoh_Dissolve(EnPoh* this, PlayState* play);  // was func_80ADF15C [LLM:HIGH]
+ void func_80ADF574(EnPoh* this, PlayState* play);
+ void func_80ADF5E0(EnPoh* this, PlayState* play);
+ void EnPoh_Disappear(EnPoh* this, PlayState* play);
+@@ -347,7 +348,7 @@ void EnPoh_SetupDissolve(EnPoh* this) {
+     this->unk_198 = 0;
+     this->actor.naviEnemyId = 0xFF;
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+-    this->actionFunc = func_80ADF15C;
++    this->actionFunc = EnPoh_Dissolve;  // was func_80ADF15C [LLM:HIGH]
+ }
+ 
+ // LLM generated name (HIGH), was func_80ADE4C8: plays the idle animation once while backing off at -5 speed
+@@ -620,7 +621,7 @@ void EnPoh_ComposerAppear(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADF15C(EnPoh* this, PlayState* play) {
++void EnPoh_Dissolve(EnPoh* this, PlayState* play) {
+     Vec3f vec;
+     f32 multiplier;
+     f32 newScale;
+@@ -1048,7 +1049,7 @@ s32 EnPoh_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
+     EnPoh* this = (EnPoh*)thisx;
+ 
+     if ((this->lightColor.a == 0 || limbIndex == this->info->unk_6) ||
+-        (this->actionFunc == func_80ADF15C && this->unk_198 >= 2)) {
++        (this->actionFunc == EnPoh_Dissolve && this->unk_198 >= 2)) {  // was func_80ADF15C [LLM:HIGH]
+         *dList = NULL;
+     } else if (this->actor.params == EN_POH_FLAT && limbIndex == 0xA) {
+         // Replace Sharp's head with Flat's
+@@ -1065,17 +1066,17 @@ void EnPoh_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     EnPoh* this = (EnPoh*)thisx;
+ 
+     Collider_UpdateSpheres(limbIndex, &this->colliderSph);
+-    if (this->actionFunc == func_80ADF15C && this->unk_198 >= 2 && limbIndex == this->info->unk_7) {
++    if (this->actionFunc == EnPoh_Dissolve && this->unk_198 >= 2 && limbIndex == this->info->unk_7) {  // was func_80ADF15C [LLM:HIGH]
+         gSPMatrix((*gfxP)++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPDisplayList((*gfxP)++, this->info->burnDisplayList);
+     }
+     if (limbIndex == this->info->unk_6) {
+-        if (this->actionFunc == func_80ADF15C && this->unk_198 >= 19 && 0.0f != this->actor.scale.x) {
++        if (this->actionFunc == EnPoh_Dissolve && this->unk_198 >= 19 && 0.0f != this->actor.scale.x) {  // was func_80ADF15C [LLM:HIGH]
+             f32 mtxScale = 0.01f / this->actor.scale.x;
+             Matrix_Scale(mtxScale, mtxScale, mtxScale, MTXMODE_APPLY);
+         }
+         Matrix_Get(&this->unk_368);
+-        if (this->actionFunc == func_80ADF15C && this->unk_198 == 27) {
++        if (this->actionFunc == EnPoh_Dissolve && this->unk_198 == 27) {  // was func_80ADF15C [LLM:HIGH]
+             this->actor.world.pos.x = this->unk_368.xw;
+             this->actor.world.pos.y = this->unk_368.yw;
+             this->actor.world.pos.z = this->unk_368.zw;
+-- 
+2.55.0
+

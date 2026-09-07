@@ -1,0 +1,52 @@
+From 004cd6872110c5b09d540edf9a563ecd97c3ca8c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:39:39 +0000
+Subject: [PATCH 1061/3799] soh: rename func_808C1554 ->
+ BossDodongo_UpdateLavaTexture
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: warps sLavaFloorModifiedTex into sLavaWavyTex with two sine passes, one per axis, whose phase advances with the caller's counter and whose amplitude is the caller's scale; it then drops the wavy texture from the cache so the new pixels are uploaded.
+Defined in soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index 477a7941a..656d14087 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -192,7 +192,7 @@ void func_808C12C4(u8* arg1, s16 arg2) {
+     }
+ }
+ 
+-// Same as func_808C1554 but works with u32 values for RGBA32 raw textures
++// Same as BossDodongo_UpdateLavaTexture but works with u32 values for RGBA32 raw textures, was func_808C1554 [LLM:HIGH]
+ void func_808C1554_Raw(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
+     // Raw lava not registered, so abort the wave modification
+     if (sLavaWavyTexRaw == NULL || sLavaFloorModifiedTexRaw == NULL) {
+@@ -240,7 +240,8 @@ void func_808C1554_Raw(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
+ 
+ // Modified to support CPU modified texture with the resource system
+ // Used for the original non-raw asset working with u16 values
+-void func_808C1554(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
++// LLM generated name (HIGH), was func_808C1554: warps sLavaFloorModifiedTex into sLavaWavyTex with two sine passes, one per axis, whose phase advances with the caller's counter and whose amplitude is the caller's scale; it then drops the wavy texture from the cache so the new pixels are uploaded.
++void BossDodongo_UpdateLavaTexture(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
+     u16* temp_s3 = sLavaWavyTex;
+     u16* temp_s1 = sLavaFloorModifiedTex;
+     s16 i;
+@@ -1185,7 +1186,7 @@ void BossDodongo_Update(Actor* thisx, PlayState* play2) {
+         if (ResourceMgr_TexIsRaw(gDodongosCavernBossLavaFloorTex)) {
+             func_808C1554_Raw(gDodongosCavernBossLavaFloorTex, sLavaFloorLavaTex, this->unk_19E, this->unk_224);
+         } else {
+-            func_808C1554(gDodongosCavernBossLavaFloorTex, sLavaFloorLavaTex, this->unk_19E, this->unk_224);
++            BossDodongo_UpdateLavaTexture(gDodongosCavernBossLavaFloorTex, sLavaFloorLavaTex, this->unk_19E, this->unk_224);  // was func_808C1554 [LLM:HIGH]
+         }
+     }
+ 
+-- 
+2.55.0
+

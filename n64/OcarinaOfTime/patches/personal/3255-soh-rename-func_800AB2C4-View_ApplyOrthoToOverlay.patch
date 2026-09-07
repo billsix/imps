@@ -1,0 +1,76 @@
+From 9df74c8da7115b48cd271f1cb5bbe034d8a92a38 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:09:39 +0000
+Subject: [PATCH 3255/3799] soh: rename func_800AB2C4 ->
+ View_ApplyOrthoToOverlay
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the same orthographic setup written into the overlay display list, with the flipped projection kept
+Defined in soh/src/code/z_view.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h      | 2 +-
+ soh/src/code/z_message_PAL.c | 2 +-
+ soh/src/code/z_parameter.c   | 2 +-
+ soh/src/code/z_view.c        | 3 ++-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 5e647bee1..b77138ba1 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1414,7 +1414,7 @@ s32 View_StepDistortion(View* view, Mtx* projectionMtx);
+ void View_Apply(View* view, s32 arg1);  // was func_800AAA50 [LLM:HIGH]
+ s32 View_ApplyPerspective(View* view);  // was func_800AAA9C [LLM:HIGH]
+ s32 View_ApplyOrtho(View* view);  // was func_800AB0A8 [LLM:HIGH]
+-s32 func_800AB2C4(View* view);
++s32 View_ApplyOrthoToOverlay(View* view);  // was func_800AB2C4 [LLM:HIGH]
+ s32 func_800AB560(View* view);
+ s32 func_800AB944(View* view);
+ s32 func_800AB9EC(View* view, s32 arg1, Gfx** p);
+diff --git a/soh/src/code/z_message_PAL.c b/soh/src/code/z_message_PAL.c
+index 4f2c5f362..8629b8f23 100644
+--- a/soh/src/code/z_message_PAL.c
++++ b/soh/src/code/z_message_PAL.c
+@@ -3126,7 +3126,7 @@ void Message_DrawTextBox(PlayState* play, Gfx** p) {
+ 
+ void Message_SetView(View* view) {
+     SET_FULLSCREEN_VIEWPORT(view);
+-    func_800AB2C4(view);
++    View_ApplyOrthoToOverlay(view);  // was func_800AB2C4 [LLM:HIGH]
+ }
+ 
+ #define FLASH_NOTE_COLORS(target, source)                                             \
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 789e86c86..cc1443b4a 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -5097,7 +5097,7 @@ void Interface_SetViewport(PlayState* play, s32 topY, s32 bottomY, s32 leftX, s3
+ // LLM generated name (HIGH), was func_8008A994: resets the interface view to the full-screen viewport and applies it.
+ void Interface_SetFullscreenViewport(InterfaceContext* interfaceCtx) {
+     SET_FULLSCREEN_VIEWPORT(&interfaceCtx->view);
+-    func_800AB2C4(&interfaceCtx->view);
++    View_ApplyOrthoToOverlay(&interfaceCtx->view);  // was func_800AB2C4 [LLM:HIGH]
+ }
+ 
+ const char* digitTextures[] = { gCounterDigit0Tex, gCounterDigit1Tex, gCounterDigit2Tex, gCounterDigit3Tex,
+diff --git a/soh/src/code/z_view.c b/soh/src/code/z_view.c
+index 42e52e3a6..d5108d6a4 100644
+--- a/soh/src/code/z_view.c
++++ b/soh/src/code/z_view.c
+@@ -528,7 +528,8 @@ s32 View_ApplyOrtho(View* view) {
+     return 1;
+ }
+ 
+-s32 func_800AB2C4(View* view) {
++// LLM generated name (HIGH), was func_800AB2C4: the same orthographic setup written into the overlay display list, with the flipped projection kept
++s32 View_ApplyOrthoToOverlay(View* view) {
+     Vp* vp;
+     Mtx* projection;
+     Mtx* projectionFlipped;
+-- 
+2.55.0
+

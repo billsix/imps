@@ -1,0 +1,49 @@
+From 58b0daef7401d81c837a1154147df3aa5bd8644e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:07:05 +0000
+Subject: [PATCH 3199/3799] soh: rename D_8011DAFC -> sDbgCameraSettings
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the camera settings the debug mode cycles through
+Defined in soh/src/code/z_camera_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_camera.c        | 4 ++--
+ soh/src/code/z_camera_data.inc | 3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 87dca447f..c341e7261 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -7428,8 +7428,8 @@ s32 Camera_DbgChangeMode(Camera* camera) {
+         }
+         if (changeDir != 0) {
+             sDbgModeIdx = (sDbgModeIdx + changeDir) % 6;
+-            if (Camera_RequestSetting(camera, D_8011DAFC[sDbgModeIdx]) > 0) {
+-                osSyncPrintf("camera: force change SET to %s!\n", sCameraSettingNames[D_8011DAFC[sDbgModeIdx]]);
++            if (Camera_RequestSetting(camera, sDbgCameraSettings[sDbgModeIdx]) > 0) {  // was D_8011DAFC [LLM:HIGH]
++                osSyncPrintf("camera: force change SET to %s!\n", sCameraSettingNames[sDbgCameraSettings[sDbgModeIdx]]);  // was D_8011DAFC [LLM:HIGH]
+             }
+         }
+     }
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index a56d9aecf..15ce9934a 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2416,7 +2416,8 @@ f32 sSpec7LowY[] = { 320.0f, 320.0f, 320.0f, 0.0f };  // was D_8011DADC [LLM:HIG
+ // LLM generated name (HIGH), was D_8011DAEC: the roll each spec 7 index reaches between those two heights
+ s16 sSpec7Rolls[] = { -2000, -1000, 0, 0, 0, 0, 0, 0 };  // was D_8011DAEC [LLM:HIGH]
+ 
+-s16 D_8011DAFC[] = {
++// LLM generated name (HIGH), was D_8011DAFC: the camera settings the debug mode cycles through
++s16 sDbgCameraSettings[] = {  // was D_8011DAFC [LLM:HIGH]
+     CAM_SET_NORMAL0, CAM_SET_NORMAL1, CAM_SET_NORMAL2, CAM_SET_DUNGEON0, CAM_SET_DUNGEON1, CAM_SET_DUNGEON2,
+ };
+ 
+-- 
+2.55.0
+

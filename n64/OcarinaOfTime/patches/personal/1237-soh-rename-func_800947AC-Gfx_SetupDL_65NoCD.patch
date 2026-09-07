@@ -1,0 +1,75 @@
+From 570ad54caaede1777e63a82586d95e019380cc04 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:03:17 +0000
+Subject: [PATCH 1237/3799] soh: rename func_800947AC -> Gfx_SetupDL_65NoCD
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: emits sSetupDL[SETUPDL_65] followed by a colour-dither disable, matching the neighbouring Gfx_SetupDL_69NoCD; it also applies the HREG(21) and HREG(22) debug dither overrides.
+Defined in soh/src/code/z_rcp.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h | 2 +-
+ soh/src/code/z_kankyo.c | 2 +-
+ soh/src/code/z_lights.c | 2 +-
+ soh/src/code/z_rcp.c    | 3 ++-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index d34b0cecc..a7b9c67bc 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1216,7 +1216,7 @@ void Gfx_SetupDL_41Opa(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_47Xlu(GraphicsContext* gfxCtx);
+ Gfx* Gfx_SetupDL_20NoCD(Gfx* gfx);
+ Gfx* Gfx_SetupDL_66(Gfx* gfx);
+-Gfx* func_800947AC(Gfx* gfx);
++Gfx* Gfx_SetupDL_65NoCD(Gfx* gfx);  // was func_800947AC [LLM:HIGH]
+ void Gfx_SetupDL_42Opa(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_42Overlay(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_27Xlu(GraphicsContext* gfxCtx);
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 9240a6c7d..0613e4366 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -1572,7 +1572,7 @@ void Environment_DrawLensFlare(PlayState* play, EnvironmentContext* envCtx, View
+                 Math_SmoothStepToF(&envCtx->unk_88, 0.0f, 0.5f, 0.05f, 0.001f);
+             }
+ 
+-            POLY_XLU_DISP = func_800947AC(POLY_XLU_DISP++);
++            POLY_XLU_DISP = Gfx_SetupDL_65NoCD(POLY_XLU_DISP++);  // was func_800947AC [LLM:HIGH]
+             gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, lensFlareColors[i].r, lensFlareColors[i].g, lensFlareColors[i].b,
+                             alpha * envCtx->unk_88);
+             gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+diff --git a/soh/src/code/z_lights.c b/soh/src/code/z_lights.c
+index da5e0e905..f4489159a 100644
+--- a/soh/src/code/z_lights.c
++++ b/soh/src/code/z_lights.c
+@@ -419,7 +419,7 @@ void Lights_DrawGlow(PlayState* play) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-    POLY_XLU_DISP = func_800947AC(POLY_XLU_DISP++);
++    POLY_XLU_DISP = Gfx_SetupDL_65NoCD(POLY_XLU_DISP++);  // was func_800947AC [LLM:HIGH]
+     gDPSetAlphaDither(POLY_XLU_DISP++, G_AD_NOISE);
+     gDPSetColorDither(POLY_XLU_DISP++, G_CD_MAGICSQ);
+     gSPDisplayList(POLY_XLU_DISP++, gGlowCircleTextureLoadDL);
+diff --git a/soh/src/code/z_rcp.c b/soh/src/code/z_rcp.c
+index 4842fc3e6..9cd3905da 100644
+--- a/soh/src/code/z_rcp.c
++++ b/soh/src/code/z_rcp.c
+@@ -1249,7 +1249,8 @@ Gfx* Gfx_SetupDL_69NoCD(Gfx* gfx) {
+     return gfx;
+ }
+ 
+-Gfx* func_800947AC(Gfx* gfx) {
++// LLM generated name (HIGH), was func_800947AC: emits sSetupDL[SETUPDL_65] followed by a colour-dither disable, matching the neighbouring Gfx_SetupDL_69NoCD; it also applies the HREG(21) and HREG(22) debug dither overrides.
++Gfx* Gfx_SetupDL_65NoCD(Gfx* gfx) {
+     gSPDisplayList(gfx++, sSetupDL[SETUPDL_65]);
+     gDPSetColorDither(gfx++, G_CD_DISABLE);
+ 
+-- 
+2.55.0
+

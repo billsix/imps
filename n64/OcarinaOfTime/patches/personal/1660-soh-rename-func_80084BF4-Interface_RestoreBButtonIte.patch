@@ -1,0 +1,62 @@
+From 6950f71c27a1f4c5a64f094fb772b236da67c7e2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:33:26 +0000
+Subject: [PATCH 1660/3799] soh: rename func_80084BF4 ->
+ Interface_RestoreBButtonItem
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: puts the stored B-button item back after a projectile weapon or the swordless state has been forced onto that slot, and reloads its icon.
+Defined in soh/src/code/z_parameter.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/z_parameter.c                                    | 3 ++-
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index c6521fbca..2f42e1dab 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1070,7 +1070,7 @@ void Interface_InitHorsebackArchery(PlayState* play);
+ void Interface_SwapGiantsKnife(PlayState* play);  // was func_800849EC [LLM:HIGH]
+ void Interface_LoadItemIcon1(PlayState* play, u16 button);
+ void Interface_LoadItemIcon2(PlayState* play, u16 button);
+-void func_80084BF4(PlayState* play, u16 flag);
++void Interface_RestoreBButtonItem(PlayState* play, u16 flag);  // was func_80084BF4 [LLM:HIGH]
+ uint16_t Interface_DrawTextLine(GraphicsContext* gfx, char text[], int16_t x, int16_t y, uint16_t colorR, uint16_t colorG, uint16_t colorB, uint16_t colorA, float textScale, uint8_t textShadow);
+ u8 Item_Give(PlayState* play, u8 item);
+ u16 Randomizer_Item_Give(PlayState* play, GetItemEntry giEntry);
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 433b7affd..77ad1b889 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -1744,7 +1744,8 @@ void Interface_LoadItemIcon2(PlayState* play, u16 button) {
+     osRecvMesg(&interfaceCtx->loadQueue, NULL, OS_MESG_BLOCK);
+ }
+ 
+-void func_80084BF4(PlayState* play, u16 flag) {
++// LLM generated name (HIGH), was func_80084BF4: puts the stored B-button item back after a projectile weapon or the swordless state has been forced onto that slot, and reloads its icon.
++void Interface_RestoreBButtonItem(PlayState* play, u16 flag) {
+     if (flag) {
+         if ((gSaveContext.equips.buttonItems[0] == ITEM_SLINGSHOT) ||
+             (gSaveContext.equips.buttonItems[0] == ITEM_BOW) || (gSaveContext.equips.buttonItems[0] == ITEM_BOMBCHU) ||
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 2cd32c12d..0f54f7a93 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -3560,7 +3560,7 @@ void func_808265BC(PlayState* play) {
+     pauseCtx->unk_1EA += 4 * ZREG(46);
+ 
+     if (pauseCtx->unk_1EA == (64 * ZREG(47))) {
+-        func_80084BF4(play, 1);
++        Interface_RestoreBButtonItem(play, 1);  // was func_80084BF4 [LLM:HIGH]
+ 
+         for (int buttonIndex = 0; buttonIndex < ARRAY_COUNT(gSaveContext.buttonStatus); buttonIndex++) {
+             gSaveContext.buttonStatus[buttonIndex] = D_8082AB6C[pauseCtx->pageIndex][buttonIndex];
+-- 
+2.55.0
+

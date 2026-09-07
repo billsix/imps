@@ -1,0 +1,63 @@
+From fd7426d6f25c144a4c1597dd00a18012218e6e5c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:04:39 +0000
+Subject: [PATCH 3092/3799] soh: rename D_80121C24 -> sCs3140KeyFrames
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the keyframe set one-point cutscene 3140 installs
+Defined in soh/src/code/z_onepointdemo_data.inc.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/z_onepointdemo.c        | 10 +++++-----
+ soh/src/code/z_onepointdemo_data.inc |  3 ++-
+ 2 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/code/z_onepointdemo.c b/soh/src/code/z_onepointdemo.c
+index c78319b2a..6587c98f6 100644
+--- a/soh/src/code/z_onepointdemo.c
++++ b/soh/src/code/z_onepointdemo.c
+@@ -30,7 +30,7 @@ static s32 sPrevFrameCs1100 = -4096;
+     F(sCs3040KeyFrames)                                   \
+     F(sCs3020KeyFrames)                                   \
+     F(sCs3010KeyFrames)                                   \
+-    F(D_80121C24)                                   \
++    F(sCs3140KeyFrames)                                   \
+     F(D_80121D3C)                                   \
+     F(D_80121F1C)                                   \
+     F(D_80121FBC)                                   \
+@@ -536,11 +536,11 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             csCam->unk_14C |= 2;
+             break;
+         case 3140:
+-            D_80121C24[0].atTargetInit = play->view.lookAt;
+-            D_80121C24[0].eyeTargetInit = play->view.eye;
+-            D_80121C24[0].fovTargetInit = play->view.fovy;
++            sCs3140KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_80121C24 [LLM:HIGH]
++            sCs3140KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_80121C24 [LLM:HIGH]
++            sCs3140KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_80121C24 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80121C24;
++            csInfo->keyFrames = sCs3140KeyFrames;  // was D_80121C24 [LLM:HIGH]
+             csInfo->keyFrameCnt = 7;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+diff --git a/soh/src/code/z_onepointdemo_data.inc b/soh/src/code/z_onepointdemo_data.inc
+index 1b016e01d..377052378 100644
+--- a/soh/src/code/z_onepointdemo_data.inc
++++ b/soh/src/code/z_onepointdemo_data.inc
+@@ -379,7 +379,8 @@ static OnePointCsFull sCs3130KeyFrames[12] = {  // was D_80121A44 [LLM:HIGH]
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121C24[7] = {
++// LLM generated name (HIGH), was D_80121C24: the keyframe set one-point cutscene 3140 installs
++static OnePointCsFull sCs3140KeyFrames[7] = {  // was D_80121C24 [LLM:HIGH]
+     { 0x0F, 0x05, 0x0101, 1, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x03, 0xFF, 0x0101, 89, 0, 50.0f, 0.4f, { 125.0f, 320.0f, -1500.0f }, { 125.0f, 500.0f, -1150.0f } },
+     { 0x0F, 0x08, 0x0101, 40, 4, 55.0f, 1.0f, { 0.0f, 375.0f, -1440.0f }, { 5.0f, 365.0f, -1315.0f } },
+-- 
+2.55.0
+

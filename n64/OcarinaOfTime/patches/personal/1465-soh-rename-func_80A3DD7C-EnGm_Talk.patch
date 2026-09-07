@@ -1,0 +1,69 @@
+From 4c03f4e37c6925ae9fe9b110cdd64834deb69b90 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:20:43 +0000
+Subject: [PATCH 1465/3799] soh: rename func_80A3DD7C -> EnGm_Talk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits for the current line to be advanced and returns to the idle, closing the box itself for the event-state variant.
+Defined in soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c b/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
+index 5a613c4c4..f37aae4d2 100644
+--- a/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
++++ b/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
+@@ -28,7 +28,8 @@ void EnGm_WaitForSwitch(EnGm* this, PlayState* play);  // was func_80A3DB04 [LLM
+ void EnGm_Idle(EnGm* this, PlayState* play);  // was func_80A3DC44 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80A3DBF4: waits out that brush-off textbox and returns to the pre-reveal idle.
+ void EnGm_TalkBeforeSwitch(EnGm* this, PlayState* play);  // was func_80A3DBF4 [LLM:HIGH]
+-void func_80A3DD7C(EnGm* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A3DD7C: waits for the current line to be advanced and returns to the idle, closing the box itself for the event-state variant.
++void EnGm_Talk(EnGm* this, PlayState* play);  // was func_80A3DD7C [LLM:HIGH]
+ void EnGm_ProcessChoiceIndex(EnGm* this, PlayState* play);
+ void func_80A3DF00(EnGm* this, PlayState* play);
+ void func_80A3DF60(EnGm* this, PlayState* play);
+@@ -216,7 +217,7 @@ void EnGm_Idle(EnGm* this, PlayState* play) {
+             case 0:
+                 Flags_SetInfTable(INFTABLE_B0);
+             case 3:
+-                this->actionFunc = func_80A3DD7C;
++                this->actionFunc = EnGm_Talk;  // was func_80A3DD7C [LLM:HIGH]
+                 return;
+             case 1:
+                 Flags_SetInfTable(INFTABLE_B1);
+@@ -234,7 +235,7 @@ void EnGm_Idle(EnGm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A3DD7C(EnGm* this, PlayState* play) {
++void EnGm_Talk(EnGm* this, PlayState* play) {
+     u8 dialogState = Message_GetState(&play->msgCtx);
+ 
+     if ((dialogState == TEXT_STATE_DONE || dialogState == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+@@ -252,7 +253,7 @@ void EnGm_ProcessChoiceIndex(EnGm* this, PlayState* play) {
+             case 0: // yes
+                 if (GameInteractor_Should(VB_CHECK_RANDO_PRICE_OF_MEDIGORON, gSaveContext.rupees < 200, this)) {
+                     Message_ContinueTextbox(play, 0xC8);
+-                    this->actionFunc = func_80A3DD7C;
++                    this->actionFunc = EnGm_Talk;  // was func_80A3DD7C [LLM:HIGH]
+                 } else {
+                     if (GameInteractor_Should(VB_GIVE_ITEM_FROM_MEDIGORON, true, this)) {
+                         Actor_OfferGetItem(&this->actor, play, GI_SWORD_KNIFE, 415.0f, 10.0f);
+@@ -262,7 +263,7 @@ void EnGm_ProcessChoiceIndex(EnGm* this, PlayState* play) {
+                 break;
+             case 1: // no
+                 Message_ContinueTextbox(play, 0x3050);
+-                this->actionFunc = func_80A3DD7C;
++                this->actionFunc = EnGm_Talk;  // was func_80A3DD7C [LLM:HIGH]
+                 break;
+         }
+     }
+-- 
+2.55.0
+

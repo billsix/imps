@@ -1,0 +1,98 @@
+From 34fc21f354ce382017153a271858da949ba8199c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:09:40 +0000
+Subject: [PATCH 3259/3799] soh: rename func_800ABE74 ->
+ View_ErrorCheckEyePosition
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: reports whether an eye position is beyond the coordinate range guLookAt can take
+Defined in soh/src/code/z_view.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h |  2 +-
+ soh/src/code/z_actor.c  |  2 +-
+ soh/src/code/z_view.c   | 11 ++++++-----
+ 3 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index b89823be2..b99ade68e 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1418,7 +1418,7 @@ s32 View_ApplyOrthoToOverlay(View* view);  // was func_800AB2C4 [LLM:HIGH]
+ s32 View_ApplyPerspectiveToOverlay(View* view);  // was func_800AB560 [LLM:HIGH]
+ s32 View_UpdateViewingMatrix(View* view);  // was func_800AB944 [LLM:HIGH]
+ s32 View_ApplyTo(View* view, s32 arg1, Gfx** p);  // was func_800AB9EC [LLM:HIGH]
+-s32 func_800ABE74(f32 eyeX, f32 eyeY, f32 eyeZ);
++s32 View_ErrorCheckEyePosition(f32 eyeX, f32 eyeY, f32 eyeZ);  // was func_800ABE74 [LLM:HIGH]
+ void ViMode_LogPrint(OSViMode* viMode);
+ void ViMode_Configure(ViMode* viMode, s32 mode, s32 type, s32 unk_70, s32 unk_74, s32 unk_78, s32 unk_7C, s32 width,
+                       s32 height, s32 unk_left, s32 unk_right, s32 unk_top, s32 unk_bottom);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 90945fda1..2a52b5fb6 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1785,7 +1785,7 @@ Gfx* Actor_SetupHilite(Vec3f* object, Vec3f* eye, Vec3f* lightDir, GraphicsConte
+                      eye->x, eye->y, eye->z, object->x, object->y, object->z, lightDir->x, lightDir->y, lightDir->z);
+     }
+ 
+-    func_800ABE74(correctedEyeX, eye->y, eye->z);
++    View_ErrorCheckEyePosition(correctedEyeX, eye->y, eye->z);  // was func_800ABE74 [LLM:HIGH]
+     guLookAtHilite(&sHiliteLookAtMtx, lookAt, *hilite, correctedEyeX, eye->y, eye->z, object->x, object->y, object->z, 0.0f,  // was D_8015BBA8 [LLM:HIGH]
+                    1.0f, 0.0f, lightDir->x, lightDir->y, lightDir->z, lightDir->x, lightDir->y, lightDir->z, 0x10,
+                    0x10);
+diff --git a/soh/src/code/z_view.c b/soh/src/code/z_view.c
+index 5235a755f..a5d7dc984 100644
+--- a/soh/src/code/z_view.c
++++ b/soh/src/code/z_view.c
+@@ -341,7 +341,7 @@ s32 View_ApplyPerspective(View* view) {
+         view->eye.z += 1.0f;
+     }
+ 
+-    func_800ABE74(view->eye.x, view->eye.y, view->eye.z);
++    View_ErrorCheckEyePosition(view->eye.x, view->eye.y, view->eye.z);  // was func_800ABE74 [LLM:HIGH]
+     MtxF viewingF;
+     guLookAtF(viewingF.mf, view->eye.x, view->eye.y, view->eye.z, view->lookAt.x, view->lookAt.y, view->lookAt.z,
+               view->up.x, view->up.y, view->up.z);
+@@ -627,7 +627,7 @@ s32 View_ApplyPerspectiveToOverlay(View* view) {
+         view->eye.z += 1.0f;
+     }
+ 
+-    func_800ABE74(view->eye.x, view->eye.y, view->eye.z);
++    View_ErrorCheckEyePosition(view->eye.x, view->eye.y, view->eye.z);  // was func_800ABE74 [LLM:HIGH]
+     guLookAt(viewing, view->eye.x, view->eye.y, view->eye.z, view->lookAt.x, view->lookAt.y, view->lookAt.z, view->up.x,
+              view->up.y, view->up.z);
+ 
+@@ -644,7 +644,7 @@ s32 View_ApplyPerspectiveToOverlay(View* view) {
+ s32 View_UpdateViewingMatrix(View* view) {
+     OPEN_DISPS(view->gfxCtx);
+ 
+-    func_800ABE74(view->eye.x, view->eye.y, view->eye.z);
++    View_ErrorCheckEyePosition(view->eye.x, view->eye.y, view->eye.z);  // was func_800ABE74 [LLM:HIGH]
+     guLookAt(view->viewingPtr, view->eye.x, view->eye.y, view->eye.z, view->lookAt.x, view->lookAt.y, view->lookAt.z,
+              view->up.x, view->up.y, view->up.z);
+ 
+@@ -711,7 +711,7 @@ s32 View_ApplyTo(View* view, s32 arg1, Gfx** gfxp) {
+         LOG_CHECK_NULL_POINTER("viewing", viewing);
+         view->viewingPtr = viewing;
+ 
+-        func_800ABE74(view->eye.x, view->eye.y, view->eye.z);
++        View_ErrorCheckEyePosition(view->eye.x, view->eye.y, view->eye.z);  // was func_800ABE74 [LLM:HIGH]
+         guLookAt(viewing, view->eye.x, view->eye.y, view->eye.z, view->lookAt.x, view->lookAt.y, view->lookAt.z,
+                  view->up.x, view->up.y, view->up.z);
+ 
+@@ -726,7 +726,8 @@ s32 View_ApplyTo(View* view, s32 arg1, Gfx** gfxp) {
+     return 1;
+ }
+ 
+-s32 func_800ABE74(f32 eyeX, f32 eyeY, f32 eyeZ) {
++// LLM generated name (HIGH), was func_800ABE74: reports whether an eye position is beyond the coordinate range guLookAt can take
++s32 View_ErrorCheckEyePosition(f32 eyeX, f32 eyeY, f32 eyeZ) {
+     s32 error = 0;
+ 
+     if (SQ(eyeX) + SQ(eyeY) + SQ(eyeZ) > SQ(32767.0f)) {
+-- 
+2.55.0
+

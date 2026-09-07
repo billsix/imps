@@ -1,0 +1,106 @@
+From 6343f5a561f304349b37b0054091a805e62e208d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 19:50:45 +0000
+Subject: [PATCH 0825/3799] soh: rename func_80090480 ->
+ Player_UpdateWeaponInfo
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.89.
+Defined in soh/src/code/z_player_lib.c.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/src/code/z_player_lib.c                         | 9 +++++----
+ soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c | 2 +-
+ soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c   | 2 +-
+ soh/src/overlays/actors/ovl_En_Boom/z_en_boom.c     | 2 +-
+ 5 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 2dc05bcd4..472c15e71 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1154,7 +1154,7 @@ s32 Player_OverrideLimbDrawGameplayCommon(PlayState* play, s32 limbIndex, Gfx**
+ s32 Player_OverrideLimbDrawGameplayDefault(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* data);
+ s32 Player_OverrideLimbDrawGameplayFirstPerson(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* data);
+ s32 Player_OverrideLimbDrawGameplayCrawling(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* data);
+-u8 func_80090480(PlayState* play, ColliderQuad* collider, WeaponInfo* weaponDim, Vec3f* newTip,
++u8 Player_UpdateWeaponInfo(PlayState* play, ColliderQuad* collider, WeaponInfo* weaponDim, Vec3f* newTip,  // was func_80090480 [oot]
+                  Vec3f* newBase);
+ void Player_DrawGetItem(PlayState* play, Player* player);
+ void Player_PostLimbDrawGameplay(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* data);
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index e74460116..e5e6d9fda 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -1505,7 +1505,8 @@ s32 Player_OverrideLimbDrawGameplayCrawling(PlayState* play, s32 limbIndex, Gfx*
+     return false;
+ }
+ 
+-u8 func_80090480(PlayState* play, ColliderQuad* collider, WeaponInfo* weaponInfo, Vec3f* newTip, Vec3f* newBase) {
++// Name from zeldaret/oot (was func_80090480): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_player_lib.c]
++u8 Player_UpdateWeaponInfo(PlayState* play, ColliderQuad* collider, WeaponInfo* weaponInfo, Vec3f* newTip, Vec3f* newBase) {
+     if (weaponInfo->active == 0) {
+         if (collider != NULL) {
+             Collider_ResetQuadAT(play, &collider->base);
+@@ -1574,7 +1575,7 @@ void func_800906D4(PlayState* play, Player* this, Vec3f* newTipPos) {
+     Matrix_MultVec3f(&D_801260A4[1], &newBasePos[1]);
+     Matrix_MultVec3f(&D_801260A4[2], &newBasePos[2]);
+ 
+-    if (func_80090480(play, NULL, &this->meleeWeaponInfo[0], &newTipPos[0], &newBasePos[0]) &&
++    if (Player_UpdateWeaponInfo(play, NULL, &this->meleeWeaponInfo[0], &newTipPos[0], &newBasePos[0]) &&
+         !(this->stateFlags1 & PLAYER_STATE1_SHIELDING) &&
+         !CVarGetInteger(CVAR_ENHANCEMENT("DisableLinkSwordTrail"), 0)) {
+         EffectBlure_AddVertex(Effect_GetByIndex(this->meleeWeaponEffectIndex), &this->meleeWeaponInfo[0].tip,
+@@ -1583,8 +1584,8 @@ void func_800906D4(PlayState* play, Player* this, Vec3f* newTipPos) {
+ 
+     if ((this->meleeWeaponState > 0) &&
+         ((this->meleeWeaponAnimation < 0x18) || (this->stateFlags2 & PLAYER_STATE2_SPIN_ATTACKING))) {
+-        func_80090480(play, &this->meleeWeaponQuads[0], &this->meleeWeaponInfo[1], &newTipPos[1], &newBasePos[1]);
+-        func_80090480(play, &this->meleeWeaponQuads[1], &this->meleeWeaponInfo[2], &newTipPos[2], &newBasePos[2]);
++        Player_UpdateWeaponInfo(play, &this->meleeWeaponQuads[0], &this->meleeWeaponInfo[1], &newTipPos[1], &newBasePos[1]);
++        Player_UpdateWeaponInfo(play, &this->meleeWeaponQuads[1], &this->meleeWeaponInfo[2], &newTipPos[2], &newBasePos[2]);
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c b/soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c
+index 0c998b5ac..e30c5d571 100644
+--- a/soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c
++++ b/soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c
+@@ -326,7 +326,7 @@ void ArmsHook_Draw(Actor* thisx, PlayState* play) {
+             Matrix_MultVec3f(&D_80865BAC, &sp60);
+         }
+ 
+-        func_80090480(play, &this->collider, &this->hookInfo, &sp6C, &sp60);
++        Player_UpdateWeaponInfo(play, &this->collider, &this->hookInfo, &sp6C, &sp60);
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+         if (CVarGetInteger(CVAR_ENHANCEMENT("EquipmentAlwaysVisible"), 0) &&
+             CVarGetInteger(CVAR_ENHANCEMENT("ScaleAdultEquipmentAsChild"), 0) && LINK_IS_CHILD) {
+diff --git a/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c b/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
+index a0c210cb8..4c815ea29 100644
+--- a/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
++++ b/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
+@@ -485,7 +485,7 @@ void func_809B4800(EnArrow* this, PlayState* play) {
+             addBlureVertex = this->actor.params <= ARROW_LIGHT;
+ 
+             if (this->hitActor == NULL) {
+-                addBlureVertex &= func_80090480(play, &this->collider, &this->weaponInfo, &sp44, &sp38);
++                addBlureVertex &= Player_UpdateWeaponInfo(play, &this->collider, &this->weaponInfo, &sp44, &sp38);
+             } else {
+                 if (addBlureVertex) {
+                     if ((sp44.x == this->weaponInfo.tip.x) && (sp44.y == this->weaponInfo.tip.y) &&
+diff --git a/soh/src/overlays/actors/ovl_En_Boom/z_en_boom.c b/soh/src/overlays/actors/ovl_En_Boom/z_en_boom.c
+index bc69863f2..75fa1fdfd 100644
+--- a/soh/src/overlays/actors/ovl_En_Boom/z_en_boom.c
++++ b/soh/src/overlays/actors/ovl_En_Boom/z_en_boom.c
+@@ -264,7 +264,7 @@ void EnBoom_Draw(Actor* thisx, PlayState* play) {
+     Matrix_MultVec3f(&sMultVec1, &vec1);
+     Matrix_MultVec3f(&sMultVec2, &vec2);
+ 
+-    if (func_80090480(play, &this->collider, &this->boomerangInfo, &vec1, &vec2) != 0) {
++    if (Player_UpdateWeaponInfo(play, &this->collider, &this->boomerangInfo, &vec1, &vec2) != 0) {
+         EffectBlure_AddVertex(Effect_GetByIndex(this->effectIndex), &vec1, &vec2);
+     }
+ 
+-- 
+2.55.0
+

@@ -1,0 +1,67 @@
+From e40272749268dbff6eae63f34107d4b1ff5b40cd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:40:08 +0000
+Subject: [PATCH 1744/3799] soh: rename func_80B4B8B4 ->
+ EnZl1_CsPlayCueAnimation
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: plays the animation the current actor cue calls for and keeps Zelda on the cue's path.
+Defined in soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c b/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c
+index 626751a6b..58c7f29d5 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c
++++ b/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c
+@@ -22,7 +22,8 @@ void EnZl1_Idle(EnZl1* this, PlayState* play);  // was func_80B4AF18 [LLM:HIGH]
+ void EnZl1_StartCourtyardCutscene(EnZl1* this, PlayState* play);  // was func_80B4B010 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80B4B240: runs that scene as a numbered sequence of animation frames, camera moves and textboxes.
+ void EnZl1_CourtyardCutscene(EnZl1* this, PlayState* play);  // was func_80B4B240 [LLM:HIGH]
+-void func_80B4B8B4(EnZl1* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B4B8B4: plays the animation the current actor cue calls for and keeps Zelda on the cue's path.
++void EnZl1_CsPlayCueAnimation(EnZl1* this, PlayState* play);  // was func_80B4B8B4 [LLM:HIGH]
+ void func_80B4BBC4(EnZl1* this, PlayState* play);
+ void func_80B4BC78(EnZl1* this, PlayState* play);
+ void func_80B4BF2C(EnZl1* this, PlayState* play);
+@@ -332,7 +333,7 @@ void EnZl1_CourtyardCutscene(EnZl1* this, PlayState* play) {
+                 sp3C = 1;
+                 play->csCtx.segment = gTriforceCreationStartCs;
+                 gSaveContext.cutsceneTrigger = 1;
+-                this->actionFunc = func_80B4B8B4;
++                this->actionFunc = EnZl1_CsPlayCueAnimation;  // was func_80B4B8B4 [LLM:HIGH]
+                 this->unk_1E2++;
+             }
+             break;
+@@ -364,7 +365,7 @@ void EnZl1_MoveActor(EnZl1* this, PlayState* play) {
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+ 
+-void func_80B4B8B4(EnZl1* this, PlayState* play) {
++void EnZl1_CsPlayCueAnimation(EnZl1* this, PlayState* play) {
+     AnimationHeader* spB0[] = {
+         NULL,
+         NULL,
+@@ -584,12 +585,12 @@ void EnZl1_Update(Actor* thisx, PlayState* play) {
+     s32 pad;
+     EnZl1* this = (EnZl1*)thisx;
+ 
+-    if ((this->actionFunc != func_80B4B8B4) && (this->actionFunc != func_80B4BC78)) {
++    if ((this->actionFunc != EnZl1_CsPlayCueAnimation) && (this->actionFunc != func_80B4BC78)) {  // was func_80B4B8B4 [LLM:HIGH]
+         SkelAnime_Update(&this->skelAnime);
+     }
+     Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 5);
+     this->actionFunc(this, play);
+-    if (this->actionFunc != func_80B4B8B4) {
++    if (this->actionFunc != EnZl1_CsPlayCueAnimation) {  // was func_80B4B8B4 [LLM:HIGH]
+         Collider_UpdateCylinder(&this->actor, &this->collider);
+         CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+     }
+-- 
+2.55.0
+

@@ -1,0 +1,42 @@
+From 175a946b43157228a823c6cda39478a151a262e8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:28:08 +0000
+Subject: [PATCH 2426/3799] soh: rename func_80ADE6D4 -> EnPoh_SetupSoulRise
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the soul flame's start: zeroes the light and scale, picks its color from the poe type and plays the appear sound
+Defined in soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+index 3169917e2..cdb9d2675 100644
+--- a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
++++ b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+@@ -395,7 +395,8 @@ void EnPoh_SetupDeath(EnPoh* this, PlayState* play) {
+     this->actionFunc = EnPoh_Death;
+ }
+ 
+-void func_80ADE6D4(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE6D4: the soul flame's start: zeroes the light and scale, picks its color from the poe type and plays the appear sound
++void EnPoh_SetupSoulRise(EnPoh* this) {
+     Lights_PointNoGlowSetInfo(&this->lightInfo, this->actor.world.pos.x, this->actor.world.pos.y,
+                               this->actor.world.pos.z, 0, 0, 0, 0);
+     this->visibilityTimer = 0;
+@@ -733,7 +734,7 @@ void EnPoh_Death(EnPoh* this, PlayState* play) {
+         objId = (this->infoIdx == EN_POH_INFO_COMPOSER) ? OBJECT_PO_COMPOSER : OBJECT_POH;
+         EffectSsHahen_SpawnBurst(play, &this->actor.world.pos, 6.0f, 0, 1, 1, 15, objId, 10,
+                                  this->info->lanternDisplayList);
+-        func_80ADE6D4(this);
++        EnPoh_SetupSoulRise(this);  // was func_80ADE6D4 [LLM:HIGH]
+     } else if (this->unk_198 == 0) {
+         Actor_Kill(&this->actor);
+         return;
+-- 
+2.55.0
+

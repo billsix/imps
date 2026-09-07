@@ -1,0 +1,85 @@
+From d06b292f2eba18b2eca6dbd640bfb7a9b1bf2611 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:07:16 +0000
+Subject: [PATCH 1273/3799] soh: rename func_800418D0 ->
+ BgCheck_ResetDynaBgHeaders
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: its doc comment reads "SEGMENT_TO_VIRTUAL all active BgActor CollisionHeaders"; it re-resolves every live bg actor's collision header after the object segments move, which is why the pause menu and the save menu call it on close. "Reset" names that re-resolve pass.
+Defined in soh/src/code/z_bgcheck.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/soh/Enhancements/QoL/BetterSaveMenu.cpp                   | 2 +-
+ soh/src/code/z_bgcheck.c                                      | 3 ++-
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c | 4 ++--
+ 4 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 4018ba247..716ae5495 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -671,7 +671,7 @@ s32 BgCheck_CheckLineAgainstDyna(CollisionContext* colCtx, u16 xpFlags, Vec3f* p
+ s32 BgCheck_SphVsFirstDynaPoly(CollisionContext* colCtx, u16 xpFlags, CollisionPoly** outPoly, s32* outBgId,
+                                Vec3f* center, f32 radius, Actor* actor, u16 bciFlags);
+ void CollisionHeader_GetVirtual(void* colHeader, CollisionHeader** dest);
+-void func_800418D0(CollisionContext* colCtx, PlayState* play);
++void BgCheck_ResetDynaBgHeaders(CollisionContext* colCtx, PlayState* play);  // was func_800418D0 [LLM:GUESS]
+ void BgCheck_ResetPolyCheckTbl(SSNodeList* nodeList, s32 numPolys);
+ u32 SurfaceType_GetCamDataIndex(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u16 BgCheck_GetBgCamSettingImpl(CollisionContext* colCtx, u32 bgCamIndex, s32 bgId);
+diff --git a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+index ee7f06c6e..2de021cfd 100644
+--- a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
++++ b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+@@ -148,7 +148,7 @@ void HandleSaveMenu(bool* should, PlayState* play) {
+                     R_UPDATE_RATE = 3;
+                     R_PAUSE_MENU_MODE = 0;
+                     Object_LoadAll(&play->objectCtx);
+-                    func_800418D0(&play->colCtx, play);
++                    BgCheck_ResetDynaBgHeaders(&play->colCtx, play);  // was func_800418D0 [LLM:GUESS]
+                     // Reset frame counter to prevent autosave on respawn
+                     play->gameplayFrames = 0;
+                     gSaveContext.nextTransitionType = TRANS_TYPE_FADE_BLACK;
+diff --git a/soh/src/code/z_bgcheck.c b/soh/src/code/z_bgcheck.c
+index f07e1d795..f6884e842 100644
+--- a/soh/src/code/z_bgcheck.c
++++ b/soh/src/code/z_bgcheck.c
+@@ -3825,7 +3825,8 @@ void CollisionHeader_GetVirtual(void* colHeader, CollisionHeader** dest) {
+ /**
+  * SEGMENT_TO_VIRTUAL all active BgActor CollisionHeaders
+  */
+-void func_800418D0(CollisionContext* colCtx, PlayState* play) {
++// LLM generated name (GUESS), was func_800418D0: its doc comment reads "SEGMENT_TO_VIRTUAL all active BgActor CollisionHeaders"; it re-resolves every live bg actor's collision header after the object segments move, which is why the pause menu and the save menu call it on close. "Reset" names that re-resolve pass.
++void BgCheck_ResetDynaBgHeaders(CollisionContext* colCtx, PlayState* play) {
+     DynaCollisionContext* dyna = &colCtx->dyna;
+     s32 i;
+     u16 flag;
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index f226a0db5..2cd32c12d 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -4775,7 +4775,7 @@ void KaleidoScope_Update(PlayState* play) {
+                     R_UPDATE_RATE = 3;
+                     R_PAUSE_MENU_MODE = 0;
+                     Object_LoadAll(&play->objectCtx);
+-                    func_800418D0(&play->colCtx, play);
++                    BgCheck_ResetDynaBgHeaders(&play->colCtx, play);  // was func_800418D0 [LLM:GUESS]
+                     if (pauseCtx->promptChoice == 0 && GameInteractor_Should(VB_BE_ABLE_TO_SAVE, true)) {
+                         Play_TriggerRespawn(play);
+                         gSaveContext.respawnFlag = -2;
+@@ -4843,7 +4843,7 @@ void KaleidoScope_Update(PlayState* play) {
+             CVarSetInteger(CVAR_GENERAL("PauseMenuAnimatedLinkTriforce"), 0);
+ 
+             Object_LoadAll(&play->objectCtx);
+-            func_800418D0(&play->colCtx, play);
++            BgCheck_ResetDynaBgHeaders(&play->colCtx, play);  // was func_800418D0 [LLM:GUESS]
+ 
+             switch (play->sceneNum) {
+                 case SCENE_DEKU_TREE:
+-- 
+2.55.0
+

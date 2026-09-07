@@ -1,0 +1,65 @@
+From 8ed7a8f6d4642fe9ae96744f99ca6f8f701e1656 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:18:57 +0000
+Subject: [PATCH 1433/3799] soh: rename func_809B04F0 -> EnAni_ChildTalk
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: waits for the textbox to close and returns to the child idle.
+Defined in soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+index 1b5acf171..11ad8f32d 100644
+--- a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
++++ b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+@@ -16,7 +16,8 @@ void EnAni_Update(Actor* thisx, PlayState* play);
+ void EnAni_Draw(Actor* thisx, PlayState* play);
+ 
+ s32 EnAni_SetText(EnAni* this, PlayState* play, u16 textId);
+-void func_809B04F0(EnAni* this, PlayState* play);
++// LLM generated name (HIGH), was func_809B04F0: waits for the textbox to close and returns to the child idle.
++void EnAni_ChildTalk(EnAni* this, PlayState* play);  // was func_809B04F0 [LLM:HIGH]
+ void func_809B0524(EnAni* this, PlayState* play);
+ // LLM generated name (HIGH), was func_809B0558: re-offers the heart piece until the player takes it, then sets ITEMGETINF_15 and returns to the age-appropriate talk state.
+ void EnAni_GiveHeartPiece(EnAni* this, PlayState* play);  // was func_809B0558 [LLM:HIGH]
+@@ -109,7 +110,7 @@ s32 EnAni_SetText(EnAni* this, PlayState* play, u16 textId) {
+     return 0;
+ }
+ 
+-void func_809B04F0(EnAni* this, PlayState* play) {
++void EnAni_ChildTalk(EnAni* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         EnAni_SetupAction(this, EnAni_ChildIdle);  // was func_809B064C [LLM:HIGH]
+     }
+@@ -125,7 +126,7 @@ void EnAni_GiveHeartPiece(EnAni* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play) || !GameInteractor_Should(VB_GIVE_ITEM_FROM_MAN_ON_ROOF, true)) {
+         this->actor.parent = NULL;
+         if (!LINK_IS_ADULT) {
+-            EnAni_SetupAction(this, func_809B04F0);
++            EnAni_SetupAction(this, EnAni_ChildTalk);  // was func_809B04F0 [LLM:HIGH]
+         } else {
+             EnAni_SetupAction(this, func_809B0524);
+         }
+@@ -164,11 +165,11 @@ void EnAni_ChildIdle(EnAni* this, PlayState* play) {
+     yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if (this->actor.textId == 0x5056) {
+-            EnAni_SetupAction(this, func_809B04F0);
++            EnAni_SetupAction(this, EnAni_ChildTalk);  // was func_809B04F0 [LLM:HIGH]
+         } else if (this->actor.textId == 0x5055) {
+             EnAni_SetupAction(this, EnAni_OfferHeartPiece);  // was func_809B05F0 [LLM:HIGH]
+         } else {
+-            EnAni_SetupAction(this, func_809B04F0);
++            EnAni_SetupAction(this, EnAni_ChildTalk);  // was func_809B04F0 [LLM:HIGH]
+         }
+     } else if (yawDiff >= -0x36AF && yawDiff < 0 && this->actor.xzDistToPlayer < 150.0f &&
+                -80.0f < this->actor.yDistToPlayer) {
+-- 
+2.55.0
+

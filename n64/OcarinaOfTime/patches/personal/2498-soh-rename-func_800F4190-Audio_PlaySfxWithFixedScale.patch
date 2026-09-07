@@ -1,0 +1,85 @@
+From ff35d812459b96e40470254e580c1af47c07aa55 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:32:55 +0000
+Subject: [PATCH 2498/3799] soh: rename func_800F4190 ->
+ Audio_PlaySfxWithFixedScales
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: plays a sound with the file's constant frequency scale and reverb
+Defined in soh/src/code/audio_general.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/src/code/audio_general.c                        | 3 ++-
+ soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c | 4 ++--
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 2 +-
+ 4 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index e371298d4..310b73549 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2074,7 +2074,7 @@ void Audio_PlayCutsceneEffectsSequence(u8);  // was func_800F3F3C [oot]
+ void Audio_PlayWalkSfx(Vec3f* pos, u16 sfxId, f32);  // was func_800F4010 [LLM:GUESS]
+ void Audio_PlaySoundRandom(Vec3f* pos, u16 baseSfxId, u8 randLim);
+ void Audio_PlaySfxWithSpeedScales(Vec3f* pos, u16 sfxId, f32);  // was func_800F4138 [LLM:HIGH]
+-void func_800F4190(Vec3f* pos, u16 sfxId);
++void Audio_PlaySfxWithFixedScales(Vec3f* pos, u16 sfxId);  // was func_800F4190 [LLM:HIGH]
+ void func_800F436C(Vec3f* pos, u16 sfxId, f32 arg2);
+ void func_800F4414(Vec3f* pos, u16 sfxId, f32);
+ void func_800F44EC(s8 arg0, s8 arg1);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index a0939a012..6b147db1e 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4431,7 +4431,8 @@ void Audio_PlaySfxWithSpeedScales(Vec3f* pos, u16 sfxId, f32 arg2) {
+     Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7B0, &D_8016B7A8, &gSfxDefaultReverb);
+ }
+ 
+-void func_800F4190(Vec3f* pos, u16 sfxId) {
++// LLM generated name (HIGH), was func_800F4190: plays a sound with the file's constant frequency scale and reverb
++void Audio_PlaySfxWithFixedScales(Vec3f* pos, u16 sfxId) {
+     Audio_PlaySfxGeneral(sfxId, pos, 4, &D_801305B0, &gSfxDefaultFreqAndVolScale, &D_801305B4);
+ }
+ void Audio_PlaySoundRandom(Vec3f* pos, u16 baseSfxId, u8 randLim) {
+diff --git a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+index 6555458cb..82dfa12d7 100644
+--- a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
++++ b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+@@ -384,7 +384,7 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+                             EnTorch2_SwingSword(play, input, this);
+                             sSwordJumpState++;
+                         } else if (sSwordJumpTimer == 19) {
+-                            func_800F4190(&this->actor.projectedPos, NA_SE_VO_LI_AUTO_JUMP);
++                            Audio_PlaySfxWithFixedScales(&this->actor.projectedPos, NA_SE_VO_LI_AUTO_JUMP);  // was func_800F4190 [LLM:HIGH]
+                         }
+                     }
+                 } else {
+@@ -701,7 +701,7 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+         }
+         if (staggerThreshold < sStaggerCount) {
+             this->skelAnime.playSpeed *= 0.6f;
+-            func_800F4190(&this->actor.projectedPos, NA_SE_PL_DAMAGE);
++            Audio_PlaySfxWithFixedScales(&this->actor.projectedPos, NA_SE_PL_DAMAGE);  // was func_800F4190 [LLM:HIGH]
+             sStaggerTimer = 0;
+             sStaggerCount = 0;
+         }
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 479535e5a..2ac75b144 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -1725,7 +1725,7 @@ void Player_PlayVoiceSfx(Player* this, u16 sfxId) {
+     if (this->actor.category == ACTORCAT_PLAYER) {
+         Player_PlaySfx(this, sfxId + this->ageProperties->unk_92);
+     } else {
+-        func_800F4190(&this->actor.projectedPos, sfxId);
++        Audio_PlaySfxWithFixedScales(&this->actor.projectedPos, sfxId);  // was func_800F4190 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

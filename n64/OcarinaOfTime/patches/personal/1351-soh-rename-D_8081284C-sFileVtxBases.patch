@@ -1,0 +1,69 @@
+From 022f998f5c145b19a7cc548fba7ebbccfea7b678 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:11:58 +0000
+Subject: [PATCH 1351/3799] soh: rename D_8081284C -> sFileVtxBases
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the windowContentVtx index each save slot's block of vertices starts at; every gSPVertex in the per-file draw is offset from it.
+Defined in soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../gamestates/ovl_file_choose/z_file_choose.c        | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+index 9577b9c47..56971ec51 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+@@ -1449,7 +1449,8 @@ void FileChoose_SetWindowContentVtx(GameState* thisx) {
+     this->windowContentVtx[phi_t2 + 5].v.tc[0] = this->windowContentVtx[phi_t2 + 7].v.tc[0] = 0x1000;
+ }
+ 
+-static u16 D_8081284C[] = { 0x007C, 0x0124, 0x01CC };
++// LLM generated name (HIGH), was D_8081284C: the windowContentVtx index each save slot's block of vertices starts at; every gSPVertex in the per-file draw is offset from it.
++static u16 sFileVtxBases[] = { 0x007C, 0x0124, 0x01CC };  // was D_8081284C [LLM:HIGH]
+ 
+ static void* sQuestItemTextures[] = {
+     gFileSelKokiriEmeraldTex,   gFileSelGoronRubyTex,       gFileSelZoraSapphireTex,
+@@ -1498,7 +1499,7 @@ void FileChoose_DrawFileInfo(GameState* thisx, s16 fileIndex, s16 isActive) {
+ 
+     // draw file name
+     if (this->nameAlpha[fileIndex] != 0) {
+-        gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[D_8081284C[fileIndex]], 32, 0);
++        gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[sFileVtxBases[fileIndex]], 32, 0);  // was D_8081284C [LLM:HIGH]
+         gDPSetPrimColor(POLY_OPA_DISP++, 0x00, 0x00, sNamePrimColors[isActive][0], sNamePrimColors[isActive][1],
+                         sNamePrimColors[isActive][2], this->nameAlpha[fileIndex]);
+ 
+@@ -1546,7 +1547,7 @@ void FileChoose_DrawFileInfo(GameState* thisx, s16 fileIndex, s16 isActive) {
+         gDPSetCombineLERP(POLY_OPA_DISP++, 1, 0, PRIMITIVE, 0, TEXEL0, 0, PRIMITIVE, 0, 1, 0, PRIMITIVE, 0, TEXEL0, 0,
+                           PRIMITIVE, 0);
+         gDPSetPrimColor(POLY_OPA_DISP++, 0x00, 0x00, 255, 255, 255, this->fileInfoAlpha[fileIndex]);
+-        gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[D_8081284C[fileIndex]] + 0x24, 12, 0);
++        gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[sFileVtxBases[fileIndex]] + 0x24, 12, 0);  // was D_8081284C [LLM:HIGH]
+ 
+         FileChoose_SplitNumber(Save_GetSaveMetaInfo(fileIndex)->deaths, &deathCountSplit[0], &deathCountSplit[1],
+                                &deathCountSplit[2]);
+@@ -1581,7 +1582,7 @@ void FileChoose_DrawFileInfo(GameState* thisx, s16 fileIndex, s16 isActive) {
+         if (GameInteractor_Should(VB_FILE_SELECT_DRAW_HEARTS, true, this)) {
+             // draw hearts
+             for (vtxOffset = 0, j = 0; j < i; j++, vtxOffset += 4) {
+-                gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[D_8081284C[fileIndex] + vtxOffset] + 0x30, 4, 0);
++                gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[sFileVtxBases[fileIndex] + vtxOffset] + 0x30, 4, 0);  // was D_8081284C [LLM:HIGH]
+ 
+                 POLY_OPA_DISP = FileChoose_QuadTextureIA8(POLY_OPA_DISP, sHeartTextures[heartType], 0x10, 0x10, 0);
+             }
+@@ -1599,7 +1600,7 @@ void FileChoose_DrawFileInfo(GameState* thisx, s16 fileIndex, s16 isActive) {
+             // draw quest items
+             for (vtxOffset = 0, j = 0; j < 9; j++, vtxOffset += 4) {
+                 if (Save_GetSaveMetaInfo(fileIndex)->questItems & gBitFlags[sQuestItemFlags[j]]) {
+-                    gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[D_8081284C[fileIndex] + vtxOffset] + 0x80, 4, 0);
++                    gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[sFileVtxBases[fileIndex] + vtxOffset] + 0x80, 4, 0);  // was D_8081284C [LLM:HIGH]
+                     gDPPipeSync(POLY_OPA_DISP++);
+                     gDPSetPrimColor(POLY_OPA_DISP++, 0x00, 0x00, sQuestItemRed[j], sQuestItemGreen[j],
+                                     sQuestItemBlue[j], this->fileInfoAlpha[fileIndex]);
+-- 
+2.55.0
+

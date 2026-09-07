@@ -1,0 +1,56 @@
+From 7879bf321697db85adb10c3c86e60f6db8b8d802 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:37:31 +0000
+Subject: [PATCH 1023/3799] soh: rename func_8088F514 -> BgHidanSyoku_MoveUp
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: drives world.pos.y from home minus 540 up to home plus 540 over 140 frames on a cosine curve, looping the elevator sfx.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c         | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
+index 37839f599..6184310ae 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
+@@ -16,7 +16,8 @@ void BgHidanSyoku_Draw(Actor* thisx, PlayState* play);
+ 
+ // LLM generated name (HIGH), was func_8088F4B8: the initial action: starts the 140-frame ascent once the room is cleared and the player is standing on the platform.
+ void BgHidanSyoku_WaitForPlayer(BgHidanSyoku* this, PlayState* play);  // was func_8088F4B8 [LLM:HIGH]
+-void func_8088F514(BgHidanSyoku* this, PlayState* play);
++// LLM generated name (HIGH), was func_8088F514: drives world.pos.y from home minus 540 up to home plus 540 over 140 frames on a cosine curve, looping the elevator sfx.
++void BgHidanSyoku_MoveUp(BgHidanSyoku* this, PlayState* play);  // was func_8088F514 [LLM:HIGH]
+ void func_8088F62C(BgHidanSyoku* this, PlayState* play);
+ 
+ const ActorInit Bg_Hidan_Syoku_InitVars = {
+@@ -65,11 +66,11 @@ void BgHidanSyoku_SetupWait(BgHidanSyoku* this) {
+ void BgHidanSyoku_WaitForPlayer(BgHidanSyoku* this, PlayState* play) {
+     if (Flags_GetClear(play, this->dyna.actor.room) && DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+         this->timer = 140;
+-        this->actionFunc = func_8088F514;
++        this->actionFunc = BgHidanSyoku_MoveUp;  // was func_8088F514 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8088F514(BgHidanSyoku* this, PlayState* play) {
++void BgHidanSyoku_MoveUp(BgHidanSyoku* this, PlayState* play) {
+     if (this->timer != 0) {
+         this->timer--;
+     }
+@@ -100,7 +101,7 @@ void func_8088F62C(BgHidanSyoku* this, PlayState* play) {
+     if (this->timer == 0) {
+         this->timer = 140;
+         if (this->dyna.actor.world.pos.y < this->dyna.actor.home.pos.y) {
+-            this->actionFunc = func_8088F514;
++            this->actionFunc = BgHidanSyoku_MoveUp;  // was func_8088F514 [LLM:HIGH]
+         } else {
+             this->actionFunc = func_8088F5A0;
+         }
+-- 
+2.55.0
+

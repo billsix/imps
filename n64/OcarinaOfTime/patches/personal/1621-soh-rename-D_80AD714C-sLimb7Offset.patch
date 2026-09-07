@@ -1,0 +1,42 @@
+From d0bc28e8cfe008f5087e510ca2f3f5f6d6d066a3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:31:18 +0000
+Subject: [PATCH 1621/3799] soh: rename D_80AD714C -> sLimb7Offset
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the local-space offset transformed by limb 7's matrix during the death sequence, which is where the actor's world position is snapped to at the end.
+Defined in soh/src/overlays/actors/ovl_En_Po_Field/z_en_po_field.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Po_Field/z_en_po_field.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Po_Field/z_en_po_field.c b/soh/src/overlays/actors/ovl_En_Po_Field/z_en_po_field.c
+index 478f90f5d..b5aca89ec 100644
+--- a/soh/src/overlays/actors/ovl_En_Po_Field/z_en_po_field.c
++++ b/soh/src/overlays/actors/ovl_En_Po_Field/z_en_po_field.c
+@@ -152,7 +152,8 @@ static EnPoFieldInfo sPoFieldInfo[2] = {
+     { { 255, 255, 170 }, { 255, 200, 0 }, { 160, 0, 255 }, 241, gBigPoeSoulTex },
+ };
+ 
+-static Vec3f D_80AD714C = { 0.0f, 1400.0f, 0.0f };
++// LLM generated name (HIGH), was D_80AD714C: the local-space offset transformed by limb 7's matrix during the death sequence, which is where the actor's world position is snapped to at the end.
++static Vec3f sLimb7Offset = { 0.0f, 1400.0f, 0.0f };  // was D_80AD714C [LLM:HIGH]
+ 
+ static Vec3s sSpawnPositions[10];
+ static u8 sSpawnSwitchFlags[10];
+@@ -920,7 +921,7 @@ void EnPoField_PostLimDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+     }
+     if (limbIndex == 7) {
+         Vec3f vec;
+-        Matrix_MultVec3f(&D_80AD714C, &vec);
++        Matrix_MultVec3f(&sLimb7Offset, &vec);  // was D_80AD714C [LLM:HIGH]
+         if (this->actionFunc == EnPoField_Death && this->actionTimer >= 19 && this->actor.scale.x != 0.0f) {
+             f32 mtxScale = 0.01f / this->actor.scale.x;
+             Matrix_Scale(mtxScale, mtxScale, mtxScale, MTXMODE_APPLY);
+-- 
+2.55.0
+

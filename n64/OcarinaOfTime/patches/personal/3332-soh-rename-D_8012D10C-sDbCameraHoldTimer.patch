@@ -1,0 +1,50 @@
+From 8907f823497c3aa42181b080eebc623e5ed8fae3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:13:34 +0000
+Subject: [PATCH 3332/3799] soh: rename D_8012D10C -> sDbCameraHoldTimer
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: an s32 starting at 100 that DbCamera_Update counts against; what it gates is not established
+Defined in soh/src/code/db_camera.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/code/db_camera.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index 627b9917f..186e92bc1 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -498,7 +498,7 @@ void DbgCamera_Enable(DbCamera* dbCamera, Camera* cam) {
+ }
+ 
+ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+-    static s32 D_8012D10C = 100;
++    static s32 sDbCameraHoldTimer = 100;  // was D_8012D10C [LLM:GUESS]
+     static s32 D_8012D110 = 0;
+     static s32 D_80161140; // bool
+     static s32 D_80161144; // bool
+@@ -1131,7 +1131,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                     }
+ 
+                     if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_DLEFT)) {
+-                        if ((D_8012D10C++ % 5) == 0) {
++                        if ((sDbCameraHoldTimer++ % 5) == 0) {  // was D_8012D10C [LLM:GUESS]
+                             Audio_PlaySfxGeneral(NA_SE_SY_ATTENTION_ON, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                         }
+@@ -1218,7 +1218,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                         }
+                     }
+                     if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_DRIGHT)) {
+-                        if ((D_8012D10C++ % 5) == 0) {
++                        if ((sDbCameraHoldTimer++ % 5) == 0) {  // was D_8012D10C [LLM:GUESS]
+                             Audio_PlaySfxGeneral(NA_SE_SY_ATTENTION_ON, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                         }
+-- 
+2.55.0
+

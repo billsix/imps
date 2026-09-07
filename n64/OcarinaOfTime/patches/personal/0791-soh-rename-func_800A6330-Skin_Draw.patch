@@ -1,0 +1,113 @@
+From 948ecdb5d3c6eee876cc19997a79d987b3ae7f11 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 18:50:28 +0000
+Subject: [PATCH 0791/3799] soh: rename func_800A6330 -> Skin_Draw
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: the basic public Skin_DrawImpl wrapper, exposing only postDraw and setTranslation; called by the four horse actors to draw their skeletons.
+Defined in soh/src/code/z_skin.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                                        | 2 +-
+ soh/src/code/z_skin.c                                          | 3 ++-
+ soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c  | 2 +-
+ .../overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c    | 2 +-
+ soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c  | 2 +-
+ soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c            | 2 +-
+ soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c                  | 2 +-
+ 7 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 6904e8d39..2f0c84a1d 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1353,7 +1353,7 @@ void SkelAnime_CopyFrameTable(SkelAnime* skelAnime, Vec3s* dst, Vec3s* src);
+ void Skin_UpdateVertices(MtxF* mtx, SkinVertex* skinVertices, SkinLimbModif* modifEntry, Vtx* vtxBuf, Vec3f* pos);
+ void Skin_DrawAnimatedLimb(GraphicsContext* gfxCtx, Skin* skin, s32 limbIndex, s32 arg3, s32 drawFlags);
+ void Skin_DrawLimb(GraphicsContext* gfxCtx, Skin* skin, s32 limbIndex, Gfx* dlistOverride, s32 drawFlags);
+-void func_800A6330(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation);
++void Skin_Draw(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation);  // was func_800A6330 [LLM:HIGH]
+ void func_800A6360(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation);
+ void func_800A6394(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6);
+ void func_800A63CC(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6, s32 drawFlags);
+diff --git a/soh/src/code/z_skin.c b/soh/src/code/z_skin.c
+index c8d0ce8df..c5c08586c 100644
+--- a/soh/src/code/z_skin.c
++++ b/soh/src/code/z_skin.c
+@@ -239,7 +239,8 @@ close_disps:
+ }
+ 
+ // allows specifying PostLimbDraw and setTranslation
+-void func_800A6330(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation) {
++// LLM generated name (HIGH), was func_800A6330: the basic public Skin_DrawImpl wrapper, exposing only postDraw and setTranslation; called by the four horse actors to draw their skeletons.
++void Skin_Draw(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation) {
+     Skin_DrawImpl(actor, play, skin, postDraw, NULL, setTranslation, false, 0);
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c b/soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c
+index ee7b245a8..c02363554 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c
+@@ -329,5 +329,5 @@ void EnHorseGanon_Draw(Actor* thisx, PlayState* play) {
+ 
+     func_80A68E14(this, play);
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_800A6330(&this->actor, play, &this->skin, EnHorseGanon_PostDraw, true);
++    Skin_Draw(&this->actor, play, &this->skin, EnHorseGanon_PostDraw, true);  // was func_800A6330 [LLM:HIGH]
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c b/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
+index e3456c311..3d651364b 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
+@@ -657,7 +657,7 @@ void EnHorseNormal_Draw(Actor* thisx, PlayState* play) {
+         func_80A6C8E0(this, play);
+     }
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_800A6330(&this->actor, play, &this->skin, EnHorseNormal_PostDraw, true);
++    Skin_Draw(&this->actor, play, &this->skin, EnHorseNormal_PostDraw, true);  // was func_800A6330 [LLM:HIGH]
+ 
+     if (this->action == HORSE_WAIT_CLONE) {
+         MtxF skinMtx;
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c b/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
+index a6b21ff09..c7313e249 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
+@@ -272,5 +272,5 @@ void EnHorseZelda_Draw(Actor* thisx, PlayState* play) {
+ 
+     EnHorseZelda_SetRotate(this, play);
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_800A6330(&this->actor, play, &this->skin, EnHorseZelda_PostDraw, true);
++    Skin_Draw(&this->actor, play, &this->skin, EnHorseZelda_PostDraw, true);  // was func_800A6330 [LLM:HIGH]
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c b/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
+index 370593376..478fc7bf8 100644
+--- a/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
++++ b/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
+@@ -581,7 +581,7 @@ void EnViewer_DrawGanondorf(EnViewer* this, PlayState* play) {
+ }
+ 
+ void EnViewer_DrawHorse(EnViewer* this, PlayState* play) {
+-    func_800A6330(&this->actor, play, &this->skin, NULL, true);
++    Skin_Draw(&this->actor, play, &this->skin, NULL, true);  // was func_800A6330 [LLM:HIGH]
+ }
+ 
+ s32 EnViewer_ZeldaOverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx) {
+diff --git a/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c b/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
+index a5bc84dc0..2e9c64a4d 100644
+--- a/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
++++ b/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
+@@ -723,7 +723,7 @@ void EnfHG_Draw(Actor* thisx, PlayState* play) {
+                         : Gfx_SetFog(POLY_OPA_DISP, (u32)this->warpColorFilterR, (u32)this->warpColorFilterG,
+                                      (u32)this->warpColorFilterB, 0, (s32)this->warpColorFilterUnk1 + 995,
+                                      (s32)this->warpColorFilterUnk2 + 1000);
+-    func_800A6330(&this->actor, play, &this->skin, EnfHG_PostDraw, SKIN_TRANSFORM_IS_FHG);
++    Skin_Draw(&this->actor, play, &this->skin, EnfHG_PostDraw, SKIN_TRANSFORM_IS_FHG);  // was func_800A6330 [LLM:HIGH]
+     POLY_OPA_DISP = Play_SetFog(play, POLY_OPA_DISP);
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+-- 
+2.55.0
+

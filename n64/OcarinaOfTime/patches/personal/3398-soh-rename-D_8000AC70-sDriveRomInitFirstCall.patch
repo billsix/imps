@@ -1,0 +1,43 @@
+From e987c10e7b9323efd79192257549c99bc9954c78 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 00:19:05 +0000
+Subject: [PATCH 3398/3799] soh: rename D_8000AC70 -> sDriveRomInitFirstCall
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: cleared after osDriveRomInit has run once
+Defined in soh/src/libultra/io/driverominit.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/libultra/io/driverominit.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/libultra/io/driverominit.c b/soh/src/libultra/io/driverominit.c
+index 672b60ea6..25d31fa65 100644
+--- a/soh/src/libultra/io/driverominit.c
++++ b/soh/src/libultra/io/driverominit.c
+@@ -6,16 +6,16 @@ OSPiHandle* osDriveRomInit(void) {
+     register s32 status;
+     register u32 a;
+     register u32 prevInt;
+-    static u32 D_8000AC70 = 1;
++    static u32 sDriveRomInitFirstCall = 1;  // was D_8000AC70 [LLM:HIGH]
+ 
+     __osPiGetAccess();
+ 
+-    if (!D_8000AC70) {
++    if (!sDriveRomInitFirstCall) {  // was D_8000AC70 [LLM:HIGH]
+         __osPiRelAccess();
+         return &__DriveRomHandle;
+     }
+ 
+-    D_8000AC70 = 0;
++    sDriveRomInitFirstCall = 0;  // was D_8000AC70 [LLM:HIGH]
+     __DriveRomHandle.type = DEVICE_TYPE_BULK;
+     __DriveRomHandle.baseAddress = 0xA6000000;
+     __DriveRomHandle.domain = PI_DOMAIN1;
+-- 
+2.55.0
+

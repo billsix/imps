@@ -1,0 +1,69 @@
+From 2519c692c321bedbe63529565e7385335e717ee8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:19:10 +0000
+Subject: [PATCH 0896/3799] soh: rename D_80A9E840 -> sFlameParams
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: FlameParams table indexed by actor.params & 0xF for scale, colour and light settings of each torch variant.
+Defined in soh/src/overlays/actors/ovl_En_Light/z_en_light.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/src/overlays/actors/ovl_En_Light/z_en_light.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Light/z_en_light.c b/soh/src/overlays/actors/ovl_En_Light/z_en_light.c
+index 2f0622236..ae4c7d3fd 100644
+--- a/soh/src/overlays/actors/ovl_En_Light/z_en_light.c
++++ b/soh/src/overlays/actors/ovl_En_Light/z_en_light.c
+@@ -35,7 +35,8 @@ typedef struct {
+     /* 0x07 */ u8 scale;
+ } FlameParams;
+ 
+-static FlameParams D_80A9E840[] = {
++// LLM generated name (HIGH), was D_80A9E840: FlameParams table indexed by actor.params & 0xF for scale, colour and light settings of each torch variant.
++static FlameParams sFlameParams[] = {  // was D_80A9E840 [LLM:HIGH]
+     { { 255, 200, 0, 255 }, { 255, 0, 0 }, 75 },     { { 255, 200, 0, 255 }, { 255, 0, 0 }, 75 },
+     { { 0, 170, 255, 255 }, { 0, 0, 255 }, 75 },     { { 170, 255, 0, 255 }, { 0, 150, 0 }, 75 },
+     { { 255, 200, 0, 255 }, { 255, 0, 0 }, 40 },     { { 255, 200, 0, 255 }, { 255, 0, 0 }, 75 },
+@@ -62,7 +63,7 @@ void EnLight_Init(Actor* thisx, PlayState* play) {
+     }
+ 
+     this->lightNode = LightContext_InsertLight(play, &play->lightCtx, &this->lightInfo);
+-    Actor_SetScale(&this->actor, D_80A9E840[this->actor.params & 0xF].scale * 0.0001f);
++    Actor_SetScale(&this->actor, sFlameParams[this->actor.params & 0xF].scale * 0.0001f);  // was D_80A9E840 [LLM:HIGH]
+     this->timer = (s32)(Rand_ZeroOne() * 255.0f);
+ 
+     if ((this->actor.params & 0x400) != 0) {
+@@ -94,7 +95,7 @@ void EnLight_Update(Actor* thisx, PlayState* play) {
+     s16 radius;
+     EnLight* this = (EnLight*)thisx;
+ 
+-    flameParams = &D_80A9E840[this->actor.params & 0xF];
++    flameParams = &sFlameParams[this->actor.params & 0xF];  // was D_80A9E840 [LLM:HIGH]
+     intensity = (Rand_ZeroOne() * 0.5f) + 0.5f;
+     radius = (this->actor.params < 0) ? 100 : 300;
+     Lights_PointSetColorAndRadius(&this->lightInfo, (flameParams->primColor.r * intensity),
+@@ -113,7 +114,7 @@ void EnLight_UpdateSwitch(Actor* thisx, PlayState* play) {
+     EnLight* this = (EnLight*)thisx;
+     f32 scale;
+ 
+-    flameParams = &D_80A9E840[this->actor.params & 0xF];
++    flameParams = &sFlameParams[this->actor.params & 0xF];  // was D_80A9E840 [LLM:HIGH]
+     scale = this->actor.scale.x / ((f32)flameParams->scale * 0.0001);
+ 
+     if ((this->actor.params & 0x800) != 0) {
+@@ -156,7 +157,7 @@ void EnLight_Draw(Actor* thisx, PlayState* play) {
+     FlameParams* flameParams;
+     Gfx* dList;
+ 
+-    flameParams = &D_80A9E840[this->actor.params & 0xF];
++    flameParams = &sFlameParams[this->actor.params & 0xF];  // was D_80A9E840 [LLM:HIGH]
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-- 
+2.55.0
+

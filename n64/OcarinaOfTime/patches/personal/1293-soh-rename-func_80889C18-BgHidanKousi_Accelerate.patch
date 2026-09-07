@@ -1,0 +1,75 @@
+From a58286cc87e737d293a5161ffd2f9fb5669cabe2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:08:23 +0000
+Subject: [PATCH 1293/3799] soh: rename func_80889C18 ->
+ BgHidanKousi_Accelerate
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: ramps speedXZ up to 2.0 while sliding with the metal-door sfx, then hands off to the constant-speed travel.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../Enhancements/TimeSavers/timesaver_hook_handlers.cpp    | 2 +-
+ .../overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c  | 7 ++++---
+ .../overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h  | 2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+index f7698c9ac..0b1470818 100644
+--- a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
++++ b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+@@ -326,7 +326,7 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_li
+                     }
+                     case ACTOR_BG_HIDAN_KOUSI: {
+                         BgHidanKousi* switchActor = (BgHidanKousi*)actor;
+-                        BgHidanKousi_SetupAction(switchActor, func_80889C18);
++                        BgHidanKousi_SetupAction(switchActor, BgHidanKousi_Accelerate);  // was func_80889C18 [LLM:HIGH]
+                         *should = false;
+                         RateLimitedSuccessChime();
+                         break;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+index e498b88dc..65453012d 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+@@ -20,7 +20,8 @@ void BgHidanKousi_SnapToOpen(BgHidanKousi* this);  // was func_80889ACC [LLM:HIG
+ void BgHidanKousi_WaitForSwitch(BgHidanKousi* this, PlayState* play);  // was func_80889B5C [LLM:HIGH]
+ // LLM generated name (HIGH), was func_80889BC0: counts that delay down, cutting it short once the camera is done with the actor, then starts the slide.
+ void BgHidanKousi_Delay(BgHidanKousi* this, PlayState* play);  // was func_80889BC0 [LLM:HIGH]
+-void func_80889C18(BgHidanKousi* this, PlayState* play);
++// LLM generated name (HIGH), was func_80889C18: ramps speedXZ up to 2.0 while sliding with the metal-door sfx, then hands off to the constant-speed travel.
++void BgHidanKousi_Accelerate(BgHidanKousi* this, PlayState* play);  // was func_80889C18 [LLM:HIGH]
+ void func_80889C90(BgHidanKousi* this, PlayState* play);
+ void func_80889D28(BgHidanKousi* this, PlayState* play);
+ 
+@@ -120,11 +121,11 @@ void BgHidanKousi_WaitForSwitch(BgHidanKousi* this, PlayState* play) {
+ void BgHidanKousi_Delay(BgHidanKousi* this, PlayState* play) {
+     this->unk_168 -= 1;
+     if (this->dyna.actor.category == func_8005B198() || (this->unk_168 <= 0)) {
+-        BgHidanKousi_SetupAction(this, func_80889C18);
++        BgHidanKousi_SetupAction(this, BgHidanKousi_Accelerate);  // was func_80889C18 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80889C18(BgHidanKousi* this, PlayState* play) {
++void BgHidanKousi_Accelerate(BgHidanKousi* this, PlayState* play) {
+     this->dyna.actor.speedXZ += 0.2f;
+     if (this->dyna.actor.speedXZ > 2.0f) {
+         this->dyna.actor.speedXZ = 2.0f;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h
+index 1f3eb4161..1e8e1a477 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h
+@@ -15,6 +15,6 @@ typedef struct BgHidanKousi {
+ } BgHidanKousi; // size = 0x016C
+ 
+ void BgHidanKousi_SetupAction(BgHidanKousi* bgHidanKousi, BgHidanKousiActionFunc actionFunc);
+-void func_80889C18(BgHidanKousi* bgHidanKousi, PlayState* play);
++void BgHidanKousi_Accelerate(BgHidanKousi* bgHidanKousi, PlayState* play);  // was func_80889C18 [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

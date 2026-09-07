@@ -1,0 +1,65 @@
+From a23243446b07c97eb85f3364fe94291c5cbad5b3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:35:36 +0000
+Subject: [PATCH 2549/3799] soh: rename func_808FFFE0 -> BossGanon2_LookAround
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: sweeps the head from side to side on a sine while the window runs out
+Defined in soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c   | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index 1fc9c4729..4ffccbf21 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -32,7 +32,8 @@ void BossGanon2_IntroCs(BossGanon2* this, PlayState* play);  // was func_808FD5F
+ void BossGanon2_SetupIdle(BossGanon2* this, PlayState* play);  // was func_808FFDB0 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_808FFEBC: growls on a timer, brakes to a stop, and leaves for the walk or a swing when its timers run out
+ void BossGanon2_Idle(BossGanon2* this, PlayState* play);  // was func_808FFEBC [LLM:HIGH]
+-void func_808FFFE0(BossGanon2* this, PlayState* play);
++// LLM generated name (HIGH), was func_808FFFE0: sweeps the head from side to side on a sine while the window runs out
++void BossGanon2_LookAround(BossGanon2* this, PlayState* play);  // was func_808FFFE0 [LLM:HIGH]
+ void func_80900104(BossGanon2* this, PlayState* play);
+ void func_8090026C(BossGanon2* this, PlayState* play);
+ void func_809002CC(BossGanon2* this, PlayState* play);
+@@ -1157,11 +1158,11 @@ void BossGanon2_Idle(BossGanon2* this, PlayState* play) {
+ // LLM generated name (HIGH), was func_808FFF90: loops the guard idle with a 40-frame window and installs the look action
+ void BossGanon2_SetupLookAround(BossGanon2* this, PlayState* play) {
+     Animation_MorphToLoop(&this->skelAnime, &gGanonGuardIdleAnim, -10.0f);
+-    this->actionFunc = func_808FFFE0;
++    this->actionFunc = BossGanon2_LookAround;  // was func_808FFFE0 [LLM:HIGH]
+     this->unk_1A2[0] = 40;
+ }
+ 
+-void func_808FFFE0(BossGanon2* this, PlayState* play) {
++void BossGanon2_LookAround(BossGanon2* this, PlayState* play) {
+     s16 target;
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -1979,7 +1980,7 @@ void BossGanon2_CollisionCheck(BossGanon2* this, PlayState* play) {
+ 
+     osSyncPrintf("this->look_on %d\n", this->unk_313);
+     if (this->unk_313) {
+-        if (this->actionFunc != func_808FFFE0) {
++        if (this->actionFunc != BossGanon2_LookAround) {  // was func_808FFFE0 [LLM:HIGH]
+             if (this->unk_424.elements[0].info.bumperFlags & 2) {
+                 this->unk_424.elements[0].info.bumperFlags &= ~2;
+                 acHitInfo = this->unk_424.elements[0].info.acHitInfo;
+@@ -2114,7 +2115,7 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+         Math_ApproachF(&this->unk_360.x, 2000.0f, 0.1f, 100.0f);
+         this->unk_370.y = 12000.0f;
+         Math_ApproachF(&this->unk_370.x, 1500.0f, 0.1f, 100.0f);
+-        if ((this->actionFunc == BossGanon2_Idle) || (this->actionFunc == func_808FFFE0) ||  // was func_808FFEBC [LLM:HIGH]
++        if ((this->actionFunc == BossGanon2_Idle) || (this->actionFunc == BossGanon2_LookAround) ||  // was func_808FFEBC [LLM:HIGH]
+             (this->actionFunc == func_80900104)) {
+             Math_ApproachF(&this->unk_360.z, 1000.0f, 0.1f, 100.0f);
+             Math_ApproachF(&this->unk_370.z, 1000.0f, 0.1f, 100.0f);
+-- 
+2.55.0
+

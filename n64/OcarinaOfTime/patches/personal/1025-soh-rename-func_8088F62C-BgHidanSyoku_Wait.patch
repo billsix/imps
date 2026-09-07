@@ -1,0 +1,51 @@
+From 5c18d32481c80d6e161b75838ef0f1618115c54a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 21:37:31 +0000
+Subject: [PATCH 1025/3799] soh: rename func_8088F62C -> BgHidanSyoku_Wait
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: holds for the 60-frame pause, then rearms the 140-frame timer and picks the up or down travel by comparing world.pos.y to home.pos.y.
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c  | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
+index f0c6b9b0a..6b6f21d4e 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Syoku/z_bg_hidan_syoku.c
+@@ -18,7 +18,8 @@ void BgHidanSyoku_Draw(Actor* thisx, PlayState* play);
+ void BgHidanSyoku_WaitForPlayer(BgHidanSyoku* this, PlayState* play);  // was func_8088F4B8 [LLM:HIGH]
+ // LLM generated name (HIGH), was func_8088F514: drives world.pos.y from home minus 540 up to home plus 540 over 140 frames on a cosine curve, looping the elevator sfx.
+ void BgHidanSyoku_MoveUp(BgHidanSyoku* this, PlayState* play);  // was func_8088F514 [LLM:HIGH]
+-void func_8088F62C(BgHidanSyoku* this, PlayState* play);
++// LLM generated name (HIGH), was func_8088F62C: holds for the 60-frame pause, then rearms the 140-frame timer and picks the up or down travel by comparing world.pos.y to home.pos.y.
++void BgHidanSyoku_Wait(BgHidanSyoku* this, PlayState* play);  // was func_8088F62C [LLM:HIGH]
+ 
+ const ActorInit Bg_Hidan_Syoku_InitVars = {
+     ACTOR_BG_HIDAN_SYOKU,
+@@ -60,7 +61,7 @@ void BgHidanSyoku_Destroy(Actor* thisx, PlayState* play) {
+ void BgHidanSyoku_SetupWait(BgHidanSyoku* this) {
+     this->timer = 60;
+     Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_BLOCK_BOUND);
+-    this->actionFunc = func_8088F62C;
++    this->actionFunc = BgHidanSyoku_Wait;  // was func_8088F62C [LLM:HIGH]
+ }
+ 
+ void BgHidanSyoku_WaitForPlayer(BgHidanSyoku* this, PlayState* play) {
+@@ -95,7 +96,7 @@ void BgHidanSyoku_MoveDown(BgHidanSyoku* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8088F62C(BgHidanSyoku* this, PlayState* play) {
++void BgHidanSyoku_Wait(BgHidanSyoku* this, PlayState* play) {
+     if (this->timer != 0) {
+         this->timer--;
+     }
+-- 
+2.55.0
+

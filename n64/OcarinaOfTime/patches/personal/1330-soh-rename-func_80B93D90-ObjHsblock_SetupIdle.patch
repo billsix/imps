@@ -1,0 +1,65 @@
+From 41f3ba435ccd80c7e68045518054b583116dea34 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 22:10:54 +0000
+Subject: [PATCH 1330/3799] soh: rename func_80B93D90 -> ObjHsblock_SetupIdle
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: clears actionFunc so the block just sits there; the terminal state for every variant.
+Defined in soh/src/overlays/actors/ovl_Obj_Hsblock/z_obj_hsblock.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ .../overlays/actors/ovl_Obj_Hsblock/z_obj_hsblock.c   | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Hsblock/z_obj_hsblock.c b/soh/src/overlays/actors/ovl_Obj_Hsblock/z_obj_hsblock.c
+index c7a1529e1..6fa1f06cc 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Hsblock/z_obj_hsblock.c
++++ b/soh/src/overlays/actors/ovl_Obj_Hsblock/z_obj_hsblock.c
+@@ -17,7 +17,8 @@ void ObjHsblock_Draw(Actor* thisx, PlayState* play);
+ void func_80B93DF4(ObjHsblock* this, PlayState* play);
+ void func_80B93E5C(ObjHsblock* this, PlayState* play);
+ 
+-void func_80B93D90(ObjHsblock* this);
++// LLM generated name (HIGH), was func_80B93D90: clears actionFunc so the block just sits there; the terminal state for every variant.
++void ObjHsblock_SetupIdle(ObjHsblock* this);  // was func_80B93D90 [LLM:HIGH]
+ void func_80B93DB0(ObjHsblock* this);
+ void func_80B93E38(ObjHsblock* this);
+ 
+@@ -87,11 +88,11 @@ void ObjHsblock_Init(Actor* thisx, PlayState* play) {
+     switch (thisx->params & 3) {
+         case 0:
+         case 2:
+-            func_80B93D90(this);
++            ObjHsblock_SetupIdle(this);  // was func_80B93D90 [LLM:HIGH]
+             break;
+         case 1:
+             if (Flags_GetSwitch(play, (thisx->params >> 8) & 0x3F)) {
+-                func_80B93D90(this);
++                ObjHsblock_SetupIdle(this);  // was func_80B93D90 [LLM:HIGH]
+             } else {
+                 func_80B93DB0(this);
+             }
+@@ -108,7 +109,7 @@ void ObjHsblock_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80B93D90(ObjHsblock* this) {
++void ObjHsblock_SetupIdle(ObjHsblock* this) {
+     ObjHsblock_SetupAction(this, NULL);
+ }
+ 
+@@ -133,7 +134,7 @@ void func_80B93E5C(ObjHsblock* this, PlayState* play) {
+     if (fabsf(Math_SmoothStepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y, 0.3f,
+                                  this->dyna.actor.velocity.y, 0.3f)) < 0.001f) {
+         this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y;
+-        func_80B93D90(this);
++        ObjHsblock_SetupIdle(this);  // was func_80B93D90 [LLM:HIGH]
+         this->dyna.actor.flags &= ~ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+     }
+ }
+-- 
+2.55.0
+

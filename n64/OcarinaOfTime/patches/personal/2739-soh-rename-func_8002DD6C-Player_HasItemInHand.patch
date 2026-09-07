@@ -1,0 +1,108 @@
+From 23fcf0f36407852093e7e926fb5623fadd1911fa Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 23:49:31 +0000
+Subject: [PATCH 2739/3799] soh: rename func_8002DD6C -> Player_HasItemInHand
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: returns stateFlags1 & PLAYER_STATE1_ITEM_IN_HAND
+Defined in soh/src/code/z_actor.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+---
+ soh/include/functions.h                             | 2 +-
+ soh/src/code/z_actor.c                              | 5 +++--
+ soh/src/code/z_player_lib.c                         | 2 +-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 8 ++++----
+ 4 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 5f7b43da6..184ba6d11 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -419,7 +419,7 @@ f32 Actor_HeightDiff(Actor* actorA, Actor* actorB);
+ f32 Player_GetHeight(Player* player);
+ s32 Player_ActionHandler_2(Player* player, PlayState* play);
+ f32 Player_GetRunSpeedLimit(Player* player);  // was func_8002DCE4 [LLM:HIGH]
+-s32 func_8002DD6C(Player* player);
++s32 Player_HasItemInHand(Player* player);  // was func_8002DD6C [LLM:HIGH]
+ s32 func_8002DD78(Player* player);
+ s32 func_8002DDE4(PlayState* play);
+ s32 func_8002DDF4(PlayState* play);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 9cfe0194a..cd6427382 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1421,12 +1421,13 @@ f32 Player_GetRunSpeedLimit(Player* player) {
+     }
+ }
+ 
+-s32 func_8002DD6C(Player* player) {
++// LLM generated name (HIGH), was func_8002DD6C: returns stateFlags1 & PLAYER_STATE1_ITEM_IN_HAND
++s32 Player_HasItemInHand(Player* player) {
+     return player->stateFlags1 & PLAYER_STATE1_ITEM_IN_HAND;
+ }
+ 
+ s32 func_8002DD78(Player* player) {
+-    return func_8002DD6C(player) && player->unk_834;
++    return Player_HasItemInHand(player) && player->unk_834;  // was func_8002DD6C [LLM:HIGH]
+ }
+ 
+ s32 func_8002DDA8(PlayState* play) {
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index eafd3643a..534467a30 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -1978,7 +1978,7 @@ void Player_PostLimbDrawGameplay(PlayState* play, s32 limbIndex, Gfx** dList, Ve
+                 }
+             }
+ 
+-            if ((this->unk_862 != 0) || ((func_8002DD6C(this) == 0) && (heldActor != NULL))) {
++            if ((this->unk_862 != 0) || ((Player_HasItemInHand(this) == 0) && (heldActor != NULL))) {  // was func_8002DD6C [LLM:HIGH]
+                 if (!(this->stateFlags1 & PLAYER_STATE1_GETTING_ITEM) && (this->unk_862 != 0) &&
+                     (this->exchangeItemId != EXCH_ITEM_NONE)) {
+                     Math_Vec3f_Copy(&sGetItemRefPos, &this->leftHandPos);
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index e4da37a37..1c57d4f10 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -5849,7 +5849,7 @@ s32 func_8083AD4C(PlayState* play, Player* this) {
+     s32 camMode;
+ 
+     if (this->unk_6AD == 2) {
+-        if (func_8002DD6C(this)) {
++        if (Player_HasItemInHand(this)) {  // was func_8002DD6C [LLM:HIGH]
+             if (LINK_IS_ADULT) {
+                 camMode = CAM_MODE_AIM_ADULT;
+             } else {
+@@ -11893,7 +11893,7 @@ void Player_UpdateCommon(Player* this, PlayState* play, Input* input) {
+             Player_UpdateBunnyEars(this);
+         }
+ 
+-        if (func_8002DD6C(this) != 0) {
++        if (Player_HasItemInHand(this) != 0) {  // was func_8002DD6C [LLM:HIGH]
+             func_8084FF7C(this);
+         }
+ 
+@@ -12815,7 +12815,7 @@ void Player_Action_8084B1D8(Player* this, PlayState* play) {
+         Player_DecelerateToZero(this);
+     }
+ 
+-    if ((this->unk_6AD == 2) && (func_8002DD6C(this) || func_808332E4(this))) {
++    if ((this->unk_6AD == 2) && (Player_HasItemInHand(this) || func_808332E4(this))) {  // was func_8002DD6C [LLM:HIGH]
+         Player_UpdateUpperBody(this, play);
+     }
+ 
+@@ -12847,7 +12847,7 @@ s32 func_8084B3CC(PlayState* play, Player* this) {
+         func_80832564(play, this);
+         Player_SetupAction(play, this, Player_Action_8084FA54, 0);
+ 
+-        if (!func_8002DD6C(this) || Player_HoldsHookshot(this)) {
++        if (!Player_HasItemInHand(this) || Player_HoldsHookshot(this)) {  // was func_8002DD6C [LLM:HIGH]
+             s32 projectileItemToUse = ITEM_BOW;
+             if (CVarGetInteger(CVAR_ENHANCEMENT("BowSlingshotAmmoFix"), 0) ||
+                 CVarGetInteger(CVAR_ENHANCEMENT("EquipmentAlwaysVisible"), 0)) {
+-- 
+2.55.0
+

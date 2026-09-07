@@ -45,7 +45,8 @@ extern u8 sAudioResetState;                        // was D_80133418 [LLM:HIGH]
 from the definition comment. It stays greppable by the same handle (`git grep 'was func_'`), and deliberately
 does **not** repeat the prose or the citation URL — those stay at the definition, so the shared headers don't
 gain 60-odd long lines. **Call sites get nothing**; only the definition and the declaration.
-Gate: `tasks/adhoc/ocarina-split-rename-patch/header_gap.py` reports any header declaration still bare.
+Gate: `n64/OcarinaOfTime/tools/check_renames.py declarations` reports any header declaration still bare;
+`tools/tag_declarations.py` adds the missing ones (idempotent).
 
 **The tag is always APPENDED to an existing line, never inserted as a new one.** That is load-bearing, not
 cosmetic: no file changes its line count, so `__LINE__`/`__FILE__` and every debug print built on them are
@@ -76,15 +77,24 @@ size of 50 lines.
 - Never fold two symbols into one commit, even when they are obviously related (the six `Rumble_*` functions
   are six commits).
 
-The split is mechanical, and reproducible: `tasks/adhoc/ocarina-split-rename-patch/` holds the scripts, and
-`verify_series.py` is the gate — it proves the series reproduces the pre-split tree byte-for-byte (only the
-new comments differ), that every commit introduces exactly one name, and that every rename is total.
+**The gate is `n64/OcarinaOfTime/tools/check_renames.py`** — `traceable` (every rename cited, none
+half-done), `declarations` (every header declaration tagged), `series` (one rename per commit, every rename
+total), or `all`. Run it after every batch; a stated rule with no gate rots.
 
-**To prove a split changed nothing, run `prove_equivalence.sh`** (same directory). It applies the old patch
-and the new series to two scratch branches off the pin, checks that no file changed line count, and then has
-**gcc itself** strip the comments (`gcc -fpreprocessed -dD -E -P`) and compares — so the equivalence argument
-rests on a compiler, not on a regex in this repo. It is the answer to "how do I know the split is safe?"
-without a full build.
+**To prove a reshape changed nothing, run `tools/prove_comment_only.sh`** (imps root):
+
+```sh
+tools/prove_comment_only.sh n64/OcarinaOfTime/Shipwright <before-ref> <after-ref>
+```
+
+It checks that no file changed line count and then has **gcc itself** strip the comments
+(`gcc -fpreprocessed -dD -E -P`) and compares — so the equivalence argument rests on a compiler, not on a
+regex in this repo. It is the answer to "how do I know this is safe?" without a full build, and it is also
+the gate for a `book/` stream, whose `doc-region` markers are comment-only by contract (pass
+`--allow-line-shift` there: a marker must occupy its own line).
+
+The one-shot scripts that performed the 2026-09-07 split (the peel/replay engine and the table builders)
+stay in `tasks/adhoc/ocarina-split-rename-patch/` as the audit trail for that 225-commit diff.
 
 ## The safe-rename mechanic
 A rename must be **total** (def + every reference) and behavior-preserving. Do NOT rely on a build (the maintainer (William Emerison Six <billsix@gmail.com>)

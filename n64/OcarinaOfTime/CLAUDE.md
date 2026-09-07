@@ -24,6 +24,14 @@ personal branches — the patch series is the whole delta.
 
 ## Patches
 
+**Stream order is pinned here — `personal` FIRST.** `patches/ORDER` lists it,
+and `apply.sh` honours that. The renames touch ~206 symbols and 18 filenames, so
+**any stream added later must be written against the renamed tree**; without the
+pin, a future `book/` stream would sort alphabetically ahead of `personal/` and
+try to patch symbols that no longer exist under those names. The stream folders
+stay separate regardless — that is what keeps `upstream-candidates/` submittable
+on its own (see `../CLAUDE.md`).
+
 - `patches/personal/0001…0225-*.patch` — the decomp rename series, **one
   rename per patch**: 18 patches renaming address-named
   `soh/src/code/code_<addr>.c` files, then 207 renaming a single `func_`/
@@ -35,7 +43,8 @@ personal branches — the patch series is the whole delta.
   206 are guesses — oot leaves those address-named too).
   **Split from a single 6,854-line commit on 2026-09-07**; the split is
   content-neutral (only the new comments differ from the pre-split tree),
-  proven by `tasks/adhoc/ocarina-split-rename-patch/verify_series.py`.
+  proven by `tools/prove_comment_only.sh` at the imps root (it has gcc strip
+  the comments and compares) and gated by `tools/check_renames.py`.
   Originally ported 2026-09-01 from a fork based at `988b53665`; one
   conflict resolved in `z_demo_kankyo.c` (upstream's `Audio_PlaySfxGeneral`
   rename crossing the series' `CutsceneCamera_UpdateSpline` rename), and
@@ -132,6 +141,17 @@ full pipeline is closed.
 
 ## Tools
 
+- `tools/check_renames.py` — gate for the decomp-renaming conventions.
+  Subcommands `traceable` (every rename cited, none half-done),
+  `declarations` (every header declaration tagged), `series` (one rename per
+  commit, every rename total), `all`. Run it after any rename batch; the
+  method it enforces is
+  [`../../tasks/reference/ocarina/decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md).
+- `tools/tag_declarations.py` — adds the short `// was func_… [oot]` provenance
+  tag to header declarations of renamed symbols. Idempotent; run until
+  `check_renames.py declarations` is clean.
+- `tools/renames_common.py` — shared helpers for the two above (reads the pin
+  from `fetch.sh`, discovers renames from the tree's provenance comments).
 - `tools/save_generator.py` — interactive base-quest save-file generator
   (dungeons-first interview, progression-derived defaults, full stocks;
   writes locally, never installs). `--selftest <real.sav>` proves an

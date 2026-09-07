@@ -102,11 +102,22 @@ def is_comment_only(line):
     return line.lstrip().startswith("//")
 
 
+def _strip_trailing_comment(line):
+    """Remove a trailing comment, keeping any code before it.
+
+    A provenance marker normally occupies a whole line, but a TYPE rename puts
+    it on the line that names the type ("} RumbleMgr; // ... was
+    UnkRumbleStruct ..."). Dropping that line would delete real code, so split
+    at the first "//" and keep the left side when it holds anything.
+    """
+    head, sep, _ = line.partition("//")
+    return head.rstrip() if sep and head.strip() else ""
+
 def code_part(line):
     """The line with any provenance comment removed -- '' if the line is
     nothing but a comment. Use this before asking whether an old name is still
     live in the CODE, or the provenance comments (which quote the old name by
     design) make every completed rename look unfinished."""
     if is_marker_line(line):
-        return ""
+        return _strip_trailing_comment(line)
     return INLINE_TAG_RE.sub("", line)

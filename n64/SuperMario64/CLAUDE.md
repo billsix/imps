@@ -58,6 +58,8 @@ verified against the ported branch.
   `shaderc/shaderc.hpp`; found the hard way, 2026-09-01). Doc fix to
   upstream's own file, hence a patch; upstream-submission candidate.
 - `patches/book/0001-doc-region-markers.patch` — comment-only
+  (**gated**: `tools/check_comment_only_streams.sh SuperMario64` proves both
+  book streams change nothing the compiler sees; see `../CLAUDE.md`)
   `// doc-region-begin/end <name>` markers so the book's
   `literalinclude` pulls spans by NAME, not line numbers. First region:
   `euler_zxy_to_matrix`. Grows per book chapter (the game-tree doc-region

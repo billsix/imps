@@ -48,6 +48,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # size = 0x10E".)
 HAS_TRAILING_COMMENT = re.compile(r"//")
 
+# TYPE renames need the LONG marker, not the short tag. A typedef is its own
+# declaration and definition, so there is no second site to carry the long form
+# -- and without it the rename is invisible to `git grep 'LLM generated name'`
+# and to any tool that discovers renames from that marker. Put the long comment
+# on the line that names the type, so no line is inserted.
+TYPE_RENAMES = {
+    ("soh/include/z64.h", "RumbleMgr"):
+        "// LLM generated name (HIGH), was UnkRumbleStruct: the rumble manager "
+        "state owned by PadMgr and driven by sys_rumble.c.",
+}
+
 
 def tag_for(row):
     """The short bracket tag: authoritative upstream name, or our guess."""
@@ -83,6 +94,15 @@ def main(dry_run=False):
                 out.append(line)
                 continue
             row = table[match.group(0)]
+            long_form = TYPE_RENAMES.get((path, match.group(0)))
+            if long_form:
+                # strip the leading "// " -- it is appended after an existing
+                # comment, so it must not open a second one.
+                out.append(f"{line} — {long_form[3:]}"
+                           if HAS_TRAILING_COMMENT.search(line)
+                           else f"{line}  {long_form}")
+                changed, edits = True, edits + 1
+                continue
             tag = f"was {row['old']} [{tag_for(row)}]"
             # Append to an existing trailing comment instead of opening a second
             # one, so the line stays valid and readable.

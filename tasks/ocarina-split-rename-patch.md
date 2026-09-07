@@ -249,23 +249,24 @@ successor, proving content-neutrality against the pre-split tree.)
 git-detected renames + 3 that git reports as add+delete because the content
 changed too much). The oot/LLM split is **64/141 + 1 typedef**, not 65/141.
 
-**Scripts** (`tasks/adhoc/ocarina-split-rename-patch/`, all repo-relative):
+**Scripts.** The reusable ones were **promoted to `tools/` on 2026-09-07**; the
+one-shots stay in `tasks/adhoc/ocarina-split-rename-patch/` as the audit trail
+for the 225-commit diff, and get `git rm`'d when this task is archived.
 
-| Script | Role |
+| Promoted | Role |
 |---|---|
-| `_common.py` | shared helpers: the pin, the applied range, provenance stripping |
-| `inventory.py` | first-pass rename table, parsed from the provenance comments |
-| `build_rename_table.py` | adds the 2 underivable rows, computes scope + confidence |
-| `add_decl_comments.py` | the declaration-tag pass; idempotent, safe to re-run |
-| `rebuild.py` | the split itself — peel backwards, replay forwards |
-| `completeness.py` | **gate**: 0 untraceable, 0 incomplete renames |
-| `header_gap.py` | **gate**: 0 bare header declarations |
-| `verify_series.py` | **gate**: content-neutral, one rename per commit, total |
+| `tools/prove_comment_only.sh` (imps root) | **Cross-project.** Proves two refs differ only in comments: no line-count change, then gcc strips comments and compares. Also the gate for a `book/` stream (`--allow-line-shift`). |
+| `n64/OcarinaOfTime/tools/check_renames.py` | Gates the renaming conventions: `traceable`, `declarations`, `series`, `all`. |
+| `n64/OcarinaOfTime/tools/tag_declarations.py` | Adds the short declaration tags. Idempotent. |
+| `n64/OcarinaOfTime/tools/renames_common.py` | Shared helpers; discovers renames from the tree's provenance comments, so no external table. |
 
-At archive time `rebuild.py`, `add_decl_comments.py`, `inventory.py` and
-`build_rename_table.py` are one-shots (their job is done — `git rm`); the three
-gates are **reusable** and should be promoted to `tools/` so the next rename
-batch is held to the same standard.
+| One-shot (stays in adhoc) | Role |
+|---|---|
+| `_common.py` | helpers for the one-shots below |
+| `inventory.py` | first-pass rename table parsed from the provenance comments |
+| `build_rename_table.py` | adds the 2 underivable rows, computes scope + confidence |
+| `add_decl_comments.py` | the split's tagging pass, incl. the one-off long marker for the `RumbleMgr` type rename |
+| `rebuild.py` | the split engine — peel backwards, replay forwards |
 
 ## Open questions
 

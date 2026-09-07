@@ -39,7 +39,7 @@ import re
 import subprocess
 import sys
 
-from _common import CHECKOUT, git, is_marker_line, pin_sha
+from _common import CHECKOUT, MARKERS, git, is_marker_line, pin_sha
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BRANCH = "split-rebuild"
@@ -107,8 +107,22 @@ def peel(tree, old, new, scope):
         out, dropping, touched = [], False, False
         for line in text.splitlines():
             if is_marker_line(line) and cites_old.search(line):
-                dropping, touched = True, True
-                continue
+                touched = True
+                # Cut back to just before the marker phrase, so only what the
+                # rename APPENDED is removed. Partitioning at "//" would be
+                # wrong on a type rename, whose line reads
+                #   } RumbleMgr; // size = 0x10E - LLM generated name ...
+                # and whose "// size = 0x10E" predates us.
+                cut = min(line.find(m) for m in MARKERS if m in line)
+                head = re.sub(r"\s*[\u2014-]\s*$", "", line[:cut].rstrip())
+                if head.strip() and head.strip() != "//":
+                    # A marker appended to real code: keep the code and FALL
+                    # THROUGH, so the rename substitution below still runs on
+                    # it ("} RumbleMgr;" must become "} UnkRumbleStruct;").
+                    line = head
+                else:
+                    dropping = True           # a whole-line marker
+                    continue
             if dropping:
                 if line.lstrip().startswith("//") and not is_marker_line(line):
                     touched = True

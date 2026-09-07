@@ -1,0 +1,73 @@
+From 3599e946d0c9909b8e69e37179b7a2f4215e046f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:42 +0000
+Subject: [PATCH 028/225] soh: rename func_800F6C34 -> Audio_ResetData
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/code/audio_general.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h      | 2 +-
+ soh/src/code/audio_general.c | 9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 739cc7151..3bbc003e4 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2131,7 +2131,7 @@ void Audio_StopBgmAndFanfare(u16);
+ // ? Audio_DisableAllSeq(?);
+ // ? func_800F6BB8(?);
+ void Audio_PreNMI();
+-// ? func_800F6C34(?);
++// ? Audio_ResetData(?);
+ void Audio_SetNatureAmbienceChannelIO(u8 channelIdxRange, u8 port, u8 val);
+ void Audio_PlayNatureAmbienceSequence(u8 natureAmbienceId);
+ void Audio_Init();
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index ee67673f6..2c70cf572 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -5434,7 +5434,8 @@ void Audio_PreNMI(void) {
+     Audio_PreNMIInternal();
+ }
+ 
+-void func_800F6C34(void) {
++// LLM generated name (HIGH), was func_800F6C34: resets audio filter/seq-mode/lerp state; called during audio reset
++void Audio_ResetData(void) {
+     sPrevSeqMode = 0;
+     D_8016B7A8 = 1.0f;
+     D_8016B7B0 = 1.0f;
+@@ -5554,7 +5555,7 @@ void Audio_Init(void) {
+ }
+ 
+ void Audio_InitSound(void) {
+-    func_800F6C34();
++    Audio_ResetData();
+     AudioOcarina_ResetStaffs();
+     Audio_ResetSfxChannelState();
+     func_800FAEB4();
+@@ -5571,7 +5572,7 @@ void func_800F7170(void) {
+ 
+ void func_800F71BC(s32 arg0) {
+     D_80133418 = 1;
+-    func_800F6C34();
++    Audio_ResetData();
+     AudioOcarina_ResetStaffs();
+     Audio_ResetSfxChannelState();
+     Audio_ResetActiveSequences();
+@@ -5581,7 +5582,7 @@ void func_800F71BC(s32 arg0) {
+ void func_800F7208(void) {
+     Audio_ResetActiveSequences();
+     Audio_QueueCmdS32(0xF2000000, 1);
+-    func_800F6C34();
++    Audio_ResetData();
+     Audio_ResetSfxChannelState();
+     Audio_StartSequence(SEQ_PLAYER_SFX, 0, 0x70, 1);
+ }
+-- 
+2.55.0
+

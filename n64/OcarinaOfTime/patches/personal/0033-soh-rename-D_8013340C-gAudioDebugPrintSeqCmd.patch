@@ -1,0 +1,69 @@
+From 3ce7aa0cf7fb3142584fb82600b48c4f6d061bbe Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:43 +0000
+Subject: [PATCH 033/225] soh: rename D_8013340C -> gAudioDebugPrintSeqCmd
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_seq.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/variables.h      | 2 +-
+ soh/src/code/audio_general.c | 2 +-
+ soh/src/code/audio_seq.c     | 5 +++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 2041f5def..3d93ffd39 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -165,7 +165,7 @@ extern "C"
+ 	extern u8 D_801333F0;
+ 	extern u8 gAudioSfxSwapOff;
+ 	extern u8 gStartSeqDisabled;  // was D_80133408 [oot]
+-	extern u8 D_8013340C;
++	extern u8 gAudioDebugPrintSeqCmd;  // was D_8013340C [oot]
+ 	extern u8 gAudioSpecId;
+ 	extern u8 D_80133418;
+ 	extern AudioSpec gAudioSpecs[18];
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 6adb2bfb3..12b71fc2f 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -3913,7 +3913,7 @@ void AudioDebug_ProcessInput(void) {
+             break;
+     }
+ 
+-    D_8013340C = sAudioScrPrtWork[10];
++    gAudioDebugPrintSeqCmd = sAudioScrPrtWork[10];
+ }
+ 
+ void Audio_UpdateRiverSoundVolumes(void);
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index 534563b4d..11ef3eb7b 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -23,7 +23,8 @@ u8 sSeqCmdWrPos = 0;
+ u8 sSeqCmdRdPos = 0;
+ // Name from zeldaret/oot, was D_80133408: when set, blocks starting a sequence except on the SFX player. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
+ u8 gStartSeqDisabled = 0;
+-u8 D_8013340C = 1;
++// Name from zeldaret/oot, was D_8013340C: gates the osSyncPrintf debug print of processed seq commands. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++u8 gAudioDebugPrintSeqCmd = 1;
+ u8 D_80133410[] = { 0, 1, 2, 3 };
+ u8 gAudioSpecId = 0;
+ u8 D_80133418 = 0;
+@@ -134,7 +135,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+     s32 new_var;
+     f32 freqScale;
+ 
+-    if (D_8013340C && (cmd & 0xF0000000) != 0x70000000) {
++    if (gAudioDebugPrintSeqCmd && (cmd & 0xF0000000) != 0x70000000) {
+         AudioDebug_ScrPrt((const s8*)D_80133390, (cmd >> 16) & 0xFFFF); // "SEQ H"
+         AudioDebug_ScrPrt((const s8*)D_80133398, cmd & 0xFFFF);         // "    L"
+     }
+-- 
+2.55.0
+

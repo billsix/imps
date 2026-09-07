@@ -1,0 +1,138 @@
+From f1d628b3104cb63d0149365bd09c70a464a5dfb2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:02:05 +0000
+Subject: [PATCH 218/225] soh: rename D_80B7E148 -> sReelLinePull
+
+Name source: deduced from the code (confidence GUESS).
+Defined in soh/src/overlays/actors/ovl_Fishing/z_fishing.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ .../overlays/actors/ovl_Fishing/z_fishing.c   | 29 ++++++++++---------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index 1612b09ad..e267c0eeb 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -408,7 +408,8 @@ static f32 sLureWigglePosY;
+ static s16 sLureWiggleRotY;
+ static f32 sLureWiggleSign; // +/-1.0f
+ static f32 sRodLineSpooled; // 200 represents the full spool.
+-static f32 D_80B7E148;
++// LLM generated name (GUESS), was D_80B7E148: reel line tension, set to 520 and Math_ApproachF'd while reeling
++static f32 sReelLinePull;
+ static f32 sFishingLineScale;
+ static s16 D_80B7E150;
+ static f32 sReelLinePosStep;
+@@ -1514,7 +1515,7 @@ void Fishing_UpdateLine(PlayState* play, Vec3f* basePos, Vec3f* pos, Vec3f* rot,
+     }
+ 
+     for (i = spooled + 1, k = 0; i < LINE_SEG_COUNT; i++, k++) {
+-        temp_f18 = 2.0f * D_80B7E148;
++        temp_f18 = 2.0f * sReelLinePull;
+ 
+         dx = (pos + i)->x - (pos + i - 1)->x;
+         spD8 = (pos + i)->y;
+@@ -2210,7 +2211,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             sSinkingLureLocation = (u8)Rand_ZeroFloat(3.999f) + 1;
+         }
+ 
+-        D_80B7E148 = 520.0f;
++        sReelLinePull = 520.0f;
+         sRodLineSpooled = 195.0f;
+ 
+         sRodCastState = sLureEquipped = sLureTimer = sCatchCutsceneTimer = sReelLockTimer = sRodCastTimer = sWiggleAttraction =
+@@ -2273,7 +2274,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                     sLurePosDelta.y = 15.0f;
+                     sLureCastDelta.x = sLureCastDelta.z = 0.0f;
+                     sLureCastDelta.y = -1.0f;
+-                    D_80B7E148 = 0.0f;
++                    sReelLinePull = 0.0f;
+                     sReelLockTimer = 5;
+                     sRodReelingSpeed = 0.5f;
+                     sFishParitySeed = Rand_ZeroFloat(1.9f);
+@@ -2352,7 +2353,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                     sRodCastState = 3;
+                     sReelLinePosStep = 0.0;
+                 } else {
+-                    Math_ApproachF(&D_80B7E148, 0.0f, 1.0f, 0.05f);
++                    Math_ApproachF(&sReelLinePull, 0.0f, 1.0f, 0.05f);
+                     Sfx_PlaySfxAtPos(&sSoundPos, NA_SE_EN_FANTOM_FLOAT - SFX_FLAG);
+                 }
+             } else {
+@@ -2396,7 +2397,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                         Fishing_SpawnRipple(NULL, play->specialEffects, &spA8, 100.0f, 800.0f, 150, 90);
+                     }
+                 } else {
+-                    Math_ApproachZeroF(&D_80B7E148, 1.0f, 0.05f);
++                    Math_ApproachZeroF(&sReelLinePull, 1.0f, 0.05f);
+                     Sfx_PlaySfxAtPos(&sSoundPos, NA_SE_EN_FANTOM_FLOAT - SFX_FLAG);
+                 }
+             }
+@@ -2420,7 +2421,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                 }
+             }
+ 
+-            Math_ApproachF(&D_80B7E148, 2.0f, 1.0f, 0.1f);
++            Math_ApproachF(&sReelLinePull, 2.0f, 1.0f, 0.1f);
+ 
+             if (sLureMoveDelay == 0) {
+                 sRodCastState = 3;
+@@ -2620,12 +2621,12 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                 }
+ 
+                 if (sReelLinePos[LINE_SEG_COUNT - 1].y > (WATER_SURFACE_Y(play) + 4.0f)) {
+-                    Math_ApproachF(&D_80B7E148, 3.0f, 1.0f, 0.2f);
++                    Math_ApproachF(&sReelLinePull, 3.0f, 1.0f, 0.2f);
+                 } else {
+-                    Math_ApproachF(&D_80B7E148, 1.0f, 1.0f, 0.2f);
++                    Math_ApproachF(&sReelLinePull, 1.0f, 1.0f, 0.2f);
+                 }
+             } else {
+-                Math_ApproachF(&D_80B7E148, 2.0f, 1.0f, 0.2f);
++                Math_ApproachF(&sReelLinePull, 2.0f, 1.0f, 0.2f);
+             }
+ 
+             Math_ApproachF(&sLurePos.x, sReelLinePos[LINE_SEG_COUNT - 1].x, 1.0f, sReelLinePosStep);
+@@ -2641,7 +2642,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             if (sRodLineSpooled >= 195.0f) {
+                 sRodLineSpooled = 195.0f;
+                 sRodCastState = 0;
+-                D_80B7E148 = 520.0f;
++                sReelLinePull = 520.0f;
+                 sFishingPlayerCinematicState = 3;
+             }
+ 
+@@ -2681,7 +2682,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                 }
+             }
+ 
+-            Math_ApproachF(&D_80B7E148, 0.0f, 1.0f, 0.2f);
++            Math_ApproachF(&sReelLinePull, 0.0f, 1.0f, 0.2f);
+             break;
+ 
+         case 5:
+@@ -2689,7 +2690,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             sReelLinePos[LINE_SEG_COUNT - 1].x = sLurePos.x;
+             sReelLinePos[LINE_SEG_COUNT - 1].y = sLurePos.y;
+             sReelLinePos[LINE_SEG_COUNT - 1].z = sLurePos.z;
+-            D_80B7E148 = 2.0f;
++            sReelLinePull = 2.0f;
+             break;
+     }
+ }
+@@ -4022,7 +4023,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                     }
+                 }
+ 
+-                D_80B7E148 = 520.0f;
++                sReelLinePull = 520.0f;
+                 sRodLineSpooled = 195.0f;
+                 Audio_QueueSeqCmd(0x1 << 28 | SEQ_PLAYER_BGM_MAIN << 24 | 0xA00FF);
+                 sFishingMusicDelay = 20;
+-- 
+2.55.0
+

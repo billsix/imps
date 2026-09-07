@@ -1,0 +1,61 @@
+From b9141736cd3aedb1555b3d8314efd6e944e61d7d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:44 +0000
+Subject: [PATCH 041/225] soh: rename func_800FA3DC ->
+ Audio_UpdateActiveSequences
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_seq.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h      | 2 +-
+ soh/src/code/audio_general.c | 2 +-
+ soh/src/code/audio_seq.c     | 3 ++-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 516e1c2a0..288256729 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2168,7 +2168,7 @@ s32 Audio_IsSeqCmdNotQueued(u32 arg0, u32 arg1);  // was func_800FA11C [oot]
+ void Audio_ResetSequenceRequests(u8);  // was func_800FA174 [oot]
+ void Audio_ReplaceSeqCmdSetupOpVolRestore(u8, u8);  // was func_800FA18C [oot]
+ void Audio_SetVolScale(u8 playerIdx, u8 scaleIdx, u8 targetVol, u8 volFadeTimer);
+-void func_800FA3DC(void);
++void Audio_UpdateActiveSequences(void);  // was func_800FA3DC [oot]
+ u8 func_800FAD34(void);
+ void Audio_ResetActiveSequences(void);
+ void func_800FAEB4(void);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index cebe5c80d..9bab4f8c0 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -3938,7 +3938,7 @@ void Audio_Update(void) {
+         Audio_ProcessSoundRequests();
+         Audio_ProcessSeqCmds();
+         func_800F8F88();
+-        func_800FA3DC();
++        Audio_UpdateActiveSequences();
+         AudioDebug_SetInput();
+         AudioDebug_ProcessInput();
+         Audio_ScheduleProcessCmds();
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index bfe9d2b0a..3168d09ba 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -462,7 +462,8 @@ void Audio_SetVolScale(u8 playerIdx, u8 scaleIdx, u8 targetVol, u8 volFadeTimer)
+     }
+ }
+ 
+-void func_800FA3DC(void) {
++// Name from zeldaret/oot, was func_800FA3DC: per-frame update of fades/tempo/setup for all active sequences. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++void Audio_UpdateActiveSequences(void) {
+     u32 temp_a1;
+     u16 temp_lo;
+     u16 temp_v1;
+-- 
+2.55.0
+

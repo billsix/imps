@@ -1,0 +1,56 @@
+From fa2f482b2449dca9aa33c999b60e242403a5f9e5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:53 +0000
+Subject: [PATCH 119/225] soh: rename func_800982FC -> Object_LoadEntry
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/code/z_scene.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/soh/z_scene_otr.cpp | 2 +-
+ soh/src/code/z_scene.c  | 6 ++++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/soh/soh/z_scene_otr.cpp b/soh/soh/z_scene_otr.cpp
+index 72e2f063e..1ce60d86c 100644
+--- a/soh/soh/z_scene_otr.cpp
++++ b/soh/soh/z_scene_otr.cpp
+@@ -135,7 +135,7 @@ bool Scene_CommandMeshHeader(PlayState* play, SOH::ISceneCommand* cmd) {
+     return false;
+ }
+ 
+-extern "C" void* func_800982FC(ObjectContext* objectCtx, s32 bankIndex, s16 objectId);
++extern "C" void* Object_LoadEntry(ObjectContext* objectCtx, s32 bankIndex, s16 objectId);
+ 
+ bool OTRfunc_800982FC(ObjectContext* objectCtx, s32 bankIndex, s16 objectId) {
+ 
+diff --git a/soh/src/code/z_scene.c b/soh/src/code/z_scene.c
+index bf5d9ade8..4539e103f 100644
+--- a/soh/src/code/z_scene.c
++++ b/soh/src/code/z_scene.c
+@@ -153,7 +153,9 @@ void Object_LoadAll(ObjectContext* objectCtx) {
+     }
+ }
+ 
+-void* func_800982FC(ObjectContext* objectCtx, s32 bankIndex, s16 objectId) {
++// LLM generated name (HIGH), was func_800982FC: loads one object into a bank slot and returns the next free
++// ptr
++void* Object_LoadEntry(ObjectContext* objectCtx, s32 bankIndex, s16 objectId) {
+     ObjectStatus* status = &objectCtx->status[bankIndex];
+     RomFile* objectFile = &gObjectTable[objectId];
+     size_t size;
+@@ -301,7 +303,7 @@ void Scene_CommandObjectList(PlayState* play, SceneCmd* cmd) {
+     assert(cmd->objectList.num <= OBJECT_EXCHANGE_BANK_MAX);
+ 
+     while (k < cmd->objectList.num) {
+-        nextPtr = func_800982FC(&play->objectCtx, i, *objectEntry);
++        nextPtr = Object_LoadEntry(&play->objectCtx, i, *objectEntry);
+         if (i < OBJECT_EXCHANGE_BANK_MAX - 1) {
+             firstStatus[i + 1].segment = nextPtr;
+         }
+-- 
+2.55.0
+

@@ -1,0 +1,61 @@
+From ea2a303b28d9cb5178ffa01f6b9a02c4e7185ff9 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:53 +0000
+Subject: [PATCH 115/225] soh: rename func_800AA148 ->
+ Rumble_Controller1HasRumblePak
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/z_rumble.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h                         | 2 +-
+ soh/src/code/z_rumble.c                         | 3 ++-
+ soh/src/overlays/actors/ovl_Fishing/z_fishing.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 8e0bba76e..3d3a7f6ae 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1387,7 +1387,7 @@ void Rumble_Override(f32, u8, u8, u8);  // was func_800A9F6C [oot]
+ void Rumble_Request(f32, u8, u8, u8);
+ void Rumble_Init();  // was func_800AA0B4 [oot]
+ void Rumble_Destroy(void);  // was func_800AA0F0 [oot]
+-u32 func_800AA148();
++u32 Rumble_Controller1HasRumblePak();  // was func_800AA148 [oot]
+ void func_800AA15C();
+ void Rumble_ClearRequests();
+ void func_800AA178(u32);
+diff --git a/soh/src/code/z_rumble.c b/soh/src/code/z_rumble.c
+index afdbb7ffa..f04935931 100644
+--- a/soh/src/code/z_rumble.c
++++ b/soh/src/code/z_rumble.c
+@@ -81,7 +81,8 @@ void Rumble_Destroy(void) {
+     RumbleMgr_Destroy(&sRumbleMgr);
+ }
+ 
+-u32 func_800AA148(void) {
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800AA148): returns whether controller 1's pak is a Rumble Pak. Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++u32 Rumble_Controller1HasRumblePak(void) {
+     return gPadMgr.pakType[0] == 1;
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index c98d35f73..7808a650b 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -4806,7 +4806,7 @@ void Fishing_HandleOwnerDialog(Fishing* this, PlayState* play) {
+                     case 0:
+                         if (gSaveContext.rupees >= 20) {
+                             Rupees_ChangeBy(-20);
+-                            if (func_800AA148() == 0) {
++                            if (Rumble_Controller1HasRumblePak() == 0) {
+                                 this->actor.textId = 0x407C;
+                             } else {
+                                 this->actor.textId = 0x407D;
+-- 
+2.55.0
+

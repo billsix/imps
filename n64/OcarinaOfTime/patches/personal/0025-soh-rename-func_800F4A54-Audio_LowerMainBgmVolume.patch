@@ -1,0 +1,60 @@
+From 219ef6919644fe3ef2e74ab5d1c2fc7c632a692b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:42 +0000
+Subject: [PATCH 025/225] soh: rename func_800F4A54 -> Audio_LowerMainBgmVolume
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_general.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/audio_general.c                                  | 3 ++-
+ soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index b0cb8db65..1a1105906 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2088,7 +2088,7 @@ void Audio_SetBgmVolumeOffDuringFanfare(void);
+ void Audio_SetBgmVolumeOnDuringFanfare(void);
+ void Audio_SetMainBgmVolume(u8 targetVol, u8 volFadeTimer);  // was func_800F483C [oot]
+ void Audio_SetGanonsTowerBgmVolumeLevel(u8);  // was func_800F4870 [oot]
+-void func_800F4A54(u8);
++void Audio_LowerMainBgmVolume(u8);  // was func_800F4A54 [oot]
+ void Audio_PlaySoundIncreasinglyTransposed(Vec3f* pos, s16 sfxId, u8* semitones);
+ void Audio_ResetIncreasingTranspose(void);
+ void Audio_PlaySoundTransposed(Vec3f* pos, u16 sfxId, s8 semitone);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index d99de1630..91ab4b2f7 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4613,7 +4613,8 @@ s32 Audio_SetGanonsTowerBgmVolume(u8 targetVol) {
+     return -1;
+ }
+ 
+-void func_800F4A54(u8 arg0) {
++// Name from zeldaret/oot src/audio/game/general.c (was func_800F4A54): flags river-sound lowering of main BGM volume. Source: https://github.com/zeldaret/oot/blob/main/src/audio/game/general.c
++void Audio_LowerMainBgmVolume(u8 arg0) {
+     sRiverSoundMainBgmVol = arg0;
+     sRiverSoundMainBgmLower = 1;
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c b/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
+index a24d24bd8..e1056822c 100644
+--- a/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
++++ b/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
+@@ -238,7 +238,7 @@ void EnRiverSound_Draw(Actor* thisx, PlayState* play) {
+                (this->actor.params == RS_UNK_5)) {
+         Audio_PlaySoundRiver(&this->actor.projectedPos, soundPitch[this->soundPitchIndex]);
+     } else if (this->actor.params == RS_UNK_11) {
+-        func_800F4A54(90);
++        Audio_LowerMainBgmVolume(90);
+     } else if (this->actor.params == RS_SARIAS_SONG) {
+         func_800F4E30(&this->actor.projectedPos, this->actor.xzDistToPlayer);
+     } else if (this->actor.params == RS_UNK_13) {
+-- 
+2.55.0
+

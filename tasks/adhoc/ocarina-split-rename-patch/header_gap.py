@@ -22,7 +22,8 @@ import os
 import re
 import sys
 
-from _common import CHECKOUT, git, is_marker_line, rename_commit
+from _common import (CHECKOUT, INLINE_TAG_RE, is_comment_only,
+                     is_marker_line, renamed_files)
 
 
 def main():
@@ -35,8 +36,7 @@ def main():
     # The one type rename the inventory cannot derive (no comment to parse).
     new_names.add("RumbleMgr")
 
-    # --name-only with an empty --pretty prints just the touched paths.
-    touched = git("show", "--name-only", "--pretty=", rename_commit()).split()
+    touched = renamed_files()
     word_re = re.compile("|".join(rf"\b{re.escape(n)}\b" for n in new_names))
 
     header_sites = collections.defaultdict(list)
@@ -48,10 +48,23 @@ def main():
         with open(full, encoding="utf-8", errors="replace") as handle:
             lines = handle.read().splitlines()
         for index, line in enumerate(lines):
-            if not word_re.search(line):
+            # A commented-out placeholder is not a declaration site.
+            if not word_re.search(line) or is_comment_only(line):
                 continue
-            commented = any(is_marker_line(above)
-                            for above in lines[max(0, index - 3):index])
+            # Traceable either by the long definition-style marker above, or
+            # by the short inline declaration tag this task introduced
+            # ("// was func_800C3C20 [oot]").
+            commented = (INLINE_TAG_RE.search(line) is not None
+                         or any(is_marker_line(above)
+                                for above in lines[max(0, index - 3):index]))
+            # A typedef names itself on its CLOSING brace ("} RumbleMgr;"), so
+            # its comment sits above the "typedef struct {" that opened it --
+            # far outside a 3-line window. Walk back to find it.
+            if not commented and line.lstrip().startswith("}"):
+                for back in range(index - 1, max(-1, index - 400), -1):
+                    if lines[back].strip().startswith("typedef struct"):
+                        commented = back > 0 and is_marker_line(lines[back - 1])
+                        break
             if path.endswith((".h", ".hpp")):
                 header_sites[path].append((index + 1, commented))
             else:

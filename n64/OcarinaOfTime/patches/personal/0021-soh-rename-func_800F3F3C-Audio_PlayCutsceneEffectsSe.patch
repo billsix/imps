@@ -1,0 +1,217 @@
+From 2ad870c1e5ff5c6166da49f3f15e37c80f1f8d92 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:41 +0000
+Subject: [PATCH 021/225] soh: rename func_800F3F3C ->
+ Audio_PlayCutsceneEffectsSequence
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_general.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h                                   | 2 +-
+ soh/src/code/audio_general.c                              | 5 +++--
+ soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c           | 2 +-
+ soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c   | 8 ++++----
+ soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c           | 2 +-
+ soh/src/overlays/actors/ovl_Demo_Kekkai/z_demo_kekkai.c   | 4 ++--
+ soh/src/overlays/actors/ovl_Demo_Shd/z_demo_shd.c         | 4 ++--
+ soh/src/overlays/actors/ovl_Efc_Erupc/z_efc_erupc.c       | 2 +-
+ soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c               | 4 ++--
+ .../overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c   | 2 +-
+ 10 files changed, 18 insertions(+), 17 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index afb3b2171..d19b6654c 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2070,7 +2070,7 @@ void AudioDebug_Draw(GfxPrint* printer);
+ void AudioDebug_ScrPrt(const s8* str, u16 num);
+ void Audio_Update(void);
+ void Audio_SetSfxProperties(u8 bankId, u8 entryIdx, u8 channelIdx);
+-void func_800F3F3C(u8);
++void Audio_PlayCutsceneEffectsSequence(u8);  // was func_800F3F3C [oot]
+ void func_800F4010(Vec3f* pos, u16 sfxId, f32);
+ void Audio_PlaySoundRandom(Vec3f* pos, u16 baseSfxId, u8 randLim);
+ void func_800F4138(Vec3f* pos, u16 sfxId, f32);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index aa9f04e45..60ea44fc3 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4366,7 +4366,8 @@ void Audio_PlayFanfare_Rando(GetItemEntry getItem) {
+     }
+ }
+ 
+-void func_800F3F3C(u8 arg0) {
++// Name from zeldaret/oot src/audio/game/general.c (was func_800F3F3C): starts the various-SFX sub BGM sequence for cutscenes. Source: https://github.com/zeldaret/oot/blob/main/src/audio/game/general.c
++void Audio_PlayCutsceneEffectsSequence(u8 arg0) {
+     if (gSoundBankMuted[0] != 1) {
+         Audio_StartSeq(SEQ_PLAYER_BGM_SUB, 0, NA_BGM_VARIOUS_SFX);
+         Audio_SeqCmd8(SEQ_PLAYER_BGM_SUB, 0, 0, arg0);
+@@ -5490,7 +5491,7 @@ void Audio_StartNatureAmbienceSequence(u16 playerIO, u16 channelMask) {
+     u8 channelIdx;
+ 
+     if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_WINDMILL) {
+-        func_800F3F3C(0xF);
++        Audio_PlayCutsceneEffectsSequence(0xF);
+         return;
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c b/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
+index 63de6e2da..6824f8b0c 100644
+--- a/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
++++ b/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
+@@ -233,7 +233,7 @@ void func_80966E98(Demo6K* this, PlayState* play) {
+     }
+ 
+     if (play->csCtx.frames == 342) {
+-        func_800F3F3C(2);
++        Audio_PlayCutsceneEffectsSequence(2);
+     }
+ 
+     if (this->timer1 == 39) {
+diff --git a/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c b/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
+index 182a36a11..5ec2762b9 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
++++ b/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
+@@ -728,7 +728,7 @@ void DemoEffect_InitTimeWarp(DemoEffect* this, PlayState* play) {
+ void DemoEffect_UpdateTimeWarpPullMasterSword(DemoEffect* this, PlayState* play) {
+     if (Flags_GetEnv(play, 1)) {
+         if (!(this->effectFlags & 0x2)) {
+-            func_800F3F3C(0);
++            Audio_PlayCutsceneEffectsSequence(0);
+             this->effectFlags |= 0x2;
+         }
+ 
+@@ -891,7 +891,7 @@ void DemoEffect_UpdateLightRingShrinking(DemoEffect* this, PlayState* play) {
+     }
+ 
+     if (this->lightRing.timer == 255) {
+-        func_800F3F3C(5);
++        Audio_PlayCutsceneEffectsSequence(5);
+     }
+ }
+ 
+@@ -1239,7 +1239,7 @@ void DemoEffect_UpdateGodLgtNayru(DemoEffect* this, PlayState* play) {
+                 Audio_PlayActorSound2(&this->actor, NA_SE_IT_DM_FLYING_GOD_DASH);
+             }
+             if (play->csCtx.frames == 80) {
+-                func_800F3F3C(4);
++                Audio_PlayCutsceneEffectsSequence(4);
+             }
+         }
+     }
+@@ -1269,7 +1269,7 @@ void DemoEffect_UpdateGodLgtFarore(DemoEffect* this, PlayState* play) {
+             }
+ 
+             Audio_PlayActorSound2(&this->actor, NA_SE_IT_DM_FLYING_GOD_DASH);
+-            func_800F3F3C(3);
++            Audio_PlayCutsceneEffectsSequence(3);
+         }
+ 
+         if (gSaveContext.entranceIndex == ENTR_CUTSCENE_MAP_0) {
+diff --git a/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c b/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
+index d336ecbc9..85609fa5c 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
++++ b/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
+@@ -485,7 +485,7 @@ void func_8097EF00(DemoGt* this, PlayState* play) {
+     u16 frames = play->csCtx.frames;
+ 
+     if (frames == 527) {
+-        func_800F3F3C(13);
++        Audio_PlayCutsceneEffectsSequence(13);
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Demo_Kekkai/z_demo_kekkai.c b/soh/src/overlays/actors/ovl_Demo_Kekkai/z_demo_kekkai.c
+index 3e2da23e0..92aaa4d33 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Kekkai/z_demo_kekkai.c
++++ b/soh/src/overlays/actors/ovl_Demo_Kekkai/z_demo_kekkai.c
+@@ -174,7 +174,7 @@ void DemoKekkai_TowerBarrier(DemoKekkai* this, PlayState* play) {
+     if ((play->csCtx.state != CS_STATE_IDLE) && (play->csCtx.npcActions[0] != NULL) &&
+         (play->csCtx.npcActions[0]->action != 1) && (play->csCtx.npcActions[0]->action == 2)) {
+         if (!(this->sfxFlag & 1)) {
+-            func_800F3F3C(0xC);
++            Audio_PlayCutsceneEffectsSequence(0xC);
+             this->sfxFlag |= 1;
+         }
+         if (this->barrierScrollRate < 7.0f) {
+@@ -221,7 +221,7 @@ void DemoKekkai_TrialBarrierDispel(Actor* thisx, PlayState* play) {
+     DemoKekkai* this = (DemoKekkai*)thisx;
+ 
+     if (play->csCtx.frames == csFrames[this->actor.params]) {
+-        func_800F3F3C(0xA);
++        Audio_PlayCutsceneEffectsSequence(0xA);
+     }
+     if (this->energyAlpha >= 0.05f) {
+         this->energyAlpha -= 0.05f;
+diff --git a/soh/src/overlays/actors/ovl_Demo_Shd/z_demo_shd.c b/soh/src/overlays/actors/ovl_Demo_Shd/z_demo_shd.c
+index e3c185467..aae64ee34 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Shd/z_demo_shd.c
++++ b/soh/src/overlays/actors/ovl_Demo_Shd/z_demo_shd.c
+@@ -51,10 +51,10 @@ void func_80991298(DemoShd* this, PlayState* play) {
+     if ((play->csCtx.state != CS_STATE_IDLE && play->csCtx.npcActions[0] != NULL) ||
+         (play->csCtx.state != CS_STATE_IDLE && play->csCtx.npcActions[1] != NULL)) {
+         if (play->csCtx.frames == 800) {
+-            func_800F3F3C(9);
++            Audio_PlayCutsceneEffectsSequence(9);
+         }
+         if (play->csCtx.frames == 1069) {
+-            func_800F3F3C(8);
++            Audio_PlayCutsceneEffectsSequence(8);
+         }
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Efc_Erupc/z_efc_erupc.c b/soh/src/overlays/actors/ovl_Efc_Erupc/z_efc_erupc.c
+index 17cbbd7d1..f9f64da1a 100644
+--- a/soh/src/overlays/actors/ovl_Efc_Erupc/z_efc_erupc.c
++++ b/soh/src/overlays/actors/ovl_Efc_Erupc/z_efc_erupc.c
+@@ -80,7 +80,7 @@ void EfcErupc_UpdateAction(EfcErupc* this, PlayState* play) {
+             switch (play->csCtx.npcActions[2]->action) {
+                 case 2:
+                     if (this->unk_14E == 0) {
+-                        func_800F3F3C(6);
++                        Audio_PlayCutsceneEffectsSequence(6);
+                         Flags_SetEventChkInf(EVENTCHKINF_DEATH_MOUNTAIN_ERUPTED);
+                     }
+                     this->unk_14E++;
+diff --git a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+index 368d955b3..bd91506e6 100644
+--- a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
++++ b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+@@ -1573,7 +1573,7 @@ void func_80B3FA08(EnXc* this, PlayState* play) {
+ }
+ 
+ void func_80B3FA2C(void) {
+-    func_800F3F3C(1);
++    Audio_PlayCutsceneEffectsSequence(1);
+ }
+ 
+ void EnXc_PlayTriforceSFX(Actor* thisx, PlayState* play) {
+@@ -1809,7 +1809,7 @@ void EnXc_SetThrownAroundSFX(EnXc* this) {
+ 
+ void EnXc_PlayLinkScreamSFX(EnXc* this, PlayState* play) {
+     if (play->csCtx.frames == 1455) {
+-        func_800F3F3C(7);
++        Audio_PlayCutsceneEffectsSequence(7);
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c b/soh/src/overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c
+index 4264e6ffe..3c551a89a 100644
+--- a/soh/src/overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c
++++ b/soh/src/overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c
+@@ -899,7 +899,7 @@ void ObjectKankyo_Beams(ObjectKankyo* this, PlayState* play) {
+         for (i = 0; i < 6; i++) {
+             if (play->csCtx.npcActions[i + 1] != NULL && play->csCtx.npcActions[i + 1]->action == 2) {
+                 if (this->effects[i].size == 0.1f) {
+-                    func_800F3F3C(11);
++                    Audio_PlayCutsceneEffectsSequence(11);
+                 }
+                 Math_ApproachZeroF(&this->effects[i].size, 0.1f, 0.1f);
+             }
+-- 
+2.55.0
+

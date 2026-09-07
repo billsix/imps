@@ -1,0 +1,78 @@
+From e33a42141129211babc290063e4e8c65c061a4ce Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:43 +0000
+Subject: [PATCH 032/225] soh: rename D_80133408 -> gStartSeqDisabled
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_seq.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/variables.h      | 2 +-
+ soh/src/code/audio_general.c | 2 +-
+ soh/src/code/audio_seq.c     | 7 ++++---
+ 3 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 87ef3e473..2041f5def 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -164,7 +164,7 @@ extern "C"
+ 	extern s8 gSfxDefaultReverb;
+ 	extern u8 D_801333F0;
+ 	extern u8 gAudioSfxSwapOff;
+-	extern u8 D_80133408;
++	extern u8 gStartSeqDisabled;  // was D_80133408 [oot]
+ 	extern u8 D_8013340C;
+ 	extern u8 gAudioSpecId;
+ 	extern u8 D_80133418;
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 2c70cf572..6adb2bfb3 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -5508,7 +5508,7 @@ void Audio_StartNatureAmbienceSequence(u16 playerIO, u16 channelMask) {
+     Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 0, 0x7F, 1);
+ 
+     channelIdx = false;
+-    if (D_80133408 != 0) {
++    if (gStartSeqDisabled != 0) {
+         channelIdx = true;
+         Audio_SeqCmdE01(SEQ_PLAYER_BGM_MAIN, 0);
+     }
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index 056f84fa1..534563b4d 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -21,7 +21,8 @@ ActiveSequence gActiveSeqs[4];
+ 
+ u8 sSeqCmdWrPos = 0;
+ u8 sSeqCmdRdPos = 0;
+-u8 D_80133408 = 0;
++// Name from zeldaret/oot, was D_80133408: when set, blocks starting a sequence except on the SFX player. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++u8 gStartSeqDisabled = 0;
+ u8 D_8013340C = 1;
+ u8 D_80133410[] = { 0, 1, 2, 3 };
+ u8 gAudioSpecId = 0;
+@@ -45,7 +46,7 @@ void Audio_StartSequence(u8 playerIdx, u8 seqId, u8 arg2, u16 fadeTimer) {
+     u16 resolvedSeqId;
+     s32 pad;
+ 
+-    if (D_80133408 == 0 || playerIdx == SEQ_PLAYER_SFX) {
++    if (gStartSeqDisabled == 0 || playerIdx == SEQ_PLAYER_SFX) {
+         // Resolve here so the full 16-bit id rides in the command (bits 0-15) rather than the shared
+         // seqToPlay slot. seqReplaced is set out-of-band by preview/slow load.
+         // See AudioEditor_GetReplacementSeq().
+@@ -365,7 +366,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+                     break;
+                 case 1:
+                     // set sequence starting disabled?
+-                    D_80133408 = val & 1;
++                    gStartSeqDisabled = val & 1;
+                     break;
+             }
+             break;
+-- 
+2.55.0
+

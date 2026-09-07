@@ -1,0 +1,38 @@
+From 31e563234a1f5be473b3c259996c23fd8ff2e3f1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:46 +0000
+Subject: [PATCH 057/225] soh: rename D_801304E8 -> sMaxProcessCmdQueueDepth
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/code/audio_thread.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/code/audio_thread.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/audio_thread.c b/soh/src/code/audio_thread.c
+index 622c67cb5..79f1b8932 100644
+--- a/soh/src/code/audio_thread.c
++++ b/soh/src/code/audio_thread.c
+@@ -431,11 +431,12 @@ void Audio_QueueCmdU16(u32 opArgs, u16 data) {
+ }
+ 
+ s32 Audio_ScheduleProcessCmds(void) {
+-    static s32 D_801304E8 = 0;
++    // LLM generated name (HIGH), was D_801304E8: static tracking peak cmd queue depth (cmdWrPos - cmdRdPos)
++    static s32 sMaxProcessCmdQueueDepth = 0;
+     s32 ret;
+ 
+-    if (D_801304E8 < (u8)((gAudioContext.cmdWrPos - gAudioContext.cmdRdPos) + 0x100)) {
+-        D_801304E8 = (u8)((gAudioContext.cmdWrPos - gAudioContext.cmdRdPos) + 0x100);
++    if (sMaxProcessCmdQueueDepth < (u8)((gAudioContext.cmdWrPos - gAudioContext.cmdRdPos) + 0x100)) {
++        sMaxProcessCmdQueueDepth = (u8)((gAudioContext.cmdWrPos - gAudioContext.cmdRdPos) + 0x100);
+     }
+ 
+     ret = osSendMesg32(gAudioContext.cmdProcQueueP,
+-- 
+2.55.0
+

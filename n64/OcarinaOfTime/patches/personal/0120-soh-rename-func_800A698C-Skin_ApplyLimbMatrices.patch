@@ -1,0 +1,59 @@
+From b2844adbaee18c57db3e3507e81a11ae999dc445 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:54 +0000
+Subject: [PATCH 120/225] soh: rename func_800A698C -> Skin_ApplyLimbMatrices
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/code/z_skin_awb.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/code/z_skin_awb.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/z_skin_awb.c b/soh/src/code/z_skin_awb.c
+index 504b6376d..9a8e15142 100644
+--- a/soh/src/code/z_skin_awb.c
++++ b/soh/src/code/z_skin_awb.c
+@@ -110,7 +110,9 @@ void Skin_Free(PlayState* play, Skin* skin) {
+     }
+ }
+ 
+-s32 func_800A698C(Skin* skin, SkinLimb** skeleton, MtxF* limbMatrices, u8 parentIndex, u8 limbIndex) {
++// LLM generated name (HIGH), was func_800A698C: recursively concatenates each limb's matrix with its parent's down the
++// skeleton hierarchy.
++s32 Skin_ApplyLimbMatrices(Skin* skin, SkinLimb** skeleton, MtxF* limbMatrices, u8 parentIndex, u8 limbIndex) {
+     s32 pad;
+     SkinLimb* limb = SEGMENTED_TO_VIRTUAL(skeleton[limbIndex]);
+     MtxF* mtx;
+@@ -127,14 +129,14 @@ s32 func_800A698C(Skin* skin, SkinLimb** skeleton, MtxF* limbMatrices, u8 parent
+     SkinMatrix_MtxFCopy(&sp28, &limbMatrices[limbIndex]);
+ 
+     if (limb->child != LIMB_DONE) {
+-        ret = func_800A698C(skin, skeleton, limbMatrices, limbIndex, limb->child);
++        ret = Skin_ApplyLimbMatrices(skin, skeleton, limbMatrices, limbIndex, limb->child);
+         if (ret) {
+             return ret;
+         }
+     }
+ 
+     if (limb->sibling != LIMB_DONE) {
+-        ret = func_800A698C(skin, skeleton, limbMatrices, parentIndex, limb->sibling);
++        ret = Skin_ApplyLimbMatrices(skin, skeleton, limbMatrices, parentIndex, limb->sibling);
+         if (ret) {
+             return ret;
+         }
+@@ -205,7 +207,7 @@ s32 Skin_ApplyAnimTransformations(Skin* skin, MtxF* limbMatrices, Actor* actor,
+         actor->shape.rot.z, actor->world.pos.x, actor->world.pos.y + (actor->shape.yOffset * actor->scale.y),
+         actor->world.pos.z);
+ 
+-    ret = func_800A698C(skin, SEGMENTED_TO_VIRTUAL(skin->skeletonHeader->segment), limbMatrices, LIMB_DONE, 0);
++    ret = Skin_ApplyLimbMatrices(skin, SEGMENTED_TO_VIRTUAL(skin->skeletonHeader->segment), limbMatrices, LIMB_DONE, 0);
+     if (!ret) {
+         return ret;
+     }
+-- 
+2.55.0
+

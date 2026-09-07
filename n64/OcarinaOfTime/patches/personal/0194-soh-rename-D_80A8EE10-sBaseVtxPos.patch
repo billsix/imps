@@ -1,0 +1,70 @@
+From 0b765339dbe284d2c536c5be7021b4df24ea7b23 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:02:02 +0000
+Subject: [PATCH 194/225] soh: rename D_80A8EE10 -> sBaseVtxPos
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ .../actors/ovl_En_Jsjutan/z_en_jsjutan.c      | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c b/soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c
+index 85f415dc9..f53c83f11 100644
+--- a/soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c
++++ b/soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c
+@@ -32,7 +32,8 @@ const ActorInit En_Jsjutan_InitVars = {
+ // Shadow texture. 32x64 I8.
+ static u8 sShadowTex[0x800];
+ 
+-static Vec3s D_80A8EE10[0x90];
++// LLM generated name (HIGH), was D_80A8EE10: stores base x/z of each carpet vertex, later wave-displaced for animation.
++static Vec3s sBaseVtxPos[0x90];
+ 
+ static s32 sUnused[2] = { 0, 0 };
+ 
+@@ -67,9 +68,9 @@ void func_80A89860(EnJsjutan* this, PlayState* play) {
+     oddVtx = ResourceMgr_LoadVtxByName(SEGMENTED_TO_VIRTUAL(gShadowOddVtx));
+     evenVtx = ResourceMgr_LoadVtxByName(SEGMENTED_TO_VIRTUAL(sShadowEvenVtx));
+ 
+-    for (i = 0; i < ARRAY_COUNT(D_80A8EE10); i++, oddVtx++, evenVtx++) {
+-        D_80A8EE10[i].x = oddVtx->v.ob[0];
+-        D_80A8EE10[i].z = oddVtx->v.ob[2];
++    for (i = 0; i < ARRAY_COUNT(sBaseVtxPos); i++, oddVtx++, evenVtx++) {
++        sBaseVtxPos[i].x = oddVtx->v.ob[0];
++        sBaseVtxPos[i].z = oddVtx->v.ob[2];
+         if (this->dyna.actor.params == ENJSJUTAN_TYPE_01) {
+             oddVtx->v.ob[1] = evenVtx->v.ob[1] = 0x585;
+         } else {
+@@ -204,7 +205,7 @@ void func_80A89A6C(EnJsjutan* this, PlayState* play) {
+     }
+ 
+     // Fancy math to make a woobly and reactive carpet.
+-    for (i = 0; i < ARRAY_COUNT(D_80A8EE10); i++, carpetVtx++, shadowVtx++) {
++    for (i = 0; i < ARRAY_COUNT(sBaseVtxPos); i++, carpetVtx++, shadowVtx++) {
+         if (isPlayerOnTop) {
+             // Linear distance from j-th wave to player, in XZ plane.
+             dxVtx = carpetVtx->n.ob[0] - spB8;
+@@ -289,11 +290,11 @@ void func_80A89A6C(EnJsjutan* this, PlayState* play) {
+         } else {
+             carpetVtx->n.ob[1] = offset + waveform;
+ 
+-            carpetVtx->n.ob[0] = D_80A8EE10[i].x + (s16)(waveform * 0.5f);
+-            carpetVtx->n.ob[2] = D_80A8EE10[i].z + (s16)(waveform * 0.5f);
++            carpetVtx->n.ob[0] = sBaseVtxPos[i].x + (s16)(waveform * 0.5f);
++            carpetVtx->n.ob[2] = sBaseVtxPos[i].z + (s16)(waveform * 0.5f);
+ 
+-            shadowVtx->n.ob[0] = D_80A8EE10[i].x + (s16)waveform;
+-            shadowVtx->n.ob[2] = D_80A8EE10[i].z + (s16)waveform;
++            shadowVtx->n.ob[0] = sBaseVtxPos[i].x + (s16)waveform;
++            shadowVtx->n.ob[2] = sBaseVtxPos[i].z + (s16)waveform;
+         }
+     }
+ 
+-- 
+2.55.0
+

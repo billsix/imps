@@ -1,0 +1,45 @@
+From 5ee6b756092e550c584eafc043bb904230b40506 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:52 +0000
+Subject: [PATCH 108/225] soh: rename D_80153D78 ->
+ sMessageDebuggerTextboxCount
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/z_message_PAL.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/code/z_message_PAL.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/z_message_PAL.c b/soh/src/code/z_message_PAL.c
+index 5b9aab1ab..8b71f75a7 100644
+--- a/soh/src/code/z_message_PAL.c
++++ b/soh/src/code/z_message_PAL.c
+@@ -4401,7 +4401,8 @@ void Message_Update(PlayState* play) {
+     };
+     // LLM generated name (HIGH), was D_80153D74: when set, snaps textDrawPos to decodedTextLen for instant full display.
+     static u8 sTextboxInstantDisplay = 0;
+-    static u16 D_80153D78 = 0;
++    // Name from zeldaret/oot, was D_80153D78: debug message counter printed as "msgno" and cycled 0..9. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_message.c]
++    static u16 sMessageDebuggerTextboxCount = 0;
+     MessageContext* msgCtx = &play->msgCtx;
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+     Player* player = GET_PLAYER(play);
+@@ -4414,9 +4415,9 @@ void Message_Update(PlayState* play) {
+ 
+     if (BREG(0) != 0) {
+         if (CHECK_BTN_ALL(input->press.button, BTN_DDOWN) && CHECK_BTN_ALL(input->cur.button, BTN_L)) {
+-            osSyncPrintf("msgno=%d\n", D_80153D78);
++            osSyncPrintf("msgno=%d\n", sMessageDebuggerTextboxCount);
+             Message_StartTextbox(play, R_MESSAGE_DEBUGGER_TEXTID, NULL);
+-            D_80153D78 = (D_80153D78 + 1) % 10;
++            sMessageDebuggerTextboxCount = (sMessageDebuggerTextboxCount + 1) % 10;
+         }
+         if (R_MESSAGE_DEBUGGER_SELECT != 0) {
+             while (R_MESSAGE_DEBUGGER_TEXTID != 0x8000) {
+-- 
+2.55.0
+

@@ -1,0 +1,52 @@
+From f740154d317063fe429e335def92b228e570d6fc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:47 +0000
+Subject: [PATCH 066/225] soh: rename func_800E6128 ->
+ AudioThread_ProcessSeqPlayerCmd
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_thread.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/code/audio_thread.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/audio_thread.c b/soh/src/code/audio_thread.c
+index a3ad2533e..bc590eba1 100644
+--- a/soh/src/code/audio_thread.c
++++ b/soh/src/code/audio_thread.c
+@@ -26,7 +26,7 @@ void AudioThread_SetFadeInTimer(s32 playerIdx, s32 fadeTimer);
+ void Audio_InitMesgQueues(void);
+ AudioTask* AudioThread_UpdateImpl(void);
+ void Audio_ProcessCmds(u32);
+-void func_800E6128(SequencePlayer* seqPlayer, AudioCmd* arg1);
++void AudioThread_ProcessSeqPlayerCmd(SequencePlayer* seqPlayer, AudioCmd* arg1);
+ void AudioThread_SetFadeOutTimer(s32 playerIdx, s32 fadeTimer);
+ s32 func_800E66C0(s32 arg0);
+ 
+@@ -473,7 +473,7 @@ void Audio_ProcessCmd(AudioCmd* cmd) {
+             return;
+         }
+         if (cmd->op & 0x40) {
+-            func_800E6128(seqPlayer, cmd);
++            AudioThread_ProcessSeqPlayerCmd(seqPlayer, cmd);
+             return;
+         }
+ 
+@@ -636,7 +636,9 @@ float Audio_GetGameVolume(int player_id) {
+     return gAudioContext.seqPlayers[player_id].gameVolume;
+ }
+ 
+-void func_800E6128(SequencePlayer* seqPlayer, AudioCmd* cmd) {
++// Name from zeldaret/oot, was func_800E6128: switches on cmd->op applying tempo/transpose/fade updates to [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// the SequencePlayer
++void AudioThread_ProcessSeqPlayerCmd(SequencePlayer* seqPlayer, AudioCmd* cmd) {
+     f32 fadeVolume;
+     switch (cmd->op) {
+         case 0x41:
+-- 
+2.55.0
+

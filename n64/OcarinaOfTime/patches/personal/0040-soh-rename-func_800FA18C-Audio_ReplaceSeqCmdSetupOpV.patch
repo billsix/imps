@@ -1,0 +1,47 @@
+From d6e0d0e5f0e9be60522597c9f4c17e30d716e406 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:44 +0000
+Subject: [PATCH 040/225] soh: rename func_800FA18C ->
+ Audio_ReplaceSeqCmdSetupOpVolRestore
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_seq.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h  | 2 +-
+ soh/src/code/audio_seq.c | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 853a1e884..516e1c2a0 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2166,7 +2166,7 @@ void Audio_ProcessSeqCmds(void);
+ u16 Audio_GetActiveSeqId(u8 a0);  // was func_800FA0B4 [oot]
+ s32 Audio_IsSeqCmdNotQueued(u32 arg0, u32 arg1);  // was func_800FA11C [oot]
+ void Audio_ResetSequenceRequests(u8);  // was func_800FA174 [oot]
+-void func_800FA18C(u8, u8);
++void Audio_ReplaceSeqCmdSetupOpVolRestore(u8, u8);  // was func_800FA18C [oot]
+ void Audio_SetVolScale(u8 playerIdx, u8 scaleIdx, u8 targetVol, u8 volFadeTimer);
+ void func_800FA3DC(void);
+ u8 func_800FAD34(void);
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index be26d4028..bfe9d2b0a 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -431,7 +431,8 @@ void Audio_ResetSequenceRequests(u8 playerIdx) {
+     sNumSeqRequests[playerIdx] = 0;
+ }
+ 
+-void func_800FA18C(u8 playerIdx, u8 arg1) {
++// Name from zeldaret/oot, was func_800FA18C: nulls queued setup commands whose op field matches arg1. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++void Audio_ReplaceSeqCmdSetupOpVolRestore(u8 playerIdx, u8 arg1) {
+     u8 i;
+ 
+     for (i = 0; i < gActiveSeqs[playerIdx].setupCmdNum; i++) {
+-- 
+2.55.0
+

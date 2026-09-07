@@ -30,6 +30,62 @@ Audit with `git grep 'LLM generated name' -- soh/src` / `git grep 'Name from zel
 are trivially strippable before upstreaming. Never let both markers land on one line. When a rename is later
 confirmed against oot, upgrade the LLM comment to the oot form (swap marker, append the URL).
 
+**The DECLARATION gets a short tag too (William Emerison Six <billsix@gmail.com>, 2026-09-07).** The long
+comment above the definition leaves the *declaration* bare — and `soh/include/functions.h` is where a reader
+meets a name first, with no way to tell a guess from an upstream name. So every header declaration of a
+renamed symbol also carries a one-line inline tag:
+
+```c
+void AudioMgr_StopAllSfx(void);                    // was func_800C3C20 [oot]
+void Audio_RestorePrevBgm(void);                   // was func_800F5B58 [LLM:HIGH]
+extern u8 sAudioResetState;                        // was D_80133418 [LLM:HIGH]
+```
+
+`[oot]` = authoritative upstream name; `[LLM:HIGH]` / `[LLM:GUESS]` = ours, with the confidence carried over
+from the definition comment. It stays greppable by the same handle (`git grep 'was func_'`), and deliberately
+does **not** repeat the prose or the citation URL — those stay at the definition, so the shared headers don't
+gain 60-odd long lines. **Call sites get nothing**; only the definition and the declaration.
+Gate: `tasks/adhoc/ocarina-split-rename-patch/header_gap.py` reports any header declaration still bare.
+
+**The tag is always APPENDED to an existing line, never inserted as a new one.** That is load-bearing, not
+cosmetic: no file changes its line count, so `__LINE__`/`__FILE__` and every debug print built on them are
+untouched, and the preprocessed translation units stay byte-identical. Where the line already ends in a
+comment, append after it with a comma (`} RumbleMgr; // size = 0x10E, was UnkRumbleStruct [LLM:HIGH]`).
+**Commented-out placeholder declarations** (`// ? Audio_ResetData(?);` in `functions.h`) are skipped — they
+are not declarations.
+
+**TYPE renames follow the same convention.** A struct/typedef rename is not address-named, so the
+`git grep 'LLM generated name'` audit cannot see it and it is easy to ship untraceable — `UnkRumbleStruct` →
+`RumbleMgr` did exactly that. Tag it like any other rename, on the line that names it (for a typedef, the
+closing brace).
+
+## One rename per commit
+
+**A commit renames exactly one symbol — everywhere it appears — and nothing else** (William Emerison Six
+<billsix@gmail.com>, 2026-09-07). Most of these names are *guesses*: at the 2026-09-07 split, 141 of 206 were
+LLM-deduced because zeldaret/oot leaves the symbol address-named too. A guess that turns out wrong should cost
+one `git revert`, not an untangle — which is only true if it has its own commit. The original bulk rename was
+one 6,854-line commit across 145 files, unreviewable in a sitting; splitting it gave 225 commits with a median
+size of 50 lines.
+
+- Subject `soh: rename <old> -> <new>`; body names the source (`zeldaret/oot`, or the confidence for a
+  deduction) and the defining file.
+- **File renames are their own commits** (`soh: rename code_800A9F30.c -> z_rumble.c`), and carry any comment
+  elsewhere in the tree that cross-referenced the old filename.
+- Group symbol commits by defining file so a reviewer stays in one area at a time.
+- Never fold two symbols into one commit, even when they are obviously related (the six `Rumble_*` functions
+  are six commits).
+
+The split is mechanical, and reproducible: `tasks/adhoc/ocarina-split-rename-patch/` holds the scripts, and
+`verify_series.py` is the gate — it proves the series reproduces the pre-split tree byte-for-byte (only the
+new comments differ), that every commit introduces exactly one name, and that every rename is total.
+
+**To prove a split changed nothing, run `prove_equivalence.sh`** (same directory). It applies the old patch
+and the new series to two scratch branches off the pin, checks that no file changed line count, and then has
+**gcc itself** strip the comments (`gcc -fpreprocessed -dD -E -P`) and compares — so the equivalence argument
+rests on a compiler, not on a regex in this repo. It is the answer to "how do I know the split is safe?"
+without a full build.
+
 ## The safe-rename mechanic
 A rename must be **total** (def + every reference) and behavior-preserving. Do NOT rely on a build (the maintainer (William Emerison Six <billsix@gmail.com>)
 builds/runs separately; our renames are grep-complete, not build-verified).
@@ -85,10 +141,19 @@ rename scope covering `soh/soh` catches these automatically; always keep it in s
 5. Log the batch + any held/deferred items + questions in the task doc.
 6. Hand to the maintainer to build + run (the only real verification).
 
-## Status at this stopping point (2026-07-31)
-Done: **18/19 `code_<addr>.c` files renamed** (only `code_800FBCE0.c`, RCP, left — oot leaves its 2 funcs
-address-named too); **~206 symbols renamed**, all cross-checked against oot (65 carry oot citations, 141 are
-marked LLM because oot leaves them address-named). This covers the `code_` files + every file that had only
-1–2 un-named funcs. **Remaining: ~3,988 un-named `func_` defs across ~175 denser files, plus the entire
-de-obfuscation goal (goal 3), plus the open questions in the task doc.** Not archived — this is a live,
-multi-session task; resume from the survey in the task doc.
+## Status at this stopping point (2026-07-31, re-measured 2026-09-07)
+Done: **18 `code_<addr>.c` files renamed** (`code_800FBCE0.c`, RCP, left alone — oot leaves its 2 funcs
+address-named too); **206 symbols renamed** — exactly **64** carrying oot citations and **141** marked LLM
+because oot leaves them address-named, plus the `Struct_8016E320` → `SeqRequest` typedef. (The 2026-07-31
+note said "65 oot / 141 LLM"; the measured split is 64/141 + 1 typedef. The one **type** rename,
+`UnkRumbleStruct` → `RumbleMgr`, carried no comment at all until 2026-09-07.) This covers the `code_` files
+plus every file that had only 1–2 un-named funcs. **Remaining: ~3,988 un-named `func_` defs across ~175
+denser files, plus the entire de-obfuscation goal (goal 3).**
+
+**2026-09-07:** the single bulk commit was split into **225 one-rename-per-commit patches** and every header
+declaration gained a provenance tag (see "One rename per commit" and the declaration-tag rule above). The
+tree is unchanged apart from those comments, proven by `verify_series.py`. **Do the remaining ~3,988 this way
+from the start** — one symbol per commit, comment at the definition *and* the declaration.
+
+Not archived — this is a live, multi-session task; resume from the survey in
+[`tasks/ocarina-decomp-rename-and-cleanup.md`](../../ocarina-decomp-rename-and-cleanup.md).

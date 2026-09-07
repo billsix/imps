@@ -24,18 +24,28 @@ personal branches — the patch series is the whole delta.
 
 ## Patches
 
-- `patches/0001-LLM-generated-renames.patch` — 145-file decomp rename:
-  15 address-named `soh/src/code/code_<addr>.c` files and ~206 `func_`/`D_`
-  symbols renamed to semantic names, cross-checked against zeldaret/oot.
-  Ported 2026-09-01 from a fork based at `988b53665`; one conflict resolved
-  in `z_demo_kankyo.c` (upstream's `Audio_PlaySfxGeneral` rename crossing
-  the series' `CutsceneCamera_UpdateSpline` rename), and upstream-added
-  identifiers were checked for references to renamed-away symbols (none).
-  Patched tree build- and run-verified on-host 2026-09-01 (William
-  Emerison Six <billsix@gmail.com>).
+- `patches/personal/0001…0225-*.patch` — the decomp rename series, **one
+  rename per patch**: 18 patches renaming address-named
+  `soh/src/code/code_<addr>.c` files, then 207 renaming a single `func_`/
+  `D_`/type symbol each (everywhere it occurs), cross-checked against
+  zeldaret/oot. Median patch 50 lines. Every renamed symbol carries a
+  provenance comment at its definition **and** a short `// was func_… [oot]`
+  / `[LLM:HIGH]` tag at each header declaration, so a reader of
+  `functions.h` can tell an upstream name from one of our guesses (141 of
+  206 are guesses — oot leaves those address-named too).
+  **Split from a single 6,854-line commit on 2026-09-07**; the split is
+  content-neutral (only the new comments differ from the pre-split tree),
+  proven by `tasks/adhoc/ocarina-split-rename-patch/verify_series.py`.
+  Originally ported 2026-09-01 from a fork based at `988b53665`; one
+  conflict resolved in `z_demo_kankyo.c` (upstream's `Audio_PlaySfxGeneral`
+  rename crossing the series' `CutsceneCamera_UpdateSpline` rename), and
+  upstream-added identifiers were checked for references to renamed-away
+  symbols (none). The **pre-split** tree was build- and run-verified
+  on-host 2026-09-01 (William Emerison Six <billsix@gmail.com>); the split
+  series has **not** been rebuilt on-host yet.
   The renaming effort continues in
   [`../../tasks/ocarina-decomp-rename-and-cleanup.md`](../../tasks/ocarina-decomp-rename-and-cleanup.md);
-  method and gotchas in
+  method, the comment convention, and the one-rename-per-commit rule in
   [`../../tasks/reference/ocarina/decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md).
 
 ## Version notes

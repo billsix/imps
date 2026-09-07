@@ -1,0 +1,103 @@
+From 358394464c583f5a4785e5cc01f41342435a26d3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:43 +0000
+Subject: [PATCH 035/225] soh: rename D_80133418 -> sAudioResetState
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/code/audio_seq.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/variables.h      |  2 +-
+ soh/soh/stubs.c              |  2 +-
+ soh/src/code/audio_general.c |  2 +-
+ soh/src/code/audio_seq.c     | 15 ++++++++-------
+ 4 files changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 3d93ffd39..094097354 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -167,7 +167,7 @@ extern "C"
+ 	extern u8 gStartSeqDisabled;  // was D_80133408 [oot]
+ 	extern u8 gAudioDebugPrintSeqCmd;  // was D_8013340C [oot]
+ 	extern u8 gAudioSpecId;
+-	extern u8 D_80133418;
++	extern u8 sAudioResetState;  // was D_80133418 [LLM:HIGH]
+ 	extern AudioSpec gAudioSpecs[18];
+ 	extern s32 gOverlayLogSeverity;
+ 	extern s32 gSystemArenaLogSeverity;
+diff --git a/soh/soh/stubs.c b/soh/soh/stubs.c
+index 2b0323c37..65ed78e55 100644
+--- a/soh/soh/stubs.c
++++ b/soh/soh/stubs.c
+@@ -16,7 +16,7 @@ OSViMode osViModePalLan1;
+ u8 gLetterTLUT[4][32];
+ u8 gFontFF[999];
+ DmaEntry gDmaDataTable[0x60C];
+-// u8 D_80133418;
++// u8 sAudioResetState;
+ u16 gAudioSEFlagSwapSource[64];
+ u16 gAudioSEFlagSwapTarget[64];
+ u8 gAudioSEFlagSwapMode[64];
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 12b71fc2f..fc0d0b9b3 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -5571,7 +5571,7 @@ void func_800F7170(void) {
+ }
+ 
+ void func_800F71BC(s32 arg0) {
+-    D_80133418 = 1;
++    sAudioResetState = 1;
+     Audio_ResetData();
+     AudioOcarina_ResetStaffs();
+     Audio_ResetSfxChannelState();
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index a1ec47ef3..bb1d20cca 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -28,7 +28,8 @@ u8 gAudioDebugPrintSeqCmd = 1;
+ // LLM generated name (HIGH), was D_80133410: sound-mode values indexed to issue the set-sound-mode command.
+ u8 sSoundModeList[] = { 0, 1, 2, 3 };
+ u8 gAudioSpecId = 0;
+-u8 D_80133418 = 0;
++// LLM generated name (HIGH), was D_80133418: audio-heap reset state machine (0/1/2) driven by func_800FAD34.
++u8 sAudioResetState = 0;
+ 
+ // TODO: clean up these macros. They are similar to ones in audio_general.c (was code_800EC960.c) but without casts.
+ #define Audio_StartSeq(playerIdx, fadeTimer, seqId) \
+@@ -687,22 +688,22 @@ void func_800FA3DC(void) {
+ }
+ 
+ u8 func_800FAD34(void) {
+-    if (D_80133418 != 0) {
+-        if (D_80133418 == 1) {
++    if (sAudioResetState != 0) {
++        if (sAudioResetState == 1) {
+             if (func_800E5EDC() == 1) {
+-                D_80133418 = 0;
++                sAudioResetState = 0;
+                 Audio_QueueCmdS8(0x46020000, gSfxChannelLayout);
+                 func_800F7170();
+             }
+-        } else if (D_80133418 == 2) {
++        } else if (sAudioResetState == 2) {
+             while (func_800E5EDC() != 1) {}
+-            D_80133418 = 0;
++            sAudioResetState = 0;
+             Audio_QueueCmdS8(0x46020000, gSfxChannelLayout);
+             func_800F7170();
+         }
+     }
+ 
+-    return D_80133418;
++    return sAudioResetState;
+ }
+ 
+ void Audio_ResetActiveSequences(void) {
+-- 
+2.55.0
+

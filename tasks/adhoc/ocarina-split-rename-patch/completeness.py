@@ -21,8 +21,8 @@ Exits non-zero if either set is non-empty, so it works as a gate.
 """
 import sys
 
-from _common import (ADDR_RE, CITED_RE, SOURCE_PATHS, git, is_marker_line,
-                     pin_sha, rename_commit)
+from _common import (ADDR_RE, CITED_RE, SOURCE_PATHS, code_part, git,
+                     is_marker_line, pin_sha, rename_range)
 
 
 def address_names_in_code(rev):
@@ -35,33 +35,34 @@ def address_names_in_code(rev):
                  check=False)
     names = set()
     for line in output.splitlines():
-        if is_marker_line(line):
-            continue
-        names.update(ADDR_RE.findall(line))
+        # code_part drops both provenance forms -- the long definition comment
+        # and the short inline declaration tag -- so only live code counts.
+        names.update(ADDR_RE.findall(code_part(line)))
     return names
 
 
-def cited_old_names(sha):
-    """Old names quoted by provenance comments the commit ADDS (leading '+')."""
+def cited_old_names(rev_range):
+    """Old names quoted by provenance comments the work ADDS (leading '+')."""
     cited = set()
-    for line in git("show", sha).splitlines():
+    for line in git("diff", rev_range).splitlines():
         if line.startswith("+") and is_marker_line(line):
             cited.update(CITED_RE.findall(line))
     return cited
 
 
 def main():
-    pin, sha = pin_sha(), rename_commit()
+    pin, rev_range = pin_sha(), rename_range()
     before = address_names_in_code(pin)
-    after = address_names_in_code(sha)
+    after = address_names_in_code("HEAD")
     renamed = before - after
-    cited = cited_old_names(sha)
+    cited = cited_old_names(rev_range)
 
     untraceable = sorted(renamed - cited)
     incomplete = sorted(cited & after)
 
     print(f"pin                              : {pin[:9]}")
-    print(f"rename commit                    : {sha[:9]}")
+    print(f"commits applied on top           : "
+          f"{git('rev-list', '--count', rev_range).strip()}")
     print(f"address-names in code at pin     : {len(before)}")
     print(f"address-names in code after      : {len(after)}")
     print(f"actually renamed                 : {len(renamed)}")

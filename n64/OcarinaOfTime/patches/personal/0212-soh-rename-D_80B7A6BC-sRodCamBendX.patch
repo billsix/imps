@@ -1,0 +1,68 @@
+From 0953fb692e041c4709602e15f7162e51d7f39efe Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:02:04 +0000
+Subject: [PATCH 212/225] soh: rename D_80B7A6BC -> sRodCamBendX
+
+Name source: deduced from the code (confidence GUESS).
+Defined in soh/src/overlays/actors/ovl_Fishing/z_fishing.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/overlays/actors/ovl_Fishing/z_fishing.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index 3ef1af34a..a8135b7f9 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -191,7 +191,8 @@ static f32 sRodBendApproachRateY = 0.0f;
+ static f32 sRodBendApproachRateX = 0.0f;
+ // LLM generated name (GUESS), was D_80B7A6B8: extra rod-bend added while reeling; approached to 0.8 then 0
+ static f32 sRodReelBend = 0.0f;
+-static f32 D_80B7A6BC = 0.0f;
++// LLM generated name (GUESS), was D_80B7A6BC: camera X bend during rod cast; approached toward target offset
++static f32 sRodCamBendX = 0.0f;
+ static f32 D_80B7A6C0 = 0.0f;
+ 
+ static s16 sStickAdjXPrev = 0;
+@@ -2004,7 +2005,7 @@ void Fishing_DrawRod(PlayState* play) {
+         sRodHitTimer--;
+ 
+         Math_ApproachF(&D_80B7A6C0, 35.0f, 1.0f, 100.0f);
+-        Math_ApproachF(&D_80B7A6BC, -0.8f, 1.0f, 0.4f);
++        Math_ApproachF(&sRodCamBendX, -0.8f, 1.0f, 0.4f);
+         Math_ApproachS(&player->actor.shape.rot.x, -4000, 2, 15000);
+     } else {
+         s16 target = 0;
+@@ -2013,7 +2014,7 @@ void Fishing_DrawRod(PlayState* play) {
+             target = Math_SinS(sLureTimer * 25600) * 1500.0f;
+         } else {
+             Math_ApproachZeroF(&D_80B7A6C0, 0.1f, 10.0f);
+-            Math_ApproachZeroF(&D_80B7A6BC, 1.0f, 0.05f);
++            Math_ApproachZeroF(&sRodCamBendX, 1.0f, 0.05f);
+         }
+ 
+         Math_ApproachS(&player->actor.shape.rot.x, target, 5, 1000);
+@@ -2093,7 +2094,7 @@ void Fishing_DrawRod(PlayState* play) {
+     Matrix_RotateX((D_80B7A6C0 + 20.0f) * 0.01f * M_PI, MTXMODE_APPLY);
+     Matrix_Scale(0.70000005f, 0.70000005f, 0.70000005f, MTXMODE_APPLY);
+ 
+-    spC0 = (D_80B7A6BC * (((player->unk_85C - 1.0f) * -0.25f) + 0.5f)) + (sRodBendRotX + sRodReelBend);
++    spC0 = (sRodCamBendX * (((player->unk_85C - 1.0f) * -0.25f) + 0.5f)) + (sRodBendRotX + sRodReelBend);
+ 
+     Matrix_Translate(0.0f, 0.0f, -1300.0f, MTXMODE_APPLY);
+ 
+@@ -3789,7 +3790,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                 }
+ 
+                 Math_ApproachF(&D_80B7A6C0, 35.0f, 0.1f, 3.5f);
+-                Math_ApproachF(&D_80B7A6BC, targetPosOffset.x, 0.3f, 0.1f);
++                Math_ApproachF(&sRodCamBendX, targetPosOffset.x, 0.3f, 0.1f);
+             }
+ 
+             sReelLinePos[LINE_SEG_COUNT - 1] = this->fishMouthPos;
+-- 
+2.55.0
+

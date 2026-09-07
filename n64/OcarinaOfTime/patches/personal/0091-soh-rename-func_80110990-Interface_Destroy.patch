@@ -1,0 +1,60 @@
+From fbfed67dd358016dc1ba73f2aa3476204b9b8fac Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:50 +0000
+Subject: [PATCH 091/225] soh: rename func_80110990 -> Interface_Destroy
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/z_construct.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h    | 2 +-
+ soh/src/code/z_construct.c | 3 ++-
+ soh/src/code/z_play.c      | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 212f106f8..08259b7a2 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2433,7 +2433,7 @@ void Message_SetTables(void);
+ void GameOver_Init(PlayState* play);
+ void GameOver_FadeInLights(PlayState* play);
+ void GameOver_Update(PlayState* play);
+-void func_80110990(PlayState* play);
++void Interface_Destroy(PlayState* play);  // was func_80110990 [oot]
+ void func_801109B0(PlayState* play);
+ void Message_Init(PlayState* play);
+ void Regs_InitData(PlayState* play);
+diff --git a/soh/src/code/z_construct.c b/soh/src/code/z_construct.c
+index 3eb5ec428..a79c9edaf 100644
+--- a/soh/src/code/z_construct.c
++++ b/soh/src/code/z_construct.c
+@@ -3,7 +3,8 @@
+ #include <assert.h>
+ #include "soh/ResourceManagerHelpers.h"
+ 
+-void func_80110990(PlayState* play) {
++// Name from zeldaret/oot, was func_80110990: tears down interface by destroying the map. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_construct.c]
++void Interface_Destroy(PlayState* play) {
+     Map_Destroy(play);
+ }
+ 
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 37fc299da..df9bf7567 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -232,7 +232,7 @@ void Play_Destroy(GameState* thisx) {
+     }
+ 
+     func_80031C3C(&play->actorCtx, play);
+-    func_80110990(play);
++    Interface_Destroy(play);
+     KaleidoScopeCall_Destroy(play);
+     KaleidoManager_Destroy();
+     ZeldaArena_Cleanup();
+-- 
+2.55.0
+

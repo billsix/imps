@@ -1,0 +1,55 @@
+From ce0460027322a96243fdbc6cebf6988cceabe4d0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:54 +0000
+Subject: [PATCH 123/225] soh: rename func_80105A60 -> PfsChecker_Corrupted
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/libultra/io/pfschecker.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h          | 2 +-
+ soh/src/libultra/io/pfschecker.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 9a82d04fb..60f5c3f53 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2394,7 +2394,7 @@ s32 osPfsInitPak(OSMesgQueue* mq, OSPfs* pfs, s32 channel);
+ s32 __osPfsCheckRamArea(OSPfs* pfs);
+ s32 osPfsChecker(OSPfs* pfs);
+ s32 PfsChecker_CorruptedInit(OSPfs* pfs, __OSInodeCache* cache);  // was func_80105788 [LLM:HIGH]
+-s32 func_80105A60(OSPfs* pfs, __OSInodeUnit fpage, __OSInodeCache* cache);
++s32 PfsChecker_Corrupted(OSPfs* pfs, __OSInodeUnit fpage, __OSInodeCache* cache);  // was func_80105A60 [LLM:HIGH]
+ u32 osAiGetLength(void);
+ void guTranslate(Mtx* m, f32 x, f32 y, f32 z);
+ s32 __osContRamWrite(OSMesgQueue* mq, s32 channel, u16 address, u8* buffer, s32 force);
+diff --git a/soh/src/libultra/io/pfschecker.c b/soh/src/libultra/io/pfschecker.c
+index 2551d7b93..eebb7e748 100644
+--- a/soh/src/libultra/io/pfschecker.c
++++ b/soh/src/libultra/io/pfschecker.c
+@@ -54,7 +54,7 @@ s32 osPfsChecker(OSPfs* pfs) {
+                             return ret;
+                         }
+                     }
+-                    if ((cc = func_80105A60(pfs, next, &cache) - cl) != 0) {
++                    if ((cc = PfsChecker_Corrupted(pfs, next, &cache) - cl) != 0) {
+                         break;
+                     }
+                     cl = 1;
+@@ -160,7 +160,8 @@ s32 PfsChecker_CorruptedInit(OSPfs* pfs, __OSInodeCache* cache) {
+ }
+ 
+ // original name: corrupted (probably needs a better name)
+-s32 func_80105A60(OSPfs* pfs, __OSInodeUnit fpage, __OSInodeCache* cache) {
++// LLM generated name (HIGH), was func_80105A60: matches libultra original corrupted noted above; checks page chain.
++s32 PfsChecker_Corrupted(OSPfs* pfs, __OSInodeUnit fpage, __OSInodeCache* cache) {
+     s32 j;
+     s32 n;
+     s32 hit = 0;
+-- 
+2.55.0
+

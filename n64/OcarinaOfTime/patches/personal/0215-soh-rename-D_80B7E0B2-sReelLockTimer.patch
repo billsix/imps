@@ -1,0 +1,82 @@
+From f0b68f12692d037c4bc889c02cad3f30a2854fd5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:02:05 +0000
+Subject: [PATCH 215/225] soh: rename D_80B7E0B2 -> sReelLockTimer
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/overlays/actors/ovl_Fishing/z_fishing.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/overlays/actors/ovl_Fishing/z_fishing.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index 7d75c34a2..535e74ff8 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -380,7 +380,8 @@ static s16 sFishingPlayingState;
+ static s16 sLureTimer; // AND'd for various effects/checks
+ // LLM generated name (HIGH), was D_80B7E0B0: countdown set to 5 on catch, decremented; gates catch cutscene camera
+ static s16 sCatchCutsceneTimer;
+-static s16 D_80B7E0B2;
++// LLM generated name (HIGH), was D_80B7E0B2: countdown set to 5, decremented; gates reel-lock states
++static s16 sReelLockTimer;
+ static s16 sRodCastTimer; // used for the inital line casting
+ static u8 sLureEquipped;
+ static Vec3f sLurePos;
+@@ -2167,8 +2168,8 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+         sCatchCutsceneTimer--;
+     }
+ 
+-    if (D_80B7E0B2 != 0) {
+-        D_80B7E0B2--;
++    if (sReelLockTimer != 0) {
++        sReelLockTimer--;
+     }
+ 
+     if (sRodCastTimer != 0) {
+@@ -2210,7 +2211,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+         D_80B7E148 = 520.0f;
+         sRodLineSpooled = 195.0f;
+ 
+-        sRodCastState = sLureEquipped = sLureTimer = sCatchCutsceneTimer = D_80B7E0B2 = sRodCastTimer = sWiggleAttraction =
++        sRodCastState = sLureEquipped = sLureTimer = sCatchCutsceneTimer = sReelLockTimer = sRodCastTimer = sWiggleAttraction =
+             D_80B7E114 = D_80B7E150 = 0;
+         sLure1Rotate = sReelLinePosStep = sLurePosZOffset = 0.0f;
+ 
+@@ -2271,7 +2272,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                     sLureCastDelta.x = sLureCastDelta.z = 0.0f;
+                     sLureCastDelta.y = -1.0f;
+                     D_80B7E148 = 0.0f;
+-                    D_80B7E0B2 = 5;
++                    sReelLockTimer = 5;
+                     sRodReelingSpeed = 0.5f;
+                     D_80B7E118 = Rand_ZeroFloat(1.9f);
+                     sFishMouthOffset.y = 500.0f;
+@@ -2303,7 +2304,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             spD4 = sLurePos.y - sRodTipPos.y;
+             spD0 = sLurePos.z - sRodTipPos.z;
+ 
+-            if (D_80B7E0B2 != 0) {
++            if (sReelLockTimer != 0) {
+                 sLureRot.x = sReelLineRot[LINE_SEG_COUNT - 2].x + M_PI;
+                 sLureRot.y = sReelLineRot[LINE_SEG_COUNT - 2].y;
+             } else {
+@@ -2960,9 +2961,9 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+     } else {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+         if (sRodCastState != 0) {
+-            if (D_80B7E0B2 == 0) {
++            if (sReelLockTimer == 0) {
+                 this->actor.focus.pos = sLurePos;
+-            } else if (D_80B7E0B2 == 1) {
++            } else if (sReelLockTimer == 1) {
+                 sFishingPlayerCinematicState = 1;
+                 D_80B7FED0 = 0.0f;
+                 sLureCameraZoomLevel = 2;
+-- 
+2.55.0
+

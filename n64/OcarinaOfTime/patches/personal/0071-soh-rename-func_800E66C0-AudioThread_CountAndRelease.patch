@@ -1,0 +1,63 @@
+From ed09a720a69a71a1ed235ac6ed614c802c57910a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:48 +0000
+Subject: [PATCH 071/225] soh: rename func_800E66C0 ->
+ AudioThread_CountAndReleaseNotes
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/code/audio_thread.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/code/audio_thread.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/audio_thread.c b/soh/src/code/audio_thread.c
+index 0d40588c0..b6cb25cf8 100644
+--- a/soh/src/code/audio_thread.c
++++ b/soh/src/code/audio_thread.c
+@@ -28,7 +28,7 @@ AudioTask* AudioThread_UpdateImpl(void);
+ void Audio_ProcessCmds(u32);
+ void AudioThread_ProcessSeqPlayerCmd(SequencePlayer* seqPlayer, AudioCmd* arg1);
+ void AudioThread_SetFadeOutTimer(s32 playerIdx, s32 fadeTimer);
+-s32 func_800E66C0(s32 arg0);
++s32 AudioThread_CountAndReleaseNotes(s32 arg0);
+ 
+ // AudioMgr_Retrace
+ // Name from zeldaret/oot, was func_800E4FE0: thin wrapper returning AudioThread_UpdateImpl(); audio thread [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
+@@ -339,7 +339,7 @@ void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
+                     }
+                 }
+             }
+-            func_800E66C0(temp_t7);
++            AudioThread_CountAndReleaseNotes(temp_t7);
+             return;
+         case 0xE3:
+             AudioHeap_PopCache(cmd->asInt);
+@@ -831,16 +831,18 @@ s32 AudioThread_GetLayerSamplesRemaining(s32 playerIdx, s32 arg1, s32 arg2) {
+ 
+ // LLM generated name (HIGH), was func_800E6680: returns CountAndReleaseNotes(0), i.e. count active notes only
+ s32 AudioThread_GetActiveNoteCount(void) {
+-    return func_800E66C0(0);
++    return AudioThread_CountAndReleaseNotes(0);
+ }
+ 
+ // LLM generated name (HIGH), was func_800E66A0: calls CountAndReleaseNotes(2) to release notes not backed by
+ // RAM samples
+ void AudioThread_ReleaseNonRamNotes(void) {
+-    func_800E66C0(2);
++    AudioThread_CountAndReleaseNotes(2);
+ }
+ 
+-s32 func_800E66C0(s32 arg0) {
++// LLM generated name (HIGH), was func_800E66C0: iterates notes counting active ones and releasing per the
++// arg0 flag
++s32 AudioThread_CountAndReleaseNotes(s32 arg0) {
+     s32 phi_v1;
+     NotePlaybackState* temp_a2;
+     NoteSubEu* temp_a3;
+-- 
+2.55.0
+

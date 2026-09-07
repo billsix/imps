@@ -61,19 +61,52 @@ def pin_sha():
     raise SystemExit("no PIN_SHA in n64/OcarinaOfTime/fetch.sh")
 
 
-def rename_commit():
-    """The rename commit's SHA, found by subject so it survives a rebuild."""
-    # --format=%H%x09%s prints "<sha>\t<subject>"; %x09 is a literal tab.
-    for line in git("log", "--format=%H%x09%s",
-                    f"{pin_sha()}..HEAD").splitlines():
-        sha, _, subject = line.partition("\t")
-        if RENAME_SUBJECT in subject:
-            return sha
-    raise SystemExit(f"no commit titled {RENAME_SUBJECT!r} above the pin — "
-                     "is the patch series applied? (run ./apply.sh)")
+def rename_range():
+    """The revision range holding the renaming work: everything applied on top
+    of the pin. Before the 2026-09-07 split this was a single commit; it is now
+    ~225, so every analysis works on the RANGE and keeps working as more
+    renames land."""
+    count = git("rev-list", "--count", f"{pin_sha()}..HEAD").strip()
+    if count == "0":
+        raise SystemExit("nothing applied on top of the pin — run ./apply.sh")
+    return f"{pin_sha()}..HEAD"
+
+
+def renamed_files():
+    """Every path the renaming work touches, at its post-rename name."""
+    out = git("diff", "--name-only", rename_range())
+    return [p for p in out.split() if p]
 
 
 def is_marker_line(line):
-    """True for a provenance comment line. Such lines quote the OLD name, so
-    every count that asks 'is the old name still in the code?' must skip them."""
+    """True for a LONG provenance comment line (the definition-site form). Such
+    lines quote the OLD name, so every count that asks 'is the old name still in
+    the code?' must skip them."""
     return any(marker in line for marker in MARKERS)
+
+
+# The SHORT declaration-site tag added 2026-09-07: "// was func_800C3C20 [oot]"
+# or "[LLM:HIGH]". It is APPENDED to a real declaration -- and, where the line
+# already ended in a comment, appended after that comment with a comma:
+#   } RumbleMgr; // size = 0x10E, was UnkRumbleStruct [LLM:HIGH]
+# so the "//" is optional in the pattern. Strip it rather than skipping the
+# whole line, or the declaration it rides on looks like a content change.
+INLINE_TAG_RE = re.compile(r"(?:\s*//)?[\s,]*was\s+\w+\s*\[(?:oot|LLM:\w+)\]")
+
+
+def is_comment_only(line):
+    """True if the line is nothing but a comment. Such a line is not a
+    declaration -- functions.h carries decomp placeholders like
+    "// ? Audio_ResetData(?);" for symbols whose prototype is unknown -- so it
+    is not a site that needs a declaration tag."""
+    return line.lstrip().startswith("//")
+
+
+def code_part(line):
+    """The line with any provenance comment removed -- '' if the line is
+    nothing but a comment. Use this before asking whether an old name is still
+    live in the CODE, or the provenance comments (which quote the old name by
+    design) make every completed rename look unfinished."""
+    if is_marker_line(line):
+        return ""
+    return INLINE_TAG_RE.sub("", line)

@@ -1,0 +1,61 @@
+From c77439f8e1732abe07c7d686204af0265f5e61a6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:42 +0000
+Subject: [PATCH 024/225] soh: rename func_800F4870 ->
+ Audio_SetGanonsTowerBgmVolumeLevel
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_general.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h                                       | 2 +-
+ soh/src/code/audio_general.c                                  | 3 ++-
+ soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 43eadf327..b0cb8db65 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2087,7 +2087,7 @@ void Audio_PlaySoundWaterfall(Vec3f* pos, f32 freqScale);
+ void Audio_SetBgmVolumeOffDuringFanfare(void);
+ void Audio_SetBgmVolumeOnDuringFanfare(void);
+ void Audio_SetMainBgmVolume(u8 targetVol, u8 volFadeTimer);  // was func_800F483C [oot]
+-void func_800F4870(u8);
++void Audio_SetGanonsTowerBgmVolumeLevel(u8);  // was func_800F4870 [oot]
+ void func_800F4A54(u8);
+ void Audio_PlaySoundIncreasinglyTransposed(Vec3f* pos, s16 sfxId, u8* semitones);
+ void Audio_ResetIncreasingTranspose(void);
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index ea64770b6..d99de1630 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -4553,7 +4553,8 @@ void Audio_SetMainBgmVolume(u8 targetVol, u8 volFadeTimer) {
+     Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 0, targetVol, volFadeTimer);
+ }
+ 
+-void func_800F4870(u8 arg0) {
++// Name from zeldaret/oot src/audio/game/general.c (was func_800F4870): sets pan and Ganon's Tower BGM volume by level. Source: https://github.com/zeldaret/oot/blob/main/src/audio/game/general.c
++void Audio_SetGanonsTowerBgmVolumeLevel(u8 arg0) {
+     s8 pan;
+     u8 i;
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c b/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
+index fd76bdcff..a24d24bd8 100644
+--- a/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
++++ b/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
+@@ -34,7 +34,7 @@ void EnRiverSound_Init(Actor* thisx, PlayState* play) {
+     this->actor.params = this->actor.params & 0xFF;
+ 
+     if (this->actor.params >= RS_MAX) { // used for ganon and ganon_boss scenes
+-        func_800F4870(this->actor.params - RS_MAX);
++        Audio_SetGanonsTowerBgmVolumeLevel(this->actor.params - RS_MAX);
+         Actor_Kill(&this->actor);
+     } else if (this->actor.params == RS_UNK_F7) {
+         Audio_PlayNatureAmbienceSequence(NATURE_ID_KOKIRI_REGION);
+-- 
+2.55.0
+

@@ -1,0 +1,58 @@
+From 68e9eee3b27fe47627a7a77f775edca7cc8a95b2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:57 +0000
+Subject: [PATCH 149/225] soh: rename D_8098CF84 -> sWarpCsFrameThreshold
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c b/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
+index ef40404ef..161926853 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
++++ b/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
+@@ -177,7 +177,8 @@ static CutsceneCameraPoint sSparklesCameraPoints[] = {
+ // LLM generated name (HIGH), was D_8098CF80: per-scene rain fall speed multiplier used when init'ing rain drops.
+ static s16 sRainSpeed;
+ static s16 sRainScale;
+-static s16 D_8098CF84;
++// LLM generated name (HIGH), was D_8098CF84: cutscene frame count that gates warp-out transition.
++static s16 sWarpCsFrameThreshold;
+ 
+ void DemoKankyo_SetupAction(DemoKankyo* this, DemoKankyoActionFunc actionFunc) {
+     this->actionFunc = actionFunc;
+@@ -324,14 +325,14 @@ void DemoKankyo_SetupType(DemoKankyo* this, PlayState* play) {
+                 }
+                 if (this->warpTimer == 1) {
+                     if (play->sceneNum == SCENE_TEMPLE_OF_TIME) {
+-                        D_8098CF84 = 25;
++                        sWarpCsFrameThreshold = 25;
+                         if (!LINK_IS_ADULT) {
+                             play->csCtx.segment = gChildWarpInToTCS;
+                         } else {
+                             play->csCtx.segment = gAdultWarpInToTCS;
+                         }
+                     } else {
+-                        D_8098CF84 = 32;
++                        sWarpCsFrameThreshold = 32;
+                         if (!LINK_IS_ADULT) {
+                             play->csCtx.segment = gChildWarpInCS;
+                         } else {
+@@ -814,7 +815,7 @@ void DemoKankyo_DrawWarpSparkles(Actor* thisx, PlayState* play) {
+                                       &this->unk_150[i].unk_1C) != 0) {
+                         this->unk_150[i].unk_22++;
+                     }
+-                    if (D_8098CF84 < play->csCtx.frames && this->actor.params == DEMOKANKYO_WARP_OUT) {
++                    if (sWarpCsFrameThreshold < play->csCtx.frames && this->actor.params == DEMOKANKYO_WARP_OUT) {
+                         this->unk_150[i].unk_22++;
+                     }
+                 }
+-- 
+2.55.0
+

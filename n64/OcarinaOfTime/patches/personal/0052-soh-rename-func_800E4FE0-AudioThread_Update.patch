@@ -1,0 +1,70 @@
+From b1bd5ad81da05a06625d2f56cc36dc883bb2a515 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:45 +0000
+Subject: [PATCH 052/225] soh: rename func_800E4FE0 -> AudioThread_Update
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_thread.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h     | 2 +-
+ soh/src/code/audioMgr.c     | 2 +-
+ soh/src/code/audio_thread.c | 6 ++++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index af005e1aa..f1154462d 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1988,7 +1988,7 @@ void AudioLoad_LoadPermanentSamples(void);
+ void AudioLoad_ScriptLoad(s32 tableType, s32 arg1, s8* arg2);
+ void AudioLoad_ProcessScriptLoads(void);
+ void AudioLoad_InitScriptLoads(void);
+-AudioTask* func_800E4FE0(void);
++AudioTask* AudioThread_Update(void);  // was func_800E4FE0 [oot]
+ void Audio_QueueCmdF32(u32 arg0, f32 arg1);
+ void Audio_QueueCmdS32(u32 arg0, s32 arg1);
+ void Audio_QueueCmdS8(u32 arg0, s8 arg1);
+diff --git a/soh/src/code/audioMgr.c b/soh/src/code/audioMgr.c
+index 4c4c5b5a2..e7b3c9916 100644
+--- a/soh/src/code/audioMgr.c
++++ b/soh/src/code/audioMgr.c
+@@ -34,7 +34,7 @@ void AudioMgr_HandleRetrace(AudioMgr* audioMgr) {
+     if (SREG(20) >= 2) {
+         rspTask = NULL;
+     } else {
+-        rspTask = func_800E4FE0();
++        rspTask = AudioThread_Update();
+     }
+     D_8016A558 += osGetTime() - D_8016A550;
+     D_8016A550 = 0;
+diff --git a/soh/src/code/audio_thread.c b/soh/src/code/audio_thread.c
+index 3d6c9c571..52aa4a0fa 100644
+--- a/soh/src/code/audio_thread.c
++++ b/soh/src/code/audio_thread.c
+@@ -31,7 +31,9 @@ void func_800E5958(s32 playerIdx, s32 fadeTimer);
+ s32 func_800E66C0(s32 arg0);
+ 
+ // AudioMgr_Retrace
+-AudioTask* func_800E4FE0(void) {
++// Name from zeldaret/oot, was func_800E4FE0: thin wrapper returning func_800E5000(); audio thread [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// frame entry
++AudioTask* AudioThread_Update(void) {
+     return func_800E5000();
+ }
+ 
+@@ -200,7 +202,7 @@ AudioTask* func_800E5000(void) {
+     gAudioContext.audioRandom = (gAudioContext.audioRandom + gAudioContext.totalTaskCnt) * osGetCount();
+     gAudioContext.audioRandom =
+         gAudioContext.aiBuffers[index][gAudioContext.totalTaskCnt & 0xFF] + gAudioContext.audioRandom;
+-    gWaveSamples[8] = (s16*)(((u8*)func_800E4FE0) + (gAudioContext.audioRandom & 0xFFF0));
++    gWaveSamples[8] = (s16*)(((u8*)AudioThread_Update) + (gAudioContext.audioRandom & 0xFFF0));
+ 
+     index = gAudioContext.rspTaskIdx;
+     gAudioContext.currTask->taskQueue = NULL;
+-- 
+2.55.0
+

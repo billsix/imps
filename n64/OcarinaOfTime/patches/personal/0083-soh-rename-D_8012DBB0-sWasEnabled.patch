@@ -1,0 +1,52 @@
+From 1613f82466ee6350fd1be253590371108bdafb88 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:49 +0000
+Subject: [PATCH 083/225] soh: rename D_8012DBB0 -> sWasEnabled
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/sys_rumble.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/code/sys_rumble.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/sys_rumble.c b/soh/src/code/sys_rumble.c
+index 28120b47d..ba33928c8 100644
+--- a/soh/src/code/sys_rumble.c
++++ b/soh/src/code/sys_rumble.c
+@@ -3,7 +3,8 @@
+ 
+ // Name from zeldaret/oot src/code/sys_rumble.c (was func_800D2E30): decrements rumble slot timers and sets rumbleEnable each tick. Source: https://github.com/zeldaret/oot/blob/main/src/code/sys_rumble.c
+ void RumbleMgr_Update(RumbleMgr* arg0) {
+-    static u8 D_8012DBB0 = 1;
++    // Name from zeldaret/oot src/code/sys_rumble.c (was D_8012DBB0): tracks prior enabled state to clear pakType on disable. Source: https://github.com/zeldaret/oot/blob/main/src/code/sys_rumble.c
++    static u8 sWasEnabled = 1;
+     s32 i;
+     s32 unk_a3;
+     s32 index = -1;
+@@ -13,16 +14,16 @@ void RumbleMgr_Update(RumbleMgr* arg0) {
+     }
+ 
+     if (arg0->unk_105 == 0) {
+-        if (D_8012DBB0 != 0) {
++        if (sWasEnabled != 0) {
+             for (i = 0; i < 4; i++) {
+                 gPadMgr.pakType[i] = 0;
+             }
+         }
+-        D_8012DBB0 = arg0->unk_105;
++        sWasEnabled = arg0->unk_105;
+         return;
+     }
+ 
+-    D_8012DBB0 = arg0->unk_105;
++    sWasEnabled = arg0->unk_105;
+ 
+     if (arg0->unk_104 == 2) {
+         for (i = 0; i < 4; ++i) {
+-- 
+2.55.0
+

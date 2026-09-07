@@ -1,0 +1,89 @@
+From 38379beea1d13b4b7e24ce9b89061d938557fc5b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:49 +0000
+Subject: [PATCH 081/225] soh: rename D_8016A558 -> gAudioThreadUpdateTimeAcc
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/speed_meter.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/variables.h    | 2 +-
+ soh/src/code/audioMgr.c    | 2 +-
+ soh/src/code/graph.c       | 8 ++++----
+ soh/src/code/speed_meter.c | 3 ++-
+ 4 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index e08c8b986..49d9b2593 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -215,7 +215,7 @@ extern "C"
+ 	extern volatile OSTime D_8016A540;
+ 	extern volatile OSTime D_8016A548;
+ 	extern volatile OSTime gAudioThreadUpdateTimeStart;  // was D_8016A550 [oot]
+-	extern volatile OSTime D_8016A558;
++	extern volatile OSTime gAudioThreadUpdateTimeAcc;  // was D_8016A558 [oot]
+ 	extern volatile OSTime gRSPAudioTotalTime;
+ 	extern volatile OSTime gRSPGFXTotalTime;
+ 	extern volatile OSTime gRSPOtherTotalTime;
+diff --git a/soh/src/code/audioMgr.c b/soh/src/code/audioMgr.c
+index f668bca9e..ec4ef19df 100644
+--- a/soh/src/code/audioMgr.c
++++ b/soh/src/code/audioMgr.c
+@@ -36,7 +36,7 @@ void AudioMgr_HandleRetrace(AudioMgr* audioMgr) {
+     } else {
+         rspTask = AudioThread_Update();
+     }
+-    D_8016A558 += osGetTime() - gAudioThreadUpdateTimeStart;
++    gAudioThreadUpdateTimeAcc += osGetTime() - gAudioThreadUpdateTimeStart;
+     gAudioThreadUpdateTimeStart = 0;
+     if (audioMgr->rspTask != NULL) {
+         osRecvMesg(&audioMgr->unk_AC, NULL, OS_MESG_BLOCK);
+diff --git a/soh/src/code/graph.c b/soh/src/code/graph.c
+index 984c037bd..4ce999e56 100644
+--- a/soh/src/code/graph.c
++++ b/soh/src/code/graph.c
+@@ -178,7 +178,7 @@ void Graph_TaskSet00(GraphicsContext* gfxCtx) {
+     CfbInfo* cfb;
+     s32 pad1;
+ 
+-    D_8016A528 = osGetTime() - sGraphSetTaskTime - D_8016A558;
++    D_8016A528 = osGetTime() - sGraphSetTaskTime - gAudioThreadUpdateTimeAcc;
+ 
+     osSetTimer(&timer, OS_USEC_TO_CYCLES(3000000), 0, &gfxCtx->queue, OS_MESG_32(666));
+ 
+@@ -214,11 +214,11 @@ void Graph_TaskSet00(GraphicsContext* gfxCtx) {
+ 
+     time = osGetTime();
+     if (gAudioThreadUpdateTimeStart != 0) {
+-        D_8016A558 = (D_8016A558 + time) - gAudioThreadUpdateTimeStart;
++        gAudioThreadUpdateTimeAcc = (gAudioThreadUpdateTimeAcc + time) - gAudioThreadUpdateTimeStart;
+         gAudioThreadUpdateTimeStart = time;
+     }
+-    gAudioThreadUpdateTimeTotalPerGfxTask = D_8016A558;
+-    D_8016A558 = 0;
++    gAudioThreadUpdateTimeTotalPerGfxTask = gAudioThreadUpdateTimeAcc;
++    gAudioThreadUpdateTimeAcc = 0;
+     sGraphSetTaskTime = osGetTime();
+ 
+     task->type = M_GFXTASK;
+diff --git a/soh/src/code/speed_meter.c b/soh/src/code/speed_meter.c
+index 02c44c688..d6f80bc72 100644
+--- a/soh/src/code/speed_meter.c
++++ b/soh/src/code/speed_meter.c
+@@ -11,7 +11,8 @@ volatile OSTime D_8016A540;
+ volatile OSTime D_8016A548;
+ // Name from zeldaret/oot, was D_8016A550: OSTime start timestamp for audio thread update timing [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
+ volatile OSTime gAudioThreadUpdateTimeStart;
+-volatile OSTime D_8016A558;
++// Name from zeldaret/oot, was D_8016A558: OSTime accumulator for audio thread update timing [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
++volatile OSTime gAudioThreadUpdateTimeAcc;
+ volatile OSTime gRSPAudioTotalTime;
+ volatile OSTime gRSPGFXTotalTime;
+ volatile OSTime gRSPOtherTotalTime;
+-- 
+2.55.0
+

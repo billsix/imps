@@ -1,0 +1,74 @@
+From 6307240b813d25b1be1eb493f95a80df85524b34 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:53 +0000
+Subject: [PATCH 116/225] soh: rename func_800AA15C -> Rumble_Reset
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/z_rumble.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h    | 2 +-
+ soh/src/code/z_game_over.c | 2 +-
+ soh/src/code/z_kankyo.c    | 2 +-
+ soh/src/code/z_rumble.c    | 3 ++-
+ 4 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 3d3a7f6ae..1823c04e9 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1388,7 +1388,7 @@ void Rumble_Request(f32, u8, u8, u8);
+ void Rumble_Init();  // was func_800AA0B4 [oot]
+ void Rumble_Destroy(void);  // was func_800AA0F0 [oot]
+ u32 Rumble_Controller1HasRumblePak();  // was func_800AA148 [oot]
+-void func_800AA15C();
++void Rumble_Reset();  // was func_800AA15C [oot]
+ void Rumble_ClearRequests();
+ void func_800AA178(u32);
+ View* View_New(GraphicsContext* gfxCtx);
+diff --git a/soh/src/code/z_game_over.c b/soh/src/code/z_game_over.c
+index 1bc700967..d2fe71fd0 100644
+--- a/soh/src/code/z_game_over.c
++++ b/soh/src/code/z_game_over.c
+@@ -101,7 +101,7 @@ void GameOver_Update(PlayState* play) {
+             if (gGameOverTimer == 0) {
+                 play->pauseCtx.state = 8;
+                 gameOverCtx->state++;
+-                func_800AA15C();
++                Rumble_Reset();
+             }
+             break;
+ 
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 82dd05b86..daa3947ff 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -423,7 +423,7 @@ void Environment_Init(PlayState* play2, EnvironmentContext* envCtx, s32 unused)
+     }
+ 
+     gCustomLensFlareOn = false;
+-    func_800AA15C();
++    Rumble_Reset();
+ }
+ 
+ u8 Environment_SmoothStepToU8(u8* pvalue, u8 target, u8 scale, u8 step, u8 minStep) {
+diff --git a/soh/src/code/z_rumble.c b/soh/src/code/z_rumble.c
+index f04935931..589792b5c 100644
+--- a/soh/src/code/z_rumble.c
++++ b/soh/src/code/z_rumble.c
+@@ -86,7 +86,8 @@ u32 Rumble_Controller1HasRumblePak(void) {
+     return gPadMgr.pakType[0] == 1;
+ }
+ 
+-void func_800AA15C(void) {
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800AA15C): requests a manager reset by setting unk_104 to 2. Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++void Rumble_Reset(void) {
+     sRumbleMgr.unk_104 = 2;
+ }
+ 
+-- 
+2.55.0
+

@@ -1,0 +1,59 @@
+From ed94946aa102310008ce4088a35666ce9cec6b87 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:45 +0000
+Subject: [PATCH 046/225] soh: rename D_801333D0 -> sBgmMutedChannels
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/code/audio_sfx.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/code/audio_sfx.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/audio_sfx.c b/soh/src/code/audio_sfx.c
+index e7a57704c..a709cc073 100644
+--- a/soh/src/code/audio_sfx.c
++++ b/soh/src/code/audio_sfx.c
+@@ -81,7 +81,8 @@ u8 sBankSizes[ARRAY_COUNT(gSoundBanks)] = {
+ 
+ u8 gSfxChannelLayout = 0;
+ 
+-u16 D_801333D0 = 0;
++// LLM generated name (HIGH), was D_801333D0: u16 bitmask OR'd/cleared per channel to mute BGM sequence channels
++u16 sBgmMutedChannels = 0;
+ 
+ Vec3f gSfxDefaultPos = { 0.0f, 0.0f, 0.0f }; // default pos
+ 
+@@ -113,14 +114,14 @@ void Audio_SetSfxBanksMute(u16 muteMask) {
+ }
+ 
+ void Audio_QueueSeqCmdMute(u8 channelIdx) {
+-    D_801333D0 |= (1 << channelIdx);
++    sBgmMutedChannels |= (1 << channelIdx);
+     Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 2, 0x40, 0xF);
+     Audio_SetVolScale(SEQ_PLAYER_BGM_SUB, 2, 0x40, 0xF);
+ }
+ 
+ void Audio_ClearBGMMute(u8 channelIdx) {
+-    D_801333D0 &= ((1 << channelIdx) ^ 0xFFFF);
+-    if (D_801333D0 == 0) {
++    sBgmMutedChannels &= ((1 << channelIdx) ^ 0xFFFF);
++    if (sBgmMutedChannels == 0) {
+         Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 2, 0x7F, 0xF);
+         Audio_SetVolScale(SEQ_PLAYER_BGM_SUB, 2, 0x7F, 0xF);
+     }
+@@ -758,7 +759,7 @@ void Audio_ResetSounds(void) {
+ 
+     sSoundRequestWriteIndex = 0;
+     sSoundRequestReadIndex = 0;
+-    D_801333D0 = 0;
++    sBgmMutedChannels = 0;
+     for (bankId = 0; bankId < ARRAY_COUNT(gSoundBanks); bankId++) {
+         sSoundBankListEnd[bankId] = 0;
+         sSoundBankFreeListStart[bankId] = 1;
+-- 
+2.55.0
+

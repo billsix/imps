@@ -1,0 +1,104 @@
+From b553f1b64bf09bbddf7262522a9fc8b1062ce753 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:43 +0000
+Subject: [PATCH 031/225] soh: rename D_8016E320 -> sSeqRequests
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_seq.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/src/code/audio_seq.c | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index 01a6932b0..056f84fa1 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -4,7 +4,7 @@
+ 
+ #include "soh/Enhancements/audio/AudioEditor.h"
+ 
+-// Name from zeldaret/oot, was Struct_8016E320: struct queued in D_8016E320 holding a seqId (unk_0) and [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++// Name from zeldaret/oot, was Struct_8016E320: struct queued in sSeqRequests holding a seqId (unk_0) and [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
+ // importance (unk_1).
+ typedef struct {
+     u8 unk_0;
+@@ -13,7 +13,8 @@ typedef struct {
+ 
+ #define GET_PLAYER_IDX(cmd) (cmd & 0xF000000) >> 24
+ 
+-SeqRequest D_8016E320[4][5];
++// Name from zeldaret/oot, was D_8016E320: per-player queue of pending SeqRequest entries. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++SeqRequest sSeqRequests[4][5];
+ u8 sNumSeqRequests[4];
+ u32 sAudioSeqCmds[0x100];
+ ActiveSequence gActiveSeqs[4];
+@@ -164,7 +165,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+             fadeTimer = (cmd & 0xFF0000) >> 13;
+             new_var = seqArgs;
+             for (i = 0; i < sNumSeqRequests[playerIdx]; i++) {
+-                if (D_8016E320[playerIdx][i].unk_0 == seqId) {
++                if (sSeqRequests[playerIdx][i].unk_0 == seqId) {
+                     if (i == 0) {
+                         Audio_StartSequence(playerIdx, seqId, seqArgs, fadeTimer);
+                     }
+@@ -174,7 +175,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+ 
+             found = sNumSeqRequests[playerIdx];
+             for (i = 0; i < sNumSeqRequests[playerIdx]; i++) {
+-                if (D_8016E320[playerIdx][i].unk_1 <= new_var) {
++                if (sSeqRequests[playerIdx][i].unk_1 <= new_var) {
+                     found = i;
+                     i = sNumSeqRequests[playerIdx]; // "break;"
+                 }
+@@ -184,11 +185,11 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+                 sNumSeqRequests[playerIdx]++;
+             }
+             for (i = sNumSeqRequests[playerIdx] - 1; i != found; i--) {
+-                D_8016E320[playerIdx][i].unk_1 = D_8016E320[playerIdx][i - 1].unk_1;
+-                D_8016E320[playerIdx][i].unk_0 = D_8016E320[playerIdx][i - 1].unk_0;
++                sSeqRequests[playerIdx][i].unk_1 = sSeqRequests[playerIdx][i - 1].unk_1;
++                sSeqRequests[playerIdx][i].unk_0 = sSeqRequests[playerIdx][i - 1].unk_0;
+             }
+-            D_8016E320[playerIdx][found].unk_1 = seqArgs;
+-            D_8016E320[playerIdx][found].unk_0 = seqId;
++            sSeqRequests[playerIdx][found].unk_1 = seqArgs;
++            sSeqRequests[playerIdx][found].unk_0 = seqId;
+ 
+             if (found == 0) {
+                 Audio_StartSequence(playerIdx, seqId, seqArgs, fadeTimer);
+@@ -202,7 +203,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+ 
+             found = sNumSeqRequests[playerIdx];
+             for (i = 0; i < sNumSeqRequests[playerIdx]; i++) {
+-                if (D_8016E320[playerIdx][i].unk_0 == seqId) {
++                if (sSeqRequests[playerIdx][i].unk_0 == seqId) {
+                     found = i;
+                     i = sNumSeqRequests[playerIdx]; // "break;"
+                 }
+@@ -210,8 +211,8 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+ 
+             if (found != sNumSeqRequests[playerIdx]) {
+                 for (i = found; i < sNumSeqRequests[playerIdx] - 1; i++) {
+-                    D_8016E320[playerIdx][i].unk_1 = D_8016E320[playerIdx][i + 1].unk_1;
+-                    D_8016E320[playerIdx][i].unk_0 = D_8016E320[playerIdx][i + 1].unk_0;
++                    sSeqRequests[playerIdx][i].unk_1 = sSeqRequests[playerIdx][i + 1].unk_1;
++                    sSeqRequests[playerIdx][i].unk_0 = sSeqRequests[playerIdx][i + 1].unk_0;
+                 }
+                 sNumSeqRequests[playerIdx]--;
+             }
+@@ -219,7 +220,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+             if (found == 0) {
+                 func_800F9474(playerIdx, fadeTimer);
+                 if (sNumSeqRequests[playerIdx] != 0) {
+-                    Audio_StartSequence(playerIdx, D_8016E320[playerIdx][0].unk_0, D_8016E320[playerIdx][0].unk_1,
++                    Audio_StartSequence(playerIdx, sSeqRequests[playerIdx][0].unk_0, sSeqRequests[playerIdx][0].unk_1,
+                                         fadeTimer);
+                 }
+             }
+-- 
+2.55.0
+

@@ -1,0 +1,56 @@
+From 6385716813a9c2f2129d5d7e3c935dfd5a947053 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:43 +0000
+Subject: [PATCH 029/225] soh: rename func_800E82C0 ->
+ Audio_NoteStealAndTakeOwnership
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/code/audio_playback.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h       | 2 +-
+ soh/src/code/audio_playback.c | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 3bbc003e4..2a3ccadea 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2029,7 +2029,7 @@ void Audio_AudioListPushFront(AudioListItem* list, AudioListItem* item);
+ void Audio_AudioListRemove(AudioListItem* item);
+ Note* Audio_FindNodeWithPrioLessThan(AudioListItem* list, s32 limit);
+ void Audio_NoteInitForLayer(Note* note, SequenceLayer* layer);
+-void func_800E82C0(Note* note, SequenceLayer* layer);
++void Audio_NoteStealAndTakeOwnership(Note* note, SequenceLayer* layer);  // was func_800E82C0 [LLM:HIGH]
+ void Audio_NoteReleaseAndTakeOwnership(Note* note, SequenceLayer* layer);
+ Note* Audio_AllocNoteFromDisabled(NotePool* pool, SequenceLayer* layer);
+ Note* Audio_AllocNoteFromDecaying(NotePool* pool, SequenceLayer* layer);
+diff --git a/soh/src/code/audio_playback.c b/soh/src/code/audio_playback.c
+index ce6c5d6f1..0306059d5 100644
+--- a/soh/src/code/audio_playback.c
++++ b/soh/src/code/audio_playback.c
+@@ -792,7 +792,8 @@ void Audio_NoteInitForLayer(Note* note, SequenceLayer* layer) {
+     sub->bitField1.reverbIndex = layer->channel->reverbIndex & 3;
+ }
+ 
+-void func_800E82C0(Note* note, SequenceLayer* layer) {
++// LLM generated name (HIGH), was func_800E82C0: releases the note from its parent layer and reassigns it to layer.
++void Audio_NoteStealAndTakeOwnership(Note* note, SequenceLayer* layer) {
+     // similar to Audio_NoteReleaseAndTakeOwnership, hard to say what the difference is
+     Audio_SeqLayerNoteRelease(note->playbackState.parentLayer);
+     note->playbackState.wantedParentLayer = layer;
+@@ -849,7 +850,7 @@ Note* Audio_AllocNoteFromActive(NotePool* pool, SequenceLayer* layer) {
+ 
+     if (aPriority < rPriority) {
+         Audio_AudioListRemove(&aNote->listItem);
+-        func_800E82C0(aNote, layer);
++        Audio_NoteStealAndTakeOwnership(aNote, layer);
+         AudioSeq_AudioListPushBack(&pool->releasing, &aNote->listItem);
+         aNote->playbackState.priority = layer->channel->notePriority;
+         return aNote;
+-- 
+2.55.0
+

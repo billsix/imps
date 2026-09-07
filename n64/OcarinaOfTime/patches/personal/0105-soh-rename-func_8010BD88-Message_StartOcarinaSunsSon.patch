@@ -1,0 +1,76 @@
+From f29de18bcf73ad925fc8e8e646ef4a1a4febaeff Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:52 +0000
+Subject: [PATCH 105/225] soh: rename func_8010BD88 ->
+ Message_StartOcarinaSunsSongDisabled
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/z_message_PAL.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h                       | 2 +-
+ soh/src/code/z_message_PAL.c                  | 4 +++-
+ soh/src/overlays/actors/ovl_En_Du/z_en_du.c   | 2 +-
+ soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c | 2 +-
+ 4 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 1a8c257f9..c47f9b48a 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2425,7 +2425,7 @@ void Message_CloseTextbox(PlayState*);
+ void Message_StartTextbox(PlayState* play, u16 textId, Actor* actor);
+ void Message_ContinueTextbox(PlayState* play, u16 textId);
+ void Message_StartOcarinaSunsSongEnabled(PlayState* play, u16 arg1);  // was func_8010BD58 [LLM:HIGH]
+-void func_8010BD88(PlayState* play, u16 arg1);
++void Message_StartOcarinaSunsSongDisabled(PlayState* play, u16 arg1);  // was func_8010BD88 [oot]
+ u8 Message_GetState(MessageContext* msgCtx);
+ void Message_Draw(PlayState* play);
+ void Message_Update(PlayState* play);
+diff --git a/soh/src/code/z_message_PAL.c b/soh/src/code/z_message_PAL.c
+index 1eda2ae5f..77912cee9 100644
+--- a/soh/src/code/z_message_PAL.c
++++ b/soh/src/code/z_message_PAL.c
+@@ -3039,7 +3039,9 @@ void Message_StartOcarinaSunsSongEnabled(PlayState* play, u16 ocarinaActionId) {
+     Message_StartOcarina(play, ocarinaActionId);
+ }
+ 
+-void func_8010BD88(PlayState* play, u16 ocarinaActionId) {
++// Name from zeldaret/oot, was func_8010BD88: sets disableSunsSong=true (unk_E40E) then starts the ocarina
++// prompt — used where Sun's Song must be blocked. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_message.c]
++void Message_StartOcarinaSunsSongDisabled(PlayState* play, u16 ocarinaActionId) {
+     play->msgCtx.unk_E40E = 1;
+     Message_StartOcarina(play, ocarinaActionId);
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+index 831dd806d..c3c142eb2 100644
+--- a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
++++ b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+@@ -356,7 +356,7 @@ void func_809FE3C0(EnDu* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+-        func_8010BD88(play, OCARINA_ACTION_CHECK_SARIA);
++        Message_StartOcarinaSunsSongDisabled(play, OCARINA_ACTION_CHECK_SARIA);
+         player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+         player->unk_6A8 = &this->actor;
+         EnDu_SetupAction(this, func_809FE4A4);
+diff --git a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+index 0c81f30cf..37812b7d6 100644
+--- a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
++++ b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+@@ -915,7 +915,7 @@ void EnSkj_WaitInRange(EnSkj* this, PlayState* play) {
+         player->actor.world.pos.y = sSmallStumpSkullKid.skullkid->actor.world.pos.y;
+         player->actor.world.pos.z = sSmallStumpSkullKid.skullkid->actor.world.pos.z;
+         EnSkj_TurnPlayer(sSmallStumpSkullKid.skullkid, player);
+-        func_8010BD88(play, OCARINA_ACTION_CHECK_SARIA);
++        Message_StartOcarinaSunsSongDisabled(play, OCARINA_ACTION_CHECK_SARIA);
+         EnSkj_SetupWaitForSong(this);
+     } else if (D_80B01EA0 != 0) {
+         player->actor.world.pos.x = sSmallStumpSkullKid.skullkid->actor.world.pos.x;
+-- 
+2.55.0
+

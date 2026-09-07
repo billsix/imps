@@ -1,0 +1,346 @@
+From e2547ffbf5346c39192e6938d8e0789dfe1c55b5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 7 Sep 2026 12:01:43 +0000
+Subject: [PATCH 037/225] soh: rename func_800FA0B4 -> Audio_GetActiveSeqId
+
+Name source: zeldaret/oot.
+Defined in soh/src/code/audio_seq.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+---
+ soh/include/functions.h                       |  2 +-
+ soh/soh/Enhancements/audio/AudioEditor.cpp    | 14 +++---
+ .../GameInteractor_RawAction.cpp              |  2 +-
+ soh/src/code/audio_general.c                  | 50 +++++++++----------
+ soh/src/code/audio_seq.c                      |  3 +-
+ soh/src/code/z_kankyo.c                       |  2 +-
+ .../z_en_okarina_effect.c                     |  2 +-
+ 7 files changed, 38 insertions(+), 37 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 288b29f27..03292f585 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2163,7 +2163,7 @@ void Audio_StopSequence(u8, u16);  // was func_800F9474 [oot]
+ void func_800F94FC(u32);
+ void Audio_ProcessSeqCmd(u32);
+ void Audio_ProcessSeqCmds(void);
+-u16 func_800FA0B4(u8 a0);
++u16 Audio_GetActiveSeqId(u8 a0);  // was func_800FA0B4 [oot]
+ s32 func_800FA11C(u32 arg0, u32 arg1);
+ void func_800FA174(u8);
+ void func_800FA18C(u8, u8);
+diff --git a/soh/soh/Enhancements/audio/AudioEditor.cpp b/soh/soh/Enhancements/audio/AudioEditor.cpp
+index 891a3d06a..032e74639 100644
+--- a/soh/soh/Enhancements/audio/AudioEditor.cpp
++++ b/soh/soh/Enhancements/audio/AudioEditor.cpp
+@@ -93,7 +93,7 @@ static const std::map<int32_t, const char*> audioRandomizerModes = {
+ // Grabs the current BGM sequence ID and replays it
+ // which will lookup the proper override, or reset back to vanilla
+ void ReplayCurrentBGM() {
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+     // TODO: replace with Audio_StartSeq when the macro is shared
+     // The fade time and audio player flags will always be 0 in the case of replaying the BGM, so they are not set here
+     Audio_QueueSeqCmd(0x00000000 | curSeqId);
+@@ -106,7 +106,7 @@ void UpdateCurrentBGM(u16 seqKey, SeqType seqType) {
+         return;
+     }
+ 
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+     if (curSeqId == seqKey) {
+         ReplayCurrentBGM();
+     }
+@@ -262,7 +262,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     ImGui::SeparatorText(tabName.c_str());
+     if (UIWidgets::Button(resetAllButton.c_str(),
+                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
+-        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
+         ResetGroup(map, type);
+         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+@@ -274,7 +274,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     ImGui::SameLine();
+     if (UIWidgets::Button(randomizeAllButton.c_str(),
+                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
+-        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
+         RandomizeGroup(type);
+         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+@@ -286,7 +286,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     ImGui::SameLine();
+     if (UIWidgets::Button(lockAllButton.c_str(),
+                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
+-        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
+         LockGroup(map, type);
+         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+@@ -298,7 +298,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     ImGui::SameLine();
+     if (UIWidgets::Button(unlockAllButton.c_str(),
+                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
+-        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
+         UnlockGroup(map, type);
+         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+@@ -309,7 +309,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     }
+ 
+     auto playingFromMenu = CVarGetInteger(CVAR_AUDIO("Playing"), 0);
+-    auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     // Longest text in Audio Editor
+     ImVec2 columnSize = ImGui::CalcTextSize("Navi - Look/Hey/Watchout (Target Enemy)");
+diff --git a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
+index 544a66ea4..45c729c8e 100644
+--- a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
++++ b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
+@@ -78,7 +78,7 @@ void GameInteractor::RawAction::SetWeatherStorm(bool active) {
+         gPlayState->envCtx.unk_F2[0] = 0;
+         if (gPlayState->csCtx.state == CS_STATE_IDLE) {
+             Environment_StopStormNatureAmbience(gPlayState);
+-        } else if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
++        } else if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_LIGHTNING, CHANNEL_IO_PORT_1, 0);
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_RAIN, CHANNEL_IO_PORT_1, 0);
+         }
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 5692e509e..57b930c74 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -3867,7 +3867,7 @@ void AudioDebug_ProcessInput(void) {
+             if (CHECK_BTN_ANY(sDebugPadPress, BTN_A)) {
+                 sAudioSndContWork[5] ^= 1;
+                 Audio_SeqCmdE01(SEQ_PLAYER_BGM_MAIN, sAudioSndContWork[5]);
+-                if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) != NA_BGM_NATURE_AMBIENCE) {
++                if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) != NA_BGM_NATURE_AMBIENCE) {
+                     Audio_SeqCmd1(SEQ_PLAYER_BGM_MAIN, 0);
+                 }
+                 Audio_SeqCmd1(SEQ_PLAYER_FANFARE, 0);
+@@ -4746,8 +4746,8 @@ void Audio_SplitBgmChannels(s8 volSplit) {
+     u8 channelIdx;
+     u8 i;
+ 
+-    if ((func_800FA0B4(SEQ_PLAYER_FANFARE) == NA_BGM_DISABLED) &&
+-        (func_800FA0B4(SEQ_PLAYER_BGM_SUB) != NA_BGM_LONLON)) {
++    if ((Audio_GetActiveSeqId(SEQ_PLAYER_FANFARE) == NA_BGM_DISABLED) &&
++        (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) != NA_BGM_LONLON)) {
+         for (i = 0; i < ARRAY_COUNT(bgmPlayers); i++) {
+             if (i == 0) {
+                 // Main Bgm SeqPlayer
+@@ -4839,8 +4839,8 @@ void Audio_PlaySceneSequence(u16 seqId) {
+     u8 sp27 = 0;
+     u16 nv;
+ 
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) != NA_BGM_WINDMILL) {
+-        if (func_800FA0B4(SEQ_PLAYER_BGM_SUB) == NA_BGM_LONLON) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) != NA_BGM_WINDMILL) {
++        if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) == NA_BGM_LONLON) {
+             Audio_StopSequence(SEQ_PLAYER_BGM_SUB, 0);
+             Audio_QueueCmdS32(0xF8000000, 0);
+         }
+@@ -4869,7 +4869,7 @@ void Audio_UpdateSceneSequenceResumePoint(void) {
+     u16 temp_v0;
+     u8 bvar;
+ 
+-    temp_v0 = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    temp_v0 = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+     bvar = temp_v0 & 0xFF;
+     if ((temp_v0 != NA_BGM_DISABLED) && (Audio_GetSeqFlags(bvar) & 0x10)) {
+         if (sSeqResumePoint != 0xC0) {
+@@ -4881,7 +4881,7 @@ void Audio_UpdateSceneSequenceResumePoint(void) {
+ }
+ 
+ void Audio_PlayWindmillBgm(void) {
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) != NA_BGM_WINDMILL) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) != NA_BGM_WINDMILL) {
+         Audio_StartSeq(SEQ_PLAYER_BGM_MAIN, 0, NA_BGM_WINDMILL);
+     }
+ }
+@@ -4896,7 +4896,7 @@ void Audio_SetMainBgmTempoFreqAfterFanfare(f32 arg0, u8 arg2) {
+ }
+ 
+ void Audio_SetFastTempoForTimedMinigame(void) {
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_TIMED_MINI_GAME && func_800FA11C(0, 0xF0000000)) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_TIMED_MINI_GAME && func_800FA11C(0, 0xF0000000)) {
+         Audio_SeqCmdB(SEQ_PLAYER_BGM_MAIN, 5, 0, 0xD2);
+     }
+ }
+@@ -4936,7 +4936,7 @@ s32 Audio_IsSequencePlaying(u8 arg0) {
+         phi_a1 = 1;
+     }
+ 
+-    if (arg0 == (u8)func_800FA0B4(phi_a1)) {
++    if (arg0 == (u8)Audio_GetActiveSeqId(phi_a1)) {
+         return 1;
+     } else {
+         return 0;
+@@ -4948,7 +4948,7 @@ s32 Audio_IsSequencePlaying(u8 arg0) {
+  * Designed for the mini-boss sequence, but also used by mini-game 2 sequence
+  */
+ void func_800F5ACC(u16 seqId) {
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if ((curSeqId & 0xFF) != NA_BGM_GANON_TOWER && (curSeqId & 0xFF) != NA_BGM_ESCAPE && curSeqId != seqId) {
+         Audio_SetSequenceMode(SEQ_MODE_IGNORE);
+@@ -4964,7 +4964,7 @@ void func_800F5ACC(u16 seqId) {
+ 
+ // based on func_800F5ACC
+ void PreviewSequence(u16 seqId) {
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if ((curSeqId & 0xFF) != NA_BGM_GANON_TOWER && (curSeqId & 0xFF) != NA_BGM_ESCAPE && curSeqId != seqId) {
+         Audio_SetSequenceMode(SEQ_MODE_IGNORE);
+@@ -4983,8 +4983,8 @@ void PreviewSequence(u16 seqId) {
+  */
+ // LLM generated name (HIGH), was func_800F5B58: restarts sPrevMainBgmSeqId on the main BGM player
+ void Audio_RestorePrevBgm(void) {
+-    if ((func_800FA0B4(SEQ_PLAYER_BGM_MAIN) != NA_BGM_DISABLED) && (sPrevMainBgmSeqId != NA_BGM_DISABLED) &&
+-        (Audio_GetSeqFlags(func_800FA0B4(SEQ_PLAYER_BGM_MAIN) & 0xFF) & 8)) {
++    if ((Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) != NA_BGM_DISABLED) && (sPrevMainBgmSeqId != NA_BGM_DISABLED) &&
++        (Audio_GetSeqFlags(Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) & 0xFF) & 8)) {
+         if (sPrevMainBgmSeqId == NA_BGM_DISABLED) {
+             Audio_SeqCmd1(SEQ_PLAYER_BGM_MAIN, 0);
+         } else {
+@@ -4999,7 +4999,7 @@ void Audio_RestorePrevBgm(void) {
+  * Plays the nature ambience sequence on the main bgm player, but stores the previous sequence to return to later
+  */
+ void func_800F5BF0(u8 natureAmbienceId) {
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if (curSeqId != NA_BGM_NATURE_AMBIENCE) {
+         sPrevMainBgmSeqId = curSeqId;
+@@ -5024,7 +5024,7 @@ void Audio_PlayFanfare(u16 seqId) {
+     u8* curFontId;
+     u8* requestedFontId;
+ 
+-    curSeqId = func_800FA0B4(SEQ_PLAYER_FANFARE);
++    curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_FANFARE);
+ 
+     // Although seqIds are u16, there is no fanfare that is above 0xFF
+     // Sometimes the game will add 0x900 to a requested fanfare ID
+@@ -5057,9 +5057,9 @@ void Audio_UpdateFanfare(void) {
+         if (sFanfareStartTimer == 0) {
+             Audio_QueueCmdS32(0xE3000000, SEQUENCE_TABLE);
+             Audio_QueueCmdS32(0xE3000000, FONT_TABLE);
+-            func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
+-            sp26 = func_800FA0B4(SEQ_PLAYER_FANFARE);
+-            sp22 = func_800FA0B4(SEQ_PLAYER_BGM_SUB);
++            Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
++            sp26 = Audio_GetActiveSeqId(SEQ_PLAYER_FANFARE);
++            sp22 = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB);
+             if (sp26 == NA_BGM_DISABLED) {
+                 Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 1, 0, 5);
+                 Audio_SetVolScale(SEQ_PLAYER_BGM_SUB, 1, 0, 5);
+@@ -5097,7 +5097,7 @@ void Audio_SetSequenceMode(u8 seqMode) {
+ 
+         seqId = gActiveSeqs[SEQ_PLAYER_BGM_MAIN].seqId;
+ 
+-        if (seqId == NA_BGM_FIELD_LOGIC && func_800FA0B4(SEQ_PLAYER_BGM_SUB) == (NA_BGM_ENEMY | 0x800)) {
++        if (seqId == NA_BGM_FIELD_LOGIC && Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) == (NA_BGM_ENEMY | 0x800)) {
+             seqMode = SEQ_MODE_IGNORE;
+         }
+ 
+@@ -5191,7 +5191,7 @@ void Audio_UpdateMalonSinging(f32 dist, u16 arg1) {
+     sIsMalonSinging = true;
+     sMalonSingingDist = dist;
+     if (sMalonSingingDisabled == 0) {
+-        temp_a0 = (s8)(func_800FA0B4(SEQ_PLAYER_BGM_MAIN) & 0xFF);
++        temp_a0 = (s8)(Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) & 0xFF);
+         if (temp_a0 == (arg1 & 0xFF)) {
+             if ((arg1 & 0xFF) == NA_BGM_LONLON) {
+ 
+@@ -5211,7 +5211,7 @@ void Audio_UpdateMalonSinging(f32 dist, u16 arg1) {
+                 }
+             }
+         } else if ((temp_a0 == NA_BGM_NATURE_AMBIENCE) && ((arg1 & 0xFF) == NA_BGM_LONLON)) {
+-            temp_a0 = (s8)(func_800FA0B4(SEQ_PLAYER_BGM_SUB) & 0xFF);
++            temp_a0 = (s8)(Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) & 0xFF);
+             if ((temp_a0 != (arg1 & 0xFF)) && (sMalonSingingTimer < 10)) {
+                 Audio_PlaySequenceWithSeqPlayerIO(SEQ_PLAYER_BGM_SUB, NA_BGM_LONLON, 0, 0, 0);
+                 Audio_SeqCmdA(SEQ_PLAYER_BGM_SUB, 0xFFFC);
+@@ -5254,10 +5254,10 @@ void Audio_ToggleMalonSinging(u8 arg0) {
+     u16 sp34;
+ 
+     sMalonSingingDisabled = arg0;
+-    if ((func_800FA0B4(SEQ_PLAYER_BGM_MAIN) & 0xFF) == NA_BGM_LONLON) {
++    if ((Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) & 0xFF) == NA_BGM_LONLON) {
+         playerIdx = SEQ_PLAYER_BGM_MAIN;
+         sp34 = 0;
+-    } else if ((func_800FA0B4(SEQ_PLAYER_BGM_SUB) & 0xFF) == NA_BGM_LONLON) {
++    } else if ((Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) & 0xFF) == NA_BGM_LONLON) {
+         playerIdx = SEQ_PLAYER_BGM_SUB;
+         sp34 = 0xFFFC;
+     } else {
+@@ -5477,7 +5477,7 @@ void Audio_SetNatureAmbienceChannelIO(u8 channelIdxRange, u8 port, u8 val) {
+ 
+     // channelIdxRange = 01 on port 1
+     if (((channelIdxRange << 8) + port) == ((NATURE_CHANNEL_CRITTER_0 << 8) + CHANNEL_IO_PORT_1)) {
+-        if (func_800FA0B4(SEQ_PLAYER_BGM_SUB) != NA_BGM_LONLON) {
++        if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) != NA_BGM_LONLON) {
+             sMalonSingingTimer = 0;
+         }
+     }
+@@ -5497,7 +5497,7 @@ void Audio_SetNatureAmbienceChannelIO(u8 channelIdxRange, u8 port, u8 val) {
+ void Audio_StartNatureAmbienceSequence(u16 playerIO, u16 channelMask) {
+     u8 channelIdx;
+ 
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_WINDMILL) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_WINDMILL) {
+         Audio_PlayCutsceneEffectsSequence(0xF);
+         return;
+     }
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index 1c4183aaf..a8bb6138f 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -405,7 +405,8 @@ void Audio_ProcessSeqCmds(void) {
+     }
+ }
+ 
+-u16 func_800FA0B4(u8 playerIdx) {
++// Name from zeldaret/oot, was func_800FA0B4: returns the player's active seqId, or disabled if not enabled. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++u16 Audio_GetActiveSeqId(u8 playerIdx) {
+     if (!gAudioContext.seqPlayers[playerIdx].enabled) {
+         return NA_BGM_DISABLED;
+     }
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index a79017603..82dd05b86 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -2520,7 +2520,7 @@ void Environment_StopStormNatureAmbience(PlayState* play) {
+     Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_RAIN, CHANNEL_IO_PORT_1, 0);
+     Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_LIGHTNING, CHANNEL_IO_PORT_1, 0);
+ 
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
+         gSaveContext.seqId = NA_BGM_NATURE_SFX_RAIN;
+         Environment_PlaySceneSequence(play);
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c b/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
+index 89ef1b781..bcca98270 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
+@@ -93,7 +93,7 @@ void EnOkarinaEffect_ManageStorm(EnOkarinaEffect* this, PlayState* play) {
+         play->envCtx.unk_F2[0] = 0;
+         if (play->csCtx.state == CS_STATE_IDLE) {
+             Environment_StopStormNatureAmbience(play);
+-        } else if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
++        } else if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_LIGHTNING, CHANNEL_IO_PORT_1, 0);
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_RAIN, CHANNEL_IO_PORT_1, 0);
+         }
+-- 
+2.55.0
+

@@ -106,6 +106,16 @@ their subfolder — the other streams are untouched. This is the SuperMario64
 shape; all four games were converted to it 2026-09-06 (verified: each game's
 streams `git am` clean onto its pin).
 
+### The series must still apply — gated across all projects
+
+`tools/check_patches_apply.sh` (imps root) resets each project to its pin and
+runs its own `apply.sh`, so it exercises stream `ORDER`, both lanes, and the pin
+guard. Verified 2026-09-07: BanjoKazooie 4, MajorasMask 2, OcarinaOfTime 225,
+SuperMario64 5 + 1 libultraship — all clean; `libultraship/` skipped (docs-only,
+no `apply.sh`). This is the gate for the repo's primary goal (master
+`CLAUDE.md`, "Patch philosophy"): a patch that no longer applies has failed at
+its job.
+
 ### A `book/` stream is comment-only BY CONTRACT — and that is gated
 
 (2026-09-07.) A `book/` stream adds `// doc-region-begin/end` markers so a

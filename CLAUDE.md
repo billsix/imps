@@ -155,6 +155,22 @@ So when a choice arises between "shaped for upstream" and "survives the next
 pin bump cleanly", both matter — but a patch that no longer applies has failed
 at its primary job.
 
+**That invariant is gated** (2026-09-07). `tools/check_patches_apply.sh` resets
+every project to its pin and runs the project's own `apply.sh` — the real path,
+including stream order, both lanes, and the pin guard — then reports the commit
+count per lane:
+
+```sh
+tools/check_patches_apply.sh                 # every project
+tools/check_patches_apply.sh OcarinaOfTime   # just one
+```
+
+Run it after a pin bump, after reshaping a series, and when picking the repo up
+after a gap. A failure IS the pin-bump conflict surfacing early, which is the
+point. It leaves each checkout on the fully-applied series — the documented
+default working state — so it doubles as "put everything back in a known-good
+state". It never touches `runDir/` (a sibling of the checkout; see above).
+
 Lifecycle consequence: an upstreamable patch is temporary — once merged
 upstream, it retires at the next pin bump (the bump's `git am` will show
 it as already applied, or the rebase drops it); a personal patch is

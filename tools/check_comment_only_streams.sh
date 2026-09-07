@@ -21,8 +21,9 @@
 # Projects with no book stream are skipped, not failed. Exits non-zero if any
 # checked stream turns out NOT to be comment-only.
 #
-# It works on scratch branches inside the checkouts and never touches runDir/
-# (which is a sibling of the checkout, not inside it -- see CLAUDE.md).
+# It works on scratch branches inside the checkouts, RESTORES each checkout to
+# the state it was in beforehand, and never touches runDir/ (which is a sibling
+# of the checkout, not inside it -- see CLAUDE.md).
 
 set -u
 
@@ -68,6 +69,12 @@ for name in "${projects[@]}"; do
         fi
 
         git -C "$repo" config commit.gpgsign false
+        # Remember where this checkout was, so the scratch branches below do not
+        # leave it parked somewhere unexpected. A checkout's documented resting
+        # state is "pin + the full series" (master CLAUDE.md); silently leaving
+        # it on a half-built branch would be a nasty surprise later.
+        prev_ref=$(git -C "$repo" symbolic-ref --quiet --short HEAD \
+                   || git -C "$repo" rev-parse HEAD)
         if [ -d "$repo/.git/rebase-apply" ]; then
             echo "  interrupted 'git am' in $repo -- run: git -C $repo am --abort" >&2
             status=1
@@ -95,6 +102,11 @@ for name in "${projects[@]}"; do
 
         "$PROVE" --allow-line-shift "$repo" cos-before cos-after || status=1
         checked=$((checked + 1))
+
+        # Put the checkout back and drop the scratch branches.
+        git -C "$repo" checkout -q "$prev_ref" 2>/dev/null \
+            || git -C "$repo" checkout -q --detach "$prev_ref"
+        git -C "$repo" branch -q -D cos-before cos-after 2>/dev/null || true
     done
 done
 

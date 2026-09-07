@@ -1,7 +1,20 @@
 # Restructure imps into family folders (`n64/`, `openstax/`)
 
-**Status:** approved 2026-09-02 (William Emerison Six <billsix@gmail.com> blessed the
-recommendations below — "use your discretion") — **ready to execute; not started.**
+**Status:** DONE — executed 2026-09-02, archived 2026-09-07. The status line below said
+"not started" until the archive; that was stale, and the done-state was verified at archive
+time: the 5 projects live under `n64/`, `n64/CLAUDE.md` carries the family contract, the
+master `CLAUDE.md` is family-agnostic with a `## Families` index, and `README.md` is grouped
+by family.
+
+**Deviation from the plan:** the anticipated `openstax/` family was **never created here**.
+The OpenStax port went to the sibling repo **impo** (https://github.com/billsix/impo)
+instead, to keep imps small. The `n64/` tier stands on its own regardless. The OpenStax
+survey below is preserved as the record of that research; **its four open questions now
+belong to impo.**
+
+Durable knowledge harvested to
+[`tasks/reference/imps/family-tier-and-move-safety.md`](../../../../../reference/imps/family-tier-and-move-safety.md)
+— in particular the move-safety check, which any future regrouping should re-run.
 **Priority:** 5
 **Difficulty:** 4
 **Created:** 2026-09-02 (William Emerison Six <billsix@gmail.com>)

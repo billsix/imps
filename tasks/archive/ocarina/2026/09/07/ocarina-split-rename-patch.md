@@ -1,6 +1,7 @@
 # Ocarina: split the monolithic rename patch into one-rename-per-patch, and make every rename traceable at its declaration
 
-**Status:** implemented and proven equivalent 2026-09-07 — all gates green; an on-host rebuild is optional confirmation, not a gate
+**Status:** DONE — implemented and proven equivalent 2026-09-07; archived the same day.
+An on-host rebuild remains available as optional confirmation, not a gate.
 **Priority:** 3
 **Difficulty:** 6
 **Started:** 2026-09-07
@@ -27,11 +28,11 @@ comments — so the two build the same program.
 
 ### Read first
 
-- **[`tasks/reference/ocarina/decomp-renaming.md`](reference/ocarina/decomp-renaming.md)** —
+- **[`tasks/reference/ocarina/decomp-renaming.md`](../../../../../reference/ocarina/decomp-renaming.md)** —
   the method, the zeldaret/oot oracle, the provenance-comment convention, and
   every gotcha that has bitten. **This is the governing doc**; the work below
   must not contradict it, and any convention change (see Q1) belongs there.
-- **[`tasks/ocarina-decomp-rename-and-cleanup.md`](ocarina-decomp-rename-and-cleanup.md)** —
+- **[`tasks/ocarina-decomp-rename-and-cleanup.md`](../../../../../ocarina-decomp-rename-and-cleanup.md)** —
   the parent, still-open renaming effort. The patch this task splits is that
   task's output as of its 2026-07-31 stopping point. **This task does not add
   renames**; it re-shapes what already exists.
@@ -53,9 +54,9 @@ comments — so the two build the same program.
 
 ### What the patch actually contains (measured 2026-09-07, not estimated)
 
-Every number below came from the scripts saved in
-`tasks/adhoc/ocarina-split-rename-patch/`; re-run them rather than trusting
-these figures after any change.
+Every number below was measured, not estimated. The measuring scripts were
+one-shots and were removed at archive (recoverable from git history); the live
+figures now come from `n64/OcarinaOfTime/tools/check_renames.py`.
 
 | Thing | Count |
 |---|---|
@@ -196,7 +197,7 @@ they are named here by their **final** locations.
 - [x] **7. Verified from scratch** — reset to the pristine pin, ran `./apply.sh`:
       all 225 patches `git am` clean and the resulting tree is byte-identical to
       the target. `check_renames.py` still reports 0 untraceable / 0 incomplete.
-- [x] **8. Updated [`tasks/reference/ocarina/decomp-renaming.md`](reference/ocarina/decomp-renaming.md)**
+- [x] **8. Updated [`tasks/reference/ocarina/decomp-renaming.md`](../../../../../reference/ocarina/decomp-renaming.md)**
       with the declaration-tag rule, the type-rename rule, and a new "One rename
       per commit" section, so the remaining ~3,988 symbols are done this way
       from the start. Also updated `n64/OcarinaOfTime/CLAUDE.md`'s patch list.
@@ -222,9 +223,12 @@ they are named here by their **final** locations.
 The chronological record of what was decided and why is in **How it went**
 below; this section holds only what a future reader needs as reference.
 
-**Scripts.** The reusable ones were **promoted to `tools/` on 2026-09-07**; the
-one-shots stay in `tasks/adhoc/ocarina-split-rename-patch/` as the audit trail
-for the 225-commit diff, and get `git rm`'d when this task is archived.
+**Scripts.** The reusable ones were **promoted to `tools/`**; the one-shots were
+**removed at archive** — they were committed during the task (that is the audit
+trail for the 225-commit diff) and are recoverable with
+`git log --diff-filter=A -- tasks/adhoc/ocarina-split-rename-patch/`. The
+*method* they implemented is written up in
+[`tasks/reference/imps/splitting-a-patch-series.md`](../../../../../reference/imps/splitting-a-patch-series.md).
 
 | Promoted | Role |
 |---|---|
@@ -235,7 +239,7 @@ for the 225-commit diff, and get `git rm`'d when this task is archived.
 | `n64/OcarinaOfTime/tools/tag_declarations.py` | Adds the short declaration tags. Idempotent. |
 | `n64/OcarinaOfTime/tools/renames_common.py` | Shared helpers; discovers renames from the tree's provenance comments, so no external table. |
 
-| One-shot (stays in adhoc) | Role |
+| One-shot (removed at archive) | Role |
 |---|---|
 | `_common.py` | helpers for the one-shots below |
 | `inventory.py` | first-pass rename table parsed from the provenance comments |
@@ -244,7 +248,7 @@ for the 225-commit diff, and get `git rm`'d when this task is archived.
 | `rebuild.py` | the split engine — peel backwards, replay forwards |
 
 **Conventions this task changed**, all recorded in
-[`tasks/reference/ocarina/decomp-renaming.md`](reference/ocarina/decomp-renaming.md):
+[`tasks/reference/ocarina/decomp-renaming.md`](../../../../../reference/ocarina/decomp-renaming.md):
 the declaration-site tag, the append-never-insert rule, type renames, and one
 rename per commit. The remaining ~3,988 un-named symbols are to be done that way
 from the start.
@@ -345,7 +349,7 @@ The file renames number **18**, not 20 (15 git-detected plus 3 that git reports
 as add+delete because the content changed too much). The provenance split is
 **64 oot / 141 LLM / 1 typedef**, not the 65/141 recorded on 2026-07-31; that
 off-by-one was corrected in
-[`decomp-renaming.md`](reference/ocarina/decomp-renaming.md) too.
+[`decomp-renaming.md`](../../../../../reference/ocarina/decomp-renaming.md) too.
 
 ## Open questions
 

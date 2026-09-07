@@ -94,7 +94,10 @@ the gate for a `book/` stream, whose `doc-region` markers are comment-only by co
 `--allow-line-shift` there: a marker must occupy its own line).
 
 The one-shot scripts that performed the 2026-09-07 split (the peel/replay engine and the table builders)
-stay in `tasks/adhoc/ocarina-split-rename-patch/` as the audit trail for that 225-commit diff.
+were removed when that task was archived; the **method** they implemented is written up in
+[`tasks/reference/imps/splitting-a-patch-series.md`](../imps/splitting-a-patch-series.md), and the code
+itself is recoverable from git history
+(`git log --diff-filter=A -- tasks/adhoc/ocarina-split-rename-patch/`).
 
 ## The safe-rename mechanic
 A rename must be **total** (def + every reference) and behavior-preserving. Do NOT rely on a build (the maintainer (William Emerison Six <billsix@gmail.com>)

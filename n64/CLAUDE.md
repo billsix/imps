@@ -90,12 +90,24 @@ the stream folders — and their upstreamability — intact while making the
 sequence explicit, instead of silently relying on folder-alphabetical order.
 The mechanism also exists for `patches-libultraship/ORDER`.
 
-- **OcarinaOfTime is the live case** (William Emerison Six <billsix@gmail.com>,
-  2026-09-07): its `personal` stream renames ~206 decomp symbols and 18 files,
-  so **every later stream must be written against the renamed tree** — a `book/`
-  stream added later would otherwise sort first and try to patch symbols that no
-  longer exist under those names. `n64/OcarinaOfTime/patches/ORDER` lists
-  `personal` first.
+**All four projects' `apply.sh` implement this** (ported 2026-09-07 — the
+mechanism briefly existed only in OcarinaOfTime while this section already
+described it family-wide).
+
+Two live cases (William Emerison Six <billsix@gmail.com>, 2026-09-07):
+
+- **OcarinaOfTime** — its `personal` stream renames ~206 decomp symbols and 18
+  files, so **every later stream must be written against the renamed tree**; a
+  `book/` stream added later would otherwise sort first and try to patch symbols
+  that no longer exist under those names. `patches/ORDER` lists `personal`.
+- **SuperMario64** — `cheats` and `book` **both touch `src/game/mario.c`**, so
+  that project's streams are not disjoint. They do not collide today (the hunks
+  sit ~370 lines apart), but the book grows a doc-region per chapter and covers
+  Mario's action machine, which is what the cheats edit. `patches/ORDER` lists
+  `cheats` then `book`, so the markers are placed against the cheated tree
+  rather than the reverse: the cheats are the substantive code, the markers are
+  commentary on whatever that code ends up being. Verified the reorder changes
+  history only — the applied tree hash is unchanged.
 
 `apply.sh` walks the streams in that order, `git am`-ing each stream's numbered
 patches. It refuses to run if the checkout is not at the pin, and refuses if an

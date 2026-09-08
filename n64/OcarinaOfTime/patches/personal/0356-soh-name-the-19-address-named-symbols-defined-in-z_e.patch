@@ -1,0 +1,503 @@
+From 669c9586aa6d2c8cb3a149e95160acade9dbc0c0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 356/488] soh: name the 19 address-named symbols defined in
+ z_en_du.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 19 are defined in soh/src/overlays/actors/ovl_En_Du/z_en_du.c.
+
+  * func_809FDDB4 -> EnDu_ShouldSpawn
+    deduced, confidence HIGH: Init kills the actor when this returns 0; true
+    only in Goron City as child, or in the Fire Temple as adult before
+    INFTABLE_SPOKE_TO_DARUNIA_IN_FIRE_TEMPLE
+
+  * func_809FDE24 -> EnDu_TrackPlayer
+    deduced, confidence HIGH: feeds the player's position to Npc_TrackPoint,
+    disabling head tracking while idle or mid-cutscene
+
+  * func_809FDE9C -> EnDu_UpdateFace
+    deduced, confidence HIGH: runs the blink timer and picks the eye, mouth
+    and nose texture indices from unk_1EC/unk_1ED/unk_1EE
+
+  * func_809FDFC0 -> EnDu_GetCueStartPos
+    deduced, confidence HIGH: copies a CsCmdActorCue's startPos into the
+    caller's Vec3f
+
+  * func_809FE000 -> EnDu_GetCueEndPos
+    deduced, confidence HIGH: copies a CsCmdActorCue's endPos into the
+    caller's Vec3f
+
+  * func_809FE040 -> EnDu_AdvanceDanceAnim
+    deduced, confidence HIGH: steps an eight-entry animation ring at each
+    animation end -- the body of Darunia's dance, cue 7
+
+  * func_809FE104 -> EnDu_AdvanceDanceFinishAnim
+    deduced, confidence HIGH: steps a four-entry animation sequence once and
+    stops -- the wind-down of the dance, cue 8
+
+  * func_809FE3B4 -> EnDu_DoNothing
+    deduced, confidence HIGH: empty action, installed for adult Link outside
+    the Fire Temple
+
+  * func_809FE3C0 -> EnDu_WaitForOcarina
+    deduced, confidence HIGH: idles as an ocarina-listening NPC, flagging
+    PLAYER_STATE2_NEAR_OCARINA_ACTOR in range and starting the song prompt
+    when the player plays
+
+  * func_809FE4A4 -> EnDu_CheckOcarinaSong
+    deduced, confidence HIGH: reads msgCtx.ocarinaMode and triggers either
+    gGoronCityDaruniaCorrectCs or gGoronCityDaruniaWrongCs
+
+  * func_809FE638 -> EnDu_FireTempleStartScene
+    deduced, confidence HIGH: once the player leaves its cutscene, opens a
+    OnePointCutscene, faces the player at Darunia and plays NA_BGM_APPEAR
+
+  * func_809FE6CC -> EnDu_FireTempleWaitToTalk
+    deduced, confidence HIGH: counts unk_1E2 down from 0x32, then opens
+    textbox 0x3039
+
+  * func_809FE740 -> EnDu_FireTempleWaitTalkDone
+    deduced, confidence HIGH: waits for the talk state to return to idle,
+    releases the camera and arms the 0x5A departure timer
+
+  * func_809FE798 -> EnDu_FireTempleDepart
+    deduced, confidence HIGH: slides Darunia out through the door with the
+    unlock/open/close/thud sounds, then kills the actor and sets
+    INFTABLE_SPOKE_TO_DARUNIA_IN_FIRE_TEMPLE
+
+  * func_809FE890 -> EnDu_PerformCutsceneAction
+    deduced, confidence HIGH: drives position, rotation and animation from
+    csCtx.npcActions[2], including the dance cues 7 and 8
+
+  * func_809FEB08 -> EnDu_EndDanceCutscene
+    deduced, confidence HIGH: resets the face, and either returns to the
+    ocarina wait (wrong song) or starts the reward text
+
+  * func_809FEC14 -> EnDu_WaitToGiveReward
+    deduced, confidence HIGH: waits for the talk state to reach
+    NPC_TALK_STATE_ACTION, then enters the give-item action immediately
+
+  * func_809FEC70 -> EnDu_GiveGoronBracelet
+    deduced, confidence HIGH: offers GI_BRACELET until the player takes it
+
+  * func_809FECE4 -> EnDu_WaitForItemGiven
+    deduced, confidence HIGH: waits out NPC_TALK_STATE_ITEM_GIVEN and
+    returns to the ocarina wait
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Du/z_en_du.c | 141 +++++++++++---------
+ 1 file changed, 80 insertions(+), 61 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+index ce17854da..bba6de7a2 100644
+--- a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
++++ b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+@@ -10,18 +10,30 @@ void EnDu_Destroy(Actor* thisx, PlayState* play);
+ void EnDu_Update(Actor* thisx, PlayState* play);
+ void EnDu_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_809FE3B4(EnDu* this, PlayState* play);
+-void func_809FE3C0(EnDu* this, PlayState* play);
+-void func_809FE638(EnDu* this, PlayState* play);
+-void func_809FE890(EnDu* this, PlayState* play);
+-void func_809FE4A4(EnDu* this, PlayState* play);
+-void func_809FE6CC(EnDu* this, PlayState* play);
+-void func_809FE740(EnDu* this, PlayState* play);
+-void func_809FE798(EnDu* this, PlayState* play);
+-void func_809FEC14(EnDu* this, PlayState* play);
+-void func_809FEC70(EnDu* this, PlayState* play);
+-void func_809FECE4(EnDu* this, PlayState* play);
+-void func_809FEB08(EnDu* this, PlayState* play);
++// LLM generated name (HIGH), was func_809FE3B4: empty action, installed for adult Link outside the Fire Temple
++void EnDu_DoNothing(EnDu* this, PlayState* play);  // was func_809FE3B4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FE3C0: idles as an ocarina-listening NPC, flagging PLAYER_STATE2_NEAR_OCARINA_ACTOR in range and starting the song prompt when the player plays
++void EnDu_WaitForOcarina(EnDu* this, PlayState* play);  // was func_809FE3C0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FE638: once the player leaves its cutscene, opens a OnePointCutscene, faces the player at Darunia and plays NA_BGM_APPEAR
++void EnDu_FireTempleStartScene(EnDu* this, PlayState* play);  // was func_809FE638 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FE890: drives position, rotation and animation from csCtx.npcActions[2], including the dance cues 7 and 8
++void EnDu_PerformCutsceneAction(EnDu* this, PlayState* play);  // was func_809FE890 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FE4A4: reads msgCtx.ocarinaMode and triggers either gGoronCityDaruniaCorrectCs or gGoronCityDaruniaWrongCs
++void EnDu_CheckOcarinaSong(EnDu* this, PlayState* play);  // was func_809FE4A4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FE6CC: counts unk_1E2 down from 0x32, then opens textbox 0x3039
++void EnDu_FireTempleWaitToTalk(EnDu* this, PlayState* play);  // was func_809FE6CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FE740: waits for the talk state to return to idle, releases the camera and arms the 0x5A departure timer
++void EnDu_FireTempleWaitTalkDone(EnDu* this, PlayState* play);  // was func_809FE740 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FE798: slides Darunia out through the door with the unlock/open/close/thud sounds, then kills the actor and sets INFTABLE_SPOKE_TO_DARUNIA_IN_FIRE_TEMPLE
++void EnDu_FireTempleDepart(EnDu* this, PlayState* play);  // was func_809FE798 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FEC14: waits for the talk state to reach NPC_TALK_STATE_ACTION, then enters the give-item action immediately
++void EnDu_WaitToGiveReward(EnDu* this, PlayState* play);  // was func_809FEC14 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FEC70: offers GI_BRACELET until the player takes it
++void EnDu_GiveGoronBracelet(EnDu* this, PlayState* play);  // was func_809FEC70 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FECE4: waits out NPC_TALK_STATE_ITEM_GIVEN and returns to the ocarina wait
++void EnDu_WaitForItemGiven(EnDu* this, PlayState* play);  // was func_809FECE4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809FEB08: resets the face, and either returns to the ocarina wait (wrong song) or starts the reward text
++void EnDu_EndDanceCutscene(EnDu* this, PlayState* play);  // was func_809FEB08 [LLM:HIGH]
+ 
+ const ActorInit En_Du_InitVars = {
+     ACTOR_EN_DU,
+@@ -175,7 +187,8 @@ s16 EnDu_UpdateTalkState(PlayState* play, Actor* actor) {
+     return NPC_TALK_STATE_TALKING;
+ }
+ 
+-s32 func_809FDDB4(EnDu* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809FDDB4: Init kills the actor when this returns 0; true only in Goron City as child, or in the Fire Temple as adult before INFTABLE_SPOKE_TO_DARUNIA_IN_FIRE_TEMPLE
++s32 EnDu_ShouldSpawn(EnDu* this, PlayState* play) {
+     if (play->sceneNum == SCENE_GORON_CITY && LINK_IS_CHILD) {
+         return 1;
+     } else if (play->sceneNum == SCENE_FIRE_TEMPLE && !Flags_GetInfTable(INFTABLE_SPOKE_TO_DARUNIA_IN_FIRE_TEMPLE) &&
+@@ -185,14 +198,15 @@ s32 func_809FDDB4(EnDu* this, PlayState* play) {
+     return 0;
+ }
+ 
+-void func_809FDE24(EnDu* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809FDE24: feeds the player's position to Npc_TrackPoint, disabling head tracking while idle or mid-cutscene
++void EnDu_TrackPlayer(EnDu* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s16 trackingMode = NPC_TRACKING_PLAYER_AUTO_TURN;
+ 
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         trackingMode = NPC_TRACKING_NONE;
+     }
+-    if (this->actionFunc == func_809FE890) {
++    if (this->actionFunc == EnDu_PerformCutsceneAction) {  // was func_809FE890 [LLM:HIGH]
+         trackingMode = NPC_TRACKING_NONE;
+     }
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -200,7 +214,8 @@ void func_809FDE24(EnDu* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, 3, trackingMode);
+ }
+ 
+-void func_809FDE9C(EnDu* this) {
++// LLM generated name (HIGH), was func_809FDE9C: runs the blink timer and picks the eye, mouth and nose texture indices from unk_1EC/unk_1ED/unk_1EE
++void EnDu_UpdateFace(EnDu* this) {
+     if (this->blinkTimer > 0) {
+         this->blinkTimer--;
+     } else {
+@@ -255,19 +270,22 @@ void func_809FDE9C(EnDu* this) {
+     }
+ }
+ 
+-void func_809FDFC0(CsCmdActorCue* csAction, Vec3f* dst) {
++// LLM generated name (HIGH), was func_809FDFC0: copies a CsCmdActorCue's startPos into the caller's Vec3f
++void EnDu_GetCueStartPos(CsCmdActorCue* csAction, Vec3f* dst) {
+     dst->x = csAction->startPos.x;
+     dst->y = csAction->startPos.y;
+     dst->z = csAction->startPos.z;
+ }
+ 
+-void func_809FE000(CsCmdActorCue* csAction, Vec3f* dst) {
++// LLM generated name (HIGH), was func_809FE000: copies a CsCmdActorCue's endPos into the caller's Vec3f
++void EnDu_GetCueEndPos(CsCmdActorCue* csAction, Vec3f* dst) {
+     dst->x = csAction->endPos.x;
+     dst->y = csAction->endPos.y;
+     dst->z = csAction->endPos.z;
+ }
+ 
+-void func_809FE040(EnDu* this) {
++// LLM generated name (HIGH), was func_809FE040: steps an eight-entry animation ring at each animation end -- the body of Darunia's dance, cue 7
++void EnDu_AdvanceDanceAnim(EnDu* this) {
+     s32 animationIndices[] = {
+         ENDU_ANIM_8, ENDU_ANIM_8, ENDU_ANIM_8, ENDU_ANIM_8, ENDU_ANIM_9, ENDU_ANIM_10, ENDU_ANIM_10, ENDU_ANIM_13,
+     };
+@@ -287,7 +305,8 @@ void func_809FE040(EnDu* this) {
+     }
+ }
+ 
+-void func_809FE104(EnDu* this) {
++// LLM generated name (HIGH), was func_809FE104: steps a four-entry animation sequence once and stops -- the wind-down of the dance, cue 8
++void EnDu_AdvanceDanceFinishAnim(EnDu* this) {
+     s32 animationIndices[] = {
+         ENDU_ANIM_8,
+         ENDU_ANIM_8,
+@@ -320,7 +339,7 @@ void EnDu_Init(Actor* thisx, PlayState* play) {
+     Collider_InitCylinder(play, &this->collider);
+     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+     CollisionCheck_SetInfo2(&this->actor.colChkInfo, DamageTable_Get(0x16), &sColChkInfoInit);
+-    if (func_809FDDB4(this, play) == 0) {
++    if (EnDu_ShouldSpawn(this, play) == 0) {  // was func_809FDDB4 [LLM:HIGH]
+         Actor_Kill(&this->actor);
+         return;
+     }
+@@ -332,13 +351,13 @@ void EnDu_Init(Actor* thisx, PlayState* play) {
+     if (gSaveContext.cutsceneIndex >= 0xFFF0) {
+         play->csCtx.segment = SEGMENTED_TO_VIRTUAL(gGoronCityDarunia01Cs);
+         gSaveContext.cutsceneTrigger = 1;
+-        EnDu_SetupAction(this, func_809FE890);
++        EnDu_SetupAction(this, EnDu_PerformCutsceneAction);  // was func_809FE890 [LLM:HIGH]
+     } else if (play->sceneNum == SCENE_FIRE_TEMPLE) {
+-        EnDu_SetupAction(this, func_809FE638);
++        EnDu_SetupAction(this, EnDu_FireTempleStartScene);  // was func_809FE638 [LLM:HIGH]
+     } else if (!LINK_IS_ADULT) {
+-        EnDu_SetupAction(this, func_809FE3C0);
++        EnDu_SetupAction(this, EnDu_WaitForOcarina);  // was func_809FE3C0 [LLM:HIGH]
+     } else {
+-        EnDu_SetupAction(this, func_809FE3B4);
++        EnDu_SetupAction(this, EnDu_DoNothing);  // was func_809FE3B4 [LLM:HIGH]
+     }
+ }
+ 
+@@ -349,17 +368,17 @@ void EnDu_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_809FE3B4(EnDu* this, PlayState* play) {
++void EnDu_DoNothing(EnDu* this, PlayState* play) {
+ }
+ 
+-void func_809FE3C0(EnDu* this, PlayState* play) {
++void EnDu_WaitForOcarina(EnDu* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+         Message_StartOcarinaSunsSongDisabled(play, OCARINA_ACTION_CHECK_SARIA);
+         player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+         player->unk_6A8 = &this->actor;
+-        EnDu_SetupAction(this, func_809FE4A4);
++        EnDu_SetupAction(this, EnDu_CheckOcarinaSong);  // was func_809FE4A4 [LLM:HIGH]
+         return;
+     }
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+@@ -371,19 +390,19 @@ void func_809FE3C0(EnDu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809FE4A4(EnDu* this, PlayState* play) {
++void EnDu_CheckOcarinaSong(EnDu* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (play->msgCtx.ocarinaMode == OCARINA_MODE_04) {
+         play->msgCtx.ocarinaMode = OCARINA_MODE_00;
+-        EnDu_SetupAction(this, func_809FE3C0);
++        EnDu_SetupAction(this, EnDu_WaitForOcarina);  // was func_809FE3C0 [LLM:HIGH]
+     } else if (play->msgCtx.ocarinaMode >= OCARINA_MODE_06) {
+         if (GameInteractor_Should(VB_PLAY_DARUNIAS_JOY_CS, true)) {
+             play->csCtx.segment = SEGMENTED_TO_VIRTUAL(gGoronCityDaruniaWrongCs);
+             gSaveContext.cutsceneTrigger = 1;
+         }
+         this->unk_1E8 = 1;
+-        EnDu_SetupAction(this, func_809FE890);
++        EnDu_SetupAction(this, EnDu_PerformCutsceneAction);  // was func_809FE890 [LLM:HIGH]
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+     } else if (play->msgCtx.ocarinaMode == OCARINA_MODE_03) {
+         Audio_PlaySfxGeneral(NA_SE_SY_CORRECT_CHIME, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -393,26 +412,26 @@ void func_809FE4A4(EnDu* this, PlayState* play) {
+             gSaveContext.cutsceneTrigger = 1;
+         }
+         this->unk_1E8 = 0;
+-        EnDu_SetupAction(this, func_809FE890);
++        EnDu_SetupAction(this, EnDu_PerformCutsceneAction);  // was func_809FE890 [LLM:HIGH]
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+     } else {
+         player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+     }
+ }
+ 
+-void func_809FE638(EnDu* this, PlayState* play) {
++void EnDu_FireTempleStartScene(EnDu* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (!(player->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE)) {
+         OnePointCutscene_Init(play, 3330, -99, &this->actor, CAM_ID_MAIN);
+         player->actor.shape.rot.y = player->actor.world.rot.y = this->actor.world.rot.y + 0x7FFF;
+         Audio_PlayFanfare(NA_BGM_APPEAR);
+-        EnDu_SetupAction(this, func_809FE6CC);
++        EnDu_SetupAction(this, EnDu_FireTempleWaitToTalk);  // was func_809FE6CC [LLM:HIGH]
+         this->unk_1E2 = 0x32;
+     }
+ }
+ 
+-void func_809FE6CC(EnDu* this, PlayState* play) {
++void EnDu_FireTempleWaitToTalk(EnDu* this, PlayState* play) {
+     s16 phi_v1;
+ 
+     if (this->unk_1E2 == 0) {
+@@ -425,19 +444,19 @@ void func_809FE6CC(EnDu* this, PlayState* play) {
+         this->actor.textId = 0x3039;
+         Message_StartTextbox(play, this->actor.textId, NULL);
+         this->interactInfo.talkState = NPC_TALK_STATE_TALKING;
+-        EnDu_SetupAction(this, func_809FE740);
++        EnDu_SetupAction(this, EnDu_FireTempleWaitTalkDone);  // was func_809FE740 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809FE740(EnDu* this, PlayState* play) {
++void EnDu_FireTempleWaitTalkDone(EnDu* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+         this->unk_1E2 = 0x5A;
+-        EnDu_SetupAction(this, func_809FE798);
++        EnDu_SetupAction(this, EnDu_FireTempleDepart);  // was func_809FE798 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809FE798(EnDu* this, PlayState* play) {
++void EnDu_FireTempleDepart(EnDu* this, PlayState* play) {
+     s32 phi_v0;
+ 
+     if (this->unk_1E2 == 0) {
+@@ -470,7 +489,7 @@ void func_809FE798(EnDu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809FE890(EnDu* this, PlayState* play) {
++void EnDu_PerformCutsceneAction(EnDu* this, PlayState* play) {
+     f32 frame;
+     Vec3f startPos;
+     Vec3f endPos;
+@@ -479,16 +498,16 @@ void func_809FE890(EnDu* this, PlayState* play) {
+ 
+     if (play->csCtx.state == CS_STATE_IDLE) {
+         Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+-        EnDu_SetupAction(this, func_809FEB08);
++        EnDu_SetupAction(this, EnDu_EndDanceCutscene);  // was func_809FEB08 [LLM:HIGH]
+         return;
+     }
+     csAction = play->csCtx.npcActions[2];
+ 
+     if (csAction != NULL) {
+-        func_809FDFC0(csAction, &startPos);
+-        func_809FE000(csAction, &endPos);
++        EnDu_GetCueStartPos(csAction, &startPos);  // was func_809FDFC0 [LLM:HIGH]
++        EnDu_GetCueEndPos(csAction, &endPos);  // was func_809FE000 [LLM:HIGH]
+         if (this->unk_1EA == 0) {
+-            func_809FDFC0(csAction, &startPos);
++            EnDu_GetCueStartPos(csAction, &startPos);  // was func_809FDFC0 [LLM:HIGH]
+             this->actor.world.pos = startPos;
+         }
+         if (this->unk_1EA != csAction->action) {
+@@ -520,10 +539,10 @@ void func_809FE890(EnDu* this, PlayState* play) {
+             }
+         }
+         if (this->unk_1EA == 7) {
+-            func_809FE040(this);
++            EnDu_AdvanceDanceAnim(this);  // was func_809FE040 [LLM:HIGH]
+         }
+         if (this->unk_1EA == 8) {
+-            func_809FE104(this);
++            EnDu_AdvanceDanceFinishAnim(this);  // was func_809FE104 [LLM:HIGH]
+         }
+         this->actor.shape.rot.x = csAction->urot.x;
+         this->actor.shape.rot.y = csAction->urot.y;
+@@ -544,7 +563,7 @@ void func_809FE890(EnDu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809FEB08(EnDu* this, PlayState* play) {
++void EnDu_EndDanceCutscene(EnDu* this, PlayState* play) {
+     this->blinkTimer = 11;
+     this->unk_1EC = 0;
+     this->unk_1ED = 0;
+@@ -553,34 +572,34 @@ void func_809FEB08(EnDu* this, PlayState* play) {
+     if (this->unk_1E8 == 1) {
+         Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+         Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENDU_ANIM_1);
+-        EnDu_SetupAction(this, func_809FE3C0);
++        EnDu_SetupAction(this, EnDu_WaitForOcarina);  // was func_809FE3C0 [LLM:HIGH]
+         return;
+     }
+     if (GameInteractor_Should(VB_BE_ELIGIBLE_FOR_DARUNIAS_JOY_REWARD, CUR_UPG_VALUE(UPG_STRENGTH) <= 0)) {
+         Flags_SetRandomizerInf(RAND_INF_DARUNIAS_JOY);
+         this->actor.textId = 0x301C;
+-        EnDu_SetupAction(this, func_809FEC14);
++        EnDu_SetupAction(this, EnDu_WaitToGiveReward);  // was func_809FEC14 [LLM:HIGH]
+     } else {
+         this->actor.textId = 0x301F;
+-        EnDu_SetupAction(this, func_809FE3C0);
++        EnDu_SetupAction(this, EnDu_WaitForOcarina);  // was func_809FE3C0 [LLM:HIGH]
+     }
+     Message_StartTextbox(play, this->actor.textId, NULL);
+     Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENDU_ANIM_14);
+     this->interactInfo.talkState = NPC_TALK_STATE_TALKING;
+ }
+ 
+-void func_809FEC14(EnDu* this, PlayState* play) {
++void EnDu_WaitToGiveReward(EnDu* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+-        EnDu_SetupAction(this, func_809FEC70);
+-        func_809FEC70(this, play);
++        EnDu_SetupAction(this, EnDu_GiveGoronBracelet);  // was func_809FEC70 [LLM:HIGH]
++        EnDu_GiveGoronBracelet(this, play);  // was func_809FEC70 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809FEC70(EnDu* this, PlayState* play) {
++void EnDu_GiveGoronBracelet(EnDu* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play) || !GameInteractor_Should(VB_GIVE_ITEM_STRENGTH_1, true)) {
+         this->actor.parent = NULL;
+-        EnDu_SetupAction(this, func_809FECE4);
++        EnDu_SetupAction(this, EnDu_WaitForItemGiven);  // was func_809FECE4 [LLM:HIGH]
+     } else {
+         f32 xzRange = this->actor.xzDistToPlayer + 1.0f;
+ 
+@@ -588,10 +607,10 @@ void func_809FEC70(EnDu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809FECE4(EnDu* this, PlayState* play) {
++void EnDu_WaitForItemGiven(EnDu* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ITEM_GIVEN) {
+         this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
+-        EnDu_SetupAction(this, func_809FE3C0);
++        EnDu_SetupAction(this, EnDu_WaitForOcarina);  // was func_809FE3C0 [LLM:HIGH]
+     }
+ }
+ 
+@@ -608,10 +627,10 @@ void EnDu_Update(Actor* thisx, PlayState* play) {
+     }
+ 
+     SkelAnime_Update(&this->skelAnime);
+-    func_809FDE9C(this);
+-    func_809FDE24(this, play);
++    EnDu_UpdateFace(this);  // was func_809FDE9C [LLM:HIGH]
++    EnDu_TrackPlayer(this, play);  // was func_809FDE24 [LLM:HIGH]
+ 
+-    if (this->actionFunc == func_809FE890) {
++    if (this->actionFunc == EnDu_PerformCutsceneAction) {  // was func_809FE890 [LLM:HIGH]
+         this->actor.world.pos.x += this->actor.velocity.x;
+         this->actor.world.pos.y += this->actor.velocity.y;
+         this->actor.world.pos.z += this->actor.velocity.z;
+@@ -621,7 +640,7 @@ void EnDu_Update(Actor* thisx, PlayState* play) {
+ 
+     Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+ 
+-    if (this->actionFunc != func_809FE4A4) {
++    if (this->actionFunc != EnDu_CheckOcarinaSong) {  // was func_809FE4A4 [LLM:HIGH]
+         Npc_UpdateTalking(play, &this->actor, &this->interactInfo.talkState, this->collider.dim.radius + 116.0f,
+                           EnDu_GetTextId, EnDu_UpdateTalkState);
+     }
+-- 
+2.55.0
+

@@ -1,0 +1,141 @@
+From 5032a884eafda675aff17794b8fa174ad6445655 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:36 +0000
+Subject: [PATCH 420/488] soh: name the 4 address-named symbols defined in
+ z_en_horse_normal.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c.
+
+  * D_80A6D4C0 -> sWalkSfxFrames
+    deduced, confidence HIGH: the two animation frames
+    EnHorseNormal_PlayWalkSfx fires a hoofbeat on
+
+  * D_80A6D4C8 -> sAnimPlaySpeedScales
+    deduced, confidence HIGH: the per-animation multiplier
+    EnHorseNormal_GetAnimPlaySpeed scales the horse speed by
+
+  * D_80A6D4F4 -> sWanderNextAnims
+    deduced, confidence HIGH: the animation the wandering horse picks at
+    random when it starts moving
+
+  * D_80A6D510 -> sWanderAnimKinds
+    deduced, confidence HIGH: maps each animation onto the wander behaviour
+    that drives it
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_En_Horse_Normal/z_en_horse_normal.c   | 28 +++++++++----------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c b/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
+index 70d0d5b74..8bf13a0dc 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
+@@ -157,14 +157,14 @@ static EnHorseNormalUnkStruct2 sUnusedPath2Header = { ARRAY_COUNT(sUnusedPath2),
+ 
+ // LLM generated name (HIGH), was func_80A6B250: fires the walking hoofstep sfx as the animation passes each of its two step frames.
+ void EnHorseNormal_PlayWalkSfx(EnHorseNormal* this) {
+-    static s32 D_80A6D4C0[] = { 0, 16 };
++    static s32 sWalkSfxFrames[] = { 0, 16 };  // was D_80A6D4C0 [LLM:HIGH]
+ 
+-    if (D_80A6D4C0[this->unk_200] < this->skin.skelAnime.curFrame &&
+-        ((this->unk_200 != 0) || !(D_80A6D4C0[1] < this->skin.skelAnime.curFrame))) {
++    if (sWalkSfxFrames[this->unk_200] < this->skin.skelAnime.curFrame &&  // was D_80A6D4C0 [LLM:HIGH]
++        ((this->unk_200 != 0) || !(sWalkSfxFrames[1] < this->skin.skelAnime.curFrame))) {  // was D_80A6D4C0 [LLM:HIGH]
+         Audio_PlaySfxGeneral(NA_SE_EV_HORSE_WALK, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+         this->unk_200++;
+-        if (this->unk_200 >= ARRAY_COUNT(D_80A6D4C0)) {
++        if (this->unk_200 >= ARRAY_COUNT(sWalkSfxFrames)) {  // was D_80A6D4C0 [LLM:HIGH]
+             this->unk_200 = 0;
+         }
+     }
+@@ -172,17 +172,17 @@ void EnHorseNormal_PlayWalkSfx(EnHorseNormal* this) {
+ 
+ // LLM generated name (HIGH), was func_80A6B30C: returns the playback rate for the current animation, scaling the three moving gaits by the horse's own speed.
+ f32 EnHorseNormal_GetAnimPlaySpeed(EnHorseNormal* this) {
+-    static f32 D_80A6D4C8[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 1.5f, 1.5f, 1.5f, 1.0f };
++    static f32 sAnimPlaySpeedScales[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 1.5f, 1.5f, 1.5f, 1.0f };  // was D_80A6D4C8 [LLM:HIGH]
+     f32 result;
+ 
+     if (this->animationIdx == 4) {
+-        result = D_80A6D4C8[this->animationIdx] * this->actor.speedXZ * (1 / 2.0f);
++        result = sAnimPlaySpeedScales[this->animationIdx] * this->actor.speedXZ * (1 / 2.0f);  // was D_80A6D4C8 [LLM:HIGH]
+     } else if (this->animationIdx == 5) {
+-        result = D_80A6D4C8[this->animationIdx] * this->actor.speedXZ * (1 / 3.0f);
++        result = sAnimPlaySpeedScales[this->animationIdx] * this->actor.speedXZ * (1 / 3.0f);  // was D_80A6D4C8 [LLM:HIGH]
+     } else if (this->animationIdx == 6) {
+-        result = D_80A6D4C8[this->animationIdx] * this->actor.speedXZ * (1 / 5.0f);
++        result = sAnimPlaySpeedScales[this->animationIdx] * this->actor.speedXZ * (1 / 5.0f);  // was D_80A6D4C8 [LLM:HIGH]
+     } else {
+-        result = D_80A6D4C8[this->animationIdx];
++        result = sAnimPlaySpeedScales[this->animationIdx];  // was D_80A6D4C8 [LLM:HIGH]
+     }
+ 
+     return result;
+@@ -379,12 +379,12 @@ void EnHorseNormal_PlayAnimSfx(EnHorseNormal* this) {
+ }
+ 
+ void EnHorseNormal_Wander(EnHorseNormal* this, PlayState* play) {
+-    static s32 D_80A6D4F4[] = { 0, 1, 4, 5, 6, 2, 3 };
+-    static s32 D_80A6D510[] = { 0, 0, 2, 2, 1, 1, 1, 3, 3 };
++    static s32 sWanderNextAnims[] = { 0, 1, 4, 5, 6, 2, 3 };  // was D_80A6D4F4 [LLM:HIGH]
++    static s32 sWanderAnimKinds[] = { 0, 0, 2, 2, 1, 1, 1, 3, 3 };  // was D_80A6D510 [LLM:HIGH]
+     s32 phi_t0 = this->animationIdx;
+     s32 pad;
+ 
+-    switch (D_80A6D510[this->animationIdx]) {
++    switch (sWanderAnimKinds[this->animationIdx]) {  // was D_80A6D510 [LLM:HIGH]
+         case 0:
+             EnHorseNormal_PlayAnimSfx(this);  // was func_80A6BD7C [LLM:HIGH]
+             this->actor.speedXZ = 0.0f;
+@@ -454,13 +454,13 @@ void EnHorseNormal_Wander(EnHorseNormal* this, PlayState* play) {
+             Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                              Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -3.0f);
+         } else {
+-            switch (D_80A6D510[this->animationIdx]) {
++            switch (sWanderAnimKinds[this->animationIdx]) {  // was D_80A6D510 [LLM:HIGH]
+                 case 0:
+                     if (Rand_ZeroOne() < 0.25f) {
+                         this->unk_218 = 1.0f;
+                         phi_t0 = 4;
+                     } else {
+-                        phi_t0 = D_80A6D4F4[(s32)(Rand_ZeroOne() * 2)];
++                        phi_t0 = sWanderNextAnims[(s32)(Rand_ZeroOne() * 2)];  // was D_80A6D4F4 [LLM:HIGH]
+                         this->actor.speedXZ = 0.0f;
+                         this->unk_218 = 0.0f;
+                     }
+-- 
+2.55.0
+

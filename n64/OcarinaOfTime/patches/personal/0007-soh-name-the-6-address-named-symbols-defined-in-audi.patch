@@ -1,0 +1,239 @@
+From 15c94f506f3610cd18c4c096f0cac59c08f1cfd8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:57 +0000
+Subject: [PATCH 007/488] soh: name the 6 address-named symbols defined in
+ audio_sfx.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/code/audio_sfx.c; updating their references touches 3 files in total.
+
+  * D_80133340 -> sSfxDebugName
+    deduced, confidence HIGH
+
+  * D_80133344 -> sSfxDistOverPrintMsg
+    deduced, confidence HIGH
+
+  * D_801333D0 -> sBgmMutedChannels
+    deduced, confidence HIGH
+
+  * D_801333F8 -> sSfxSwapTablesInitialized
+    deduced, confidence HIGH
+
+  * func_800F8884 -> Audio_RemoveSfxFromBankByPos
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800F8F88 -> Audio_UpdateActiveSounds
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h      |  4 ++--
+ soh/src/code/audio_general.c |  2 +-
+ soh/src/code/audio_sfx.c     | 38 +++++++++++++++++++++---------------
+ 3 files changed, 25 insertions(+), 19 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 9e59fefae..f264c70f3 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2146,7 +2146,7 @@ void Audio_ProcessSoundRequest(void);
+ void Audio_ChooseActiveSounds(u8 bankId);
+ void Audio_PlayActiveSounds(u8 bankId);
+ void Audio_StopSfxByBank(u8 bankId);
+-void func_800F8884(u8, Vec3f*);
++void Audio_RemoveSfxFromBankByPos(u8, Vec3f*);  // was func_800F8884 [oot]
+ void Audio_StopSfxByPosAndBank(u8, Vec3f*);
+ void Audio_StopSfxByPos(Vec3f*);
+ void Audio_StartSequence(u8 playerIdx, u8 seqId, u8 arg2, u16 fadeTimer);
+@@ -2156,7 +2156,7 @@ void Audio_StopSfxByPosAndId(Vec3f* pos, u16 sfxId);
+ void Audio_StopSfxByTokenAndId(u8, u16);
+ void Audio_StopSfxById(u32 sfxId);
+ void Audio_ProcessSoundRequests(void);
+-void func_800F8F88(void);
++void Audio_UpdateActiveSounds(void);  // was func_800F8F88 [LLM:HIGH]
+ u8 Audio_IsSfxPlaying(u32 sfxId);
+ void Audio_ResetSounds(void);
+ void Audio_StopSequence(u8, u16);  // was func_800F9474 [oot]
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index ee9b16e8d..925f2adf9 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -3937,7 +3937,7 @@ void Audio_Update(void) {
+         }
+         Audio_ProcessSoundRequests();
+         Audio_ProcessSeqCmds();
+-        func_800F8F88();
++        Audio_UpdateActiveSounds();
+         Audio_UpdateActiveSequences();
+         AudioDebug_SetInput();
+         AudioDebug_ProcessInput();
+diff --git a/soh/src/code/audio_sfx.c b/soh/src/code/audio_sfx.c
+index f0b0dddc5..ab66d4122 100644
+--- a/soh/src/code/audio_sfx.c
++++ b/soh/src/code/audio_sfx.c
+@@ -22,10 +22,12 @@ typedef struct {
+ 
+ // rodata for Audio_ProcessSoundRequest (this file)
+ // (probably moved to .data due to -use_readwrite_const)
+-char D_80133340[] = "SE";
++// LLM generated name (HIGH), was D_80133340: string "SE" passed to AudioDebug_ScrPrt as the on-screen SFX debug label
++char sSfxDebugName[] = "SE";
+ 
+ // rodata for Audio_ChooseActiveSounds (this file)
+-char D_80133344[] = VT_COL(RED, WHITE) "<INAGAKI CHECK> dist over! flag:%04X ptr:%08X pos:%f-%f-%f" VT_RST "\n";
++// LLM generated name (HIGH), was D_80133344: format string for the "dist over" SFX debug print via osSyncPrintf
++char sSfxDistOverPrintMsg[] = VT_COL(RED, WHITE) "<INAGAKI CHECK> dist over! flag:%04X ptr:%08X pos:%f-%f-%f" VT_RST "\n";
+ 
+ // file padding
+ s32 D_8013338C = 0;
+@@ -79,7 +81,8 @@ u8 sBankSizes[ARRAY_COUNT(gSoundBanks)] = {
+ 
+ u8 gSfxChannelLayout = 0;
+ 
+-u16 D_801333D0 = 0;
++// LLM generated name (HIGH), was D_801333D0: u16 bitmask OR'd/cleared per channel to mute BGM sequence channels
++u16 sBgmMutedChannels = 0;
+ 
+ Vec3f gSfxDefaultPos = { 0.0f, 0.0f, 0.0f }; // default pos
+ 
+@@ -95,7 +98,8 @@ u8 D_801333F0 = 0;
+ 
+ u8 gAudioSfxSwapOff = 0;
+ 
+-u8 D_801333F8 = 0;
++// LLM generated name (HIGH), was D_801333F8: one-shot flag guarding SFX swap-table initialization
++u8 sSfxSwapTablesInitialized = 0;
+ 
+ void Audio_SetSfxBanksMute(u16 muteMask) {
+     u8 bankId;
+@@ -111,14 +115,14 @@ void Audio_SetSfxBanksMute(u16 muteMask) {
+ }
+ 
+ void Audio_QueueSeqCmdMute(u8 channelIdx) {
+-    D_801333D0 |= (1 << channelIdx);
++    sBgmMutedChannels |= (1 << channelIdx);
+     Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 2, 0x40, 0xF);
+     Audio_SetVolScale(SEQ_PLAYER_BGM_SUB, 2, 0x40, 0xF);
+ }
+ 
+ void Audio_ClearBGMMute(u8 channelIdx) {
+-    D_801333D0 &= ((1 << channelIdx) ^ 0xFFFF);
+-    if (D_801333D0 == 0) {
++    sBgmMutedChannels &= ((1 << channelIdx) ^ 0xFFFF);
++    if (sBgmMutedChannels == 0) {
+         Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 2, 0x7F, 0xF);
+         Audio_SetVolScale(SEQ_PLAYER_BGM_SUB, 2, 0x7F, 0xF);
+     }
+@@ -228,7 +232,7 @@ void Audio_ProcessSoundRequest(void) {
+     }
+     bankId = SFX_BANK(req->sfxId);
+     if ((1 << bankId) & D_801333F0) {
+-        AudioDebug_ScrPrt((const s8*)D_80133340, req->sfxId);
++        AudioDebug_ScrPrt((const s8*)sSfxDebugName, req->sfxId);
+         bankId = SFX_BANK(req->sfxId);
+     }
+     count = 0;
+@@ -389,7 +393,7 @@ void Audio_ChooseActiveSounds(u8 bankId) {
+             } else {
+                 if (entry->dist > 0x7FFFFFD0) {
+                     entry->dist = 0x70000008;
+-                    osSyncPrintf(D_80133344, entry->sfxId, entry->posX, entry->posZ, *entry->posX, *entry->posY,
++                    osSyncPrintf(sSfxDistOverPrintMsg, entry->sfxId, entry->posX, entry->posZ, *entry->posX, *entry->posY,
+                                  *entry->posZ);
+                 }
+                 temp3 = entry->sfxId; // fake
+@@ -575,7 +579,8 @@ void Audio_StopSfxByBank(u8 bankId) {
+     Audio_RemoveMatchingSoundRequests(0, &cmp);
+ }
+ 
+-void func_800F8884(u8 bankId, Vec3f* pos) {
++// Name from zeldaret/oot, was func_800F8884: removes sound-bank entries whose posX pointer matches the given pos [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sfx.c]
++void Audio_RemoveSfxFromBankByPos(u8 bankId, Vec3f* pos) {
+     SoundBankEntry* entry;
+     u8 entryIndex = gSoundBanks[bankId][0].next;
+     u8 prevEntryIndex = 0;
+@@ -599,7 +604,7 @@ void func_800F8884(u8 bankId, Vec3f* pos) {
+ void Audio_StopSfxByPosAndBank(u8 bankId, Vec3f* pos) {
+     SoundBankEntry cmp;
+ 
+-    func_800F8884(bankId, pos);
++    Audio_RemoveSfxFromBankByPos(bankId, pos);
+     cmp.sfxId = bankId << 12;
+     cmp.posX = &pos->x;
+     Audio_RemoveMatchingSoundRequests(1, &cmp);
+@@ -610,7 +615,7 @@ void Audio_StopSfxByPos(Vec3f* pos) {
+     SoundBankEntry cmp;
+ 
+     for (i = 0; i < ARRAY_COUNT(gSoundBanks); i++) {
+-        func_800F8884(i, pos);
++        Audio_RemoveSfxFromBankByPos(i, pos);
+     }
+     cmp.posX = &pos->x;
+     Audio_RemoveMatchingSoundRequests(2, &cmp);
+@@ -722,7 +727,8 @@ void Audio_StepUnusedBankLerp(u8 bankId) {
+     }
+ }
+ 
+-void func_800F8F88(void) {
++// LLM generated name (HIGH), was func_800F8F88: per-frame choose/play/step of active sounds across all SFX banks
++void Audio_UpdateActiveSounds(void) {
+     u8 bankId;
+ 
+     if (IS_SEQUENCE_CHANNEL_VALID(gAudioContext.seqPlayers[SEQ_PLAYER_SFX].channels[0])) {
+@@ -756,7 +762,7 @@ void Audio_ResetSounds(void) {
+ 
+     sSoundRequestWriteIndex = 0;
+     sSoundRequestReadIndex = 0;
+-    D_801333D0 = 0;
++    sBgmMutedChannels = 0;
+     for (bankId = 0; bankId < ARRAY_COUNT(gSoundBanks); bankId++) {
+         sSoundBankListEnd[bankId] = 0;
+         sSoundBankFreeListStart[bankId] = 1;
+@@ -780,12 +786,12 @@ void Audio_ResetSounds(void) {
+         gSoundBanks[bankId][i].prev = i - 1;
+         gSoundBanks[bankId][i].next = 0xFF;
+     }
+-    if (D_801333F8 == 0) {
++    if (sSfxSwapTablesInitialized == 0) {
+         for (bankId = 0; bankId < 10; bankId++) {
+             gAudioSfxSwapSource[bankId] = 0;
+             gAudioSfxSwapTarget[bankId] = 0;
+             gAudioSfxSwapMode[bankId] = 0;
+         }
+-        D_801333F8++;
++        sSfxSwapTablesInitialized++;
+     }
+ }
+-- 
+2.55.0
+

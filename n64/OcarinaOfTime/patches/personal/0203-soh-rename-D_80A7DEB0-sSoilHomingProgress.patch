@@ -1,0 +1,104 @@
+From b3c2a5485c392074faf645cc5670b1350d3fd99b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:15 +0000
+Subject: [PATCH 203/488] soh: rename D_80A7DEB0 -> sSoilHomingProgress
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: f32 ramped by 1/300 per frame and clamped at 1.0, reset to 0 when a bug finds nearby soil; it shrinks the random wander radius around the soil actor until the bug heads straight for it.
+Defined in soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Insect/z_en_insect.c        | 27 ++++++++++---------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c b/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
+index 752e212f4..4adc9c598 100644
+--- a/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
++++ b/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
+@@ -33,12 +33,13 @@ void EnInsect_Drown(EnInsect* this, PlayState* play);
+ void EnInsect_SetupDropped(EnInsect* this);
+ void EnInsect_Dropped(EnInsect* this, PlayState* play);
+ 
+-static f32 D_80A7DEB0 = 0.0f;
++// LLM generated name (HIGH), was D_80A7DEB0: f32 ramped by 1/300 per frame and clamped at 1.0, reset to 0 when a bug finds nearby soil; it shrinks the random wander radius around the soil actor until the bug heads straight for it.
++static f32 sSoilHomingProgress = 0.0f;  // was D_80A7DEB0 [LLM:HIGH]
+ static s16 sCaughtCount = 0;
+ s16 sDroppedCount = 0; // not static: read by NoBugsDespawn.cpp
+ 
+ #define EN_INSECT_SHIP_SAVESTATE_FIELDS(F) \
+-    F(D_80A7DEB0)                          \
++    F(sSoilHomingProgress)                 \
+     F(sCaughtCount)                        \
+     F(sDroppedCount)
+ 
+@@ -203,7 +204,7 @@ void EnInsect_Init(Actor* thisx, PlayState* play2) {
+     if (temp_s2 == 2 || temp_s2 == 3) {
+         if (EnInsect_FoundNearbySoil(this, play)) {
+             this->insectFlags |= 0x10;
+-            D_80A7DEB0 = 0.0f;
++            sSoilHomingProgress = 0.0f;  // was D_80A7DEB0 [LLM:HIGH]
+         }
+ 
+         if (temp_s2 == 2) {
+@@ -598,18 +599,18 @@ void EnInsect_Dropped(EnInsect* this, PlayState* play) {
+         sp40 = 40.0f;
+     }
+ 
+-    D_80A7DEB0 += 0.99999994f / 300.0f;
+-    if (D_80A7DEB0 > 1.0f) {
+-        D_80A7DEB0 = 1.0f;
++    sSoilHomingProgress += 0.99999994f / 300.0f;  // was D_80A7DEB0 [LLM:HIGH]
++    if (sSoilHomingProgress > 1.0f) {  // was D_80A7DEB0 [LLM:HIGH]
++        sSoilHomingProgress = 1.0f;  // was D_80A7DEB0 [LLM:HIGH]
+     }
+ 
+-    if (D_80A7DEB0 > 0.999f) {
++    if (sSoilHomingProgress > 0.999f) {  // was D_80A7DEB0 [LLM:HIGH]
+         phi_f2 = 0.0f;
+     } else {
+         if (sp40 > 900.0f) {
+-            phi_f2 = ((1.1f - D_80A7DEB0) * 100.0f) + 20.0f;
++            phi_f2 = ((1.1f - sSoilHomingProgress) * 100.0f) + 20.0f;  // was D_80A7DEB0 [LLM:HIGH]
+         } else {
+-            phi_f2 = (1.0f - D_80A7DEB0) * 10.0f;
++            phi_f2 = (1.0f - sSoilHomingProgress) * 10.0f;  // was D_80A7DEB0 [LLM:HIGH]
+         }
+     }
+ 
+@@ -619,7 +620,7 @@ void EnInsect_Dropped(EnInsect* this, PlayState* play) {
+         this->actor.home.pos.z = (Rand_ZeroOne() - 0.5f) * phi_f2 + thisTemp->soilActor->actor.world.pos.z;
+     }
+ 
+-    if (D_80A7DEB0 > 0.999f) {
++    if (sSoilHomingProgress > 0.999f) {  // was D_80A7DEB0 [LLM:HIGH]
+         this->unk_328 = Math_Vec3f_Yaw(&this->actor.world.pos, &this->actor.home.pos);
+         this->unk_324 = Rand_ZeroOne() * 0.6f + 0.6f;
+     } else if (Rand_ZeroOne() < 0.07f) {
+@@ -629,7 +630,7 @@ void EnInsect_Dropped(EnInsect* this, PlayState* play) {
+             this->unk_324 = Rand_ZeroOne() * 0.8f + 1.0f;
+         }
+ 
+-        sp34 = 1.3f - D_80A7DEB0;
++        sp34 = 1.3f - sSoilHomingProgress;  // was D_80A7DEB0 [LLM:HIGH]
+         if (sp34 < 0.0f) {
+             sp34 = 0.0f;
+         } else {
+@@ -807,7 +808,7 @@ void EnInsect_Draw(Actor* thisx, PlayState* play) {
+ }
+ 
+ void EnInsect_Reset(void) {
+-    D_80A7DEB0 = 0.0f;
++    sSoilHomingProgress = 0.0f;  // was D_80A7DEB0 [LLM:HIGH]
+     sCaughtCount = 0;
+     sDroppedCount = 0;
+-}
+\ No newline at end of file
++}
+-- 
+2.55.0
+

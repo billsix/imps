@@ -1,0 +1,753 @@
+From b1127705a4f13c6b7de0c1696b473c71d16de136 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 371/488] soh: name the 29 address-named symbols defined in
+ z_en_nb.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 29 are defined in soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c.
+
+  * func_80AB0FBC -> EnNb_TrackPlayerHead
+    deduced, confidence HIGH: points Npc_TrackPoint at the player with
+    NPC_TRACKING_HEAD_AND_TORSO
+
+  * func_80AB1040 -> EnNb_TrackPlayerBody
+    deduced, confidence HIGH: the same tracking call with
+    NPC_TRACKING_FULL_BODY
+
+  * func_80AB10C4 -> EnNb_ReturnHeadToNeutral
+    deduced, confidence HIGH: eases the head and torso rotations back to
+    zero
+
+  * func_80AB11EC -> EnNb_SetupHiddenAfterCs
+    deduced, confidence HIGH: drops to the invisible action with alpha,
+    shadow and flag cleared
+
+  * func_80AB1210 -> EnNb_WatchCutsceneEnd
+    deduced, confidence HIGH: latches while a cutscene runs and, on its end,
+    hides the NB_TYPE_DEMO02 Nabooru
+
+  * func_80AB1284 -> EnNb_UpdateBgCheck
+    deduced, confidence HIGH: runs Actor_UpdateBgCheckInfo with Nabooru's
+    dimensions
+
+  * func_80AB1390 -> EnNb_IsCueAction
+    deduced, confidence HIGH: true when the given cue channel is live and
+    sitting on the caller's action id
+
+  * func_80AB13D8 -> EnNb_IsNotCueAction
+    deduced, confidence HIGH: true when that cue channel is live and on any
+    action other than the caller's
+
+  * func_80AB193C -> EnNb_ChamberIdle
+    deduced, confidence HIGH: the NB_CHAMBER_IDLE step: keeps the animation
+    and eyes running and watches for the arm-raise cue
+
+  * func_80AB19BC -> EnNb_RaisedArmTransition
+    deduced, confidence HIGH: the NB_CHAMBER_RAISE_ARM_TRANSITION step: runs
+    the animation out and watches for the medallion cue
+
+  * func_80AB19FC -> EnNb_WaitDuringMedallion
+    deduced, confidence GUESS: the step the enum calls NB_GIVE_MEDALLION,
+    but its body only advances the animation and eyes; the medallion itself
+    is handed over elsewhere
+
+  * func_80AB23A8 -> EnNb_Kidnapped
+    deduced, confidence HIGH: the NB_KIDNAPPED step: plays the cry and waits
+    for the kidnap cutscene to move on
+
+  * func_80AB2688 -> EnNb_ApplyRootMotion
+    deduced, confidence HIGH: enables the animation's root motion and queues
+    AnimationContext_SetMoveActor
+
+  * func_80AB26C8 -> EnNb_SetupConfrontationHidden
+    deduced, confidence HIGH: enters the confrontation action with nothing
+    drawn
+
+  * func_80AB26DC -> EnNb_SetupConfrontationKneel
+    deduced, confidence HIGH: snaps to the cue's position and starts the
+    collapse-to-kneeling animation with the kneeling draw mode
+
+  * func_80AB2C18 -> EnNb_ConfrontationIdle
+    deduced, confidence GUESS: the step the enum calls NB_ACTION_14: blinks,
+    applies root motion and watches the cutscene; its purpose beyond waiting
+    is not established
+
+  * func_80AB2E70 -> EnNb_DrawKneel
+    deduced, confidence HIGH: draw mode NB_DRAW_KNEEL: forces the wide-eye
+    texture and draws the skeleton
+
+  * func_80AB2FC0 -> EnNb_OverrideLimbDrawMouthOpen
+    deduced, confidence HIGH: swaps the head limb for
+    gNabooruHeadMouthOpenDL
+
+  * func_80AB2FE4 -> EnNb_DrawLookDirection
+    deduced, confidence HIGH: draw mode NB_DRAW_LOOK_DIRECTION: binds the
+    current eye texture and draws with the open-mouth head override
+
+  * func_80AB3428 -> EnNb_CreditsSit
+    deduced, confidence HIGH: the NB_CREDITS_SIT step: runs the sitting
+    animation and eyes while waiting on the credits cutscene
+
+  * func_80AB359C -> EnNb_LerpAlongPath
+    deduced, confidence HIGH: eases the actor from its recorded start
+    position to its end position over the kREG-tunable movement window
+
+  * func_80AB36DC -> EnNb_TurnAlongPath
+    deduced, confidence HIGH: turns onto the path yaw at the start of that
+    window and back onto the home yaw at its end
+
+  * func_80AB3838 -> EnNb_OfferCrawlspaceTalk
+    deduced, confidence HIGH: offers the crawlspace conversation, picking
+    the line from INFTABLE_16C
+
+  * func_80AB3A7C -> EnNb_CheckPathFinished
+    deduced, confidence HIGH: loops the walk animation until the movement
+    window closes, then stands and idles
+
+  * func_80AB3B04 -> EnNb_OfferTalkAfterPath
+    deduced, confidence HIGH: offers the post-walk conversation, preferring
+    any face reaction over text 0x6026
+
+  * func_80AB3B7C -> EnNb_WaitForTextClose
+    deduced, confidence HIGH: returns to the idle action and drops targeting
+    once the textbox closes
+
+  * func_80AB3DB0 -> EnNb_IdleAfterTalk
+    deduced, confidence HIGH: the NB_IDLE_AFTER_TALK step: head-tracks the
+    player and re-offers the conversation
+
+  * func_80AB3E10 -> EnNb_WaitTalkEndAfterPath
+    deduced, confidence HIGH: the last step: body-tracks the player until
+    the textbox closes
+
+  * D_80AB4318 -> sCsRunning
+    deduced, confidence HIGH: overlay-wide latch that a cutscene was
+    running, so its end can be detected on the next update
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c | 209 +++++++++++---------
+ 1 file changed, 119 insertions(+), 90 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c b/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
+index 453ed1d3f..f089030b2 100644
+--- a/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
++++ b/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
+@@ -84,7 +84,8 @@ static void* sEyeTextures[] = {
+     gNabooruEyeClosedTex,
+ };
+ 
+-static s32 D_80AB4318 = 0;
++// LLM generated name (HIGH), was D_80AB4318: overlay-wide latch that a cutscene was running, so its end can be detected on the next update
++static s32 sCsRunning = 0;  // was D_80AB4318 [LLM:HIGH]
+ 
+ #include "z_en_nb_cutscene_data.c" EARLY
+ 
+@@ -146,11 +147,12 @@ void EnNb_UpdateCollider(EnNb* this, PlayState* play) {
+ void EnNb_Destroy(Actor* thisx, PlayState* play) {
+     EnNb* this = (EnNb*)thisx;
+ 
+-    D_80AB4318 = 0;
++    sCsRunning = 0;  // was D_80AB4318 [LLM:HIGH]
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80AB0FBC(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB0FBC: points Npc_TrackPoint at the player with NPC_TRACKING_HEAD_AND_TORSO
++void EnNb_TrackPlayerHead(EnNb* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -158,7 +160,8 @@ void func_80AB0FBC(EnNb* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, kREG(17) + 0xC, NPC_TRACKING_HEAD_AND_TORSO);
+ }
+ 
+-void func_80AB1040(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB1040: the same tracking call with NPC_TRACKING_FULL_BODY
++void EnNb_TrackPlayerBody(EnNb* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -166,7 +169,8 @@ void func_80AB1040(EnNb* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, kREG(17) + 0xC, NPC_TRACKING_FULL_BODY);
+ }
+ 
+-void func_80AB10C4(EnNb* this) {
++// LLM generated name (HIGH), was func_80AB10C4: eases the head and torso rotations back to zero
++void EnNb_ReturnHeadToNeutral(EnNb* this) {
+     s32 pad2[2];
+     Vec3s* tempPtr;
+     Vec3s* tempPtr2;
+@@ -194,7 +198,8 @@ void EnNb_UpdateEyes(EnNb* this) {
+     }
+ }
+ 
+-void func_80AB11EC(EnNb* this) {
++// LLM generated name (HIGH), was func_80AB11EC: drops to the invisible action with alpha, shadow and flag cleared
++void EnNb_SetupHiddenAfterCs(EnNb* this) {
+     this->action = NB_ACTION_7;
+     this->drawMode = NB_DRAW_NOTHING;
+     this->alpha = 0;
+@@ -203,26 +208,28 @@ void func_80AB11EC(EnNb* this) {
+     this->alphaTimer = 0.0f;
+ }
+ 
+-void func_80AB1210(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB1210: latches while a cutscene runs and, on its end, hides the NB_TYPE_DEMO02 Nabooru
++void EnNb_WatchCutsceneEnd(EnNb* this, PlayState* play) {
+     s32 one; // required to match
+ 
+     if (play->csCtx.state == CS_STATE_IDLE) {
+-        if (D_80AB4318) {
++        if (sCsRunning) {  // was D_80AB4318 [LLM:HIGH]
+             if (this->actor.params == NB_TYPE_DEMO02) {
+-                func_80AB11EC(this);
++                EnNb_SetupHiddenAfterCs(this);  // was func_80AB11EC [LLM:HIGH]
+             }
+ 
+-            D_80AB4318 = 0;
++            sCsRunning = 0;  // was D_80AB4318 [LLM:HIGH]
+         }
+     } else {
+         one = 1;
+-        if (!D_80AB4318) {
+-            D_80AB4318 = one;
++        if (!sCsRunning) {  // was D_80AB4318 [LLM:HIGH]
++            sCsRunning = one;  // was D_80AB4318 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80AB1284(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB1284: runs Actor_UpdateBgCheckInfo with Nabooru's dimensions
++void EnNb_UpdateBgCheck(EnNb* this, PlayState* play) {
+     Actor_UpdateBgCheckInfo(play, &this->actor, 75.0f, 30.0f, 30.0f, 4);
+ }
+ 
+@@ -250,7 +257,8 @@ void EnNb_SetupCsPosRot(EnNb* this, PlayState* play, s32 npcActionIdx) {
+     }
+ }
+ 
+-s32 func_80AB1390(EnNb* this, PlayState* play, u16 arg2, s32 npcActionIdx) {
++// LLM generated name (HIGH), was func_80AB1390: true when the given cue channel is live and sitting on the caller's action id
++s32 EnNb_IsCueAction(EnNb* this, PlayState* play, u16 arg2, s32 npcActionIdx) {
+     CsCmdActorCue* csCmdNPCAction;
+ 
+     if ((play->csCtx.state != CS_STATE_IDLE) &&
+@@ -261,7 +269,8 @@ s32 func_80AB1390(EnNb* this, PlayState* play, u16 arg2, s32 npcActionIdx) {
+     return false;
+ }
+ 
+-s32 func_80AB13D8(EnNb* this, PlayState* play, u16 arg2, s32 npcActionIdx) {
++// LLM generated name (HIGH), was func_80AB13D8: true when that cue channel is live and on any action other than the caller's
++s32 EnNb_IsNotCueAction(EnNb* this, PlayState* play, u16 arg2, s32 npcActionIdx) {
+     CsCmdActorCue* csCmdNPCAction;
+ 
+     if ((play->csCtx.state != CS_STATE_IDLE) &&
+@@ -421,8 +430,9 @@ void EnNb_ComeUp(EnNb* this, PlayState* play) {
+     EnNb_SetupDefaultChamberIdle(this);
+ }
+ 
+-void func_80AB193C(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++// LLM generated name (HIGH), was func_80AB193C: the NB_CHAMBER_IDLE step: keeps the animation and eyes running and watches for the arm-raise cue
++void EnNb_ChamberIdle(EnNb* this, PlayState* play) {
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_SetupArmRaise(this, play);
+@@ -431,21 +441,23 @@ void func_80AB193C(EnNb* this, PlayState* play) {
+ void EnNb_RaiseArm(EnNb* this, PlayState* play) {
+     s32 animFinished;
+ 
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     animFinished = EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_SetupRaisedArmTransition(this, animFinished);
+ }
+ 
+-void func_80AB19BC(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++// LLM generated name (HIGH), was func_80AB19BC: the NB_CHAMBER_RAISE_ARM_TRANSITION step: runs the animation out and watches for the medallion cue
++void EnNb_RaisedArmTransition(EnNb* this, PlayState* play) {
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_SetupMedallion(this, play);
+ }
+ 
+-void func_80AB19FC(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++// LLM generated name (GUESS), was func_80AB19FC: the step the enum calls NB_GIVE_MEDALLION, but its body only advances the animation and eyes; the medallion itself is handed over elsewhere
++void EnNb_WaitDuringMedallion(EnNb* this, PlayState* play) {
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+ }
+@@ -466,7 +478,7 @@ void EnNb_InitializeDemo6K(EnNb* this, PlayState* play) {
+ }
+ 
+ void EnNb_SetupHide(EnNb* this, PlayState* play) {
+-    if (func_80AB1390(this, play, 4, 1)) {
++    if (EnNb_IsCueAction(this, play, 4, 1)) {  // was func_80AB1390 [LLM:HIGH]
+         this->action = NB_SEAL_HIDE;
+         this->drawMode = NB_DRAW_HIDE;
+         this->alpha = 0;
+@@ -480,7 +492,7 @@ void EnNb_CheckToFade(EnNb* this, PlayState* play) {
+     f32* alphaTimer = &this->alphaTimer;
+     s32 alpha;
+ 
+-    if (func_80AB1390(this, play, 4, 1)) {
++    if (EnNb_IsCueAction(this, play, 4, 1)) {  // was func_80AB1390 [LLM:HIGH]
+         *alphaTimer += 1.0f;
+         if (*alphaTimer >= kREG(5) + 10.0f) {
+             this->action = NB_ACTION_9;
+@@ -508,7 +520,7 @@ void EnNb_CheckToFade(EnNb* this, PlayState* play) {
+ }
+ 
+ void EnNb_SetupLightOrb(EnNb* this, PlayState* play) {
+-    if (func_80AB13D8(this, play, 4, 1)) {
++    if (EnNb_IsNotCueAction(this, play, 4, 1)) {  // was func_80AB13D8 [LLM:HIGH]
+         this->action = NB_SEAL_HIDE;
+         this->drawMode = NB_DRAW_HIDE;
+         this->alphaTimer = kREG(5) + 10.0f;
+@@ -525,23 +537,23 @@ void EnNb_SetupLightOrb(EnNb* this, PlayState* play) {
+ 
+ void EnNb_Hide(EnNb* this, PlayState* play) {
+     EnNb_SetupHide(this, play);
+-    func_80AB1210(this, play);
++    EnNb_WatchCutsceneEnd(this, play);  // was func_80AB1210 [LLM:HIGH]
+ }
+ 
+ void EnNb_Fade(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_CheckToFade(this, play);
+-    func_80AB1210(this, play);
++    EnNb_WatchCutsceneEnd(this, play);  // was func_80AB1210 [LLM:HIGH]
+ }
+ 
+ void EnNb_CreateLightOrb(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_SetupLightOrb(this, play);
+-    func_80AB1210(this, play);
++    EnNb_WatchCutsceneEnd(this, play);  // was func_80AB1210 [LLM:HIGH]
+ }
+ 
+ void EnNb_DrawTransparency(EnNb* this, PlayState* play) {
+@@ -669,7 +681,8 @@ void EnNb_CheckKidnapCsMode(EnNb* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB23A8(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB23A8: the NB_KIDNAPPED step: plays the cry and waits for the kidnap cutscene to move on
++void EnNb_Kidnapped(EnNb* this, PlayState* play) {
+     EnNb_PlayCrySFX(this, play);
+     EnNb_CheckKidnapCsMode(this, play);
+ }
+@@ -739,18 +752,21 @@ void EnNb_InitDemo6KInConfrontation(EnNb* this, PlayState* play) {
+                 kREG(21) + 22.0f + this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0, 0xB);
+ }
+ 
+-void func_80AB2688(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB2688: enables the animation's root motion and queues AnimationContext_SetMoveActor
++void EnNb_ApplyRootMotion(EnNb* this, PlayState* play) {
+     this->skelAnime.movementFlags |= 1;
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+ 
+-void func_80AB26C8(EnNb* this) {
++// LLM generated name (HIGH), was func_80AB26C8: enters the confrontation action with nothing drawn
++void EnNb_SetupConfrontationHidden(EnNb* this) {
+     this->action = NB_IN_CONFRONTATION;
+     this->drawMode = NB_DRAW_NOTHING;
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-void func_80AB26DC(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB26DC: snaps to the cue's position and starts the collapse-to-kneeling animation with the kneeling draw mode
++void EnNb_SetupConfrontationKneel(EnNb* this, PlayState* play) {
+     s32 pad;
+     AnimationHeader* animation = &gNabooruCollapseFromStandingToKneelingTransitionAnim;
+     f32 lastFrame = Animation_GetLastFrame(animation);
+@@ -857,10 +873,10 @@ void EnNb_CheckConfrontationCsMode(EnNb* this, PlayState* play) {
+         if (csAction != previousCsAction) {
+             switch (csAction) {
+                 case 1:
+-                    func_80AB26C8(this);
++                    EnNb_SetupConfrontationHidden(this);  // was func_80AB26C8 [LLM:HIGH]
+                     break;
+                 case 10:
+-                    func_80AB26DC(this, play);
++                    EnNb_SetupConfrontationKneel(this, play);  // was func_80AB26DC [LLM:HIGH]
+                     break;
+                 case 11:
+                     EnNb_SetupKneel(this);
+@@ -891,10 +907,11 @@ void EnNb_CheckConfrontationCsModeWrapper(EnNb* this, PlayState* play) {
+     EnNb_CheckConfrontationCsMode(this, play);
+ }
+ 
+-void func_80AB2C18(EnNb* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80AB2C18: the step the enum calls NB_ACTION_14: blinks, applies root motion and watches the cutscene; its purpose beyond waiting is not established
++void EnNb_ConfrontationIdle(EnNb* this, PlayState* play) {
+     EnNb_UpdateEyes(this);
+-    func_80AB2688(this, play);
+-    func_80AB1284(this, play);
++    EnNb_ApplyRootMotion(this, play);  // was func_80AB2688 [LLM:HIGH]
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_CheckConfrontationCsMode(this, play);
+ }
+ 
+@@ -905,8 +922,8 @@ void EnNb_Kneel(EnNb* this, PlayState* play) {
+     animFinished = EnNb_UpdateSkelAnime(this);
+     EnNb_CheckIfKneeling(this, animFinished);
+     EnNb_PlayKneelingOnGroundSFX(this);
+-    func_80AB2688(this, play);
+-    func_80AB1284(this, play);
++    EnNb_ApplyRootMotion(this, play);  // was func_80AB2688 [LLM:HIGH]
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_CheckConfrontationCsMode(this, play);
+ }
+ 
+@@ -917,8 +934,8 @@ void EnNb_LookRight(EnNb* this, PlayState* play) {
+     animFinished = EnNb_UpdateSkelAnime(this);
+     EnNb_CheckIfLookingRight(this, animFinished);
+     EnNb_PlayLookRightSFX(this);
+-    func_80AB2688(this, play);
+-    func_80AB1284(this, play);
++    EnNb_ApplyRootMotion(this, play);  // was func_80AB2688 [LLM:HIGH]
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_CheckConfrontationCsMode(this, play);
+ }
+ 
+@@ -928,8 +945,8 @@ void EnNb_LookLeft(EnNb* this, PlayState* play) {
+     EnNb_UpdateEyes(this);
+     animFinished = EnNb_UpdateSkelAnime(this);
+     EnNb_CheckIfLookLeft(this, animFinished);
+-    func_80AB2688(this, play);
+-    func_80AB1284(this, play);
++    EnNb_ApplyRootMotion(this, play);  // was func_80AB2688 [LLM:HIGH]
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_CheckConfrontationCsMode(this, play);
+ }
+ 
+@@ -940,8 +957,8 @@ void EnNb_Run(EnNb* this, PlayState* play) {
+     EnNb_UpdateEyes(this);
+     animFinished = EnNb_UpdateSkelAnime(this);
+     EnNb_PlayLookLeftSFX(this);
+-    func_80AB2688(this, play);
+-    func_80AB1284(this, play);
++    EnNb_ApplyRootMotion(this, play);  // was func_80AB2688 [LLM:HIGH]
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_SetupDemo6KInConfrontation(this, play, animFinished);
+     EnNb_CheckConfrontationCsMode(this, play);
+ }
+@@ -954,7 +971,8 @@ void EnNb_ConfrontationDestroy(EnNb* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB2E70(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB2E70: draw mode NB_DRAW_KNEEL: forces the wide-eye texture and draws the skeleton
++void EnNb_DrawKneel(EnNb* this, PlayState* play) {
+     s32 pad;
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+@@ -970,7 +988,8 @@ void func_80AB2E70(EnNb* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-s32 func_80AB2FC0(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx) {
++// LLM generated name (HIGH), was func_80AB2FC0: swaps the head limb for gNabooruHeadMouthOpenDL
++s32 EnNb_OverrideLimbDrawMouthOpen(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx) {
+     EnNb* this = (EnNb*)thisx;
+ 
+     if (limbIndex == NB_LIMB_HEAD) {
+@@ -980,7 +999,8 @@ s32 func_80AB2FC0(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+     return 0;
+ }
+ 
+-void func_80AB2FE4(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB2FE4: draw mode NB_DRAW_LOOK_DIRECTION: binds the current eye texture and draws with the open-mouth head override
++void EnNb_DrawLookDirection(EnNb* this, PlayState* play) {
+     s32 pad;
+     s16 eyeIdx = this->eyeIdx;
+     SkelAnime* skelAnime = &this->skelAnime;
+@@ -994,7 +1014,7 @@ void func_80AB2FE4(EnNb* this, PlayState* play) {
+     gSPSegment(POLY_OPA_DISP++, 0x09, SEGMENTED_TO_VIRTUAL(eyeTexture));
+     gDPSetEnvColor(POLY_OPA_DISP++, 0, 0, 0, 255);
+     gSPSegment(POLY_OPA_DISP++, 0x0C, &D_80116280[2]);
+-    SkelAnime_DrawSkeletonOpa(play, skelAnime, func_80AB2FC0, NULL, &this->actor);
++    SkelAnime_DrawSkeletonOpa(play, skelAnime, EnNb_OverrideLimbDrawMouthOpen, NULL, &this->actor);  // was func_80AB2FC0 [LLM:HIGH]
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+@@ -1077,15 +1097,16 @@ void EnNb_CheckCreditsCsMode(EnNb* this, PlayState* play) {
+ }
+ 
+ void EnNb_CreditsFade(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_SetAlphaInCredits(this);
+     EnNb_SetupCreditsSit(this);
+ }
+ 
+-void func_80AB3428(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++// LLM generated name (HIGH), was func_80AB3428: the NB_CREDITS_SIT step: runs the sitting animation and eyes while waiting on the credits cutscene
++void EnNb_CreditsSit(EnNb* this, PlayState* play) {
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_CheckCreditsCsModeImpl(this, play);
+@@ -1094,7 +1115,7 @@ void func_80AB3428(EnNb* this, PlayState* play) {
+ void EnNb_LookUp(EnNb* this, PlayState* play) {
+     s32 animFinished;
+ 
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     animFinished = EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_CheckIfLookingUp(this, animFinished);
+@@ -1122,7 +1143,8 @@ void EnNb_CrawlspaceSpawnCheck(EnNb* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB359C(EnNb* this) {
++// LLM generated name (HIGH), was func_80AB359C: eases the actor from its recorded start position to its end position over the kREG-tunable movement window
++void EnNb_LerpAlongPath(EnNb* this) {
+     PosRot* world = &this->actor.world;
+     Vec3f* initialPos = &this->initialPos;
+     Vec3f* finalPos = &this->finalPos;
+@@ -1161,7 +1183,8 @@ s32 EnNb_GetNoticedStatus(EnNb* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB36DC(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB36DC: turns onto the path yaw at the start of that window and back onto the home yaw at its end
++void EnNb_TurnAlongPath(EnNb* this, PlayState* play) {
+     u16 moveTime = this->movementTimer;
+ 
+     if ((((u16)((u16)(kREG(17) + 25) - 4))) > moveTime) {
+@@ -1196,7 +1219,8 @@ void EnNb_SetupIdleCrawlspace(EnNb* this, s32 animFinished) {
+     }
+ }
+ 
+-void func_80AB3838(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB3838: offers the crawlspace conversation, picking the line from INFTABLE_16C
++void EnNb_OfferCrawlspaceTalk(EnNb* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->action = NB_IN_DIALOG;
+     } else {
+@@ -1275,7 +1299,8 @@ void EnNb_SetTextIdAsChild(EnNb* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB3A7C(EnNb* this, PlayState* play, s32 animFinished) {
++// LLM generated name (HIGH), was func_80AB3A7C: loops the walk animation until the movement window closes, then stands and idles
++void EnNb_CheckPathFinished(EnNb* this, PlayState* play, s32 animFinished) {
+     u16 movementTimer = this->movementTimer;
+ 
+     if ((u16)(kREG(17) + 25) > movementTimer) {
+@@ -1288,7 +1313,8 @@ void func_80AB3A7C(EnNb* this, PlayState* play, s32 animFinished) {
+     }
+ }
+ 
+-void func_80AB3B04(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB3B04: offers the post-walk conversation, preferring any face reaction over text 0x6026
++void EnNb_OfferTalkAfterPath(EnNb* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->action = NB_ACTION_30;
+     } else {
+@@ -1303,7 +1329,8 @@ void func_80AB3B04(EnNb* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB3B7C(EnNb* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB3B7C: returns to the idle action and drops targeting once the textbox closes
++void EnNb_WaitForTextClose(EnNb* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         this->action = NB_IDLE_AFTER_TALK;
+         this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+@@ -1311,7 +1338,7 @@ void func_80AB3B7C(EnNb* this, PlayState* play) {
+ }
+ 
+ void EnNb_WaitForNotice(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateCollider(this, play);
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+@@ -1321,7 +1348,7 @@ void EnNb_WaitForNotice(EnNb* this, PlayState* play) {
+ void EnNb_StandUpAfterNotice(EnNb* this, PlayState* play) {
+     s32 animFinished;
+ 
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateCollider(this, play);
+     animFinished = EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+@@ -1329,18 +1356,18 @@ void EnNb_StandUpAfterNotice(EnNb* this, PlayState* play) {
+ }
+ 
+ void EnNb_BlockCrawlspace(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateCollider(this, play);
+-    func_80AB0FBC(this, play);
++    EnNb_TrackPlayerHead(this, play);  // was func_80AB0FBC [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+-    func_80AB3838(this, play);
++    EnNb_OfferCrawlspaceTalk(this, play);  // was func_80AB3838 [LLM:HIGH]
+ }
+ 
+ void EnNb_InitCrawlspaceDialogue(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateCollider(this, play);
+-    func_80AB0FBC(this, play);
++    EnNb_TrackPlayerHead(this, play);  // was func_80AB0FBC [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+     EnNb_SetTextIdAsChild(this, play);
+@@ -1349,50 +1376,52 @@ void EnNb_InitCrawlspaceDialogue(EnNb* this, PlayState* play) {
+ void EnNb_FollowPath(EnNb* this, PlayState* play) {
+     s32 animFinished;
+ 
+-    func_80AB359C(this);
+-    func_80AB1284(this, play);
++    EnNb_LerpAlongPath(this);  // was func_80AB359C [LLM:HIGH]
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateCollider(this, play);
+-    func_80AB36DC(this, play);
+-    func_80AB10C4(this);
++    EnNb_TurnAlongPath(this, play);  // was func_80AB36DC [LLM:HIGH]
++    EnNb_ReturnHeadToNeutral(this);  // was func_80AB10C4 [LLM:HIGH]
+     animFinished = EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+-    func_80AB3A7C(this, play, animFinished);
++    EnNb_CheckPathFinished(this, play, animFinished);  // was func_80AB3A7C [LLM:HIGH]
+ }
+ 
+-void func_80AB3DB0(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++// LLM generated name (HIGH), was func_80AB3DB0: the NB_IDLE_AFTER_TALK step: head-tracks the player and re-offers the conversation
++void EnNb_IdleAfterTalk(EnNb* this, PlayState* play) {
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateCollider(this, play);
+-    func_80AB0FBC(this, play);
++    EnNb_TrackPlayerHead(this, play);  // was func_80AB0FBC [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+-    func_80AB3B04(this, play);
++    EnNb_OfferTalkAfterPath(this, play);  // was func_80AB3B04 [LLM:HIGH]
+ }
+ 
+-void func_80AB3E10(EnNb* this, PlayState* play) {
+-    func_80AB1284(this, play);
++// LLM generated name (HIGH), was func_80AB3E10: the last step: body-tracks the player until the textbox closes
++void EnNb_WaitTalkEndAfterPath(EnNb* this, PlayState* play) {
++    EnNb_UpdateBgCheck(this, play);  // was func_80AB1284 [LLM:HIGH]
+     EnNb_UpdateCollider(this, play);
+-    func_80AB1040(this, play);
++    EnNb_TrackPlayerBody(this, play);  // was func_80AB1040 [LLM:HIGH]
+     EnNb_UpdateSkelAnime(this);
+     EnNb_UpdateEyes(this);
+-    func_80AB3B7C(this, play);
++    EnNb_WaitForTextClose(this, play);  // was func_80AB3B7C [LLM:HIGH]
+ }
+ 
+ static EnNbActionFunc sActionFuncs[] = {
+     EnNb_SetupChamberCs,
+     EnNb_SetupChamberWarp,
+     EnNb_ComeUp,
+-    func_80AB193C,
++    EnNb_ChamberIdle,  // was func_80AB193C [LLM:HIGH]
+     EnNb_RaiseArm,
+-    func_80AB19BC,
+-    func_80AB19FC,
++    EnNb_RaisedArmTransition,  // was func_80AB19BC [LLM:HIGH]
++    EnNb_WaitDuringMedallion,  // was func_80AB19FC [LLM:GUESS]
+     EnNb_Hide,
+     EnNb_Fade,
+     EnNb_CreateLightOrb,
+-    func_80AB23A8,
++    EnNb_Kidnapped,  // was func_80AB23A8 [LLM:HIGH]
+     EnNb_MovingInPortal,
+     EnNb_SuckedInByPortal,
+     EnNb_CheckConfrontationCsModeWrapper,
+-    func_80AB2C18,
++    EnNb_ConfrontationIdle,  // was func_80AB2C18 [LLM:GUESS]
+     EnNb_Kneel,
+     EnNb_LookRight,
+     EnNb_LookLeft,
+@@ -1400,15 +1429,15 @@ static EnNbActionFunc sActionFuncs[] = {
+     EnNb_ConfrontationDestroy,
+     EnNb_CheckCreditsCsMode,
+     EnNb_CreditsFade,
+-    func_80AB3428,
++    EnNb_CreditsSit,  // was func_80AB3428 [LLM:HIGH]
+     EnNb_LookUp,
+     EnNb_WaitForNotice,
+     EnNb_StandUpAfterNotice,
+     EnNb_BlockCrawlspace,
+     EnNb_InitCrawlspaceDialogue,
+     EnNb_FollowPath,
+-    func_80AB3DB0,
+-    func_80AB3E10,
++    EnNb_IdleAfterTalk,  // was func_80AB3DB0 [LLM:HIGH]
++    EnNb_WaitTalkEndAfterPath,  // was func_80AB3E10 [LLM:HIGH]
+ };
+ 
+ void EnNb_Update(Actor* thisx, PlayState* play) {
+@@ -1513,7 +1542,7 @@ void EnNb_DrawDefault(EnNb* this, PlayState* play) {
+ }
+ 
+ static EnNbDrawFunc sDrawFuncs[] = {
+-    EnNb_DrawNothing, EnNb_DrawDefault, EnNb_DrawTransparency, func_80AB2E70, func_80AB2FE4,
++    EnNb_DrawNothing, EnNb_DrawDefault, EnNb_DrawTransparency, EnNb_DrawKneel, EnNb_DrawLookDirection,  // was func_80AB2E70 [LLM:HIGH]
+ };
+ 
+ void EnNb_Draw(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

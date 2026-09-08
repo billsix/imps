@@ -1,0 +1,97 @@
+From a4983b8bb64178839c57746c62972a4b39a59741 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:07 +0000
+Subject: [PATCH 113/488] soh: name the 2 address-named symbols defined in
+ z_en_ik.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c.
+
+  * func_80A77264 -> EnIk_HandleEnemyChange
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80A780D0 -> EnIk_CsInit
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.82
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index 45963c63d..b82786106 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -1143,7 +1143,8 @@ void EnIk_SetupCsAction2(EnIk* this) {
+     this->actor.shape.shadowAlpha = 0xFF;
+ }
+ 
+-void func_80A77264(EnIk* this, PlayState* play, s32 arg2) {
++// Name from zeldaret/oot (was func_80A77264): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_HandleEnemyChange(EnIk* this, PlayState* play, s32 arg2) {
+     if ((arg2 != 0) && (EnIk_GetNpcAction(play, 4) != NULL)) {
+         EnIk_ChangeToEnemy(this, play);
+     }
+@@ -1336,7 +1337,7 @@ void func_80A77B3C(EnIk* this, PlayState* play) {
+     func_80A76C14(this);
+     func_80A77034(this, play);
+     func_80A779DC(this, play);
+-    func_80A77264(this, play, sp24);
++    EnIk_HandleEnemyChange(this, play, sp24);
+ }
+ 
+ static EnIkActionFunc sActionFuncs[] = {
+@@ -1441,7 +1442,8 @@ void EnIk_Draw(Actor* thisx, PlayState* play) {
+     sDrawFuncs[this->drawMode](this, play);
+ }
+ 
+-void func_80A780D0(EnIk* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A780D0): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_CsInit(EnIk* this, PlayState* play) {
+     if (this->actor.params == 0) {
+         if (!Flags_GetEventChkInf(EVENTCHKINF_BEGAN_NABOORU_BATTLE)) {
+             this->actor.update = EnIk_Update;
+@@ -1493,7 +1495,7 @@ void EnIk_Init(Actor* thisx, PlayState* play) {
+         SkelAnime_InitFlex(play, &this->skelAnime, &gIronKnuckleSkel, &gIronKnuckleNabooruSummonAxeAnim,
+                            this->jointTable, this->morphTable, 30);
+         EnIk_InitImpl(&this->actor, play);
+-        func_80A780D0(this, play);
++        EnIk_CsInit(this, play);
+     }
+ 
+     // Immediately trigger Iron Knuckle for Enemy Rando and Crowd Control
+-- 
+2.55.0
+

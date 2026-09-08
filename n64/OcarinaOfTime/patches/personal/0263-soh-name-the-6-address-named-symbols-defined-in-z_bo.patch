@@ -1,0 +1,215 @@
+From 0c394174fd6ef72f7a53915680f067dede9d8761 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:21 +0000
+Subject: [PATCH 263/488] soh: name the 6 address-named symbols defined in
+ z_boss_dodongo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c; updating their references touches 2 files in total.
+
+  * func_808C1554 -> BossDodongo_UpdateLavaTexture
+    deduced, confidence HIGH: warps sLavaFloorModifiedTex into sLavaWavyTex
+    with two sine passes, one per axis, whose phase advances with the
+    caller's counter and whose amplitude is the caller's scale; it then
+    drops the wavy texture from the cache so the new pixels are uploaded.
+
+  * func_808C1554_Raw -> BossDodongo_UpdateLavaTextureRaw
+    deduced, confidence HIGH: the in-tree comment above it reads "Same as
+    func_808C1554 but works with u32 values for RGBA32 raw textures";
+    renamed alongside its sibling so the pair keeps matching names.
+
+  * func_808C17C8 -> BossDodongo_SpawnEffect
+    deduced, confidence HIGH: scans the specialEffects array for a free
+    BossDodongoEffect slot and fills in its position, velocity,
+    acceleration, scale and alpha.
+
+  * func_808C12C4 -> BossDodongo_SetMaskTexel
+    deduced, confidence HIGH: when sMaskFillPattern's byte for the given
+    index is nonzero, marks the corresponding cell in each of the five
+    sMaskTex arrays, so sweeping the index reveals the mask progressively.
+
+  * func_808C4F6C -> BossDodongo_GetPlayerDistInFront
+    deduced, confidence HIGH: rotates the player offset into the boss's
+    facing frame and returns the forward distance when the player is within
+    150 units laterally and 100 to 2000 units ahead, or -1 otherwise.
+
+  * func_808C50A8 -> BossDodongo_GetPlayerDistBehind
+    deduced, confidence HIGH: the same test with the frame rotated 180
+    degrees, so it measures the player's distance behind the boss instead.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Boss_Dodongo/z_boss_dodongo.c  | 36 +++++++++++--------
+ .../ovl_Boss_Dodongo/z_boss_dodongo_data.c    |  2 +-
+ 2 files changed, 22 insertions(+), 16 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index 477a7941a..316988570 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -43,8 +43,10 @@ void BossDodongo_Damaged(BossDodongo* this, PlayState* play);
+ void BossDodongo_UpdateDamage(BossDodongo* this, PlayState* play);
+ void BossDodongo_PlayerPosCheck(BossDodongo* this, PlayState* play);
+ void BossDodongo_PlayerYawCheck(BossDodongo* this, PlayState* play);
+-f32 func_808C4F6C(BossDodongo* this, PlayState* play);
+-f32 func_808C50A8(BossDodongo* this, PlayState* play);
++// LLM generated name (HIGH), was func_808C4F6C: rotates the player offset into the boss's facing frame and returns the forward distance when the player is within 150 units laterally and 100 to 2000 units ahead, or -1 otherwise.
++f32 BossDodongo_GetPlayerDistInFront(BossDodongo* this, PlayState* play);  // was func_808C4F6C [LLM:HIGH]
++// LLM generated name (HIGH), was func_808C50A8: the same test with the frame rotated 180 degrees, so it measures the player's distance behind the boss instead.
++f32 BossDodongo_GetPlayerDistBehind(BossDodongo* this, PlayState* play);  // was func_808C50A8 [LLM:HIGH]
+ void BossDodongo_DrawEffects(PlayState* play);
+ void BossDodongo_UpdateEffects(PlayState* play);
+ 
+@@ -172,7 +174,8 @@ void BossDodongo_RegisterBlendedLavaTextureUpdate() {
+     Gfx_TextureCacheDelete(sLavaFloorModifiedTex);
+ }
+ 
+-void func_808C12C4(u8* arg1, s16 arg2) {
++// LLM generated name (HIGH), was func_808C12C4: when sMaskFillPattern's byte for the given index is nonzero, marks the corresponding cell in each of the five sMaskTex arrays, so sweeping the index reveals the mask progressively.
++void BossDodongo_SetMaskTexel(u8* arg1, s16 arg2) {
+     if (arg2[arg1] != 0) {
+         sMaskTex8x16[arg2 / 2] = 1;
+ 
+@@ -192,8 +195,9 @@ void func_808C12C4(u8* arg1, s16 arg2) {
+     }
+ }
+ 
+-// Same as func_808C1554 but works with u32 values for RGBA32 raw textures
+-void func_808C1554_Raw(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
++// Same as BossDodongo_UpdateLavaTexture but works with u32 values for RGBA32 raw textures, was func_808C1554 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808C1554_Raw: the in-tree comment above it reads "Same as func_808C1554 but works with u32 values for RGBA32 raw textures"; renamed alongside its sibling so the pair keeps matching names.
++void BossDodongo_UpdateLavaTextureRaw(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
+     // Raw lava not registered, so abort the wave modification
+     if (sLavaWavyTexRaw == NULL || sLavaFloorModifiedTexRaw == NULL) {
+         return;
+@@ -240,7 +244,8 @@ void func_808C1554_Raw(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
+ 
+ // Modified to support CPU modified texture with the resource system
+ // Used for the original non-raw asset working with u16 values
+-void func_808C1554(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
++// LLM generated name (HIGH), was func_808C1554: warps sLavaFloorModifiedTex into sLavaWavyTex with two sine passes, one per axis, whose phase advances with the caller's counter and whose amplitude is the caller's scale; it then drops the wavy texture from the cache so the new pixels are uploaded.
++void BossDodongo_UpdateLavaTexture(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
+     u16* temp_s3 = sLavaWavyTex;
+     u16* temp_s1 = sLavaFloorModifiedTex;
+     s16 i;
+@@ -267,7 +272,8 @@ void func_808C1554(void* arg0, void* floorTex, s32 arg2, f32 arg3) {
+     Gfx_TextureCacheDelete(sLavaWavyTex);
+ }
+ 
+-void func_808C17C8(PlayState* play, Vec3f* arg1, Vec3f* arg2, Vec3f* arg3, f32 arg4, s16 arg5) {
++// LLM generated name (HIGH), was func_808C17C8: scans the specialEffects array for a free BossDodongoEffect slot and fills in its position, velocity, acceleration, scale and alpha.
++void BossDodongo_SpawnEffect(PlayState* play, Vec3f* arg1, Vec3f* arg2, Vec3f* arg3, f32 arg4, s16 arg5) {
+     s16 i;
+     BossDodongoEffect* eff = (BossDodongoEffect*)play->specialEffects;
+ 
+@@ -1025,7 +1031,7 @@ void BossDodongo_Update(Actor* thisx, PlayState* play2) {
+         this->unk_1C8--;
+     }
+ 
+-    temp_f0 = func_808C4F6C(this, play);
++    temp_f0 = BossDodongo_GetPlayerDistInFront(this, play);  // was func_808C4F6C [LLM:HIGH]
+ 
+     if (temp_f0 > 0.0f) {
+         this->unk_1A4 = temp_f0;
+@@ -1033,7 +1039,7 @@ void BossDodongo_Update(Actor* thisx, PlayState* play2) {
+         this->unk_1A4 = 0;
+     }
+ 
+-    temp_f0 = func_808C50A8(this, play);
++    temp_f0 = BossDodongo_GetPlayerDistBehind(this, play);  // was func_808C50A8 [LLM:HIGH]
+ 
+     if (temp_f0 > 0.0f) {
+         this->unk_1A6 = temp_f0;
+@@ -1171,7 +1177,7 @@ void BossDodongo_Update(Actor* thisx, PlayState* play2) {
+                 sp54.x = sinf(sp4C) * sp50 + (-890.0f);
+                 sp54.y = -1513.76f;
+                 sp54.z = cosf(sp4C) * sp50 + (-3304.0f);
+-                func_808C17C8(play, &sp54, &sp6C, &sp60, ((s16)Rand_ZeroFloat(2.0f)) + 6, 0x50);
++                BossDodongo_SpawnEffect(play, &sp54, &sp6C, &sp60, ((s16)Rand_ZeroFloat(2.0f)) + 6, 0x50);  // was func_808C17C8 [LLM:HIGH]
+             }
+         }
+ 
+@@ -1183,9 +1189,9 @@ void BossDodongo_Update(Actor* thisx, PlayState* play2) {
+         //
+         // Apply the corresponding wavy effect based on the texture being raw or not
+         if (ResourceMgr_TexIsRaw(gDodongosCavernBossLavaFloorTex)) {
+-            func_808C1554_Raw(gDodongosCavernBossLavaFloorTex, sLavaFloorLavaTex, this->unk_19E, this->unk_224);
++            BossDodongo_UpdateLavaTextureRaw(gDodongosCavernBossLavaFloorTex, sLavaFloorLavaTex, this->unk_19E, this->unk_224);  // was func_808C1554_Raw [LLM:HIGH]
+         } else {
+-            func_808C1554(gDodongosCavernBossLavaFloorTex, sLavaFloorLavaTex, this->unk_19E, this->unk_224);
++            BossDodongo_UpdateLavaTexture(gDodongosCavernBossLavaFloorTex, sLavaFloorLavaTex, this->unk_19E, this->unk_224);  // was func_808C1554 [LLM:HIGH]
+         }
+     }
+ 
+@@ -1394,7 +1400,7 @@ void BossDodongo_Draw(Actor* thisx, PlayState* play) {
+     BossDodongo_DrawEffects(play);
+ }
+ 
+-f32 func_808C4F6C(BossDodongo* this, PlayState* play) {
++f32 BossDodongo_GetPlayerDistInFront(BossDodongo* this, PlayState* play) {
+     f32 xDiff;
+     f32 zDiff;
+     f32 sp2C;
+@@ -1417,7 +1423,7 @@ f32 func_808C4F6C(BossDodongo* this, PlayState* play) {
+     return -1.0f;
+ }
+ 
+-f32 func_808C50A8(BossDodongo* this, PlayState* play) {
++f32 BossDodongo_GetPlayerDistBehind(BossDodongo* this, PlayState* play) {
+     f32 xDiff;
+     f32 zDiff;
+     f32 sp2C;
+@@ -1695,7 +1701,7 @@ void BossDodongo_DeathCutscene(BossDodongo* this, PlayState* play) {
+             }
+             if (this->unk_1DA < 854) {
+                 for (i = 0; i < 2; i++) {
+-                    func_808C12C4(sMaskFillPattern, this->unk_1CC);  // was D_808C7000 [LLM:HIGH]
++                    BossDodongo_SetMaskTexel(sMaskFillPattern, this->unk_1CC);  // was D_808C7000 [LLM:HIGH]
+                     if (this->unk_1CC < 0xFF) {
+                         this->unk_1CC++;
+                     }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c
+index a77181778..962eb37ab 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo_data.c
+@@ -1,6 +1,6 @@
+ #include "z_boss_dodongo.h"
+ 
+-// LLM generated name (HIGH), was D_808C7000: 0/1 byte pattern swept by unk_1CC; func_808C12C4 fills the corresponding cells of sMaskTex8x16 … sMaskTex32x16 wherever the entry is nonzero, so the table is the order the mask textures are revealed in.
++// LLM generated name (HIGH), was D_808C7000: 0/1 byte pattern swept by unk_1CC; BossDodongo_SetMaskTexel fills the corresponding cells of sMaskTex8x16 … sMaskTex32x16 wherever the entry is nonzero, so the table is the order the mask textures are revealed in.
+ static u8 sMaskFillPattern[] = {  // was D_808C7000 [LLM:HIGH]
+     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1,
+     1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0,
+-- 
+2.55.0
+

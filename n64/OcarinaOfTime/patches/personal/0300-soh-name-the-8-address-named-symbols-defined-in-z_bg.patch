@@ -1,0 +1,400 @@
+From 54006001f7bf36c20a3e919e5f0b1e07abb44e8c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:24 +0000
+Subject: [PATCH 300/488] soh: name the 8 address-named symbols defined in
+ z_bgcheck.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 8 are defined in soh/src/code/z_bgcheck.c; updating their references touches 11 files in total.
+
+  * func_80038A28 -> CollisionPoly_GetTransformMtx
+    deduced, confidence HIGH: its doc comment reads "Compute transform
+    matrix mapping +y (up) to the collision poly's normal"; callers use it
+    to stand actors and effects upright on a slope.
+
+  * func_800418D0 -> BgCheck_ResetDynaBgHeaders
+    deduced, confidence GUESS: its doc comment reads "SEGMENT_TO_VIRTUAL all
+    active BgActor CollisionHeaders"; it re-resolves every live bg actor's
+    collision header after the object segments move, which is why the pause
+    menu and the save menu call it on close. "Reset" names that re-resolve
+    pass.
+
+  * func_80041D70 -> SurfaceType_GetUnkProperty
+    deduced, confidence GUESS: its doc comment reads "SurfaceType Get ?
+    Property (& 0x001C 0000)"; it extracts bits 18 to 20 of the surface type
+    word, and the question mark in that comment is the whole of what is
+    known about the field. Nothing calls it.
+
+  * func_80042708 -> CollisionPoly_GetPointOnIntersectLine
+    deduced, confidence HIGH: its doc comment reads "Gets the closestPoint
+    to point on the line formed from the intersection of planes polyA and
+    polyB"; it is a thin wrapper over Math3D_PlaneVsPlaneVsLineClosestPoint.
+
+  * func_800427B4 -> CollisionPoly_GetPointOnLineSeg
+    deduced, confidence HIGH: its doc comment reads "Get the closestPoint to
+    line (pointA, pointB) formed from the intersection of planes polyA and
+    polyB"; it wraps Math3D_PlaneVsLineSegClosestPoint and the camera uses
+    it.
+
+  * D_80119D90 -> sWallFlags
+    deduced, confidence HIGH: the in-tree comment above it reads
+    "SurfaceType_GetWallFlags, SurfaceType wall types"; it maps each
+    WALL_TYPE to the WALL_FLAG bits SurfaceType_GetWallFlags returns.
+
+  * D_80119E10 -> sFootstepSfx
+    deduced, confidence HIGH: the in-tree comment above it reads
+    "SurfaceType_GetSfx"; it maps a surface material index to the matching
+    NA_SE_PL_WALK_* sound.
+
+  * func_800425B0 -> WaterBox_GetSurface3
+    deduced, confidence HIGH: its doc comment says it is the "same as
+    WaterBox_GetSurfaceImpl, but tests if WaterBox properties & 0x80000 !=
+    0". It joins the file's existing WaterBox_GetSurface1 /
+    WaterBox_GetSurface2 / WaterBox_GetSurfaceImpl family as the third
+    numbered variant; nothing calls it.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       | 10 +++----
+ soh/soh/Enhancements/QoL/BetterSaveMenu.cpp   |  2 +-
+ soh/src/code/z_actor.c                        |  4 +--
+ soh/src/code/z_bgcheck.c                      | 30 ++++++++++++-------
+ soh/src/code/z_camera.c                       |  2 +-
+ .../actors/ovl_En_Dekubaba/z_en_dekubaba.c    |  4 +--
+ .../actors/ovl_En_Karebaba/z_en_karebaba.c    |  2 +-
+ soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c |  2 +-
+ .../actors/ovl_En_Wallmas/z_en_wallmas.c      |  2 +-
+ .../ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c  |  4 +--
+ .../ovl_kaleido_scope/z_kaleido_scope_PAL.c   |  4 +--
+ 11 files changed, 37 insertions(+), 29 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 2c2265750..9fc46a443 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -578,7 +578,7 @@ s32 Actor_TrackPlayer(PlayState* play, Actor* actor, Vec3s* arg2, Vec3s* arg3, V
+ 
+ // ? func_80038600(?);
+ u16 DynaSSNodeList_GetNextNodeIdx(DynaSSNodeList*);
+-void func_80038A28(CollisionPoly* poly, f32 tx, f32 ty, f32 tz, MtxF* dest);
++void CollisionPoly_GetTransformMtx(CollisionPoly* poly, f32 tx, f32 ty, f32 tz, MtxF* dest);  // was func_80038A28 [LLM:HIGH]
+ f32 CollisionPoly_GetPointDistanceFromPlane(CollisionPoly* poly, Vec3f* point);
+ CollisionHeader* BgCheck_GetCollisionHeader(CollisionContext* colCtx, s32 bgId);
+ void CollisionPoly_GetVerticesByBgId(CollisionPoly* poly, s32 bgId, CollisionContext* colCtx, Vec3f* dest);
+@@ -671,7 +671,7 @@ s32 BgCheck_CheckLineAgainstDyna(CollisionContext* colCtx, u16 xpFlags, Vec3f* p
+ s32 BgCheck_SphVsFirstDynaPoly(CollisionContext* colCtx, u16 xpFlags, CollisionPoly** outPoly, s32* outBgId,
+                                Vec3f* center, f32 radius, Actor* actor, u16 bciFlags);
+ void CollisionHeader_GetVirtual(void* colHeader, CollisionHeader** dest);
+-void func_800418D0(CollisionContext* colCtx, PlayState* play);
++void BgCheck_ResetDynaBgHeaders(CollisionContext* colCtx, PlayState* play);  // was func_800418D0 [LLM:GUESS]
+ void BgCheck_ResetPolyCheckTbl(SSNodeList* nodeList, s32 numPolys);
+ u32 SurfaceType_GetCamDataIndex(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u16 BgCheck_GetBgCamSettingImpl(CollisionContext* colCtx, u32 bgCamIndex, s32 bgId);
+@@ -681,7 +681,7 @@ Vec3s* BgCheck_GetBgCamFuncDataImpl(CollisionContext* colCtx, s32 bgCamIndex, s3
+ Vec3s* SurfaceType_GetCamPosData(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u32 SurfaceType_GetSceneExitIndex(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ u32 SurfaceType_GetFloorType(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+-u32 func_80041D70(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
++u32 SurfaceType_GetUnkProperty(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041D70 [LLM:GUESS]
+ u32 SurfaceType_GetWallType(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041D94 [oot]
+ s32 SurfaceType_GetWallFlags(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);
+ s32 SurfaceType_CheckWallFlag0(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId);  // was func_80041DE4 [oot]
+@@ -712,8 +712,8 @@ s32 WaterBox_GetSurfaceImpl(PlayState* play, CollisionContext* colCtx, f32 x, f3
+ u32 WaterBox_GetCamDataIndex(CollisionContext* colCtx, WaterBox* waterBox);
+ u16 WaterBox_GetCameraSType(CollisionContext* colCtx, WaterBox* waterBox);
+ u32 WaterBox_GetLightSettingIndex(CollisionContext* colCtx, WaterBox* waterBox);
+-s32 func_80042708(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* point, Vec3f* closestPoint);
+-s32 func_800427B4(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* pointA, Vec3f* pointB, Vec3f* closestPoint);
++s32 CollisionPoly_GetPointOnIntersectLine(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* point, Vec3f* closestPoint);  // was func_80042708 [LLM:HIGH]
++s32 CollisionPoly_GetPointOnLineSeg(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* pointA, Vec3f* pointB, Vec3f* closestPoint);  // was func_800427B4 [LLM:HIGH]
+ void BgCheck_DrawDynaCollision(PlayState*, CollisionContext*);
+ void BgCheck_DrawStaticCollision(PlayState*, CollisionContext*);
+ void DynaPolyActor_SetStandingActorFlags(CollisionContext* colCtx, Actor* actor, s32 bgId);  // was func_80043334 [LLM:HIGH]
+diff --git a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+index ee7f06c6e..2de021cfd 100644
+--- a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
++++ b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+@@ -148,7 +148,7 @@ void HandleSaveMenu(bool* should, PlayState* play) {
+                     R_UPDATE_RATE = 3;
+                     R_PAUSE_MENU_MODE = 0;
+                     Object_LoadAll(&play->objectCtx);
+-                    func_800418D0(&play->colCtx, play);
++                    BgCheck_ResetDynaBgHeaders(&play->colCtx, play);  // was func_800418D0 [LLM:GUESS]
+                     // Reset frame counter to prevent autosave on respawn
+                     play->gameplayFrames = 0;
+                     gSaveContext.nextTransitionType = TRANS_TYPE_FADE_BLACK;
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 634381a8f..bfb9c0ec7 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -124,7 +124,7 @@ void ActorShadow_Draw(Actor* actor, Lights* lights, PlayState* play, Gfx* dlist,
+                 gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, 0, 0, 0, (u32)(actor->shape.shadowAlpha * temp2) & 0xFF);
+             }
+ 
+-            func_80038A28(actor->floorPoly, actor->world.pos.x, actor->floorHeight, actor->world.pos.z, &sp60);
++            CollisionPoly_GetTransformMtx(actor->floorPoly, actor->world.pos.x, actor->floorHeight, actor->world.pos.z, &sp60);  // was func_80038A28 [LLM:HIGH]
+             Matrix_Put(&sp60);
+ 
+             if (dlist != gCircleShadowDL) {
+@@ -4133,7 +4133,7 @@ void func_80033C30(Vec3f* arg0, Vec3f* arg1, u8 alpha, PlayState* play) {
+     var = BgCheck_EntityRaycastFloor2(play, &play->colCtx, &sp4C, &sp50);
+ 
+     if (sp4C != NULL) {
+-        func_80038A28(sp4C, arg0->x, var, arg0->z, &sp60);
++        CollisionPoly_GetTransformMtx(sp4C, arg0->x, var, arg0->z, &sp60);  // was func_80038A28 [LLM:HIGH]
+         Matrix_Put(&sp60);
+     } else {
+         Matrix_Translate(arg0->x, arg0->y, arg0->z, MTXMODE_NEW);
+diff --git a/soh/src/code/z_bgcheck.c b/soh/src/code/z_bgcheck.c
+index cd68edb4e..2e95e142e 100644
+--- a/soh/src/code/z_bgcheck.c
++++ b/soh/src/code/z_bgcheck.c
+@@ -30,7 +30,8 @@
+ #define COLPOLY_IGNORE_PROJECTILES (1 << 2)
+ 
+ // SurfaceType_GetWallFlags, SurfaceType wall types
+-s32 D_80119D90[WALL_TYPE_MAX] = {
++// LLM generated name (HIGH), was D_80119D90: the in-tree comment above it reads "SurfaceType_GetWallFlags, SurfaceType wall types"; it maps each WALL_TYPE to the WALL_FLAG bits SurfaceType_GetWallFlags returns.
++s32 sWallFlags[WALL_TYPE_MAX] = {  // was D_80119D90 [LLM:HIGH]
+     0,                                  // WALL_TYPE_0
+     WALL_FLAG_0,                        // WALL_TYPE_1
+     WALL_FLAG_0 | WALL_FLAG_LADDER,     // WALL_TYPE_2
+@@ -42,7 +43,8 @@ s32 D_80119D90[WALL_TYPE_MAX] = {
+ };
+ 
+ // SurfaceType_GetSfx
+-u16 D_80119E10[14] = {
++// LLM generated name (HIGH), was D_80119E10: the in-tree comment above it reads "SurfaceType_GetSfx"; it maps a surface material index to the matching NA_SE_PL_WALK_* sound.
++u16 sFootstepSfx[14] = {  // was D_80119E10 [LLM:HIGH]
+     NA_SE_PL_WALK_GROUND - SFX_FLAG, NA_SE_PL_WALK_SAND - SFX_FLAG,   NA_SE_PL_WALK_CONCRETE - SFX_FLAG,
+     NA_SE_PL_WALK_DIRT - SFX_FLAG,   NA_SE_PL_WALK_WATER0 - SFX_FLAG, NA_SE_PL_WALK_WATER1 - SFX_FLAG,
+     NA_SE_PL_WALK_WATER2 - SFX_FLAG, NA_SE_PL_WALK_MAGMA - SFX_FLAG,  NA_SE_PL_WALK_GRASS - SFX_FLAG,
+@@ -203,7 +205,8 @@ void CollisionPoly_GetNormalF(CollisionPoly* poly, f32* nx, f32* ny, f32* nz) {
+ /**
+  * Compute transform matrix mapping +y (up) to the collision poly's normal
+  */
+-void func_80038A28(CollisionPoly* poly, f32 tx, f32 ty, f32 tz, MtxF* dest) {
++// LLM generated name (HIGH), was func_80038A28: its doc comment reads "Compute transform matrix mapping +y (up) to the collision poly's normal"; callers use it to stand actors and effects upright on a slope.
++void CollisionPoly_GetTransformMtx(CollisionPoly* poly, f32 tx, f32 ty, f32 tz, MtxF* dest) {
+     f32 nx;
+     f32 ny;
+     f32 nz;
+@@ -3824,7 +3827,8 @@ void CollisionHeader_GetVirtual(void* colHeader, CollisionHeader** dest) {
+ /**
+  * SEGMENT_TO_VIRTUAL all active BgActor CollisionHeaders
+  */
+-void func_800418D0(CollisionContext* colCtx, PlayState* play) {
++// LLM generated name (GUESS), was func_800418D0: its doc comment reads "SEGMENT_TO_VIRTUAL all active BgActor CollisionHeaders"; it re-resolves every live bg actor's collision header after the object segments move, which is why the pause menu and the save menu call it on close. "Reset" names that re-resolve pass.
++void BgCheck_ResetDynaBgHeaders(CollisionContext* colCtx, PlayState* play) {
+     DynaCollisionContext* dyna = &colCtx->dyna;
+     s32 i;
+     u16 flag;
+@@ -4014,7 +4018,8 @@ u32 SurfaceType_GetFloorType(CollisionContext* colCtx, CollisionPoly* poly, s32
+ /**
+  * SurfaceType Get ? Property (& 0x001C 0000)
+  */
+-u32 func_80041D70(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
++// LLM generated name (GUESS), was func_80041D70: its doc comment reads "SurfaceType Get ? Property (& 0x001C 0000)"; it extracts bits 18 to 20 of the surface type word, and the question mark in that comment is the whole of what is known about the field. Nothing calls it.
++u32 SurfaceType_GetUnkProperty(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
+     return SurfaceType_GetData(colCtx, poly, bgId, 0) >> 18 & 7;
+ }
+ 
+@@ -4031,9 +4036,9 @@ u32 SurfaceType_GetWallType(CollisionContext* colCtx, CollisionPoly* poly, s32 b
+  */
+ s32 SurfaceType_GetWallFlags(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId) {
+     if (GameInteractor_Should(VB_SURFACE_IS_CLIMBABLE, false)) {
+-        return WALL_FLAG_CLIMBABLE | D_80119D90[SurfaceType_GetWallType(colCtx, poly, bgId)];
++        return WALL_FLAG_CLIMBABLE | sWallFlags[SurfaceType_GetWallType(colCtx, poly, bgId)];  // was D_80119D90 [LLM:HIGH]
+     } else {
+-        return D_80119D90[SurfaceType_GetWallType(colCtx, poly, bgId)];
++        return sWallFlags[SurfaceType_GetWallType(colCtx, poly, bgId)];  // was D_80119D90 [LLM:HIGH]
+     }
+ }
+ 
+@@ -4106,7 +4111,7 @@ u16 SurfaceType_GetSfx(CollisionContext* colCtx, CollisionPoly* poly, s32 bgId)
+     if (id < 0 || id > 13) {
+         return NA_SE_PL_WALK_GROUND - SFX_FLAG;
+     }
+-    return D_80119E10[id];
++    return sFootstepSfx[id];  // was D_80119E10 [LLM:HIGH]
+ }
+ 
+ /**
+@@ -4350,7 +4355,8 @@ u32 WaterBox_GetLightSettingIndex(CollisionContext* colCtx, WaterBox* waterBox)
+  * returns true if point is within the xz boundaries of an active water box, else false
+  * `ySurface` returns the water box's surface, while `outWaterBox` returns a pointer to the WaterBox
+  */
+-s32 func_800425B0(PlayState* play, CollisionContext* colCtx, f32 x, f32 z, f32* ySurface, WaterBox** outWaterBox) {
++// LLM generated name (HIGH), was func_800425B0: its doc comment says it is the "same as WaterBox_GetSurfaceImpl, but tests if WaterBox properties & 0x80000 != 0". It joins the file's existing WaterBox_GetSurface1 / WaterBox_GetSurface2 / WaterBox_GetSurfaceImpl family as the third numbered variant; nothing calls it.
++s32 WaterBox_GetSurface3(PlayState* play, CollisionContext* colCtx, f32 x, f32 z, f32* ySurface, WaterBox** outWaterBox) {
+     CollisionHeader* colHeader = colCtx->colHeader;
+     u32 room;
+     WaterBox* curWaterBox;
+@@ -4381,7 +4387,8 @@ s32 func_800425B0(PlayState* play, CollisionContext* colCtx, f32 x, f32 z, f32*
+  * Gets the `closestPoint` to `point` on the line formed from the intesection of planes `polyA` and `polyB`
+  * returns true if the `closestPoint` exists, else returns false
+  */
+-s32 func_80042708(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* point, Vec3f* closestPoint) {
++// LLM generated name (HIGH), was func_80042708: its doc comment reads "Gets the closestPoint to point on the line formed from the intersection of planes polyA and polyB"; it is a thin wrapper over Math3D_PlaneVsPlaneVsLineClosestPoint.
++s32 CollisionPoly_GetPointOnIntersectLine(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* point, Vec3f* closestPoint) {
+     f32 n1X;
+     f32 n1Y;
+     f32 n1Z;
+@@ -4399,7 +4406,8 @@ s32 func_80042708(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* point, Vec3
+  * Get the `closestPoint` to line (`pointA`, `pointB`) formed from the intersection of planes `polyA` and `polyB`
+  * returns true if the `closestPoint` exists, else returns false
+  */
+-s32 func_800427B4(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* pointA, Vec3f* pointB, Vec3f* closestPoint) {
++// LLM generated name (HIGH), was func_800427B4: its doc comment reads "Get the closestPoint to line (pointA, pointB) formed from the intersection of planes polyA and polyB"; it wraps Math3D_PlaneVsLineSegClosestPoint and the camera uses it.
++s32 CollisionPoly_GetPointOnLineSeg(CollisionPoly* polyA, CollisionPoly* polyB, Vec3f* pointA, Vec3f* pointB, Vec3f* closestPoint) {
+     f32 n1X;
+     f32 n1Y;
+     f32 n1Z;
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 6485dfcb8..99d51cac8 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -797,7 +797,7 @@ Vec3f* Camera_BGCheckCorner(Vec3f* dst, Vec3f* linePointA, Vec3f* linePointB, Ca
+                             CamColChk* pointBColChk) {
+     Vec3f closestPoint;
+ 
+-    if (!func_800427B4(pointAColChk->poly, pointBColChk->poly, linePointA, linePointB, &closestPoint)) {
++    if (!CollisionPoly_GetPointOnLineSeg(pointAColChk->poly, pointBColChk->poly, linePointA, linePointB, &closestPoint)) {  // was func_800427B4 [LLM:HIGH]
+         osSyncPrintf(VT_COL(YELLOW, BLACK) "camera: corner check no cross point %x %x\n" VT_RST, pointAColChk,
+                      pointBColChk);
+         *dst = pointAColChk->pos;
+diff --git a/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c b/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
+index 4e0340a97..b208840e2 100644
+--- a/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
++++ b/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
+@@ -1258,7 +1258,7 @@ void EnDekubaba_DrawBaseShadow(EnDekubaba* this, PlayState* play) {
+ 
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, 255);
+ 
+-    func_80038A28(this->boundFloor, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, &mtx);
++    CollisionPoly_GetTransformMtx(this->boundFloor, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, &mtx);  // was func_80038A28 [LLM:HIGH]
+     Matrix_Mult(&mtx, MTXMODE_NEW);
+ 
+     horizontalScale = this->size * 0.15f;
+@@ -1320,4 +1320,4 @@ void EnDekubaba_Draw(Actor* thisx, PlayState* play) {
+ // OTRTODO fix this one
+ void EnDekuBaba_Reset(void) {
+     // DMG_ENTRY(2, DEKUBABA_DMGEFF_SWORD)
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c b/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
+index 314cee308..f52bb555b 100644
+--- a/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
++++ b/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
+@@ -449,7 +449,7 @@ void EnKarebaba_DrawBaseShadow(EnKarebaba* this, PlayState* play) {
+     Gfx_SetupDL_44Xlu(play->state.gfxCtx);
+ 
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, 255);
+-    func_80038A28(this->boundFloor, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, &mf);
++    CollisionPoly_GetTransformMtx(this->boundFloor, this->actor.home.pos.x, this->actor.home.pos.y, this->actor.home.pos.z, &mf);  // was func_80038A28 [LLM:HIGH]
+     Matrix_Mult(&mf, MTXMODE_NEW);
+     Matrix_Scale(0.15f, 1.0f, 0.15f, MTXMODE_APPLY);
+     gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+diff --git a/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c b/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
+index f42dbc36e..81cd1bb6d 100644
+--- a/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
++++ b/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
+@@ -194,7 +194,7 @@ void EnNwc_DrawChicks(EnNwc* this, PlayState* play) {
+     for (i = 0; i < this->count; i++, chick++) {
+         if ((chick->type != CHICK_NONE) && (chick->floorPoly != NULL)) {
+             FrameInterpolation_RecordOpenChild(chick, chick->epoch * 25);
+-            func_80038A28(chick->floorPoly, chick->pos.x, chick->floorY, chick->pos.z, &floorMat);
++            CollisionPoly_GetTransformMtx(chick->floorPoly, chick->pos.x, chick->floorY, chick->pos.z, &floorMat);  // was func_80038A28 [LLM:HIGH]
+             Matrix_Put(&floorMat);
+             Matrix_RotateY(chick->rot.y * (M_PI / 0x8000), MTXMODE_APPLY);
+             Matrix_Scale(1.0f, 1.0f, 1.0f, MTXMODE_APPLY);
+diff --git a/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c b/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
+index 223ca6349..26bdc2052 100644
+--- a/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
++++ b/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
+@@ -620,7 +620,7 @@ void EnWallmas_DrawXlu(EnWallmas* this, PlayState* play) {
+     Gfx_SetupDL_44Xlu(play->state.gfxCtx);
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, 255);
+ 
+-    func_80038A28(this->actor.floorPoly, this->actor.world.pos.x, this->actor.floorHeight, this->actor.world.pos.z,
++    CollisionPoly_GetTransformMtx(this->actor.floorPoly, this->actor.world.pos.x, this->actor.floorHeight, this->actor.world.pos.z,  // was func_80038A28 [LLM:HIGH]
+                   &mf);
+     Matrix_Mult(&mf, MTXMODE_NEW);
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c b/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
+index 6466f9606..64af594c8 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
+@@ -72,14 +72,14 @@ void EffectSsDeadDs_Draw(PlayState* play, u32 index, EffectSs* this) {
+         sp44.z = pos.z - this->velocity.z;
+ 
+         if (BgCheck_EntitySphVsWall1(&play->colCtx, &this->pos, &pos, &sp44, 1.5f, &floorPoly, 1.0f)) {
+-            func_80038A28(floorPoly, this->pos.x, this->pos.y, this->pos.z, &mf);
++            CollisionPoly_GetTransformMtx(floorPoly, this->pos.x, this->pos.y, this->pos.z, &mf);  // was func_80038A28 [LLM:HIGH]
+             Matrix_Put(&mf);
+         } else {
+             pos.y++;
+             temp = BgCheck_EntityRaycastFloor1(&play->colCtx, &floorPoly, &pos);
+ 
+             if (floorPoly != NULL) {
+-                func_80038A28(floorPoly, this->pos.x, temp + 1.5f, this->pos.z, &mf);
++                CollisionPoly_GetTransformMtx(floorPoly, this->pos.x, temp + 1.5f, this->pos.z, &mf);  // was func_80038A28 [LLM:HIGH]
+                 Matrix_Put(&mf);
+             } else {
+                 Matrix_Translate(this->pos.x, this->pos.y, this->pos.z, MTXMODE_NEW);
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index f226a0db5..2cd32c12d 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -4775,7 +4775,7 @@ void KaleidoScope_Update(PlayState* play) {
+                     R_UPDATE_RATE = 3;
+                     R_PAUSE_MENU_MODE = 0;
+                     Object_LoadAll(&play->objectCtx);
+-                    func_800418D0(&play->colCtx, play);
++                    BgCheck_ResetDynaBgHeaders(&play->colCtx, play);  // was func_800418D0 [LLM:GUESS]
+                     if (pauseCtx->promptChoice == 0 && GameInteractor_Should(VB_BE_ABLE_TO_SAVE, true)) {
+                         Play_TriggerRespawn(play);
+                         gSaveContext.respawnFlag = -2;
+@@ -4843,7 +4843,7 @@ void KaleidoScope_Update(PlayState* play) {
+             CVarSetInteger(CVAR_GENERAL("PauseMenuAnimatedLinkTriforce"), 0);
+ 
+             Object_LoadAll(&play->objectCtx);
+-            func_800418D0(&play->colCtx, play);
++            BgCheck_ResetDynaBgHeaders(&play->colCtx, play);  // was func_800418D0 [LLM:GUESS]
+ 
+             switch (play->sceneNum) {
+                 case SCENE_DEKU_TREE:
+-- 
+2.55.0
+

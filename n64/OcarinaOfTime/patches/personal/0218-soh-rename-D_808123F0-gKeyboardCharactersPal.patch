@@ -1,0 +1,109 @@
+From 15ae3a79dc4602edc7a87dadbf760f320e3ac106 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:17 +0000
+Subject: [PATCH 218/488] soh: rename D_808123F0 -> gKeyboardCharactersPal
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: s16 table mapping the name-entry grid index to a character code; read only by z_file_nameset_PAL.c, both to index font->fontBuf and to store into filename[]. Sits alongside SoH's gKeyboardCharacters{Hiragana,Katakana,Alphanumeric}.
+Defined in soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_data.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/gamestates/ovl_file_choose/file_choose.h  |  2 +-
+ .../gamestates/ovl_file_choose/z_file_nameset_NES.c    |  2 +-
+ .../gamestates/ovl_file_choose/z_file_nameset_PAL.c    | 10 +++++-----
+ .../gamestates/ovl_file_choose/z_file_nameset_data.c   |  3 ++-
+ 4 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/file_choose.h b/soh/src/overlays/gamestates/ovl_file_choose/file_choose.h
+index 5f6e3f202..62084c095 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/file_choose.h
++++ b/soh/src/overlays/gamestates/ovl_file_choose/file_choose.h
+@@ -233,7 +233,7 @@ u8 HandleMouseCursor(FileChooseContext* thisx, Input* input, int minx, int miny,
+ Vec2f HandleMouseCursorSplit(FileChooseContext* thisx, Input* input, int minx, int miny, int maxx, int maxy, int countx,
+                              int county);
+ 
+-extern s16 D_808123F0[];
++extern s16 gKeyboardCharactersPal[];  // was D_808123F0 [LLM:HIGH]
+ 
+ // #region SOH [NTSC]
+ 
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
+index 9598dabbb..dd01c32ba 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
+@@ -958,7 +958,7 @@ void FileChoose_UpdateKeyboardCursorNES(GameState* thisx) {
+                 }
+             } else if (sLastCharIndex != this->charIndex && this->charIndex < 65) {
+                 // NTSC TODO: Figure out japanese TTS
+-                // GameInteractor_ExecuteOnUpdateFileNameSelection(D_808123F0[this->charIndex]);
++                // GameInteractor_ExecuteOnUpdateFileNameSelection(gKeyboardCharactersPal[this->charIndex]);, was D_808123F0 [LLM:HIGH]
+                 sLastCharIndex = this->charIndex;
+                 sLastKbdX = -1;
+             }
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c
+index 37b71ea4e..f2763a225 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c
+@@ -252,14 +252,14 @@ void FileChoose_DrawKeyboard(GameState* thisx) {
+         gSPVertex(POLY_OPA_DISP++, &this->keyboardVtx[vtx], 32, 0);
+ 
+         for (tmp = 0; tmp < 32; i++, tmp += 4) {
+-            FileChoose_DrawCharacter(this->state.gfxCtx, font->fontBuf + D_808123F0[i] * FONT_CHAR_TEX_SIZE, tmp);
++            FileChoose_DrawCharacter(this->state.gfxCtx, font->fontBuf + gKeyboardCharactersPal[i] * FONT_CHAR_TEX_SIZE, tmp);  // was D_808123F0 [LLM:HIGH]
+         }
+ 
+         vtx += 32;
+     }
+ 
+     gSPVertex(POLY_OPA_DISP++, &this->keyboardVtx[0x100], 4, 0);
+-    FileChoose_DrawCharacter(this->state.gfxCtx, font->fontBuf + D_808123F0[i] * FONT_CHAR_TEX_SIZE, 0);
++    FileChoose_DrawCharacter(this->state.gfxCtx, font->fontBuf + gKeyboardCharactersPal[i] * FONT_CHAR_TEX_SIZE, 0);  // was D_808123F0 [LLM:HIGH]
+ 
+     CLOSE_DISPS(this->state.gfxCtx);
+ }
+@@ -403,12 +403,12 @@ void FileChoose_DrawNameEntry(GameState* thisx) {
+                     gSPVertex(POLY_OPA_DISP++, &this->keyboardVtx[this->charIndex * 4], 4, 0);
+ 
+                     FileChoose_DrawCharacter(this->state.gfxCtx,
+-                                             font->fontBuf + D_808123F0[this->charIndex] * FONT_CHAR_TEX_SIZE, 0);
++                                             font->fontBuf + gKeyboardCharactersPal[this->charIndex] * FONT_CHAR_TEX_SIZE, 0);  // was D_808123F0 [LLM:HIGH]
+ 
+                     if (CHECK_BTN_ALL(input->press.button, BTN_A)) {
+                         Audio_PlaySfxGeneral(NA_SE_SY_FSEL_DECIDE_S, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-                        filename[this->newFileNameCharCount] = D_808123F0[this->charIndex];
++                        filename[this->newFileNameCharCount] = gKeyboardCharactersPal[this->charIndex];  // was D_808123F0 [LLM:HIGH]
+                         this->newFileNameCharCount++;
+ 
+                         if (this->newFileNameCharCount > 7) {
+@@ -656,7 +656,7 @@ void FileChoose_UpdateKeyboardCursor(GameState* thisx) {
+             sLastCharIndex = -1;
+         }
+     } else if (sLastCharIndex != this->charIndex && this->charIndex < 65) {
+-        GameInteractor_ExecuteOnUpdateFileNameSelection(D_808123F0[this->charIndex]);
++        GameInteractor_ExecuteOnUpdateFileNameSelection(gKeyboardCharactersPal[this->charIndex]);  // was D_808123F0 [LLM:HIGH]
+         sLastCharIndex = this->charIndex;
+         sLastKbdX = -1;
+     }
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_data.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_data.c
+index 9340693d0..c3b052486 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_data.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_data.c
+@@ -2,7 +2,8 @@
+ 
+ #include "assets/overlays/ovl_File_Choose/ovl_file_choose.h"
+ 
+-s16 D_808123F0[] = {
++// LLM generated name (HIGH), was D_808123F0: s16 table mapping the name-entry grid index to a character code; read only by z_file_nameset_PAL.c, both to index font->fontBuf and to store into filename[]. Sits alongside SoH's gKeyboardCharacters{Hiragana,Katakana,Alphanumeric}.
++s16 gKeyboardCharactersPal[] = {  // was D_808123F0 [LLM:HIGH]
+     0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F, 0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016,
+     0x0017, 0x0018, 0x0019, 0x001A, 0x001B, 0x001C, 0x001D, 0x001E, 0x001F, 0x0020, 0x0021, 0x0022, 0x0023,
+     0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F, 0x0030,
+-- 
+2.55.0
+

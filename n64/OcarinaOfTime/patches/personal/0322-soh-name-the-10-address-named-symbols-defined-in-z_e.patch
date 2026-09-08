@@ -1,0 +1,334 @@
+From 31e7a291e7bd539983af7cbad9705121f7a6baaa Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:26 +0000
+Subject: [PATCH 322/488] soh: name the 10 address-named symbols defined in
+ z_en_gm.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 10 are defined in soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c; updating their references touches 3 files in total.
+
+  * func_80A3D7C8 -> EnGm_GetSaleState
+    deduced, confidence HIGH: returns which stage of the Giant's Knife sale
+    the player is at: 0 for child Link, 1 when the knife has never been
+    bought, 2 while it is broken, and 3 once it has been replaced.
+
+  * func_80A3D838 -> EnGm_WaitForObject
+    deduced, confidence HIGH: the first update: waits for the Goron object
+    bank, then builds the skeleton, collider and shape and installs the real
+    update and the waiting action.
+
+  * func_80A3DFBC -> EnGm_UpdateMain
+    deduced, confidence HIGH: the update installed once the object is
+    loaded: it rebinds segment 6, runs the action function, keeps the focus
+    rotation in step and drives the blink and skeleton updates.
+
+  * func_80A3DB04 -> EnGm_WaitForSwitch
+    deduced, confidence HIGH: Medigoron's pre-reveal idle: offers only his
+    brush-off line until the room's switch flag is set, at which point he
+    starts the sales pitch.
+
+  * func_80A3DBF4 -> EnGm_TalkBeforeSwitch
+    deduced, confidence HIGH: waits out that brush-off textbox and returns
+    to the pre-reveal idle.
+
+  * func_80A3DC44 -> EnGm_Idle
+    deduced, confidence HIGH: the main idle: refreshes the text id and
+    offers talk, routing an accepted conversation to the plain reply or to
+    the buy/decline prompt according to the sale state.
+
+  * func_80A3DD7C -> EnGm_Talk
+    deduced, confidence HIGH: waits for the current line to be advanced and
+    returns to the idle, closing the box itself for the event-state variant.
+
+  * func_80A3DF00 -> EnGm_GiveKnife
+    deduced, confidence HIGH: re-offers GI_SWORD_KNIFE until the player
+    takes it, then moves on to the payment state.
+
+  * func_80A3DF60 -> EnGm_TakePayment
+    deduced, confidence HIGH: once the get-item textbox is advanced it
+    charges the 200 rupees and returns to the idle.
+
+  * func_80A3E090 -> EnGm_UpdatePositions
+    deduced, confidence HIGH: derives the collider, talk and focus positions
+    by transforming three fixed forward offsets by the actor's rotation, so
+    all three sit out in front of him.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../Enhancements/randomizer/hook_handlers.cpp |  2 +-
+ soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c   | 78 +++++++++++--------
+ soh/src/overlays/actors/ovl_En_Gm/z_en_gm.h   |  2 +-
+ 3 files changed, 46 insertions(+), 36 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 239759591..add4baa40 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -1457,7 +1457,7 @@ void RandomizerOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_l
+                     Flags_SetInfTable(INFTABLE_B1);
+                     Flags_SetRandomizerInf(RAND_INF_MERCHANTS_MEDIGORON);
+                     enGm->actor.parent = NULL;
+-                    enGm->actionFunc = (EnGmActionFunc)func_80A3DC44;
++                    enGm->actionFunc = (EnGmActionFunc)EnGm_Idle;  // was func_80A3DC44 [LLM:HIGH]
+                     Rupees_ChangeBy(OTRGlobals::Instance->gRandoContext->GetItemLocation(RC_GC_MEDIGORON)->GetPrice() *
+                                     -1);
+                     *should = false;
+diff --git a/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c b/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
+index 98f1acb27..8d2224e1b 100644
+--- a/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
++++ b/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.c
+@@ -18,15 +18,23 @@ void EnGm_Destroy(Actor* thisx, PlayState* play);
+ void EnGm_Update(Actor* thisx, PlayState* play);
+ void EnGm_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A3D838(EnGm* this, PlayState* play);
+-void func_80A3DFBC(EnGm* this, PlayState* play);
+-void func_80A3DB04(EnGm* this, PlayState* play);
+-void func_80A3DC44(EnGm* this, PlayState* play);
+-void func_80A3DBF4(EnGm* this, PlayState* play);
+-void func_80A3DD7C(EnGm* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A3D838: the first update: waits for the Goron object bank, then builds the skeleton, collider and shape and installs the real update and the waiting action.
++void EnGm_WaitForObject(EnGm* this, PlayState* play);  // was func_80A3D838 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A3DFBC: the update installed once the object is loaded: it rebinds segment 6, runs the action function, keeps the focus rotation in step and drives the blink and skeleton updates.
++void EnGm_UpdateMain(EnGm* this, PlayState* play);  // was func_80A3DFBC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A3DB04: Medigoron's pre-reveal idle: offers only his brush-off line until the room's switch flag is set, at which point he starts the sales pitch.
++void EnGm_WaitForSwitch(EnGm* this, PlayState* play);  // was func_80A3DB04 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A3DC44: the main idle: refreshes the text id and offers talk, routing an accepted conversation to the plain reply or to the buy/decline prompt according to the sale state.
++void EnGm_Idle(EnGm* this, PlayState* play);  // was func_80A3DC44 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A3DBF4: waits out that brush-off textbox and returns to the pre-reveal idle.
++void EnGm_TalkBeforeSwitch(EnGm* this, PlayState* play);  // was func_80A3DBF4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A3DD7C: waits for the current line to be advanced and returns to the idle, closing the box itself for the event-state variant.
++void EnGm_Talk(EnGm* this, PlayState* play);  // was func_80A3DD7C [LLM:HIGH]
+ void EnGm_ProcessChoiceIndex(EnGm* this, PlayState* play);
+-void func_80A3DF00(EnGm* this, PlayState* play);
+-void func_80A3DF60(EnGm* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A3DF00: re-offers GI_SWORD_KNIFE until the player takes it, then moves on to the payment state.
++void EnGm_GiveKnife(EnGm* this, PlayState* play);  // was func_80A3DF00 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A3DF60: once the get-item textbox is advanced it charges the 200 rupees and returns to the idle.
++void EnGm_TakePayment(EnGm* this, PlayState* play);  // was func_80A3DF60 [LLM:HIGH]
+ 
+ const ActorInit En_Gm_InitVars = {
+     ACTOR_EN_GM,
+@@ -83,7 +91,7 @@ void EnGm_Init(Actor* thisx, PlayState* play) {
+         assert(this->objGmBankIndex < 0);
+     }
+ 
+-    this->updateFunc = func_80A3D838;
++    this->updateFunc = EnGm_WaitForObject;  // was func_80A3D838 [LLM:HIGH]
+ }
+ 
+ void EnGm_Destroy(Actor* thisx, PlayState* play) {
+@@ -92,7 +100,8 @@ void EnGm_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-s32 func_80A3D7C8(void) {
++// LLM generated name (HIGH), was func_80A3D7C8: returns which stage of the Giant's Knife sale the player is at: 0 for child Link, 1 when the knife has never been bought, 2 while it is broken, and 3 once it has been replaced.
++s32 EnGm_GetSaleState(void) {
+     if (LINK_AGE_IN_YEARS == YEARS_CHILD) {
+         return 0;
+     } else if (GameInteractor_Should(
+@@ -107,7 +116,7 @@ s32 func_80A3D7C8(void) {
+     }
+ }
+ 
+-void func_80A3D838(EnGm* this, PlayState* play) {
++void EnGm_WaitForObject(EnGm* this, PlayState* play) {
+     if (Object_IsLoaded(&play->objectCtx, this->objGmBankIndex)) {
+         this->actor.flags &= ~ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+         SkelAnime_InitFlex(play, &this->skelAnime, &gGoronSkel, NULL, this->jointTable, this->morphTable, 18);
+@@ -123,8 +132,8 @@ void func_80A3D838(EnGm* this, PlayState* play) {
+         this->eyeTexIndex = 0;
+         this->blinkTimer = 20;
+         this->actor.textId = 0x3049;
+-        this->updateFunc = func_80A3DFBC;
+-        this->actionFunc = func_80A3DB04;
++        this->updateFunc = EnGm_UpdateMain;  // was func_80A3DFBC [LLM:HIGH]
++        this->actionFunc = EnGm_WaitForSwitch;  // was func_80A3DB04 [LLM:HIGH]
+         this->actor.speedXZ = 0.0f;
+         this->actor.gravity = -1.0f;
+         this->actor.velocity.y = 0.0f;
+@@ -145,7 +154,7 @@ void EnGm_UpdateEye(EnGm* this) {
+ }
+ 
+ void EnGm_SetTextID(EnGm* this) {
+-    switch (func_80A3D7C8()) {
++    switch (EnGm_GetSaleState()) {  // was func_80A3D7C8 [LLM:HIGH]
+         case 0:
+             if (Flags_GetInfTable(INFTABLE_B0)) {
+                 this->actor.textId = 0x304B;
+@@ -169,7 +178,7 @@ void EnGm_SetTextID(EnGm* this) {
+     }
+ }
+ 
+-void func_80A3DB04(EnGm* this, PlayState* play) {
++void EnGm_WaitForSwitch(EnGm* this, PlayState* play) {
+     f32 dx;
+     f32 dz;
+     Player* player = GET_PLAYER(play);
+@@ -179,22 +188,22 @@ void func_80A3DB04(EnGm* this, PlayState* play) {
+ 
+     if (Flags_GetSwitch(play, this->actor.params)) {
+         EnGm_SetTextID(this);
+-        this->actionFunc = func_80A3DC44;
++        this->actionFunc = EnGm_Idle;  // was func_80A3DC44 [LLM:HIGH]
+     } else if (Actor_ProcessTalkRequest(&this->actor, play)) {
+-        this->actionFunc = func_80A3DBF4;
++        this->actionFunc = EnGm_TalkBeforeSwitch;  // was func_80A3DBF4 [LLM:HIGH]
+     } else if ((this->collider.base.ocFlags1 & OC1_HIT) || (SQ(dx) + SQ(dz)) < SQ(100.0f)) {
+         this->collider.base.acFlags &= ~AC_HIT;
+         Actor_OfferTalk(&this->actor, play, 415.0f);
+     }
+ }
+ 
+-void func_80A3DBF4(EnGm* this, PlayState* play) {
++void EnGm_TalkBeforeSwitch(EnGm* this, PlayState* play) {
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_DONE) && Message_ShouldAdvance(play)) {
+-        this->actionFunc = func_80A3DB04;
++        this->actionFunc = EnGm_WaitForSwitch;  // was func_80A3DB04 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A3DC44(EnGm* this, PlayState* play) {
++void EnGm_Idle(EnGm* this, PlayState* play) {
+     f32 dx;
+     f32 dz;
+     s32 pad;
+@@ -206,11 +215,11 @@ void func_80A3DC44(EnGm* this, PlayState* play) {
+     dz = this->talkPos.z - player->actor.world.pos.z;
+ 
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+-        switch (func_80A3D7C8()) {
++        switch (EnGm_GetSaleState()) {  // was func_80A3D7C8 [LLM:HIGH]
+             case 0:
+                 Flags_SetInfTable(INFTABLE_B0);
+             case 3:
+-                this->actionFunc = func_80A3DD7C;
++                this->actionFunc = EnGm_Talk;  // was func_80A3DD7C [LLM:HIGH]
+                 return;
+             case 1:
+                 Flags_SetInfTable(INFTABLE_B1);
+@@ -228,11 +237,11 @@ void func_80A3DC44(EnGm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A3DD7C(EnGm* this, PlayState* play) {
++void EnGm_Talk(EnGm* this, PlayState* play) {
+     u8 dialogState = Message_GetState(&play->msgCtx);
+ 
+     if ((dialogState == TEXT_STATE_DONE || dialogState == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+-        this->actionFunc = func_80A3DC44;
++        this->actionFunc = EnGm_Idle;  // was func_80A3DC44 [LLM:HIGH]
+         if (dialogState == TEXT_STATE_EVENT) {
+             play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
+             play->msgCtx.stateTimer = 4;
+@@ -246,39 +255,39 @@ void EnGm_ProcessChoiceIndex(EnGm* this, PlayState* play) {
+             case 0: // yes
+                 if (GameInteractor_Should(VB_CHECK_RANDO_PRICE_OF_MEDIGORON, gSaveContext.rupees < 200, this)) {
+                     Message_ContinueTextbox(play, 0xC8);
+-                    this->actionFunc = func_80A3DD7C;
++                    this->actionFunc = EnGm_Talk;  // was func_80A3DD7C [LLM:HIGH]
+                 } else {
+                     if (GameInteractor_Should(VB_GIVE_ITEM_FROM_MEDIGORON, true, this)) {
+                         Actor_OfferGetItem(&this->actor, play, GI_SWORD_KNIFE, 415.0f, 10.0f);
+-                        this->actionFunc = func_80A3DF00;
++                        this->actionFunc = EnGm_GiveKnife;  // was func_80A3DF00 [LLM:HIGH]
+                     }
+                 }
+                 break;
+             case 1: // no
+                 Message_ContinueTextbox(play, 0x3050);
+-                this->actionFunc = func_80A3DD7C;
++                this->actionFunc = EnGm_Talk;  // was func_80A3DD7C [LLM:HIGH]
+                 break;
+         }
+     }
+ }
+ 
+-void func_80A3DF00(EnGm* this, PlayState* play) {
++void EnGm_GiveKnife(EnGm* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         this->actor.parent = NULL;
+-        this->actionFunc = func_80A3DF60;
++        this->actionFunc = EnGm_TakePayment;  // was func_80A3DF60 [LLM:HIGH]
+     } else {
+         Actor_OfferGetItem(&this->actor, play, GI_SWORD_KNIFE, 415.0f, 10.0f);
+     }
+ }
+ 
+-void func_80A3DF60(EnGm* this, PlayState* play) {
++void EnGm_TakePayment(EnGm* this, PlayState* play) {
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_DONE) && Message_ShouldAdvance(play)) {
+         Rupees_ChangeBy(-200);
+-        this->actionFunc = func_80A3DC44;
++        this->actionFunc = EnGm_Idle;  // was func_80A3DC44 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A3DFBC(EnGm* this, PlayState* play) {
++void EnGm_UpdateMain(EnGm* this, PlayState* play) {
+     gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->objGmBankIndex].segment);
+     this->timer++;
+     this->actionFunc(this, play);
+@@ -296,7 +305,8 @@ void EnGm_Update(Actor* thisx, PlayState* play) {
+     this->updateFunc(this, play);
+ }
+ 
+-void func_80A3E090(EnGm* this) {
++// LLM generated name (HIGH), was func_80A3E090: derives the collider, talk and focus positions by transforming three fixed forward offsets by the actor's rotation, so all three sit out in front of him.
++void EnGm_UpdatePositions(EnGm* this) {
+     Vec3f vec1;
+     Vec3f vec2;
+ 
+@@ -336,5 +346,5 @@ void EnGm_Draw(Actor* thisx, PlayState* play) {
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+ 
+-    func_80A3E090(this);
++    EnGm_UpdatePositions(this);  // was func_80A3E090 [LLM:HIGH]
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.h b/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.h
+index f3f623ea0..2543fc710 100644
+--- a/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.h
++++ b/soh/src/overlays/actors/ovl_En_Gm/z_en_gm.h
+@@ -24,6 +24,6 @@ typedef struct EnGm {
+     /* 0x02C4 */ Vec3f talkPos;
+ } EnGm; // size = 0x02D0
+ 
+-void func_80A3DC44(EnGm* actor, PlayState* play);
++void EnGm_Idle(EnGm* actor, PlayState* play);  // was func_80A3DC44 [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

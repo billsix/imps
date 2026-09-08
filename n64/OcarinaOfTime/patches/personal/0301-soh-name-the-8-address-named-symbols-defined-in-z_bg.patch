@@ -1,0 +1,196 @@
+From 77d0b7420349ac50c772176c995b13432710e48d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:24 +0000
+Subject: [PATCH 301/488] soh: name the 8 address-named symbols defined in
+ z_bg_spot12_gate.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 8 are defined in soh/src/overlays/actors/ovl_Bg_Spot12_Gate/z_bg_spot12_gate.c.
+
+  * func_808B30C0 -> BgSpot12Gate_SetupWaitForSwitch
+    deduced, confidence HIGH: snaps the gate down to home height and
+    installs the waiting action.
+
+  * func_808B30D8 -> BgSpot12Gate_WaitForSwitch
+    deduced, confidence HIGH: waits for the gate's switch flag, then starts
+    the delay and the one-point cutscene that shows it.
+
+  * func_808B3134 -> BgSpot12Gate_SetupDelay
+    deduced, confidence HIGH: arms the 40-frame pause before the gate starts
+    moving.
+
+  * func_808B314C -> BgSpot12Gate_Delay
+    deduced, confidence HIGH: holds until that pause expires, then hands off
+    to the opening setup.
+
+  * func_808B317C -> BgSpot12Gate_SetupOpen
+    deduced, confidence HIGH: installs the opening action.
+
+  * func_808B318C -> BgSpot12Gate_Open
+    deduced, confidence HIGH: accelerates the gate up to 200 units above
+    home with the metal-gate sfx, finishing on the stop sfx and a camera
+    shake.
+
+  * func_808B3274 -> BgSpot12Gate_SetupOpened
+    deduced, confidence HIGH: snaps the gate to its fully-open height; Init
+    uses it when the switch flag is already set.
+
+  * func_808B3298 -> BgSpot12Gate_DoNothing
+    deduced, confidence HIGH: the empty terminal action installed once the
+    gate is open.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Spot12_Gate/z_bg_spot12_gate.c     | 58 +++++++++++--------
+ 1 file changed, 33 insertions(+), 25 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot12_Gate/z_bg_spot12_gate.c b/soh/src/overlays/actors/ovl_Bg_Spot12_Gate/z_bg_spot12_gate.c
+index b1f541666..265559b59 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot12_Gate/z_bg_spot12_gate.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot12_Gate/z_bg_spot12_gate.c
+@@ -14,14 +14,22 @@ void BgSpot12Gate_Destroy(Actor* thisx, PlayState* play);
+ void BgSpot12Gate_Update(Actor* thisx, PlayState* play);
+ void BgSpot12Gate_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_808B30C0(BgSpot12Gate* this);
+-void func_808B30D8(BgSpot12Gate* this, PlayState* play);
+-void func_808B3134(BgSpot12Gate* this);
+-void func_808B314C(BgSpot12Gate* this, PlayState* play);
+-void func_808B317C(BgSpot12Gate* this);
+-void func_808B318C(BgSpot12Gate* this, PlayState* play);
+-void func_808B3274(BgSpot12Gate* this);
+-void func_808B3298(BgSpot12Gate* this, PlayState* play);
++// LLM generated name (HIGH), was func_808B30C0: snaps the gate down to home height and installs the waiting action.
++void BgSpot12Gate_SetupWaitForSwitch(BgSpot12Gate* this);  // was func_808B30C0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B30D8: waits for the gate's switch flag, then starts the delay and the one-point cutscene that shows it.
++void BgSpot12Gate_WaitForSwitch(BgSpot12Gate* this, PlayState* play);  // was func_808B30D8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B3134: arms the 40-frame pause before the gate starts moving.
++void BgSpot12Gate_SetupDelay(BgSpot12Gate* this);  // was func_808B3134 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B314C: holds until that pause expires, then hands off to the opening setup.
++void BgSpot12Gate_Delay(BgSpot12Gate* this, PlayState* play);  // was func_808B314C [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B317C: installs the opening action.
++void BgSpot12Gate_SetupOpen(BgSpot12Gate* this);  // was func_808B317C [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B318C: accelerates the gate up to 200 units above home with the metal-gate sfx, finishing on the stop sfx and a camera shake.
++void BgSpot12Gate_Open(BgSpot12Gate* this, PlayState* play);  // was func_808B318C [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B3274: snaps the gate to its fully-open height; Init uses it when the switch flag is already set.
++void BgSpot12Gate_SetupOpened(BgSpot12Gate* this);  // was func_808B3274 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B3298: the empty terminal action installed once the gate is open.
++void BgSpot12Gate_DoNothing(BgSpot12Gate* this, PlayState* play);  // was func_808B3298 [LLM:HIGH]
+ 
+ const ActorInit Bg_Spot12_Gate_InitVars = {
+     ACTOR_BG_SPOT12_GATE,
+@@ -64,9 +72,9 @@ void BgSpot12Gate_Init(Actor* thisx, PlayState* play) {
+     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
+ 
+     if (Flags_GetSwitch(play, this->dyna.actor.params & 0x3F)) {
+-        func_808B3274(this);
++        BgSpot12Gate_SetupOpened(this);  // was func_808B3274 [LLM:HIGH]
+     } else {
+-        func_808B30C0(this);
++        BgSpot12Gate_SetupWaitForSwitch(this);  // was func_808B30C0 [LLM:HIGH]
+     }
+ }
+ 
+@@ -76,41 +84,41 @@ void BgSpot12Gate_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_808B30C0(BgSpot12Gate* this) {
+-    this->actionFunc = func_808B30D8;
++void BgSpot12Gate_SetupWaitForSwitch(BgSpot12Gate* this) {
++    this->actionFunc = BgSpot12Gate_WaitForSwitch;  // was func_808B30D8 [LLM:HIGH]
+     this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y;
+ }
+ 
+-void func_808B30D8(BgSpot12Gate* this, PlayState* play) {
++void BgSpot12Gate_WaitForSwitch(BgSpot12Gate* this, PlayState* play) {
+     if (Flags_GetSwitch(play, this->dyna.actor.params & 0x3F)) {
+-        func_808B3134(this);
++        BgSpot12Gate_SetupDelay(this);  // was func_808B3134 [LLM:HIGH]
+         OnePointCutscene_Init(play, 4160, -99, &this->dyna.actor, CAM_ID_MAIN);
+     }
+ }
+ 
+-void func_808B3134(BgSpot12Gate* this) {
+-    this->actionFunc = func_808B314C;
++void BgSpot12Gate_SetupDelay(BgSpot12Gate* this) {
++    this->actionFunc = BgSpot12Gate_Delay;  // was func_808B314C [LLM:HIGH]
+     this->unk_168 = 40;
+ }
+ 
+-void func_808B314C(BgSpot12Gate* this, PlayState* play) {
++void BgSpot12Gate_Delay(BgSpot12Gate* this, PlayState* play) {
+     if (this->unk_168 <= 0) {
+-        func_808B317C(this);
++        BgSpot12Gate_SetupOpen(this);  // was func_808B317C [LLM:HIGH]
+     }
+ }
+ 
+-void func_808B317C(BgSpot12Gate* this) {
+-    this->actionFunc = func_808B318C;
++void BgSpot12Gate_SetupOpen(BgSpot12Gate* this) {
++    this->actionFunc = BgSpot12Gate_Open;  // was func_808B318C [LLM:HIGH]
+ }
+ 
+-void func_808B318C(BgSpot12Gate* this, PlayState* play) {
++void BgSpot12Gate_Open(BgSpot12Gate* this, PlayState* play) {
+     s32 pad;
+     s32 var;
+ 
+     Math_StepToF(&this->dyna.actor.velocity.y, 1.6f, 0.03f);
+     if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y + 200.0f,
+                      this->dyna.actor.velocity.y)) {
+-        func_808B3274(this);
++        BgSpot12Gate_SetupOpened(this);  // was func_808B3274 [LLM:HIGH]
+         var = Quake_Add(GET_ACTIVE_CAM(play), 3);
+         Quake_SetSpeed(var, -0x3CB0);
+         Quake_SetQuakeValues(var, 3, 0, 0, 0);
+@@ -121,12 +129,12 @@ void func_808B318C(BgSpot12Gate* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808B3274(BgSpot12Gate* this) {
+-    this->actionFunc = func_808B3298;
++void BgSpot12Gate_SetupOpened(BgSpot12Gate* this) {
++    this->actionFunc = BgSpot12Gate_DoNothing;  // was func_808B3298 [LLM:HIGH]
+     this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y + 200.0f;
+ }
+ 
+-void func_808B3298(BgSpot12Gate* this, PlayState* play) {
++void BgSpot12Gate_DoNothing(BgSpot12Gate* this, PlayState* play) {
+ }
+ 
+ void BgSpot12Gate_Update(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

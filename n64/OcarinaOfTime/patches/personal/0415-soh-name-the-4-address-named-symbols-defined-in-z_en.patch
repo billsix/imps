@@ -1,0 +1,111 @@
+From ff7227857d6e3b8b7084516ba971b1deae92e784 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:35 +0000
+Subject: [PATCH 415/488] soh: name the 4 address-named symbols defined in
+ z_en_go.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Go/z_en_go.c.
+
+  * D_80A41B9C -> sUnusedInitPos1
+    deduced, confidence GUESS: a zero vector in EnGo_Init already commented
+    unused
+
+  * D_80A41BA8 -> sUnusedInitPos2
+    deduced, confidence GUESS: the second such unused zero vector
+
+  * D_80A41BB4 -> sCurledFocusOffset
+    deduced, confidence HIGH: the zero vector EnGo_DrawCurledUp records the
+    focus position from
+
+  * D_80A41BC0 -> sRollingFocusOffset
+    deduced, confidence HIGH: the same for EnGo_DrawRolling
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Go/z_en_go.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+index a5f556c09..98b0159c8 100644
+--- a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
++++ b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+@@ -637,8 +637,8 @@ void EnGo_RunTalkUpdate(EnGo* this, PlayState* play) {
+ void EnGo_Init(Actor* thisx, PlayState* play) {
+     EnGo* this = (EnGo*)thisx;
+     s32 pad;
+-    Vec3f D_80A41B9C = { 0.0f, 0.0f, 0.0f }; // unused
+-    Vec3f D_80A41BA8 = { 0.0f, 0.0f, 0.0f }; // unused
++    Vec3f sUnusedInitPos1 = { 0.0f, 0.0f, 0.0f }; // unused, was D_80A41B9C [LLM:GUESS]
++    Vec3f sUnusedInitPos2 = { 0.0f, 0.0f, 0.0f }; // unused, was D_80A41BA8 [LLM:GUESS]
+ 
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     SkelAnime_InitFlex(play, &this->skelAnime, &gGoronSkel, NULL, NULL, NULL, 0);
+@@ -1060,7 +1060,7 @@ void EnGo_Update(Actor* thisx, PlayState* play) {
+ }
+ 
+ void EnGo_DrawCurledUp(EnGo* this, PlayState* play) {
+-    Vec3f D_80A41BB4 = { 0.0f, 0.0f, 0.0f };
++    Vec3f sCurledFocusOffset = { 0.0f, 0.0f, 0.0f };  // was D_80A41BB4 [LLM:HIGH]
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+@@ -1071,14 +1071,14 @@ void EnGo_DrawCurledUp(EnGo* this, PlayState* play) {
+ 
+     gSPDisplayList(POLY_OPA_DISP++, gGoronDL_00BD80);
+ 
+-    Matrix_MultVec3f(&D_80A41BB4, &this->actor.focus.pos);
++    Matrix_MultVec3f(&sCurledFocusOffset, &this->actor.focus.pos);  // was D_80A41BB4 [LLM:HIGH]
+     Matrix_Pop();
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+ void EnGo_DrawRolling(EnGo* this, PlayState* play) {
+-    Vec3f D_80A41BC0 = { 0.0f, 0.0f, 0.0f };
++    Vec3f sRollingFocusOffset = { 0.0f, 0.0f, 0.0f };  // was D_80A41BC0 [LLM:HIGH]
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+@@ -1088,7 +1088,7 @@ void EnGo_DrawRolling(EnGo* this, PlayState* play) {
+                      MTXMODE_APPLY);
+     gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+     gSPDisplayList(POLY_OPA_DISP++, gGoronDL_00C140);
+-    Matrix_MultVec3f(&D_80A41BC0, &this->actor.focus.pos);
++    Matrix_MultVec3f(&sRollingFocusOffset, &this->actor.focus.pos);  // was D_80A41BC0 [LLM:HIGH]
+     Matrix_Pop();
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+-- 
+2.55.0
+

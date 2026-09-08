@@ -1,0 +1,1022 @@
+From 90ba0d4038b9ce238ffd6d9c8fee62574d7c9acd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:32 +0000
+Subject: [PATCH 381/488] soh: name the 50 address-named symbols defined in
+ z_kaleido_scope_PAL.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 50 are defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c; updating their references touches 2 files in total.
+
+  * func_808237B4 -> KaleidoScope_RotatePageSlow
+    deduced, confidence HIGH: steps the pause camera and the rotation
+    counter one notch a frame, landing on the target page for this mode at
+    64
+
+  * func_80823A0C -> KaleidoScope_SetPageVtx
+    deduced, confidence HIGH: fills a page of quads from the shared and
+    per-page position tables and tints their corners from the page colour
+    set
+
+  * func_808265BC -> KaleidoScope_RotatePageFast
+    deduced, confidence HIGH: the ZREG-scaled twin of
+    KaleidoScope_RotatePageSlow, which also restores the B button item and
+    reloads the button status for the new page
+
+  * D_8082AB6C -> sButtonStatusByPage
+    deduced, confidence HIGH: the per-page enabled and disabled state copied
+    into gSaveContext.buttonStatus
+
+  * D_8082AB8C -> sCursorPrimR
+    deduced, confidence HIGH: red of the pause cursor prim colour, eased
+    toward the current cursor colour set
+
+  * D_8082AB90 -> sCursorPrimG
+    deduced, confidence HIGH: green of that same prim colour
+
+  * D_8082AB94 -> sCursorPrimB
+    deduced, confidence HIGH: blue of that same prim colour
+
+  * D_8082AB98 -> sCursorPrimA
+    deduced, confidence HIGH: alpha of that same prim colour, ramped up from
+    zero when the cursor appears
+
+  * D_8082AB9C -> sCursorEnvR
+    deduced, confidence HIGH: red of the pause cursor env colour
+
+  * D_8082ABA0 -> sCursorEnvG
+    deduced, confidence HIGH: green of that env colour
+
+  * D_8082ABA4 -> sCursorEnvB
+    deduced, confidence HIGH: blue of that env colour
+
+  * D_8082ABAC -> sPageRotateEyeDx
+    deduced, confidence HIGH: per-mode X step applied to the pause camera
+    while the pages rotate
+
+  * D_8082ABCC -> sPageRotateEyeDz
+    deduced, confidence HIGH: the matching Z step
+
+  * D_8082ABEC -> sPageByRotateMode
+    deduced, confidence HIGH: the page each rotation mode lands on
+
+  * D_8082AE90 -> sPageVtxX0
+    deduced, confidence HIGH: the X offsets in slot 0 of the sPageVtxX table
+
+  * D_8082AE94 -> sPageVtxX1
+    deduced, confidence HIGH: the X offsets in slot 1 of the sPageVtxX table
+
+  * D_8082AE98 -> sPageVtxX2
+    deduced, confidence HIGH: the X offsets in slot 2 of the sPageVtxX table
+
+  * D_8082AEBC -> sPageVtxX3
+    deduced, confidence HIGH: the X offsets in slot 3 of the sPageVtxX table
+
+  * D_8082AEC0 -> sPageVtxX4
+    deduced, confidence HIGH: the X offsets in slot 4 of the sPageVtxX
+    table, the slot whose widths and heights are the already-named cloud
+    tables
+
+  * D_8082AF00 -> sPageVtxX5
+    deduced, confidence HIGH: the X offsets in slot 5 of the sPageVtxX table
+
+  * D_8082AF0C -> sPageVtxWidths0
+    deduced, confidence HIGH: the widths in slot 0 of the sPageVtxWidths
+    table
+
+  * D_8082AF10 -> sPageVtxWidths1
+    deduced, confidence HIGH: the widths in slot 1 of the sPageVtxWidths
+    table
+
+  * D_8082AF14 -> sPageVtxWidths2
+    deduced, confidence HIGH: the widths in slot 2 of the sPageVtxWidths
+    table
+
+  * D_8082AF38 -> sPageVtxWidths3
+    deduced, confidence HIGH: the widths in slot 3 of the sPageVtxWidths
+    table
+
+  * D_8082AF3C -> sPageVtxWidths5
+    deduced, confidence HIGH: the widths in slot 5 of the sPageVtxWidths
+    table
+
+  * D_8082AF48 -> sPageVtxY0
+    deduced, confidence HIGH: the Y offsets in slot 0 of the sPageVtxY table
+
+  * D_8082AF4C -> sPageVtxY1
+    deduced, confidence HIGH: the Y offsets in slot 1 of the sPageVtxY table
+
+  * D_8082AF50 -> sPageVtxY2
+    deduced, confidence HIGH: the Y offsets in slot 2 of the sPageVtxY table
+
+  * D_8082AF74 -> sPageVtxY3
+    deduced, confidence HIGH: the Y offsets in slot 3 of the sPageVtxY table
+
+  * D_8082AF78 -> sPageVtxY4
+    deduced, confidence HIGH: the Y offsets in slot 4 of the sPageVtxY table
+
+  * D_8082AFB8 -> sPageVtxY5
+    deduced, confidence HIGH: the Y offsets in slot 5 of the sPageVtxY table
+
+  * D_8082AFC4 -> sPageVtxHeights0
+    deduced, confidence HIGH: the heights in slot 0 of the sPageVtxHeights
+    table
+
+  * D_8082AFC8 -> sPageVtxHeights1
+    deduced, confidence HIGH: the heights in slot 1 of the sPageVtxHeights
+    table
+
+  * D_8082AFCC -> sPageVtxHeights2
+    deduced, confidence HIGH: the heights in slot 2 of the sPageVtxHeights
+    table
+
+  * D_8082AFF0 -> sPageVtxHeights3
+    deduced, confidence HIGH: the heights in slot 3 of the sPageVtxHeights
+    table
+
+  * D_8082AFF4 -> sPageVtxHeights5
+    deduced, confidence HIGH: the heights in slot 5 of the sPageVtxHeights
+    table
+
+  * D_8082B000 -> sPageVtxX
+    deduced, confidence HIGH: the per-page X offset tables, indexed by
+    pageIndex
+
+  * D_8082B018 -> sPageVtxWidths
+    deduced, confidence HIGH: the per-page width tables, indexed by
+    pageIndex
+
+  * D_8082B030 -> sPageVtxY
+    deduced, confidence HIGH: the per-page Y offset tables, indexed by
+    pageIndex
+
+  * D_8082B048 -> sPageVtxHeights
+    deduced, confidence HIGH: the per-page height tables, indexed by
+    pageIndex
+
+  * D_8082B060 -> sCommonVtxX
+    deduced, confidence HIGH: X offsets of the quads every page draws before
+    its own
+
+  * D_8082B08C -> sCommonVtxWidths
+    deduced, confidence HIGH: widths of those same shared quads
+
+  * D_8082B0B8 -> sCommonVtxY
+    deduced, confidence HIGH: Y offsets of those same shared quads
+
+  * D_8082B0E4 -> sCommonVtxHeights
+    deduced, confidence HIGH: heights of those same shared quads
+
+  * D_8082B11C -> sEquipVtxIndices
+    deduced, confidence HIGH: the equip page vertex indices, with the port's
+    D_8082B11C_all covering every ammo slot
+
+  * D_8082B12C -> sEquipColumnX
+    deduced, confidence HIGH: the X position of each of the four equipment
+    columns
+
+  * D_8082B134 -> sEquipIconBaseIndices
+    deduced, confidence GUESS: added to each equipment value to reach its
+    icon index; which icon table it lands in is not established
+
+  * D_8082B138 -> sQuestVtxX
+    deduced, confidence HIGH: X position of each quest status icon
+
+  * D_8082B198 -> sQuestVtxY
+    deduced, confidence HIGH: Y position of each quest status icon
+
+  * D_8082B1F8 -> sQuestVtxSizes
+    deduced, confidence HIGH: square size of each quest status icon
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../TimeSavers/FasterPauseMenu.cpp            |   6 +-
+ .../ovl_kaleido_scope/z_kaleido_scope_PAL.c   | 366 ++++++++++--------
+ 2 files changed, 211 insertions(+), 161 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/FasterPauseMenu.cpp b/soh/soh/Enhancements/TimeSavers/FasterPauseMenu.cpp
+index 45af00f3a..70ad3aa1d 100644
+--- a/soh/soh/Enhancements/TimeSavers/FasterPauseMenu.cpp
++++ b/soh/soh/Enhancements/TimeSavers/FasterPauseMenu.cpp
+@@ -5,7 +5,7 @@ extern "C" {
+ #include "variables.h"
+ #include "z64.h"
+ extern PlayState* gPlayState;
+-extern void func_808237B4(PlayState* play, Input* input);
++extern void KaleidoScope_RotatePageSlow(PlayState* play, Input* input);  // was func_808237B4 [LLM:HIGH]
+ }
+ 
+ #define CVAR_FASTER_PAUSE_MENU_NAME CVAR_ENHANCEMENT("FasterPauseMenu")
+@@ -15,10 +15,10 @@ void OnKaleidoUpdateFaster() {
+     ZREG(46) = 2; // pauseCtx->eye and pauseCtx->unk_1EA multiply by this for animation. Double the default value.
+     WREG(6) = 4;  // Numerous kaleido animations divide by this for movement and alpha. Half the default value.
+ 
+-    // Page turn animation is governed by func_808237B4. Those values don't use registers to modify the speed, so we
++    // Page turn animation is governed by KaleidoScope_RotatePageSlow. Those values don't use registers to modify the speed, so we, was func_808237B4 [LLM:HIGH]
+     // just directly call it twice to effectively double the speed.
+     if (gPlayState->pauseCtx.state == 6 && gPlayState->pauseCtx.unk_1E4 == 1) { // In page turning mode
+-        func_808237B4(gPlayState, gPlayState->state.input);
++        KaleidoScope_RotatePageSlow(gPlayState, gPlayState->state.input);  // was func_808237B4 [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index dc2ab3319..8556b225e 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -905,7 +905,8 @@ s16 sCloudTexHeights[] = {  // was D_8082AB2C [LLM:HIGH]
+     24, 72, 13, 22, 19, 20, 19, 27, 14, 26, 22, 21, 49, 32, 45, 60, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 16, 32, 8,
+ };
+ 
+-static u8 D_8082AB6C[][ARRAY_COUNT(gSaveContext.buttonStatus)] = {
++// LLM generated name (HIGH), was D_8082AB6C: the per-page enabled and disabled state copied into gSaveContext.buttonStatus
++static u8 sButtonStatusByPage[][ARRAY_COUNT(gSaveContext.buttonStatus)] = {  // was D_8082AB6C [LLM:HIGH]
+     { BTN_ENABLED, BTN_DISABLED, BTN_DISABLED, BTN_DISABLED, BTN_ENABLED, BTN_DISABLED, BTN_DISABLED, BTN_DISABLED,
+       BTN_DISABLED },
+     { BTN_ENABLED, BTN_ENABLED, BTN_ENABLED, BTN_ENABLED, BTN_DISABLED, BTN_ENABLED, BTN_ENABLED, BTN_ENABLED,
+@@ -920,26 +921,36 @@ static u8 D_8082AB6C[][ARRAY_COUNT(gSaveContext.buttonStatus)] = {
+       BTN_ENABLED },
+ };
+ 
+-static s16 D_8082AB8C = 0;
+-static s16 D_8082AB90 = 0;
+-static s16 D_8082AB94 = 0;
+-static s16 D_8082AB98 = 255;
+-
+-static s16 D_8082AB9C = 255;
+-static s16 D_8082ABA0 = 0;
+-static s16 D_8082ABA4 = 0;
++// LLM generated name (HIGH), was D_8082AB8C: red of the pause cursor prim colour, eased toward the current cursor colour set
++static s16 sCursorPrimR = 0;  // was D_8082AB8C [LLM:HIGH]
++// LLM generated name (HIGH), was D_8082AB90: green of that same prim colour
++static s16 sCursorPrimG = 0;  // was D_8082AB90 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8082AB94: blue of that same prim colour
++static s16 sCursorPrimB = 0;  // was D_8082AB94 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8082AB98: alpha of that same prim colour, ramped up from zero when the cursor appears
++static s16 sCursorPrimA = 255;  // was D_8082AB98 [LLM:HIGH]
++
++// LLM generated name (HIGH), was D_8082AB9C: red of the pause cursor env colour
++static s16 sCursorEnvR = 255;  // was D_8082AB9C [LLM:HIGH]
++// LLM generated name (HIGH), was D_8082ABA0: green of that env colour
++static s16 sCursorEnvG = 0;  // was D_8082ABA0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8082ABA4: blue of that env colour
++static s16 sCursorEnvB = 0;  // was D_8082ABA4 [LLM:HIGH]
+ 
+ static s16 sInDungeonScene = false;
+ 
+-static f32 D_8082ABAC[] = {
++// LLM generated name (HIGH), was D_8082ABAC: per-mode X step applied to the pause camera while the pages rotate
++static f32 sPageRotateEyeDx[] = {  // was D_8082ABAC [LLM:HIGH]
+     -4.0f, 4.0f, 4.0f, 4.0f, 4.0f, -4.0f, -4.0f, -4.0f,
+ };
+ 
+-static f32 D_8082ABCC[] = {
++// LLM generated name (HIGH), was D_8082ABCC: the matching Z step
++static f32 sPageRotateEyeDz[] = {  // was D_8082ABCC [LLM:HIGH]
+     -4.0f, -4.0f, -4.0f, 4.0f, 4.0f, 4.0f, 4.0f, -4.0f,
+ };
+ 
+-static u16 D_8082ABEC[] = {
++// LLM generated name (HIGH), was D_8082ABEC: the page each rotation mode lands on
++static u16 sPageByRotateMode[] = {  // was D_8082ABEC [LLM:HIGH]
+     PAUSE_MAP, PAUSE_EQUIP, PAUSE_QUEST, PAUSE_ITEM, PAUSE_EQUIP, PAUSE_MAP, PAUSE_ITEM, PAUSE_QUEST,
+ };
+ 
+@@ -1270,11 +1281,11 @@ void KaleidoScope_SwitchPage(PauseContext* pauseCtx, u8 pt) {
+     }
+ 
+     for (int buttonIndex = 1; buttonIndex < ARRAY_COUNT(gSaveContext.buttonStatus); buttonIndex++) {
+-        gSaveContext.buttonStatus[buttonIndex] = D_8082AB6C[pauseCtx->pageIndex + pt][buttonIndex];
++        gSaveContext.buttonStatus[buttonIndex] = sButtonStatusByPage[pauseCtx->pageIndex + pt][buttonIndex];  // was D_8082AB6C [LLM:HIGH]
+     }
+ 
+     if ((CVarGetInteger(CVAR_ENHANCEMENT("AssignableTunicsAndBoots"), 0) != 0) &&
+-        (D_8082ABEC[pauseCtx->mode] == PAUSE_EQUIP)) {
++        (sPageByRotateMode[pauseCtx->mode] == PAUSE_EQUIP)) {  // was D_8082ABEC [LLM:HIGH]
+         gSaveContext.buttonStatus[1] = BTN_ENABLED;
+         gSaveContext.buttonStatus[2] = BTN_ENABLED;
+         gSaveContext.buttonStatus[3] = BTN_ENABLED;
+@@ -1370,7 +1381,7 @@ void KaleidoScope_DrawCursor(PlayState* play, u16 pageIndex) {
+             gDPSetPrimColor(POLY_OPA_DISP++, 0, 0, sCursorColors[pauseCtx->cursorColorSet >> 2].r,
+                             sCursorColors[pauseCtx->cursorColorSet >> 2].g,
+                             sCursorColors[pauseCtx->cursorColorSet >> 2].b, 255);
+-            gDPSetEnvColor(POLY_OPA_DISP++, D_8082AB8C, D_8082AB90, D_8082AB94, 255);
++            gDPSetEnvColor(POLY_OPA_DISP++, sCursorPrimR, sCursorPrimG, sCursorPrimB, 255);  // was D_8082AB8C [LLM:HIGH]
+             gSPVertex(POLY_OPA_DISP++, pauseCtx->cursorVtx, 16, 0);
+ 
+             for (i = j = 0; i < 4; i++, j += 4) {
+@@ -1460,30 +1471,30 @@ void KaleidoScope_DrawPages(PlayState* play, GraphicsContext* gfxCtx) {
+ 
+     if ((pauseCtx->state < 8) || (pauseCtx->state > 0x11)) {
+         if (pauseCtx->state != 7) {
+-            stepR = ABS(D_8082AB8C - D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].r) / D_8082AD3C;
+-            stepG = ABS(D_8082AB90 - D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].g) / D_8082AD3C;
+-            stepB = ABS(D_8082AB94 - D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].b) / D_8082AD3C;
+-            if (D_8082AB8C >= D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].r) {
+-                D_8082AB8C -= stepR;
++            stepR = ABS(sCursorPrimR - D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].r) / D_8082AD3C;  // was D_8082AB8C [LLM:HIGH]
++            stepG = ABS(sCursorPrimG - D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].g) / D_8082AD3C;  // was D_8082AB90 [LLM:HIGH]
++            stepB = ABS(sCursorPrimB - D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].b) / D_8082AD3C;  // was D_8082AB94 [LLM:HIGH]
++            if (sCursorPrimR >= D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].r) {  // was D_8082AB8C [LLM:HIGH]
++                sCursorPrimR -= stepR;  // was D_8082AB8C [LLM:HIGH]
+             } else {
+-                D_8082AB8C += stepR;
++                sCursorPrimR += stepR;  // was D_8082AB8C [LLM:HIGH]
+             }
+-            if (D_8082AB90 >= D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].g) {
+-                D_8082AB90 -= stepG;
++            if (sCursorPrimG >= D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].g) {  // was D_8082AB90 [LLM:HIGH]
++                sCursorPrimG -= stepG;  // was D_8082AB90 [LLM:HIGH]
+             } else {
+-                D_8082AB90 += stepG;
++                sCursorPrimG += stepG;  // was D_8082AB90 [LLM:HIGH]
+             }
+-            if (D_8082AB94 >= D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].b) {
+-                D_8082AB94 -= stepB;
++            if (sCursorPrimB >= D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].b) {  // was D_8082AB94 [LLM:HIGH]
++                sCursorPrimB -= stepB;  // was D_8082AB94 [LLM:HIGH]
+             } else {
+-                D_8082AB94 += stepB;
++                sCursorPrimB += stepB;  // was D_8082AB94 [LLM:HIGH]
+             }
+ 
+             D_8082AD3C--;
+             if (D_8082AD3C == 0) {
+-                D_8082AB8C = D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].r;
+-                D_8082AB90 = D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].g;
+-                D_8082AB94 = D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].b;
++                sCursorPrimR = D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].r;  // was D_8082AB8C [LLM:HIGH]
++                sCursorPrimG = D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].g;  // was D_8082AB90 [LLM:HIGH]
++                sCursorPrimB = D_8082ACF4[pauseCtx->cursorColorSet + D_8082AD40].b;  // was D_8082AB94 [LLM:HIGH]
+                 D_8082AD3C = ZREG(28 + D_8082AD40);
+                 D_8082AD40++;
+                 if (D_8082AD40 >= 4) {
+@@ -2524,7 +2535,8 @@ void KaleidoScope_UpdateNamePanel(PlayState* play) {
+     }
+ }
+ 
+-void func_808237B4(PlayState* play, Input* input) {
++// LLM generated name (HIGH), was func_808237B4: steps the pause camera and the rotation counter one notch a frame, landing on the target page for this mode at 64
++void KaleidoScope_RotatePageSlow(PlayState* play, Input* input) {
+     PauseContext* pauseCtx = &play->pauseCtx;
+     s32 cond = false;
+     s32 mode;
+@@ -2535,8 +2547,8 @@ void func_808237B4(PlayState* play, Input* input) {
+ 
+     if (!cond) {
+         mode = pauseCtx->mode;
+-        pauseCtx->eye.x += D_8082ABAC[mode];
+-        pauseCtx->eye.z += D_8082ABCC[mode];
++        pauseCtx->eye.x += sPageRotateEyeDx[mode];  // was D_8082ABAC [LLM:HIGH]
++        pauseCtx->eye.z += sPageRotateEyeDz[mode];  // was D_8082ABCC [LLM:HIGH]
+ 
+         if (pauseCtx->unk_1EA < 32) {
+             WREG(16) -= WREG(25) / WREG(6);
+@@ -2550,7 +2562,7 @@ void func_808237B4(PlayState* play, Input* input) {
+ 
+         if (pauseCtx->unk_1EA == 64) {
+             pauseCtx->unk_1EA = 0;
+-            pauseCtx->pageIndex = D_8082ABEC[pauseCtx->mode];
++            pauseCtx->pageIndex = sPageByRotateMode[pauseCtx->mode];  // was D_8082ABEC [LLM:HIGH]
+             pauseCtx->unk_1E4 = 0;
+         }
+     }
+@@ -2585,125 +2597,155 @@ static u8 sPageVtxColorB[][4] = {
+     { 50, 70, 70, 50 },   { 30, 60, 60, 30 }, { 50, 110, 110, 50 },
+ };
+ 
+-static s16 D_8082AE90[] = {
++// LLM generated name (HIGH), was D_8082AE90: the X offsets in slot 0 of the sPageVtxX table
++static s16 sPageVtxX0[] = {  // was D_8082AE90 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AE94[] = {
++// LLM generated name (HIGH), was D_8082AE94: the X offsets in slot 1 of the sPageVtxX table
++static s16 sPageVtxX1[] = {  // was D_8082AE94 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AE98[] = {
++// LLM generated name (HIGH), was D_8082AE98: the X offsets in slot 2 of the sPageVtxX table
++static s16 sPageVtxX2[] = {  // was D_8082AE98 [LLM:HIGH]
+     0xFFDC, 0x000C, 0xFFEE, 0x0046, 0x0046, 0x0046, 0xFFA8, 0xFFA8, 0xFFA8,
+     0xFFA8, 0xFFA8, 0xFFA8, 0xFFA8, 0xFFA8, 0xFF96, 0xFFC2, 0xFFD8, 0x0000,
+ };
+-static s16 D_8082AEBC[] = {
++// LLM generated name (HIGH), was D_8082AEBC: the X offsets in slot 3 of the sPageVtxX table
++static s16 sPageVtxX3[] = {  // was D_8082AEBC [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AEC0[] = {
++// LLM generated name (HIGH), was D_8082AEC0: the X offsets in slot 4 of the sPageVtxX table, the slot whose widths and heights are the already-named cloud tables
++static s16 sPageVtxX4[] = {  // was D_8082AEC0 [LLM:HIGH]
+     0x002F, 0xFFCF, 0xFFEF, 0xFFF1, 0xFFF7, 0x0018, 0x002B, 0x000E, 0x0009, 0x0026, 0x0052,
+     0x0047, 0xFFB4, 0xFFA9, 0xFF94, 0xFFCA, 0xFFA3, 0xFFBD, 0xFFC8, 0xFFDF, 0xFFF6, 0x0001,
+     0x000E, 0x0018, 0x0023, 0x003A, 0x004A, 0x0059, 0x0000, 0xFFC6, 0x0013, 0x001C,
+ };
+-static s16 D_8082AF00[] = {
++// LLM generated name (HIGH), was D_8082AF00: the X offsets in slot 5 of the sPageVtxX table
++static s16 sPageVtxX5[] = {  // was D_8082AF00 [LLM:HIGH]
+     0xFFB4, 0xFFC6, 0x000A, 0xFFC6, 0x000A, 0x0000,
+ };
+-static s16 D_8082AF0C[] = {
++// LLM generated name (HIGH), was D_8082AF0C: the widths in slot 0 of the sPageVtxWidths table
++static s16 sPageVtxWidths0[] = {  // was D_8082AF0C [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AF10[] = {
++// LLM generated name (HIGH), was D_8082AF10: the widths in slot 1 of the sPageVtxWidths table
++static s16 sPageVtxWidths1[] = {  // was D_8082AF10 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AF14[] = {
++// LLM generated name (HIGH), was D_8082AF14: the widths in slot 2 of the sPageVtxWidths table
++static s16 sPageVtxWidths2[] = {  // was D_8082AF14 [LLM:HIGH]
+     0x0030, 0x0030, 0x0060, 0x0018, 0x0018, 0x0018, 0x0018, 0x0018, 0x0018,
+     0x0018, 0x0018, 0x0018, 0x0018, 0x0018, 0x0010, 0x0010, 0x0018, 0x0000,
+ };
+-static s16 D_8082AF38[] = {
++// LLM generated name (HIGH), was D_8082AF38: the widths in slot 3 of the sPageVtxWidths table
++static s16 sPageVtxWidths3[] = {  // was D_8082AF38 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AF3C[] = {
++// LLM generated name (HIGH), was D_8082AF3C: the widths in slot 5 of the sPageVtxWidths table
++static s16 sPageVtxWidths5[] = {  // was D_8082AF3C [LLM:HIGH]
+     0x0098, 0x0030, 0x0030, 0x0030, 0x0030, 0x0000,
+ };
+-static s16 D_8082AF48[] = {
++// LLM generated name (HIGH), was D_8082AF48: the Y offsets in slot 0 of the sPageVtxY table
++static s16 sPageVtxY0[] = {  // was D_8082AF48 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AF4C[] = {
++// LLM generated name (HIGH), was D_8082AF4C: the Y offsets in slot 1 of the sPageVtxY table
++static s16 sPageVtxY1[] = {  // was D_8082AF4C [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AF50[] = {
++// LLM generated name (HIGH), was D_8082AF50: the Y offsets in slot 2 of the sPageVtxY table
++static s16 sPageVtxY2[] = {  // was D_8082AF50 [LLM:HIGH]
+     0x001C, 0x001C, 0x002E, 0x001C, 0xFFFE, 0xFFE0, 0x0032, 0x0024, 0x0016,
+     0x0008, 0xFFFA, 0xFFEC, 0xFFDE, 0xFFD0, 0x0012, 0x0012, 0x0032, 0x0000,
+ };
+-static s16 D_8082AF74[] = {
++// LLM generated name (HIGH), was D_8082AF74: the Y offsets in slot 3 of the sPageVtxY table
++static s16 sPageVtxY3[] = {  // was D_8082AF74 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AF78[] = {
++// LLM generated name (HIGH), was D_8082AF78: the Y offsets in slot 4 of the sPageVtxY table
++static s16 sPageVtxY4[] = {  // was D_8082AF78 [LLM:HIGH]
+     0x000F, 0x0028, 0x000B, 0x002D, 0x0034, 0x0025, 0x0024, 0x0039, 0x0036, 0x0021, 0x001F,
+     0x002D, 0x0020, 0x002A, 0x0031, 0xFFF6, 0x001F, 0x001B, 0x000F, 0xFFCF, 0x0008, 0x0026,
+     0x0007, 0x002F, 0x001E, 0x0001, 0xFFF7, 0x0019, 0x0000, 0x0001, 0xFFE0, 0xFFE6,
+ };
+-static s16 D_8082AFB8[] = {
++// LLM generated name (HIGH), was D_8082AFB8: the Y offsets in slot 5 of the sPageVtxY table
++static s16 sPageVtxY5[] = {  // was D_8082AFB8 [LLM:HIGH]
+     0x0024, 0x000A, 0x000A, 0xFFFA, 0xFFFA, 0x0000,
+ };
+-static s16 D_8082AFC4[] = {
++// LLM generated name (HIGH), was D_8082AFC4: the heights in slot 0 of the sPageVtxHeights table
++static s16 sPageVtxHeights0[] = {  // was D_8082AFC4 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AFC8[] = {
++// LLM generated name (HIGH), was D_8082AFC8: the heights in slot 1 of the sPageVtxHeights table
++static s16 sPageVtxHeights1[] = {  // was D_8082AFC8 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AFCC[] = {
++// LLM generated name (HIGH), was D_8082AFCC: the heights in slot 2 of the sPageVtxHeights table
++static s16 sPageVtxHeights2[] = {  // was D_8082AFCC [LLM:HIGH]
+     0x0055, 0x0055, 0x0010, 0x0018, 0x0018, 0x0018, 0x0010, 0x0010, 0x0010,
+     0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0010, 0x0018, 0x0000,
+ };
+-static s16 D_8082AFF0[] = {
++// LLM generated name (HIGH), was D_8082AFF0: the heights in slot 3 of the sPageVtxHeights table
++static s16 sPageVtxHeights3[] = {  // was D_8082AFF0 [LLM:HIGH]
+     0x0000,
+     0x0000,
+ };
+-static s16 D_8082AFF4[] = {
++// LLM generated name (HIGH), was D_8082AFF4: the heights in slot 5 of the sPageVtxHeights table
++static s16 sPageVtxHeights5[] = {  // was D_8082AFF4 [LLM:HIGH]
+     0x0010, 0x0030, 0x0030, 0x0010, 0x0010, 0x0000,
+ };
+ 
+-static s16* D_8082B000[] = {
+-    D_8082AE90, D_8082AE94, D_8082AE98, D_8082AEBC, D_8082AEC0, D_8082AF00,
++// LLM generated name (HIGH), was D_8082B000: the per-page X offset tables, indexed by pageIndex
++static s16* sPageVtxX[] = {  // was D_8082B000 [LLM:HIGH]
++    sPageVtxX0, sPageVtxX1, sPageVtxX2, sPageVtxX3, sPageVtxX4, sPageVtxX5,  // was D_8082AE90 [LLM:HIGH]
+ };
+ 
+-static s16* D_8082B018[] = {
+-    D_8082AF0C, D_8082AF10, D_8082AF14, D_8082AF38, sCloudTexWidths, D_8082AF3C,  // was D_8082AAEC [LLM:HIGH]
++// LLM generated name (HIGH), was D_8082B018: the per-page width tables, indexed by pageIndex
++static s16* sPageVtxWidths[] = {  // was D_8082B018 [LLM:HIGH]
++    sPageVtxWidths0, sPageVtxWidths1, sPageVtxWidths2, sPageVtxWidths3, sCloudTexWidths, sPageVtxWidths5,  // was D_8082AAEC [LLM:HIGH]
+ };
+ 
+-static s16* D_8082B030[] = {
+-    D_8082AF48, D_8082AF4C, D_8082AF50, D_8082AF74, D_8082AF78, D_8082AFB8,
++// LLM generated name (HIGH), was D_8082B030: the per-page Y offset tables, indexed by pageIndex
++static s16* sPageVtxY[] = {  // was D_8082B030 [LLM:HIGH]
++    sPageVtxY0, sPageVtxY1, sPageVtxY2, sPageVtxY3, sPageVtxY4, sPageVtxY5,  // was D_8082AF48 [LLM:HIGH]
+ };
+ 
+-static s16* D_8082B048[] = {
+-    D_8082AFC4, D_8082AFC8, D_8082AFCC, D_8082AFF0, sCloudTexHeights, D_8082AFF4,  // was D_8082AB2C [LLM:HIGH]
++// LLM generated name (HIGH), was D_8082B048: the per-page height tables, indexed by pageIndex
++static s16* sPageVtxHeights[] = {  // was D_8082B048 [LLM:HIGH]
++    sPageVtxHeights0, sPageVtxHeights1, sPageVtxHeights2, sPageVtxHeights3, sCloudTexHeights, sPageVtxHeights5,  // was D_8082AB2C [LLM:HIGH]
+ };
+ 
+-static s16 D_8082B060[] = {
++// LLM generated name (HIGH), was D_8082B060: X offsets of the quads every page draws before its own
++static s16 sCommonVtxX[] = {  // was D_8082B060 [LLM:HIGH]
+     0xFFC6, 0x000B, 0x001E, 0x001E, 0x000F, 0x0026, 0xFFC2, 0x003C, 0x003D, 0xFFB2, 0xFED4,
+     0xFFAA, 0xFFBF, 0xFED4, 0xFED4, 0xFFEB, 0x000E, 0x000D, 0x0014, 0xFFDE, 0xFED4, 0x0000,
+ };
+ 
+-static s16 D_8082B08C[] = {
++// LLM generated name (HIGH), was D_8082B08C: widths of those same shared quads
++static s16 sCommonVtxWidths[] = {  // was D_8082B08C [LLM:HIGH]
+     0x0059, 0x0014, 0x000E, 0x0023, 0x0020, 0x0011, 0x0032, 0x0010, 0x0015, 0x0014, 0xFFFF,
+     0x0020, 0x0010, 0xFFFF, 0xFFFF, 0x0013, 0x0013, 0x0015, 0x0010, 0x0014, 0xFFFF, 0x0000,
+ };
+ 
+-static s16 D_8082B0B8[] = {
++// LLM generated name (HIGH), was D_8082B0B8: Y offsets of those same shared quads
++static s16 sCommonVtxY[] = {  // was D_8082B0B8 [LLM:HIGH]
+     0x0001, 0x000F, 0x0014, 0x0009, 0xFFE2, 0xFFEF, 0xFFDE, 0x000F, 0x001E, 0x0001, 0xFED4,
+     0x002A, 0x0007, 0xFED4, 0xFED4, 0x0018, 0x0024, 0x0035, 0x0025, 0xFFF3, 0xFED4, 0x0000,
+ };
+ 
+-static s16 D_8082B0E4[] = {
++// LLM generated name (HIGH), was D_8082B0E4: heights of those same shared quads
++static s16 sCommonVtxHeights[] = {  // was D_8082B0E4 [LLM:HIGH]
+     0x0024, 0x000F, 0x0010, 0x0017, 0x0017, 0x0010, 0x0018, 0x000D, 0x0011, 0x0012, 0x0001,
+     0x0019, 0x000D, 0x0001, 0x0001, 0x000D, 0x0015, 0x000F, 0x000D, 0x000C, 0x0001, 0x0000,
+ };
+@@ -2747,7 +2789,8 @@ static const char* gPageVtxColorCvars[][4] = {
+     },
+ };
+ 
+-s16 func_80823A0C(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3) {
++// LLM generated name (HIGH), was func_80823A0C: fills a page of quads from the shared and per-page position tables and tints their corners from the page colour set
++s16 KaleidoScope_SetPageVtx(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3) {
+     static s16 D_8082B110 = 0;
+     static s16 D_8082B114 = 1;
+     static s16 D_8082B118 = 0;
+@@ -2863,10 +2906,10 @@ s16 func_80823A0C(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3) {
+     phi_s2 = vtxIndex;
+ 
+     if (arg3 != 0) {
+-        ptr1 = D_8082B000[pageIndex];
+-        ptr2 = D_8082B018[pageIndex];
+-        ptr3 = D_8082B030[pageIndex];
+-        ptr4 = D_8082B048[pageIndex];
++        ptr1 = sPageVtxX[pageIndex];  // was D_8082B000 [LLM:HIGH]
++        ptr2 = sPageVtxWidths[pageIndex];  // was D_8082B018 [LLM:HIGH]
++        ptr3 = sPageVtxY[pageIndex];  // was D_8082B030 [LLM:HIGH]
++        ptr4 = sPageVtxHeights[pageIndex];  // was D_8082B048 [LLM:HIGH]
+ 
+         for (colorIndex = 0; colorIndex < arg3; colorIndex++, vtxIndex += 4) {
+             vtx[vtxIndex + 2].v.ob[0] = vtx[vtxIndex + 0].v.ob[0] = ptr1[colorIndex];
+@@ -2908,15 +2951,15 @@ s16 func_80823A0C(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3) {
+ 
+             colorIndex = gSaveContext.worldMapArea;
+ 
+-            vtx[vtxIndex + 0].v.ob[0] = vtx[vtxIndex + 2].v.ob[0] = D_8082B060[colorIndex];
++            vtx[vtxIndex + 0].v.ob[0] = vtx[vtxIndex + 2].v.ob[0] = sCommonVtxX[colorIndex];  // was D_8082B060 [LLM:HIGH]
+ 
+             if (colorIndex) {}
+ 
+-            vtx[vtxIndex + 1].v.ob[0] = vtx[vtxIndex + 3].v.ob[0] = vtx[vtxIndex + 0].v.ob[0] + D_8082B08C[colorIndex];
++            vtx[vtxIndex + 1].v.ob[0] = vtx[vtxIndex + 3].v.ob[0] = vtx[vtxIndex + 0].v.ob[0] + sCommonVtxWidths[colorIndex];  // was D_8082B08C [LLM:HIGH]
+ 
+-            vtx[vtxIndex + 0].v.ob[1] = vtx[vtxIndex + 1].v.ob[1] = D_8082B0B8[colorIndex] + pauseCtx->offsetY;
++            vtx[vtxIndex + 0].v.ob[1] = vtx[vtxIndex + 1].v.ob[1] = sCommonVtxY[colorIndex] + pauseCtx->offsetY;  // was D_8082B0B8 [LLM:HIGH]
+ 
+-            vtx[vtxIndex + 2].v.ob[1] = vtx[vtxIndex + 3].v.ob[1] = vtx[vtxIndex + 0].v.ob[1] - D_8082B0E4[colorIndex];
++            vtx[vtxIndex + 2].v.ob[1] = vtx[vtxIndex + 3].v.ob[1] = vtx[vtxIndex + 0].v.ob[1] - sCommonVtxHeights[colorIndex];  // was D_8082B0E4 [LLM:HIGH]
+ 
+             vtxIndex += 12;
+ 
+@@ -2974,27 +3017,33 @@ s16 func_80823A0C(PlayState* play, Vtx* vtx, s16 pageIndex, s16 arg3) {
+     return vtxIndex;
+ }
+ 
+-static s16 D_8082B11C[] = { 0, 4, 8, 12, 24, 32, 56 };
++// LLM generated name (HIGH), was D_8082B11C: the equip page vertex indices, with the port's D_8082B11C_all covering every ammo slot
++static s16 sEquipVtxIndices[] = { 0, 4, 8, 12, 24, 32, 56 };  // was D_8082B11C [LLM:HIGH]
+ 
+ static s16 D_8082B11C_all[] = { 0,  4,  8,  12, 16, 20, 24, 28, 32, 36, 40, 44,
+                                 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 96 };
+ 
+-static s16 D_8082B12C[] = { -114, 12, 44, 76 };
++// LLM generated name (HIGH), was D_8082B12C: the X position of each of the four equipment columns
++static s16 sEquipColumnX[] = { -114, 12, 44, 76 };  // was D_8082B12C [LLM:HIGH]
+ 
+-static u8 D_8082B134[] = { 1, 5, 9, 13 };
++// LLM generated name (GUESS), was D_8082B134: added to each equipment value to reach its icon index; which icon table it lands in is not established
++static u8 sEquipIconBaseIndices[] = { 1, 5, 9, 13 };  // was D_8082B134 [LLM:GUESS]
+ 
+-static s16 D_8082B138[] = {
++// LLM generated name (HIGH), was D_8082B138: X position of each quest status icon
++static s16 sQuestVtxX[] = {  // was D_8082B138 [LLM:HIGH]
+     74,  74,  46,  18,  18,  46,   -108, -90,  -72, -54, -36, -18, -108, -90, -72, -54,
+     -36, -18, 20,  46,  72,  -110, -86,  -110, -54, -98, -86, -74, -62,  -50, -38, -26,
+     -14, -98, -86, -74, -62, -50,  -38,  -26,  -14, -88, -81, -72, -90,  -83, -74,
+ };
+ 
+-static s16 D_8082B198[] = {
++// LLM generated name (HIGH), was D_8082B198: Y position of each quest status icon
++static s16 sQuestVtxY[] = {  // was D_8082B198 [LLM:HIGH]
+     38, 6,   -12, 6,   38,  56,  -20, -20, -20, -20, -20, -20, 2,   2,   2,   2,   2,   2,  -46, -46, -46, 58, 58, 34,
+     58, -52, -52, -52, -52, -52, -52, -52, -52, -52, -52, -52, -52, -52, -52, -52, -52, 34, 34,  34,  36,  36, 36,
+ };
+ 
+-static s16 D_8082B1F8[] = {
++// LLM generated name (HIGH), was D_8082B1F8: square size of each quest status icon
++static s16 sQuestVtxSizes[] = {  // was D_8082B1F8 [LLM:HIGH]
+     24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+     48, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
+ };
+@@ -3017,14 +3066,14 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+     }
+ 
+     pauseCtx->itemPageVtx = Graph_Alloc(gfxCtx, 60 * sizeof(Vtx));
+-    func_80823A0C(play, pauseCtx->itemPageVtx, 0, 0);
++    KaleidoScope_SetPageVtx(play, pauseCtx->itemPageVtx, 0, 0);  // was func_80823A0C [LLM:HIGH]
+ 
+     pauseCtx->equipPageVtx = Graph_Alloc(gfxCtx, 60 * sizeof(Vtx));
+-    func_80823A0C(play, pauseCtx->equipPageVtx, 1, 0);
++    KaleidoScope_SetPageVtx(play, pauseCtx->equipPageVtx, 1, 0);  // was func_80823A0C [LLM:HIGH]
+ 
+     if (!sInDungeonScene) {
+         pauseCtx->mapPageVtx = Graph_Alloc(gfxCtx, 248 * sizeof(Vtx));
+-        phi_t3 = func_80823A0C(play, pauseCtx->mapPageVtx, 4, 32);
++        phi_t3 = KaleidoScope_SetPageVtx(play, pauseCtx->mapPageVtx, 4, 32);  // was func_80823A0C [LLM:HIGH]
+ 
+         for (phi_t2 = 0, phi_t5 = 58; phi_t2 < 15; phi_t2++, phi_t3 += 4, phi_t5 -= 9) {
+             pauseCtx->mapPageVtx[phi_t3 + 2].v.ob[0] = -108;
+@@ -3070,11 +3119,11 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+         pauseCtx->mapPageVtx[phi_t3 - 2].v.tc[1] = pauseCtx->mapPageVtx[phi_t3 - 1].v.tc[1] = 0x40;
+     } else {
+         pauseCtx->mapPageVtx = Graph_Alloc(gfxCtx, 128 * sizeof(Vtx));
+-        func_80823A0C(play, pauseCtx->mapPageVtx, 2, 17);
++        KaleidoScope_SetPageVtx(play, pauseCtx->mapPageVtx, 2, 17);  // was func_80823A0C [LLM:HIGH]
+     }
+ 
+     pauseCtx->questPageVtx = Graph_Alloc(gfxCtx, 60 * sizeof(Vtx));
+-    func_80823A0C(play, pauseCtx->questPageVtx, 3, 0);
++    KaleidoScope_SetPageVtx(play, pauseCtx->questPageVtx, 3, 0);  // was func_80823A0C [LLM:HIGH]
+ 
+     pauseCtx->cursorVtx = Graph_Alloc(gfxCtx, 20 * sizeof(Vtx));
+ 
+@@ -3104,7 +3153,7 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+     pauseCtx->itemVtx = Graph_Alloc(
+         gfxCtx, (24 + 7 +
+                  2 * (CVarGetInteger(CVAR_ENHANCEMENT("BetterAmmoRendering"), 0) ? ARRAY_COUNT(D_8082B11C_all)
+-                                                                                 : ARRAY_COUNT(D_8082B11C))) *
++                                                                                 : ARRAY_COUNT(sEquipVtxIndices))) *  // was D_8082B11C [LLM:HIGH]
+                     4 * sizeof(Vtx));
+ 
+     for (phi_t4 = 0, phi_t2 = 0, phi_t5 = 58; phi_t4 < 4; phi_t4++, phi_t5 -= 32) {
+@@ -3197,9 +3246,9 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+ 
+     u8 gBetterAmmoRendering = CVarGetInteger(CVAR_ENHANCEMENT("BetterAmmoRendering"), 0);
+ 
+-    for (phi_t3 = 0; phi_t3 < (gBetterAmmoRendering ? ARRAY_COUNT(D_8082B11C_all) : ARRAY_COUNT(D_8082B11C));
++    for (phi_t3 = 0; phi_t3 < (gBetterAmmoRendering ? ARRAY_COUNT(D_8082B11C_all) : ARRAY_COUNT(sEquipVtxIndices));  // was D_8082B11C [LLM:HIGH]
+          phi_t3++) {
+-        phi_t4 = gBetterAmmoRendering ? D_8082B11C_all[phi_t3] : D_8082B11C[phi_t3];
++        phi_t4 = gBetterAmmoRendering ? D_8082B11C_all[phi_t3] : sEquipVtxIndices[phi_t3];  // was D_8082B11C [LLM:HIGH]
+ 
+         pauseCtx->itemVtx[phi_t2 + 0].v.ob[0] = pauseCtx->itemVtx[phi_t2 + 2].v.ob[0] =
+             pauseCtx->itemVtx[phi_t4].v.ob[0];
+@@ -3254,7 +3303,7 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+ 
+     for (phi_t4 = 0, phi_t2 = 0, phi_t5 = 58; phi_t2 < 4; phi_t2++, phi_t5 -= 32) {
+         for (phi_t3 = 0; phi_t3 < 4; phi_t3++, phi_t4 += 4) {
+-            pauseCtx->equipVtx[phi_t4 + 0].v.ob[0] = pauseCtx->equipVtx[phi_t4 + 2].v.ob[0] = D_8082B12C[phi_t3] + 2;
++            pauseCtx->equipVtx[phi_t4 + 0].v.ob[0] = pauseCtx->equipVtx[phi_t4 + 2].v.ob[0] = sEquipColumnX[phi_t3] + 2;  // was D_8082B12C [LLM:HIGH]
+ 
+             pauseCtx->equipVtx[phi_t4 + 1].v.ob[0] = pauseCtx->equipVtx[phi_t4 + 3].v.ob[0] =
+                 pauseCtx->equipVtx[phi_t4 + 0].v.ob[0] + 28;
+@@ -3291,7 +3340,7 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+ 
+     for (phi_t3 = 0; phi_t3 < 4; phi_t3++, phi_t4 += 4) {
+         if (CUR_EQUIP_VALUE(phi_t3) != 0) {
+-            phi_t2 = (CUR_EQUIP_VALUE(phi_t3) + D_8082B134[phi_t3] - 1) * 4;
++            phi_t2 = (CUR_EQUIP_VALUE(phi_t3) + sEquipIconBaseIndices[phi_t3] - 1) * 4;  // was D_8082B134 [LLM:GUESS]
+ 
+             pauseCtx->equipVtx[phi_t4 + 0].v.ob[0] = pauseCtx->equipVtx[phi_t4 + 2].v.ob[0] =
+                 pauseCtx->equipVtx[phi_t2].v.ob[0] - 2;
+@@ -3381,26 +3430,26 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+     pauseCtx->questVtx = Graph_Alloc(gfxCtx, 188 * sizeof(Vtx));
+ 
+     for (phi_t4 = 0, phi_t3 = 0; phi_t3 < 47; phi_t3++, phi_t4 += 4) {
+-        phi_t2_2 = D_8082B1F8[phi_t3];
++        phi_t2_2 = sQuestVtxSizes[phi_t3];  // was D_8082B1F8 [LLM:HIGH]
+ 
+         if ((phi_t3 < 6) || (phi_t3 >= 41)) {
+-            pauseCtx->questVtx[phi_t4 + 0].v.ob[0] = pauseCtx->questVtx[phi_t4 + 2].v.ob[0] = D_8082B138[phi_t3];
++            pauseCtx->questVtx[phi_t4 + 0].v.ob[0] = pauseCtx->questVtx[phi_t4 + 2].v.ob[0] = sQuestVtxX[phi_t3];  // was D_8082B138 [LLM:HIGH]
+ 
+             pauseCtx->questVtx[phi_t4 + 1].v.ob[0] = pauseCtx->questVtx[phi_t4 + 3].v.ob[0] =
+-                pauseCtx->questVtx[phi_t4 + 0].v.ob[0] + D_8082B1F8[phi_t3];
++                pauseCtx->questVtx[phi_t4 + 0].v.ob[0] + sQuestVtxSizes[phi_t3];  // was D_8082B1F8 [LLM:HIGH]
+ 
+             pauseCtx->questVtx[phi_t4 + 0].v.ob[1] = pauseCtx->questVtx[phi_t4 + 1].v.ob[1] =
+-                D_8082B198[phi_t3] + pauseCtx->offsetY;
++                sQuestVtxY[phi_t3] + pauseCtx->offsetY;  // was D_8082B198 [LLM:HIGH]
+ 
+             pauseCtx->questVtx[phi_t4 + 2].v.ob[1] = pauseCtx->questVtx[phi_t4 + 3].v.ob[1] =
+-                pauseCtx->questVtx[phi_t4 + 0].v.ob[1] - D_8082B1F8[phi_t3];
++                pauseCtx->questVtx[phi_t4 + 0].v.ob[1] - sQuestVtxSizes[phi_t3];  // was D_8082B1F8 [LLM:HIGH]
+ 
+             if (phi_t3 >= 41) {
+                 pauseCtx->questVtx[phi_t4 + 1].v.ob[0] = pauseCtx->questVtx[phi_t4 + 3].v.ob[0] =
+                     pauseCtx->questVtx[phi_t4 + 0].v.ob[0] + 8;
+ 
+                 pauseCtx->questVtx[phi_t4 + 0].v.ob[1] = pauseCtx->questVtx[phi_t4 + 1].v.ob[1] =
+-                    D_8082B198[phi_t3] + pauseCtx->offsetY - 6;
++                    sQuestVtxY[phi_t3] + pauseCtx->offsetY - 6;  // was D_8082B198 [LLM:HIGH]
+ 
+                 pauseCtx->questVtx[phi_t4 + 2].v.ob[1] = pauseCtx->questVtx[phi_t4 + 3].v.ob[1] =
+                     pauseCtx->questVtx[phi_t4 + 0].v.ob[1] - 16;
+@@ -3412,16 +3461,16 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+                 phi_t2_2 = 16;
+             }
+ 
+-            pauseCtx->questVtx[phi_t4 + 0].v.ob[0] = pauseCtx->questVtx[phi_t4 + 2].v.ob[0] = D_8082B138[phi_t3] + 2;
++            pauseCtx->questVtx[phi_t4 + 0].v.ob[0] = pauseCtx->questVtx[phi_t4 + 2].v.ob[0] = sQuestVtxX[phi_t3] + 2;  // was D_8082B138 [LLM:HIGH]
+ 
+             pauseCtx->questVtx[phi_t4 + 1].v.ob[0] = pauseCtx->questVtx[phi_t4 + 3].v.ob[0] =
+                 pauseCtx->questVtx[phi_t4 + 0].v.ob[0] + phi_t2_2 - 4;
+ 
+             pauseCtx->questVtx[phi_t4 + 0].v.ob[1] = pauseCtx->questVtx[phi_t4 + 1].v.ob[1] =
+-                D_8082B198[phi_t3] + pauseCtx->offsetY - 2;
++                sQuestVtxY[phi_t3] + pauseCtx->offsetY - 2;  // was D_8082B198 [LLM:HIGH]
+ 
+             pauseCtx->questVtx[phi_t4 + 2].v.ob[1] = pauseCtx->questVtx[phi_t4 + 3].v.ob[1] =
+-                pauseCtx->questVtx[phi_t4 + 0].v.ob[1] - D_8082B1F8[phi_t3] + 4;
++                pauseCtx->questVtx[phi_t4 + 0].v.ob[1] - sQuestVtxSizes[phi_t3] + 4;  // was D_8082B1F8 [LLM:HIGH]
+         }
+ 
+         pauseCtx->questVtx[phi_t4 + 0].v.ob[2] = pauseCtx->questVtx[phi_t4 + 1].v.ob[2] =
+@@ -3434,7 +3483,7 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+             pauseCtx->questVtx[phi_t4 + 1].v.tc[1] = pauseCtx->questVtx[phi_t4 + 2].v.tc[0] = 0;
+ 
+         pauseCtx->questVtx[phi_t4 + 1].v.tc[0] = pauseCtx->questVtx[phi_t4 + 3].v.tc[0] = phi_t2_2 << 5;
+-        pauseCtx->questVtx[phi_t4 + 2].v.tc[1] = pauseCtx->questVtx[phi_t4 + 3].v.tc[1] = D_8082B1F8[phi_t3] << 5;
++        pauseCtx->questVtx[phi_t4 + 2].v.tc[1] = pauseCtx->questVtx[phi_t4 + 3].v.tc[1] = sQuestVtxSizes[phi_t3] << 5;  // was D_8082B1F8 [LLM:HIGH]
+ 
+         pauseCtx->questVtx[phi_t4 + 0].v.cn[0] = pauseCtx->questVtx[phi_t4 + 1].v.cn[0] =
+             pauseCtx->questVtx[phi_t4 + 2].v.cn[0] = pauseCtx->questVtx[phi_t4 + 3].v.cn[0] =
+@@ -3450,7 +3499,7 @@ void KaleidoScope_InitVertices(PlayState* play, GraphicsContext* gfxCtx) {
+     pauseCtx->infoPanelVtx = Graph_Alloc(gfxCtx, 28 * sizeof(Vtx));
+ 
+     pauseCtx->saveVtx = Graph_Alloc(gfxCtx, 80 * sizeof(Vtx));
+-    func_80823A0C(play, pauseCtx->saveVtx, 5, 5);
++    KaleidoScope_SetPageVtx(play, pauseCtx->saveVtx, 5, 5);  // was func_80823A0C [LLM:HIGH]
+ }
+ 
+ void KaleidoScope_DrawGameOver(PlayState* play) {
+@@ -3465,8 +3514,8 @@ void KaleidoScope_DrawGameOver(PlayState* play) {
+     gDPSetCombineLERP(POLY_OPA_DISP++, TEXEL1, TEXEL0, PRIM_LOD_FRAC, TEXEL0, 0, 0, 0, TEXEL0, PRIMITIVE, ENVIRONMENT,
+                       COMBINED, ENVIRONMENT, COMBINED, 0, PRIMITIVE, 0);
+ 
+-    gDPSetPrimColor(POLY_OPA_DISP++, 0, 80, D_8082AB8C, D_8082AB90, D_8082AB94, D_8082AB98);
+-    gDPSetEnvColor(POLY_OPA_DISP++, D_8082AB9C, D_8082ABA0, D_8082ABA4, 255);
++    gDPSetPrimColor(POLY_OPA_DISP++, 0, 80, sCursorPrimR, sCursorPrimG, sCursorPrimB, sCursorPrimA);  // was D_8082AB8C [LLM:HIGH]
++    gDPSetEnvColor(POLY_OPA_DISP++, sCursorEnvR, sCursorEnvG, sCursorEnvB, 255);  // was D_8082AB9C [LLM:HIGH]
+ 
+     VREG(89) -= 2;
+ 
+@@ -3552,21 +3601,22 @@ uint32_t _bswap32(uint32_t a) {
+     return a;
+ }
+ 
+-void func_808265BC(PlayState* play) {
++// LLM generated name (HIGH), was func_808265BC: the ZREG-scaled twin of KaleidoScope_RotatePageSlow, which also restores the B button item and reloads the button status for the new page
++void KaleidoScope_RotatePageFast(PlayState* play) {
+     PauseContext* pauseCtx = &play->pauseCtx;
+ 
+-    pauseCtx->eye.x += D_8082ABAC[pauseCtx->mode] * ZREG(46);
+-    pauseCtx->eye.z += D_8082ABCC[pauseCtx->mode] * ZREG(46);
++    pauseCtx->eye.x += sPageRotateEyeDx[pauseCtx->mode] * ZREG(46);  // was D_8082ABAC [LLM:HIGH]
++    pauseCtx->eye.z += sPageRotateEyeDz[pauseCtx->mode] * ZREG(46);  // was D_8082ABCC [LLM:HIGH]
+     pauseCtx->unk_1EA += 4 * ZREG(46);
+ 
+     if (pauseCtx->unk_1EA == (64 * ZREG(47))) {
+         Interface_RestoreBButtonItem(play, 1);  // was func_80084BF4 [LLM:HIGH]
+ 
+         for (int buttonIndex = 0; buttonIndex < ARRAY_COUNT(gSaveContext.buttonStatus); buttonIndex++) {
+-            gSaveContext.buttonStatus[buttonIndex] = D_8082AB6C[pauseCtx->pageIndex][buttonIndex];
++            gSaveContext.buttonStatus[buttonIndex] = sButtonStatusByPage[pauseCtx->pageIndex][buttonIndex];  // was D_8082AB6C [LLM:HIGH]
+         }
+ 
+-        pauseCtx->pageIndex = D_8082ABEC[pauseCtx->mode];
++        pauseCtx->pageIndex = sPageByRotateMode[pauseCtx->mode];  // was D_8082ABEC [LLM:HIGH]
+ 
+         if ((CVarGetInteger(CVAR_ENHANCEMENT("AssignableTunicsAndBoots"), 0) != 0) &&
+             (pauseCtx->pageIndex == PAUSE_EQUIP)) {
+@@ -3585,7 +3635,7 @@ void func_808265BC(PlayState* play) {
+         pauseCtx->alpha = 255;
+         Interface_LoadActionLabelB(play, DO_ACTION_SAVE);
+     } else if (pauseCtx->unk_1EA == 64) {
+-        pauseCtx->pageIndex = D_8082ABEC[pauseCtx->mode];
++        pauseCtx->pageIndex = sPageByRotateMode[pauseCtx->mode];  // was D_8082ABEC [LLM:HIGH]
+         pauseCtx->mode = (u16)(pauseCtx->pageIndex * 2) + 1;
+     }
+ }
+@@ -4248,12 +4298,12 @@ void KaleidoScope_Update(PlayState* play) {
+                 pauseCtx->state = 5;
+             }
+ 
+-            func_808265BC(play);
++            KaleidoScope_RotatePageFast(play);  // was func_808265BC [LLM:HIGH]
+             break;
+ 
+         case 5:
+             pauseCtx->alpha += (u16)(255 / (WREG(6) + WREG(4)));
+-            func_808265BC(play);
++            KaleidoScope_RotatePageFast(play);  // was func_808265BC [LLM:HIGH]
+             if (pauseCtx->state == 6) {
+                 KaleidoScope_UpdateNamePanel(play);
+             }
+@@ -4290,7 +4340,7 @@ void KaleidoScope_Update(PlayState* play) {
+                     break;
+ 
+                 case 1:
+-                    func_808237B4(play, play->state.input);
++                    KaleidoScope_RotatePageSlow(play, play->state.input);  // was func_808237B4 [LLM:HIGH]
+                     break;
+ 
+                 case 2:
+@@ -4562,13 +4612,13 @@ void KaleidoScope_Update(PlayState* play) {
+             */
+ #endif
+ 
+-            D_8082AB8C = 255;
+-            D_8082AB90 = 130;
+-            D_8082AB94 = 0;
+-            D_8082AB98 = 0;
+-            D_8082AB9C = 30;
+-            D_8082ABA0 = 0;
+-            D_8082ABA4 = 0;
++            sCursorPrimR = 255;  // was D_8082AB8C [LLM:HIGH]
++            sCursorPrimG = 130;  // was D_8082AB90 [LLM:HIGH]
++            sCursorPrimB = 0;  // was D_8082AB94 [LLM:HIGH]
++            sCursorPrimA = 0;  // was D_8082AB98 [LLM:HIGH]
++            sCursorEnvR = 30;  // was D_8082AB9C [LLM:HIGH]
++            sCursorEnvG = 0;  // was D_8082ABA0 [LLM:HIGH]
++            sCursorEnvB = 0;  // was D_8082ABA4 [LLM:HIGH]
+             D_8082B260 = 30;
+             VREG(88) = 98;
+             pauseCtx->promptChoice = 0;
+@@ -4576,60 +4626,60 @@ void KaleidoScope_Update(PlayState* play) {
+             break;
+ 
+         case 0xB:
+-            stepR = ABS(D_8082AB8C - 30) / D_8082B260;
+-            stepG = ABS(D_8082AB90) / D_8082B260;
+-            stepB = ABS(D_8082AB94) / D_8082B260;
+-            stepA = ABS(D_8082AB98 - 255) / D_8082B260;
+-            if (D_8082AB8C >= 30) {
+-                D_8082AB8C -= stepR;
++            stepR = ABS(sCursorPrimR - 30) / D_8082B260;  // was D_8082AB8C [LLM:HIGH]
++            stepG = ABS(sCursorPrimG) / D_8082B260;  // was D_8082AB90 [LLM:HIGH]
++            stepB = ABS(sCursorPrimB) / D_8082B260;  // was D_8082AB94 [LLM:HIGH]
++            stepA = ABS(sCursorPrimA - 255) / D_8082B260;  // was D_8082AB98 [LLM:HIGH]
++            if (sCursorPrimR >= 30) {  // was D_8082AB8C [LLM:HIGH]
++                sCursorPrimR -= stepR;  // was D_8082AB8C [LLM:HIGH]
+             } else {
+-                D_8082AB8C += stepR;
++                sCursorPrimR += stepR;  // was D_8082AB8C [LLM:HIGH]
+             }
+-            if (D_8082AB90 >= 0) {
+-                D_8082AB90 -= stepG;
++            if (sCursorPrimG >= 0) {  // was D_8082AB90 [LLM:HIGH]
++                sCursorPrimG -= stepG;  // was D_8082AB90 [LLM:HIGH]
+             } else {
+-                D_8082AB90 += stepG;
++                sCursorPrimG += stepG;  // was D_8082AB90 [LLM:HIGH]
+             }
+-            if (D_8082AB94 >= 0) {
+-                D_8082AB94 -= stepB;
++            if (sCursorPrimB >= 0) {  // was D_8082AB94 [LLM:HIGH]
++                sCursorPrimB -= stepB;  // was D_8082AB94 [LLM:HIGH]
+             } else {
+-                D_8082AB94 += stepB;
++                sCursorPrimB += stepB;  // was D_8082AB94 [LLM:HIGH]
+             }
+-            if (D_8082AB98 >= 255) {
+-                D_8082AB98 -= stepA;
++            if (sCursorPrimA >= 255) {  // was D_8082AB98 [LLM:HIGH]
++                sCursorPrimA -= stepA;  // was D_8082AB98 [LLM:HIGH]
+             } else {
+-                D_8082AB98 += stepA;
++                sCursorPrimA += stepA;  // was D_8082AB98 [LLM:HIGH]
+             }
+ 
+-            stepR = ABS(D_8082AB9C - 255) / D_8082B260;
+-            stepG = ABS(D_8082ABA0 - 130) / D_8082B260;
+-            stepB = ABS(D_8082ABA4) / D_8082B260;
+-            if (D_8082AB9C >= 255) {
+-                D_8082AB9C -= stepR;
++            stepR = ABS(sCursorEnvR - 255) / D_8082B260;  // was D_8082AB9C [LLM:HIGH]
++            stepG = ABS(sCursorEnvG - 130) / D_8082B260;  // was D_8082ABA0 [LLM:HIGH]
++            stepB = ABS(sCursorEnvB) / D_8082B260;  // was D_8082ABA4 [LLM:HIGH]
++            if (sCursorEnvR >= 255) {  // was D_8082AB9C [LLM:HIGH]
++                sCursorEnvR -= stepR;  // was D_8082AB9C [LLM:HIGH]
+             } else {
+-                D_8082AB9C += stepR;
++                sCursorEnvR += stepR;  // was D_8082AB9C [LLM:HIGH]
+             }
+-            if (D_8082ABA0 >= 130) {
+-                D_8082ABA0 -= stepG;
++            if (sCursorEnvG >= 130) {  // was D_8082ABA0 [LLM:HIGH]
++                sCursorEnvG -= stepG;  // was D_8082ABA0 [LLM:HIGH]
+             } else {
+-                D_8082ABA0 += stepG;
++                sCursorEnvG += stepG;  // was D_8082ABA0 [LLM:HIGH]
+             }
+-            if (D_8082ABA4 >= 0) {
+-                D_8082ABA4 -= stepB;
++            if (sCursorEnvB >= 0) {  // was D_8082ABA4 [LLM:HIGH]
++                sCursorEnvB -= stepB;  // was D_8082ABA4 [LLM:HIGH]
+             } else {
+-                D_8082ABA4 += stepB;
++                sCursorEnvB += stepB;  // was D_8082ABA4 [LLM:HIGH]
+             }
+ 
+             D_8082B260--;
+             if (D_8082B260 == 0) {
+-                D_8082AB8C = 30;
+-                D_8082AB90 = 0;
+-                D_8082AB94 = 0;
+-                D_8082AB98 = 255;
+-
+-                D_8082AB9C = 255;
+-                D_8082ABA0 = 130;
+-                D_8082ABA4 = 0;
++                sCursorPrimR = 30;  // was D_8082AB8C [LLM:HIGH]
++                sCursorPrimG = 0;  // was D_8082AB90 [LLM:HIGH]
++                sCursorPrimB = 0;  // was D_8082AB94 [LLM:HIGH]
++                sCursorPrimA = 255;  // was D_8082AB98 [LLM:HIGH]
++
++                sCursorEnvR = 255;  // was D_8082AB9C [LLM:HIGH]
++                sCursorEnvG = 130;  // was D_8082ABA0 [LLM:HIGH]
++                sCursorEnvB = 0;  // was D_8082ABA4 [LLM:HIGH]
+ 
+                 pauseCtx->state++;
+                 D_8082B260 = 40;
+-- 
+2.55.0
+

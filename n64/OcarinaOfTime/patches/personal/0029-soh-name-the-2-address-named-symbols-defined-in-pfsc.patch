@@ -1,0 +1,111 @@
+From 10eac1334388d00f7150c4d11e24f87efd9b024a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:59 +0000
+Subject: [PATCH 029/488] soh: name the 2 address-named symbols defined in
+ pfschecker.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/libultra/io/pfschecker.c; updating their references touches 2 files in total.
+
+  * func_80105788 -> PfsChecker_CorruptedInit
+    deduced, confidence HIGH
+
+  * func_80105A60 -> PfsChecker_Corrupted
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h          |  4 ++--
+ soh/src/libultra/io/pfschecker.c | 10 ++++++----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 07e57847b..60f5c3f53 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2393,8 +2393,8 @@ s32 osPfsFileState(OSPfs* pfs, s32 fileNo, OSPfsState* state);
+ s32 osPfsInitPak(OSMesgQueue* mq, OSPfs* pfs, s32 channel);
+ s32 __osPfsCheckRamArea(OSPfs* pfs);
+ s32 osPfsChecker(OSPfs* pfs);
+-s32 func_80105788(OSPfs* pfs, __OSInodeCache* cache);
+-s32 func_80105A60(OSPfs* pfs, __OSInodeUnit fpage, __OSInodeCache* cache);
++s32 PfsChecker_CorruptedInit(OSPfs* pfs, __OSInodeCache* cache);  // was func_80105788 [LLM:HIGH]
++s32 PfsChecker_Corrupted(OSPfs* pfs, __OSInodeUnit fpage, __OSInodeCache* cache);  // was func_80105A60 [LLM:HIGH]
+ u32 osAiGetLength(void);
+ void guTranslate(Mtx* m, f32 x, f32 y, f32 z);
+ s32 __osContRamWrite(OSMesgQueue* mq, s32 channel, u16 address, u8* buffer, s32 force);
+diff --git a/soh/src/libultra/io/pfschecker.c b/soh/src/libultra/io/pfschecker.c
+index be4d34893..eebb7e748 100644
+--- a/soh/src/libultra/io/pfschecker.c
++++ b/soh/src/libultra/io/pfschecker.c
+@@ -27,7 +27,7 @@ s32 osPfsChecker(OSPfs* pfs) {
+     if (ret) {
+         return ret;
+     }
+-    if ((ret = func_80105788(pfs, &cache)) != 0) {
++    if ((ret = PfsChecker_CorruptedInit(pfs, &cache)) != 0) {
+         return ret;
+     }
+ 
+@@ -54,7 +54,7 @@ s32 osPfsChecker(OSPfs* pfs) {
+                             return ret;
+                         }
+                     }
+-                    if ((cc = func_80105A60(pfs, next, &cache) - cl) != 0) {
++                    if ((cc = PfsChecker_Corrupted(pfs, next, &cache) - cl) != 0) {
+                         break;
+                     }
+                     cl = 1;
+@@ -125,7 +125,8 @@ s32 osPfsChecker(OSPfs* pfs) {
+ }
+ 
+ // Original name: corrupted_init (probably needs better name)
+-s32 func_80105788(OSPfs* pfs, __OSInodeCache* cache) {
++// LLM generated name (HIGH), was func_80105788: matches libultra original corrupted_init noted above; builds inode cache.
++s32 PfsChecker_CorruptedInit(OSPfs* pfs, __OSInodeCache* cache) {
+     s32 i;
+     s32 n;
+     s32 offset;
+@@ -159,7 +160,8 @@ s32 func_80105788(OSPfs* pfs, __OSInodeCache* cache) {
+ }
+ 
+ // original name: corrupted (probably needs a better name)
+-s32 func_80105A60(OSPfs* pfs, __OSInodeUnit fpage, __OSInodeCache* cache) {
++// LLM generated name (HIGH), was func_80105A60: matches libultra original corrupted noted above; checks page chain.
++s32 PfsChecker_Corrupted(OSPfs* pfs, __OSInodeUnit fpage, __OSInodeCache* cache) {
+     s32 j;
+     s32 n;
+     s32 hit = 0;
+-- 
+2.55.0
+

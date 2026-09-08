@@ -1,0 +1,863 @@
+From 3955afc29fcb706ffd37b62f990f79c5c02add6e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 375/488] soh: name the 33 address-named symbols defined in
+ z_en_bigokuta.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 33 are defined in soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c; updating their references touches 3 files in total.
+
+  * func_809BCE3C -> EnBigokuta_UpdateOrbitPos
+    deduced, confidence HIGH: places the octopus 263 units out from its home
+    position along the yaw its facing implies
+
+  * func_809BCEBC -> EnBigokuta_SpawnWaterRipple
+    deduced, confidence HIGH: rings the water surface every seventh frame
+    while the body sits near it
+
+  * func_809BCF68 -> EnBigokuta_SpawnWakeSplash
+    deduced, confidence HIGH: spawns the ripple and splash trailing behind
+    the moving octopus, with its splash sound
+
+  * func_809BD1C8 -> EnBigokuta_SpawnLandingSplash
+    deduced, confidence HIGH: four corner splashes with the landing sounds
+    and a quake
+
+  * func_809BD2E4 -> EnBigokuta_TurnParent
+    deduced, confidence HIGH: steps the parent actor's yaw toward this
+    actor's target
+
+  * func_809BD318 -> EnBigokuta_SetupIntroWait
+    deduced, confidence HIGH: loops the idle animation underwater and arms
+    the 121-frame intro wait
+
+  * func_809BD370 -> EnBigokuta_SetupJumpIn
+    deduced, confidence HIGH: arms the 21-frame leap and plays the jump
+    sound
+
+  * func_809BD3AC -> EnBigokuta_SetupTurnToStart
+    deduced, confidence HIGH: drops the octopus onto its starting point on
+    the ring and arms the turn
+
+  * func_809BD3E0 -> EnBigokuta_SetupWaitBeforeCircle
+    deduced, confidence HIGH: arms the 40-frame pause before the circling
+    begins
+
+  * func_809BD3F8 -> EnBigokuta_SetupCircle
+    deduced, confidence HIGH: morphs to the swimming loop, arms the
+    350-frame circling window and turns the colliders on
+
+  * func_809BD47C -> EnBigokuta_SetupBounce
+    deduced, confidence GUESS: the damageEffect 0xF response: turns AC off
+    and arms a 16-frame arc; whether this reads as a bounce or a recoil is
+    not settled by the code
+
+  * func_809BD4A4 -> EnBigokuta_SetupTurnAround
+    deduced, confidence HIGH: records the opposite heading in world.rot.x
+    and morphs to the idle loop while it turns
+
+  * func_809BD524 -> EnBigokuta_SetupStunned
+    deduced, confidence HIGH: plays NA_SE_EN_DAIOCTA_MAHI with the blue
+    color filter, shortening the stun when the hit came from a projectile
+
+  * func_809BD5E0 -> EnBigokuta_SetupDamage
+    deduced, confidence HIGH: plays the flinch animation with the red color
+    filter for 24 frames
+
+  * func_809BD658 -> EnBigokuta_SetupDeath
+    deduced, confidence HIGH: plays the death animation with
+    NA_SE_EN_DAIOCTA_DEAD2
+
+  * func_809BD6B8 -> EnBigokuta_SetupSpin
+    deduced, confidence HIGH: picks the spin duration from whether the
+    octopus is facing the player and turns AC off
+
+  * func_809BD768 -> EnBigokuta_SetupSink
+    deduced, confidence HIGH: picks a new circling direction, drops
+    targeting and plays NA_SE_EN_DAIOCTA_SINK
+
+  * func_809BD7F0 -> EnBigokuta_SetupResurface
+    deduced, confidence HIGH: re-aims the ring position at the player's side
+    of the arena before rising
+
+  * func_809BD84C -> EnBigokuta_IntroWait
+    deduced, confidence HIGH: counts the intro wait down, calling out twice
+    and starting the miniboss music
+
+  * func_809BD8DC -> EnBigokuta_JumpIn
+    deduced, confidence HIGH: arcs the octopus out of the water onto the
+    ring, splashing and rumbling on landing
+
+  * func_809BDAE8 -> EnBigokuta_TurnToStart
+    deduced, confidence HIGH: turns onto the home yaw, then becomes an enemy
+    and moves on
+
+  * func_809BDB90 -> EnBigokuta_WaitBeforeCircle
+    deduced, confidence HIGH: counts the pause out and starts the miniboss
+    music for the params 3 spawn
+
+  * func_809BDC08 -> EnBigokuta_Circle
+    deduced, confidence HIGH: circles the ring, speeding up or slowing down
+    with the player's distance and facing, and picks the next state when its
+    windows expire
+
+  * func_809BDF34 -> EnBigokuta_Bounce
+    deduced, confidence GUESS: arcs the body 100 units up and back down on a
+    sine, splashing on landing before resuming the circle
+
+  * func_809BDFC8 -> EnBigokuta_TurnAround
+    deduced, confidence HIGH: turns onto the recorded opposite heading,
+    flips the circling direction and resumes
+
+  * func_809BE058 -> EnBigokuta_Stunned
+    deduced, confidence HIGH: holds still for the stun, shoving the player
+    off whichever collider they touch
+
+  * func_809BE180 -> EnBigokuta_Damage
+    deduced, confidence HIGH: rides the knockback arc, then either resumes
+    or dies according to remaining health
+
+  * func_809BE26C -> EnBigokuta_Death
+    deduced, confidence HIGH: spins, puffs dust, shrinks away, clears the
+    room and drops a collectible
+
+  * func_809BE3E4 -> EnBigokuta_Spin
+    deduced, confidence HIGH: spins in place, then picks the direction it
+    was turned toward and resumes circling
+
+  * func_809BE4A4 -> EnBigokuta_Sink
+    deduced, confidence HIGH: drops 10 units a frame while spinning until
+    200 below home, then resurfaces elsewhere
+
+  * func_809BE518 -> EnBigokuta_Resurface
+    deduced, confidence HIGH: rises back to home height, restores targeting
+    and resumes circling
+
+  * func_809BE568 -> EnBigokuta_UpdateColliders
+    deduced, confidence HIGH: rotates the jntsph and both cylinders into
+    world space around the body's yaw
+
+  * func_809BE798 -> EnBigokuta_UpdateAttack
+    deduced, confidence HIGH: on an AT hit knocks the player sideways off
+    the ring and reacts according to the current state
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../TimeSavers/timesaver_hook_handlers.cpp    |   4 +-
+ .../actors/ovl_En_Bigokuta/z_en_bigokuta.c    | 261 ++++++++++--------
+ .../actors/ovl_En_Bigokuta/z_en_bigokuta.h    |   6 +-
+ 3 files changed, 152 insertions(+), 119 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+index 932dc984d..d583621fd 100644
+--- a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
++++ b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+@@ -1192,8 +1192,8 @@ void TimeSaverOnActorInitHandler(void* actorRef) {
+                         enBigokutaUpdateHook = 0;
+                         enBigokutaKillHook = 0;
+                         // Possible action functions after taken damage
+-                    } else if (enBigokuta->actionFunc == func_809BE058 || enBigokuta->actionFunc == func_809BDF34 ||
+-                               enBigokuta->actionFunc == func_809BE180) {
++                    } else if (enBigokuta->actionFunc == EnBigokuta_Stunned || enBigokuta->actionFunc == EnBigokuta_Bounce ||  // was func_809BDF34 [LLM:GUESS]
++                               enBigokuta->actionFunc == EnBigokuta_Damage) {  // was func_809BE180 [LLM:HIGH]
+                         enBigokuta->actor.home.pos.y = enBigokuta->actor.world.pos.y = -1025.0f;
+                         Actor_ChangeCategory(gPlayState, &gPlayState->actorCtx, &enBigokuta->actor, ACTORCAT_ENEMY);
+                         enBigokuta->actor.params = 2; // Activate platform
+diff --git a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+index 18c0c3477..857addd1e 100644
+--- a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
++++ b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+@@ -11,23 +11,40 @@ void EnBigokuta_Destroy(Actor* thisx, PlayState* play);
+ void EnBigokuta_Update(Actor* thisx, PlayState* play);
+ void EnBigokuta_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_809BD318(EnBigokuta* this);
+-void func_809BD3E0(EnBigokuta* this);
+-void func_809BDF34(EnBigokuta* this, PlayState* play);
+-void func_809BD84C(EnBigokuta* this, PlayState* play);
+-void func_809BD8DC(EnBigokuta* this, PlayState* play);
+-void func_809BDAE8(EnBigokuta* this, PlayState* play);
+-void func_809BDB90(EnBigokuta* this, PlayState* play);
+-void func_809BDC08(EnBigokuta* this, PlayState* play);
+-void func_809BE3E4(EnBigokuta* this, PlayState* play);
+-void func_809BE4A4(EnBigokuta* this, PlayState* play);
+-void func_809BE518(EnBigokuta* this, PlayState* play);
+-void func_809BCF68(EnBigokuta* this, PlayState* play);
+-void func_809BDFC8(EnBigokuta* this, PlayState* play);
+-void func_809BE26C(EnBigokuta* this, PlayState* play);
+-void func_809BE180(EnBigokuta* this, PlayState* play);
+-void func_809BE058(EnBigokuta* this, PlayState* play);
+-void func_809BD1C8(EnBigokuta* this, PlayState* play);
++// LLM generated name (HIGH), was func_809BD318: loops the idle animation underwater and arms the 121-frame intro wait
++void EnBigokuta_SetupIntroWait(EnBigokuta* this);  // was func_809BD318 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BD3E0: arms the 40-frame pause before the circling begins
++void EnBigokuta_SetupWaitBeforeCircle(EnBigokuta* this);  // was func_809BD3E0 [LLM:HIGH]
++// LLM generated name (GUESS), was func_809BDF34: arcs the body 100 units up and back down on a sine, splashing on landing before resuming the circle
++void EnBigokuta_Bounce(EnBigokuta* this, PlayState* play);  // was func_809BDF34 [LLM:GUESS]
++// LLM generated name (HIGH), was func_809BD84C: counts the intro wait down, calling out twice and starting the miniboss music
++void EnBigokuta_IntroWait(EnBigokuta* this, PlayState* play);  // was func_809BD84C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BD8DC: arcs the octopus out of the water onto the ring, splashing and rumbling on landing
++void EnBigokuta_JumpIn(EnBigokuta* this, PlayState* play);  // was func_809BD8DC [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BDAE8: turns onto the home yaw, then becomes an enemy and moves on
++void EnBigokuta_TurnToStart(EnBigokuta* this, PlayState* play);  // was func_809BDAE8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BDB90: counts the pause out and starts the miniboss music for the params 3 spawn
++void EnBigokuta_WaitBeforeCircle(EnBigokuta* this, PlayState* play);  // was func_809BDB90 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BDC08: circles the ring, speeding up or slowing down with the player's distance and facing, and picks the next state when its windows expire
++void EnBigokuta_Circle(EnBigokuta* this, PlayState* play);  // was func_809BDC08 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BE3E4: spins in place, then picks the direction it was turned toward and resumes circling
++void EnBigokuta_Spin(EnBigokuta* this, PlayState* play);  // was func_809BE3E4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BE4A4: drops 10 units a frame while spinning until 200 below home, then resurfaces elsewhere
++void EnBigokuta_Sink(EnBigokuta* this, PlayState* play);  // was func_809BE4A4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BE518: rises back to home height, restores targeting and resumes circling
++void EnBigokuta_Resurface(EnBigokuta* this, PlayState* play);  // was func_809BE518 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BCF68: spawns the ripple and splash trailing behind the moving octopus, with its splash sound
++void EnBigokuta_SpawnWakeSplash(EnBigokuta* this, PlayState* play);  // was func_809BCF68 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BDFC8: turns onto the recorded opposite heading, flips the circling direction and resumes
++void EnBigokuta_TurnAround(EnBigokuta* this, PlayState* play);  // was func_809BDFC8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BE26C: spins, puffs dust, shrinks away, clears the room and drops a collectible
++void EnBigokuta_Death(EnBigokuta* this, PlayState* play);  // was func_809BE26C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BE180: rides the knockback arc, then either resumes or dies according to remaining health
++void EnBigokuta_Damage(EnBigokuta* this, PlayState* play);  // was func_809BE180 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BE058: holds still for the stun, shoving the player off whichever collider they touch
++void EnBigokuta_Stunned(EnBigokuta* this, PlayState* play);  // was func_809BE058 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809BD1C8: four corner splashes with the landing sounds and a quake
++void EnBigokuta_SpawnLandingSplash(EnBigokuta* this, PlayState* play);  // was func_809BD1C8 [LLM:HIGH]
+ 
+ static Color_RGBA8 sEffectPrimColor = { 255, 255, 255, 255 };
+ static Color_RGBA8 sEffectEnvColor = { 100, 255, 255, 255 };
+@@ -182,9 +199,9 @@ void EnBigokuta_Init(Actor* thisx, PlayState* play) {
+ 
+     if (this->actor.params == 0) {
+         Actor_ChangeCategory(play, &play->actorCtx, &this->actor, ACTORCAT_PROP);
+-        func_809BD318(this);
++        EnBigokuta_SetupIntroWait(this);  // was func_809BD318 [LLM:HIGH]
+     } else {
+-        func_809BD3E0(this);
++        EnBigokuta_SetupWaitBeforeCircle(this);  // was func_809BD3E0 [LLM:HIGH]
+         this->unk_19A = 0;
+         this->unk_196 = 1;
+         this->actor.home.pos.y = -1025.0f;
+@@ -201,13 +218,15 @@ void EnBigokuta_Destroy(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_809BCE3C(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BCE3C: places the octopus 263 units out from its home position along the yaw its facing implies
++void EnBigokuta_UpdateOrbitPos(EnBigokuta* this) {
+     this->actor.world.rot.y = this->actor.shape.rot.y + this->unk_194 * -0x4000;
+     this->actor.world.pos.x = Math_SinS(this->actor.world.rot.y) * 263.0f + this->actor.home.pos.x;
+     this->actor.world.pos.z = Math_CosS(this->actor.world.rot.y) * 263.0f + this->actor.home.pos.z;
+ }
+ 
+-void func_809BCEBC(EnBigokuta* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809BCEBC: rings the water surface every seventh frame while the body sits near it
++void EnBigokuta_SpawnWaterRipple(EnBigokuta* this, PlayState* play) {
+     Vec3f pos;
+     f32 yDistFromHome = this->actor.world.pos.y - this->actor.home.pos.y;
+ 
+@@ -220,7 +239,7 @@ void func_809BCEBC(EnBigokuta* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809BCF68(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_SpawnWakeSplash(EnBigokuta* this, PlayState* play) {
+     Vec3f effectPos;
+     s16 rot;
+ 
+@@ -229,8 +248,8 @@ void func_809BCF68(EnBigokuta* this, PlayState* play) {
+     } else {
+         rot = this->actor.shape.rot.y - this->unk_194 * 0xA00 - Rand_S16Offset(0x1200, 0xC00);
+     }
+-    if (this->actionFunc != func_809BE4A4) {
+-        if (this->actionFunc == func_809BE3E4 || (play->gameplayFrames & 2)) {
++    if (this->actionFunc != EnBigokuta_Sink) {  // was func_809BE4A4 [LLM:HIGH]
++        if (this->actionFunc == EnBigokuta_Spin || (play->gameplayFrames & 2)) {  // was func_809BE3E4 [LLM:HIGH]
+             effectPos.x = this->actor.world.pos.x - Math_SinS(rot) * 80.0f;
+             effectPos.z = this->actor.world.pos.z - Math_CosS(rot) * 80.0f;
+             effectPos.y = this->actor.home.pos.y + 1.0f;
+@@ -247,12 +266,12 @@ void func_809BCF68(EnBigokuta* this, PlayState* play) {
+         EffectSsGRipple_Spawn(play, &effectPos, 100, 500, 0);
+     }
+     EffectSsGSplash_Spawn(play, &effectPos, NULL, NULL, 1, 800);
+-    if (this->actionFunc != func_809BE4A4) {
++    if (this->actionFunc != EnBigokuta_Sink) {  // was func_809BE4A4 [LLM:HIGH]
+         Actor_PlaySfx_Flagged(&this->actor, NA_SE_EN_DAIOCTA_SPLASH - SFX_FLAG);
+     }
+ }
+ 
+-void func_809BD1C8(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_SpawnLandingSplash(EnBigokuta* this, PlayState* play) {
+     s32 i;
+     Vec3f effectPos;
+ 
+@@ -269,7 +288,8 @@ void func_809BD1C8(EnBigokuta* this, PlayState* play) {
+     Actor_RequestQuakeAndRumble(&this->actor, play, 0xA, 8);
+ }
+ 
+-void func_809BD2E4(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD2E4: steps the parent actor's yaw toward this actor's target
++void EnBigokuta_TurnParent(EnBigokuta* this) {
+     Actor* parent = this->actor.parent;
+ 
+     if (parent != NULL) {
+@@ -277,61 +297,67 @@ void func_809BD2E4(EnBigokuta* this) {
+     }
+ }
+ 
+-void func_809BD318(EnBigokuta* this) {
++void EnBigokuta_SetupIntroWait(EnBigokuta* this) {
+     Animation_PlayLoop(&this->skelAnime, &object_bigokuta_Anim_0014B8);
+     this->unk_19A = 0;
+     this->actor.home.pos.y = -1025.0f;
+     this->unk_196 = 121;
+-    this->actionFunc = func_809BD84C;
++    this->actionFunc = EnBigokuta_IntroWait;  // was func_809BD84C [LLM:HIGH]
+ }
+ 
+-void func_809BD370(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD370: arms the 21-frame leap and plays the jump sound
++void EnBigokuta_SetupJumpIn(EnBigokuta* this) {
+     this->unk_196 = 21;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_STAL_JUMP);
+-    this->actionFunc = func_809BD8DC;
++    this->actionFunc = EnBigokuta_JumpIn;  // was func_809BD8DC [LLM:HIGH]
+ }
+ 
+-void func_809BD3AC(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD3AC: drops the octopus onto its starting point on the ring and arms the turn
++void EnBigokuta_SetupTurnToStart(EnBigokuta* this) {
+     this->actor.world.pos.x = this->actor.home.pos.x + 263.0f;
+     this->unk_196 = 10;
+-    this->actionFunc = func_809BDAE8;
++    this->actionFunc = EnBigokuta_TurnToStart;  // was func_809BDAE8 [LLM:HIGH]
+     this->actor.world.pos.y = this->actor.home.pos.y;
+ }
+ 
+-void func_809BD3E0(EnBigokuta* this) {
++void EnBigokuta_SetupWaitBeforeCircle(EnBigokuta* this) {
+     this->unk_196 = 40;
+-    this->actionFunc = func_809BDB90;
++    this->actionFunc = EnBigokuta_WaitBeforeCircle;  // was func_809BDB90 [LLM:HIGH]
+ }
+ 
+-void func_809BD3F8(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD3F8: morphs to the swimming loop, arms the 350-frame circling window and turns the colliders on
++void EnBigokuta_SetupCircle(EnBigokuta* this) {
+     Animation_MorphToLoop(&this->skelAnime, &object_bigokuta_Anim_001CA4, -5.0f);
+     this->unk_196 = 350;
+     this->unk_198 = 80;
+     this->unk_19A = this->unk_194 * -0x200;
+-    func_809BCE3C(this);
++    EnBigokuta_UpdateOrbitPos(this);  // was func_809BCE3C [LLM:HIGH]
+     this->cylinder[0].base.atFlags |= AT_ON;
+     this->collider.base.acFlags |= AC_ON;
+-    this->actionFunc = func_809BDC08;
++    this->actionFunc = EnBigokuta_Circle;  // was func_809BDC08 [LLM:HIGH]
+ }
+ 
+-void func_809BD47C(EnBigokuta* this) {
++// LLM generated name (GUESS), was func_809BD47C: the damageEffect 0xF response: turns AC off and arms a 16-frame arc; whether this reads as a bounce or a recoil is not settled by the code
++void EnBigokuta_SetupBounce(EnBigokuta* this) {
+     this->unk_196 = 16;
+     this->collider.base.acFlags &= ~AC_ON;
+     this->actor.colorFilterTimer = 0;
+-    this->actionFunc = func_809BDF34;
++    this->actionFunc = EnBigokuta_Bounce;  // was func_809BDF34 [LLM:GUESS]
+ }
+ 
+-void func_809BD4A4(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD4A4: records the opposite heading in world.rot.x and morphs to the idle loop while it turns
++void EnBigokuta_SetupTurnAround(EnBigokuta* this) {
+     Animation_MorphToLoop(&this->skelAnime, &object_bigokuta_Anim_0014B8, -5.0f);
+     this->unk_195 = true;
+     this->actor.world.rot.x = this->actor.shape.rot.y + 0x8000;
+     this->unk_19A = this->unk_194 * 0x200;
+     this->collider.base.acFlags &= ~AC_ON;
+     this->cylinder[0].base.atFlags |= AT_ON;
+-    this->actionFunc = func_809BDFC8;
++    this->actionFunc = EnBigokuta_TurnAround;  // was func_809BDFC8 [LLM:HIGH]
+ }
+ 
+-void func_809BD524(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD524: plays NA_SE_EN_DAIOCTA_MAHI with the blue color filter, shortening the stun when the hit came from a projectile
++void EnBigokuta_SetupStunned(EnBigokuta* this) {
+     Animation_MorphToPlayOnce(&this->skelAnime, &object_bigokuta_Anim_000D1C, -5.0f);
+     this->unk_196 = 80;
+     this->unk_19A = 0;
+@@ -345,27 +371,30 @@ void func_809BD524(EnBigokuta* this) {
+         this->unk_196 = 80;
+     }
+     Actor_SetColorFilter(&this->actor, 0, 255, 0, this->unk_196);
+-    this->actionFunc = func_809BE058;
++    this->actionFunc = EnBigokuta_Stunned;  // was func_809BE058 [LLM:HIGH]
+ }
+ 
+-void func_809BD5E0(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD5E0: plays the flinch animation with the red color filter for 24 frames
++void EnBigokuta_SetupDamage(EnBigokuta* this) {
+     Animation_MorphToPlayOnce(&this->skelAnime, &object_bigokuta_Anim_000444, -5.0f);
+     this->unk_196 = 24;
+     this->unk_19A = 0;
+     this->cylinder[0].base.atFlags &= ~AT_ON;
+     Actor_SetColorFilter(&this->actor, 0x4000, 255, 0, 24);
+-    this->actionFunc = func_809BE180;
++    this->actionFunc = EnBigokuta_Damage;  // was func_809BE180 [LLM:HIGH]
+ }
+-void func_809BD658(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD658: plays the death animation with NA_SE_EN_DAIOCTA_DEAD2
++void EnBigokuta_SetupDeath(EnBigokuta* this) {
+ 
+     Animation_MorphToPlayOnce(&this->skelAnime, &object_bigokuta_Anim_000A74, -5.0f);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_DAIOCTA_DEAD2);
+     this->unk_196 = 38;
+     this->unk_198 = 10;
+-    this->actionFunc = func_809BE26C;
++    this->actionFunc = EnBigokuta_Death;  // was func_809BE26C [LLM:HIGH]
+ }
+ 
+-void func_809BD6B8(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD6B8: picks the spin duration from whether the octopus is facing the player and turns AC off
++void EnBigokuta_SetupSpin(EnBigokuta* this) {
+     if (!this->unk_195) {
+         if (Rand_ZeroOne() < 0.5f) {
+             this->unk_196 = 24;
+@@ -381,26 +410,28 @@ void func_809BD6B8(EnBigokuta* this) {
+     }
+     this->unk_19A = 0;
+     this->collider.base.acFlags &= ~AC_ON;
+-    this->actionFunc = func_809BE3E4;
++    this->actionFunc = EnBigokuta_Spin;  // was func_809BE3E4 [LLM:HIGH]
+ }
+ 
+-void func_809BD768(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BD768: picks a new circling direction, drops targeting and plays NA_SE_EN_DAIOCTA_SINK
++void EnBigokuta_SetupSink(EnBigokuta* this) {
+     this->unk_194 = Rand_ZeroOne() < 0.5f ? -1 : 1;
+     this->unk_19A = 0;
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+     this->cylinder[0].base.atFlags &= ~AT_ON;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_DAIOCTA_SINK);
+-    this->actionFunc = func_809BE4A4;
++    this->actionFunc = EnBigokuta_Sink;  // was func_809BE4A4 [LLM:HIGH]
+ }
+ 
+-void func_809BD7F0(EnBigokuta* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809BD7F0: re-aims the ring position at the player's side of the arena before rising
++void EnBigokuta_SetupResurface(EnBigokuta* this, PlayState* play) {
+     this->actor.world.rot.y = Actor_WorldYawTowardPoint(&GET_PLAYER(play)->actor, &this->actor.home.pos);
+     this->actor.shape.rot.y = this->actor.world.rot.y + (this->unk_194 * 0x4000);
+-    func_809BCE3C(this);
+-    this->actionFunc = func_809BE518;
++    EnBigokuta_UpdateOrbitPos(this);  // was func_809BCE3C [LLM:HIGH]
++    this->actionFunc = EnBigokuta_Resurface;  // was func_809BE518 [LLM:HIGH]
+ }
+ 
+-void func_809BD84C(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_IntroWait(EnBigokuta* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+ 
+     this->unk_196--;
+@@ -412,11 +443,11 @@ void func_809BD84C(EnBigokuta* this, PlayState* play) {
+         func_800F5ACC(NA_BGM_MINI_BOSS);
+     }
+     if (this->actor.params == 1) {
+-        func_809BD370(this);
++        EnBigokuta_SetupJumpIn(this);  // was func_809BD370 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809BD8DC(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_JumpIn(EnBigokuta* this, PlayState* play) {
+     Vec3f effectPos;
+ 
+     this->unk_196--;
+@@ -444,28 +475,28 @@ void func_809BD8DC(EnBigokuta* this, PlayState* play) {
+     } else if (this->unk_196 < -1) {
+         this->actor.world.pos.y = this->actor.home.pos.y - (sinf((this->unk_196 + 1) * (M_PI / 10)) * 20.0f);
+         if (this->unk_196 == -10) {
+-            func_809BD3AC(this);
++            EnBigokuta_SetupTurnToStart(this);  // was func_809BD3AC [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_809BDAE8(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_TurnToStart(EnBigokuta* this, PlayState* play) {
+     if (Math_ScaledStepToS(&this->actor.shape.rot.y, this->actor.home.rot.y + 0x4000, 0x400)) {
+         if (this->unk_196 != 0) {
+             this->unk_196--;
+         }
+         if (this->unk_196 == 0) {
+-            func_809BCE3C(this);
++            EnBigokuta_UpdateOrbitPos(this);  // was func_809BCE3C [LLM:HIGH]
+             this->actor.home.pos.y = this->actor.world.pos.y;
+             Actor_ChangeCategory(play, &play->actorCtx, &this->actor, ACTORCAT_ENEMY);
+             this->actor.params = 2;
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_DAIOCTA_VOICE);
+-            func_809BD3E0(this);
++            EnBigokuta_SetupWaitBeforeCircle(this);  // was func_809BD3E0 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_809BDB90(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_WaitBeforeCircle(EnBigokuta* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_196 != 0) {
+         this->unk_196--;
+@@ -474,11 +505,11 @@ void func_809BDB90(EnBigokuta* this, PlayState* play) {
+         if (this->actor.params == 3) {
+             func_800F5ACC(NA_BGM_MINI_BOSS);
+         }
+-        func_809BD3F8(this);
++        EnBigokuta_SetupCircle(this);  // was func_809BD3F8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809BDC08(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Circle(EnBigokuta* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s16 phi_v0;
+     s16 pad;
+@@ -492,12 +523,12 @@ void func_809BDC08(EnBigokuta* this, PlayState* play) {
+ 
+     if (this->unk_196 < 0) {
+         this->actor.shape.rot.y += this->unk_194 * 0x200;
+-        func_809BCE3C(this);
++        EnBigokuta_UpdateOrbitPos(this);  // was func_809BCE3C [LLM:HIGH]
+         this->unk_196++;
+         if (this->unk_196 == 0) {
+             this->unk_196 = 350;
+         }
+-        func_809BCF68(this, play);
++        EnBigokuta_SpawnWakeSplash(this, play);  // was func_809BCF68 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -527,12 +558,12 @@ void func_809BDC08(EnBigokuta* this, PlayState* play) {
+         phi_v1 += 0x130;
+     }
+     this->actor.shape.rot.y += phi_v1 * this->unk_194;
+-    func_809BCE3C(this);
+-    func_809BCF68(this, play);
++    EnBigokuta_UpdateOrbitPos(this);  // was func_809BCE3C [LLM:HIGH]
++    EnBigokuta_SpawnWakeSplash(this, play);  // was func_809BCF68 [LLM:HIGH]
+     if (this->unk_198 == 0) {
+-        func_809BD768(this);
++        EnBigokuta_SetupSink(this);  // was func_809BD768 [LLM:HIGH]
+     } else if (this->unk_196 == 0) {
+-        func_809BD4A4(this);
++        EnBigokuta_SetupTurnAround(this);  // was func_809BD4A4 [LLM:HIGH]
+     } else if (this->unk_195) {
+         phi_v0 = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+         if (phi_v0 < 0) {
+@@ -541,26 +572,26 @@ void func_809BDC08(EnBigokuta* this, PlayState* play) {
+         if (phi_v0 < 0x4100 && phi_v0 > 0x3F00) {
+             if (Rand_ZeroOne() < 0.6f) {
+                 this->unk_196 = 0;
+-                func_809BD4A4(this);
++                EnBigokuta_SetupTurnAround(this);  // was func_809BD4A4 [LLM:HIGH]
+             }
+             this->unk_195 = false;
+         }
+     }
+ }
+ 
+-void func_809BDF34(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Bounce(EnBigokuta* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_196 != 0) {
+         this->unk_196--;
+     }
+     this->actor.world.pos.y = (sinf(this->unk_196 * (M_PI / 16)) * 100.0f) + this->actor.home.pos.y;
+     if (this->unk_196 == 0) {
+-        func_809BD1C8(this, play);
+-        func_809BD3F8(this);
++        EnBigokuta_SpawnLandingSplash(this, play);  // was func_809BD1C8 [LLM:HIGH]
++        EnBigokuta_SetupCircle(this);  // was func_809BD3F8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809BDFC8(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_TurnAround(EnBigokuta* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_196 != 0) {
+         this->unk_196--;
+@@ -570,11 +601,11 @@ void func_809BDFC8(EnBigokuta* this, PlayState* play) {
+     }
+     if ((this->unk_196 == 0) && Math_ScaledStepToS(&this->actor.shape.rot.y, this->actor.world.rot.x, 0x800)) {
+         this->unk_194 = -this->unk_194;
+-        func_809BD3F8(this);
++        EnBigokuta_SetupCircle(this);  // was func_809BD3F8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809BE058(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Stunned(EnBigokuta* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 speedXZ;
+ 
+@@ -596,31 +627,31 @@ void func_809BE058(EnBigokuta* this, PlayState* play) {
+         player->actor.world.pos.z -= speedXZ * Math_CosS(this->actor.shape.rot.y);
+     }
+     if (this->unk_196 == 0) {
+-        func_809BD6B8(this);
++        EnBigokuta_SetupSpin(this);  // was func_809BD6B8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809BE180(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Damage(EnBigokuta* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_196 != 0) {
+         this->unk_196--;
+     }
+     if (this->unk_196 == 0) {
+         if (this->actor.colChkInfo.health != 0) {
+-            func_809BD4A4(this);
++            EnBigokuta_SetupTurnAround(this);  // was func_809BD4A4 [LLM:HIGH]
+         } else {
+-            func_809BD658(this);
++            EnBigokuta_SetupDeath(this);  // was func_809BD658 [LLM:HIGH]
+         }
+     } else if (this->unk_196 >= 8) {
+         this->actor.shape.rot.y += this->unk_194 * 0x200;
+         this->actor.world.pos.y = sinf((this->unk_196 - 8) * (M_PI / 16)) * 100.0f + this->actor.home.pos.y;
+-        func_809BCE3C(this);
++        EnBigokuta_UpdateOrbitPos(this);  // was func_809BCE3C [LLM:HIGH]
+         if (this->unk_196 == 8) {
+-            func_809BD1C8(this, play);
++            EnBigokuta_SpawnLandingSplash(this, play);  // was func_809BD1C8 [LLM:HIGH]
+         }
+     }
+ }
+-void func_809BE26C(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Death(EnBigokuta* this, PlayState* play) {
+     Vec3f effectPos;
+ 
+     if (this->unk_196 != 0) {
+@@ -654,7 +685,7 @@ void func_809BE26C(EnBigokuta* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809BE3E4(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Spin(EnBigokuta* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+ 
+     if (this->unk_196 != 0) {
+@@ -670,31 +701,32 @@ void func_809BE3E4(EnBigokuta* this, PlayState* play) {
+             this->unk_194 = -1;
+         }
+ 
+-        func_809BD3F8(this);
++        EnBigokuta_SetupCircle(this);  // was func_809BD3F8 [LLM:HIGH]
+         if (!this->unk_195) {
+             this->unk_196 = -40;
+         }
+     }
+-    func_809BCF68(this, play);
++    EnBigokuta_SpawnWakeSplash(this, play);  // was func_809BCF68 [LLM:HIGH]
+ }
+ 
+-void func_809BE4A4(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Sink(EnBigokuta* this, PlayState* play) {
+     this->actor.world.pos.y -= 10.0f;
+     this->actor.shape.rot.y += 0x2000;
+     if (this->actor.world.pos.y < (this->actor.home.pos.y + -200.0f)) {
+-        func_809BD7F0(this, play);
++        EnBigokuta_SetupResurface(this, play);  // was func_809BD7F0 [LLM:HIGH]
+     }
+-    func_809BCF68(this, play);
++    EnBigokuta_SpawnWakeSplash(this, play);  // was func_809BCF68 [LLM:HIGH]
+ }
+ 
+-void func_809BE518(EnBigokuta* this, PlayState* play) {
++void EnBigokuta_Resurface(EnBigokuta* this, PlayState* play) {
+     if (Math_StepToF(&this->actor.world.pos.y, this->actor.home.pos.y, 10.0f)) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+-        func_809BD3F8(this);
++        EnBigokuta_SetupCircle(this);  // was func_809BD3F8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809BE568(EnBigokuta* this) {
++// LLM generated name (HIGH), was func_809BE568: rotates the jntsph and both cylinders into world space around the body's yaw
++void EnBigokuta_UpdateColliders(EnBigokuta* this) {
+     s32 i;
+     f32 sin = Math_SinS(this->actor.shape.rot.y);
+     f32 cos = Math_CosS(this->actor.shape.rot.y);
+@@ -717,7 +749,8 @@ void func_809BE568(EnBigokuta* this) {
+     }
+ }
+ 
+-void func_809BE798(EnBigokuta* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809BE798: on an AT hit knocks the player sideways off the ring and reacts according to the current state
++void EnBigokuta_UpdateAttack(EnBigokuta* this, PlayState* play) {
+     s16 effectRot;
+     s16 yawDiff;
+ 
+@@ -737,10 +770,10 @@ void func_809BE798(EnBigokuta* this, PlayState* play) {
+             effectRot = -0x6000;
+         }
+         Actor_SetPlayerKnockbackLargeNoDamage(play, &this->actor, 10.0f, this->actor.world.rot.y + effectRot, 5.0f);
+-        if (this->actionFunc == func_809BDC08) {
+-            func_809BD4A4(this);
++        if (this->actionFunc == EnBigokuta_Circle) {  // was func_809BDC08 [LLM:HIGH]
++            EnBigokuta_SetupTurnAround(this);  // was func_809BD4A4 [LLM:HIGH]
+             this->unk_196 = 40;
+-        } else if (this->actionFunc == func_809BE3E4) {
++        } else if (this->actionFunc == EnBigokuta_Spin) {  // was func_809BE3E4 [LLM:HIGH]
+             if ((effectRot * this->unk_194) > 0) {
+                 this->unk_194 = 0 - this->unk_194;
+                 this->unk_196 += 4;
+@@ -754,11 +787,11 @@ void EnBigokuta_UpdateDamage(EnBigokuta* this, PlayState* play) {
+         this->collider.base.acFlags &= ~AC_HIT;
+         if (this->actor.colChkInfo.damageEffect != 0 || this->actor.colChkInfo.damage != 0) {
+             if (this->actor.colChkInfo.damageEffect == 1) {
+-                if (this->actionFunc != func_809BE058) {
+-                    func_809BD524(this);
++                if (this->actionFunc != EnBigokuta_Stunned) {  // was func_809BE058 [LLM:HIGH]
++                    EnBigokuta_SetupStunned(this);  // was func_809BD524 [LLM:HIGH]
+                 }
+             } else if (this->actor.colChkInfo.damageEffect == 0xF) {
+-                func_809BD47C(this);
++                EnBigokuta_SetupBounce(this);  // was func_809BD47C [LLM:GUESS]
+             } else if (!Actor_IsFacingPlayer(&this->actor, 0x4000)) {
+                 if (Actor_ApplyDamage(&this->actor) == 0) { // Dead
+                     Audio_PlayActorSound2(&this->actor, NA_SE_EN_DAIOCTA_DEAD);
+@@ -766,7 +799,7 @@ void EnBigokuta_UpdateDamage(EnBigokuta* this, PlayState* play) {
+                 } else {
+                     Audio_PlayActorSound2(&this->actor, NA_SE_EN_DAIOCTA_DAMAGE);
+                 }
+-                func_809BD5E0(this);
++                EnBigokuta_SetupDamage(this);  // was func_809BD5E0 [LLM:HIGH]
+             }
+         }
+     }
+@@ -777,16 +810,16 @@ void EnBigokuta_Update(Actor* thisx, PlayState* play2) {
+     s32 i;
+     PlayState* play = play2;
+ 
+-    func_809BE798(this, play);
++    EnBigokuta_UpdateAttack(this, play);  // was func_809BE798 [LLM:HIGH]
+     EnBigokuta_UpdateDamage(this, play);
+     this->actionFunc(this, play);
+-    func_809BD2E4(this);
+-    func_809BE568(this);
++    EnBigokuta_TurnParent(this);  // was func_809BD2E4 [LLM:HIGH]
++    EnBigokuta_UpdateColliders(this);  // was func_809BE568 [LLM:HIGH]
+     Camera_RequestSetting(play->cameraPtrs[CAM_ID_MAIN], CAM_SET_BIG_OCTO);
+     Camera_UnsetStateFlag(play->cameraPtrs[CAM_ID_MAIN], 4);
+ 
+     if (this->cylinder[0].base.atFlags & AT_ON) {
+-        if (this->actionFunc != func_809BE058) {
++        if (this->actionFunc != EnBigokuta_Stunned) {  // was func_809BE058 [LLM:HIGH]
+             for (i = 0; i < ARRAY_COUNT(this->cylinder); i++) {
+                 CollisionCheck_SetAT(play, &play->colChkCtx, &this->cylinder[i].base);
+             }
+@@ -809,7 +842,7 @@ void EnBigokuta_Update(Actor* thisx, PlayState* play2) {
+         CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
+     }
+     Actor_SetFocus(&this->actor, this->actor.scale.y * 25.0f * 100.0f);
+-    func_809BCEBC(this, play);
++    EnBigokuta_SpawnWaterRipple(this, play);  // was func_809BCEBC [LLM:HIGH]
+ }
+ 
+ s32 EnBigokuta_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx) {
+@@ -819,10 +852,10 @@ s32 EnBigokuta_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec
+     s32 temp_hi;
+ 
+     if (limbIndex == 15) {
+-        if (this->actionFunc == func_809BE058 || this->actionFunc == func_809BE180) {
++        if (this->actionFunc == EnBigokuta_Stunned || this->actionFunc == EnBigokuta_Damage) {  // was func_809BE058 [LLM:HIGH]
+             OPEN_DISPS(play->state.gfxCtx);
+ 
+-            if (this->actionFunc == func_809BE058) {
++            if (this->actionFunc == EnBigokuta_Stunned) {  // was func_809BE058 [LLM:HIGH]
+                 temp_hi = this->unk_196 % 12;
+                 if (temp_hi >= 8) {
+                     temp_f0 = (12 - temp_hi) * (M_PI / 8);
+@@ -846,7 +879,7 @@ s32 EnBigokuta_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec
+         }
+     } else if (limbIndex == 10) {
+         OPEN_DISPS(play->state.gfxCtx);
+-        if (this->actionFunc == func_809BE26C) {
++        if (this->actionFunc == EnBigokuta_Death) {  // was func_809BE26C [LLM:HIGH]
+             intensity = this->unk_196 * (255.0f / 38);
+         } else {
+             intensity = 255;
+@@ -855,7 +888,7 @@ s32 EnBigokuta_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec
+         gDPSetEnvColor(POLY_OPA_DISP++, intensity, intensity, intensity, intensity);
+ 
+         CLOSE_DISPS(play->state.gfxCtx);
+-    } else if (limbIndex == 17 && this->actionFunc == func_809BE26C) {
++    } else if (limbIndex == 17 && this->actionFunc == EnBigokuta_Death) {  // was func_809BE26C [LLM:HIGH]
+         if (this->unk_198 < 5) {
+             Matrix_Scale((this->unk_198 * 0.2f * 0.25f) + 1.0f, 1.0f, 1.0f, MTXMODE_APPLY);
+         } else if (this->unk_198 < 8) {
+@@ -874,13 +907,13 @@ void EnBigokuta_Draw(Actor* thisx, PlayState* play) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-    if ((this->actionFunc != func_809BE26C) || (this->unk_196 != 0) || (this->unk_198 != 0)) {
++    if ((this->actionFunc != EnBigokuta_Death) || (this->unk_196 != 0) || (this->unk_198 != 0)) {  // was func_809BE26C [LLM:HIGH]
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+         gSPSegment(POLY_OPA_DISP++, 0x0C, &D_80116280[2]);
+         gDPSetEnvColor(POLY_OPA_DISP++, 255, 255, 255, 255);
+         if (this->unk_196 & 1) {
+-            if ((this->actionFunc == func_809BE180 && this->unk_196 >= 8) ||
+-                (this->actionFunc == func_809BE26C && this->unk_196 >= 10)) {
++            if ((this->actionFunc == EnBigokuta_Damage && this->unk_196 >= 8) ||  // was func_809BE180 [LLM:HIGH]
++                (this->actionFunc == EnBigokuta_Death && this->unk_196 >= 10)) {  // was func_809BE26C [LLM:HIGH]
+                 f32 rotX = Rand_ZeroOne() * (M_PI * 2.0f);
+                 f32 rotY = Rand_ZeroOne() * (M_PI * 2.0f);
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.h b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.h
+index 4748a8ea7..a24a57ecc 100644
+--- a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.h
++++ b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.h
+@@ -24,8 +24,8 @@ typedef struct EnBigokuta {
+     /* 0x02EC */ ColliderCylinder cylinder[2];
+ } EnBigokuta; // size = 0x0384
+ 
+-void func_809BE058(EnBigokuta*, PlayState*);
+-void func_809BDF34(EnBigokuta*, PlayState*);
+-void func_809BE180(EnBigokuta*, PlayState*);
++void EnBigokuta_Stunned(EnBigokuta*, PlayState*);  // was func_809BE058 [LLM:HIGH]
++void EnBigokuta_Bounce(EnBigokuta*, PlayState*);  // was func_809BDF34 [LLM:GUESS]
++void EnBigokuta_Damage(EnBigokuta*, PlayState*);  // was func_809BE180 [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

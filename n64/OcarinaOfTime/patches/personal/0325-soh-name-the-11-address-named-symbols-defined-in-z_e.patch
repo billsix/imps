@@ -1,0 +1,394 @@
+From 3c0713f61388636b2ad6fea15f7a12d901a01849 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:26 +0000
+Subject: [PATCH 325/488] soh: name the 11 address-named symbols defined in
+ z_en_heishi4.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 11 are defined in soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c; updating their references touches 2 files in total.
+
+  * func_80A56328 -> EnHeishi4_SetupKakarikoIdle
+    deduced, confidence HIGH: starts the looping idle animation for the
+    Kakariko and Impa's-house guards and installs their text-picking state.
+
+  * func_80A563BC -> EnHeishi4_PickKakarikoText
+    deduced, confidence HIGH: chooses the Kakariko guard's line from the
+    mask face-reaction set, the story flags, the time of day and whether he
+    has already been spoken to, then hands off to the shared talk state.
+
+  * func_80A56544 -> EnHeishi4_SetupMarketIdle
+    deduced, confidence HIGH: starts the looping idle animation for the
+    night-market guard, killing him outright if Link is an adult.
+
+  * func_80A56614 -> EnHeishi4_PickMarketText
+    deduced, confidence HIGH: the night-market guard's line picker, choosing
+    from the face-reaction set, the scene and the time of day.
+
+  * func_80A5673C -> EnHeishi4_DyingGuardIdle
+    deduced, confidence HIGH: the dying market guard's idle: he despawns
+    once the Master Sword has been pulled, plays his collapse animation and
+    cutscene line the first time, and afterwards only offers his silent
+    line.
+
+  * func_80A56874 -> EnHeishi4_DyingGuardOfferTalk
+    deduced, confidence HIGH: offers talk within 100 units and routes an
+    accepted conversation either back to the idle or into the dying speech.
+
+  * func_80A56900 -> EnHeishi4_SetupDyingGuardTalk
+    deduced, confidence HIGH: switches to the talking-while-dying animation
+    and installs the speech state.
+
+  * func_80A56994 -> EnHeishi4_DyingGuardTalk
+    deduced, confidence HIGH: tracks the player while he speaks and, once
+    the message is advanced, sets INFTABLE_6C and moves on to his death.
+
+  * func_80A56A50 -> EnHeishi4_SetupDyingGuardDie
+    deduced, confidence HIGH: starts the one-shot death animation and
+    records its length.
+
+  * func_80A56ACC -> EnHeishi4_DyingGuardDie
+    deduced, confidence HIGH: plays that animation out, then hands control
+    back to the player and returns to the idle.
+
+  * func_80A56B40 -> EnHeishi4_Talk
+    deduced, confidence HIGH: the shared talk state for the two standing
+    guards: it re-picks the line whenever the mask face reaction changes and
+    returns each guard to his own text picker once the conversation ends.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../Enhancements/TimeSavers/MarketSneak.cpp   |   6 +-
+ .../actors/ovl_En_Heishi4/z_en_heishi4.c      | 103 ++++++++++--------
+ 2 files changed, 60 insertions(+), 49 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/MarketSneak.cpp b/soh/soh/Enhancements/TimeSavers/MarketSneak.cpp
+index bd74d0d59..bfc8295e0 100644
+--- a/soh/soh/Enhancements/TimeSavers/MarketSneak.cpp
++++ b/soh/soh/Enhancements/TimeSavers/MarketSneak.cpp
+@@ -10,7 +10,7 @@ extern "C" {
+ #include "overlays/actors/ovl_En_Heishi4/z_en_heishi4.h"
+ extern PlayState* gPlayState;
+ // the guard's idle action func, restored once the sneak prompt is answered
+-void func_80A56614(EnHeishi4* heishi, PlayState* play);
++void EnHeishi4_PickMarketText(EnHeishi4* heishi, PlayState* play);  // was func_80A56614 [LLM:HIGH]
+ u8 Randomizer_GetSettingValue(RandomizerSettingKey randoSettingKey);
+ }
+ 
+@@ -44,10 +44,10 @@ extern "C" void EnHeishi4_MarketSneak(EnHeishi4* heishi, PlayState* play) {
+                 play->transitionTrigger = TRANS_TRIGGER_START;
+                 play->transitionType = TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_WHITE, TCS_FAST);
+                 gSaveContext.nextTransitionType = TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_WHITE, TCS_FAST);
+-                heishi->actionFunc = func_80A56614;
++                heishi->actionFunc = EnHeishi4_PickMarketText;  // was func_80A56614 [LLM:HIGH]
+                 break;
+             case 1: // no
+-                heishi->actionFunc = func_80A56614;
++                heishi->actionFunc = EnHeishi4_PickMarketText;  // was func_80A56614 [LLM:HIGH]
+                 break;
+         }
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c b/soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c
+index 556e7d26a..5e2b0a979 100644
+--- a/soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c
++++ b/soh/src/overlays/actors/ovl_En_Heishi4/z_en_heishi4.c
+@@ -10,17 +10,28 @@ void EnHeishi4_Destroy(Actor* thisx, PlayState* play);
+ void EnHeishi4_Update(Actor* thisx, PlayState* play);
+ void EnHeishi4_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A56544(EnHeishi4* this, PlayState* play);
+-void func_80A5673C(EnHeishi4* this, PlayState* play);
+-void func_80A56328(EnHeishi4* this, PlayState* play);
+-void func_80A563BC(EnHeishi4* this, PlayState* play);
+-void func_80A56B40(EnHeishi4* this, PlayState* play);
+-void func_80A56614(EnHeishi4* this, PlayState* play);
+-void func_80A56874(EnHeishi4* this, PlayState* play);
+-void func_80A56900(EnHeishi4* this, PlayState* play);
+-void func_80A56994(EnHeishi4* this, PlayState* play);
+-void func_80A56A50(EnHeishi4* this, PlayState* play);
+-void func_80A56ACC(EnHeishi4* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A56544: starts the looping idle animation for the night-market guard, killing him outright if Link is an adult.
++void EnHeishi4_SetupMarketIdle(EnHeishi4* this, PlayState* play);  // was func_80A56544 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A5673C: the dying market guard's idle: he despawns once the Master Sword has been pulled, plays his collapse animation and cutscene line the first time, and afterwards only offers his silent line.
++void EnHeishi4_DyingGuardIdle(EnHeishi4* this, PlayState* play);  // was func_80A5673C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A56328: starts the looping idle animation for the Kakariko and Impa's-house guards and installs their text-picking state.
++void EnHeishi4_SetupKakarikoIdle(EnHeishi4* this, PlayState* play);  // was func_80A56328 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A563BC: chooses the Kakariko guard's line from the mask face-reaction set, the story flags, the time of day and whether he has already been spoken to, then hands off to the shared talk state.
++void EnHeishi4_PickKakarikoText(EnHeishi4* this, PlayState* play);  // was func_80A563BC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A56B40: the shared talk state for the two standing guards: it re-picks the line whenever the mask face reaction changes and returns each guard to his own text picker once the conversation ends.
++void EnHeishi4_Talk(EnHeishi4* this, PlayState* play);  // was func_80A56B40 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A56614: the night-market guard's line picker, choosing from the face-reaction set, the scene and the time of day.
++void EnHeishi4_PickMarketText(EnHeishi4* this, PlayState* play);  // was func_80A56614 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A56874: offers talk within 100 units and routes an accepted conversation either back to the idle or into the dying speech.
++void EnHeishi4_DyingGuardOfferTalk(EnHeishi4* this, PlayState* play);  // was func_80A56874 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A56900: switches to the talking-while-dying animation and installs the speech state.
++void EnHeishi4_SetupDyingGuardTalk(EnHeishi4* this, PlayState* play);  // was func_80A56900 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A56994: tracks the player while he speaks and, once the message is advanced, sets INFTABLE_6C and moves on to his death.
++void EnHeishi4_DyingGuardTalk(EnHeishi4* this, PlayState* play);  // was func_80A56994 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A56A50: starts the one-shot death animation and records its length.
++void EnHeishi4_SetupDyingGuardDie(EnHeishi4* this, PlayState* play);  // was func_80A56A50 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A56ACC: plays that animation out, then hands control back to the player and returns to the idle.
++void EnHeishi4_DyingGuardDie(EnHeishi4* this, PlayState* play);  // was func_80A56ACC [LLM:HIGH]
+ 
+ const ActorInit En_Heishi4_InitVars = {
+     ACTOR_EN_HEISHI4,
+@@ -84,15 +95,15 @@ void EnHeishi4_Init(Actor* thisx, PlayState* play) {
+     switch (this->type) {
+         case HEISHI4_AT_KAKRIKO_ENTRANCE:
+         case HEISHI4_AT_IMPAS_HOUSE:
+-            this->actionFunc = func_80A56328;
++            this->actionFunc = EnHeishi4_SetupKakarikoIdle;  // was func_80A56328 [LLM:HIGH]
+             break;
+         case HEISHI4_AT_MARKET_DYING:
+             this->collider.dim.radius = 28;
+             this->collider.dim.height = 5;
+-            this->actionFunc = func_80A5673C;
++            this->actionFunc = EnHeishi4_DyingGuardIdle;  // was func_80A5673C [LLM:HIGH]
+             break;
+         case HEISHI4_AT_MARKET_NIGHT:
+-            this->actionFunc = func_80A56544;
++            this->actionFunc = EnHeishi4_SetupMarketIdle;  // was func_80A56544 [LLM:HIGH]
+             break;
+     }
+     this->unk_27C = ((thisx->params >> 8) & 0xFF);
+@@ -109,14 +120,14 @@ void EnHeishi4_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80A56328(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_SetupKakarikoIdle(EnHeishi4* this, PlayState* play) {
+     f32 frames = Animation_GetLastFrame(&gEnHeishiIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiIdleAnim, 1.0f, 0.0f, (s16)frames, ANIMMODE_LOOP, -10.0f);
+-    this->actionFunc = func_80A563BC;
++    this->actionFunc = EnHeishi4_PickKakarikoText;  // was func_80A563BC [LLM:HIGH]
+ }
+ 
+-void func_80A563BC(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_PickKakarikoText(EnHeishi4* this, PlayState* play) {
+     s16 reactionOffset;
+ 
+     this->unk_2B4 = 0;
+@@ -130,16 +141,16 @@ void func_80A563BC(EnHeishi4* this, PlayState* play) {
+     if (Text_GetFaceReaction(play, sFaceReactionSets[reactionOffset]) != 0) {
+         this->actor.textId = Text_GetFaceReaction(play, sFaceReactionSets[reactionOffset]);
+         this->unk_2B4 = 1;
+-        this->actionFunc = func_80A56B40;
++        this->actionFunc = EnHeishi4_Talk;  // was func_80A56B40 [LLM:HIGH]
+     } else {
+         if (Flags_GetEventChkInf(EVENTCHKINF_ZELDA_FLED_HYRULE_CASTLE)) {
+             this->actor.textId = 0x5065;
+-            this->actionFunc = func_80A56B40;
++            this->actionFunc = EnHeishi4_Talk;  // was func_80A56B40 [LLM:HIGH]
+             return;
+         }
+         if (Flags_GetEventChkInf(EVENTCHKINF_PULLED_MASTER_SWORD_FROM_PEDESTAL)) {
+             this->actor.textId = 0x5068;
+-            this->actionFunc = func_80A56B40;
++            this->actionFunc = EnHeishi4_Talk;  // was func_80A56B40 [LLM:HIGH]
+             return;
+         }
+         if (this->type == HEISHI4_AT_IMPAS_HOUSE) {
+@@ -160,11 +171,11 @@ void func_80A563BC(EnHeishi4* this, PlayState* play) {
+             this->actor.textId = 0x5067;
+         }
+ 
+-        this->actionFunc = func_80A56B40;
++        this->actionFunc = EnHeishi4_Talk;  // was func_80A56B40 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A56544(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_SetupMarketIdle(EnHeishi4* this, PlayState* play) {
+     f32 frames = Animation_GetLastFrame(&gEnHeishiIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiIdleAnim, 1.0f, 0.0f, (s16)frames, ANIMMODE_LOOP, -10.0f);
+@@ -172,11 +183,11 @@ void func_80A56544(EnHeishi4* this, PlayState* play) {
+         osSyncPrintf(VT_FGCOL(GREEN) " ☆☆☆☆☆ ぎゃぁ！オトナだー ☆☆☆☆☆ \n" VT_RST);
+         Actor_Kill(&this->actor);
+     } else {
+-        this->actionFunc = func_80A56614;
++        this->actionFunc = EnHeishi4_PickMarketText;  // was func_80A56614 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A56614(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_PickMarketText(EnHeishi4* this, PlayState* play) {
+     s16 reactionOffset;
+ 
+     reactionOffset = this->type - 4;
+@@ -190,7 +201,7 @@ void func_80A56614(EnHeishi4* this, PlayState* play) {
+     if (Text_GetFaceReaction(play, sFaceReactionSets[reactionOffset]) != 0) {
+         this->actor.textId = Text_GetFaceReaction(play, sFaceReactionSets[reactionOffset]);
+         this->unk_2B4 = 1;
+-        this->actionFunc = func_80A56B40;
++        this->actionFunc = EnHeishi4_Talk;  // was func_80A56B40 [LLM:HIGH]
+         return;
+     }
+     if (play->sceneNum == SCENE_MARKET_GUARD_HOUSE) {
+@@ -209,10 +220,10 @@ void func_80A56614(EnHeishi4* this, PlayState* play) {
+         this->actor.textId = 0x7003;
+     }
+ 
+-    this->actionFunc = func_80A56B40;
++    this->actionFunc = EnHeishi4_Talk;  // was func_80A56B40 [LLM:HIGH]
+ }
+ 
+-void func_80A5673C(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_DyingGuardIdle(EnHeishi4* this, PlayState* play) {
+     if (Flags_GetEventChkInf(EVENTCHKINF_PULLED_MASTER_SWORD_FROM_PEDESTAL)) {
+         osSyncPrintf(VT_FGCOL(YELLOW) " ☆☆☆☆☆ マスターソード祝入手！ ☆☆☆☆☆ \n" VT_RST);
+         Actor_Kill(&this->actor);
+@@ -233,65 +244,65 @@ void func_80A5673C(EnHeishi4* this, PlayState* play) {
+             this->unk_282 = TEXT_STATE_DONE;
+             osSyncPrintf(VT_FGCOL(BLUE) " ☆☆☆☆☆ 返事なし ☆☆☆☆☆ \n" VT_RST);
+         }
+-        this->actionFunc = func_80A56874;
++        this->actionFunc = EnHeishi4_DyingGuardOfferTalk;  // was func_80A56874 [LLM:HIGH]
+     } else {
+         Actor_Kill(&this->actor);
+     }
+ }
+ 
+-void func_80A56874(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_DyingGuardOfferTalk(EnHeishi4* this, PlayState* play) {
+     if (this->unk_284 != 0) {
+         SkelAnime_Update(&this->skelAnime);
+     }
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if (this->unk_284 == 0) {
+-            this->actionFunc = func_80A5673C;
++            this->actionFunc = EnHeishi4_DyingGuardIdle;  // was func_80A5673C [LLM:HIGH]
+ 
+         } else {
+-            this->actionFunc = func_80A56900;
++            this->actionFunc = EnHeishi4_SetupDyingGuardTalk;  // was func_80A56900 [LLM:HIGH]
+         }
+     } else {
+         Actor_OfferTalk(&this->actor, play, 100.0f);
+     }
+ }
+ 
+-void func_80A56900(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_SetupDyingGuardTalk(EnHeishi4* this, PlayState* play) {
+     f32 frames = Animation_GetLastFrame(&gEnHeishiDyingGuardTalkAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiDyingGuardTalkAnim, 1.0f, 0.0f, (s16)frames, ANIMMODE_LOOP, -10.0f);
+-    this->actionFunc = func_80A56994;
++    this->actionFunc = EnHeishi4_DyingGuardTalk;  // was func_80A56994 [LLM:HIGH]
+ }
+ 
+-void func_80A56994(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_DyingGuardTalk(EnHeishi4* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     Actor_TrackPlayer(play, &this->actor, &this->headRot, &this->torsoRot, this->actor.focus.pos);
+     if ((this->unk_282 == Message_GetState(&play->msgCtx)) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+         Flags_SetInfTable(INFTABLE_6C);
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        this->actionFunc = func_80A56A50;
++        this->actionFunc = EnHeishi4_SetupDyingGuardDie;  // was func_80A56A50 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A56A50(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_SetupDyingGuardDie(EnHeishi4* this, PlayState* play) {
+     f32 frames = Animation_GetLastFrame(&gEnHeishiDyingGuardDieAnim);
+ 
+     this->unk_288 = frames;
+     Animation_Change(&this->skelAnime, &gEnHeishiDyingGuardDieAnim, 1.0f, 0.0f, frames, ANIMMODE_ONCE, -10.0f);
+-    this->actionFunc = func_80A56ACC;
++    this->actionFunc = EnHeishi4_DyingGuardDie;  // was func_80A56ACC [LLM:HIGH]
+ }
+ 
+-void func_80A56ACC(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_DyingGuardDie(EnHeishi4* this, PlayState* play) {
+     f32 currentFrame = this->skelAnime.curFrame;
+ 
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_288 <= currentFrame) {
+         Player_SetCsActionWithHaltedActors(play, NULL, 7);
+-        this->actionFunc = func_80A5673C;
++        this->actionFunc = EnHeishi4_DyingGuardIdle;  // was func_80A5673C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A56B40(EnHeishi4* this, PlayState* play) {
++void EnHeishi4_Talk(EnHeishi4* this, PlayState* play) {
+     s16 reactionOffset;
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -305,22 +316,22 @@ void func_80A56B40(EnHeishi4* this, PlayState* play) {
+     if (Text_GetFaceReaction(play, sFaceReactionSets[reactionOffset]) != 0) {
+         if (this->unk_2B4 == 0) {
+             if ((this->type == HEISHI4_AT_KAKRIKO_ENTRANCE) || (this->type == HEISHI4_AT_IMPAS_HOUSE)) {
+-                this->actionFunc = func_80A563BC;
++                this->actionFunc = EnHeishi4_PickKakarikoText;  // was func_80A563BC [LLM:HIGH]
+                 return;
+             }
+             if (this->type == HEISHI4_AT_MARKET_NIGHT) {
+-                this->actionFunc = func_80A56614;
++                this->actionFunc = EnHeishi4_PickMarketText;  // was func_80A56614 [LLM:HIGH]
+                 return;
+             }
+         }
+     } else {
+         if (this->unk_2B4 != 0) {
+             if ((this->type == HEISHI4_AT_KAKRIKO_ENTRANCE) || (this->type == HEISHI4_AT_IMPAS_HOUSE)) {
+-                this->actionFunc = func_80A563BC;
++                this->actionFunc = EnHeishi4_PickKakarikoText;  // was func_80A563BC [LLM:HIGH]
+                 return;
+             }
+             if (this->type == HEISHI4_AT_MARKET_NIGHT) {
+-                this->actionFunc = func_80A56614;
++                this->actionFunc = EnHeishi4_PickMarketText;  // was func_80A56614 [LLM:HIGH]
+                 return;
+             }
+         }
+@@ -328,12 +339,12 @@ void func_80A56B40(EnHeishi4* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if ((this->type == HEISHI4_AT_KAKRIKO_ENTRANCE) || (this->type == HEISHI4_AT_IMPAS_HOUSE)) {
+             this->unk_284 = 1;
+-            this->actionFunc = func_80A563BC;
++            this->actionFunc = EnHeishi4_PickKakarikoText;  // was func_80A563BC [LLM:HIGH]
+             return;
+         }
+         if (this->type == HEISHI4_AT_MARKET_NIGHT) {
+             if (GameInteractor_Should(VB_MARKET_NIGHT_GUARD_SET_ACTION_AFTER_TALK, true, this, play)) {
+-                this->actionFunc = func_80A56614;
++                this->actionFunc = EnHeishi4_PickMarketText;  // was func_80A56614 [LLM:HIGH]
+                 return;
+             }
+         }
+-- 
+2.55.0
+

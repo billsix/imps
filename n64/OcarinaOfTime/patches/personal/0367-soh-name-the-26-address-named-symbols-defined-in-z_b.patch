@@ -1,0 +1,582 @@
+From 227c542cf6e648e8d7a1e32906eeb278a4296485 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:30 +0000
+Subject: [PATCH 367/488] soh: name the 26 address-named symbols defined in
+ z_boss_ganon2_data.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 26 are defined in soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c; updating their references touches 2 files in total.
+
+  * D_80906D60 -> sOrigin
+    deduced, confidence HIGH: the zero vector pushed through the current
+    matrix to read a limb's world position back out
+
+  * D_80906D6C -> sStoneBoundSfxPos
+    deduced, confidence HIGH: its only use is the position argument of the
+    two NA_SE_EV_STONE_BOUND calls
+
+  * D_80906D78 -> sSpawnRubbleRequested
+    deduced, confidence HIGH: set at cutscene frame 30 alongside the rumble,
+    and consumed by the next update to scatter the rubble effects
+
+  * D_8090702C -> sSubCamEyeOffsets
+    deduced, confidence HIGH: per-step eye offsets added to the player's
+    position when placing the sub-camera
+
+  * D_80907050 -> sSubCamAtOffsets
+    deduced, confidence HIGH: the matching at offsets for the same
+    sub-camera steps
+
+  * D_80907074 -> sBlinkEyeIndices
+    deduced, confidence HIGH: the 0-1-2-2-1-0 eye texture ramp walked by the
+    blink counter
+
+  * D_80907080 -> sSwordTrailAlpha
+    deduced, confidence HIGH: prim alpha of gGanonSwordTrailDL, snapped to
+    0xFF while the sword swings and stepped down by 40 afterwards
+
+  * D_80907084 -> sSwordTrailTipVtx
+    deduced, confidence HIGH: the eleven gGanonSwordTrailVtx indices fed
+    from the recorded sword-tip trail
+
+  * D_80907090 -> sSwordTrailBaseVtx
+    deduced, confidence HIGH: the eleven gGanonSwordTrailVtx indices fed
+    from the recorded sword-base trail
+
+  * D_8090709C -> sLimbTrailIndices
+    deduced, confidence GUESS: per-limb index handed to func_808FD080 with
+    unk_424; that function's role is not established, so the trail reading
+    is inferred from its pairing with the sword trail
+
+  * D_809070CC -> sLimbPosIndices
+    deduced, confidence HIGH: per-limb slot in unk_234[] where the first
+    skeleton records that limb's world position
+
+  * D_809070FC -> sSwordTrailAnchorOffset
+    deduced, confidence GUESS: the hand-space point recorded as the sword
+    trail's anchor at limbs 7 and 13; named for the trail it feeds, not from
+    an identified model feature
+
+  * D_80907108 -> sLimb3TrackOffset
+    deduced, confidence HIGH: the offset whose transformed position limb 3
+    records
+
+  * D_80907114 -> sLimb9TrackOffset
+    deduced, confidence HIGH: the offset whose transformed position limb 9
+    records
+
+  * D_80907120 -> sSwordTipOffset
+    deduced, confidence HIGH: 17000 units out along the blade, the far end
+    of the sword trail ribbon
+
+  * D_8090712C -> sSwordBaseOffset
+    deduced, confidence HIGH: 3000 units out along the blade, the near end
+    of the same ribbon
+
+  * D_80907138 -> sLimb45TrackOffset
+    deduced, confidence HIGH: the offset whose transformed position limb 45
+    records
+
+  * D_80907144 -> sLimbPosIndices2
+    deduced, confidence HIGH: the second skeleton's per-limb slot in
+    unk_234[]
+
+  * D_80907164 -> sHeadTrackOffset
+    deduced, confidence GUESS: the offset limb 10 of the second skeleton
+    records into the same field limb 15 fills from the origin in the first;
+    the limb is head-adjacent but not confirmed
+
+  * D_8090717C -> sBeamAnchorOffset
+    deduced, confidence GUESS: passed to func_808FD080 for both hands and
+    copied into unk_218; named for the effect it anchors rather than an
+    identified point
+
+  * D_80907188 -> sShadowStripeWidths6
+    deduced, confidence HIGH: the six row half-widths of the narrowest limb
+    stripe stamped into the shadow texture
+
+  * D_80907194 -> sShadowStripeWidths7
+    deduced, confidence HIGH: the seven row half-widths of the next limb
+    stripe
+
+  * D_809071A4 -> sShadowStripeWidths8
+    deduced, confidence HIGH: the eight row half-widths of the next limb
+    stripe
+
+  * D_809071B4 -> sShadowStripeWidths12
+    deduced, confidence HIGH: the twelve row half-widths of the widest limb
+    stripe
+
+  * D_809071CC -> sShadowLimbParents
+    deduced, confidence HIGH: per-limb index of the limb its shadow position
+    is interpolated toward, -1 where there is none
+
+  * D_809071EC -> sShadowStripeKinds
+    deduced, confidence HIGH: per-limb selector, 0-3, choosing which of the
+    four stripe width tables stamps that limb
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Boss_Ganon2/z_boss_ganon2.c    | 112 +++++++++---------
+ .../ovl_Boss_Ganon2/z_boss_ganon2_data.c      |  78 ++++++++----
+ 2 files changed, 108 insertions(+), 82 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index d06afa1a3..66b87a513 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -352,7 +352,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+             Math_ApproachF(&this->subCamAt.y, player->actor.world.pos.y + 47.0f + 7.0f, 0.1f, 2.0f);
+             this->unk_339 = 4;
+             if (this->csTimer == 10) {
+-                Sfx_PlaySfxAtPos(&D_80906D6C, NA_SE_EV_STONE_BOUND);
++                Sfx_PlaySfxAtPos(&sStoneBoundSfxPos, NA_SE_EV_STONE_BOUND);  // was D_80906D6C [LLM:HIGH]
+                 Audio_QueueSeqCmd(SEQ_PLAYER_BGM_MAIN << 24 | NA_BGM_STOP);
+             }
+             if (this->csTimer == 20) {
+@@ -452,7 +452,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+             this->subCamAt.y = ((player->actor.world.pos.y + 200.0f) - 151.0f) - 2.0f;
+             this->subCamAt.z = player->actor.world.pos.z + 2.0f;
+             if (this->csTimer == 10) {
+-                Sfx_PlaySfxAtPos(&D_80906D6C, NA_SE_EV_STONE_BOUND);
++                Sfx_PlaySfxAtPos(&sStoneBoundSfxPos, NA_SE_EV_STONE_BOUND);  // was D_80906D6C [LLM:HIGH]
+             }
+             if (this->csTimer == 20) {
+                 Sfx_PlaySfxCentered(NA_SE_EV_STONE_BOUND);
+@@ -484,7 +484,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+         case 13:
+             SkelAnime_Update(&this->skelAnime);
+             if (this->csTimer == 30) {
+-                D_80906D78 = 1;
++                sSpawnRubbleRequested = 1;  // was D_80906D78 [LLM:HIGH]
+                 this->unk_314 = 1;
+                 Rumble_Override(0.0f, 0xC8, 0x14, 0x14);
+             }
+@@ -1757,12 +1757,12 @@ void func_8090120C(BossGanon2* this, PlayState* play) {
+                     player->actor.world.pos.z = 10.0f;
+                     phi_a1 = 2;
+                 }
+-                this->subCamEye.x = D_8090702C[phi_a1].x + (player->actor.world.pos.x - 50.0f);
+-                this->subCamEye.y = D_8090702C[phi_a1].y + (player->actor.world.pos.y + 50.0f);
+-                this->subCamEye.z = D_8090702C[phi_a1].z + (player->actor.world.pos.z + 40.0f);
+-                this->subCamAt.x = D_80907050[phi_a1].x + player->actor.world.pos.x;
+-                this->subCamAt.y = D_80907050[phi_a1].y + (player->actor.world.pos.y + 40.0f);
+-                this->subCamAt.z = D_80907050[phi_a1].z + player->actor.world.pos.z;
++                this->subCamEye.x = sSubCamEyeOffsets[phi_a1].x + (player->actor.world.pos.x - 50.0f);  // was D_8090702C [LLM:HIGH]
++                this->subCamEye.y = sSubCamEyeOffsets[phi_a1].y + (player->actor.world.pos.y + 50.0f);  // was D_8090702C [LLM:HIGH]
++                this->subCamEye.z = sSubCamEyeOffsets[phi_a1].z + (player->actor.world.pos.z + 40.0f);  // was D_8090702C [LLM:HIGH]
++                this->subCamAt.x = sSubCamAtOffsets[phi_a1].x + player->actor.world.pos.x;  // was D_80907050 [LLM:HIGH]
++                this->subCamAt.y = sSubCamAtOffsets[phi_a1].y + (player->actor.world.pos.y + 40.0f);  // was D_80907050 [LLM:HIGH]
++                this->subCamAt.z = sSubCamAtOffsets[phi_a1].z + player->actor.world.pos.z;  // was D_80907050 [LLM:HIGH]
+             }
+             if (this->csTimer > 80) {
+                 Audio_QueueSeqCmd(0x1 << 28 | SEQ_PLAYER_BGM_MAIN << 24 | 0x100FF);
+@@ -2082,7 +2082,7 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+     if (((this->unk_19C & 0x1F) == 0) && (Rand_ZeroOne() < 0.3f)) {
+         this->unk_318 = 4;
+     }
+-    this->unk_310 = D_80907074[this->unk_318];
++    this->unk_310 = sBlinkEyeIndices[this->unk_318];  // was D_80907074 [LLM:HIGH]
+     if (this->unk_318 != 0) {
+         this->unk_318--;
+     }
+@@ -2243,8 +2243,8 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+     if (this->unk_339 >= 0) {
+         this->unk_339 = 0;
+     }
+-    if (D_80906D78 != 0) {
+-        D_80906D78 = 0;
++    if (sSpawnRubbleRequested != 0) {  // was D_80906D78 [LLM:HIGH]
++        sSpawnRubbleRequested = 0;  // was D_80906D78 [LLM:HIGH]
+ 
+         for (i2 = 0; i2 < ARRAY_COUNT(sEffects); i2++) {
+             angle = Rand_ZeroFloat(2 * M_PI);
+@@ -2446,14 +2446,14 @@ void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
+     vtx = ResourceMgr_LoadVtxByName(SEGMENTED_TO_VIRTUAL(gGanonSwordTrailVtx));
+     for (i = 0; i < 11; i++) {
+         if ((temp_s4 - i) > 0) {
+-            vtx[D_80907084[i]].n.ob[0] = sp18C[temp_s4 - i - 1].x;
+-            vtx[D_80907084[i]].n.ob[1] = sp18C[temp_s4 - i - 1].y;
+-            vtx[D_80907084[i]].n.ob[2] = sp18C[temp_s4 - i - 1].z;
++            vtx[sSwordTrailTipVtx[i]].n.ob[0] = sp18C[temp_s4 - i - 1].x;  // was D_80907084 [LLM:HIGH]
++            vtx[sSwordTrailTipVtx[i]].n.ob[1] = sp18C[temp_s4 - i - 1].y;  // was D_80907084 [LLM:HIGH]
++            vtx[sSwordTrailTipVtx[i]].n.ob[2] = sp18C[temp_s4 - i - 1].z;  // was D_80907084 [LLM:HIGH]
+         }
+         if ((temp_s4_2 - i) > 0) {
+-            vtx[D_80907090[i]].n.ob[0] = sp9C[temp_s4_2 - i - 1].x;
+-            vtx[D_80907090[i]].n.ob[1] = sp9C[temp_s4_2 - i - 1].y;
+-            vtx[D_80907090[i]].n.ob[2] = sp9C[temp_s4_2 - i - 1].z;
++            vtx[sSwordTrailBaseVtx[i]].n.ob[0] = sp9C[temp_s4_2 - i - 1].x;  // was D_80907090 [LLM:HIGH]
++            vtx[sSwordTrailBaseVtx[i]].n.ob[1] = sp9C[temp_s4_2 - i - 1].y;  // was D_80907090 [LLM:HIGH]
++            vtx[sSwordTrailBaseVtx[i]].n.ob[2] = sp9C[temp_s4_2 - i - 1].z;  // was D_80907090 [LLM:HIGH]
+         }
+     }
+ }
+@@ -2463,7 +2463,7 @@ void func_80903F38(BossGanon2* this, PlayState* play) {
+ 
+     if (this->unk_312 != 0) {
+         func_809034E4(&this->unk_200, &this->unk_20C);
+-        D_80907080 = 0xFF;
++        sSwordTrailAlpha = 0xFF;  // was D_80907080 [LLM:HIGH]
+     }
+ 
+     if (D_80910638 >= 4) {
+@@ -2471,7 +2471,7 @@ void func_80903F38(BossGanon2* this, PlayState* play) {
+                    Gfx_TwoTexScrollEx(play->state.gfxCtx, 0, 0, 0, 32, 32, 1, play->gameplayFrames * 18, 0, 32, 32, 0,
+                                       0, 18, 0));
+         gDPPipeSync(POLY_XLU_DISP++);
+-        gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, D_80907080);
++        gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, sSwordTrailAlpha);  // was D_80907080 [LLM:HIGH]
+         Matrix_Translate(0.0f, 0.0f, 0.0f, MTXMODE_NEW);
+         gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPDisplayList(POLY_XLU_DISP++, gGanonSwordTrailDL);
+@@ -2614,30 +2614,30 @@ void BossGanon2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-    D_80907120.z = 17000.0f;
+-    D_8090712C.z = 3000.0f;
++    sSwordTipOffset.z = 17000.0f;  // was D_80907120 [LLM:HIGH]
++    sSwordBaseOffset.z = 3000.0f;  // was D_8090712C [LLM:HIGH]
+ 
+-    if (D_809070CC[limbIndex] >= 0) {
+-        Matrix_MultVec3f(&D_80906D60, &this->unk_234[D_809070CC[limbIndex]]);
++    if (sLimbPosIndices[limbIndex] >= 0) {  // was D_809070CC [LLM:HIGH]
++        Matrix_MultVec3f(&sOrigin, &this->unk_234[sLimbPosIndices[limbIndex]]);  // was D_80906D60 [LLM:HIGH]
+     }
+ 
+     if (limbIndex == 15) {
+-        Matrix_MultVec3f(&D_80906D60, &this->unk_1B8);
++        Matrix_MultVec3f(&sOrigin, &this->unk_1B8);  // was D_80906D60 [LLM:HIGH]
+     } else if (limbIndex == 3) {
+-        Matrix_MultVec3f(&D_80907108, &this->unk_1F4);
++        Matrix_MultVec3f(&sLimb3TrackOffset, &this->unk_1F4);  // was D_80907108 [LLM:HIGH]
+     } else if (limbIndex == 9) {
+-        Matrix_MultVec3f(&D_80907114, &this->unk_1E8);
++        Matrix_MultVec3f(&sLimb9TrackOffset, &this->unk_1E8);  // was D_80907114 [LLM:HIGH]
+     } else if (limbIndex == 38) {
+-        Matrix_MultVec3f(&D_80906D60, &this->unk_1DC);
++        Matrix_MultVec3f(&sOrigin, &this->unk_1DC);  // was D_80906D60 [LLM:HIGH]
+     } else if (limbIndex == 41) {
+-        Matrix_MultVec3f(&D_80906D60, &this->unk_1D0);
++        Matrix_MultVec3f(&sOrigin, &this->unk_1D0);  // was D_80906D60 [LLM:HIGH]
+     } else if (limbIndex == 45) {
+-        Matrix_MultVec3f(&D_80907138, &this->unk_1C4);
++        Matrix_MultVec3f(&sLimb45TrackOffset, &this->unk_1C4);  // was D_80907138 [LLM:HIGH]
+     }
+ 
+-    temp_v0 = D_8090709C[limbIndex];
++    temp_v0 = sLimbTrailIndices[limbIndex];  // was D_8090709C [LLM:GUESS]
+     if (temp_v0 >= 0) {
+-        Matrix_MultVec3f(&D_80906D60, &sp4C);
++        Matrix_MultVec3f(&sOrigin, &sp4C);  // was D_80906D60 [LLM:HIGH]
+         func_808FD080(temp_v0, &this->unk_424, &sp4C);
+     }
+ 
+@@ -2657,15 +2657,15 @@ void BossGanon2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+ 
+     if (*dList != NULL) {
+         if ((limbIndex == 7) && (this->unk_312 == 1)) {
+-            Matrix_MultVec3f(&D_809070FC, &this->unk_218);
++            Matrix_MultVec3f(&sSwordTrailAnchorOffset, &this->unk_218);  // was D_809070FC [LLM:GUESS]
+             func_808FD080(0, &this->unk_444, &this->unk_218);
+-            Matrix_MultVec3f(&D_80907120, &this->unk_200);
+-            Matrix_MultVec3f(&D_8090712C, &this->unk_20C);
++            Matrix_MultVec3f(&sSwordTipOffset, &this->unk_200);  // was D_80907120 [LLM:HIGH]
++            Matrix_MultVec3f(&sSwordBaseOffset, &this->unk_20C);  // was D_8090712C [LLM:HIGH]
+         } else if ((limbIndex == 13) && (this->unk_312 == 2)) {
+-            Matrix_MultVec3f(&D_809070FC, &this->unk_218);
++            Matrix_MultVec3f(&sSwordTrailAnchorOffset, &this->unk_218);  // was D_809070FC [LLM:GUESS]
+             func_808FD080(1, &this->unk_444, &this->unk_218);
+-            Matrix_MultVec3f(&D_80907120, &this->unk_200);
+-            Matrix_MultVec3f(&D_8090712C, &this->unk_20C);
++            Matrix_MultVec3f(&sSwordTipOffset, &this->unk_200);  // was D_80907120 [LLM:HIGH]
++            Matrix_MultVec3f(&sSwordBaseOffset, &this->unk_20C);  // was D_8090712C [LLM:HIGH]
+         }
+     }
+ 
+@@ -2772,11 +2772,11 @@ void func_8090523C(BossGanon2* this, PlayState* play) {
+ }
+ 
+ void BossGanon2_PostLimbDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx) {
+-    s8 temp_v1 = D_80907144[limbIndex];
++    s8 temp_v1 = sLimbPosIndices2[limbIndex];  // was D_80907144 [LLM:HIGH]
+     BossGanon2* this = (BossGanon2*)thisx;
+ 
+     if (temp_v1 >= 0) {
+-        Matrix_MultVec3f(&D_80906D60, &this->unk_234[temp_v1]);
++        Matrix_MultVec3f(&sOrigin, &this->unk_234[temp_v1]);  // was D_80906D60 [LLM:HIGH]
+     }
+     if (limbIndex == 11) {
+         OPEN_DISPS(play->state.gfxCtx);
+@@ -2786,7 +2786,7 @@ void BossGanon2_PostLimbDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s
+ 
+         CLOSE_DISPS(play->state.gfxCtx);
+     } else if (limbIndex == 10) {
+-        Matrix_MultVec3f(&D_80907164, &this->unk_1B8);
++        Matrix_MultVec3f(&sHeadTrackOffset, &this->unk_1B8);  // was D_80907164 [LLM:GUESS]
+     }
+ }
+ 
+@@ -2837,9 +2837,9 @@ void BossGanon2_Draw(Actor* thisx, PlayState* play) {
+         case 2:
+             BossGanon2_SetObjectSegment(this, play, OBJECT_GANON2, true);
+             gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sEyeTextures[this->unk_310]));
+-            func_808FD080(0, &this->unk_444, &D_8090717C);
+-            func_808FD080(1, &this->unk_444, &D_8090717C);
+-            this->unk_218 = D_8090717C;
++            func_808FD080(0, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
++            func_808FD080(1, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
++            this->unk_218 = sBeamAnchorOffset;  // was D_8090717C [LLM:GUESS]
+             if (this->unk_342 & 1) {
+                 POLY_OPA_DISP = Gfx_SetFog(POLY_OPA_DISP, 0xFF, 0, 0, 0xFF, 0x384, 0x44B);
+             }
+@@ -2864,14 +2864,14 @@ void BossGanon2_Draw(Actor* thisx, PlayState* play) {
+     func_80904FC8(this, play);
+     func_8090523C(this, play);
+ 
+-    if ((this->unk_312 != 0) || (D_80907080 != 0)) {
++    if ((this->unk_312 != 0) || (sSwordTrailAlpha != 0)) {  // was D_80907080 [LLM:HIGH]
+         func_80903F38(this, play);
+         if (this->unk_312 == 0) {
+             s32 pad;
+ 
+-            D_80907080 -= 40;
+-            if (D_80907080 <= 0) {
+-                D_80907080 = 0;
++            sSwordTrailAlpha -= 40;  // was D_80907080 [LLM:HIGH]
++            if (sSwordTrailAlpha <= 0) {  // was D_80907080 [LLM:HIGH]
++                sSwordTrailAlpha = 0;  // was D_80907080 [LLM:HIGH]
+             }
+         }
+ 
+@@ -3055,7 +3055,7 @@ void func_80906538(BossGanon2* this, u8* shadowTexture, f32 arg2) {
+     Vec3f sp64;
+ 
+     for (i = 0; i < 15; i++) {
+-        if ((arg2 == 0.0f) || ((j = D_809071CC[i]) >= 0)) {
++        if ((arg2 == 0.0f) || ((j = sShadowLimbParents[i]) >= 0)) {  // was D_809071CC [LLM:HIGH]
+             if (arg2 > 0.0f) {
+                 lerpx = this->unk_234[i].x + (this->unk_234[j].x - this->unk_234[i].x) * arg2;
+                 lerpy = this->unk_234[i].y + (this->unk_234[j].y - this->unk_234[i].y) * arg2;
+@@ -3076,27 +3076,27 @@ void func_80906538(BossGanon2* this, u8* shadowTexture, f32 arg2) {
+             temp_a3 = sp64.x + 32.0f;
+             temp_t0 = (s16)sp64.y * 64;
+ 
+-            if (D_809071EC[i] == 2) {
++            if (sShadowStripeKinds[i] == 2) {  // was D_809071EC [LLM:HIGH]
+                 for (j = 0, phi_a1 = -0x180; j < 12; j++, phi_a1 += 0x40) {
+-                    for (phi_v1 = -D_809071B4[j]; phi_v1 < D_809071B4[j]; phi_v1++) {
++                    for (phi_v1 = -sShadowStripeWidths12[j]; phi_v1 < sShadowStripeWidths12[j]; phi_v1++) {  // was D_809071B4 [LLM:HIGH]
+                         temp_v0 = temp_a3 + phi_v1 + temp_t0 + phi_a1;
+                         if ((temp_v0 >= 0) && (temp_v0 < 0x1000)) {
+                             shadowTexture[temp_v0] = 0xFF;
+                         }
+                     }
+                 }
+-            } else if (D_809071EC[i] == 1) {
++            } else if (sShadowStripeKinds[i] == 1) {  // was D_809071EC [LLM:HIGH]
+                 for (j = 0, phi_a1 = -0x100; j < 8; j++, phi_a1 += 0x40) {
+-                    for (phi_v1 = -D_809071A4[j]; phi_v1 < D_809071A4[j]; phi_v1++) {
++                    for (phi_v1 = -sShadowStripeWidths8[j]; phi_v1 < sShadowStripeWidths8[j]; phi_v1++) {  // was D_809071A4 [LLM:HIGH]
+                         temp_v0 = temp_a3 + phi_v1 + temp_t0 + phi_a1;
+                         if ((temp_v0 >= 0) && (temp_v0 < 0x1000)) {
+                             shadowTexture[temp_v0] = 0xFF;
+                         }
+                     }
+                 }
+-            } else if (D_809071EC[i] == 0) {
++            } else if (sShadowStripeKinds[i] == 0) {  // was D_809071EC [LLM:HIGH]
+                 for (j = 0, phi_a1 = -0xC0; j < 7; j++, phi_a1 += 0x40) {
+-                    for (phi_v1 = -D_80907194[j]; phi_v1 < D_80907194[j] - 1; phi_v1++) {
++                    for (phi_v1 = -sShadowStripeWidths7[j]; phi_v1 < sShadowStripeWidths7[j] - 1; phi_v1++) {  // was D_80907194 [LLM:HIGH]
+                         temp_v0 = temp_a3 + phi_v1 + temp_t0 + phi_a1;
+                         if ((temp_v0 >= 0) && (temp_v0 < 0x1000)) {
+                             shadowTexture[temp_v0] = 0xFF;
+@@ -3105,7 +3105,7 @@ void func_80906538(BossGanon2* this, u8* shadowTexture, f32 arg2) {
+                 }
+             } else {
+                 for (j = 0, phi_a1 = -0x80; j < 6; j++, phi_a1 += 0x40) {
+-                    for (phi_v1 = -D_80907188[j]; phi_v1 < D_80907188[j] - 1; phi_v1++) {
++                    for (phi_v1 = -sShadowStripeWidths6[j]; phi_v1 < sShadowStripeWidths6[j] - 1; phi_v1++) {  // was D_80907188 [LLM:HIGH]
+                         temp_v0 = temp_a3 + phi_v1 + temp_t0 + phi_a1;
+                         if ((temp_v0 >= 0) && (temp_v0 < 0x1000)) {
+                             shadowTexture[temp_v0] = 0xFF;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
+index 833353049..e5e044411 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
+@@ -2,11 +2,14 @@
+ #include "overlays/actors/ovl_En_Zl3/z_en_zl3.h"
+ #include "objects/object_ganon2/object_ganon2.h"
+ 
+-static Vec3f D_80906D60 = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80906D60: the zero vector pushed through the current matrix to read a limb's world position back out
++static Vec3f sOrigin = { 0.0f, 0.0f, 0.0f };  // was D_80906D60 [LLM:HIGH]
+ 
+-static Vec3f D_80906D6C = { 0.0f, 0.0f, 500.0f };
++// LLM generated name (HIGH), was D_80906D6C: its only use is the position argument of the two NA_SE_EV_STONE_BOUND calls
++static Vec3f sStoneBoundSfxPos = { 0.0f, 0.0f, 500.0f };  // was D_80906D6C [LLM:HIGH]
+ 
+-static u8 D_80906D78 = 0;
++// LLM generated name (HIGH), was D_80906D78: set at cutscene frame 30 alongside the rumble, and consumed by the next update to scatter the rubble effects
++static u8 sSpawnRubbleRequested = 0;  // was D_80906D78 [LLM:HIGH]
+ 
+ static ColliderJntSphElementInit sJntSphItemsInit1[] = {
+     {
+@@ -238,56 +241,72 @@ static ColliderJntSphInit sJntSphInit2 = {
+     sJntSphItemsInit2,
+ };
+ 
+-static Vec3f D_8090702C[] = {
++// LLM generated name (HIGH), was D_8090702C: per-step eye offsets added to the player's position when placing the sub-camera
++static Vec3f sSubCamEyeOffsets[] = {  // was D_8090702C [LLM:HIGH]
+     { 10.0f, -10.0f, 0.0f },
+     { 0.0f, 0.0f, -60.0f },
+     { 70.0f, -30.0f, 10.0f },
+ };
+ 
+-static Vec3f D_80907050[] = {
++// LLM generated name (HIGH), was D_80907050: the matching at offsets for the same sub-camera steps
++static Vec3f sSubCamAtOffsets[] = {  // was D_80907050 [LLM:HIGH]
+     { -20.0f, 0.0f, 0.0f },
+     { -15.0f, 0.0f, 10.0f },
+     { -16.0f, -12.0f, 40.0f },
+ };
+ 
+-static s16 D_80907074[] = { 0, 1, 2, 2, 1, 0 };
++// LLM generated name (HIGH), was D_80907074: the 0-1-2-2-1-0 eye texture ramp walked by the blink counter
++static s16 sBlinkEyeIndices[] = { 0, 1, 2, 2, 1, 0 };  // was D_80907074 [LLM:HIGH]
+ 
+-static s16 D_80907080 = 0;
++// LLM generated name (HIGH), was D_80907080: prim alpha of gGanonSwordTrailDL, snapped to 0xFF while the sword swings and stepped down by 40 afterwards
++static s16 sSwordTrailAlpha = 0;  // was D_80907080 [LLM:HIGH]
+ 
+-static u8 D_80907084[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 };
++// LLM generated name (HIGH), was D_80907084: the eleven gGanonSwordTrailVtx indices fed from the recorded sword-tip trail
++static u8 sSwordTrailTipVtx[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 };  // was D_80907084 [LLM:HIGH]
+ 
+-static u8 D_80907090[] = { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21 };
++// LLM generated name (HIGH), was D_80907090: the eleven gGanonSwordTrailVtx indices fed from the recorded sword-base trail
++static u8 sSwordTrailBaseVtx[] = { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21 };  // was D_80907090 [LLM:HIGH]
+ 
+-static s8 D_8090709C[] = {
++// LLM generated name (GUESS), was D_8090709C: per-limb index handed to func_808FD080 with unk_424; that function's role is not established, so the trail reading is inferred from its pairing with the sword trail
++static s8 sLimbTrailIndices[] = {  // was D_8090709C [LLM:GUESS]
+     0xFF, 0xFF, 0x01, 0xFF, 0x03, 0x04, 0xFF, 0xFF, 0x05, 0xFF, 0x06, 0x07, 0xFF, 0xFF, 0x08, 0xFF,
+     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+     0x00, 0xFF, 0xFF, 0x02, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0xFF, 0xFF, 0xFF, 0x0F, 0xFF, 0x00,
+ };
+ 
+-static s8 D_809070CC[] = {
++// LLM generated name (HIGH), was D_809070CC: per-limb slot in unk_234[] where the first skeleton records that limb's world position
++static s8 sLimbPosIndices[] = {  // was D_809070CC [LLM:HIGH]
+     0xFF, 0xFF, 0x01, 0xFF, 0x03, 0x04, 0xFF, 0xFF, 0x05, 0xFF, 0x06, 0x07, 0xFF, 0xFF, 0x08, 0xFF,
+     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+     0x00, 0xFF, 0xFF, 0x02, 0x0C, 0x0D, 0x0E, 0x09, 0x0A, 0x0B, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
+ };
+ 
+-static Vec3f D_809070FC = { 0.0f, 0.0f, 5000.0f };
++// LLM generated name (GUESS), was D_809070FC: the hand-space point recorded as the sword trail's anchor at limbs 7 and 13; named for the trail it feeds, not from an identified model feature
++static Vec3f sSwordTrailAnchorOffset = { 0.0f, 0.0f, 5000.0f };  // was D_809070FC [LLM:GUESS]
+ 
+-static Vec3f D_80907108 = { 0.0f, 2000.0f, 0.0f };
++// LLM generated name (HIGH), was D_80907108: the offset whose transformed position limb 3 records
++static Vec3f sLimb3TrackOffset = { 0.0f, 2000.0f, 0.0f };  // was D_80907108 [LLM:HIGH]
+ 
+-static Vec3f D_80907114 = { 0.0f, 2000.0f, 0.0f };
++// LLM generated name (HIGH), was D_80907114: the offset whose transformed position limb 9 records
++static Vec3f sLimb9TrackOffset = { 0.0f, 2000.0f, 0.0f };  // was D_80907114 [LLM:HIGH]
+ 
+-static Vec3f D_80907120 = { 0.0f, 0.0f, 17000.0f };
++// LLM generated name (HIGH), was D_80907120: 17000 units out along the blade, the far end of the sword trail ribbon
++static Vec3f sSwordTipOffset = { 0.0f, 0.0f, 17000.0f };  // was D_80907120 [LLM:HIGH]
+ 
+-static Vec3f D_8090712C = { 0.0f, 0.0f, 3000.0f };
++// LLM generated name (HIGH), was D_8090712C: 3000 units out along the blade, the near end of the same ribbon
++static Vec3f sSwordBaseOffset = { 0.0f, 0.0f, 3000.0f };  // was D_8090712C [LLM:HIGH]
+ 
+-static Vec3f D_80907138 = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80907138: the offset whose transformed position limb 45 records
++static Vec3f sLimb45TrackOffset = { 0.0f, 0.0f, 0.0f };  // was D_80907138 [LLM:HIGH]
+ 
+-static s8 D_80907144[] = {
++// LLM generated name (HIGH), was D_80907144: the second skeleton's per-limb slot in unk_234[]
++static s8 sLimbPosIndices2[] = {  // was D_80907144 [LLM:HIGH]
+     0xFF, 0xFF, 0x01, 0xFF, 0x03, 0x04, 0x05, 0xFF, 0x06, 0x07, 0x08, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+     0xFF, 0xFF, 0xFF, 0x02, 0x0C, 0x0D, 0x0E, 0x09, 0x0A, 0x0B, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00,
+ };
+ 
+-static Vec3f D_80907164 = { 800.0f, 420.0f, 100.0f };
++// LLM generated name (GUESS), was D_80907164: the offset limb 10 of the second skeleton records into the same field limb 15 fills from the origin in the first; the limb is head-adjacent but not confirmed
++static Vec3f sHeadTrackOffset = { 800.0f, 420.0f, 100.0f };  // was D_80907164 [LLM:GUESS]
+ 
+ static void* sEyeTextures[] = {
+     gGanonEyeOpenTex,
+@@ -295,19 +314,26 @@ static void* sEyeTextures[] = {
+     gGanonEyeClosedTex,
+ };
+ 
+-static Vec3f D_8090717C = { 0.0f, -2000.0f, 0.0f };
++// LLM generated name (GUESS), was D_8090717C: passed to func_808FD080 for both hands and copied into unk_218; named for the effect it anchors rather than an identified point
++static Vec3f sBeamAnchorOffset = { 0.0f, -2000.0f, 0.0f };  // was D_8090717C [LLM:GUESS]
+ 
+-static s16 D_80907188[] = { 1, 2, 3, 3, 2, 1 };
++// LLM generated name (HIGH), was D_80907188: the six row half-widths of the narrowest limb stripe stamped into the shadow texture
++static s16 sShadowStripeWidths6[] = { 1, 2, 3, 3, 2, 1 };  // was D_80907188 [LLM:HIGH]
+ 
+-static s16 D_80907194[] = { 2, 3, 4, 4, 4, 3, 2 };
++// LLM generated name (HIGH), was D_80907194: the seven row half-widths of the next limb stripe
++static s16 sShadowStripeWidths7[] = { 2, 3, 4, 4, 4, 3, 2 };  // was D_80907194 [LLM:HIGH]
+ 
+-static s16 D_809071A4[] = { 2, 3, 4, 4, 4, 4, 3, 2 };
++// LLM generated name (HIGH), was D_809071A4: the eight row half-widths of the next limb stripe
++static s16 sShadowStripeWidths8[] = { 2, 3, 4, 4, 4, 4, 3, 2 };  // was D_809071A4 [LLM:HIGH]
+ 
+-static s16 D_809071B4[] = { 2, 4, 5, 5, 6, 6, 6, 6, 5, 5, 4, 2 };
++// LLM generated name (HIGH), was D_809071B4: the twelve row half-widths of the widest limb stripe
++static s16 sShadowStripeWidths12[] = { 2, 4, 5, 5, 6, 6, 6, 6, 5, 5, 4, 2 };  // was D_809071B4 [LLM:HIGH]
+ 
+-static s16 D_809071CC[] = { 1, -1, 1, 1, 3, 4, 1, 6, 7, 2, 9, 10, 2, 12, 13 };
++// LLM generated name (HIGH), was D_809071CC: per-limb index of the limb its shadow position is interpolated toward, -1 where there is none
++static s16 sShadowLimbParents[] = { 1, -1, 1, 1, 3, 4, 1, 6, 7, 2, 9, 10, 2, 12, 13 };  // was D_809071CC [LLM:HIGH]
+ 
+-static u8 D_809071EC[] = { 3, 2, 2, 1, 3, 3, 1, 3, 3, 1, 0, 3, 1, 0, 3 };
++// LLM generated name (HIGH), was D_809071EC: per-limb selector, 0-3, choosing which of the four stripe width tables stamps that limb
++static u8 sShadowStripeKinds[] = { 3, 2, 2, 1, 3, 3, 1, 3, 3, 1, 0, 3, 1, 0, 3 };  // was D_809071EC [LLM:HIGH]
+ 
+ #include "overlays/ovl_Boss_Ganon2/ovl_Boss_Ganon2.h"
+ 
+-- 
+2.55.0
+

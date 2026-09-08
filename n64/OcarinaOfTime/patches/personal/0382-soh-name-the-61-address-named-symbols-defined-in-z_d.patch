@@ -1,0 +1,1228 @@
+From 6805b029d35de6bb2fd2a87e3cb555838992219a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:32 +0000
+Subject: [PATCH 382/488] soh: name the 61 address-named symbols defined in
+ z_demo_gt.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 61 are defined in soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c.
+
+  * func_8097D7D8 -> DemoGt_SpawnDustOnInterval
+    deduced, confidence HIGH: spawns one dust puff whenever the gameplay
+    frame counter hits the caller's remainder
+
+  * func_8097DAC8 -> DemoGt_SpawnRubbleRingLarge
+    deduced, confidence HIGH: twelve kakera around a 46-unit ring, thrown
+    outward
+
+  * func_8097DD28 -> DemoGt_SpawnRubbleRingSmall
+    deduced, confidence HIGH: eight kakera around a 30-unit ring, falling
+
+  * func_8097DF70 -> DemoGt_SpawnRubbleRingTight
+    deduced, confidence HIGH: twelve kakera around a 16-unit ring
+
+  * func_8097E1D4 -> DemoGt_SpawnSingleRubble
+    deduced, confidence HIGH: the same kakera spawn written as a
+    one-iteration loop
+
+  * func_8097E454 -> DemoGt_SpawnDustRingOnInterval
+    deduced, confidence HIGH: spawns a ring of dust puffs on the caller's
+    frame interval
+
+  * func_8097E704 -> DemoGt_IsCueAction
+    deduced, confidence HIGH: true when the given cue channel sits on the
+    caller's action id
+
+  * func_8097E744 -> DemoGt_MoveAlongCue
+    deduced, confidence HIGH: lerps this piece between its cue's start and
+    end positions
+
+  * func_8097E824 -> DemoGt_ShakePiece
+    deduced, confidence HIGH: adds three cosine oscillators to the position,
+    their rates taken from the kREG block for this piece
+
+  * func_8097ED64 -> DemoGt_MoveAndShake
+    deduced, confidence HIGH: runs the cue movement and the shake together
+
+  * func_8097EDD8 -> DemoGt_InitDynaPoly
+    deduced, confidence HIGH: registers this piece's collision header as a
+    dynapoly bg actor
+
+  * func_8097EE44 -> DemoGt_InitIfCutsceneLayer
+    deduced, confidence HIGH: sets the update mode, draw config and
+    collision on the cutscene layer, and kills the actor otherwise
+
+  * func_8097EF00 -> DemoGt_PlayCollapseSeqParams0
+    deduced, confidence HIGH: starts cutscene effects sequence 13 at frame
+    527
+
+  * func_8097EF34 -> DemoGt_NoopParams0
+    deduced, confidence HIGH: empty effect step of the params 0 piece
+
+  * func_8097EF40 -> DemoGt_SpawnDustParams0A
+    deduced, confidence HIGH: the first of the params 0 piece dust bursts,
+    at frame 220
+
+  * func_8097F0AC -> DemoGt_SpawnDustParams0B
+    deduced, confidence HIGH: the second params 0 dust burst, at frame 140
+
+  * func_8097F19C -> DemoGt_SpawnEffectsParams0
+    deduced, confidence HIGH: runs every effect step of the params 0 piece
+
+  * func_8097F1D8 -> DemoGt_SpinUpParams0
+    deduced, confidence HIGH: accelerates the params 0 piece's spin up to
+    its kREG-tunable cap
+
+  * func_8097F280 -> DemoGt_UpdateColorsParams0
+    deduced, confidence HIGH: drives the params 0 piece's prim and env
+    colours by cutscene frame
+
+  * func_8097F3EC -> DemoGt_CheckCueParams0
+    deduced, confidence HIGH: switches the params 0 piece to update mode 8
+    when its cue reaches action 2
+
+  * func_8097F960 -> DemoGt_NoopParams1
+    deduced, confidence HIGH: empty effect step of the params 1 piece
+
+  * func_8097F96C -> DemoGt_SpawnCloudRingParams1
+    deduced, confidence HIGH: spawns the params 1 piece's cloud ring actor
+    around frame 1060
+
+  * func_8097FA1C -> DemoGt_SpawnDustParams1A
+    deduced, confidence HIGH: the first params 1 dust burst, frames 503-580
+
+  * func_8097FAFC -> DemoGt_SpawnDustParams1B
+    deduced, confidence HIGH: the second params 1 dust burst, a wide ring
+
+  * func_8097FC1C -> DemoGt_SpawnDustParams1C
+    deduced, confidence HIGH: the third params 1 dust burst, from frame 683
+
+  * func_8097FCE4 -> DemoGt_SpawnExplosionParams1
+    deduced, confidence HIGH: one explosion with its sound at frame 503
+
+  * func_8097FD70 -> DemoGt_SpawnEffectsParams1
+    deduced, confidence HIGH: runs every effect step of the params 1 piece
+
+  * func_8097FDDC -> DemoGt_UpdateColorsParams1
+    deduced, confidence HIGH: drives the params 1 piece's prim colour and
+    scroll by cutscene frame
+
+  * func_8097FED8 -> DemoGt_CheckCueParams1
+    deduced, confidence HIGH: switches the params 1 piece to update mode 9
+    when its cue reaches action 2
+
+  * func_8098016C -> DemoGt_NoopParams2A
+    deduced, confidence HIGH: the first empty effect step of the params 2
+    piece
+
+  * func_80980178 -> DemoGt_NoopParams2B
+    deduced, confidence HIGH: the second empty effect step of the params 2
+    piece
+
+  * func_80980184 -> DemoGt_SpawnCloudRingParams2A
+    deduced, confidence HIGH: spawns a cloud ring 247 units up around frame
+    1029
+
+  * func_80980218 -> DemoGt_SpawnCloudRingParams2B
+    deduced, confidence HIGH: spawns a second cloud ring at home height
+    around frame 999
+
+  * func_809802AC -> DemoGt_SpawnDustParams2A
+    deduced, confidence HIGH: params 2 dust burst, frames 110-139
+
+  * func_8098036C -> DemoGt_SpawnDustParams2B
+    deduced, confidence HIGH: params 2 dust burst, frames 285-420
+
+  * func_80980430 -> DemoGt_SpawnDustParams2C
+    deduced, confidence HIGH: params 2 dust burst, from frame 710
+
+  * func_80980504 -> DemoGt_SpawnDustParams2D
+    deduced, confidence HIGH: params 2 dust burst, from frame 705
+
+  * func_809805D8 -> DemoGt_SpawnDustParams2E
+    deduced, confidence HIGH: params 2 dust burst, frames 740-780
+
+  * func_809806B8 -> DemoGt_SpawnDustParams2F
+    deduced, confidence HIGH: params 2 dust burst, from frame 965
+
+  * func_8098078C -> DemoGt_SpawnDustParams2G
+    deduced, confidence HIGH: params 2 dust burst, from frame 940
+
+  * func_8098085C -> DemoGt_SpawnExplosionParams2
+    deduced, confidence HIGH: the params 2 explosions with their sounds,
+    starting at frame 58
+
+  * func_809809C0 -> DemoGt_SpawnDustBurstParams2
+    deduced, confidence HIGH: the params 2 wide dust ring, frames 470-480
+
+  * func_80980AD4 -> DemoGt_SpawnRubbleParams2A
+    deduced, confidence HIGH: a large rubble ring at frame 477
+
+  * func_80980B68 -> DemoGt_SpawnRubbleParams2B
+    deduced, confidence HIGH: a small rubble ring with its explosion sound
+    at frame 317
+
+  * func_80980BFC -> DemoGt_SpawnRubbleParams2C
+    deduced, confidence HIGH: a tight rubble ring at frame 740
+
+  * func_80980C90 -> DemoGt_SpawnEffectsParams2
+    deduced, confidence HIGH: runs every effect step of the params 2 piece
+
+  * func_80980D74 -> DemoGt_CheckCueParams2
+    deduced, confidence HIGH: switches the params 2 piece to update mode 10
+    when its cue reaches action 2
+
+  * func_80980F58 -> DemoGt_PlayBreakSfxParams5
+    deduced, confidence HIGH: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 244
+
+  * func_80980F8C -> DemoGt_SpawnDustParams5
+    deduced, confidence HIGH: the params 5 dust burst, frames 260-288
+
+  * func_8098103C -> DemoGt_CheckCueParams5
+    deduced, confidence HIGH: switches the params 5 piece to update mode 11
+    or 16 by its cue action
+
+  * func_80981424 -> DemoGt_PlayBreakSfxParams6
+    deduced, confidence HIGH: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 789
+
+  * func_80981458 -> DemoGt_SpawnDustParams6
+    deduced, confidence HIGH: the params 6 dust burst, frames 856-890
+
+  * func_80981524 -> DemoGt_CheckCueParams6
+    deduced, confidence HIGH: switches the params 6 piece to update mode 12
+    or 17 by its cue action
+
+  * func_809818FC -> DemoGt_PlayBreakSfxParams7
+    deduced, confidence HIGH: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 845
+
+  * func_80981930 -> DemoGt_CheckCueParams7
+    deduced, confidence HIGH: switches the params 7 piece to update mode 13
+    or 18 by its cue action
+
+  * func_80981CEC -> DemoGt_PlayBreakSfxParams23
+    deduced, confidence HIGH: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 183
+
+  * func_80981D20 -> DemoGt_SpinUpParams23
+    deduced, confidence HIGH: accelerates the params 23 piece's spin up to
+    its kREG-tunable cap
+
+  * func_80981DC8 -> DemoGt_CheckCueParams23
+    deduced, confidence HIGH: switches the params 23 piece to update mode 14
+    when its cue reaches action 2
+
+  * func_809820AC -> DemoGt_PlayBreakSfxParams24
+    deduced, confidence HIGH: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 154
+
+  * func_809820E0 -> DemoGt_SpinUpParams24
+    deduced, confidence HIGH: accelerates the params 24 piece's spin up to
+    its kREG-tunable cap
+
+  * func_80982188 -> DemoGt_CheckCueParams24
+    deduced, confidence HIGH: switches the params 24 piece to update mode 15
+    when its cue reaches action 2
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Demo_Gt/z_demo_gt.c   | 415 ++++++++++--------
+ 1 file changed, 238 insertions(+), 177 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c b/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
+index bbdb79463..e0720fc00 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
++++ b/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
+@@ -43,7 +43,8 @@ void DemoGt_SpawnDust(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel
+                   scaleStep, life);
+ }
+ 
+-void func_8097D7D8(PlayState* play, Vec3f* pos, Vec3f* velOffset, f32 scale, s32 arg4, s32 arg5, s16 life) {
++// LLM generated name (HIGH), was func_8097D7D8: spawns one dust puff whenever the gameplay frame counter hits the caller's remainder
++void DemoGt_SpawnDustOnInterval(PlayState* play, Vec3f* pos, Vec3f* velOffset, f32 scale, s32 arg4, s32 arg5, s16 life) {
+     s32 pad;
+ 
+     if (!FrameAdvance_IsEnabled(play)) {
+@@ -88,7 +89,8 @@ void DemoGt_SpawnExplosionNoSound(PlayState* play, Vec3f* pos, Vec3f* velocity,
+     EffectSsBomb2_SpawnLayered(play, pos, velocity, accel, (100.0f * scale), (25.0f * scale));
+ }
+ 
+-void func_8097DAC8(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
++// LLM generated name (HIGH), was func_8097DAC8: twelve kakera around a 46-unit ring, thrown outward
++void DemoGt_SpawnRubbleRingLarge(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
+     Vec3f pos;
+     Vec3f velocity;
+     f32 temp_f0;
+@@ -129,7 +131,8 @@ void func_8097DAC8(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
+     }
+ }
+ 
+-void func_8097DD28(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
++// LLM generated name (HIGH), was func_8097DD28: eight kakera around a 30-unit ring, falling
++void DemoGt_SpawnRubbleRingSmall(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
+     Vec3f pos;
+     Vec3f velocity;
+     f32 temp_f0;
+@@ -171,7 +174,8 @@ void func_8097DD28(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
+     }
+ }
+ 
+-void func_8097DF70(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
++// LLM generated name (HIGH), was func_8097DF70: twelve kakera around a 16-unit ring
++void DemoGt_SpawnRubbleRingTight(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
+     Vec3f pos;
+     Vec3f velocity;
+     f32 temp_f0;
+@@ -212,7 +216,8 @@ void func_8097DF70(DemoGt* this, PlayState* play, Vec3f* spawnerPos) {
+     }
+ }
+ 
+-void func_8097E1D4(PlayState* play, Vec3f* arg1, s16 arg2) {
++// LLM generated name (HIGH), was func_8097E1D4: the same kakera spawn written as a one-iteration loop
++void DemoGt_SpawnSingleRubble(PlayState* play, Vec3f* arg1, s16 arg2) {
+     Vec3f pos;
+     Vec3f velocity;
+     f32 temp_f0;
+@@ -254,7 +259,8 @@ void func_8097E1D4(PlayState* play, Vec3f* arg1, s16 arg2) {
+     }
+ }
+ 
+-void func_8097E454(PlayState* play, Vec3f* spawnerPos, Vec3f* velocity, Vec3f* accel, f32 arg4, f32 scale, s32 arg6,
++// LLM generated name (HIGH), was func_8097E454: spawns a ring of dust puffs on the caller's frame interval
++void DemoGt_SpawnDustRingOnInterval(PlayState* play, Vec3f* spawnerPos, Vec3f* velocity, Vec3f* accel, f32 arg4, f32 scale, s32 arg6,
+                    s32 arg7, s16 life) {
+     s32 pad2[3];
+     s16 increment;
+@@ -279,7 +285,7 @@ void func_8097E454(PlayState* play, Vec3f* spawnerPos, Vec3f* velocity, Vec3f* a
+             DemoGt_SpawnDust(play, &pos, velocity, accel, dustScale, dustScaleStep, life);
+ 
+             if (Rand_ZeroOne() <= 0.05f) {
+-                func_8097E1D4(play, &pos, phi_s0);
++                DemoGt_SpawnSingleRubble(play, &pos, phi_s0);  // was func_8097E1D4 [LLM:HIGH]
+             }
+ 
+             phi_s0 += increment;
+@@ -306,7 +312,8 @@ CsCmdActorCue* DemoGt_GetNpcAction(PlayState* play, u32 actionIdx) {
+     return ret;
+ }
+ 
+-u8 func_8097E704(PlayState* play, u16 arg1, s32 arg2) {
++// LLM generated name (HIGH), was func_8097E704: true when the given cue channel sits on the caller's action id
++u8 DemoGt_IsCueAction(PlayState* play, u16 arg1, s32 arg2) {
+     CsCmdActorCue* action = DemoGt_GetNpcAction(play, arg2);
+ 
+     if ((action != NULL) && (action->action == arg1)) {
+@@ -316,7 +323,8 @@ u8 func_8097E704(PlayState* play, u16 arg1, s32 arg2) {
+     }
+ }
+ 
+-void func_8097E744(DemoGt* this, PlayState* play, u32 actionIdx) {
++// LLM generated name (HIGH), was func_8097E744: lerps this piece between its cue's start and end positions
++void DemoGt_MoveAlongCue(DemoGt* this, PlayState* play, u32 actionIdx) {
+     CsCmdActorCue* npcAction = DemoGt_GetNpcAction(play, actionIdx);
+     Vec3f* pos = &this->dyna.actor.world.pos;
+     f32 startX;
+@@ -343,7 +351,8 @@ void func_8097E744(DemoGt* this, PlayState* play, u32 actionIdx) {
+     }
+ }
+ 
+-void func_8097E824(DemoGt* this, s32 arg1) {
++// LLM generated name (HIGH), was func_8097E824: adds three cosine oscillators to the position, their rates taken from the kREG block for this piece
++void DemoGt_ShakePiece(DemoGt* this, s32 arg1) {
+     s16 phi_a1;
+     s16 phi_a2;
+     s16 phi_a3;
+@@ -428,9 +437,10 @@ void func_8097E824(DemoGt* this, s32 arg1) {
+     pos->z += tempf3;
+ }
+ 
+-void func_8097ED64(DemoGt* this, PlayState* play, s32 actionIdx) {
+-    func_8097E744(this, play, actionIdx);
+-    func_8097E824(this, actionIdx);
++// LLM generated name (HIGH), was func_8097ED64: runs the cue movement and the shake together
++void DemoGt_MoveAndShake(DemoGt* this, PlayState* play, s32 actionIdx) {
++    DemoGt_MoveAlongCue(this, play, actionIdx);  // was func_8097E744 [LLM:HIGH]
++    DemoGt_ShakePiece(this, actionIdx);  // was func_8097E824 [LLM:HIGH]
+ }
+ 
+ u8 DemoGt_IsCutsceneLayer() {
+@@ -447,7 +457,8 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP),
+ };
+ 
+-void func_8097EDD8(DemoGt* this, PlayState* play, CollisionHeader* collision) {
++// LLM generated name (HIGH), was func_8097EDD8: registers this piece's collision header as a dynapoly bg actor
++void DemoGt_InitDynaPoly(DemoGt* this, PlayState* play, CollisionHeader* collision) {
+     s32 pad[3];
+     CollisionHeader* colHeader;
+ 
+@@ -460,12 +471,13 @@ void func_8097EDD8(DemoGt* this, PlayState* play, CollisionHeader* collision) {
+     }
+ }
+ 
+-u8 func_8097EE44(DemoGt* this, PlayState* play, s32 updateMode, s32 drawConfig, CollisionHeader* colHeader) {
++// LLM generated name (HIGH), was func_8097EE44: sets the update mode, draw config and collision on the cutscene layer, and kills the actor otherwise
++u8 DemoGt_InitIfCutsceneLayer(DemoGt* this, PlayState* play, s32 updateMode, s32 drawConfig, CollisionHeader* colHeader) {
+ 
+     if (DemoGt_IsCutsceneLayer()) {
+         this->updateMode = updateMode;
+         this->drawConfig = drawConfig;
+-        func_8097EDD8(this, play, colHeader);
++        DemoGt_InitDynaPoly(this, play, colHeader);  // was func_8097EDD8 [LLM:HIGH]
+         return true;
+     } else {
+         Actor_Kill(&this->dyna.actor);
+@@ -478,10 +490,11 @@ void func_8097EEA8_Init0(DemoGt* this, PlayState* play) {
+     this->dyna.actor.scale.y *= 10.0f;
+     this->dyna.actor.scale.z *= 10.0f;
+ 
+-    func_8097EE44(this, play, 0, 1, NULL);
++    DemoGt_InitIfCutsceneLayer(this, play, 0, 1, NULL);  // was func_8097EE44 [LLM:HIGH]
+ }
+ 
+-void func_8097EF00(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097EF00: starts cutscene effects sequence 13 at frame 527
++void DemoGt_PlayCollapseSeqParams0(DemoGt* this, PlayState* play) {
+     u16 frames = play->csCtx.frames;
+ 
+     if (frames == 527) {
+@@ -489,10 +502,12 @@ void func_8097EF00(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097EF34(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097EF34: empty effect step of the params 0 piece
++void DemoGt_NoopParams0(DemoGt* this, PlayState* play) {
+ }
+ 
+-void func_8097EF40(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097EF40: the first of the params 0 piece dust bursts, at frame 220
++void DemoGt_SpawnDustParams0A(DemoGt* this, PlayState* play) {
+     u16 frames = play->csCtx.frames;
+     s32 pad1[3];
+     Vec3f dustPos;
+@@ -516,7 +531,8 @@ void func_8097EF40(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097F0AC(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097F0AC: the second params 0 dust burst, at frame 140
++void DemoGt_SpawnDustParams0B(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f sp38;
+     s16 pad1[3];
+@@ -539,13 +555,15 @@ void func_8097F0AC(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097F19C(DemoGt* this, PlayState* play) {
+-    func_8097EF34(this, play);
+-    func_8097EF40(this, play);
+-    func_8097F0AC(this, play);
++// LLM generated name (HIGH), was func_8097F19C: runs every effect step of the params 0 piece
++void DemoGt_SpawnEffectsParams0(DemoGt* this, PlayState* play) {
++    DemoGt_NoopParams0(this, play);  // was func_8097EF34 [LLM:HIGH]
++    DemoGt_SpawnDustParams0A(this, play);  // was func_8097EF40 [LLM:HIGH]
++    DemoGt_SpawnDustParams0B(this, play);  // was func_8097F0AC [LLM:HIGH]
+ }
+ 
+-void func_8097F1D8(DemoGt* this) {
++// LLM generated name (HIGH), was func_8097F1D8: accelerates the params 0 piece's spin up to its kREG-tunable cap
++void DemoGt_SpinUpParams0(DemoGt* this) {
+     f32 temp_v0 = this->unk_172;
+ 
+     this->unk_174 = (temp_v0 * ((kREG(64) * 0.001f) + 0.048f)) + (kREG(72) + 10.0f);
+@@ -556,7 +574,8 @@ void func_8097F1D8(DemoGt* this) {
+     }
+ }
+ 
+-void func_8097F280(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097F280: drives the params 0 piece's prim and env colours by cutscene frame
++void DemoGt_UpdateColorsParams0(DemoGt* this, PlayState* play) {
+     s32* unk178 = this->unk_178;
+     s32* unk188 = this->unk_188;
+     s32* unk198 = this->unk_198;
+@@ -594,30 +613,31 @@ void func_8097F280(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097F3EC(DemoGt* this, PlayState* play) {
+-    if (func_8097E704(play, 2, 1)) {
++// LLM generated name (HIGH), was func_8097F3EC: switches the params 0 piece to update mode 8 when its cue reaches action 2
++void DemoGt_CheckCueParams0(DemoGt* this, PlayState* play) {
++    if (DemoGt_IsCueAction(play, 2, 1)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 8;
+     }
+ }
+ 
+ void DemoGt_Update0(DemoGt* this, PlayState* play) {
+-    func_8097F280(this, play);
+-    func_8097E824(this, 1);
+-    func_8097F19C(this, play);
+-    func_8097F3EC(this, play);
++    DemoGt_UpdateColorsParams0(this, play);  // was func_8097F280 [LLM:HIGH]
++    DemoGt_ShakePiece(this, 1);  // was func_8097E824 [LLM:HIGH]
++    DemoGt_SpawnEffectsParams0(this, play);  // was func_8097F19C [LLM:HIGH]
++    DemoGt_CheckCueParams0(this, play);  // was func_8097F3EC [LLM:HIGH]
+     DemoGt_PlayEarthquakeSfx();
+     DemoGt_Rumble(play);
+-    func_8097EF00(this, play);
++    DemoGt_PlayCollapseSeqParams0(this, play);  // was func_8097EF00 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update8(DemoGt* this, PlayState* play) {
+-    func_8097F280(this, play);
+-    func_8097F1D8(this);
+-    func_8097ED64(this, play, 1);
+-    func_8097F19C(this, play);
++    DemoGt_UpdateColorsParams0(this, play);  // was func_8097F280 [LLM:HIGH]
++    DemoGt_SpinUpParams0(this);  // was func_8097F1D8 [LLM:HIGH]
++    DemoGt_MoveAndShake(this, play, 1);  // was func_8097ED64 [LLM:HIGH]
++    DemoGt_SpawnEffectsParams0(this, play);  // was func_8097F19C [LLM:HIGH]
+     DemoGt_PlayEarthquakeSfx();
+     DemoGt_Rumble(play);
+-    func_8097EF00(this, play);
++    DemoGt_PlayCollapseSeqParams0(this, play);  // was func_8097EF00 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Draw1(DemoGt* this, PlayState* play) {
+@@ -693,13 +713,15 @@ void func_8097F904_Init1(DemoGt* this, PlayState* play) {
+     this->dyna.actor.scale.x *= 10.0f;
+     this->dyna.actor.scale.y *= 10.0f;
+     this->dyna.actor.scale.z *= 10.0f;
+-    func_8097EE44(this, play, 1, 2, &gTowerCollapseCsCollapsedStructureInnerCol);
++    DemoGt_InitIfCutsceneLayer(this, play, 1, 2, &gTowerCollapseCsCollapsedStructureInnerCol);  // was func_8097EE44 [LLM:HIGH]
+ }
+ 
+-void func_8097F960(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097F960: empty effect step of the params 1 piece
++void DemoGt_NoopParams1(DemoGt* this, PlayState* play) {
+ }
+ 
+-void func_8097F96C(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097F96C: spawns the params 1 piece's cloud ring actor around frame 1060
++void DemoGt_SpawnCloudRingParams1(DemoGt* this, PlayState* play) {
+     static Actor* cloudRing = NULL;
+     s32 pad[4];
+     Vec3f pos;
+@@ -722,7 +744,8 @@ void func_8097F96C(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097FA1C(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097FA1C: the first params 1 dust burst, frames 503-580
++void DemoGt_SpawnDustParams1A(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f dustPos;
+     u16 frames = play->csCtx.frames;
+@@ -734,11 +757,12 @@ void func_8097FA1C(DemoGt* this, PlayState* play) {
+         dustPos.x = pos->x + 300.0f;
+         dustPos.y = pos->y + 360.0f;
+         dustPos.z = pos->z - 377.0f;
+-        func_8097D7D8(play, &dustPos, &velOffset, 6.0f, 6, 1, 35);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOffset, 6.0f, 6, 1, 35);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8097FAFC(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097FAFC: the second params 1 dust burst, a wide ring
++void DemoGt_SpawnDustParams1B(DemoGt* this, PlayState* play) {
+     static Vec3f velocity = { 0.0f, 1.0f, 0.0f };
+     static Vec3f accel = { 0.0f, 0.0f, 0.0f };
+     static f32 arg4 = 280.0f;
+@@ -761,11 +785,12 @@ void func_8097FAFC(DemoGt* this, PlayState* play) {
+             accel.y += new_var;
+         }
+ 
+-        func_8097E454(play, &pos, &velocity, &accel, arg4, scale, arg6, arg7, life);
++        DemoGt_SpawnDustRingOnInterval(play, &pos, &velocity, &accel, arg4, scale, arg6, arg7, life);  // was func_8097E454 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8097FC1C(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097FC1C: the third params 1 dust burst, from frame 683
++void DemoGt_SpawnDustParams1C(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f dustPos;
+     u16 frames = play->csCtx.frames;
+@@ -777,11 +802,12 @@ void func_8097FC1C(DemoGt* this, PlayState* play) {
+         dustPos.x = pos->x + 260.0f;
+         dustPos.y = pos->y + 360.0f;
+         dustPos.z = pos->z + 260.0f;
+-        func_8097D7D8(play, &dustPos, &velOffset, 6.0f, 6, 0, 35);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOffset, 6.0f, 6, 0, 35);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8097FCE4(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097FCE4: one explosion with its sound at frame 503
++void DemoGt_SpawnExplosionParams1(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f vec;
+     u16 frames = play->csCtx.frames;
+@@ -794,16 +820,18 @@ void func_8097FCE4(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097FD70(DemoGt* this, PlayState* play) {
+-    func_8097F960(this, play);
+-    func_8097F96C(this, play);
+-    func_8097FA1C(this, play);
+-    func_8097FAFC(this, play);
+-    func_8097FC1C(this, play);
+-    func_8097FCE4(this, play);
++// LLM generated name (HIGH), was func_8097FD70: runs every effect step of the params 1 piece
++void DemoGt_SpawnEffectsParams1(DemoGt* this, PlayState* play) {
++    DemoGt_NoopParams1(this, play);  // was func_8097F960 [LLM:HIGH]
++    DemoGt_SpawnCloudRingParams1(this, play);  // was func_8097F96C [LLM:HIGH]
++    DemoGt_SpawnDustParams1A(this, play);  // was func_8097FA1C [LLM:HIGH]
++    DemoGt_SpawnDustParams1B(this, play);  // was func_8097FAFC [LLM:HIGH]
++    DemoGt_SpawnDustParams1C(this, play);  // was func_8097FC1C [LLM:HIGH]
++    DemoGt_SpawnExplosionParams1(this, play);  // was func_8097FCE4 [LLM:HIGH]
+ }
+ 
+-void func_8097FDDC(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097FDDC: drives the params 1 piece's prim colour and scroll by cutscene frame
++void DemoGt_UpdateColorsParams1(DemoGt* this, PlayState* play) {
+     s32* unk178 = this->unk_178;
+     s32* unk198 = this->unk_198;
+ 
+@@ -826,23 +854,24 @@ void func_8097FDDC(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097FED8(DemoGt* this, PlayState* play) {
+-    if (func_8097E704(play, 2, 2)) {
++// LLM generated name (HIGH), was func_8097FED8: switches the params 1 piece to update mode 9 when its cue reaches action 2
++void DemoGt_CheckCueParams1(DemoGt* this, PlayState* play) {
++    if (DemoGt_IsCueAction(play, 2, 2)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 9;
+     }
+ }
+ 
+ void DemoGt_Update1(DemoGt* this, PlayState* play) {
+-    func_8097FDDC(this, play);
+-    func_8097E824(this, 2);
+-    func_8097FD70(this, play);
+-    func_8097FED8(this, play);
++    DemoGt_UpdateColorsParams1(this, play);  // was func_8097FDDC [LLM:HIGH]
++    DemoGt_ShakePiece(this, 2);  // was func_8097E824 [LLM:HIGH]
++    DemoGt_SpawnEffectsParams1(this, play);  // was func_8097FD70 [LLM:HIGH]
++    DemoGt_CheckCueParams1(this, play);  // was func_8097FED8 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update9(DemoGt* this, PlayState* play) {
+-    func_8097FDDC(this, play);
+-    func_8097ED64(this, play, 2);
+-    func_8097FD70(this, play);
++    DemoGt_UpdateColorsParams1(this, play);  // was func_8097FDDC [LLM:HIGH]
++    DemoGt_MoveAndShake(this, play, 2);  // was func_8097ED64 [LLM:HIGH]
++    DemoGt_SpawnEffectsParams1(this, play);  // was func_8097FD70 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Draw2(DemoGt* this, PlayState* play) {
+@@ -871,16 +900,19 @@ void func_80980110_Init2(DemoGt* this, PlayState* play) {
+     this->dyna.actor.scale.x *= 10.0f;
+     this->dyna.actor.scale.y *= 10.0f;
+     this->dyna.actor.scale.z *= 10.0f;
+-    func_8097EE44(this, play, 2, 3, &gTowerCollapseCsCollapsedStructureOuterCol);
++    DemoGt_InitIfCutsceneLayer(this, play, 2, 3, &gTowerCollapseCsCollapsedStructureOuterCol);  // was func_8097EE44 [LLM:HIGH]
+ }
+ 
+-void func_8098016C(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8098016C: the first empty effect step of the params 2 piece
++void DemoGt_NoopParams2A(DemoGt* this, PlayState* play) {
+ }
+ 
+-void func_80980178(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980178: the second empty effect step of the params 2 piece
++void DemoGt_NoopParams2B(DemoGt* this, PlayState* play) {
+ }
+ 
+-void func_80980184(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980184: spawns a cloud ring 247 units up around frame 1029
++void DemoGt_SpawnCloudRingParams2A(DemoGt* this, PlayState* play) {
+     static Actor* cloudRing = NULL;
+     s32 pad[4];
+     Vec3f pos;
+@@ -902,7 +934,8 @@ void func_80980184(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80980218(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980218: spawns a second cloud ring at home height around frame 999
++void DemoGt_SpawnCloudRingParams2B(DemoGt* this, PlayState* play) {
+     static Actor* cloudRing = NULL;
+     s32 pad[4];
+     Vec3f pos;
+@@ -924,7 +957,8 @@ void func_80980218(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809802AC(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809802AC: params 2 dust burst, frames 110-139
++void DemoGt_SpawnDustParams2A(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f dustPos;
+     u16 frames = play->csCtx.frames;
+@@ -936,11 +970,12 @@ void func_809802AC(DemoGt* this, PlayState* play) {
+         dustPos.x = pos->x - 100.0f;
+         dustPos.y = pos->y + 1260.0f;
+         dustPos.z = pos->z - 323.0f;
+-        func_8097D7D8(play, &dustPos, &velOffset, 4.0f, 3, 0, 20);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOffset, 4.0f, 3, 0, 20);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8098036C(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8098036C: params 2 dust burst, frames 285-420
++void DemoGt_SpawnDustParams2B(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f dustPos;
+     u16 frames = play->csCtx.frames;
+@@ -952,11 +987,12 @@ void func_8098036C(DemoGt* this, PlayState* play) {
+         dustPos.x = world->x + 760.0f;
+         dustPos.y = world->y - 40.0f;
+         dustPos.z = world->z - 240.0f;
+-        func_8097D7D8(play, &dustPos, &velOffset, 6.0f, 6, 1, 35);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOffset, 6.0f, 6, 1, 35);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80980430(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980430: params 2 dust burst, from frame 710
++void DemoGt_SpawnDustParams2C(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f dustPos;
+     s32 frames = play->csCtx.frames;
+@@ -968,11 +1004,12 @@ void func_80980430(DemoGt* this, PlayState* play) {
+         dustPos.x = pos->x + 760.0f;
+         dustPos.y = pos->y - 40.0f;
+         dustPos.z = pos->z - 240.0f;
+-        func_8097D7D8(play, &dustPos, &velOffset, 6.0f, 6, 1, 35);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOffset, 6.0f, 6, 1, 35);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80980504(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980504: params 2 dust burst, from frame 705
++void DemoGt_SpawnDustParams2D(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f dustPos;
+     u16 frames = play->csCtx.frames;
+@@ -984,11 +1021,12 @@ void func_80980504(DemoGt* this, PlayState* play) {
+         dustPos.x = pos->x + 830.0f;
+         dustPos.y = pos->y + 60.0f;
+         dustPos.z = pos->z + 390.0f;
+-        func_8097D7D8(play, &dustPos, &velOffset, 6.0f, 6, 2, 35);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOffset, 6.0f, 6, 2, 35);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809805D8(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809805D8: params 2 dust burst, frames 740-780
++void DemoGt_SpawnDustParams2E(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f dustPos;
+     u16 frames = play->csCtx.frames;
+@@ -1000,11 +1038,12 @@ void func_809805D8(DemoGt* this, PlayState* play) {
+         dustPos.x = homePos->x + 550.0f;
+         dustPos.y = homePos->y - 110.0f;
+         dustPos.z = homePos->z + 50.0f;
+-        func_8097D7D8(play, &dustPos, &velOffset, 6.0f, 6, 4, 35);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOffset, 6.0f, 6, 4, 35);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809806B8(DemoGt* this, PlayState* playState) {
++// LLM generated name (HIGH), was func_809806B8: params 2 dust burst, from frame 965
++void DemoGt_SpawnDustParams2F(DemoGt* this, PlayState* playState) {
+     s32 pad[3];
+     Vec3f dustPos;
+     u16 frames = playState->csCtx.frames;
+@@ -1016,11 +1055,12 @@ void func_809806B8(DemoGt* this, PlayState* playState) {
+         dustPos.x = pos->x + 460.0f;
+         dustPos.y = pos->y + 60.0f;
+         dustPos.z = pos->z + 760.0f;
+-        func_8097D7D8(playState, &dustPos, &velOffset, 6.0f, 6, 3, 35);
++        DemoGt_SpawnDustOnInterval(playState, &dustPos, &velOffset, 6.0f, 6, 3, 35);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8098078C(DemoGt* this, PlayState* playState) {
++// LLM generated name (HIGH), was func_8098078C: params 2 dust burst, from frame 940
++void DemoGt_SpawnDustParams2G(DemoGt* this, PlayState* playState) {
+     s32 pad[3];
+     Vec3f dustPos;
+     u16 frames = playState->csCtx.frames;
+@@ -1032,11 +1072,12 @@ void func_8098078C(DemoGt* this, PlayState* playState) {
+         dustPos.x = pos->x + 360.0f;
+         dustPos.y = pos->y + 70.0f;
+         dustPos.z = pos->z - 640.0f;
+-        func_8097D7D8(playState, &dustPos, &velOffset, 6.0, 6, 0, 35);
++        DemoGt_SpawnDustOnInterval(playState, &dustPos, &velOffset, 6.0, 6, 0, 35);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8098085C(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8098085C: the params 2 explosions with their sounds, starting at frame 58
++void DemoGt_SpawnExplosionParams2(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f sp28;
+     u16 frames = play->csCtx.frames;
+@@ -1060,7 +1101,8 @@ void func_8098085C(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809809C0(DemoGt* this, PlayState* play2) {
++// LLM generated name (HIGH), was func_809809C0: the params 2 wide dust ring, frames 470-480
++void DemoGt_SpawnDustBurstParams2(DemoGt* this, PlayState* play2) {
+     PlayState* play = play2;
+     DemoGt* this2 = this;
+     s32 gameplayFrames = play->gameplayFrames;
+@@ -1083,7 +1125,8 @@ void func_809809C0(DemoGt* this, PlayState* play2) {
+     }
+ }
+ 
+-void func_80980AD4(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980AD4: a large rubble ring at frame 477
++void DemoGt_SpawnRubbleParams2A(DemoGt* this, PlayState* play) {
+     s32 pad[4];
+     Vec3f pos;
+     u16 frames = play->csCtx.frames;
+@@ -1093,12 +1136,13 @@ void func_80980AD4(DemoGt* this, PlayState* play) {
+         pos.y = this->dyna.actor.world.pos.y + 60.0f;
+         pos.z = this->dyna.actor.world.pos.z + 23.0f;
+ 
+-        func_8097DAC8(this, play, &pos);
++        DemoGt_SpawnRubbleRingLarge(this, play, &pos);  // was func_8097DAC8 [LLM:HIGH]
+         DemoGt_PlayExplosion2Sfx(play, &pos);
+     }
+ }
+ 
+-void func_80980B68(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980B68: a small rubble ring with its explosion sound at frame 317
++void DemoGt_SpawnRubbleParams2B(DemoGt* this, PlayState* play) {
+     s32 pad[4];
+     Vec3f pos;
+     u16 frames = play->csCtx.frames;
+@@ -1107,12 +1151,13 @@ void func_80980B68(DemoGt* this, PlayState* play) {
+         pos.x = this->dyna.actor.world.pos.x + 980.0f;
+         pos.y = this->dyna.actor.world.pos.y + 410.0f;
+         pos.z = this->dyna.actor.world.pos.z - 177.0f;
+-        func_8097DD28(this, play, &pos);
++        DemoGt_SpawnRubbleRingSmall(this, play, &pos);  // was func_8097DD28 [LLM:HIGH]
+         DemoGt_PlayExplosion2Sfx(play, &pos);
+     }
+ }
+ 
+-void func_80980BFC(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980BFC: a tight rubble ring at frame 740
++void DemoGt_SpawnRubbleParams2C(DemoGt* this, PlayState* play) {
+     s32 pad[4];
+     Vec3f pos;
+     u16 frames = play->csCtx.frames;
+@@ -1122,45 +1167,47 @@ void func_80980BFC(DemoGt* this, PlayState* play) {
+         pos.y = this->dyna.actor.world.pos.y + 60.0f;
+         pos.z = this->dyna.actor.world.pos.z + 23.0f;
+ 
+-        func_8097DF70(this, play, &pos);
++        DemoGt_SpawnRubbleRingTight(this, play, &pos);  // was func_8097DF70 [LLM:HIGH]
+         DemoGt_PlayExplosion2Sfx(play, &pos);
+     }
+ }
+ 
+-void func_80980C90(DemoGt* this, PlayState* play) {
+-    func_8098016C(this, play);
+-    func_80980178(this, play);
+-    func_80980184(this, play);
+-    func_80980218(this, play);
+-    func_809802AC(this, play);
+-    func_8098036C(this, play);
+-    func_80980430(this, play);
+-    func_80980504(this, play);
+-    func_809805D8(this, play);
+-    func_809806B8(this, play);
+-    func_8098078C(this, play);
+-    func_8098085C(this, play);
+-    func_809809C0(this, play);
+-    func_80980AD4(this, play);
+-    func_80980B68(this, play);
+-    func_80980BFC(this, play);
+-}
+-
+-void func_80980D74(DemoGt* this, PlayState* play) {
+-    if (func_8097E704(play, 2, 3)) {
++// LLM generated name (HIGH), was func_80980C90: runs every effect step of the params 2 piece
++void DemoGt_SpawnEffectsParams2(DemoGt* this, PlayState* play) {
++    DemoGt_NoopParams2A(this, play);  // was func_8098016C [LLM:HIGH]
++    DemoGt_NoopParams2B(this, play);  // was func_80980178 [LLM:HIGH]
++    DemoGt_SpawnCloudRingParams2A(this, play);  // was func_80980184 [LLM:HIGH]
++    DemoGt_SpawnCloudRingParams2B(this, play);  // was func_80980218 [LLM:HIGH]
++    DemoGt_SpawnDustParams2A(this, play);  // was func_809802AC [LLM:HIGH]
++    DemoGt_SpawnDustParams2B(this, play);  // was func_8098036C [LLM:HIGH]
++    DemoGt_SpawnDustParams2C(this, play);  // was func_80980430 [LLM:HIGH]
++    DemoGt_SpawnDustParams2D(this, play);  // was func_80980504 [LLM:HIGH]
++    DemoGt_SpawnDustParams2E(this, play);  // was func_809805D8 [LLM:HIGH]
++    DemoGt_SpawnDustParams2F(this, play);  // was func_809806B8 [LLM:HIGH]
++    DemoGt_SpawnDustParams2G(this, play);  // was func_8098078C [LLM:HIGH]
++    DemoGt_SpawnExplosionParams2(this, play);  // was func_8098085C [LLM:HIGH]
++    DemoGt_SpawnDustBurstParams2(this, play);  // was func_809809C0 [LLM:HIGH]
++    DemoGt_SpawnRubbleParams2A(this, play);  // was func_80980AD4 [LLM:HIGH]
++    DemoGt_SpawnRubbleParams2B(this, play);  // was func_80980B68 [LLM:HIGH]
++    DemoGt_SpawnRubbleParams2C(this, play);  // was func_80980BFC [LLM:HIGH]
++}
++
++// LLM generated name (HIGH), was func_80980D74: switches the params 2 piece to update mode 10 when its cue reaches action 2
++void DemoGt_CheckCueParams2(DemoGt* this, PlayState* play) {
++    if (DemoGt_IsCueAction(play, 2, 3)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 10;
+     }
+ }
+ 
+ void DemoGt_Update2(DemoGt* this, PlayState* play) {
+-    func_8097E824(this, 3);
+-    func_80980C90(this, play);
+-    func_80980D74(this, play);
++    DemoGt_ShakePiece(this, 3);  // was func_8097E824 [LLM:HIGH]
++    DemoGt_SpawnEffectsParams2(this, play);  // was func_80980C90 [LLM:HIGH]
++    DemoGt_CheckCueParams2(this, play);  // was func_80980D74 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update10(DemoGt* this, PlayState* play) {
+-    func_8097ED64(this, play, 3);
+-    func_80980C90(this, play);
++    DemoGt_MoveAndShake(this, play, 3);  // was func_8097ED64 [LLM:HIGH]
++    DemoGt_SpawnEffectsParams2(this, play);  // was func_80980C90 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Draw3(DemoGt* this, PlayState* play) {
+@@ -1181,10 +1228,11 @@ void func_80980F00_Init5(DemoGt* this, PlayState* play) {
+     this->dyna.actor.scale.y *= 10.0f;
+     this->dyna.actor.scale.z *= 10.0f;
+ 
+-    func_8097EE44(this, play, 3, 4, NULL);
++    DemoGt_InitIfCutsceneLayer(this, play, 3, 4, NULL);  // was func_8097EE44 [LLM:HIGH]
+ }
+ 
+-void func_80980F58(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980F58: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 244
++void DemoGt_PlayBreakSfxParams5(DemoGt* this, PlayState* play) {
+     u16 frames = play->csCtx.frames;
+ 
+     if (frames == 244) {
+@@ -1192,7 +1240,8 @@ void func_80980F58(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80980F8C(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80980F8C: the params 5 dust burst, frames 260-288
++void DemoGt_SpawnDustParams5(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f sp58;
+     Vec3f dustPos;
+@@ -1207,27 +1256,28 @@ void func_80980F8C(DemoGt* this, PlayState* play) {
+         sp58.z = -170.0f;
+ 
+         Matrix_MultVec3f(&sp58, &dustPos);
+-        func_8097D7D8(play, &dustPos, &velOfset, 3.0f, 5, 0, 30);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOfset, 3.0f, 5, 0, 30);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8098103C(DemoGt* this, PlayState* play) {
+-    if (func_8097E704(play, 2, 4)) {
++// LLM generated name (HIGH), was func_8098103C: switches the params 5 piece to update mode 11 or 16 by its cue action
++void DemoGt_CheckCueParams5(DemoGt* this, PlayState* play) {
++    if (DemoGt_IsCueAction(play, 2, 4)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 11;
+-    } else if (func_8097E704(play, 3, 4)) {
++    } else if (DemoGt_IsCueAction(play, 3, 4)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 16;
+     }
+ }
+ 
+ void DemoGt_Update3(DemoGt* this, PlayState* play) {
+-    func_8097E824(this, 4);
+-    func_80980F58(this, play);
+-    func_8098103C(this, play);
++    DemoGt_ShakePiece(this, 4);  // was func_8097E824 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams5(this, play);  // was func_80980F58 [LLM:HIGH]
++    DemoGt_CheckCueParams5(this, play);  // was func_8098103C [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update11(DemoGt* this, PlayState* play) {
+-    func_8097ED64(this, play, 4);
+-    func_80980F58(this, play);
++    DemoGt_MoveAndShake(this, play, 4);  // was func_8097ED64 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams5(this, play);  // was func_80980F58 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update16(DemoGt* this, PlayState* play) {
+@@ -1285,7 +1335,7 @@ void DemoGt_Draw4(DemoGt* this, PlayState* play2) {
+         MATRIX_TOMTX(sp60);
+ 
+         if (!FrameAdvance_IsEnabled(play)) {
+-            func_80980F8C(this, play);
++            DemoGt_SpawnDustParams5(this, play);  // was func_80980F8C [LLM:HIGH]
+         }
+ 
+         Matrix_Pop();
+@@ -1304,10 +1354,11 @@ void func_809813CC_Init6(DemoGt* this, PlayState* play) {
+     this->dyna.actor.scale.y *= 10.0f;
+     this->dyna.actor.scale.z *= 10.0f;
+ 
+-    func_8097EE44(this, play, 4, 5, NULL);
++    DemoGt_InitIfCutsceneLayer(this, play, 4, 5, NULL);  // was func_8097EE44 [LLM:HIGH]
+ }
+ 
+-void func_80981424(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80981424: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 789
++void DemoGt_PlayBreakSfxParams6(DemoGt* this, PlayState* play) {
+     u16 frames = play->csCtx.frames;
+ 
+     if (frames == 789) {
+@@ -1315,7 +1366,8 @@ void func_80981424(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80981458(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80981458: the params 6 dust burst, frames 856-890
++void DemoGt_SpawnDustParams6(DemoGt* this, PlayState* play) {
+     s32 pad[3];
+     Vec3f sp58;
+     Vec3f dustPos;
+@@ -1330,27 +1382,28 @@ void func_80981458(DemoGt* this, PlayState* play) {
+         sp58.z = -1100.0f;
+ 
+         Matrix_MultVec3f(&sp58, &dustPos);
+-        func_8097D7D8(play, &dustPos, &velOffset, 7.1f, 5, 1, 30);
++        DemoGt_SpawnDustOnInterval(play, &dustPos, &velOffset, 7.1f, 5, 1, 30);  // was func_8097D7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80981524(DemoGt* this, PlayState* play) {
+-    if (func_8097E704(play, 2, 5)) {
++// LLM generated name (HIGH), was func_80981524: switches the params 6 piece to update mode 12 or 17 by its cue action
++void DemoGt_CheckCueParams6(DemoGt* this, PlayState* play) {
++    if (DemoGt_IsCueAction(play, 2, 5)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 12;
+-    } else if (func_8097E704(play, 3, 5)) {
++    } else if (DemoGt_IsCueAction(play, 3, 5)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 17;
+     }
+ }
+ 
+ void DemoGt_Update4(DemoGt* this, PlayState* play) {
+-    func_8097E824(this, 5);
+-    func_80981424(this, play);
+-    func_80981524(this, play);
++    DemoGt_ShakePiece(this, 5);  // was func_8097E824 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams6(this, play);  // was func_80981424 [LLM:HIGH]
++    DemoGt_CheckCueParams6(this, play);  // was func_80981524 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update12(DemoGt* this, PlayState* play) {
+-    func_8097ED64(this, play, 5);
+-    func_80981424(this, play);
++    DemoGt_MoveAndShake(this, play, 5);  // was func_8097ED64 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams6(this, play);  // was func_80981424 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update17(DemoGt* this, PlayState* play) {
+@@ -1404,7 +1457,7 @@ void DemoGt_Draw5(DemoGt* this, PlayState* play) {
+     MATRIX_TOMTX(sp60);
+ 
+     if (!FrameAdvance_IsEnabled(play)) {
+-        func_80981458(this, play);
++        DemoGt_SpawnDustParams6(this, play);  // was func_80981458 [LLM:HIGH]
+     }
+ 
+     Matrix_Pop();
+@@ -1422,32 +1475,34 @@ void func_809818A4_Init7(DemoGt* this, PlayState* play) {
+     this->dyna.actor.scale.y *= 10.0f;
+     this->dyna.actor.scale.z *= 10.0f;
+ 
+-    func_8097EE44(this, play, 5, 6, NULL);
++    DemoGt_InitIfCutsceneLayer(this, play, 5, 6, NULL);  // was func_8097EE44 [LLM:HIGH]
+ }
+ 
+-void func_809818FC(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809818FC: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 845
++void DemoGt_PlayBreakSfxParams7(DemoGt* this, PlayState* play) {
+     u16 frames = play->csCtx.frames;
+ 
+     if (frames == 845) {
+         Sfx_PlaySfxAtPos(&this->dyna.actor.projectedPos, NA_SE_EV_TOWER_PARTS_BROKEN - SFX_FLAG);
+     }
+ }
+-void func_80981930(DemoGt* this, PlayState* play) {
+-    if (func_8097E704(play, 2, 6)) {
++// LLM generated name (HIGH), was func_80981930: switches the params 7 piece to update mode 13 or 18 by its cue action
++void DemoGt_CheckCueParams7(DemoGt* this, PlayState* play) {
++    if (DemoGt_IsCueAction(play, 2, 6)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 13;
+-    } else if (func_8097E704(play, 3, 6)) {
++    } else if (DemoGt_IsCueAction(play, 3, 6)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 18;
+     }
+ }
+ void DemoGt_Update5(DemoGt* this, PlayState* play) {
+-    func_8097E824(this, 6);
+-    func_809818FC(this, play);
+-    func_80981930(this, play);
++    DemoGt_ShakePiece(this, 6);  // was func_8097E824 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams7(this, play);  // was func_809818FC [LLM:HIGH]
++    DemoGt_CheckCueParams7(this, play);  // was func_80981930 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update13(DemoGt* this, PlayState* play) {
+-    func_8097ED64(this, play, 6);
+-    func_809818FC(this, play);
++    DemoGt_MoveAndShake(this, play, 6);  // was func_8097ED64 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams7(this, play);  // was func_809818FC [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update18(DemoGt* this, PlayState* play) {
+@@ -1513,10 +1568,11 @@ void func_80981C94_Init23(DemoGt* this, PlayState* play) {
+     this->dyna.actor.scale.x *= 10.0f;
+     this->dyna.actor.scale.y *= 10.0f;
+     this->dyna.actor.scale.z *= 10.0f;
+-    func_8097EE44(this, play, 6, 7, NULL);
++    DemoGt_InitIfCutsceneLayer(this, play, 6, 7, NULL);  // was func_8097EE44 [LLM:HIGH]
+ }
+ 
+-void func_80981CEC(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80981CEC: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 183
++void DemoGt_PlayBreakSfxParams23(DemoGt* this, PlayState* play) {
+     u16 frames = play->csCtx.frames;
+ 
+     if (frames == 183) {
+@@ -1524,7 +1580,8 @@ void func_80981CEC(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80981D20(DemoGt* this) {
++// LLM generated name (HIGH), was func_80981D20: accelerates the params 23 piece's spin up to its kREG-tunable cap
++void DemoGt_SpinUpParams23(DemoGt* this) {
+     f32 temp = this->unk_172;
+ 
+     this->unk_174 = temp * ((kREG(64) * 0.001f) + 0.048f) + (kREG(76) + 100.0f);
+@@ -1535,22 +1592,23 @@ void func_80981D20(DemoGt* this) {
+     }
+ }
+ 
+-void func_80981DC8(DemoGt* this, PlayState* play) {
+-    if (func_8097E704(play, 2, 7)) {
++// LLM generated name (HIGH), was func_80981DC8: switches the params 23 piece to update mode 14 when its cue reaches action 2
++void DemoGt_CheckCueParams23(DemoGt* this, PlayState* play) {
++    if (DemoGt_IsCueAction(play, 2, 7)) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 0xE;
+     }
+ }
+ 
+ void DemoGt_Update6(DemoGt* this, PlayState* play) {
+-    func_8097E824(this, 7);
+-    func_80981CEC(this, play);
+-    func_80981DC8(this, play);
++    DemoGt_ShakePiece(this, 7);  // was func_8097E824 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams23(this, play);  // was func_80981CEC [LLM:HIGH]
++    DemoGt_CheckCueParams23(this, play);  // was func_80981DC8 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update14(DemoGt* this, PlayState* play) {
+-    func_80981D20(this);
+-    func_8097ED64(this, play, 7);
+-    func_80981CEC(this, play);
++    DemoGt_SpinUpParams23(this);  // was func_80981D20 [LLM:HIGH]
++    DemoGt_MoveAndShake(this, play, 7);  // was func_8097ED64 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams23(this, play);  // was func_80981CEC [LLM:HIGH]
+ }
+ 
+ void DemoGt_Draw7(DemoGt* this, PlayState* play) {
+@@ -1604,10 +1662,11 @@ void func_80982054_Init24(DemoGt* this, PlayState* play) {
+     this->dyna.actor.scale.x *= 10.0f;
+     this->dyna.actor.scale.y *= 10.0f;
+     this->dyna.actor.scale.z *= 10.0f;
+-    func_8097EE44(this, play, 7, 8, NULL);
++    DemoGt_InitIfCutsceneLayer(this, play, 7, 8, NULL);  // was func_8097EE44 [LLM:HIGH]
+ }
+ 
+-void func_809820AC(DemoGt* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809820AC: plays NA_SE_EV_TOWER_PARTS_BROKEN at frame 154
++void DemoGt_PlayBreakSfxParams24(DemoGt* this, PlayState* play) {
+     u16 frames = play->csCtx.frames;
+ 
+     if (frames == 154) {
+@@ -1615,7 +1674,8 @@ void func_809820AC(DemoGt* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809820E0(DemoGt* this) {
++// LLM generated name (HIGH), was func_809820E0: accelerates the params 24 piece's spin up to its kREG-tunable cap
++void DemoGt_SpinUpParams24(DemoGt* this) {
+     f32 temp = this->unk_172;
+ 
+     this->unk_174 = (temp * ((kREG(64) * 0.001f) + 0.048f)) + (kREG(79) + 100.0f);
+@@ -1626,22 +1686,23 @@ void func_809820E0(DemoGt* this) {
+     }
+ }
+ 
+-void func_80982188(DemoGt* this, PlayState* play) {
+-    if (func_8097E704(play, 2, 9) != 0) {
++// LLM generated name (HIGH), was func_80982188: switches the params 24 piece to update mode 15 when its cue reaches action 2
++void DemoGt_CheckCueParams24(DemoGt* this, PlayState* play) {
++    if (DemoGt_IsCueAction(play, 2, 9) != 0) {  // was func_8097E704 [LLM:HIGH]
+         this->updateMode = 15;
+     }
+ }
+ 
+ void DemoGt_Update7(DemoGt* this, PlayState* play) {
+-    func_8097E824(this, 9);
+-    func_809820AC(this, play);
+-    func_80982188(this, play);
++    DemoGt_ShakePiece(this, 9);  // was func_8097E824 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams24(this, play);  // was func_809820AC [LLM:HIGH]
++    DemoGt_CheckCueParams24(this, play);  // was func_80982188 [LLM:HIGH]
+ }
+ 
+ void DemoGt_Update15(DemoGt* this, PlayState* play) {
+-    func_809820E0(this);
+-    func_8097ED64(this, play, 9);
+-    func_809820AC(this, play);
++    DemoGt_SpinUpParams24(this);  // was func_809820E0 [LLM:HIGH]
++    DemoGt_MoveAndShake(this, play, 9);  // was func_8097ED64 [LLM:HIGH]
++    DemoGt_PlayBreakSfxParams24(this, play);  // was func_809820AC [LLM:HIGH]
+ }
+ 
+ void DemoGt_Draw8(DemoGt* this, PlayState* play) {
+-- 
+2.55.0
+

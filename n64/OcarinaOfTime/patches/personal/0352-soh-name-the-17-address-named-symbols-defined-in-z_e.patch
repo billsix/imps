@@ -1,0 +1,580 @@
+From 7180e2c498ca47d61ad22c49059dcf8d6f7f14ea Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 352/488] soh: name the 17 address-named symbols defined in
+ z_en_ru1.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 17 are defined in soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c; updating their references touches 3 files in total.
+
+  * func_80AEADE0 -> EnRu1_GetType
+    deduced, confidence HIGH: returns the high byte of params, which selects
+    which Ruto this actor is.
+
+  * func_80AEADF0 -> EnRu1_GetSwitchFlag
+    deduced, confidence HIGH: returns the low byte of params.
+
+  * func_80AEB124 -> EnRu1_FindSapphireEffect
+    deduced, confidence HIGH: scans the boss actor list for the Demo_Effect
+    carrying the Zora's Sapphire.
+
+  * func_80AEB1D8 -> EnRu1_SetupRideBossPlatform
+    deduced, confidence HIGH: enters action 36, stopping Ruto dead and
+    switching the platform camera off.
+
+  * func_80AEB220 -> EnRu1_WaitForBossPlatform
+    deduced, confidence HIGH: waits for the cutscene to go idle before
+    putting the params 0xA Ruto onto the boss platform.
+
+  * func_80AEB7D0 -> EnRu1_ClearRootMotion
+    deduced, confidence HIGH: clears the skeleton's root-motion flags so the
+    animation stops driving her position.
+
+  * func_80AEB89C -> EnRu1_SnapToFountainCue
+    deduced, confidence HIGH: snaps Ruto's position and yaw to the fountain
+    cutscene's current actor cue.
+
+  * func_80AEBC30 -> EnRu1_PlayDiveSfx
+    deduced, confidence HIGH: plays the dive-into-water sfx on one fixed
+    cutscene frame.
+
+  * func_80AED520 -> EnRu1_PlayLiftSfx
+    deduced, confidence HIGH: plays the pull-up sfx and Ruto's lifted voice
+    clip when Link picks her up.
+
+  * func_80AED57C -> EnRu1_PlayThrowSfx
+    deduced, confidence HIGH: plays Ruto's thrown voice clip, but only if
+    she is actually moving.
+
+  * func_80AED5DC -> EnRu1_PlayUnbalanceSfx
+    deduced, confidence HIGH: plays Ruto's off-balance voice clip.
+
+  * func_80AED600 -> EnRu1_PlayDiscoverSfx
+    deduced, confidence HIGH: plays Ruto's discovery voice clip, used when
+    she spots the sapphire.
+
+  * func_80AED624 -> EnRu1_CheckRoomAndWater
+    deduced, confidence HIGH: kills Ruto when the player leaves her room and
+    switches her to the floating state once she is deep enough under water.
+
+  * func_80AED6DC -> EnRu1_RecordRoom
+    deduced, confidence HIGH: records the room Ruto is currently in and
+    resets her carry offset.
+
+  * func_80AEE6D0 -> EnRu1_CheckSapphireCutscene
+    deduced, confidence HIGH: starts the sees-the-sapphire cutscene the
+    first time Ruto is carried within sight of the Demo_Effect holding it.
+
+  * func_80AEFF94 -> EnRu1_SetupSwitchRuto
+    deduced, confidence HIGH: puts Ruto into the standing-on-the-switch
+    state when the story flags say she has been met and is not currently
+    kidnapped, printing the "Ruto switch set" trace either way.
+
+  * func_80AF0050 -> EnRu1_SetupOnSwitch
+    deduced, confidence HIGH: enters action 36 with the waiting animation,
+    remembers her room and finds the switch she is meant to stand on.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../SkipChildRutoInteractions.cpp             |   4 +-
+ .../vanilla-behavior/GIVanillaBehavior.h      |   2 +-
+ soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c | 117 ++++++++++--------
+ 3 files changed, 70 insertions(+), 53 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/SkipMiscInteractions/SkipChildRutoInteractions.cpp b/soh/soh/Enhancements/TimeSavers/SkipMiscInteractions/SkipChildRutoInteractions.cpp
+index 417c31afb..06b73b234 100644
+--- a/soh/soh/Enhancements/TimeSavers/SkipMiscInteractions/SkipChildRutoInteractions.cpp
++++ b/soh/soh/Enhancements/TimeSavers/SkipMiscInteractions/SkipChildRutoInteractions.cpp
+@@ -6,7 +6,7 @@ extern "C" {
+ #include "overlays/actors/ovl_En_Ru1/z_en_ru1.h"
+ #include "assets/objects/object_ru1/object_ru1.h"
+ 
+-Actor* func_80AEB124(PlayState* play);
++Actor* EnRu1_FindSapphireEffect(PlayState* play);  // was func_80AEB124 [LLM:HIGH]
+ }
+ 
+ void Ru1Init(void* actorRef) {
+@@ -80,7 +80,7 @@ void RegisterSkipChildRutoInteractions() {
+                                enRu1->unk_28C->cameraSetting != 2) {
+                                enRu1->unk_28C->cameraSetting = 1;
+                            }
+-                           Actor* sapphire = func_80AEB124(gPlayState);
++                           Actor* sapphire = EnRu1_FindSapphireEffect(gPlayState);  // was func_80AEB124 [LLM:HIGH]
+                            if (sapphire != NULL) {
+                                Actor_Kill(sapphire);
+                            }
+diff --git a/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h b/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
+index e35850b32..2b1ff094d 100644
+--- a/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
++++ b/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
+@@ -2575,7 +2575,7 @@ typedef enum {
+     // #### `result`
+     // in the big okto room and flag
+     // ```c
+-    // !Flags_GetInfTable(INFTABLE_RUTO_IN_JJ_WANTS_TO_BE_TOSSED_TO_SAPPHIRE) && (func_80AEB124(play) != 0)
++    // !Flags_GetInfTable(INFTABLE_RUTO_IN_JJ_WANTS_TO_BE_TOSSED_TO_SAPPHIRE) && (EnRu1_FindSapphireEffect(play) != 0), was func_80AEB124 [LLM:HIGH]
+     // ```
+     // #### `args`
+     // - `*EnRu1`
+diff --git a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
+index f7d737ce4..2ff9e42db 100644
+--- a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
++++ b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
+@@ -242,13 +242,15 @@ void EnRu1_DisableSittingOC(EnRu1* this) {
+     this->isSittingOCActive = 0;
+ }
+ 
+-u8 func_80AEADE0(EnRu1* this) {
++// LLM generated name (HIGH), was func_80AEADE0: returns the high byte of params, which selects which Ruto this actor is.
++u8 EnRu1_GetType(EnRu1* this) {
+     u8 params = this->actor.params >> 8;
+ 
+     return params;
+ }
+ 
+-u8 func_80AEADF0(EnRu1* this) {
++// LLM generated name (HIGH), was func_80AEADF0: returns the low byte of params.
++u8 EnRu1_GetSwitchFlag(EnRu1* this) {
+     s16 params = this->actor.params;
+ 
+     return params;
+@@ -381,7 +383,8 @@ s32 EnRu1_GetPlatformCamSetting(EnRu1* this) {
+     }
+ }
+ 
+-Actor* func_80AEB124(PlayState* play) {
++// LLM generated name (HIGH), was func_80AEB124: scans the boss actor list for the Demo_Effect carrying the Zora's Sapphire.
++Actor* EnRu1_FindSapphireEffect(PlayState* play) {
+     Actor* actorIt = play->actorCtx.actorLists[ACTORCAT_BOSS].head;
+ 
+     while (actorIt != NULL) {
+@@ -403,7 +406,8 @@ s32 EnRu1_IsTextboxClosing(PlayState* play) {
+     return Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING;
+ }
+ 
+-void func_80AEB1D8(EnRu1* this) {
++// LLM generated name (HIGH), was func_80AEB1D8: enters action 36, stopping Ruto dead and switching the platform camera off.
++void EnRu1_SetupRideBossPlatform(EnRu1* this) {
+     this->action = 36;
+     this->drawConfig = 0;
+     this->actor.velocity.x = 0.0f;
+@@ -415,9 +419,10 @@ void func_80AEB1D8(EnRu1* this) {
+     EnRu1_SetPlatformCamSetting(this, 0);
+ }
+ 
+-void func_80AEB220(EnRu1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AEB220: waits for the cutscene to go idle before putting the params 0xA Ruto onto the boss platform.
++void EnRu1_WaitForBossPlatform(EnRu1* this, PlayState* play) {
+     if ((EnRu1_IsCsStateIdle(play)) && (this->actor.params == 0xA)) {
+-        func_80AEB1D8(this);
++        EnRu1_SetupRideBossPlatform(this);  // was func_80AEB1D8 [LLM:HIGH]
+     }
+ }
+ 
+@@ -551,7 +556,8 @@ void EnRu1_MoveInWater(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEB7D0(EnRu1* this) {
++// LLM generated name (HIGH), was func_80AEB7D0: clears the skeleton's root-motion flags so the animation stops driving her position.
++void EnRu1_ClearRootMotion(EnRu1* this) {
+     this->skelAnime.movementFlags &= ~0x3;
+ }
+ 
+@@ -574,7 +580,8 @@ f32 EnRu1_Lerp(f32 arg0, s32 arg1, s32 arg2) {
+     return (((f32)arg2 - arg1) * arg0) + arg1;
+ }
+ 
+-void func_80AEB89C(EnRu1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AEB89C: snaps Ruto's position and yaw to the fountain cutscene's current actor cue.
++void EnRu1_SnapToFountainCue(EnRu1* this, PlayState* play) {
+     CsCmdActorCue* npcAction = EnRu1_GetFountainCue(play);
+     s16 npcActionRotY;
+ 
+@@ -590,12 +597,12 @@ void func_80AEB89C(EnRu1* this, PlayState* play) {
+ 
+ // Name from zeldaret/oot (was func_80AEB914): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
+ void EnRu1_InitPositionDivingIntoFountain(EnRu1* this, PlayState* play) {
+-    func_80AEB89C(this, play);
++    EnRu1_SnapToFountainCue(this, play);  // was func_80AEB89C [LLM:HIGH]
+ }
+ 
+ // Name from zeldaret/oot (was func_80AEB934): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
+ void EnRu1_InitPositionResurfacing(EnRu1* this, PlayState* play) {
+-    func_80AEB89C(this, play);
++    EnRu1_SnapToFountainCue(this, play);  // was func_80AEB89C [LLM:HIGH]
+ }
+ 
+ // Name from zeldaret/oot (was func_80AEB954): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
+@@ -674,7 +681,8 @@ void EnRu1_PlaySubmergeSfx(EnRu1* this) {
+     }
+ }
+ 
+-void func_80AEBC30(PlayState* play) {
++// LLM generated name (HIGH), was func_80AEBC30: plays the dive-into-water sfx on one fixed cutscene frame.
++void EnRu1_PlayDiveSfx(PlayState* play) {
+     Player* player;
+ 
+     if (play->csCtx.frames == 0xCD) {
+@@ -733,7 +741,7 @@ void EnRu1_ResurfaceProgress(EnRu1* this, PlayState* play, s32 arg2) {
+ 
+     if (arg2 != 0) {
+         frameCount = Animation_GetLastFrame(&gRutoChildTreadWaterAnim);
+-        func_80AEB7D0(this);
++        EnRu1_ClearRootMotion(this);  // was func_80AEB7D0 [LLM:HIGH]
+         Animation_Change(&this->skelAnime, &gRutoChildTreadWaterAnim, 1.0f, 0, frameCount, ANIMMODE_LOOP, -8.0f);
+         this->action = 3;
+     } else {
+@@ -758,7 +766,7 @@ void EnRu1_StopTreading(EnRu1* this, PlayState* play) {
+ // Name from zeldaret/oot (was func_80AEBF60): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.97. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
+ void EnRu1_TransitionToBackSwimming(EnRu1* this, PlayState* play) {
+     if (EnRu1_CheckFountainCueNotMatchingId(play, 6)) {
+-        func_80AEB7D0(this);
++        EnRu1_ClearRootMotion(this);  // was func_80AEB7D0 [LLM:HIGH]
+         this->action = 5;
+         this->treadStartPos = this->actor.world.pos;
+     } else {
+@@ -793,10 +801,10 @@ void EnRu1_EndGivingSapphire(EnRu1* this, PlayState* play, UNK_TYPE arg2) {
+ }
+ 
+ void EnRu1_Fountain_GazingAtLink(EnRu1* this, PlayState* play) {
+-    func_80AEB89C(this, play);
++    EnRu1_SnapToFountainCue(this, play);  // was func_80AEB89C [LLM:HIGH]
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_PlayGiggleSfx(this, play);
+-    func_80AEBC30(play);
++    EnRu1_PlayDiveSfx(play);  // was func_80AEBC30 [LLM:HIGH]
+     EnRu1_EnterFountainWater(this, play);
+ }
+ 
+@@ -1327,7 +1335,8 @@ void EnRu1_PlayHittingSurfaceSfx(EnRu1* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_EV_LAND_DIRT);
+ }
+ 
+-void func_80AED520(EnRu1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AED520: plays the pull-up sfx and Ruto's lifted voice clip when Link picks her up.
++void EnRu1_PlayLiftSfx(EnRu1* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     Audio_PlaySfxGeneral(NA_SE_PL_PULL_UP_RUTO, &player->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -1335,7 +1344,8 @@ void func_80AED520(EnRu1* this, PlayState* play) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_LIFT);
+ }
+ 
+-void func_80AED57C(EnRu1* this) {
++// LLM generated name (HIGH), was func_80AED57C: plays Ruto's thrown voice clip, but only if she is actually moving.
++void EnRu1_PlayThrowSfx(EnRu1* this) {
+     if (this->actor.speedXZ != 0.0f) {
+         Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_THROW);
+     }
+@@ -1346,15 +1356,18 @@ void EnRu1_PlayBouncingOffWallSfx(EnRu1* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_CRASH);
+ }
+ 
+-void func_80AED5DC(EnRu1* this) {
++// LLM generated name (HIGH), was func_80AED5DC: plays Ruto's off-balance voice clip.
++void EnRu1_PlayUnbalanceSfx(EnRu1* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_UNBALLANCE);
+ }
+ 
+-void func_80AED600(EnRu1* this) {
++// LLM generated name (HIGH), was func_80AED600: plays Ruto's discovery voice clip, used when she spots the sapphire.
++void EnRu1_PlayDiscoverSfx(EnRu1* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_DISCOVER);
+ }
+ 
+-s32 func_80AED624(EnRu1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AED624: kills Ruto when the player leaves her room and switches her to the floating state once she is deep enough under water.
++s32 EnRu1_CheckRoomAndWater(EnRu1* this, PlayState* play) {
+     s8 curRoomNum = play->roomCtx.curRoom.num;
+ 
+     if (this->roomNum2 != curRoomNum) {
+@@ -1370,7 +1383,8 @@ s32 func_80AED624(EnRu1* this, PlayState* play) {
+     return true;
+ }
+ 
+-void func_80AED6DC(EnRu1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AED6DC: records the room Ruto is currently in and resets her carry offset.
++void EnRu1_RecordRoom(EnRu1* this, PlayState* play) {
+     s8 curRoomNum = play->roomCtx.curRoom.num;
+ 
+     this->roomNum2 = curRoomNum;
+@@ -1393,7 +1407,7 @@ void EnRu1_CheckIfBackInHolesRoom(PlayState* play) {
+ void EnRu1_FadeWhileSinking(EnRu1* this, PlayState* play) {
+     u32 temp_v0;
+ 
+-    if (func_80AED624(this, play)) {
++    if (EnRu1_CheckRoomAndWater(this, play)) {  // was func_80AED624 [LLM:HIGH]
+         this->unk_2A4 += 1.0f;
+         if (this->unk_2A4 < 20.0f) {
+             temp_v0 = ((20.0f - this->unk_2A4) * 255.0f) / 20.0f;
+@@ -1712,7 +1726,7 @@ void EnRu1_UpdateSittingAction(EnRu1* this, PlayState* play) {
+         curRoomNum = play->roomCtx.curRoom.num;
+         this->roomNum3 = curRoomNum;
+         this->action = 31;
+-        func_80AED520(this, play);
++        EnRu1_PlayLiftSfx(this, play);  // was func_80AED520 [LLM:HIGH]
+     } else if ((!EnRu1_IsOnSapphirePlatform(this, play)) && (!(this->actor.bgCheckFlags & BGCHECKFLAG_GROUND))) {
+         this->actor.minVelocityY = -((kREG(24) * 0.01f) + 6.8f);
+         this->actor.gravity = -((kREG(23) * 0.01f) + 1.3f);
+@@ -1750,18 +1764,19 @@ void EnRu1_EndSeeingSapphireAnimation(EnRu1* this, PlayState* play) {
+     this->roomNum3 = curRoomNum;
+ }
+ 
+-s32 func_80AEE6D0(EnRu1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AEE6D0: starts the sees-the-sapphire cutscene the first time Ruto is carried within sight of the Demo_Effect holding it.
++s32 EnRu1_CheckSapphireCutscene(EnRu1* this, PlayState* play) {
+     s32 pad;
+     s8 curRoomNum = play->roomCtx.curRoom.num;
+ 
+     if (GameInteractor_Should(VB_RUTO_WANT_TO_BE_TOSSED_TO_SAPPHIRE,
+                               !Flags_GetInfTable(INFTABLE_RUTO_IN_JJ_WANTS_TO_BE_TOSSED_TO_SAPPHIRE) &&
+-                                  (func_80AEB124(play) != 0),
++                                  (EnRu1_FindSapphireEffect(play) != 0),  // was func_80AEB124 [LLM:HIGH]
+                               this)) {
+         if (!Player_InCsMode(play)) {
+             Animation_Change(&this->skelAnime, &gRutoChildSeesSapphireAnim, 1.0f, 0,
+                              Animation_GetLastFrame(&gRutoChildSquirmAnim), ANIMMODE_LOOP, -8.0f);
+-            func_80AED600(this);
++            EnRu1_PlayDiscoverSfx(this);  // was func_80AED600 [LLM:HIGH]
+             this->action = 34;
+             this->walkingFrame = 0.0f;
+             play->csCtx.segment = &sSeesSapphireCs;  // was D_80AF1728 [LLM:HIGH]
+@@ -1784,18 +1799,18 @@ void EnRu1_UpdateCarriedBehavior(EnRu1* this, PlayState* play) {
+     if (Actor_HasNoParent(&this->actor, play)) {
+         frameCount = Animation_GetLastFrame(&gRutoChildSittingAnim);
+         Animation_Change(&this->skelAnime, &gRutoChildSittingAnim, 1.0f, 0, frameCount, ANIMMODE_LOOP, -8.0f);
+-        func_80AED6DC(this, play);
++        EnRu1_RecordRoom(this, play);  // was func_80AED6DC [LLM:HIGH]
+         this->actor.speedXZ *= (kREG(25) * 0.01f) + 1.0f;
+         this->actor.velocity.y *= (kREG(26) * 0.01f) + 1.0f;
+         this->actor.minVelocityY = -((kREG(24) * 0.01f) + 6.8f);
+         this->actor.gravity = -((kREG(23) * 0.01f) + 1.3f);
+-        func_80AED57C(this);
++        EnRu1_PlayThrowSfx(this);  // was func_80AED57C [LLM:HIGH]
+         this->action = 28;
+         *unk_370 = 0.0f;
+         return;
+     }
+ 
+-    if (func_80AEE6D0(this, play)) {
++    if (EnRu1_CheckSapphireCutscene(this, play)) {  // was func_80AEE6D0 [LLM:HIGH]
+         *unk_370 = 0.0f;
+         return;
+     }
+@@ -1809,7 +1824,7 @@ void EnRu1_UpdateCarriedBehavior(EnRu1* this, PlayState* play) {
+                     frameCount = Animation_GetLastFrame(&gRutoChildSquirmAnim);
+                     Animation_Change(&this->skelAnime, &gRutoChildSquirmAnim, 1.0f, 0, frameCount, ANIMMODE_LOOP,
+                                      -8.0f);
+-                    func_80AED5DC(this);
++                    EnRu1_PlayUnbalanceSfx(this);  // was func_80AED5DC [LLM:HIGH]
+                     this->action = 32;
+                 }
+                 *unk_370 = 0.0f;
+@@ -1864,7 +1879,7 @@ void EnRu1_Sitting_Idle(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateEyes(this);
+     EnRu1_OfferCarry(this, play);
+     EnRu1_UpdateSittingAction(this, play);
+-    func_80AED624(this, play);
++    EnRu1_CheckRoomAndWater(this, play);  // was func_80AED624 [LLM:HIGH]
+     EnRu1_ResetBgCheckFlags(this, play);
+ }
+ 
+@@ -1877,7 +1892,7 @@ void EnRu1_Sitting_Released(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     EnRu1_CheckLanding(this, play);
+-    func_80AED624(this, play);
++    EnRu1_CheckRoomAndWater(this, play);  // was func_80AED624 [LLM:HIGH]
+     EnRu1_ResetBgCheckFlags(this, play);
+ }
+ 
+@@ -1888,7 +1903,7 @@ void EnRu1_Sitting_EnteringWater(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     EnRu1_CheckSinkingState(this, play);
+-    func_80AED624(this, play);
++    EnRu1_CheckRoomAndWater(this, play);  // was func_80AED624 [LLM:HIGH]
+ }
+ 
+ void EnRu1_Sitting_SinkingInWater(EnRu1* this, PlayState* play) {
+@@ -1898,7 +1913,7 @@ void EnRu1_Sitting_SinkingInWater(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     EnRu1_CheckHitBottomUnderwater(this, play);
+-    func_80AED624(this, play);
++    EnRu1_CheckRoomAndWater(this, play);  // was func_80AED624 [LLM:HIGH]
+     EnRu1_ResetBgCheckFlags(this, play);
+ }
+ 
+@@ -1929,7 +1944,7 @@ void EnRu1_Sitting_DisappearingInWater(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     EnRu1_FadeWhileSinking(this, play);
+-    func_80AED624(this, play);
++    EnRu1_CheckRoomAndWater(this, play);  // was func_80AED624 [LLM:HIGH]
+ }
+ 
+ void EnRu1_Sitting_SeesSapphire(EnRu1* this, PlayState* play) {
+@@ -2011,7 +2026,7 @@ void EnRu1_HoldSittingPose(EnRu1* this, PlayState* play, UNK_TYPE arg2) {
+                          Animation_GetLastFrame(&gRutoChildSittingAnim), ANIMMODE_LOOP, 0.0f);
+         Message_CloseTextbox(play);
+         Flags_SetInfTable(INFTABLE_143);
+-        func_80AED6DC(this, play);
++        EnRu1_RecordRoom(this, play);  // was func_80AED6DC [LLM:HIGH]
+         Actor_OfferCarry(&this->actor, play);
+         this->action = 27;
+         EnRu1_DisableSittingOC(this);
+@@ -2037,7 +2052,7 @@ void EnRu1_SpeakableJabu_Idle(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateStandingOC(this, play);
+     EnRu1_UpdateBgCheckInfo(this, play);
+     cond = EnRu1_TalkOfferAccepted(this, play);
+-    func_80AED624(this, play);
++    EnRu1_CheckRoomAndWater(this, play);  // was func_80AED624 [LLM:HIGH]
+     EnRu1_CheckJabuTalk(this, play, cond);
+ }
+ 
+@@ -2109,7 +2124,7 @@ void EnRu1_LookUpAtSapphire(EnRu1* this) {
+         if (curFrame >= 60.0f) {
+             EnRu1_SetEyeIndex(this, 3);
+             EnRu1_SetMouthIndex(this, 0);
+-            func_80AED57C(this);
++            EnRu1_PlayThrowSfx(this);  // was func_80AED57C [LLM:HIGH]
+             sReachedForSapphire = 1;
+         }
+     }
+@@ -2184,7 +2199,7 @@ void EnRu1_EndRetrievalCutscene(EnRu1* this, PlayState* play) {
+     if ((gSaveContext.sceneLayer < 4) && (EnRu1_IsCsStateIdle(play))) {
+         curRoomNum = play->roomCtx.curRoom.num;
+         Flags_SetInfTable(INFTABLE_145);
+-        Flags_SetSwitch(play, func_80AEADE0(this));
++        Flags_SetSwitch(play, EnRu1_GetType(this));  // was func_80AEADE0 [LLM:HIGH]
+         EnRu1_SetPlatformCamSetting(this, 1);
+         this->action = 42;
+         this->actor.room = curRoomNum;
+@@ -2216,7 +2231,7 @@ void EnRu1_SapphireRoom_ThrownOntoPlatform(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     EnRu1_SetupRetrievingSapphireAnimation(this, play);
+-    func_80AEB220(this, play);
++    EnRu1_WaitForBossPlatform(this, play);  // was func_80AEB220 [LLM:HIGH]
+ }
+ 
+ void EnRu1_SapphireRoom_Retrieving(EnRu1* this, PlayState* play) {
+@@ -2230,7 +2245,7 @@ void EnRu1_SapphireRoom_Retrieving(EnRu1* this, PlayState* play) {
+     EnRu1_LookUpAtSapphire(this);
+     EnRu1_PlayStepSoundNearSapphire(this);
+     EnRu1_HoldUpSapphire(this, something);
+-    func_80AEB220(this, play);
++    EnRu1_WaitForBossPlatform(this, play);  // was func_80AEB220 [LLM:HIGH]
+ }
+ 
+ void EnRu1_SapphireRoom_Holding(EnRu1* this, PlayState* play) {
+@@ -2238,7 +2253,7 @@ void EnRu1_SapphireRoom_Holding(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_BringHandsDown(this, play);
+-    func_80AEB220(this, play);
++    EnRu1_WaitForBossPlatform(this, play);  // was func_80AEB220 [LLM:HIGH]
+ }
+ 
+ void EnRu1_SapphireRoom_DoneHolding(EnRu1* this, PlayState* play) {
+@@ -2249,7 +2264,7 @@ void EnRu1_SapphireRoom_DoneHolding(EnRu1* this, PlayState* play) {
+     something = EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     EnRu1_KeepArmsDown(this, something);
+-    func_80AEB220(this, play);
++    EnRu1_WaitForBossPlatform(this, play);  // was func_80AEB220 [LLM:HIGH]
+ }
+ 
+ void EnRu1_SapphireRoom_MissionAccomplished(EnRu1* this, PlayState* play) {
+@@ -2258,7 +2273,7 @@ void EnRu1_SapphireRoom_MissionAccomplished(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     EnRu1_EndRetrievalCutscene(this, play);
+-    func_80AEB220(this, play);
++    EnRu1_WaitForBossPlatform(this, play);  // was func_80AEB220 [LLM:HIGH]
+ }
+ 
+ void EnRu1_SapphireRoom_ReadyToGoHome(EnRu1* this, PlayState* play) {
+@@ -2363,7 +2378,8 @@ void EnRu1_ThroneRoom_Talk(EnRu1* this, PlayState* play) {
+     EnRu1_EndThroneRoomTalk(this, play);
+ }
+ 
+-void func_80AEFF94(EnRu1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AEFF94: puts Ruto into the standing-on-the-switch state when the story flags say she has been met and is not currently kidnapped, printing the "Ruto switch set" trace either way.
++void EnRu1_SetupSwitchRuto(EnRu1* this, PlayState* play) {
+     s8 actorRoom;
+ 
+     if (Flags_GetInfTable(INFTABLE_RUTO_IN_JJ_MEET_RUTO) && Flags_GetInfTable(INFTABLE_140) &&
+@@ -2386,7 +2402,8 @@ void func_80AEFF94(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AF0050(EnRu1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AF0050: enters action 36 with the waiting animation, remembers her room and finds the switch she is meant to stand on.
++void EnRu1_SetupOnSwitch(EnRu1* this, PlayState* play) {
+     EnRu1_AnimationChange(this, &gRutoChildWait2Anim, 0, 0, 0);
+     this->action = 36;
+     this->roomNum1 = this->actor.room;
+@@ -2413,7 +2430,7 @@ void EnRu1_Init(Actor* thisx, PlayState* play) {
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     SkelAnime_InitFlex(play, &this->skelAnime, &gRutoChildSkel, NULL, this->jointTable, this->morphTable, 17);
+     EnRu1_InitColliders(&this->actor, play);
+-    switch (func_80AEADF0(this)) {
++    switch (EnRu1_GetSwitchFlag(this)) {  // was func_80AEADF0 [LLM:HIGH]
+         case 0:
+             EnRu1_InitInBossRoom(this, play);
+             break;
+@@ -2433,15 +2450,15 @@ void EnRu1_Init(Actor* thisx, PlayState* play) {
+             EnRu1_InitBesideKingZora(this, play);
+             break;
+         case 6:
+-            func_80AEFF94(this, play);
++            EnRu1_SetupSwitchRuto(this, play);  // was func_80AEFF94 [LLM:HIGH]
+             break;
+         case 10:
+-            func_80AF0050(this, play);
++            EnRu1_SetupOnSwitch(this, play);  // was func_80AF0050 [LLM:HIGH]
+             break;
+         default:
+             Actor_Kill(&this->actor);
+             // "Relevant arge_data = %d unacceptable"
+-            osSyncPrintf("該当 arge_data = %d 無し\n", func_80AEADF0(this));
++            osSyncPrintf("該当 arge_data = %d 無し\n", EnRu1_GetSwitchFlag(this));  // was func_80AEADF0 [LLM:HIGH]
+             break;
+     }
+ }
+-- 
+2.55.0
+

@@ -1,0 +1,868 @@
+From fae22039133687153295b981db10e9a12d91a594 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 376/488] soh: name the 34 address-named symbols defined in
+ z_en_poh.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 34 are defined in soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c.
+
+  * func_80ADE114 -> EnPoh_SetupHover
+    deduced, confidence HIGH: loops the first idle animation, arms a short
+    timer and stops the poe in place
+
+  * func_80ADE1BC -> EnPoh_SetupApproach
+    deduced, confidence HIGH: loops the second idle animation and starts
+    drifting at speed 2
+
+  * func_80ADE28C -> EnPoh_SetupDamage
+    deduced, confidence HIGH: plays the damaged animation, aims the
+    knockback away from the attacker and applies the red color filter
+
+  * func_80ADE368 -> EnPoh_SetupFlee
+    deduced, confidence HIGH: morphs to the flee animation, turns away from
+    the player and arms the 200-frame retreat
+
+  * func_80ADE48C -> EnPoh_SetupDissolve
+    deduced, confidence HIGH: stops the poe, drops targeting and starts the
+    death dissolve
+
+  * func_80ADE4C8 -> EnPoh_SetupSpinAway
+    deduced, confidence HIGH: plays the idle animation once while backing
+    off at -5 speed
+
+  * func_80ADE514 -> EnPoh_SetupTurnAround
+    deduced, confidence HIGH: records the opposite heading and stops while
+    the poe turns onto it
+
+  * func_80ADE6D4 -> EnPoh_SetupSoulRise
+    deduced, confidence HIGH: the soul flame's start: zeroes the light and
+    scale, picks its color from the poe type and plays the appear sound
+
+  * func_80ADE950 -> EnPoh_SetupSoulVanish
+    deduced, confidence HIGH: installs the fade-out action, optionally
+    laughing as the flame goes
+
+  * func_80ADE998 -> EnPoh_SetupTalkRegular
+    deduced, confidence HIGH: installs the ordinary poe soul's conversation
+    action
+
+  * func_80ADE9BC -> EnPoh_SetupTalkComposer
+    deduced, confidence HIGH: installs the composer brothers' conversation
+    action
+
+  * func_80ADEA5C -> EnPoh_TurnTowardHome
+    deduced, confidence HIGH: re-aims the drift heading at the home position
+    once the poe strays past 400 units, and steps the yaw onto it
+
+  * func_80ADEAC4 -> EnPoh_Hover
+    deduced, confidence HIGH: hovers at the player's height until the player
+    comes within 200 units or the timer runs out
+
+  * func_80ADEC9C -> EnPoh_Approach
+    deduced, confidence HIGH: closes on the player, turning to face them and
+    speeding up for the strike
+
+  * func_80ADEECC -> EnPoh_Damage
+    deduced, confidence HIGH: rides the knockback out, then flees or
+    dissolves according to remaining health
+
+  * func_80ADEF38 -> EnPoh_RegularAppear
+    deduced, confidence HIGH: fades the ordinary poe in over its appear
+    animation, the counterpart of EnPoh_ComposerAppear
+
+  * func_80ADF15C -> EnPoh_Dissolve
+    deduced, confidence HIGH: rings EffectSsDeadDb outward as the body
+    breaks up, ending with NA_SE_EN_PO_DEAD2
+
+  * func_80ADF574 -> EnPoh_SpinAway
+    deduced, confidence HIGH: spins the poe as it drifts backwards, then
+    returns to the idle
+
+  * func_80ADF5E0 -> EnPoh_TurnAround
+    deduced, confidence HIGH: turns onto the recorded heading, breaking off
+    early if the player comes close
+
+  * func_80ADF894 -> EnPoh_Flee
+    deduced, confidence HIGH: weaves away from the player at a sine offset
+    until the retreat timer expires or the player falls behind
+
+  * func_80ADFA90 -> EnPoh_StepAlpha
+    deduced, confidence HIGH: steps the soul flame's alpha by the caller's
+    amount and rescales, repositions and relights it to match
+
+  * func_80ADFE28 -> EnPoh_SoulRise
+    deduced, confidence HIGH: floats the flame upward while fading it in,
+    then opens the conversation
+
+  * func_80ADFE80 -> EnPoh_SoulWaitForTalk
+    deduced, confidence HIGH: bobs the flame and offers the conversation
+    while the player touches it, fading out when the timer expires
+
+  * func_80AE009C -> EnPoh_SoulVanish
+    deduced, confidence HIGH: fades the flame out at 13 alpha a frame and
+    kills the actor
+
+  * func_80AE032C -> EnPoh_UpdateDamage
+    deduced, confidence HIGH: applies an AC hit, playing the death or damage
+    cry and entering the damage state
+
+  * func_80AE067C -> EnPoh_UpdateLightColor
+    deduced, confidence HIGH: drives the lantern colour from the current
+    action: red while attacking, green-blue while fleeing, flashing while
+    damaged
+
+  * func_80AE089C -> EnPoh_UpdateEnvColor
+    deduced, confidence HIGH: ramps the body's env colour in during the
+    appear animations and flickers it randomly afterwards
+
+  * D_80AE1A50 -> sRupeePoeCount
+    deduced, confidence HIGH: counts the live EN_POH_RUPEE poes; the third
+    and later ones kill themselves instead of dropping a rupee
+
+  * D_80AE1B4C -> sSharpEnvColor
+    deduced, confidence HIGH: the env colour EnPoh_DrawComposer uses for
+    Sharp
+
+  * D_80AE1B50 -> sFlatEnvColor
+    deduced, confidence HIGH: the env colour EnPoh_DrawComposer uses for
+    Flat
+
+  * D_80AE1B54 -> sSharpAccentColor
+    deduced, confidence HIGH: Sharp's second colour, bound to the other
+    segment in the same draw
+
+  * D_80AE1B58 -> sFlatAccentColor
+    deduced, confidence HIGH: Flat's second colour, bound to the other
+    segment in the same draw
+
+  * D_80AE1B60 -> sDeadDbVelocity
+    deduced, confidence HIGH: the upward velocity handed to every
+    EffectSsDeadDb of the dissolve
+
+  * D_80AE1B6C -> sDeadDbAccel
+    deduced, confidence HIGH: the zero acceleration handed to those same
+    effects
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c | 248 ++++++++++--------
+ 1 file changed, 141 insertions(+), 107 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+index cfaef8570..0a707a050 100644
+--- a/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
++++ b/soh/src/overlays/actors/ovl_En_Poh/z_en_poh.c
+@@ -22,27 +22,39 @@ void EnPoh_DrawRegular(Actor* thisx, PlayState* play);
+ void EnPoh_DrawComposer(Actor* thisx, PlayState* play);
+ void EnPoh_DrawSoul(Actor* thisx, PlayState* play);
+ 
+-void func_80ADEAC4(EnPoh* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ADEAC4: hovers at the player's height until the player comes within 200 units or the timer runs out
++void EnPoh_Hover(EnPoh* this, PlayState* play);  // was func_80ADEAC4 [LLM:HIGH]
+ void EnPoh_Idle(EnPoh* this, PlayState* play);
+-void func_80ADEC9C(EnPoh* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ADEC9C: closes on the player, turning to face them and speeding up for the strike
++void EnPoh_Approach(EnPoh* this, PlayState* play);  // was func_80ADEC9C [LLM:HIGH]
+ void EnPoh_Attack(EnPoh* this, PlayState* play);
+-void func_80ADEECC(EnPoh* this, PlayState* play);
+-void func_80ADF894(EnPoh* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ADEECC: rides the knockback out, then flees or dissolves according to remaining health
++void EnPoh_Damage(EnPoh* this, PlayState* play);  // was func_80ADEECC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ADF894: weaves away from the player at a sine offset until the retreat timer expires or the player falls behind
++void EnPoh_Flee(EnPoh* this, PlayState* play);  // was func_80ADF894 [LLM:HIGH]
+ void EnPoh_ComposerAppear(EnPoh* this, PlayState* play);
+-void func_80ADEF38(EnPoh* this, PlayState* play);
+-void func_80ADF15C(EnPoh* this, PlayState* play);
+-void func_80ADF574(EnPoh* this, PlayState* play);
+-void func_80ADF5E0(EnPoh* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ADEF38: fades the ordinary poe in over its appear animation, the counterpart of EnPoh_ComposerAppear
++void EnPoh_RegularAppear(EnPoh* this, PlayState* play);  // was func_80ADEF38 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ADF15C: rings EffectSsDeadDb outward as the body breaks up, ending with NA_SE_EN_PO_DEAD2
++void EnPoh_Dissolve(EnPoh* this, PlayState* play);  // was func_80ADF15C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ADF574: spins the poe as it drifts backwards, then returns to the idle
++void EnPoh_SpinAway(EnPoh* this, PlayState* play);  // was func_80ADF574 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ADF5E0: turns onto the recorded heading, breaking off early if the player comes close
++void EnPoh_TurnAround(EnPoh* this, PlayState* play);  // was func_80ADF5E0 [LLM:HIGH]
+ void EnPoh_Disappear(EnPoh* this, PlayState* play);
+ void EnPoh_Appear(EnPoh* this, PlayState* play);
+ void EnPoh_Death(EnPoh* this, PlayState* play);
+-void func_80ADFE28(EnPoh* this, PlayState* play);
+-void func_80ADFE80(EnPoh* this, PlayState* play);
+-void func_80AE009C(EnPoh* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ADFE28: floats the flame upward while fading it in, then opens the conversation
++void EnPoh_SoulRise(EnPoh* this, PlayState* play);  // was func_80ADFE28 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ADFE80: bobs the flame and offers the conversation while the player touches it, fading out when the timer expires
++void EnPoh_SoulWaitForTalk(EnPoh* this, PlayState* play);  // was func_80ADFE80 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE009C: fades the flame out at 13 alpha a frame and kills the actor
++void EnPoh_SoulVanish(EnPoh* this, PlayState* play);  // was func_80AE009C [LLM:HIGH]
+ void EnPoh_TalkRegular(EnPoh* this, PlayState* play);
+ void EnPoh_TalkComposer(EnPoh* this, PlayState* play);
+ 
+-static s16 D_80AE1A50 = 0;
++// LLM generated name (HIGH), was D_80AE1A50: counts the live EN_POH_RUPEE poes; the third and later ones kill themselves instead of dropping a rupee
++static s16 sRupeePoeCount = 0;  // was D_80AE1A50 [LLM:HIGH]
+ 
+ const ActorInit En_Poh_InitVars = {
+     ACTOR_EN_POH,
+@@ -173,17 +185,23 @@ static EnPohInfo sPoeInfo[2] = {
+     },
+ };
+ 
+-static Color_RGBA8 D_80AE1B4C = { 75, 20, 25, 255 };
+-static Color_RGBA8 D_80AE1B50 = { 80, 110, 90, 255 };
+-static Color_RGBA8 D_80AE1B54 = { 90, 85, 50, 255 };
+-static Color_RGBA8 D_80AE1B58 = { 100, 90, 100, 255 };
++// LLM generated name (HIGH), was D_80AE1B4C: the env colour EnPoh_DrawComposer uses for Sharp
++static Color_RGBA8 sSharpEnvColor = { 75, 20, 25, 255 };  // was D_80AE1B4C [LLM:HIGH]
++// LLM generated name (HIGH), was D_80AE1B50: the env colour EnPoh_DrawComposer uses for Flat
++static Color_RGBA8 sFlatEnvColor = { 80, 110, 90, 255 };  // was D_80AE1B50 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80AE1B54: Sharp's second colour, bound to the other segment in the same draw
++static Color_RGBA8 sSharpAccentColor = { 90, 85, 50, 255 };  // was D_80AE1B54 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80AE1B58: Flat's second colour, bound to the other segment in the same draw
++static Color_RGBA8 sFlatAccentColor = { 100, 90, 100, 255 };  // was D_80AE1B58 [LLM:HIGH]
+ 
+ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(targetArrowOffset, 3200, ICHAIN_STOP),
+ };
+ 
+-static Vec3f D_80AE1B60 = { 0.0f, 3.0f, 0.0f };
+-static Vec3f D_80AE1B6C = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80AE1B60: the upward velocity handed to every EffectSsDeadDb of the dissolve
++static Vec3f sDeadDbVelocity = { 0.0f, 3.0f, 0.0f };  // was D_80AE1B60 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80AE1B6C: the zero acceleration handed to those same effects
++static Vec3f sDeadDbAccel = { 0.0f, 0.0f, 0.0f };  // was D_80AE1B6C [LLM:HIGH]
+ 
+ void EnPoh_Init(Actor* thisx, PlayState* play) {
+     s32 pad;
+@@ -211,8 +229,8 @@ void EnPoh_Init(Actor* thisx, PlayState* play) {
+         this->actor.params = EN_POH_NORMAL;
+     }
+     if (this->actor.params == EN_POH_RUPEE) {
+-        D_80AE1A50++;
+-        if (D_80AE1A50 >= 3) {
++        sRupeePoeCount++;  // was D_80AE1A50 [LLM:HIGH]
++        if (sRupeePoeCount >= 3) {  // was D_80AE1A50 [LLM:HIGH]
+             Actor_Kill(&this->actor);
+         } else {
+             collectible = Item_DropCollectible(play, &this->actor.world.pos, 0x4000 | ITEM00_RUPEE_BLUE);
+@@ -255,14 +273,15 @@ void EnPoh_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyJntSph(play, &this->colliderSph);
+     Collider_DestroyCylinder(play, &this->colliderCyl);
+     if (this->actor.params == EN_POH_RUPEE) {
+-        D_80AE1A50--;
++        sRupeePoeCount--;  // was D_80AE1A50 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80ADE114(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE114: loops the first idle animation, arms a short timer and stops the poe in place
++void EnPoh_SetupHover(EnPoh* this) {
+     Animation_PlayLoop(&this->skelAnime, this->info->idleAnim);
+     this->unk_198 = Rand_S16Offset(2, 3);
+-    this->actionFunc = func_80ADEAC4;
++    this->actionFunc = EnPoh_Hover;  // was func_80ADEAC4 [LLM:HIGH]
+     this->actor.speedXZ = 0.0f;
+ }
+ 
+@@ -272,9 +291,10 @@ void EnPoh_SetupIdle(EnPoh* this) {
+     this->actionFunc = EnPoh_Idle;
+ }
+ 
+-void func_80ADE1BC(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE1BC: loops the second idle animation and starts drifting at speed 2
++void EnPoh_SetupApproach(EnPoh* this) {
+     Animation_PlayLoop(&this->skelAnime, this->info->idleAnim2);
+-    this->actionFunc = func_80ADEC9C;
++    this->actionFunc = EnPoh_Approach;  // was func_80ADEC9C [LLM:HIGH]
+     this->unk_198 = 0;
+     this->actor.speedXZ = 2.0f;
+ }
+@@ -291,7 +311,8 @@ void EnPoh_SetupAttack(EnPoh* this) {
+     this->actionFunc = EnPoh_Attack;
+ }
+ 
+-void func_80ADE28C(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE28C: plays the damaged animation, aims the knockback away from the attacker and applies the red color filter
++void EnPoh_SetupDamage(EnPoh* this) {
+     if (this->infoIdx == EN_POH_INFO_NORMAL) {
+         Animation_MorphToPlayOnce(&this->skelAnime, &gPoeDamagedAnim, -6.0f);
+     } else {
+@@ -305,16 +326,17 @@ void func_80ADE28C(EnPoh* this) {
+     this->colliderCyl.base.acFlags &= ~AC_ON;
+     this->actor.speedXZ = 5.0f;
+     Actor_SetColorFilter(&this->actor, 0x4000, 0xFF, 0, 0x10);
+-    this->actionFunc = func_80ADEECC;
++    this->actionFunc = EnPoh_Damage;  // was func_80ADEECC [LLM:HIGH]
+ }
+ 
+-void func_80ADE368(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE368: morphs to the flee animation, turns away from the player and arms the 200-frame retreat
++void EnPoh_SetupFlee(EnPoh* this) {
+     Animation_MorphToLoop(&this->skelAnime, this->info->fleeAnim, -5.0f);
+     this->actor.speedXZ = 5.0f;
+     this->actor.world.rot.y = this->actor.shape.rot.y + 0x8000;
+     this->colliderCyl.base.acFlags |= AC_ON;
+     this->unk_198 = 200;
+-    this->actionFunc = func_80ADF894;
++    this->actionFunc = EnPoh_Flee;  // was func_80ADF894 [LLM:HIGH]
+ }
+ 
+ void EnPoh_SetupInitialAction(EnPoh* this) {
+@@ -322,7 +344,7 @@ void EnPoh_SetupInitialAction(EnPoh* this) {
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+     if (this->infoIdx == EN_POH_INFO_NORMAL) {
+         Animation_PlayOnceSetSpeed(&this->skelAnime, &gPoeAppearAnim, 0.0f);
+-        this->actionFunc = func_80ADEF38;
++        this->actionFunc = EnPoh_RegularAppear;  // was func_80ADEF38 [LLM:HIGH]
+     } else {
+         Animation_PlayOnceSetSpeed(&this->skelAnime, &gPoeComposerAppearAnim, 1.0f);
+         this->actor.world.pos.y = this->actor.home.pos.y + 20.0f;
+@@ -332,25 +354,28 @@ void EnPoh_SetupInitialAction(EnPoh* this) {
+     }
+ }
+ 
+-void func_80ADE48C(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE48C: stops the poe, drops targeting and starts the death dissolve
++void EnPoh_SetupDissolve(EnPoh* this) {
+     this->actor.speedXZ = 0.0f;
+     this->actor.world.rot.y = this->actor.shape.rot.y;
+     this->unk_198 = 0;
+     this->actor.naviEnemyId = 0xFF;
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+-    this->actionFunc = func_80ADF15C;
++    this->actionFunc = EnPoh_Dissolve;  // was func_80ADF15C [LLM:HIGH]
+ }
+ 
+-void func_80ADE4C8(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE4C8: plays the idle animation once while backing off at -5 speed
++void EnPoh_SetupSpinAway(EnPoh* this) {
+     Animation_PlayOnce(&this->skelAnime, this->info->idleAnim2);
+-    this->actionFunc = func_80ADF574;
++    this->actionFunc = EnPoh_SpinAway;  // was func_80ADF574 [LLM:HIGH]
+     this->actor.speedXZ = -5.0f;
+ }
+ 
+-void func_80ADE514(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE514: records the opposite heading and stops while the poe turns onto it
++void EnPoh_SetupTurnAround(EnPoh* this) {
+     Animation_PlayLoop(&this->skelAnime, this->info->idleAnim);
+     this->unk_19C = this->actor.world.rot.y + 0x8000;
+-    this->actionFunc = func_80ADF5E0;
++    this->actionFunc = EnPoh_TurnAround;  // was func_80ADF5E0 [LLM:HIGH]
+     this->actor.speedXZ = 0.0f;
+ }
+ 
+@@ -388,7 +413,8 @@ void EnPoh_SetupDeath(EnPoh* this, PlayState* play) {
+     this->actionFunc = EnPoh_Death;
+ }
+ 
+-void func_80ADE6D4(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE6D4: the soul flame's start: zeroes the light and scale, picks its color from the poe type and plays the appear sound
++void EnPoh_SetupSoulRise(EnPoh* this) {
+     Lights_PointNoGlowSetInfo(&this->lightInfo, this->actor.world.pos.x, this->actor.world.pos.y,
+                               this->actor.world.pos.z, 0, 0, 0, 0);
+     this->visibilityTimer = 0;
+@@ -410,7 +436,7 @@ void func_80ADE6D4(EnPoh* this) {
+     this->actor.shape.rot.x = 0;
+     this->actor.home.pos.y = this->actor.world.pos.y;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EV_METAL_BOX_BOUND);
+-    this->actionFunc = func_80ADFE28;
++    this->actionFunc = EnPoh_SoulRise;  // was func_80ADFE28 [LLM:HIGH]
+ }
+ 
+ void EnPoh_Talk(EnPoh* this, PlayState* play) {
+@@ -440,23 +466,26 @@ void EnPoh_Talk(EnPoh* this, PlayState* play) {
+     this->unk_198 = 200;
+     this->unk_195 = 32;
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+-    this->actionFunc = func_80ADFE80;
++    this->actionFunc = EnPoh_SoulWaitForTalk;  // was func_80ADFE80 [LLM:HIGH]
+ }
+ 
+-void func_80ADE950(EnPoh* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80ADE950: installs the fade-out action, optionally laughing as the flame goes
++void EnPoh_SetupSoulVanish(EnPoh* this, s32 arg1) {
+     if (arg1) {
+         Audio_StopSfxByPosAndId(&this->actor.projectedPos, NA_SE_EN_PO_BIG_CRY - SFX_FLAG);
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_PO_LAUGH);
+     }
+-    this->actionFunc = func_80AE009C;
++    this->actionFunc = EnPoh_SoulVanish;  // was func_80AE009C [LLM:HIGH]
+ }
+ 
+-void func_80ADE998(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE998: installs the ordinary poe soul's conversation action
++void EnPoh_SetupTalkRegular(EnPoh* this) {
+     this->actionFunc = EnPoh_TalkRegular;
+     this->actor.home.pos.y = this->actor.world.pos.y - 15.0f;
+ }
+ 
+-void func_80ADE9BC(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADE9BC: installs the composer brothers' conversation action
++void EnPoh_SetupTalkComposer(EnPoh* this) {
+     this->actionFunc = EnPoh_TalkComposer;
+ }
+ 
+@@ -473,21 +502,22 @@ void EnPoh_MoveTowardsPlayerHeight(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADEA5C(EnPoh* this) {
++// LLM generated name (HIGH), was func_80ADEA5C: re-aims the drift heading at the home position once the poe strays past 400 units, and steps the yaw onto it
++void EnPoh_TurnTowardHome(EnPoh* this) {
+     if (Actor_WorldDistXZToPoint(&this->actor, &this->actor.home.pos) > 400.0f) {
+         this->unk_19C = Actor_WorldYawTowardPoint(&this->actor, &this->actor.home.pos);
+     }
+     Math_ScaledStepToS(&this->actor.world.rot.y, this->unk_19C, 0x71C);
+ }
+ 
+-void func_80ADEAC4(EnPoh* this, PlayState* play) {
++void EnPoh_Hover(EnPoh* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (Animation_OnFrame(&this->skelAnime, 0.0f) && this->unk_198 != 0) {
+         this->unk_198--;
+     }
+     EnPoh_MoveTowardsPlayerHeight(this, play);
+     if (this->actor.xzDistToPlayer < 200.0f) {
+-        func_80ADE1BC(this);
++        EnPoh_SetupApproach(this);  // was func_80ADE1BC [LLM:HIGH]
+     } else if (this->unk_198 == 0) {
+         EnPoh_SetupIdle(this);
+     }
+@@ -502,15 +532,15 @@ void EnPoh_Idle(EnPoh* this, PlayState* play) {
+     if (Animation_OnFrame(&this->skelAnime, 0.0f) && this->unk_198 != 0) {
+         this->unk_198--;
+     }
+-    func_80ADEA5C(this);
++    EnPoh_TurnTowardHome(this);  // was func_80ADEA5C [LLM:HIGH]
+     EnPoh_MoveTowardsPlayerHeight(this, play);
+     if (this->actor.xzDistToPlayer < 200.0f && this->unk_198 < 19) {
+-        func_80ADE1BC(this);
++        EnPoh_SetupApproach(this);  // was func_80ADE1BC [LLM:HIGH]
+     } else if (this->unk_198 == 0) {
+         if (Rand_ZeroOne() < 0.1f) {
+-            func_80ADE514(this);
++            EnPoh_SetupTurnAround(this);  // was func_80ADE514 [LLM:HIGH]
+         } else {
+-            func_80ADE114(this);
++            EnPoh_SetupHover(this);  // was func_80ADE114 [LLM:HIGH]
+         }
+     }
+     if (this->lightColor.a == 255) {
+@@ -518,7 +548,7 @@ void EnPoh_Idle(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADEC9C(EnPoh* this, PlayState* play) {
++void EnPoh_Approach(EnPoh* this, PlayState* play) {
+     Player* player;
+     s16 facingDiff;
+ 
+@@ -567,18 +597,18 @@ void EnPoh_Attack(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADEECC(EnPoh* this, PlayState* play) {
++void EnPoh_Damage(EnPoh* this, PlayState* play) {
+     Math_StepToF(&this->actor.speedXZ, 0.0f, 0.5f);
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if (this->actor.colChkInfo.health != 0) {
+-            func_80ADE368(this);
++            EnPoh_SetupFlee(this);  // was func_80ADE368 [LLM:HIGH]
+         } else {
+-            func_80ADE48C(this);
++            EnPoh_SetupDissolve(this);  // was func_80ADE48C [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80ADEF38(EnPoh* this, PlayState* play) {
++void EnPoh_RegularAppear(EnPoh* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->lightColor.a = 255;
+         this->visibilityTimer = Rand_S16Offset(700, 300);
+@@ -604,7 +634,7 @@ void EnPoh_ComposerAppear(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADF15C(EnPoh* this, PlayState* play) {
++void EnPoh_Dissolve(EnPoh* this, PlayState* play) {
+     Vec3f vec;
+     f32 multiplier;
+     f32 newScale;
+@@ -625,15 +655,15 @@ void func_80ADF15C(EnPoh* this, PlayState* play) {
+             vec.x = Math_SinS(Camera_GetCamDirYaw(GET_ACTIVE_CAM(play)) + 0x4800) * 23.0f + this->actor.world.pos.x;
+             vec.z = Math_CosS(Camera_GetCamDirYaw(GET_ACTIVE_CAM(play)) + 0x4800) * 23.0f + this->actor.world.pos.z;
+         }
+-        EffectSsDeadDb_Spawn(play, &vec, &D_80AE1B60, &D_80AE1B6C, this->unk_198 * 10 + 80, 0, 255, 255, 255, 255, 0, 0,
++        EffectSsDeadDb_Spawn(play, &vec, &sDeadDbVelocity, &sDeadDbAccel, this->unk_198 * 10 + 80, 0, 255, 255, 255, 255, 0, 0,  // was D_80AE1B60 [LLM:HIGH]
+                              255, 1, 9, 1);
+         vec.x = (this->actor.world.pos.x + this->actor.world.pos.x) - vec.x;
+         vec.z = (this->actor.world.pos.z + this->actor.world.pos.z) - vec.z;
+-        EffectSsDeadDb_Spawn(play, &vec, &D_80AE1B60, &D_80AE1B6C, this->unk_198 * 10 + 80, 0, 255, 255, 255, 255, 0, 0,
++        EffectSsDeadDb_Spawn(play, &vec, &sDeadDbVelocity, &sDeadDbAccel, this->unk_198 * 10 + 80, 0, 255, 255, 255, 255, 0, 0,  // was D_80AE1B60 [LLM:HIGH]
+                              255, 1, 9, 1);
+         vec.x = this->actor.world.pos.x;
+         vec.z = this->actor.world.pos.z;
+-        EffectSsDeadDb_Spawn(play, &vec, &D_80AE1B60, &D_80AE1B6C, this->unk_198 * 10 + 80, 0, 255, 255, 255, 255, 0, 0,
++        EffectSsDeadDb_Spawn(play, &vec, &sDeadDbVelocity, &sDeadDbAccel, this->unk_198 * 10 + 80, 0, 255, 255, 255, 255, 0, 0,  // was D_80AE1B60 [LLM:HIGH]
+                              255, 1, 9, 1);
+         if (this->unk_198 == 1) {
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_EXTINCT);
+@@ -653,7 +683,7 @@ void func_80ADF15C(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADF574(EnPoh* this, PlayState* play) {
++void EnPoh_SpinAway(EnPoh* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->actor.world.rot.y = this->actor.shape.rot.y;
+         EnPoh_SetupIdle(this);
+@@ -664,13 +694,13 @@ void func_80ADF574(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADF5E0(EnPoh* this, PlayState* play) {
++void EnPoh_TurnAround(EnPoh* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (Math_ScaledStepToS(&this->actor.world.rot.y, this->unk_19C, 1820) != 0) {
+         EnPoh_SetupIdle(this);
+     }
+     if (this->actor.xzDistToPlayer < 200.0f) {
+-        func_80ADE1BC(this);
++        EnPoh_SetupApproach(this);  // was func_80ADE1BC [LLM:HIGH]
+     }
+     EnPoh_MoveTowardsPlayerHeight(this, play);
+ }
+@@ -700,7 +730,7 @@ void EnPoh_Appear(EnPoh* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ADF894(EnPoh* this, PlayState* play) {
++void EnPoh_Flee(EnPoh* this, PlayState* play) {
+     f32 multiplier;
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -726,7 +756,7 @@ void EnPoh_Death(EnPoh* this, PlayState* play) {
+         objId = (this->infoIdx == EN_POH_INFO_COMPOSER) ? OBJECT_PO_COMPOSER : OBJECT_POH;
+         EffectSsHahen_SpawnBurst(play, &this->actor.world.pos, 6.0f, 0, 1, 1, 15, objId, 10,
+                                  this->info->lanternDisplayList);
+-        func_80ADE6D4(this);
++        EnPoh_SetupSoulRise(this);  // was func_80ADE6D4 [LLM:HIGH]
+     } else if (this->unk_198 == 0) {
+         Actor_Kill(&this->actor);
+         return;
+@@ -735,7 +765,8 @@ void EnPoh_Death(EnPoh* this, PlayState* play) {
+     Actor_UpdateBgCheckInfo(play, &this->actor, 10.0f, 10.0f, 10.0f, 4);
+ }
+ 
+-void func_80ADFA90(EnPoh* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80ADFA90: steps the soul flame's alpha by the caller's amount and rescales, repositions and relights it to match
++void EnPoh_StepAlpha(EnPoh* this, s32 arg1) {
+     f32 multiplier;
+ 
+     this->lightColor.a = CLAMP(this->lightColor.a + arg1, 0, 255);
+@@ -756,28 +787,28 @@ void func_80ADFA90(EnPoh* this, s32 arg1) {
+                               this->info->lightColor.b, this->lightColor.a * (200.0f / 255));
+ }
+ 
+-void func_80ADFE28(EnPoh* this, PlayState* play) {
++void EnPoh_SoulRise(EnPoh* this, PlayState* play) {
+     this->actor.home.pos.y += 2.0f;
+-    func_80ADFA90(this, 20);
++    EnPoh_StepAlpha(this, 20);  // was func_80ADFA90 [LLM:HIGH]
+     if (this->lightColor.a == 255) {
+         EnPoh_Talk(this, play);
+     }
+ }
+ 
+-void func_80ADFE80(EnPoh* this, PlayState* play) {
++void EnPoh_SoulWaitForTalk(EnPoh* this, PlayState* play) {
+     if (this->unk_198 != 0) {
+         this->unk_198--;
+     }
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if (this->actor.params >= EN_POH_SHARP) {
+-            func_80ADE9BC(this);
++            EnPoh_SetupTalkComposer(this);  // was func_80ADE9BC [LLM:HIGH]
+         } else {
+-            func_80ADE998(this);
++            EnPoh_SetupTalkRegular(this);  // was func_80ADE998 [LLM:HIGH]
+         }
+         return;
+     }
+     if (this->unk_198 == 0) {
+-        func_80ADE950(this, 1);
++        EnPoh_SetupSoulVanish(this, 1);  // was func_80ADE950 [LLM:HIGH]
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+         return;
+     }
+@@ -802,8 +833,8 @@ void func_80ADFE80(EnPoh* this, PlayState* play) {
+                               this->info->lightColor.b, this->lightColor.a * (200.0f / 255));
+ }
+ 
+-void func_80AE009C(EnPoh* this, PlayState* play) {
+-    func_80ADFA90(this, -13);
++void EnPoh_SoulVanish(EnPoh* this, PlayState* play) {
++    EnPoh_StepAlpha(this, -13);  // was func_80ADFA90 [LLM:HIGH]
+     if (this->lightColor.a == 0) {
+         Actor_Kill(&this->actor);
+     }
+@@ -811,7 +842,7 @@ void func_80AE009C(EnPoh* this, PlayState* play) {
+ 
+ void EnPoh_TalkRegular(EnPoh* this, PlayState* play) {
+     if (this->actor.textId != 0x5005) {
+-        func_80ADFA90(this, -13);
++        EnPoh_StepAlpha(this, -13);  // was func_80ADFA90 [LLM:HIGH]
+     } else {
+         Actor_PlaySfx_Flagged(&this->actor, NA_SE_EN_PO_BIG_CRY - SFX_FLAG);
+     }
+@@ -834,7 +865,7 @@ void EnPoh_TalkRegular(EnPoh* this, PlayState* play) {
+             Message_ContinueTextbox(play, this->actor.textId);
+         }
+     } else if (Actor_TextboxIsClosing(&this->actor, play)) {
+-        func_80ADE950(this, 0);
++        EnPoh_SetupSoulVanish(this, 0);  // was func_80ADE950 [LLM:HIGH]
+     }
+ }
+ 
+@@ -855,18 +886,19 @@ void EnPoh_TalkComposer(EnPoh* this, PlayState* play) {
+                 } else {
+                     Flags_SetSwitch(play, 0xA);
+                 }
+-                func_80ADE950(this, 1);
++                EnPoh_SetupSoulVanish(this, 1);  // was func_80ADE950 [LLM:HIGH]
+             }
+         }
+     } else if (Actor_TextboxIsClosing(&this->actor, play)) {
+         if (this->actor.textId == 0x5000) {
+             Flags_SetSwitch(play, 9);
+         }
+-        func_80ADE950(this, 1);
++        EnPoh_SetupSoulVanish(this, 1);  // was func_80ADE950 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AE032C(EnPoh* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AE032C: applies an AC hit, playing the death or damage cry and entering the damage state
++void EnPoh_UpdateDamage(EnPoh* this, PlayState* play) {
+     if (this->colliderCyl.base.acFlags & AC_HIT) {
+         this->colliderCyl.base.acFlags &= ~AC_HIT;
+         if (this->actor.colChkInfo.damageEffect != 0 || this->actor.colChkInfo.damage != 0) {
+@@ -876,13 +908,13 @@ void func_80AE032C(EnPoh* this, PlayState* play) {
+             } else {
+                 Audio_PlayActorSound2(&this->actor, NA_SE_EN_PO_DAMAGE);
+             }
+-            func_80ADE28C(this);
++            EnPoh_SetupDamage(this);  // was func_80ADE28C [LLM:HIGH]
+         }
+     }
+ }
+ 
+ void EnPoh_UpdateVisibility(EnPoh* this) {
+-    if (this->actionFunc != EnPoh_Appear && this->actionFunc != EnPoh_Disappear && this->actionFunc != func_80ADEF38 &&
++    if (this->actionFunc != EnPoh_Appear && this->actionFunc != EnPoh_Disappear && this->actionFunc != EnPoh_RegularAppear &&  // was func_80ADEF38 [LLM:HIGH]
+         this->actionFunc != EnPoh_ComposerAppear) {
+         if (this->visibilityTimer != 0) {
+             this->visibilityTimer--;
+@@ -895,14 +927,14 @@ void EnPoh_UpdateVisibility(EnPoh* this) {
+                 this->unk_194 = 0;
+             }
+             if ((this->unk_194 == 20 || this->visibilityTimer == 0) &&
+-                (this->actionFunc == func_80ADEAC4 || this->actionFunc == EnPoh_Idle ||
+-                 this->actionFunc == func_80ADEC9C || this->actionFunc == func_80ADF894 ||
+-                 this->actionFunc == func_80ADF5E0)) {
++                (this->actionFunc == EnPoh_Hover || this->actionFunc == EnPoh_Idle ||  // was func_80ADEAC4 [LLM:HIGH]
++                 this->actionFunc == EnPoh_Approach || this->actionFunc == EnPoh_Flee ||  // was func_80ADEC9C [LLM:HIGH]
++                 this->actionFunc == EnPoh_TurnAround)) {  // was func_80ADF5E0 [LLM:HIGH]
+                 EnPoh_SetupDisappear(this);
+             }
+         } else if (this->lightColor.a == 0 && this->visibilityTimer == 0 &&
+-                   (this->actionFunc == func_80ADEAC4 || this->actionFunc == EnPoh_Idle ||
+-                    this->actionFunc == func_80ADEC9C || this->actionFunc == func_80ADF5E0)) {
++                   (this->actionFunc == EnPoh_Hover || this->actionFunc == EnPoh_Idle ||  // was func_80ADEAC4 [LLM:HIGH]
++                    this->actionFunc == EnPoh_Approach || this->actionFunc == EnPoh_TurnAround)) {  // was func_80ADEC9C [LLM:HIGH]
+             EnPoh_SetupAppear(this);
+         }
+     }
+@@ -934,7 +966,8 @@ void EnPoh_Update(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_80AE067C(EnPoh* this) {
++// LLM generated name (HIGH), was func_80AE067C: drives the lantern colour from the current action: red while attacking, green-blue while fleeing, flashing while damaged
++void EnPoh_UpdateLightColor(EnPoh* this) {
+     s16 temp_var;
+ 
+     if (this->actionFunc == EnPoh_Attack) {
+@@ -942,12 +975,12 @@ void func_80AE067C(EnPoh* this) {
+         this->lightColor.g = CLAMP_MIN((s16)(this->lightColor.g - 5), 50);
+         temp_var = this->lightColor.b - 5;
+         this->lightColor.b = CLAMP_MIN(temp_var, 0);
+-    } else if (this->actionFunc == func_80ADF894) {
++    } else if (this->actionFunc == EnPoh_Flee) {  // was func_80ADF894 [LLM:HIGH]
+         this->lightColor.r = CLAMP_MAX((s16)(this->lightColor.r + 5), 80);
+         this->lightColor.g = CLAMP_MAX((s16)(this->lightColor.g + 5), 255);
+         temp_var = this->lightColor.b + 5;
+         this->lightColor.b = CLAMP_MAX(temp_var, 225);
+-    } else if (this->actionFunc == func_80ADEECC) {
++    } else if (this->actionFunc == EnPoh_Damage) {  // was func_80ADEECC [LLM:HIGH]
+         if (this->actor.colorFilterTimer & 2) {
+             this->lightColor.r = 0;
+             this->lightColor.g = 0;
+@@ -970,10 +1003,11 @@ void func_80AE067C(EnPoh* this) {
+     }
+ }
+ 
+-void func_80AE089C(EnPoh* this) {
++// LLM generated name (HIGH), was func_80AE089C: ramps the body's env colour in during the appear animations and flickers it randomly afterwards
++void EnPoh_UpdateEnvColor(EnPoh* this) {
+     f32 rand;
+ 
+-    if ((this->actionFunc == func_80ADEF38 || this->actionFunc == EnPoh_ComposerAppear) &&
++    if ((this->actionFunc == EnPoh_RegularAppear || this->actionFunc == EnPoh_ComposerAppear) &&  // was func_80ADEF38 [LLM:HIGH]
+         this->skelAnime.curFrame < 12.0f) {
+         this->envColor.r = this->envColor.g = this->envColor.b = (s16)(this->skelAnime.curFrame * 16.66f) + 55;
+         this->envColor.a = this->skelAnime.curFrame * (100.0f / 6.0f);
+@@ -994,9 +1028,9 @@ void EnPoh_UpdateLiving(Actor* thisx, PlayState* play) {
+ 
+     if (this->colliderSph.base.atFlags & AT_HIT) {
+         this->colliderSph.base.atFlags &= ~AT_HIT;
+-        func_80ADE4C8(this);
++        EnPoh_SetupSpinAway(this);  // was func_80ADE4C8 [LLM:HIGH]
+     }
+-    func_80AE032C(this, play);
++    EnPoh_UpdateDamage(this, play);  // was func_80AE032C [LLM:HIGH]
+     EnPoh_UpdateVisibility(this);
+     this->actionFunc(this, play);
+     Actor_MoveXZGravity(&this->actor);
+@@ -1011,8 +1045,8 @@ void EnPoh_UpdateLiving(Actor* thisx, PlayState* play) {
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->colliderCyl.base);
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->colliderSph.base);
+     Actor_SetFocus(&this->actor, 42.0f);
+-    if (this->actionFunc != func_80ADEECC && this->actionFunc != func_80ADF574) {
+-        if (this->actionFunc == func_80ADF894) {
++    if (this->actionFunc != EnPoh_Damage && this->actionFunc != EnPoh_SpinAway) {  // was func_80ADEECC [LLM:HIGH]
++        if (this->actionFunc == EnPoh_Flee) {  // was func_80ADF894 [LLM:HIGH]
+             this->actor.shape.rot.y = this->actor.world.rot.y + 0x8000;
+         } else {
+             this->actor.shape.rot.y = this->actor.world.rot.y;
+@@ -1023,7 +1057,7 @@ void EnPoh_UpdateLiving(Actor* thisx, PlayState* play) {
+     vec.z = this->actor.world.pos.z;
+     this->actor.floorHeight =
+         BgCheck_EntityRaycastFloor4(&play->colCtx, &this->actor.floorPoly, &sp38, &this->actor, &vec);
+-    func_80AE089C(this);
++    EnPoh_UpdateEnvColor(this);  // was func_80AE089C [LLM:HIGH]
+     this->actor.shape.shadowAlpha = this->lightColor.a;
+ }
+ 
+@@ -1032,7 +1066,7 @@ s32 EnPoh_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
+     EnPoh* this = (EnPoh*)thisx;
+ 
+     if ((this->lightColor.a == 0 || limbIndex == this->info->unk_6) ||
+-        (this->actionFunc == func_80ADF15C && this->unk_198 >= 2)) {
++        (this->actionFunc == EnPoh_Dissolve && this->unk_198 >= 2)) {  // was func_80ADF15C [LLM:HIGH]
+         *dList = NULL;
+     } else if (this->actor.params == EN_POH_FLAT && limbIndex == 0xA) {
+         // Replace Sharp's head with Flat's
+@@ -1049,17 +1083,17 @@ void EnPoh_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     EnPoh* this = (EnPoh*)thisx;
+ 
+     Collider_UpdateSpheres(limbIndex, &this->colliderSph);
+-    if (this->actionFunc == func_80ADF15C && this->unk_198 >= 2 && limbIndex == this->info->unk_7) {
++    if (this->actionFunc == EnPoh_Dissolve && this->unk_198 >= 2 && limbIndex == this->info->unk_7) {  // was func_80ADF15C [LLM:HIGH]
+         gSPMatrix((*gfxP)++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPDisplayList((*gfxP)++, this->info->burnDisplayList);
+     }
+     if (limbIndex == this->info->unk_6) {
+-        if (this->actionFunc == func_80ADF15C && this->unk_198 >= 19 && 0.0f != this->actor.scale.x) {
++        if (this->actionFunc == EnPoh_Dissolve && this->unk_198 >= 19 && 0.0f != this->actor.scale.x) {  // was func_80ADF15C [LLM:HIGH]
+             f32 mtxScale = 0.01f / this->actor.scale.x;
+             Matrix_Scale(mtxScale, mtxScale, mtxScale, MTXMODE_APPLY);
+         }
+         Matrix_Get(&this->unk_368);
+-        if (this->actionFunc == func_80ADF15C && this->unk_198 == 27) {
++        if (this->actionFunc == EnPoh_Dissolve && this->unk_198 == 27) {  // was func_80ADF15C [LLM:HIGH]
+             this->actor.world.pos.x = this->unk_368.xw;
+             this->actor.world.pos.y = this->unk_368.yw;
+             this->actor.world.pos.z = this->unk_368.zw;
+@@ -1075,7 +1109,7 @@ void EnPoh_DrawRegular(Actor* thisx, PlayState* play) {
+     EnPoh* this = (EnPoh*)thisx;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+-    func_80AE067C(this);
++    EnPoh_UpdateLightColor(this);  // was func_80AE067C [LLM:HIGH]
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+     if (this->lightColor.a == 255 || this->lightColor.a == 0) {
+@@ -1103,13 +1137,13 @@ void EnPoh_DrawComposer(Actor* thisx, PlayState* play) {
+     Color_RGBA8* phi_t0;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+-    func_80AE067C(this);
++    EnPoh_UpdateLightColor(this);  // was func_80AE067C [LLM:HIGH]
+     if (this->actor.params == EN_POH_SHARP) {
+-        sp90 = &D_80AE1B4C;
+-        phi_t0 = &D_80AE1B54;
++        sp90 = &sSharpEnvColor;  // was D_80AE1B4C [LLM:HIGH]
++        phi_t0 = &sSharpAccentColor;  // was D_80AE1B54 [LLM:HIGH]
+     } else {
+-        sp90 = &D_80AE1B50;
+-        phi_t0 = &D_80AE1B58;
++        sp90 = &sFlatEnvColor;  // was D_80AE1B50 [LLM:HIGH]
++        phi_t0 = &sFlatAccentColor;  // was D_80AE1B58 [LLM:HIGH]
+     }
+     if (this->lightColor.a == 255 || this->lightColor.a == 0) {
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+@@ -1158,7 +1192,7 @@ void EnPoh_UpdateDead(Actor* thisx, PlayState* play) {
+     if (this->actionFunc != EnPoh_Death) {
+         this->visibilityTimer++;
+     }
+-    func_80AE089C(this);
++    EnPoh_UpdateEnvColor(this);  // was func_80AE089C [LLM:HIGH]
+ }
+ 
+ void EnPoh_DrawSoul(Actor* thisx, PlayState* play) {
+@@ -1174,7 +1208,7 @@ void EnPoh_DrawSoul(Actor* thisx, PlayState* play) {
+         gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPDisplayList(POLY_OPA_DISP++, this->info->lanternDisplayList);
+         if (this->infoIdx == EN_POH_INFO_COMPOSER) {
+-            Color_RGBA8* envColor = (this->actor.params == EN_POH_SHARP) ? &D_80AE1B4C : &D_80AE1B50;
++            Color_RGBA8* envColor = (this->actor.params == EN_POH_SHARP) ? &sSharpEnvColor : &sFlatEnvColor;  // was D_80AE1B4C [LLM:HIGH]
+             s32 pad;
+ 
+             gSPDisplayList(POLY_OPA_DISP++, gPoeComposerLanternBottomDL);
+-- 
+2.55.0
+

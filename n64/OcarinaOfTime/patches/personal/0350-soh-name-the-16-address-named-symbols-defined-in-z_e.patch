@@ -1,0 +1,376 @@
+From a0bf99902ca2910fca6ffc4ff36f47e5b9b9e279 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 350/488] soh: name the 16 address-named symbols defined in
+ z_eff_ss_kakera.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 16 are defined in soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c.
+
+  * D_809AA530 -> sDragThresholds
+    deduced, confidence HIGH: the per-mode distance thresholds the drag
+    falloff functions compare against before scaling the acceleration down.
+
+  * func_809A9818 -> EffectSsKakera_RandCentered
+    deduced, confidence HIGH: returns a value uniformly distributed within
+    the given range either side of the centre; its own osSyncPrintf calls it
+    "randomD_sectionUniformity".
+
+  * func_809A9BA8 -> EffectSsKakera_CheckObjectLoaded
+    deduced, confidence HIGH: looks up the fragment's object bank and kills
+    the particle if the object is missing or not yet loaded.
+
+  * func_809A9C10 -> EffectSsKakera_UpdateRotation
+    deduced, confidence HIGH: turns the fragment's velocity into per-axis
+    spin rates, jittered by the randomness parameter.
+
+  * func_809A9DC0 -> EffectSsKakera_ClearAccel
+    deduced, confidence HIGH: zeroes the acceleration before the per-frame
+    force passes accumulate into it.
+
+  * func_809A9DD8 -> EffectSsKakera_DragNone
+    deduced, confidence HIGH: the no-drag falloff: always returns 1.0.
+
+  * func_809A9DEC -> EffectSsKakera_DragLinear
+    deduced, confidence HIGH: falls off as the threshold over the distance
+    once the distance passes the threshold.
+
+  * func_809A9E28 -> EffectSsKakera_DragSquared
+    deduced, confidence HIGH: the same falloff against the squared distance.
+
+  * func_809A9E68 -> EffectSsKakera_DragSquared2
+    deduced, confidence HIGH: a second entry point that forwards straight to
+    EffectSsKakera_DragSquared; the dispatch table lists both.
+
+  * func_809A9E88 -> EffectSsKakera_ApplyAttraction
+    deduced, confidence HIGH: the first force pass: pulls the fragment back
+    toward its origin at one of two strengths, chosen by the low bits of the
+    behaviour flags.
+
+  * func_809A9F10 -> EffectSsKakera_ApplyBuoyancy
+    deduced, confidence HIGH: the second force pass: adds one of seven fixed
+    vertical accelerations, chosen by the next bits of the behaviour flags.
+
+  * func_809A9F4C -> EffectSsKakera_ApplyRepulsion
+    deduced, confidence HIGH: the third force pass: pushes the fragment away
+    from its origin at one of three strengths.
+
+  * func_809A9FD8 -> EffectSsKakera_ApplyDrag
+    deduced, confidence HIGH: the fourth pass: picks a falloff function from
+    the behaviour flags and scales the accumulated acceleration by it, with
+    a random jitter.
+
+  * func_809AA0B8 -> EffectSsKakera_ApplyGravity
+    deduced, confidence HIGH: the last pass: adds the particle's own gravity
+    to the vertical acceleration.
+
+  * func_809AA0EC -> EffectSsKakera_UpdateAccel
+    deduced, confidence HIGH: clears the acceleration, measures the offset
+    from the origin and runs the force passes in order, giving up once the
+    fragment is more than 1000 units away.
+
+  * func_809AA230 -> EffectSsKakera_UpdateGrounded
+    deduced, confidence HIGH: stops the fragment dead once it has fallen
+    below the floor, clearing its velocity, acceleration, gravity and spin.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c    | 98 +++++++++++--------
+ 1 file changed, 57 insertions(+), 41 deletions(-)
+
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c b/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
+index eca73e011..a2b82a770 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
+@@ -24,7 +24,8 @@ u32 EffectSsKakera_Init(PlayState* play, u32 index, EffectSs* this, void* initPa
+ void EffectSsKakera_Draw(PlayState* play, u32 index, EffectSs* this);
+ void EffectSsKakera_Update(PlayState* play, u32 index, EffectSs* this);
+ 
+-void func_809A9BA8(EffectSs* this, PlayState* play);
++// LLM generated name (HIGH), was func_809A9BA8: looks up the fragment's object bank and kills the particle if the object is missing or not yet loaded.
++void EffectSsKakera_CheckObjectLoaded(EffectSs* this, PlayState* play);  // was func_809A9BA8 [LLM:HIGH]
+ 
+ EffectSsInit Effect_Ss_Kakera_InitVars = {
+     EFFECT_SS_KAKERA,
+@@ -49,7 +50,7 @@ u32 EffectSsKakera_Init(PlayState* play, u32 index, EffectSs* this, void* initPa
+             this->rObjId = KAKERA_OBJECT_DEFAULT;
+         } else {
+             this->rObjId = initParams->objId;
+-            func_809A9BA8(this, play);
++            EffectSsKakera_CheckObjectLoaded(this, play);  // was func_809A9BA8 [LLM:HIGH]
+         }
+ 
+     } else {
+@@ -75,7 +76,8 @@ u32 EffectSsKakera_Init(PlayState* play, u32 index, EffectSs* this, void* initPa
+     return 1;
+ }
+ 
+-f32 func_809A9818(f32 arg0, f32 arg1) {
++// LLM generated name (HIGH), was func_809A9818: returns a value uniformly distributed within the given range either side of the centre; its own osSyncPrintf calls it "randomD_sectionUniformity".
++f32 EffectSsKakera_RandCentered(f32 arg0, f32 arg1) {
+     f32 temp_f2;
+ 
+     if (arg1 < 0.0f) {
+@@ -134,7 +136,7 @@ void EffectSsKakera_Draw(PlayState* play, u32 index, EffectSs* this) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_809A9BA8(EffectSs* this, PlayState* play) {
++void EffectSsKakera_CheckObjectLoaded(EffectSs* this, PlayState* play) {
+     this->rObjBankIdx = Object_GetIndex(&play->objectCtx, this->rObjId);
+ 
+     if ((this->rObjBankIdx < 0) || !Object_IsLoaded(&play->objectCtx, this->rObjBankIdx)) {
+@@ -143,7 +145,8 @@ void func_809A9BA8(EffectSs* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809A9C10(EffectSs* this) {
++// LLM generated name (HIGH), was func_809A9C10: turns the fragment's velocity into per-axis spin rates, jittered by the randomness parameter.
++void EffectSsKakera_UpdateRotation(EffectSs* this) {
+     f32 temp_f14;
+     f32 temp_f12;
+     f32 temp_f16;
+@@ -156,9 +159,9 @@ void func_809A9C10(EffectSs* this) {
+     temp_f20 = this->rReg6 / 1024.0f;
+     temp_f14 = (this->rReg9 / 1024.0f) * 4.0f;
+ 
+-    temp_f2 = this->velocity.x - func_809A9818(0.0f, temp_f14);
+-    temp_f16 = this->velocity.y - func_809A9818(0.0f, temp_f14);
+-    temp_f12 = this->velocity.z - func_809A9818(0.0f, temp_f14);
++    temp_f2 = this->velocity.x - EffectSsKakera_RandCentered(0.0f, temp_f14);  // was func_809A9818 [LLM:HIGH]
++    temp_f16 = this->velocity.y - EffectSsKakera_RandCentered(0.0f, temp_f14);  // was func_809A9818 [LLM:HIGH]
++    temp_f12 = this->velocity.z - EffectSsKakera_RandCentered(0.0f, temp_f14);  // was func_809A9818 [LLM:HIGH]
+ 
+     if (temp_f2 > 0.0f) {
+         this->velocity.x -= ((temp_f2 * temp_f18) + (SQ(temp_f2) * temp_f20));
+@@ -183,41 +186,48 @@ void func_809A9C10(EffectSs* this) {
+     }
+ }
+ 
+-void func_809A9DC0(EffectSs* this) {
++// LLM generated name (HIGH), was func_809A9DC0: zeroes the acceleration before the per-frame force passes accumulate into it.
++void EffectSsKakera_ClearAccel(EffectSs* this) {
+     this->accel.x = this->accel.y = this->accel.z = 0.0f;
+ }
+ 
+-f32 func_809A9DD8(f32 arg0, s32 arg1) {
++// LLM generated name (HIGH), was func_809A9DD8: the no-drag falloff: always returns 1.0.
++f32 EffectSsKakera_DragNone(f32 arg0, s32 arg1) {
+     return 1.0f;
+ }
+ 
+-static f32 D_809AA530[] = {
++// LLM generated name (HIGH), was D_809AA530: the per-mode distance thresholds the drag falloff functions compare against before scaling the acceleration down.
++static f32 sDragThresholds[] = {  // was D_809AA530 [LLM:HIGH]
+     1.0f, 100.0f, 40.0f, 5.0f, 100.0f, 40.0f, 5.0f, 100.0f, 40.0f, 5.0f,
+ };
+ 
+-f32 func_809A9DEC(f32 arg0, s32 arg1) {
+-    if (D_809AA530[arg1] < arg0) {
+-        return D_809AA530[arg1] / arg0;
++// LLM generated name (HIGH), was func_809A9DEC: falls off as the threshold over the distance once the distance passes the threshold.
++f32 EffectSsKakera_DragLinear(f32 arg0, s32 arg1) {
++    if (sDragThresholds[arg1] < arg0) {  // was D_809AA530 [LLM:HIGH]
++        return sDragThresholds[arg1] / arg0;  // was D_809AA530 [LLM:HIGH]
+     } else {
+         return 1.0f;
+     }
+ }
+ 
+-f32 func_809A9E28(f32 arg0, s32 arg1) {
++// LLM generated name (HIGH), was func_809A9E28: the same falloff against the squared distance.
++f32 EffectSsKakera_DragSquared(f32 arg0, s32 arg1) {
+     f32 temp = SQ(arg0);
+ 
+-    if (D_809AA530[arg1] < temp) {
+-        return D_809AA530[arg1] / temp;
++    if (sDragThresholds[arg1] < temp) {  // was D_809AA530 [LLM:HIGH]
++        return sDragThresholds[arg1] / temp;  // was D_809AA530 [LLM:HIGH]
+     } else {
+         return 1.0f;
+     }
+ }
+ 
+-f32 func_809A9E68(f32 arg0, s32 arg1) {
+-    return func_809A9E28(arg0, arg1);
++// LLM generated name (HIGH), was func_809A9E68: a second entry point that forwards straight to EffectSsKakera_DragSquared; the dispatch table lists both.
++f32 EffectSsKakera_DragSquared2(f32 arg0, s32 arg1) {
++    return EffectSsKakera_DragSquared(arg0, arg1);  // was func_809A9E28 [LLM:HIGH]
+ }
+ 
+-s32 func_809A9E88(EffectSs* this, Vec3f* diff, f32 dist) {
++// LLM generated name (HIGH), was func_809A9E88: the first force pass: pulls the fragment back toward its origin at one of two strengths, chosen by the low bits of the behaviour flags.
++s32 EffectSsKakera_ApplyAttraction(EffectSs* this, Vec3f* diff, f32 dist) {
+     static f32 D_809AA558[] = { 0.05f, 1.0f };
+     s32 temp_v0;
+     f32 phi_f0;
+@@ -239,7 +249,8 @@ s32 func_809A9E88(EffectSs* this, Vec3f* diff, f32 dist) {
+     return 1;
+ }
+ 
+-s32 func_809A9F10(EffectSs* this, Vec3f* diff, f32 dist) {
++// LLM generated name (HIGH), was func_809A9F10: the second force pass: adds one of seven fixed vertical accelerations, chosen by the next bits of the behaviour flags.
++s32 EffectSsKakera_ApplyBuoyancy(EffectSs* this, Vec3f* diff, f32 dist) {
+     static f32 D_809AA560[] = { 4.0f, 0.1f, 0.3f, 0.9f, -0.1f, -0.3f, -0.9f };
+     s32 temp_v0;
+ 
+@@ -252,7 +263,8 @@ s32 func_809A9F10(EffectSs* this, Vec3f* diff, f32 dist) {
+     return 1;
+ }
+ 
+-s32 func_809A9F4C(EffectSs* this, Vec3f* diff, f32 dist) {
++// LLM generated name (HIGH), was func_809A9F4C: the third force pass: pushes the fragment away from its origin at one of three strengths.
++s32 EffectSsKakera_ApplyRepulsion(EffectSs* this, Vec3f* diff, f32 dist) {
+     static f32 D_809AA57C[] = { 0.1f, 1.0f, 6.0f };
+     s32 temp_v0;
+     f32 phi_f0;
+@@ -274,17 +286,18 @@ s32 func_809A9F4C(EffectSs* this, Vec3f* diff, f32 dist) {
+     return 1;
+ }
+ 
+-s32 func_809A9FD8(EffectSs* this, Vec3f* diff, f32 dist) {
++// LLM generated name (HIGH), was func_809A9FD8: the fourth pass: picks a falloff function from the behaviour flags and scales the accumulated acceleration by it, with a random jitter.
++s32 EffectSsKakera_ApplyDrag(EffectSs* this, Vec3f* diff, f32 dist) {
+     static f32 (*D_809AA588[])(f32 dist, s32 arg1) = {
+-        func_809A9DD8, func_809A9DEC, func_809A9DEC, func_809A9DEC, func_809A9E28,
+-        func_809A9E28, func_809A9E28, func_809A9E68, func_809A9E68, func_809A9E68,
++        EffectSsKakera_DragNone, EffectSsKakera_DragLinear, EffectSsKakera_DragLinear, EffectSsKakera_DragLinear, EffectSsKakera_DragSquared,  // was func_809A9DD8 [LLM:HIGH]
++        EffectSsKakera_DragSquared, EffectSsKakera_DragSquared, EffectSsKakera_DragSquared2, EffectSsKakera_DragSquared2, EffectSsKakera_DragSquared2,  // was func_809A9E28 [LLM:HIGH]
+     };
+     f32 temp_f0;
+     s32 temp_a1;
+ 
+     temp_a1 = (this->rReg0 >> 7) & 0xF;
+     temp_f0 = D_809AA588[temp_a1](dist, temp_a1);
+-    temp_f0 = func_809A9818(temp_f0, (this->rReg9 * temp_f0) / 1024.0f);
++    temp_f0 = EffectSsKakera_RandCentered(temp_f0, (this->rReg9 * temp_f0) / 1024.0f);  // was func_809A9818 [LLM:HIGH]
+ 
+     this->accel.x *= temp_f0;
+     this->accel.y *= temp_f0;
+@@ -297,17 +310,19 @@ s32 func_809A9FD8(EffectSs* this, Vec3f* diff, f32 dist) {
+     return 1;
+ }
+ 
+-s32 func_809AA0B8(EffectSs* this, Vec3f* diff, f32 dist) {
++// LLM generated name (HIGH), was func_809AA0B8: the last pass: adds the particle's own gravity to the vertical acceleration.
++s32 EffectSsKakera_ApplyGravity(EffectSs* this, Vec3f* diff, f32 dist) {
+     this->accel.y += this->rGravity / 256.0f;
+ 
+     return 1;
+ }
+ 
+-s32 func_809AA0EC(EffectSs* this) {
++// LLM generated name (HIGH), was func_809AA0EC: clears the acceleration, measures the offset from the origin and runs the force passes in order, giving up once the fragment is more than 1000 units away.
++s32 EffectSsKakera_UpdateAccel(EffectSs* this) {
+     Vec3f diff;
+     f32 dist;
+ 
+-    func_809A9DC0(this);
++    EffectSsKakera_ClearAccel(this);  // was func_809A9DC0 [LLM:HIGH]
+ 
+     diff.x = this->pos.x - this->vec.x;
+     diff.y = this->pos.y - this->vec.y;
+@@ -320,31 +335,32 @@ s32 func_809AA0EC(EffectSs* this) {
+     }
+ 
+     if (this->rReg0 != 0) {
+-        if (!func_809A9E88(this, &diff, dist)) {
++        if (!EffectSsKakera_ApplyAttraction(this, &diff, dist)) {  // was func_809A9E88 [LLM:HIGH]
+             return false;
+         }
+ 
+-        if (!func_809A9F10(this, &diff, dist)) {
++        if (!EffectSsKakera_ApplyBuoyancy(this, &diff, dist)) {  // was func_809A9F10 [LLM:HIGH]
+             return false;
+         }
+ 
+-        if (!func_809A9F4C(this, &diff, dist)) {
++        if (!EffectSsKakera_ApplyRepulsion(this, &diff, dist)) {  // was func_809A9F4C [LLM:HIGH]
+             return false;
+         }
+ 
+-        if (!func_809A9FD8(this, &diff, dist)) {
++        if (!EffectSsKakera_ApplyDrag(this, &diff, dist)) {  // was func_809A9FD8 [LLM:HIGH]
+             return false;
+         }
+     }
+ 
+-    if (!func_809AA0B8(this, &diff, dist)) {
++    if (!EffectSsKakera_ApplyGravity(this, &diff, dist)) {  // was func_809AA0B8 [LLM:HIGH]
+         return false;
+     }
+ 
+     return true;
+ }
+ 
+-void func_809AA230(EffectSs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809AA230: stops the fragment dead once it has fallen below the floor, clearing its velocity, acceleration, gravity and spin.
++void EffectSsKakera_UpdateGrounded(EffectSs* this, PlayState* play) {
+     static f32 D_809AA5B0[] = { 10.0f, 20.0f, 40.0f };
+     Player* player = GET_PLAYER(play);
+ 
+@@ -372,9 +388,9 @@ void func_809AA230(EffectSs* this, PlayState* play) {
+             case 1:
+                 if (this->velocity.y < 0.0f) {
+                     if (BgCheck_SphVsFirstPoly(&play->colCtx, &this->pos, D_809AA5B0[(this->rReg4 >> 2) & 3])) {
+-                        this->velocity.x *= func_809A9818(0.9f, 0.2f);
++                        this->velocity.x *= EffectSsKakera_RandCentered(0.9f, 0.2f);  // was func_809A9818 [LLM:HIGH]
+                         this->velocity.y *= -0.8f;
+-                        this->velocity.z *= func_809A9818(0.9f, 0.2f);
++                        this->velocity.z *= EffectSsKakera_RandCentered(0.9f, 0.2f);  // was func_809A9818 [LLM:HIGH]
+ 
+                         if (this->rReg8 > 0) {
+                             this->rReg8 -= 1;
+@@ -405,15 +421,15 @@ void EffectSsKakera_Update(PlayState* play, u32 index, EffectSs* this) {
+             break;
+     }
+ 
+-    func_809A9C10(this);
++    EffectSsKakera_UpdateRotation(this);  // was func_809A9C10 [LLM:HIGH]
+ 
+-    if (!func_809AA0EC(this)) {
++    if (!EffectSsKakera_UpdateAccel(this)) {  // was func_809AA0EC [LLM:HIGH]
+         this->life = 0;
+     }
+ 
+-    func_809AA230(this, play);
++    EffectSsKakera_UpdateGrounded(this, play);  // was func_809AA230 [LLM:HIGH]
+ 
+     if (this->rObjId != KAKERA_OBJECT_DEFAULT) {
+-        func_809A9BA8(this, play);
++        EffectSsKakera_CheckObjectLoaded(this, play);  // was func_809A9BA8 [LLM:HIGH]
+     }
+ }
+-- 
+2.55.0
+

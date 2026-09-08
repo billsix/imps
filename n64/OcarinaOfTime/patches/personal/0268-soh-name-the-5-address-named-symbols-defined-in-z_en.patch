@@ -1,0 +1,191 @@
+From 77e6d0a0a7a8b349e52d3846b392755b5cd75eea Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:21 +0000
+Subject: [PATCH 268/488] soh: name the 5 address-named symbols defined in
+ z_en_fu.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c.
+
+  * func_80A1D94C -> EnFu_OfferTalk
+    deduced, confidence HIGH: shared talk helper: installs the caller's
+    action and returns true when the player accepts, otherwise sets the
+    given textId and offers talk while the player is within 100 units and
+    roughly in front.
+
+  * func_80A1DA04 -> EnFu_TalkChild
+    deduced, confidence HIGH: the child-era conversation state: waits for
+    the textbox to close, clears the wait flag and returns to
+    EnFu_WaitChild, swapping the head-moving animation back to the still
+    one.
+
+  * func_80A1DB60 -> EnFu_WaitForSongCutscene
+    deduced, confidence HIGH: waits for the Song of Storms cutscene to end,
+    then sets EVENTCHKINF_LEARNED_SONG_OF_STORMS and returns to
+    EnFu_WaitAdult.
+
+  * func_80A1DBA0 -> EnFu_TalkAdult
+    deduced, confidence HIGH: the adult-era conversation state: waits for
+    the textbox to close, then returns to EnFu_WaitAdult.
+
+  * func_80A1DBD4 -> EnFu_CheckSongPlayback
+    deduced, confidence HIGH: reads msgCtx.ocarinaMode after the playback
+    prompt; on a correct performance it awards ITEM_SONG_STORMS, starts
+    gSongOfStormsCs and sets the windmill event flag, and otherwise returns
+    to EnFu_WaitAdult.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c | 35 ++++++++++++---------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c b/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
+index 89c83f9ff..c842b3276 100644
+--- a/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
++++ b/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
+@@ -22,14 +22,18 @@ void EnFu_Update(Actor* thisx, PlayState* play);
+ void EnFu_Draw(Actor* thisx, PlayState* play);
+ 
+ void EnFu_WaitChild(EnFu* this, PlayState* play);
+-void func_80A1DA04(EnFu* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A1DA04: the child-era conversation state: waits for the textbox to close, clears the wait flag and returns to EnFu_WaitChild, swapping the head-moving animation back to the still one.
++void EnFu_TalkChild(EnFu* this, PlayState* play);  // was func_80A1DA04 [LLM:HIGH]
+ 
+ void EnFu_WaitAdult(EnFu* this, PlayState* play);
+ void EnFu_TeachSong(EnFu* this, PlayState* play);
+ void EnFu_WaitForPlayback(EnFu* this, PlayState* play);
+-void func_80A1DBA0(EnFu* this, PlayState* play);
+-void func_80A1DBD4(EnFu* this, PlayState* play);
+-void func_80A1DB60(EnFu* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A1DBA0: the adult-era conversation state: waits for the textbox to close, then returns to EnFu_WaitAdult.
++void EnFu_TalkAdult(EnFu* this, PlayState* play);  // was func_80A1DBA0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A1DBD4: reads msgCtx.ocarinaMode after the playback prompt; on a correct performance it awards ITEM_SONG_STORMS, starts gSongOfStormsCs and sets the windmill event flag, and otherwise returns to EnFu_WaitAdult.
++void EnFu_CheckSongPlayback(EnFu* this, PlayState* play);  // was func_80A1DBD4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A1DB60: waits for the Song of Storms cutscene to end, then sets EVENTCHKINF_LEARNED_SONG_OF_STORMS and returns to EnFu_WaitAdult.
++void EnFu_WaitForSongCutscene(EnFu* this, PlayState* play);  // was func_80A1DB60 [LLM:HIGH]
+ 
+ const ActorInit En_Fu_InitVars = {
+     ACTOR_EN_FU,
+@@ -104,7 +108,8 @@ void EnFu_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-s32 func_80A1D94C(EnFu* this, PlayState* play, u16 textID, EnFuActionFunc actionFunc) {
++// LLM generated name (HIGH), was func_80A1D94C: shared talk helper: installs the caller's action and returns true when the player accepts, otherwise sets the given textId and offers talk while the player is within 100 units and roughly in front.
++s32 EnFu_OfferTalk(EnFu* this, PlayState* play, u16 textID, EnFuActionFunc actionFunc) {
+     s16 yawDiff;
+ 
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+@@ -122,7 +127,7 @@ s32 func_80A1D94C(EnFu* this, PlayState* play, u16 textID, EnFuActionFunc action
+     return false;
+ }
+ 
+-void func_80A1DA04(EnFu* this, PlayState* play) {
++void EnFu_TalkChild(EnFu* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         this->behaviorFlags &= ~FU_WAIT;
+         this->actionFunc = EnFu_WaitChild;
+@@ -142,8 +147,8 @@ void EnFu_WaitChild(EnFu* this, PlayState* play) {
+     }
+ 
+     // if ACTOR_FLAG_PLAYER_TALKED_TO is set and textID is 0x5033, change animation
+-    // if func_80A1D94C returns 1, actionFunc is set to func_80A1DA04
+-    if (func_80A1D94C(this, play, textID, func_80A1DA04)) {
++    // if EnFu_OfferTalk returns 1, actionFunc is set to EnFu_TalkChild, was func_80A1D94C [LLM:HIGH]
++    if (EnFu_OfferTalk(this, play, textID, EnFu_TalkChild)) {  // was func_80A1D94C [LLM:HIGH]
+         if (textID == 0x5033) {
+             Animation_Change(&this->skelanime, &gWindmillManPlayAndMoveHeadAnim, 1.0f, 0.0f,
+                              Animation_GetLastFrame(&gWindmillManPlayAndMoveHeadAnim), ANIMMODE_ONCE, -4.0f);
+@@ -151,7 +156,7 @@ void EnFu_WaitChild(EnFu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A1DB60(EnFu* this, PlayState* play) {
++void EnFu_WaitForSongCutscene(EnFu* this, PlayState* play) {
+     if (play->csCtx.state == CS_STATE_IDLE) {
+         this->actionFunc = EnFu_WaitAdult;
+         Flags_SetEventChkInf(EVENTCHKINF_LEARNED_SONG_OF_STORMS);
+@@ -159,13 +164,13 @@ void func_80A1DB60(EnFu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A1DBA0(EnFu* this, PlayState* play) {
++void EnFu_TalkAdult(EnFu* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         this->actionFunc = EnFu_WaitAdult;
+     }
+ }
+ 
+-void func_80A1DBD4(EnFu* this, PlayState* play) {
++void EnFu_CheckSongPlayback(EnFu* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (play->msgCtx.ocarinaMode >= OCARINA_MODE_04) {
+@@ -174,7 +179,7 @@ void func_80A1DBD4(EnFu* this, PlayState* play) {
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+     } else if (play->msgCtx.ocarinaMode == OCARINA_MODE_03) {
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+-        this->actionFunc = func_80A1DB60;
++        this->actionFunc = EnFu_WaitForSongCutscene;  // was func_80A1DB60 [LLM:HIGH]
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+         if (GameInteractor_Should(VB_PLAY_SONG_OF_STORMS_CS, true, this)) {
+             play->csCtx.segment = SEGMENTED_TO_VIRTUAL(gSongOfStormsCs);
+@@ -200,7 +205,7 @@ void EnFu_WaitForPlayback(EnFu* this, PlayState* play) {
+     // if dialog state is 7, player has played back the song
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_SONG_DEMO_DONE) {
+         Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_PLAYBACK_STORMS);
+-        this->actionFunc = func_80A1DBD4;
++        this->actionFunc = EnFu_CheckSongPlayback;  // was func_80A1DBD4 [LLM:HIGH]
+     }
+ }
+ 
+@@ -223,14 +228,14 @@ void EnFu_WaitAdult(EnFu* this, PlayState* play) {
+ 
+     yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+     if ((Flags_GetEventChkInf(EVENTCHKINF_LEARNED_SONG_OF_STORMS))) {
+-        func_80A1D94C(this, play, 0x508E, func_80A1DBA0);
++        EnFu_OfferTalk(this, play, 0x508E, EnFu_TalkAdult);  // was func_80A1D94C [LLM:HIGH]
+     } else if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+         this->actor.textId = 0x5035;
+         Message_StartTextbox(play, this->actor.textId, NULL);
+         this->actionFunc = EnFu_TeachSong;
+         this->behaviorFlags |= FU_WAIT;
+     } else if (Actor_ProcessTalkRequest(&this->actor, play)) {
+-        this->actionFunc = func_80A1DBA0;
++        this->actionFunc = EnFu_TalkAdult;  // was func_80A1DBA0 [LLM:HIGH]
+     } else if (ABS(yawDiff) < 0x2301) {
+         if (this->actor.xzDistToPlayer < 100.0f) {
+             this->actor.textId = 0x5034;
+-- 
+2.55.0
+

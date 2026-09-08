@@ -1,0 +1,89 @@
+From fcd4ad26d87eee06229d04779d94001f10b886e1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:35 +0000
+Subject: [PATCH 417/488] soh: name the 4 address-named symbols defined in
+ z_en_am.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Am/z_en_am.c.
+
+  * D_809B0074 -> sSwordQuadOffset0
+    deduced, confidence HIGH: the first corner of the armos sword hitbox
+    EnAm_TransformSwordHitbox builds
+
+  * D_809B0080 -> sSwordQuadOffset1
+    deduced, confidence HIGH: the second corner of that hitbox
+
+  * D_809B008C -> sSwordQuadOffset2
+    deduced, confidence HIGH: the third corner of that hitbox
+
+  * D_809B0098 -> sSwordQuadOffset3
+    deduced, confidence HIGH: the fourth corner of that hitbox
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Am/z_en_am.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Am/z_en_am.c b/soh/src/overlays/actors/ovl_En_Am/z_en_am.c
+index 4d0faecc6..578c54df2 100644
+--- a/soh/src/overlays/actors/ovl_En_Am/z_en_am.c
++++ b/soh/src/overlays/actors/ovl_En_Am/z_en_am.c
+@@ -780,16 +780,16 @@ void EnAm_Ricochet(EnAm* this, PlayState* play) {
+ }
+ 
+ void EnAm_TransformSwordHitbox(Actor* thisx, PlayState* play) {
+-    static Vec3f D_809B0074 = { 2500.0f, 7000.0f, 0.0f };
+-    static Vec3f D_809B0080 = { -2500.0f, 0.0f, 0.0f };
+-    static Vec3f D_809B008C = { 2500.0f, 7000.0f, 4000.0f };
+-    static Vec3f D_809B0098 = { -2500.0f, 0.0f, 4000.0f };
++    static Vec3f sSwordQuadOffset0 = { 2500.0f, 7000.0f, 0.0f };  // was D_809B0074 [LLM:HIGH]
++    static Vec3f sSwordQuadOffset1 = { -2500.0f, 0.0f, 0.0f };  // was D_809B0080 [LLM:HIGH]
++    static Vec3f sSwordQuadOffset2 = { 2500.0f, 7000.0f, 4000.0f };  // was D_809B008C [LLM:HIGH]
++    static Vec3f sSwordQuadOffset3 = { -2500.0f, 0.0f, 4000.0f };  // was D_809B0098 [LLM:HIGH]
+     EnAm* this = (EnAm*)thisx;
+ 
+-    Matrix_MultVec3f(&D_809B0074, &this->hitCollider.dim.quad[1]);
+-    Matrix_MultVec3f(&D_809B0080, &this->hitCollider.dim.quad[0]);
+-    Matrix_MultVec3f(&D_809B008C, &this->hitCollider.dim.quad[3]);
+-    Matrix_MultVec3f(&D_809B0098, &this->hitCollider.dim.quad[2]);
++    Matrix_MultVec3f(&sSwordQuadOffset0, &this->hitCollider.dim.quad[1]);  // was D_809B0074 [LLM:HIGH]
++    Matrix_MultVec3f(&sSwordQuadOffset1, &this->hitCollider.dim.quad[0]);  // was D_809B0080 [LLM:HIGH]
++    Matrix_MultVec3f(&sSwordQuadOffset2, &this->hitCollider.dim.quad[3]);  // was D_809B008C [LLM:HIGH]
++    Matrix_MultVec3f(&sSwordQuadOffset3, &this->hitCollider.dim.quad[2]);  // was D_809B0098 [LLM:HIGH]
+ 
+     Collider_SetQuadVertices(&this->hitCollider, &this->hitCollider.dim.quad[0], &this->hitCollider.dim.quad[1],
+                              &this->hitCollider.dim.quad[2], &this->hitCollider.dim.quad[3]);
+-- 
+2.55.0
+

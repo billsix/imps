@@ -1,0 +1,570 @@
+From 7db41211ddff6823b1c29466936f2a88baabdbff Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 358/488] soh: name the 20 address-named symbols defined in
+ z_boss_tw.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 20 are defined in soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c.
+
+  * func_80941BC0 -> BossTw_DrawIcePool
+    deduced, confidence HIGH: draws gTwinrovaIcePoolDL and its shine at
+    groundBlastPos2
+
+  * func_80942180 -> BossTw_DrawFirePool
+    deduced, confidence HIGH: draws gTwinrovaFirePoolDL with its smoke and
+    flame layers at groundBlastPos2
+
+  * func_809426F0 -> BossTw_DrawSpawnPortal
+    deduced, confidence HIGH: draws Kotake's or Koume's magic sigil scaled
+    by spawnPortalScale, with the surrounding flames
+
+  * func_80942C70 -> BossTw_DrawBeam
+    deduced, confidence HIGH: draws gTwinrovaBeamDL along
+    beamOrigin/beamYaw/beamDist, plus the mirror-shield reflection segment
+
+  * func_80943028 -> BossTw_DrawHalo
+    deduced, confidence HIGH: draws gTwinrovaHaloDL above the actor and its
+    gCircleShadowDL ground shadow
+
+  * func_80944C50 -> BossTw_DrawLightPillar
+    deduced, confidence HIGH: draws gTwinrovaLightCircleDL,
+    gTwinrovaLightRaysDL and gTwinrovaLightPillarDL
+
+  * D_8094A7D0 -> sLaughSfxPos
+    deduced, confidence HIGH: its only use is as the position argument for
+    NA_SE_EN_TWINROBA_LAUGH and LAUGH2
+
+  * D_8094C854 -> sShieldChargeAlpha
+    deduced, confidence HIGH: approaches 255 while the mirror shield charges
+    and 0 as it discharges; used as the prim alpha of the charge glow
+
+  * D_8094C858 -> sShieldFlashAlpha
+    deduced, confidence HIGH: prim alpha of the mirror-shield flash, driven
+    up while sShieldFlashTimer runs and down after
+
+  * D_8094C86F -> sShieldFlashTimer
+    deduced, confidence HIGH: countdown that decides whether
+    sShieldFlashAlpha rises or falls
+
+  * D_8094C870 -> sShieldBlastActive
+    deduced, confidence HIGH: set while a TWEFF_SHLD_BLST effect lives;
+    BossTw_TwinrovaDoneBlastShoot waits for it to clear
+
+  * D_8094C872 -> sShieldFlashScroll
+    deduced, confidence HIGH: texture scroll rate of the shield flash, +7
+    for the reflected beam and -7 for the charge, also selecting the 1.3x
+    scale
+
+  * D_8094C874 -> sUnusedIntroCsValue1
+    deduced, confidence GUESS: written during the intro cutscene (30, 435,
+    and the message index) and never read anywhere in the overlay; the name
+    records that check, not an intent
+
+  * D_8094C876 -> sUnusedIntroCsValue2
+    deduced, confidence GUESS: written as 10 alongside sUnusedIntroCsValue1
+    and never read
+
+  * D_8094C878 -> sUnusedIntroCsFlag1
+    deduced, confidence GUESS: set to 1 then 0 during the intro cutscene and
+    never read
+
+  * D_8094C87A -> sUnusedIntroCsValue3
+    deduced, confidence GUESS: written as 335 during the intro cutscene and
+    never read
+
+  * D_8094C87C -> sUnusedIntroCsValue4
+    deduced, confidence GUESS: only ever zeroed with the rest of this group;
+    never written with a value and never read
+
+  * D_8094C87E -> sUnusedIntroCsFlag2
+    deduced, confidence GUESS: set to 1 during the intro cutscene and never
+    read
+
+  * D_8094A900 -> sEyeTexIndices
+    deduced, confidence HIGH: blink table indexed by work[BLINK_IDX] to pick
+    Kotake's and Koume's eye texture
+
+  * D_8094A90C -> sTwinrovaEyeTexIndices
+    deduced, confidence HIGH: the longer blink table indexed by
+    work[TW_BLINK_IDX] for fused Twinrova's eyes
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Boss_Tw/z_boss_tw.c   | 166 ++++++++++--------
+ 1 file changed, 93 insertions(+), 73 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+index 3b33c4a66..7f2cef78e 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
++++ b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+@@ -96,7 +96,8 @@ const ActorInit Boss_Tw_InitVars = {
+     (ActorResetFunc)BossTw_Reset,
+ };
+ 
+-static Vec3f D_8094A7D0 = { 0.0f, 0.0f, 1000.0f };
++// LLM generated name (HIGH), was D_8094A7D0: its only use is as the position argument for NA_SE_EN_TWINROBA_LAUGH and LAUGH2
++static Vec3f sLaughSfxPos = { 0.0f, 0.0f, 1000.0f };  // was D_8094A7D0 [LLM:HIGH]
+ static Vec3f sZeroVector = { 0.0f, 0.0f, 0.0f };
+ 
+ static ColliderCylinderInit sCylinderInitBlasts = {
+@@ -181,8 +182,10 @@ static BossTw* sKoumePtr;
+ BossTw* sTwinrovaPtr; // global for CS skip hook
+ static u8 sShieldFireCharge;
+ static u8 sShieldIceCharge;
+-static f32 D_8094C854;
+-static f32 D_8094C858;
++// LLM generated name (HIGH), was D_8094C854: approaches 255 while the mirror shield charges and 0 as it discharges; used as the prim alpha of the charge glow
++static f32 sShieldChargeAlpha;  // was D_8094C854 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8094C858: prim alpha of the mirror-shield flash, driven up while sShieldFlashTimer runs and down after
++static f32 sShieldFlashAlpha;  // was D_8094C858 [LLM:HIGH]
+ static u8 sTwinrovaBlastType;
+ static u8 sFixedBlastType;
+ static u8 sFixedBlatSeq;
+@@ -190,15 +193,24 @@ static u8 sFreezeState;
+ static Vec3f sShieldHitPos;
+ static s16 sShieldHitYaw;
+ static u8 sBeamDivertTimer;
+-static u8 D_8094C86F;
+-static u8 D_8094C870;
+-static s16 D_8094C872;
+-static s16 D_8094C874;
+-static s16 D_8094C876;
+-static u8 D_8094C878;
+-static s16 D_8094C87A;
+-static s16 D_8094C87C;
+-static u8 D_8094C87E;
++// LLM generated name (HIGH), was D_8094C86F: countdown that decides whether sShieldFlashAlpha rises or falls
++static u8 sShieldFlashTimer;  // was D_8094C86F [LLM:HIGH]
++// LLM generated name (HIGH), was D_8094C870: set while a TWEFF_SHLD_BLST effect lives; BossTw_TwinrovaDoneBlastShoot waits for it to clear
++static u8 sShieldBlastActive;  // was D_8094C870 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8094C872: texture scroll rate of the shield flash, +7 for the reflected beam and -7 for the charge, also selecting the 1.3x scale
++static s16 sShieldFlashScroll;  // was D_8094C872 [LLM:HIGH]
++// LLM generated name (GUESS), was D_8094C874: written during the intro cutscene (30, 435, and the message index) and never read anywhere in the overlay; the name records that check, not an intent
++static s16 sUnusedIntroCsValue1;  // was D_8094C874 [LLM:GUESS]
++// LLM generated name (GUESS), was D_8094C876: written as 10 alongside sUnusedIntroCsValue1 and never read
++static s16 sUnusedIntroCsValue2;  // was D_8094C876 [LLM:GUESS]
++// LLM generated name (GUESS), was D_8094C878: set to 1 then 0 during the intro cutscene and never read
++static u8 sUnusedIntroCsFlag1;  // was D_8094C878 [LLM:GUESS]
++// LLM generated name (GUESS), was D_8094C87A: written as 335 during the intro cutscene and never read
++static s16 sUnusedIntroCsValue3;  // was D_8094C87A [LLM:GUESS]
++// LLM generated name (GUESS), was D_8094C87C: only ever zeroed with the rest of this group; never written with a value and never read
++static s16 sUnusedIntroCsValue4;  // was D_8094C87C [LLM:GUESS]
++// LLM generated name (GUESS), was D_8094C87E: set to 1 during the intro cutscene and never read
++static u8 sUnusedIntroCsFlag2;  // was D_8094C87E [LLM:GUESS]
+ static BossTwEffect sEffects[150];
+ 
+ #define BOSS_TW_SHIP_SAVESTATE_FIELDS(F) \
+@@ -469,11 +481,11 @@ void BossTw_Init(Actor* thisx, PlayState* play2) {
+         play->envCtx.unk_BD = 1;
+         play->envCtx.unk_D8 = 0.0f;
+ 
+-        D_8094C874 = D_8094C876 = D_8094C878 = D_8094C87A = D_8094C87C = D_8094C87E = D_8094C870 = D_8094C86F =
+-            D_8094C872 = sBeamDivertTimer = sEnvType = sGroundBlastType = sFreezeState = sTwinrovaBlastType =
++        sUnusedIntroCsValue1 = sUnusedIntroCsValue2 = sUnusedIntroCsFlag1 = sUnusedIntroCsValue3 = sUnusedIntroCsValue4 = sUnusedIntroCsFlag2 = sShieldBlastActive = sShieldFlashTimer =  // was D_8094C86F [LLM:HIGH]
++            sShieldFlashScroll = sBeamDivertTimer = sEnvType = sGroundBlastType = sFreezeState = sTwinrovaBlastType =  // was D_8094C872 [LLM:HIGH]
+                 sFixedBlatSeq = sShieldFireCharge = sShieldIceCharge = 0;
+ 
+-        D_8094C858 = D_8094C854 = 0.0f;
++        sShieldFlashAlpha = sShieldChargeAlpha = 0.0f;  // was D_8094C854 [LLM:HIGH]
+         sFixedBlastType = Rand_ZeroFloat(1.99f);
+         play->specialEffects = sEffects;
+ 
+@@ -1760,8 +1772,8 @@ void BossTw_TwinrovaIntroCS(BossTw* this, PlayState* play) {
+     }
+ 
+     if (this->csSfxTimer == 180) {
+-        Sfx_PlaySfxAtPos(&D_8094A7D0, NA_SE_EN_TWINROBA_LAUGH);
+-        Sfx_PlaySfxAtPos(&D_8094A7D0, NA_SE_EN_TWINROBA_LAUGH2);
++        Sfx_PlaySfxAtPos(&sLaughSfxPos, NA_SE_EN_TWINROBA_LAUGH);  // was D_8094A7D0 [LLM:HIGH]
++        Sfx_PlaySfxAtPos(&sLaughSfxPos, NA_SE_EN_TWINROBA_LAUGH2);  // was D_8094A7D0 [LLM:HIGH]
+         Audio_QueueSeqCmd(SEQ_PLAYER_BGM_MAIN << 24 | NA_BGM_KOTAKE_KOUME);
+     }
+ 
+@@ -2403,7 +2415,7 @@ void BossTw_DeathCSMsgSfx(BossTw* this, PlayState* play) {
+     }
+ 
+     if (this->work[CS_TIMER_2] == 210) {
+-        D_8094C874 = 30;
++        sUnusedIntroCsValue1 = 30;  // was D_8094C874 [LLM:GUESS]
+     }
+ 
+     if (this->work[CS_TIMER_2] == 270) {
+@@ -2434,8 +2446,8 @@ void BossTw_DeathCSMsgSfx(BossTw* this, PlayState* play) {
+ 
+     if (this->work[CS_TIMER_2] == 430) {
+         koumeAnim = 4;
+-        D_8094C874 = 435;
+-        D_8094C878 = 1;
++        sUnusedIntroCsValue1 = 435;  // was D_8094C874 [LLM:GUESS]
++        sUnusedIntroCsFlag1 = 1;  // was D_8094C878 [LLM:GUESS]
+     }
+ 
+     if (this->work[CS_TIMER_2] > 440 && this->work[CS_TIMER_2] < 860) {
+@@ -2462,8 +2474,8 @@ void BossTw_DeathCSMsgSfx(BossTw* this, PlayState* play) {
+     if (this->work[CS_TIMER_2] == 530) {
+         koumeAnim = 4;
+         sKoumePtr->work[YAW_TGT] = 0x4000;
+-        D_8094C87A = 335;
+-        D_8094C87E = 1;
++        sUnusedIntroCsValue3 = 335;  // was D_8094C87A [LLM:GUESS]
++        sUnusedIntroCsFlag2 = 1;  // was D_8094C87E [LLM:GUESS]
+     }
+ 
+     if (this->work[CS_TIMER_2] == 530) {
+@@ -2516,9 +2528,9 @@ void BossTw_DeathCSMsgSfx(BossTw* this, PlayState* play) {
+         Message_StartTextbox(play, msgId2, NULL);
+ 
+         if (sp35) {
+-            D_8094C876 = 10;
+-            D_8094C874 = sp35;
+-            D_8094C878 = 0;
++            sUnusedIntroCsValue2 = 10;  // was D_8094C876 [LLM:GUESS]
++            sUnusedIntroCsValue1 = sp35;  // was D_8094C874 [LLM:GUESS]
++            sUnusedIntroCsFlag1 = 0;  // was D_8094C878 [LLM:GUESS]
+         }
+     }
+ 
+@@ -2831,11 +2843,13 @@ void BossTw_TwinrovaDeathCS(BossTw* this, PlayState* play) {
+     }
+ }
+ 
+-static s16 D_8094A900[] = {
++// LLM generated name (HIGH), was D_8094A900: blink table indexed by work[BLINK_IDX] to pick Kotake's and Koume's eye texture
++static s16 sEyeTexIndices[] = {  // was D_8094A900 [LLM:HIGH]
+     0, 1, 2, 2, 1,
+ };
+ 
+-static s16 D_8094A90C[] = {
++// LLM generated name (HIGH), was D_8094A90C: the longer blink table indexed by work[TW_BLINK_IDX] for fused Twinrova's eyes
++static s16 sTwinrovaEyeTexIndices[] = {  // was D_8094A90C [LLM:HIGH]
+     0, 1, 2, 2, 2, 2, 2, 2, 1,
+ };
+ 
+@@ -2920,7 +2934,7 @@ void BossTw_Update(Actor* thisx, PlayState* play) {
+             this->work[BLINK_IDX] = 4;
+         }
+ 
+-        this->eyeTexIdx = D_8094A900[this->work[BLINK_IDX]];
++        this->eyeTexIdx = sEyeTexIndices[this->work[BLINK_IDX]];  // was D_8094A900 [LLM:HIGH]
+ 
+         if (this->work[BLINK_IDX] != 0) {
+             this->work[BLINK_IDX]--;
+@@ -3002,7 +3016,7 @@ void BossTw_TwinrovaUpdate(Actor* thisx, PlayState* play2) {
+         BossTw_TwinrovaSetupSpin(this, play);
+     }
+ 
+-    this->eyeTexIdx = D_8094A900[this->work[BLINK_IDX]];
++    this->eyeTexIdx = sEyeTexIndices[this->work[BLINK_IDX]];  // was D_8094A900 [LLM:HIGH]
+     if (this->work[BLINK_IDX] != 0) {
+         this->work[BLINK_IDX]--;
+     }
+@@ -3016,7 +3030,7 @@ void BossTw_TwinrovaUpdate(Actor* thisx, PlayState* play2) {
+     }
+ 
+     if (this->actionFunc == BossTw_TwinrovaMergeCS) {
+-        this->leftEyeTexIdx = D_8094A90C[this->work[TW_BLINK_IDX]];
++        this->leftEyeTexIdx = sTwinrovaEyeTexIndices[this->work[TW_BLINK_IDX]];  // was D_8094A90C [LLM:HIGH]
+         if (this->work[TW_BLINK_IDX] != 0) {
+             this->work[TW_BLINK_IDX]--;
+         }
+@@ -3252,7 +3266,8 @@ void BossTw_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80941BC0(BossTw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80941BC0: draws gTwinrovaIcePoolDL and its shine at groundBlastPos2
++void BossTw_DrawIcePool(BossTw* this, PlayState* play) {
+     s32 pad;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -3293,7 +3308,8 @@ void func_80941BC0(BossTw* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80942180(BossTw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80942180: draws gTwinrovaFirePoolDL with its smoke and flame layers at groundBlastPos2
++void BossTw_DrawFirePool(BossTw* this, PlayState* play) {
+     s32 pad;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -3339,7 +3355,8 @@ void func_80942180(BossTw* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_809426F0(BossTw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809426F0: draws Kotake's or Koume's magic sigil scaled by spawnPortalScale, with the surrounding flames
++void BossTw_DrawSpawnPortal(BossTw* this, PlayState* play) {
+     s32 pad;
+     s16 i;
+ 
+@@ -3396,7 +3413,8 @@ void func_809426F0(BossTw* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80942C70(Actor* thisx, PlayState* play) {
++// LLM generated name (HIGH), was func_80942C70: draws gTwinrovaBeamDL along beamOrigin/beamYaw/beamDist, plus the mirror-shield reflection segment
++void BossTw_DrawBeam(Actor* thisx, PlayState* play) {
+     BossTw* this = (BossTw*)thisx;
+     s16 alpha;
+ 
+@@ -3442,7 +3460,8 @@ void func_80942C70(Actor* thisx, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80943028(Actor* thisx, PlayState* play) {
++// LLM generated name (HIGH), was func_80943028: draws gTwinrovaHaloDL above the actor and its gCircleShadowDL ground shadow
++void BossTw_DrawHalo(Actor* thisx, PlayState* play) {
+     BossTw* this = (BossTw*)thisx;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -3535,19 +3554,19 @@ void BossTw_Draw(Actor* thisx, PlayState* play2) {
+                 }
+             }
+ 
+-            func_80941BC0(this, play);
++            BossTw_DrawIcePool(this, play);  // was func_80941BC0 [LLM:HIGH]
+         }
+     } else {
+-        func_80942180(this, play);
++        BossTw_DrawFirePool(this, play);  // was func_80942180 [LLM:HIGH]
+     }
+ 
+     if (this->visible) {
+         if (this->actionFunc == BossTw_DeathCS) {
+-            func_80943028(&this->actor, play);
++            BossTw_DrawHalo(&this->actor, play);  // was func_80943028 [LLM:HIGH]
+         } else {
+-            func_809426F0(this, play);
++            BossTw_DrawSpawnPortal(this, play);  // was func_809426F0 [LLM:HIGH]
+             Matrix_MultVec3f(&D_8094A9A4, &this->beamOrigin);
+-            func_80942C70(&this->actor, play);
++            BossTw_DrawBeam(&this->actor, play);  // was func_80942C70 [LLM:HIGH]
+         }
+     }
+ 
+@@ -3683,15 +3702,15 @@ void BossTw_ShieldChargeDraw(BossTw* this, PlayState* play) {
+     }
+ 
+     if (temp_t0 != 0 && temp_t0 < 4) {
+-        Math_ApproachF(&D_8094C854, 255.0f, 1.0f, 20.0f);
++        Math_ApproachF(&sShieldChargeAlpha, 255.0f, 1.0f, 20.0f);  // was D_8094C854 [LLM:HIGH]
+         if (temp_t0 == 3) {
+             temp_t0 *= 3;
+         }
+     } else if (temp_t0 == 0) {
+-        D_8094C854 = 0.0f;
++        sShieldChargeAlpha = 0.0f;  // was D_8094C854 [LLM:HIGH]
+     } else {
+-        Math_ApproachF(&D_8094C854, 0.0f, 1.0f, 10.0f);
+-        if (D_8094C854 == 0.0f) {
++        Math_ApproachF(&sShieldChargeAlpha, 0.0f, 1.0f, 10.0f);  // was D_8094C854 [LLM:HIGH]
++        if (sShieldChargeAlpha == 0.0f) {  // was D_8094C854 [LLM:HIGH]
+             sShieldIceCharge = 0;
+             sShieldFireCharge = 0;
+         }
+@@ -3704,7 +3723,7 @@ void BossTw_ShieldChargeDraw(BossTw* this, PlayState* play) {
+             Matrix_Mult(&player->shieldMf, MTXMODE_NEW);
+             Matrix_RotateX(M_PI / 2.0f, MTXMODE_APPLY);
+             gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_LOAD | G_MTX_MODELVIEW | G_MTX_NOPUSH);
+-            temp_a0 = (Math_SinS(this->work[CS_TIMER_1] * 2730 * temp_t0) * D_8094C854 * 0.5f) + (D_8094C854 * 0.5f);
++            temp_a0 = (Math_SinS(this->work[CS_TIMER_1] * 2730 * temp_t0) * sShieldChargeAlpha * 0.5f) + (sShieldChargeAlpha * 0.5f);  // was D_8094C854 [LLM:HIGH]
+             if (sShieldFireCharge != 0) {
+                 gDPSetEnvColor(POLY_XLU_DISP++, 255, 245, 255, temp_a0);
+                 gSPDisplayList(POLY_XLU_DISP++, SEGMENTED_TO_VIRTUAL(gTwinrovaMirrorShieldFireChargeSidesDL));
+@@ -3712,7 +3731,7 @@ void BossTw_ShieldChargeDraw(BossTw* this, PlayState* play) {
+                            Gfx_TwoTexScrollEx(play->state.gfxCtx, 0, (this->work[CS_TIMER_1] * 2) * temp_t0, 0, 0x20,
+                                               0x20, 1, (-this->work[CS_TIMER_1] * 2) * temp_t0, 0, 0x20, 0x20, 0,
+                                               2 * temp_t0, -2 * temp_t0, 0));
+-                gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 100, 20, 0, (s16)D_8094C854);
++                gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 100, 20, 0, (s16)sShieldChargeAlpha);  // was D_8094C854 [LLM:HIGH]
+                 gSPDisplayList(POLY_XLU_DISP++, SEGMENTED_TO_VIRTUAL(gTwinrovaMirrorShieldFireChargeCenterDL));
+             } else {
+                 gDPSetEnvColor(POLY_XLU_DISP++, 225, 255, 255, temp_a0);
+@@ -3721,41 +3740,41 @@ void BossTw_ShieldChargeDraw(BossTw* this, PlayState* play) {
+                            Gfx_TwoTexScrollEx(play->state.gfxCtx, 0, 0, (-this->work[CS_TIMER_1] * 5) * temp_t0, 0x20,
+                                               0x40, 1, (this->work[CS_TIMER_1] * 4) * temp_t0, 0, 0x20, 0x200, 0,
+                                               -5 * temp_t0, 4 * temp_t0, 0));
+-                gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 175, 205, 195, (s16)D_8094C854);
++                gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 175, 205, 195, (s16)sShieldChargeAlpha);  // was D_8094C854 [LLM:HIGH]
+                 gSPDisplayList(POLY_XLU_DISP++, SEGMENTED_TO_VIRTUAL(gTwinrovaMirrorShieldIceChargeCenterDL));
+             }
+         }
+     }
+ 
+-    if (D_8094C86F != 0) {
+-        f32 step = D_8094C872 > 0 ? 100.0f : 60.0f;
++    if (sShieldFlashTimer != 0) {  // was D_8094C86F [LLM:HIGH]
++        f32 step = sShieldFlashScroll > 0 ? 100.0f : 60.0f;  // was D_8094C872 [LLM:HIGH]
+ 
+-        D_8094C86F--;
+-        Math_ApproachF(&D_8094C858, 255.0f, 1.0f, step);
++        sShieldFlashTimer--;  // was D_8094C86F [LLM:HIGH]
++        Math_ApproachF(&sShieldFlashAlpha, 255.0f, 1.0f, step);  // was D_8094C858 [LLM:HIGH]
+     } else {
+-        f32 step = D_8094C872 > 0 ? 40.0f : 20.0f;
++        f32 step = sShieldFlashScroll > 0 ? 40.0f : 20.0f;  // was D_8094C872 [LLM:HIGH]
+ 
+-        Math_ApproachF(&D_8094C858, 0.0f, 1.0f, step);
++        Math_ApproachF(&sShieldFlashAlpha, 0.0f, 1.0f, step);  // was D_8094C858 [LLM:HIGH]
+     }
+ 
+-    if (Player_HasMirrorShieldEquipped(play) && D_8094C858 > 0.0f) {
+-        f32 scale = D_8094C872 > 0 ? 1.3f : 1.0f;
++    if (Player_HasMirrorShieldEquipped(play) && sShieldFlashAlpha > 0.0f) {  // was D_8094C858 [LLM:HIGH]
++        f32 scale = sShieldFlashScroll > 0 ? 1.3f : 1.0f;  // was D_8094C872 [LLM:HIGH]
+ 
+         Matrix_Mult(&player->shieldMf, MTXMODE_NEW);
+         Matrix_RotateX(M_PI / 2.0f, MTXMODE_APPLY);
+         Matrix_Scale(scale, scale, scale, MTXMODE_APPLY);
+         gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_LOAD | G_MTX_MODELVIEW | G_MTX_NOPUSH);
+         if (sShieldFireCharge != 0) {
+-            gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 220, 20, (s16)D_8094C858);
++            gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 220, 20, (s16)sShieldFlashAlpha);  // was D_8094C858 [LLM:HIGH]
+             gDPSetEnvColor(POLY_XLU_DISP++, 255, 0, 20, 110);
+         } else {
+-            gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, (s16)D_8094C858);
++            gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, (s16)sShieldFlashAlpha);  // was D_8094C858 [LLM:HIGH]
+             gDPSetEnvColor(POLY_XLU_DISP++, 185, 225, 205, 150);
+         }
+ 
+         gSPSegment(POLY_XLU_DISP++, 8,
+-                   Gfx_TwoTexScrollEx(play->state.gfxCtx, 0, 0, this->work[CS_TIMER_1] * D_8094C872, 0x20, 0x40, 1, 0,
+-                                      this->work[CS_TIMER_1] * D_8094C872, 0x20, 0x20, 0, D_8094C872, 0, D_8094C872));
++                   Gfx_TwoTexScrollEx(play->state.gfxCtx, 0, 0, this->work[CS_TIMER_1] * sShieldFlashScroll, 0x20, 0x40, 1, 0,  // was D_8094C872 [LLM:HIGH]
++                                      this->work[CS_TIMER_1] * sShieldFlashScroll, 0x20, 0x20, 0, sShieldFlashScroll, 0, sShieldFlashScroll));  // was D_8094C872 [LLM:HIGH]
+         gSPDisplayList(POLY_XLU_DISP++, SEGMENTED_TO_VIRTUAL(gTwinrovaShieldAbsorbAndReflectEffectDL));
+     }
+ 
+@@ -3809,7 +3828,8 @@ void BossTw_SpawnPortalDraw(BossTw* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80944C50(BossTw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80944C50: draws gTwinrovaLightCircleDL, gTwinrovaLightRaysDL and gTwinrovaLightPillarDL
++void BossTw_DrawLightPillar(BossTw* this, PlayState* play) {
+     s32 pad;
+     f32 scale;
+ 
+@@ -3881,7 +3901,7 @@ void BossTw_TwinrovaDraw(Actor* thisx, PlayState* play2) {
+     }
+ 
+     if (this->workf[UNK_F18] > 0.0f) {
+-        func_80944C50(this, play);
++        BossTw_DrawLightPillar(this, play);  // was func_80944C50 [LLM:HIGH]
+     }
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+@@ -3939,8 +3959,8 @@ void BossTw_BlastFire(BossTw* this, PlayState* play) {
+                         Math_ApproachS(&this->magicDir.y, blastDir.y, 0xA, 0x800);
+ 
+                         if (this->timers[0] == 50) {
+-                            D_8094C86F = 10;
+-                            D_8094C872 = 7;
++                            sShieldFlashTimer = 10;  // was D_8094C86F [LLM:HIGH]
++                            sShieldFlashScroll = 7;  // was D_8094C872 [LLM:HIGH]
+                             play->envCtx.unk_D8 = 1.0f;
+                         }
+ 
+@@ -4128,8 +4148,8 @@ void BossTw_BlastIce(BossTw* this, PlayState* play) {
+                         Math_ApproachS(&this->magicDir.y, reflDir.y, 0xA, 0x800);
+ 
+                         if (this->timers[0] == 50) {
+-                            D_8094C86F = 10;
+-                            D_8094C872 = 7;
++                            sShieldFlashTimer = 10;  // was D_8094C86F [LLM:HIGH]
++                            sShieldFlashScroll = 7;  // was D_8094C872 [LLM:HIGH]
+                             play->envCtx.unk_D8 = 1.0f;
+                         }
+ 
+@@ -4322,8 +4342,8 @@ s32 BossTw_BlastShieldCheck(BossTw* this, PlayState* play) {
+                         } else {
+                             BossTw_AddShieldHitEffect(play, 10.0f, 1);
+                             sShieldFireCharge++;
+-                            D_8094C86F = (sShieldFireCharge * 2) + 8;
+-                            D_8094C872 = -7;
++                            sShieldFlashTimer = (sShieldFireCharge * 2) + 8;  // was D_8094C86F [LLM:HIGH]
++                            sShieldFlashScroll = -7;  // was D_8094C872 [LLM:HIGH]
+                         }
+                     } else {
+                         if (sShieldFireCharge != 0) {
+@@ -4332,8 +4352,8 @@ s32 BossTw_BlastShieldCheck(BossTw* this, PlayState* play) {
+                         } else {
+                             BossTw_AddShieldHitEffect(play, 10.0f, 0);
+                             sShieldIceCharge++;
+-                            D_8094C86F = (sShieldIceCharge * 2) + 8;
+-                            D_8094C872 = -7;
++                            sShieldFlashTimer = (sShieldIceCharge * 2) + 8;  // was D_8094C86F [LLM:HIGH]
++                            sShieldFlashScroll = -7;  // was D_8094C872 [LLM:HIGH]
+                         }
+                     }
+ 
+@@ -4343,7 +4363,7 @@ s32 BossTw_BlastShieldCheck(BossTw* this, PlayState* play) {
+                         Matrix_MtxFToYXZRotS(&player->shieldMf, &this->magicDir, 0);
+                         this->magicDir.y += 0x8000;
+                         this->magicDir.x = -this->magicDir.x;
+-                        D_8094C86F = 8;
++                        sShieldFlashTimer = 8;  // was D_8094C86F [LLM:HIGH]
+                     } else {
+                         this->csState1 = 2;
+                         this->timers[0] = 20;
+@@ -4630,7 +4650,7 @@ void BossTw_UpdateEffects(PlayState* play) {
+                     }
+                 }
+             } else if (eff->type == TWEFF_SHLD_BLST) {
+-                D_8094C870 = 1;
++                sShieldBlastActive = 1;  // was D_8094C870 [LLM:HIGH]
+                 eff->work[EFF_UNKS1]++;
+                 if (eff->work[EFF_UNKS1] > 30) {
+                     eff->alpha -= 10;
+@@ -5246,7 +5266,7 @@ void BossTw_TwinrovaSetupDoneBlastShoot(BossTw* this, PlayState* play) {
+ void BossTw_TwinrovaDoneBlastShoot(BossTw* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+ 
+-    if (this->timers[1] == 0 && D_8094C870 == 0) {
++    if (this->timers[1] == 0 && sShieldBlastActive == 0) {  // was D_8094C870 [LLM:HIGH]
+         if (sTwinrovaPtr->timers[2] == 0) {
+             BossTw_TwinrovaSetupFly(this, play);
+         } else {
+@@ -5254,7 +5274,7 @@ void BossTw_TwinrovaDoneBlastShoot(BossTw* this, PlayState* play) {
+         }
+     }
+ 
+-    D_8094C870 = 0;
++    sShieldBlastActive = 0;  // was D_8094C870 [LLM:HIGH]
+     Math_ApproachS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 5, 0x1000);
+ }
+ 
+-- 
+2.55.0
+

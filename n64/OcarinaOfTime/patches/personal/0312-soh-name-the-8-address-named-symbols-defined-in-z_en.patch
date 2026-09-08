@@ -1,0 +1,237 @@
+From cb986cda984cb02a896d4abfc17889d2bba90757 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:25 +0000
+Subject: [PATCH 312/488] soh: name the 8 address-named symbols defined in
+ z_en_mm2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 8 are defined in soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c.
+
+  * func_80AAEF70 -> EnMm2_UpdateTextId
+    deduced, confidence HIGH: picks the Running Man's line from the
+    carpenters flag, whether the race has been offered before, whether the
+    sub-timer is running and the current marathon record.
+
+  * func_80AAF224 -> EnMm2_OfferTalk
+    deduced, confidence HIGH: shared talk helper: installs the caller's
+    action and returns 1 when the player accepts, otherwise offers talk
+    while they are within 100 units and roughly in front.
+
+  * func_80AAF2BC -> EnMm2_RunAway
+    deduced, confidence HIGH: accelerates to speed 10 for sixty frames and
+    then kills the actor; the state he leaves in once the race is settled.
+
+  * func_80AAF330 -> EnMm2_StandUp
+    deduced, confidence HIGH: waits for the stand-up animation to finish,
+    switches to the running animation and open mouth, clears the sub-timer
+    and race flag, and hands off to EnMm2_RunAway.
+
+  * func_80AAF3C0 -> EnMm2_Talk
+    deduced, confidence HIGH: drives the race conversation: it resolves the
+    accept/decline choice, applies the record adjustment for the taunt line,
+    and on the textbox closing starts the sub-timer for an accepted race
+    before returning to the idle state.
+
+  * func_80AAF57C -> EnMm2_Idle
+    deduced, confidence HIGH: the params 0 idle: refreshes the text id each
+    frame and offers talk, setting the offered-race flag the first time the
+    challenge line comes up.
+
+  * func_80AAF5EC -> EnMm2_TalkAtFinish
+    deduced, confidence HIGH: the finish-line conversation: on the last
+    message being advanced it switches to the stand animation and hands off
+    to EnMm2_StandUp.
+
+  * func_80AAF668 -> EnMm2_WaitAtFinish
+    deduced, confidence HIGH: the params 1 idle at the finish line: picks
+    the win or lose line by comparing the sub-timer against the record,
+    records a new record when the player talks, and gives up and leaves if
+    the race flag is cleared out from under him.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c | 56 +++++++++++--------
+ 1 file changed, 32 insertions(+), 24 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c b/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
+index 8787d1e01..2649bb7e9 100644
+--- a/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
++++ b/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
+@@ -29,9 +29,12 @@ void EnMm2_Init(Actor* thisx, PlayState* play);
+ void EnMm2_Destroy(Actor* thisx, PlayState* play);
+ void EnMm2_Update(Actor* thisx, PlayState* play);
+ void EnMm2_Draw(Actor* thisx, PlayState* play);
+-void func_80AAF3C0(EnMm2* this, PlayState* play);
+-void func_80AAF57C(EnMm2* this, PlayState* play);
+-void func_80AAF668(EnMm2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AAF3C0: drives the race conversation: it resolves the accept/decline choice, applies the record adjustment for the taunt line, and on the textbox closing starts the sub-timer for an accepted race before returning to the idle state.
++void EnMm2_Talk(EnMm2* this, PlayState* play);  // was func_80AAF3C0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AAF57C: the params 0 idle: refreshes the text id each frame and offers talk, setting the offered-race flag the first time the challenge line comes up.
++void EnMm2_Idle(EnMm2* this, PlayState* play);  // was func_80AAF57C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AAF668: the params 1 idle at the finish line: picks the win or lose line by comparing the sub-timer against the record, records a new record when the player talks, and gives up and leaves if the race flag is cleared out from under him.
++void EnMm2_WaitAtFinish(EnMm2* this, PlayState* play);  // was func_80AAF668 [LLM:HIGH]
+ s32 EnMm2_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx);
+ void EnMm2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx);
+ 
+@@ -100,7 +103,8 @@ void EnMm2_ChangeAnim(EnMm2* this, s32 index, s32* currentIndex) {
+     *currentIndex = index;
+ }
+ 
+-void func_80AAEF70(EnMm2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AAEF70: picks the Running Man's line from the carpenters flag, whether the race has been offered before, whether the sub-timer is running and the current marathon record.
++void EnMm2_UpdateTextId(EnMm2* this, PlayState* play) {
+     if (!GET_EVENTCHKINF_CARPENTERS_FREE_ALL()) {
+         this->actor.textId = 0x6086;
+     } else if (Flags_GetInfTable(INFTABLE_17F)) {
+@@ -141,10 +145,10 @@ void EnMm2_Init(Actor* thisx, PlayState* play2) {
+     this->unk_1F4 |= 1;
+     this->actor.gravity = -1.0f;
+     if (this->actor.params == 1) {
+-        this->actionFunc = func_80AAF668;
++        this->actionFunc = EnMm2_WaitAtFinish;  // was func_80AAF668 [LLM:HIGH]
+     } else {
+-        func_80AAEF70(this, play);
+-        this->actionFunc = func_80AAF57C;
++        EnMm2_UpdateTextId(this, play);  // was func_80AAEF70 [LLM:HIGH]
++        this->actionFunc = EnMm2_Idle;  // was func_80AAF57C [LLM:HIGH]
+     }
+     if (!LINK_IS_ADULT) {
+         Actor_Kill(&this->actor);
+@@ -163,7 +167,8 @@ void EnMm2_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-s32 func_80AAF224(EnMm2* this, PlayState* play, EnMm2ActionFunc actionFunc) {
++// LLM generated name (HIGH), was func_80AAF224: shared talk helper: installs the caller's action and returns 1 when the player accepts, otherwise offers talk while they are within 100 units and roughly in front.
++s32 EnMm2_OfferTalk(EnMm2* this, PlayState* play, EnMm2ActionFunc actionFunc) {
+     s16 yawDiff;
+ 
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+@@ -177,7 +182,8 @@ s32 func_80AAF224(EnMm2* this, PlayState* play, EnMm2ActionFunc actionFunc) {
+     return 0;
+ }
+ 
+-void func_80AAF2BC(EnMm2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AAF2BC: accelerates to speed 10 for sixty frames and then kills the actor; the state he leaves in once the race is settled.
++void EnMm2_RunAway(EnMm2* this, PlayState* play) {
+     if (this->unk_1F6 > 60) {
+         Actor_Kill(&this->actor);
+     }
+@@ -186,9 +192,10 @@ void func_80AAF2BC(EnMm2* this, PlayState* play) {
+     Math_SmoothStepToF(&this->actor.speedXZ, 10.0f, 0.6f, 2.0f, 0.0f);
+ }
+ 
+-void func_80AAF330(EnMm2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AAF330: waits for the stand-up animation to finish, switches to the running animation and open mouth, clears the sub-timer and race flag, and hands off to EnMm2_RunAway.
++void EnMm2_StandUp(EnMm2* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+-        this->actionFunc = func_80AAF2BC;
++        this->actionFunc = EnMm2_RunAway;  // was func_80AAF2BC [LLM:HIGH]
+         EnMm2_ChangeAnim(this, RM2_ANIM_RUN, &this->previousAnimation);
+         this->mouthTexIndex = RM2_MOUTH_OPEN;
+         if (!(this->unk_1F4 & 2)) {
+@@ -199,7 +206,7 @@ void func_80AAF330(EnMm2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AAF3C0(EnMm2* this, PlayState* play) {
++void EnMm2_Talk(EnMm2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+ 
+     switch (this->actor.textId) {
+@@ -236,33 +243,34 @@ void func_80AAF3C0(EnMm2* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         if (this->actor.textId == 0x607F) {
+             Interface_SetSubTimer(0);
+-            this->actionFunc = func_80AAF57C;
++            this->actionFunc = EnMm2_Idle;  // was func_80AAF57C [LLM:HIGH]
+         } else {
+-            this->actionFunc = func_80AAF57C;
++            this->actionFunc = EnMm2_Idle;  // was func_80AAF57C [LLM:HIGH]
+         }
+-        this->actionFunc = func_80AAF57C;
+-        func_80AAEF70(this, play);
++        this->actionFunc = EnMm2_Idle;  // was func_80AAF57C [LLM:HIGH]
++        EnMm2_UpdateTextId(this, play);  // was func_80AAEF70 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AAF57C(EnMm2* this, PlayState* play) {
++void EnMm2_Idle(EnMm2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+-    func_80AAEF70(this, play);
+-    if ((func_80AAF224(this, play, func_80AAF3C0)) && (this->actor.textId == 0x607D)) {
++    EnMm2_UpdateTextId(this, play);  // was func_80AAEF70 [LLM:HIGH]
++    if ((EnMm2_OfferTalk(this, play, EnMm2_Talk)) && (this->actor.textId == 0x607D)) {  // was func_80AAF224 [LLM:HIGH]
+         Flags_SetInfTable(INFTABLE_17F);
+     }
+ }
+ 
+-void func_80AAF5EC(EnMm2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AAF5EC: the finish-line conversation: on the last message being advanced it switches to the stand animation and hands off to EnMm2_StandUp.
++void EnMm2_TalkAtFinish(EnMm2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         this->unk_1F4 &= ~1;
+         EnMm2_ChangeAnim(this, RM2_ANIM_STAND, &this->previousAnimation);
+-        this->actionFunc = func_80AAF330;
++        this->actionFunc = EnMm2_StandUp;  // was func_80AAF330 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AAF668(EnMm2* this, PlayState* play) {
++void EnMm2_WaitAtFinish(EnMm2* this, PlayState* play) {
+     this->actor.world.rot.y = -0x3E80;
+     this->actor.shape.rot.y = this->actor.world.rot.y;
+     SkelAnime_Update(&this->skelAnime);
+@@ -271,7 +279,7 @@ void func_80AAF668(EnMm2* this, PlayState* play) {
+     } else {
+         this->actor.textId = 0x6084;
+     }
+-    if (func_80AAF224(this, play, func_80AAF5EC)) {
++    if (EnMm2_OfferTalk(this, play, EnMm2_TalkAtFinish)) {  // was func_80AAF224 [LLM:HIGH]
+         this->unk_1F6 = 0;
+         if (((void)0, gSaveContext.subTimerSeconds) < HIGH_SCORE(HS_MARATHON)) {
+             HIGH_SCORE(HS_MARATHON) = gSaveContext.subTimerSeconds;
+@@ -282,7 +290,7 @@ void func_80AAF668(EnMm2* this, PlayState* play) {
+             this->unk_1F4 |= 2;
+             this->unk_1F4 &= ~1;
+             EnMm2_ChangeAnim(this, RM2_ANIM_STAND, &this->previousAnimation);
+-            this->actionFunc = func_80AAF330;
++            this->actionFunc = EnMm2_StandUp;  // was func_80AAF330 [LLM:HIGH]
+         }
+     }
+ }
+-- 
+2.55.0
+

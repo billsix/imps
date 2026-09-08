@@ -1,0 +1,97 @@
+From 612dc7be53ee5834bef17d107a63acca72dd3ef5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:37 +0000
+Subject: [PATCH 434/488] soh: rename D_8088BFC0 -> sRiseStartY
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: an f32 BgHidanRock_SetupRise keeps across calls; read as the height the rise starts from
+Defined in soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c       | 27 ++++++++++---------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c
+index 6b0f39e22..763fc4461 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c
+@@ -132,9 +132,10 @@ void BgHidanRock_SetupRise(BgHidanRock* this) {
+     this->actionFunc = BgHidanRock_Rise;  // was func_8088B990 [LLM:HIGH]
+ }
+ 
+-static f32 D_8088BFC0 = 0.0f;
++// LLM generated name (GUESS), was D_8088BFC0: an f32 BgHidanRock_SetupRise keeps across calls; read as the height the rise starts from
++static f32 sRiseStartY = 0.0f;  // was D_8088BFC0 [LLM:GUESS]
+ 
+-#define BG_HIDAN_ROCK_SHIP_SAVESTATE_FIELDS(F) F(D_8088BFC0)
++#define BG_HIDAN_ROCK_SHIP_SAVESTATE_FIELDS(F) F(sRiseStartY)  // was D_8088BFC0 [LLM:GUESS]
+ 
+ SHIP_SAVESTATE_DEFINE(BgHidanRock, BG_HIDAN_ROCK_SHIP_SAVESTATE_FIELDS)
+ 
+@@ -146,11 +147,11 @@ void BgHidanRock_Pushable(BgHidanRock* this, PlayState* play) {
+ 
+     if (this->dyna.unk_150 != 0.0f) {
+         if (this->timer == 0) {
+-            if (D_8088BFC0 == 0.0f) {
++            if (sRiseStartY == 0.0f) {  // was D_8088BFC0 [LLM:GUESS]
+                 if (this->dyna.unk_150 > 0.0f) {
+-                    D_8088BFC0 += 0.01f;
++                    sRiseStartY += 0.01f;  // was D_8088BFC0 [LLM:GUESS]
+                 } else {
+-                    D_8088BFC0 -= 0.01f;
++                    sRiseStartY -= 0.01f;  // was D_8088BFC0 [LLM:GUESS]
+                 }
+             }
+ 
+@@ -159,21 +160,21 @@ void BgHidanRock_Pushable(BgHidanRock* this, PlayState* play) {
+             this->dyna.actor.speedXZ = CLAMP_MAX(this->dyna.actor.speedXZ,
+                                                  2.0f + (CVarGetInteger(CVAR_ENHANCEMENT("FasterBlockPush"), 0) * 0.5));
+ 
+-            if (D_8088BFC0 > 0.0f) {
+-                temp_v1 = Math_StepToF(&D_8088BFC0, 20.0f, this->dyna.actor.speedXZ);
++            if (sRiseStartY > 0.0f) {  // was D_8088BFC0 [LLM:GUESS]
++                temp_v1 = Math_StepToF(&sRiseStartY, 20.0f, this->dyna.actor.speedXZ);  // was D_8088BFC0 [LLM:GUESS]
+             } else {
+-                temp_v1 = Math_StepToF(&D_8088BFC0, -20.0f, this->dyna.actor.speedXZ);
++                temp_v1 = Math_StepToF(&sRiseStartY, -20.0f, this->dyna.actor.speedXZ);  // was D_8088BFC0 [LLM:GUESS]
+             }
+ 
+-            this->dyna.actor.world.pos.x = (Math_SinS(this->dyna.unk_158) * D_8088BFC0) + this->dyna.actor.home.pos.x;
+-            this->dyna.actor.world.pos.z = (Math_CosS(this->dyna.unk_158) * D_8088BFC0) + this->dyna.actor.home.pos.z;
++            this->dyna.actor.world.pos.x = (Math_SinS(this->dyna.unk_158) * sRiseStartY) + this->dyna.actor.home.pos.x;  // was D_8088BFC0 [LLM:GUESS]
++            this->dyna.actor.world.pos.z = (Math_CosS(this->dyna.unk_158) * sRiseStartY) + this->dyna.actor.home.pos.z;  // was D_8088BFC0 [LLM:GUESS]
+ 
+             if (temp_v1) {
+                 player->stateFlags2 &= ~PLAYER_STATE2_MOVING_DYNAPOLY;
+                 this->dyna.unk_150 = 0.0f;
+                 this->dyna.actor.home.pos.x = this->dyna.actor.world.pos.x;
+                 this->dyna.actor.home.pos.z = this->dyna.actor.world.pos.z;
+-                D_8088BFC0 = 0.0f;
++                sRiseStartY = 0.0f;  // was D_8088BFC0 [LLM:GUESS]
+                 this->dyna.actor.speedXZ = 0.0f;
+                 this->timer = 5 - ((CVarGetInteger(CVAR_ENHANCEMENT("FasterBlockPush"), 0) * 3) / 5);
+             }
+@@ -197,7 +198,7 @@ void BgHidanRock_Pushable(BgHidanRock* this, PlayState* play) {
+         this->dyna.actor.world.pos.x = sPushedRestPos.x;  // was D_8088BF60 [LLM:HIGH]
+         this->dyna.actor.world.pos.z = sPushedRestPos.z;  // was D_8088BF60 [LLM:HIGH]
+         this->dyna.actor.speedXZ = 0.0f;
+-        D_8088BFC0 = 0.0f;
++        sRiseStartY = 0.0f;  // was D_8088BFC0 [LLM:GUESS]
+         player->stateFlags2 &= ~PLAYER_STATE2_MOVING_DYNAPOLY;
+         this->actionFunc = BgHidanRock_Fall;  // was func_8088B79C [LLM:HIGH]
+     }
+@@ -419,5 +420,5 @@ void BgHidanRock_Draw(Actor* thisx, PlayState* play) {
+ }
+ 
+ void BgHidanRock_Reset(void) {
+-    D_8088BFC0 = 0;
++    sRiseStartY = 0;  // was D_8088BFC0 [LLM:GUESS]
+ }
+-- 
+2.55.0
+

@@ -1,0 +1,96 @@
+From 527bcf3da8e70fb370a966959f9dec08b037fe9f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:12 +0000
+Subject: [PATCH 170/488] soh: name the 2 address-named symbols defined in
+ z_en_door.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Door/z_en_door.c.
+
+  * D_809FCECC -> sDoorAnims
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * D_809FCEE4 -> sDoorDLists
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Door/z_en_door.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Door/z_en_door.c b/soh/src/overlays/actors/ovl_En_Door/z_en_door.c
+index b4881ff10..e51666fa3 100644
+--- a/soh/src/overlays/actors/ovl_En_Door/z_en_door.c
++++ b/soh/src/overlays/actors/ovl_En_Door/z_en_door.c
+@@ -65,14 +65,16 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(uncullZoneForward, 4000, ICHAIN_STOP),
+ };
+ 
+-static AnimationHeader* D_809FCECC[] = { &gDoorAdultOpeningLeftAnim, &gDoorChildOpeningLeftAnim,
++// Name from zeldaret/oot (was D_809FCECC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Door/z_en_door.c]
++static AnimationHeader* sDoorAnims[] = { &gDoorAdultOpeningLeftAnim, &gDoorChildOpeningLeftAnim,
+                                          &gDoorAdultOpeningRightAnim, &gDoorChildOpeningRightAnim };
+ 
+ static u8 sDoorAnimOpenFrames[] = { 25, 25, 25, 25 };
+ 
+ static u8 sDoorAnimCloseFrames[] = { 60, 70, 60, 70 };
+ 
+-static Gfx* D_809FCEE4[5][2] = {
++// Name from zeldaret/oot (was D_809FCEE4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Door/z_en_door.c]
++static Gfx* sDoorDLists[5][2] = {
+     { gDoorLeftDL, gDoorRightDL },
+     { gFireTempleDoorWithHandleLeftDL, gFireTempleDoorWithHandleRightDL },
+     { gWaterTempleDoorLeftDL, gWaterTempleDoorRightDL },
+@@ -198,7 +200,7 @@ void EnDoor_Idle(EnDoor* this, PlayState* play) {
+     Actor_WorldToActorCoords(&this->actor, &playerPosRelToDoor, &player->actor.world.pos);
+     if (this->playerIsOpening != 0) {
+         this->actionFunc = EnDoor_Open;
+-        Animation_PlayOnceSetSpeed(&this->skelAnime, D_809FCECC[this->animStyle],
++        Animation_PlayOnceSetSpeed(&this->skelAnime, sDoorAnims[this->animStyle],
+                                    (player->stateFlags1 & PLAYER_STATE1_IN_WATER) ? 0.75f : 1.5f);
+         if (this->lockTimer != 0) {
+             if (GameInteractor_Should(VB_CONSUME_SMALL_KEY, true, this)) {
+@@ -319,7 +321,7 @@ s32 EnDoor_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
+     EnDoor* this = (EnDoor*)thisx;
+ 
+     if (limbIndex == 4) {
+-        temp_a2 = D_809FCEE4[this->dListIndex];
++        temp_a2 = sDoorDLists[this->dListIndex];
+         transitionEntry = &play->transiActorCtx.list[(u16)this->actor.params >> 0xA];
+         rot->z += this->actor.world.rot.y;
+         if ((play->roomCtx.prevRoom.num >= 0) || (transitionEntry->sides[0].room == transitionEntry->sides[1].room)) {
+-- 
+2.55.0
+

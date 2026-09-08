@@ -1,0 +1,911 @@
+From d978f94b91b774775c94997af16df835955b158f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:05 +0000
+Subject: [PATCH 090/488] soh: name the 36 address-named symbols defined in
+ z_en_ik.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 36 are defined in soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c.
+
+  * func_80A74398 -> EnIk_InitImpl
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.87
+
+  * func_80A745E4 -> EnIk_HandleBlocking
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.90
+
+  * func_80A74674 -> EnIk_FindBreakableProp
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80A74714 -> EnIk_SetupStandUp
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.87
+
+  * func_80A747C0 -> EnIk_StandUp
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_80A7489C -> EnIk_SetupIdle
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.95
+
+  * func_80A7492C -> EnIk_Idle
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80A74AAC -> EnIk_SetupWalkOrRun
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.96
+
+  * func_80A74BA4 -> EnIk_WalkOrRun
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80A74E2C -> EnIk_SetupVerticalAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.93
+
+  * func_80A74EBC -> EnIk_VerticalAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80A7506C -> EnIk_SetupPullOutAxe
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.91
+
+  * func_80A7510C -> EnIk_PullOutAxe
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.94
+
+  * func_80A751C8 -> EnIk_SetupDoubleHorizontalAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80A75260 -> EnIk_DoubleHorizontalAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80A753D0 -> EnIk_SetupRecoverFromHorizontalAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.91
+
+  * func_80A754A0 -> EnIk_SetupSingleHorizontalAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.91
+
+  * func_80A75530 -> EnIk_SingleHorizontalAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+  * func_80A755F0 -> EnIk_SetupStopAndBlock
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80A7567C -> EnIk_StopAndBlock
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80A75790 -> EnIk_SetupReactToAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.97
+
+  * func_80A758B0 -> EnIk_ReactToAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80A7598C -> EnIk_SetupDie
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_80A75A38 -> EnIk_Die
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80A75C38 -> EnIk_UpdateDamage
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_80A75FA0 -> EnIk_UpdateEnemy
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.93
+
+  * func_80A76798 -> EnIk_DrawEnemy
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.82
+
+  * func_80A76E2C -> EnIk_SpawnAxeSmoke
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80A7707C -> EnIk_UpdateSkelAnime
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80A770C0 -> EnIk_SetStartPosRotFromCue
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80A77158 -> EnIk_SetupCsAction1
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_80A771E4 -> EnIk_SetupCsAction2
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.90
+
+  * func_80A7735C -> EnIk_SetupCsAction3
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80A77844 -> EnIk_CsDrawDefeat
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.82
+
+  * func_80A77ED0 -> EnIk_CsDrawNothing
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80A77EDC -> EnIk_CsDrawIntro
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c | 268 +++++++++++---------
+ 1 file changed, 152 insertions(+), 116 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index 45dd318e2..dcf65bdb1 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -19,37 +19,60 @@ void EnIk_Destroy(Actor* thisx, PlayState* play);
+ void EnIk_Update(Actor* thisx, PlayState* play);
+ void EnIk_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A74714(EnIk* this);
+-void func_80A747C0(EnIk* this, PlayState* play);
+-void func_80A7492C(EnIk* this, PlayState* play);
+-void func_80A74AAC(EnIk* this);
+-void func_80A74BA4(EnIk* this, PlayState* play);
+-void func_80A74E2C(EnIk* this);
+-void func_80A74EBC(EnIk* this, PlayState* play);
+-void func_80A7506C(EnIk* this);
+-void func_80A7510C(EnIk* this, PlayState* play);
+-void func_80A751C8(EnIk* this);
+-void func_80A75260(EnIk* this, PlayState* play);
+-void func_80A753D0(EnIk* this);
++// Name from zeldaret/oot (was func_80A74714): adopted upstream's name for this address; body verified to match upstream at 0.87. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupStandUp(EnIk* this);
++// Name from zeldaret/oot (was func_80A747C0): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_StandUp(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7492C): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_Idle(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A74AAC): adopted upstream's name for this address; body verified to match upstream at 0.96. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupWalkOrRun(EnIk* this);
++// Name from zeldaret/oot (was func_80A74BA4): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_WalkOrRun(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A74E2C): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupVerticalAttack(EnIk* this);
++// Name from zeldaret/oot (was func_80A74EBC): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_VerticalAttack(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7506C): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupPullOutAxe(EnIk* this);
++// Name from zeldaret/oot (was func_80A7510C): adopted upstream's name for this address; body verified to match upstream at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_PullOutAxe(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A751C8): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupDoubleHorizontalAttack(EnIk* this);
++// Name from zeldaret/oot (was func_80A75260): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_DoubleHorizontalAttack(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A753D0): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupRecoverFromHorizontalAttack(EnIk* this);
+ void func_80A7545C(EnIk* this, PlayState* play);
+-void func_80A754A0(EnIk* this);
+-void func_80A75530(EnIk* this, PlayState* play);
+-void func_80A755F0(EnIk* this);
+-void func_80A7567C(EnIk* this, PlayState* play);
+-void func_80A758B0(EnIk* this, PlayState* play);
+-void func_80A75A38(EnIk* this, PlayState* play);
+-void func_80A75FA0(Actor* thisx, PlayState* play);
+-void func_80A76798(Actor* thisx, PlayState* play);
++// Name from zeldaret/oot (was func_80A754A0): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupSingleHorizontalAttack(EnIk* this);
++// Name from zeldaret/oot (was func_80A75530): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SingleHorizontalAttack(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A755F0): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupStopAndBlock(EnIk* this);
++// Name from zeldaret/oot (was func_80A7567C): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_StopAndBlock(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A758B0): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_ReactToAttack(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A75A38): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_Die(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A75FA0): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_UpdateEnemy(Actor* thisx, PlayState* play);
++// Name from zeldaret/oot (was func_80A76798): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_DrawEnemy(Actor* thisx, PlayState* play);
+ void func_80A7748C(EnIk* this, PlayState* play);
+ void func_80A774BC(EnIk* this, PlayState* play);
+ void func_80A774F8(EnIk* this, PlayState* play);
+-void func_80A77844(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A77844): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_CsDrawDefeat(EnIk* this, PlayState* play);
+ void func_80A779DC(EnIk* this, PlayState* play);
+ void func_80A77AEC(EnIk* this, PlayState* play);
+ void func_80A77B0C(EnIk* this, PlayState* play);
+ void func_80A77B3C(EnIk* this, PlayState* play);
+-void func_80A77ED0(EnIk* this, PlayState* play);
+-void func_80A77EDC(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A77ED0): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_CsDrawNothing(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A77EDC): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_CsDrawIntro(EnIk* this, PlayState* play);
+ void func_80A78160(EnIk* this, PlayState* play);
+ void func_80A781CC(Actor* thisx, PlayState* play);
+ 
+@@ -182,13 +205,14 @@ void EnIk_SetupAction(EnIk* this, EnIkActionFunc actionFunc) {
+     this->actionFunc = actionFunc;
+ }
+ 
+-void func_80A74398(Actor* thisx, PlayState* play) {
++// Name from zeldaret/oot (was func_80A74398): adopted upstream's name for this address; body verified to match upstream at 0.87. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_InitImpl(Actor* thisx, PlayState* play) {
+     EnIk* this = (EnIk*)thisx;
+     s32 pad;
+     EffectBlureInit1 blureInit;
+ 
+-    thisx->update = func_80A75FA0;
+-    thisx->draw = func_80A76798;
++    thisx->update = EnIk_UpdateEnemy;
++    thisx->draw = EnIk_DrawEnemy;
+     thisx->flags |= ACTOR_FLAG_HOOKSHOT_PULLS_PLAYER;
+ 
+     Collider_InitCylinder(play, &this->bodyCollider);
+@@ -229,7 +253,7 @@ void func_80A74398(Actor* thisx, PlayState* play) {
+     blureInit.calcMode = 2;
+ 
+     Effect_Add(play, &this->blureIdx, EFFECT_BLURE1, 0, 0, &blureInit);
+-    func_80A74714(this);
++    EnIk_SetupStandUp(this);
+ 
+     uint8_t enemyRandoCCActive = CVarGetInteger(CVAR_ENHANCEMENT("RandomizedEnemies"), 0) ||
+                                  (CVarGetInteger(CVAR_REMOTE_CROWD_CONTROL("Enabled"), 0));
+@@ -248,18 +272,20 @@ void func_80A74398(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80A745E4(EnIk* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A745E4): adopted upstream's name for this address; body verified to match upstream at 0.90. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++s32 EnIk_HandleBlocking(EnIk* this, PlayState* play) {
+     if (((this->armorStatusFlag != 0) || (this->actor.params == 0)) &&
+         (func_800354B4(play, &this->actor, 100.0f, 0x2710, 0x4000, this->actor.shape.rot.y) != 0) &&
+         (play->gameplayFrames & 1)) {
+-        func_80A755F0(this);
++        EnIk_SetupStopAndBlock(this);
+         return true;
+     } else {
+         return false;
+     }
+ }
+ 
+-Actor* func_80A74674(PlayState* play, Actor* actor) {
++// Name from zeldaret/oot (was func_80A74674): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++Actor* EnIk_FindBreakableProp(PlayState* play, Actor* actor) {
+     Actor* prop = play->actorCtx.actorLists[ACTORCAT_PROP].head;
+ 
+     while (prop != NULL) {
+@@ -276,7 +302,7 @@ Actor* func_80A74674(PlayState* play, Actor* actor) {
+     return NULL;
+ }
+ 
+-void func_80A74714(EnIk* this) {
++void EnIk_SetupStandUp(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleStandUpAnim);
+     f32 frame;
+ 
+@@ -289,10 +315,10 @@ void func_80A74714(EnIk* this) {
+     Animation_Change(&this->skelAnime, &gIronKnuckleStandUpAnim, 0.0f, frame, frames, ANIMMODE_ONCE, 0.0f);
+     this->unk_2F8 = 3;
+     this->actor.speedXZ = 0.0f;
+-    EnIk_SetupAction(this, func_80A747C0);
++    EnIk_SetupAction(this, EnIk_StandUp);
+ }
+ 
+-void func_80A747C0(EnIk* this, PlayState* play) {
++void EnIk_StandUp(EnIk* this, PlayState* play) {
+     Vec3f sp24;
+ 
+     if (this->bodyCollider.base.acFlags & AC_HIT) {
+@@ -312,41 +338,42 @@ void func_80A747C0(EnIk* this, PlayState* play) {
+     }
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE;
+-        func_80A74AAC(this);
++        EnIk_SetupWalkOrRun(this);
+     }
+ }
+ 
+-void func_80A7489C(EnIk* this) {
++// Name from zeldaret/oot (was func_80A7489C): adopted upstream's name for this address; body verified to match upstream at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupIdle(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&object_ik_Anim_00DD50);
+ 
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE;
+     this->unk_2F8 = 4;
+     this->actor.speedXZ = 0.0f;
+     Animation_Change(&this->skelAnime, &object_ik_Anim_00DD50, 0.0f, 0.0f, frames, ANIMMODE_LOOP, 4.0f);
+-    EnIk_SetupAction(this, func_80A7492C);
++    EnIk_SetupAction(this, EnIk_Idle);
+ }
+ 
+-void func_80A7492C(EnIk* this, PlayState* play) {
++void EnIk_Idle(EnIk* this, PlayState* play) {
+     s32 phi_a0 = (this->armorStatusFlag == 0) ? 0xAAA : 0x3FFC;
+     s16 yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+ 
+     if ((ABS(yawDiff) <= phi_a0) && (this->actor.xzDistToPlayer < 100.0f) &&
+         (ABS(this->actor.yDistToPlayer) < 150.0f)) {
+         if ((play->gameplayFrames & 1)) {
+-            func_80A74E2C(this);
++            EnIk_SetupVerticalAttack(this);
+         } else {
+-            func_80A751C8(this);
++            EnIk_SetupDoubleHorizontalAttack(this);
+         }
+     } else if ((ABS(yawDiff) <= 0x4000) && (ABS(this->actor.yDistToPlayer) < 150.0f)) {
+-        func_80A74AAC(this);
++        EnIk_SetupWalkOrRun(this);
+     } else {
+-        func_80A74AAC(this);
++        EnIk_SetupWalkOrRun(this);
+     }
+-    func_80A745E4(this, play);
++    EnIk_HandleBlocking(this, play);
+     SkelAnime_Update(&this->skelAnime);
+ }
+ 
+-void func_80A74AAC(EnIk* this) {
++void EnIk_SetupWalkOrRun(EnIk* this) {
+     this->unk_2F8 = 5;
+     if (this->armorStatusFlag == 0) {
+         Animation_Change(&this->skelAnime, &gIronKnuckleWalkAnim, 1.0f, 0.0f,
+@@ -359,10 +386,10 @@ void func_80A74AAC(EnIk* this) {
+         this->actor.speedXZ = 2.5f;
+     }
+     this->actor.world.rot.y = this->actor.shape.rot.y;
+-    EnIk_SetupAction(this, func_80A74BA4);
++    EnIk_SetupAction(this, EnIk_WalkOrRun);
+ }
+ 
+-void func_80A74BA4(EnIk* this, PlayState* play) {
++void EnIk_WalkOrRun(EnIk* this, PlayState* play) {
+     s16 temp_t0;
+     s16 temp_a1;
+     s16 yawDiff;
+@@ -393,44 +420,44 @@ void func_80A74BA4(EnIk* this, PlayState* play) {
+     if ((ABS(yawDiff) <= temp_t0) && (this->actor.xzDistToPlayer < 100.0f)) {
+         if (ABS(this->actor.yDistToPlayer) < 150.0f) {
+             if ((play->gameplayFrames & 1)) {
+-                func_80A74E2C(this);
++                EnIk_SetupVerticalAttack(this);
+             } else {
+-                func_80A751C8(this);
++                EnIk_SetupDoubleHorizontalAttack(this);
+             }
+         }
+     }
+-    if (func_80A74674(play, &this->actor) != NULL) {
+-        func_80A751C8(this);
++    if (EnIk_FindBreakableProp(play, &this->actor) != NULL) {
++        EnIk_SetupDoubleHorizontalAttack(this);
+         this->isBreakingProp = 1;
+     } else {
+         temp_t0 = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+         if (ABS(temp_t0) > 0x4000) {
+             this->unk_300--;
+             if (this->unk_300 == 0) {
+-                func_80A754A0(this);
++                EnIk_SetupSingleHorizontalAttack(this);
+             }
+         } else {
+             this->unk_300 = 0x28;
+         }
+     }
+-    func_80A745E4(this, play);
++    EnIk_HandleBlocking(this, play);
+     SkelAnime_Update(&this->skelAnime);
+     if ((sp30 == (s16)this->skelAnime.curFrame) || (sp2E == (s16)this->skelAnime.curFrame)) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_IRONNACK_WALK);
+     }
+ }
+ 
+-void func_80A74E2C(EnIk* this) {
++void EnIk_SetupVerticalAttack(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleVerticalAttackAnim);
+ 
+     this->unk_2FF = 1;
+     this->unk_2F8 = 6;
+     this->actor.speedXZ = 0.0f;
+     Animation_Change(&this->skelAnime, &gIronKnuckleVerticalAttackAnim, 1.5f, 0.0f, frames, ANIMMODE_ONCE, -4.0f);
+-    EnIk_SetupAction(this, func_80A74EBC);
++    EnIk_SetupAction(this, EnIk_VerticalAttack);
+ }
+ 
+-void func_80A74EBC(EnIk* this, PlayState* play) {
++void EnIk_VerticalAttack(EnIk* this, PlayState* play) {
+     Vec3f sp2C;
+ 
+     if (this->skelAnime.curFrame == 15.0f) {
+@@ -456,11 +483,11 @@ void func_80A74EBC(EnIk* this, PlayState* play) {
+     }
+ 
+     if (SkelAnime_Update(&this->skelAnime)) {
+-        func_80A7506C(this);
++        EnIk_SetupPullOutAxe(this);
+     }
+ }
+ 
+-void func_80A7506C(EnIk* this) {
++void EnIk_SetupPullOutAxe(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleAxeStuckAnim);
+ 
+     this->unk_2FE = 0;
+@@ -469,15 +496,15 @@ void func_80A7506C(EnIk* this) {
+     this->unk_2FF = this->unk_2FE;
+     Animation_Change(&this->skelAnime, &gIronKnuckleAxeStuckAnim, 1.0f, 0.0f, frames, ANIMMODE_LOOP, -4.0f);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_IRONNACK_PULLOUT);
+-    EnIk_SetupAction(this, func_80A7510C);
++    EnIk_SetupAction(this, EnIk_PullOutAxe);
+ }
+ 
+-void func_80A7510C(EnIk* this, PlayState* play) {
++void EnIk_PullOutAxe(EnIk* this, PlayState* play) {
+     f32 frames;
+ 
+     if (SkelAnime_Update(&this->skelAnime) || (--this->animationTimer == 0)) {
+         if (this->unk_2F8 == 8) {
+-            func_80A7489C(this);
++            EnIk_SetupIdle(this);
+         } else {
+             frames = Animation_GetLastFrame(&gIronKnuckleRecoverFromVerticalAttackAnim);
+             this->unk_2F8 = 8;
+@@ -487,7 +514,7 @@ void func_80A7510C(EnIk* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A751C8(EnIk* this) {
++void EnIk_SetupDoubleHorizontalAttack(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleHorizontalAttackAnim);
+ 
+     this->unk_2FF = 2;
+@@ -497,10 +524,10 @@ void func_80A751C8(EnIk* this) {
+     Animation_Change(&this->skelAnime, &gIronKnuckleHorizontalAttackAnim, 0.0f, 0.0f, frames, ANIMMODE_ONCE_INTERP,
+                      -6.0f);
+     this->isBreakingProp = 0;
+-    EnIk_SetupAction(this, func_80A75260);
++    EnIk_SetupAction(this, EnIk_DoubleHorizontalAttack);
+ }
+ 
+-void func_80A75260(EnIk* this, PlayState* play) {
++void EnIk_DoubleHorizontalAttack(EnIk* this, PlayState* play) {
+     f32 temp_f0;
+ 
+     this->unk_300 += 0x1C2;
+@@ -524,11 +551,11 @@ void func_80A75260(EnIk* this, PlayState* play) {
+         this->unk_2FE = 0;
+     }
+     if (SkelAnime_Update(&this->skelAnime)) {
+-        func_80A753D0(this);
++        EnIk_SetupRecoverFromHorizontalAttack(this);
+     }
+ }
+ 
+-void func_80A753D0(EnIk* this) {
++void EnIk_SetupRecoverFromHorizontalAttack(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleRecoverFromHorizontalAttackAnim);
+ 
+     this->unk_2FF = this->unk_2FE = 0;
+@@ -540,12 +567,12 @@ void func_80A753D0(EnIk* this) {
+ 
+ void func_80A7545C(EnIk* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+-        func_80A7489C(this);
+-        func_80A745E4(this, play);
++        EnIk_SetupIdle(this);
++        EnIk_HandleBlocking(this, play);
+     }
+ }
+ 
+-void func_80A754A0(EnIk* this) {
++void EnIk_SetupSingleHorizontalAttack(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleHorizontalAttackAnim);
+ 
+     this->unk_2F8 = 1;
+@@ -553,10 +580,10 @@ void func_80A754A0(EnIk* this) {
+     this->actor.speedXZ = 0.0f;
+     Animation_Change(&this->skelAnime, &gIronKnuckleHorizontalAttackAnim, 0.5f, 13.0f, frames, ANIMMODE_ONCE_INTERP,
+                      -4.0f);
+-    EnIk_SetupAction(this, func_80A75530);
++    EnIk_SetupAction(this, EnIk_SingleHorizontalAttack);
+ }
+ 
+-void func_80A75530(EnIk* this, PlayState* play) {
++void EnIk_SingleHorizontalAttack(EnIk* this, PlayState* play) {
+     Math_StepUntilS(&this->actor.world.rot.y, this->actor.yawTowardsPlayer, 0x7D0);
+     this->actor.shape.rot.y = this->actor.world.rot.y;
+     if ((this->skelAnime.curFrame > 13.0f) && (this->skelAnime.curFrame < 18.0f)) {
+@@ -568,38 +595,39 @@ void func_80A75530(EnIk* this, PlayState* play) {
+         this->unk_2FE = 0;
+     }
+     if (SkelAnime_Update(&this->skelAnime)) {
+-        func_80A753D0(this);
+-        func_80A745E4(this, play);
++        EnIk_SetupRecoverFromHorizontalAttack(this);
++        EnIk_HandleBlocking(this, play);
+     }
+ }
+ 
+-void func_80A755F0(EnIk* this) {
++void EnIk_SetupStopAndBlock(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleBlockAnim);
+ 
+     this->unk_2FE = 0;
+     this->unk_2F8 = 9;
+     this->actor.speedXZ = 0.0f;
+     Animation_Change(&this->skelAnime, &gIronKnuckleBlockAnim, 1.0f, 0.0f, frames, ANIMMODE_ONCE_INTERP, -4.0f);
+-    EnIk_SetupAction(this, func_80A7567C);
++    EnIk_SetupAction(this, EnIk_StopAndBlock);
+ }
+ 
+-void func_80A7567C(EnIk* this, PlayState* play) {
++void EnIk_StopAndBlock(EnIk* this, PlayState* play) {
+     CollisionCheck_SetAC(play, &play->colChkCtx, &this->shieldCollider.base);
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if ((ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) <= 0x4000) &&
+             (this->actor.xzDistToPlayer < 100.0f) && (ABS(this->actor.yDistToPlayer) < 150.0f)) {
+             if ((play->gameplayFrames & 1)) {
+-                func_80A74E2C(this);
++                EnIk_SetupVerticalAttack(this);
+             } else {
+-                func_80A751C8(this);
++                EnIk_SetupDoubleHorizontalAttack(this);
+             }
+         } else {
+-            func_80A7489C(this);
++            EnIk_SetupIdle(this);
+         }
+     }
+ }
+ 
+-void func_80A75790(EnIk* this) {
++// Name from zeldaret/oot (was func_80A75790): adopted upstream's name for this address; body verified to match upstream at 0.97. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupReactToAttack(EnIk* this) {
+     s16 yaw;
+     s16 yawDiff;
+ 
+@@ -616,25 +644,26 @@ void func_80A75790(EnIk* this) {
+         this->actor.speedXZ = 6.0f;
+     }
+     this->unk_2FE = 0;
+-    EnIk_SetupAction(this, func_80A758B0);
++    EnIk_SetupAction(this, EnIk_ReactToAttack);
+ }
+ 
+-void func_80A758B0(EnIk* this, PlayState* play) {
++void EnIk_ReactToAttack(EnIk* this, PlayState* play) {
+     Math_SmoothStepToF(&this->actor.speedXZ, 0.0f, 1.0f, 1.0f, 0.0f);
+     if (BodyBreak_SpawnParts(&this->actor, &this->bodyBreak, play, this->actor.params + 4)) {
+         this->bodyBreak.val = BODYBREAK_STATUS_FINISHED;
+     }
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if (ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) <= 0x4000) {
+-            func_80A7489C(this);
+-            func_80A745E4(this, play);
++            EnIk_SetupIdle(this);
++            EnIk_HandleBlocking(this, play);
+         } else {
+-            func_80A754A0(this);
++            EnIk_SetupSingleHorizontalAttack(this);
+         }
+     }
+ }
+ 
+-void func_80A7598C(EnIk* this) {
++// Name from zeldaret/oot (was func_80A7598C): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupDie(EnIk* this) {
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleDeathAnim);
+ 
+     this->unk_2FE = 0;
+@@ -644,11 +673,11 @@ void func_80A7598C(EnIk* this) {
+     this->animationTimer = 0x18;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_IRONNACK_DEAD);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_NUTS_CUTBODY);
+-    EnIk_SetupAction(this, func_80A75A38);
++    EnIk_SetupAction(this, EnIk_Die);
+     GameInteractor_ExecuteOnEnemyDefeat(&this->actor);
+ }
+ 
+-void func_80A75A38(EnIk* this, PlayState* play) {
++void EnIk_Die(EnIk* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if ((this->actor.colChkInfo.health == 0) && (this->animationTimer != 0)) {
+             s32 i;
+@@ -679,7 +708,8 @@ void func_80A75A38(EnIk* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A75C38(EnIk* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A75C38): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_UpdateDamage(EnIk* this, PlayState* play) {
+     f32 temp_f0;
+     u8 pad;
+     u8 pad2;
+@@ -736,14 +766,14 @@ void func_80A75C38(EnIk* this, PlayState* play) {
+     }
+ 
+     if (this->actor.colChkInfo.health == 0) {
+-        func_80A7598C(this);
++        EnIk_SetupDie(this);
+         Enemy_StartFinishingBlow(play, &this->actor);
+         return;
+     }
+     Math_SmoothStepToS(&this->actor.world.rot.y, this->actor.yawTowardsPlayer, 1, 0x7D0, 0);
+     if ((this->actor.params == 0) && (Rand_ZeroOne() < 0.5f)) {
+         if (ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) > 0x4000) {
+-            func_80A754A0(this);
++            EnIk_SetupSingleHorizontalAttack(this);
+         }
+     }
+     if ((this->actor.params != 0) && (this->armorStatusFlag != 0)) {
+@@ -753,7 +783,7 @@ void func_80A75C38(EnIk* this, PlayState* play) {
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_IRONNACK_DAMAGE);
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_NUTS_CUTBODY);
+         }
+-        func_80A75790(this);
++        EnIk_SetupReactToAttack(this);
+         return;
+     }
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_IRONNACK_ARMOR_HIT);
+@@ -761,14 +791,14 @@ void func_80A75C38(EnIk* this, PlayState* play) {
+     CollisionCheck_SpawnShieldParticles(play, &sp38);
+ }
+ 
+-void func_80A75FA0(Actor* thisx, PlayState* play) {
++void EnIk_UpdateEnemy(Actor* thisx, PlayState* play) {
+     EnIk* this = (EnIk*)thisx;
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+     u8 prevInvincibilityTimer;
+ 
+     this->drawArmorFlag = this->armorStatusFlag;
+-    func_80A75C38(this, play);
++    EnIk_UpdateDamage(this, play);
+     if ((this->actor.params == 0) && (this->actor.colChkInfo.health <= 10)) {
+         func_80A781CC(&this->actor, play);
+         return;
+@@ -948,7 +978,7 @@ void EnIk_PostLimbDraw3(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80A76798(Actor* thisx, PlayState* play) {
++void EnIk_DrawEnemy(Actor* thisx, PlayState* play) {
+     EnIk* this = (EnIk*)thisx;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -1009,7 +1039,8 @@ void func_80A76DDC(EnIk* this, PlayState* play, Vec3f* pos) {
+                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ }
+ 
+-void func_80A76E2C(EnIk* this, PlayState* play, Vec3f* pos) {
++// Name from zeldaret/oot (was func_80A76E2C): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SpawnAxeSmoke(EnIk* this, PlayState* play, Vec3f* pos) {
+     static Vec3f D_80A78514[] = {
+         { 1000.0, -1000.0, 1000.0 },  { 0.0, -1000.0, 0.0 },        { -1000.0, -5000.0, -4000.0 },
+         { 1000.0, -5000.0, -3000.0 }, { -1000.0, 1000.0, -6000.0 }, { -1000.0, 3000.0, -5000.0 },
+@@ -1053,7 +1084,8 @@ void func_80A77034(EnIk* this, PlayState* play) {
+     Actor_UpdateBgCheckInfo(play, &this->actor, 75.0f, 30.0f, 30.0f, 5);
+ }
+ 
+-s32 func_80A7707C(EnIk* this) {
++// Name from zeldaret/oot (was func_80A7707C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++s32 EnIk_UpdateSkelAnime(EnIk* this) {
+     return SkelAnime_Update(&this->skelAnime);
+ }
+ 
+@@ -1065,7 +1097,8 @@ CsCmdActorCue* EnIk_GetNpcAction(PlayState* play, s32 actionIdx) {
+     }
+ }
+ 
+-void func_80A770C0(EnIk* this, PlayState* play, s32 actionIdx) {
++// Name from zeldaret/oot (was func_80A770C0): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetStartPosRotFromCue(EnIk* this, PlayState* play, s32 actionIdx) {
+     CsCmdActorCue* npcAction = EnIk_GetNpcAction(play, actionIdx);
+ 
+     if (npcAction != NULL) {
+@@ -1088,16 +1121,18 @@ void func_80A77148(EnIk* this) {
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-void func_80A77158(EnIk* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A77158): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupCsAction1(EnIk* this, PlayState* play) {
+     Animation_Change(&this->skelAnime, &gIronKnuckleNabooruSummonAxeAnim, 1.0f, 0.0f,
+                      Animation_GetLastFrame(&gIronKnuckleNabooruSummonAxeAnim), ANIMMODE_ONCE, 0.0f);
+-    func_80A770C0(this, play, 4);
++    EnIk_SetStartPosRotFromCue(this, play, 4);
+     this->action = 1;
+     this->drawMode = 1;
+     this->actor.shape.shadowAlpha = 0xFF;
+ }
+ 
+-void func_80A771E4(EnIk* this) {
++// Name from zeldaret/oot (was func_80A771E4): adopted upstream's name for this address; body verified to match upstream at 0.90. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupCsAction2(EnIk* this) {
+     Animation_Change(&this->skelAnime, &gIronKnuckleNabooruSummonAxeAnim, 1.0f, 0.0f,
+                      Animation_GetLastFrame(&gIronKnuckleNabooruSummonAxeAnim), ANIMMODE_ONCE, 0.0f);
+     this->action = 2;
+@@ -1127,7 +1162,8 @@ void func_80A772EC(EnIk* this, PlayState* play) {
+                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ }
+ 
+-void func_80A7735C(EnIk* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A7735C): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_SetupCsAction3(EnIk* this, PlayState* play) {
+     s32 pad[3];
+     f32 frames = Animation_GetLastFrame(&gIronKnuckleNabooruDeathAnim);
+ 
+@@ -1135,7 +1171,7 @@ void func_80A7735C(EnIk* this, PlayState* play) {
+     Animation_Change(&this->skelAnime, &gIronKnuckleNabooruDeathAnim, 1.0f, 0.0f, frames, ANIMMODE_ONCE, 0.0f);
+     this->action = 3;
+     this->drawMode = 2;
+-    func_80A770C0(this, play, 4);
++    EnIk_SetStartPosRotFromCue(this, play, 4);
+     func_80A772EC(this, play);
+     this->actor.shape.shadowAlpha = 0xFF;
+ }
+@@ -1159,7 +1195,7 @@ void func_80A7748C(EnIk* this, PlayState* play) {
+ }
+ 
+ void func_80A774BC(EnIk* this, PlayState* play) {
+-    func_80A7707C(this);
++    EnIk_UpdateSkelAnime(this);
+     func_80A77034(this, play);
+     func_80A779DC(this, play);
+ }
+@@ -1224,7 +1260,7 @@ void EnIk_PostLimbDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_80A77844(EnIk* this, PlayState* play) {
++void EnIk_CsDrawDefeat(EnIk* this, PlayState* play) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+     SkelAnime* skelAnime = &this->skelAnime;
+     s32 pad[2];
+@@ -1256,16 +1292,16 @@ void func_80A779DC(EnIk* this, PlayState* play) {
+                     func_80A77148(this);
+                     break;
+                 case 2:
+-                    func_80A77158(this, play);
++                    EnIk_SetupCsAction1(this, play);
+                     break;
+                 case 3:
+-                    func_80A771E4(this);
++                    EnIk_SetupCsAction2(this);
+                     break;
+                 case 4:
+                     func_80A78160(this, play);
+                     break;
+                 case 5:
+-                    func_80A7735C(this, play);
++                    EnIk_SetupCsAction3(this, play);
+                     break;
+                 case 6:
+                     func_80A77434(this, play);
+@@ -1294,7 +1330,7 @@ void func_80A77B0C(EnIk* this, PlayState* play) {
+ void func_80A77B3C(EnIk* this, PlayState* play) {
+     s32 sp24;
+ 
+-    sp24 = func_80A7707C(this);
++    sp24 = EnIk_UpdateSkelAnime(this);
+     func_80A76C14(this);
+     func_80A77034(this, play);
+     func_80A779DC(this, play);
+@@ -1326,7 +1362,7 @@ s32 EnIk_OverrideLimbDraw1(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
+             if (curFrame < 120.0f) {
+                 *dList = NULL;
+             } else {
+-                func_80A76E2C(this, play, pos);
++                EnIk_SpawnAxeSmoke(this, play, pos);
+             }
+             break;
+         case 29:
+@@ -1369,10 +1405,10 @@ void EnIk_PostLimbDraw1(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_80A77ED0(EnIk* this, PlayState* play) {
++void EnIk_CsDrawNothing(EnIk* this, PlayState* play) {
+ }
+ 
+-void func_80A77EDC(EnIk* this, PlayState* play) {
++void EnIk_CsDrawIntro(EnIk* this, PlayState* play) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+     SkelAnime* skelAnime = &this->skelAnime;
+     s32 pad[2];
+@@ -1390,7 +1426,7 @@ void func_80A77EDC(EnIk* this, PlayState* play) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-static EnIkDrawFunc sDrawFuncs[] = { func_80A77ED0, func_80A77EDC, func_80A77844 };
++static EnIkDrawFunc sDrawFuncs[] = { EnIk_CsDrawNothing, EnIk_CsDrawIntro, EnIk_CsDrawDefeat };
+ 
+ void EnIk_Draw(Actor* thisx, PlayState* play) {
+     EnIk* this = (EnIk*)thisx;
+@@ -1418,12 +1454,12 @@ void func_80A780D0(EnIk* this, PlayState* play) {
+ }
+ 
+ void func_80A78160(EnIk* this, PlayState* play) {
+-    this->actor.update = func_80A75FA0;
+-    this->actor.draw = func_80A76798;
++    this->actor.update = EnIk_UpdateEnemy;
++    this->actor.draw = EnIk_DrawEnemy;
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE;
+     Flags_SetEventChkInf(EVENTCHKINF_BEGAN_NABOORU_BATTLE);
+     Actor_SetScale(&this->actor, 0.012f);
+-    func_80A7489C(this);
++    EnIk_SetupIdle(this);
+ }
+ 
+ void func_80A781CC(Actor* thisx, PlayState* play) {
+@@ -1438,7 +1474,7 @@ void func_80A781CC(Actor* thisx, PlayState* play) {
+             Actor_SetScale(&this->actor, 0.01f);
+         }
+         Flags_SetEventChkInf(EVENTCHKINF_FINISHED_NABOORU_BATTLE);
+-        func_80A7735C(this, play);
++        EnIk_SetupCsAction3(this, play);
+         GameInteractor_ExecuteOnEnemyDefeat(&this->actor);
+     }
+ }
+@@ -1454,7 +1490,7 @@ void EnIk_Init(Actor* thisx, PlayState* play) {
+         ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+         SkelAnime_InitFlex(play, &this->skelAnime, &gIronKnuckleSkel, &gIronKnuckleNabooruSummonAxeAnim,
+                            this->jointTable, this->morphTable, 30);
+-        func_80A74398(&this->actor, play);
++        EnIk_InitImpl(&this->actor, play);
+         func_80A780D0(this, play);
+     }
+ 
+-- 
+2.55.0
+

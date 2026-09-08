@@ -1,0 +1,1332 @@
+From a39783b22f72018d37493e9c1207dfa15964bb21 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 379/488] soh: name the 45 address-named symbols defined in
+ z_boss_ganon2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 45 are defined in soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c; updating their references touches 2 files in total.
+
+  * func_808FD080 -> BossGanon2_SetSphereCenter
+    deduced, confidence HIGH: moves one jntsph element onto a world point
+    and rescales its radius
+
+  * func_808FD210 -> BossGanon2_SpawnRubbleEffect
+    deduced, confidence HIGH: fills the first effect slot with a type 1 arc
+    thrown up and to the right
+
+  * func_808FD27C -> BossGanon2_SpawnDebrisEffect
+    deduced, confidence HIGH: takes a free effect slot for a type 2 tumbling
+    piece with random spin
+
+  * func_808FD4D4 -> BossGanon2_SpawnFootstepDust
+    deduced, confidence HIGH: rings floor dust under one or both feet, plays
+    NA_SE_EN_MGANON_WALK and shakes the screen
+
+  * func_808FD5C4 -> BossGanon2_SetupIntroCs
+    deduced, confidence HIGH: drops Ganondorf below the floor, off
+    targeting, and installs the intro cutscene
+
+  * func_808FD5F4 -> BossGanon2_IntroCs
+    deduced, confidence HIGH: the long intro: spawns Zelda, drives the
+    sub-camera through its states and plays the burst-out animation
+
+  * func_808FF898 -> BossGanon2_HitRubbleWithSword
+    deduced, confidence HIGH: looks for a Demo_Gj rubble pile near the sword
+    and knocks it apart with a rumble
+
+  * func_808FFA24 -> BossGanon2_IsNearRubble
+    deduced, confidence HIGH: true when a Demo_Gj rubble pile sits within
+    200 units of Ganondorf
+
+  * func_808FFAC8 -> BossGanon2_UpdateHeadTracking
+    deduced, confidence HIGH: eases the head yaw toward the player, clamped
+    to 0x3000, and the pitch from the player's distance
+
+  * func_808FFBBC -> BossGanon2_TurnTowardPlayer
+    deduced, confidence HIGH: eases the body yaw onto the player at a rate
+    that itself ramps up
+
+  * func_808FFC84 -> BossGanon2_UpdateFacingPlayer
+    deduced, confidence HIGH: sets the facing flag and picks the focus point
+    according to whether the player is in front
+
+  * func_808FFCFC -> BossGanon2_CheckSwingRange
+    deduced, confidence HIGH: starts a sword swing when the player is close
+    and in front, or when Ganondorf walks into rubble at a wall
+
+  * func_808FFDB0 -> BossGanon2_SetupIdle
+    deduced, confidence HIGH: waits for the object, then loops the guard
+    idle and arms the idle timer
+
+  * func_808FFEBC -> BossGanon2_Idle
+    deduced, confidence HIGH: growls on a timer, brakes to a stop, and
+    leaves for the walk or a swing when its timers run out
+
+  * func_808FFF90 -> BossGanon2_SetupLookAround
+    deduced, confidence HIGH: loops the guard idle with a 40-frame window
+    and installs the look action
+
+  * func_808FFFE0 -> BossGanon2_LookAround
+    deduced, confidence HIGH: sweeps the head from side to side on a sine
+    while the window runs out
+
+  * func_809000A0 -> BossGanon2_SetupStunned
+    deduced, confidence HIGH: starts gGanonStunStartAnim and installs the
+    stun action
+
+  * func_80900104 -> BossGanon2_Stunned
+    deduced, confidence HIGH: plays the stun start, holds the loop for 80
+    frames and plays the end before walking again
+
+  * func_80900210 -> BossGanon2_SetupDamage
+    deduced, confidence HIGH: plays gGanonDamageAnim once and installs the
+    flinch
+
+  * func_8090026C -> BossGanon2_Damage
+    deduced, confidence HIGH: brakes to a stop over the flinch animation and
+    returns to the walk
+
+  * func_809002CC -> BossGanon2_SetupWalk
+    deduced, confidence HIGH: loops the guard walk, clears the run flag and
+    arms the walk window
+
+  * func_80900344 -> BossGanon2_Walk
+    deduced, confidence HIGH: switches between the guard walk and the faster
+    run by the player's distance, kicking dust on the footfall frames
+
+  * func_80900580 -> BossGanon2_SetupSwordSwing
+    deduced, confidence HIGH: plays the left or right sword swing and
+    records its impact frame
+
+  * func_80900650 -> BossGanon2_SwordSwing
+    deduced, confidence HIGH: arms the blade over the impact window, roars,
+    and chains a second swing or returns to idle
+
+  * func_80900818 -> BossGanon2_SetupDowned
+    deduced, confidence HIGH: plays gGanonDownedStartAnim with
+    NA_SE_EN_MGANON_DEAD1 and starts the downed cutscene
+
+  * func_80900890 -> BossGanon2_DownedCs
+    deduced, confidence HIGH: the knocked-down cutscene: takes the camera,
+    circles it onto Ganondorf and cuts to Zelda
+
+  * func_80901020 -> BossGanon2_SetupDeathCs
+    deduced, confidence HIGH: the same downed animation, but entering the
+    final death cutscene and setting the fourth Ganondorf state
+
+  * func_8090109C -> BossGanon2_SpawnBloodDust
+    deduced, confidence HIGH: throws seventy dust puffs from the head, green
+    as shipped and red under the RedGanonBlood enhancement
+
+  * func_8090120C -> BossGanon2_DeathCs
+    deduced, confidence HIGH: the death cutscene: takes the camera, drives
+    Zelda's states and runs the collapse
+
+  * func_80902348 -> BossGanon2_UpdateCollision
+    deduced, confidence HIGH: knocks the player back off the blade and sets
+    them alight when they stray outside the ring of fire
+
+  * func_809034E4 -> BossGanon2_RecordSwordTrail
+    deduced, confidence HIGH: pushes the sword tip and base into their
+    four-deep history and rebuilds the trail vertices from it
+
+  * func_80903F38 -> BossGanon2_DrawSwordTrail
+    deduced, confidence HIGH: draws gGanonSwordTrailDL once at least four
+    trail points have been recorded
+
+  * func_80904108 -> BossGanon2_DrawFireRing
+    deduced, confidence HIGH: draws gGanonFireRingDL around the arena at the
+    current ring alpha
+
+  * func_80904340 -> BossGanon2_DrawLightning
+    deduced, confidence HIGH: draws five gGanonLightningDL bolts at random
+    angles above the arena while the flash timer runs
+
+  * func_8090464C -> BossGanon2_DrawTriforce
+    deduced, confidence HIGH: draws gGanonTriforceDL billboarded at the head
+    position
+
+  * func_80904D88 -> BossGanon2_DrawLightOrbs
+    deduced, confidence HIGH: draws a gGanonLightOrbModelDL at each of the
+    fifteen tracked limb positions
+
+  * func_80904FC8 -> BossGanon2_DrawZeldaOrb
+    deduced, confidence HIGH: draws two counter-rotating light orbs above
+    Zelda
+
+  * func_8090523C -> BossGanon2_DrawPlayerOrbs
+    deduced, confidence HIGH: draws the light orbs that gather on the player
+
+  * func_80905674 -> BossGanon2_DrawZeldaMagic
+    deduced, confidence HIGH: draws gGanonZeldaMagicDL as a scrolling beam
+    beside Zelda
+
+  * func_80906538 -> BossGanon2_StampShadowLimbs
+    deduced, confidence HIGH: stamps each limb's stripe into the shadow
+    texture, interpolating toward its parent limb by the caller's weight
+
+  * D_8090EB20 -> sLightningSfxPos
+    deduced, confidence HIGH: the randomised position NA_SE_EV_LIGHTNING is
+    played at
+
+  * D_8090EB30 -> sNaviActor
+    deduced, confidence HIGH: the scratch pointer used to walk the
+    ITEMACTION list for ACTOR_EN_ELF and aim the sub-camera at it
+
+  * D_809105D8 -> sSwordTipTrail
+    deduced, confidence HIGH: the four-deep history of sword tip positions
+    the trail ribbon is built from
+
+  * D_80910608 -> sSwordBaseTrail
+    deduced, confidence HIGH: the matching four-deep history of sword base
+    positions
+
+  * D_80910638 -> sSwordTrailLength
+    deduced, confidence HIGH: counts recorded trail points; the trail is
+    drawn only once it reaches four and resets when the sword is idle
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Boss_Ganon2/z_boss_ganon2.c    | 461 ++++++++++--------
+ .../ovl_Boss_Ganon2/z_boss_ganon2_data.c      |   4 +-
+ 2 files changed, 255 insertions(+), 210 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index 66b87a513..e54910df8 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -24,19 +24,32 @@ void BossGanon2_Update(Actor* thisx, PlayState* play);
+ void BossGanon2_Draw(Actor* thisx, PlayState* play);
+ void BossGanon2_Reset(void);
+ 
+-void func_808FD5C4(BossGanon2* this, PlayState* play);
+-void func_808FD5F4(BossGanon2* this, PlayState* play);
+-void func_808FFDB0(BossGanon2* this, PlayState* play);
+-void func_808FFEBC(BossGanon2* this, PlayState* play);
+-void func_808FFFE0(BossGanon2* this, PlayState* play);
+-void func_80900104(BossGanon2* this, PlayState* play);
+-void func_8090026C(BossGanon2* this, PlayState* play);
+-void func_809002CC(BossGanon2* this, PlayState* play);
+-void func_80900344(BossGanon2* this, PlayState* play);
+-void func_80900580(BossGanon2* this, PlayState* play);
+-void func_80900650(BossGanon2* this, PlayState* play);
+-void func_80900890(BossGanon2* this, PlayState* play);
+-void func_8090120C(BossGanon2* this, PlayState* play);
++// LLM generated name (HIGH), was func_808FD5C4: drops Ganondorf below the floor, off targeting, and installs the intro cutscene
++void BossGanon2_SetupIntroCs(BossGanon2* this, PlayState* play);  // was func_808FD5C4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808FD5F4: the long intro: spawns Zelda, drives the sub-camera through its states and plays the burst-out animation
++void BossGanon2_IntroCs(BossGanon2* this, PlayState* play);  // was func_808FD5F4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808FFDB0: waits for the object, then loops the guard idle and arms the idle timer
++void BossGanon2_SetupIdle(BossGanon2* this, PlayState* play);  // was func_808FFDB0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808FFEBC: growls on a timer, brakes to a stop, and leaves for the walk or a swing when its timers run out
++void BossGanon2_Idle(BossGanon2* this, PlayState* play);  // was func_808FFEBC [LLM:HIGH]
++// LLM generated name (HIGH), was func_808FFFE0: sweeps the head from side to side on a sine while the window runs out
++void BossGanon2_LookAround(BossGanon2* this, PlayState* play);  // was func_808FFFE0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80900104: plays the stun start, holds the loop for 80 frames and plays the end before walking again
++void BossGanon2_Stunned(BossGanon2* this, PlayState* play);  // was func_80900104 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8090026C: brakes to a stop over the flinch animation and returns to the walk
++void BossGanon2_Damage(BossGanon2* this, PlayState* play);  // was func_8090026C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809002CC: loops the guard walk, clears the run flag and arms the walk window
++void BossGanon2_SetupWalk(BossGanon2* this, PlayState* play);  // was func_809002CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80900344: switches between the guard walk and the faster run by the player's distance, kicking dust on the footfall frames
++void BossGanon2_Walk(BossGanon2* this, PlayState* play);  // was func_80900344 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80900580: plays the left or right sword swing and records its impact frame
++void BossGanon2_SetupSwordSwing(BossGanon2* this, PlayState* play);  // was func_80900580 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80900650: arms the blade over the impact window, roars, and chains a second swing or returns to idle
++void BossGanon2_SwordSwing(BossGanon2* this, PlayState* play);  // was func_80900650 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80900890: the knocked-down cutscene: takes the camera, circles it onto Ganondorf and cuts to Zelda
++void BossGanon2_DownedCs(BossGanon2* this, PlayState* play);  // was func_80900890 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8090120C: the death cutscene: takes the camera, drives Zelda's states and runs the collapse
++void BossGanon2_DeathCs(BossGanon2* this, PlayState* play);  // was func_8090120C [LLM:HIGH]
+ void BossGanon2_UpdateEffects(BossGanon2* this, PlayState* play);
+ void BossGanon2_DrawEffects(PlayState* play);
+ void BossGanon2_GenShadowTexture(void* shadowTexture, BossGanon2* this, PlayState* play);
+@@ -57,11 +70,13 @@ const ActorInit Boss_Ganon2_InitVars = {
+ 
+ #include "z_boss_ganon2_data.c"
+ 
+-static Vec3f D_8090EB20;
++// LLM generated name (HIGH), was D_8090EB20: the randomised position NA_SE_EV_LIGHTNING is played at
++static Vec3f sLightningSfxPos;  // was D_8090EB20 [LLM:HIGH]
+ 
+ static EnZl3* sZelda;
+ 
+-static Actor* D_8090EB30;
++// LLM generated name (HIGH), was D_8090EB30: the scratch pointer used to walk the ITEMACTION list for ACTOR_EN_ELF and aim the sub-camera at it
++static Actor* sNaviActor;  // was D_8090EB30 [LLM:HIGH]
+ 
+ static BossGanon2Effect sEffects[100];
+ 
+@@ -69,22 +84,25 @@ static s32 sSeed1;
+ static s32 sSeed2;
+ static s32 sSeed3;
+ 
+-static Vec3f D_809105D8[4];
++// LLM generated name (HIGH), was D_809105D8: the four-deep history of sword tip positions the trail ribbon is built from
++static Vec3f sSwordTipTrail[4];  // was D_809105D8 [LLM:HIGH]
+ 
+-static Vec3f D_80910608[4];
++// LLM generated name (HIGH), was D_80910608: the matching four-deep history of sword base positions
++static Vec3f sSwordBaseTrail[4];  // was D_80910608 [LLM:HIGH]
+ 
+-static s8 D_80910638;
++// LLM generated name (HIGH), was D_80910638: counts recorded trail points; the trail is drawn only once it reaches four and resets when the sword is idle
++static s8 sSwordTrailLength;  // was D_80910638 [LLM:HIGH]
+ 
+ #define BOSS_GANON2_SHIP_SAVESTATE_FIELDS(F) \
+-    F(D_8090EB20)                            \
+-    F(D_80910638)                            \
++    F(sLightningSfxPos)                            \
++    F(sSwordTrailLength)                            \
+     F(sZelda)                                \
+-    F(D_8090EB30)                            \
++    F(sNaviActor)                            \
+     F(sSeed1)                                \
+     F(sSeed2)                                \
+     F(sSeed3)                                \
+-    F(D_809105D8)                            \
+-    F(D_80910608)                            \
++    F(sSwordTipTrail)                            \
++    F(sSwordBaseTrail)                            \
+     F(sEffects)
+ SHIP_SAVESTATE_DEFINE(BossGanon2, BOSS_GANON2_SHIP_SAVESTATE_FIELDS)
+ 
+@@ -109,7 +127,8 @@ f32 BossGanon2_RandZeroOne(void) {
+     return fabsf(randFloat);
+ }
+ 
+-void func_808FD080(s32 idx, ColliderJntSph* collider, Vec3f* arg2) {
++// LLM generated name (HIGH), was func_808FD080: moves one jntsph element onto a world point and rescales its radius
++void BossGanon2_SetSphereCenter(s32 idx, ColliderJntSph* collider, Vec3f* arg2) {
+     collider->elements[idx].dim.worldSphere.center.x = arg2->x;
+     collider->elements[idx].dim.worldSphere.center.y = arg2->y;
+     collider->elements[idx].dim.worldSphere.center.z = arg2->z;
+@@ -134,7 +153,8 @@ void BossGanon2_SetObjectSegment(BossGanon2* this, PlayState* play, s32 objectId
+     }
+ }
+ 
+-void func_808FD210(PlayState* play, Vec3f* arg1) {
++// LLM generated name (HIGH), was func_808FD210: fills the first effect slot with a type 1 arc thrown up and to the right
++void BossGanon2_SpawnRubbleEffect(PlayState* play, Vec3f* arg1) {
+     BossGanon2Effect* effect = play->specialEffects;
+ 
+     effect->type = 1;
+@@ -149,7 +169,8 @@ void func_808FD210(PlayState* play, Vec3f* arg1) {
+     effect->accel.z = 0.0f;
+ }
+ 
+-void func_808FD27C(PlayState* play, Vec3f* position, Vec3f* velocity, f32 scale) {
++// LLM generated name (HIGH), was func_808FD27C: takes a free effect slot for a type 2 tumbling piece with random spin
++void BossGanon2_SpawnDebrisEffect(PlayState* play, Vec3f* position, Vec3f* velocity, f32 scale) {
+     BossGanon2Effect* effect = play->specialEffects;
+     s16 i;
+ 
+@@ -191,7 +212,7 @@ void BossGanon2_Init(Actor* thisx, PlayState* play) {
+     Collider_SetJntSph(play, &this->unk_444, &this->actor, &sJntSphInit2, this->unk_864);
+     BossGanon2_SetObjectSegment(this, play, OBJECT_GANON, false);
+     SkelAnime_InitFlex(play, &this->skelAnime, &gGanondorfSkel, NULL, NULL, NULL, 0);
+-    func_808FD5C4(this, play);
++    BossGanon2_SetupIntroCs(this, play);  // was func_808FD5C4 [LLM:HIGH]
+     this->actor.naviEnemyId = 0x3E;
+     this->actor.gravity = 0.0f;
+ 
+@@ -210,7 +231,8 @@ void BossGanon2_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyJntSph(play, &this->unk_444);
+ }
+ 
+-void func_808FD4D4(BossGanon2* this, PlayState* play, s16 arg2, s16 arg3) {
++// LLM generated name (HIGH), was func_808FD4D4: rings floor dust under one or both feet, plays NA_SE_EN_MGANON_WALK and shakes the screen
++void BossGanon2_SpawnFootstepDust(BossGanon2* this, PlayState* play, s16 arg2, s16 arg3) {
+     if ((arg2 == 0) || (arg2 == 1)) {
+         Actor_SpawnFloorDustRing(play, &this->actor, &this->unk_1D0, 25.0f, arg3, 8.0f, 500, 10, true);
+     }
+@@ -223,13 +245,13 @@ void func_808FD4D4(BossGanon2* this, PlayState* play, s16 arg2, s16 arg3) {
+     Actor_RequestQuakeAndRumble(&this->actor, play, 2, 0xA);
+ }
+ 
+-void func_808FD5C4(BossGanon2* this, PlayState* play) {
+-    this->actionFunc = func_808FD5F4;
++void BossGanon2_SetupIntroCs(BossGanon2* this, PlayState* play) {
++    this->actionFunc = BossGanon2_IntroCs;  // was func_808FD5F4 [LLM:HIGH]
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+     this->actor.world.pos.y = -3000.0f;
+ }
+ 
+-void func_808FD5F4(BossGanon2* this, PlayState* play) {
++void BossGanon2_IntroCs(BossGanon2* this, PlayState* play) {
+     s16 pad;
+     u8 sp8D;
+     Player* player;
+@@ -703,7 +725,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+                 this->unk_420 = 10.0f;
+                 this->actor.velocity.y = 0.0f;
+                 Animation_MorphToPlayOnce(&this->skelAnime, &gGanonUncurlAndFlailAnim, 0.0f);
+-                func_808FD4D4(this, play, 0, 3);
++                BossGanon2_SpawnFootstepDust(this, play, 0, 3);  // was func_808FD4D4 [LLM:HIGH]
+                 Rumble_Override(0.0f, 0xC8, 0x14, 0x14);
+             }
+             break;
+@@ -796,7 +818,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+                     this->csTimer = 0;
+                     sp68 = player->actor.world.pos;
+                     sp68.y += 60.0f;
+-                    func_808FD210(play, &sp68);
++                    BossGanon2_SpawnRubbleEffect(play, &sp68);  // was func_808FD210 [LLM:HIGH]
+                     play->envCtx.unk_D8 = 0.0f;
+                     play->envCtx.unk_BE = 0;
+                     this->unk_339 = 0;
+@@ -873,18 +895,18 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+             this->subCamAt.y = player->actor.world.pos.y + 50.0f;
+             this->subCamAt.z = player->actor.world.pos.z;
+             if (this->csTimer == 26) {
+-                D_8090EB30 = play->actorCtx.actorLists[ACTORCAT_ITEMACTION].head;
+-                while (D_8090EB30 != NULL) {
+-                    if (D_8090EB30->id == ACTOR_EN_ELF) {
+-                        this->subCamEye.x = D_8090EB30->world.pos.x - 30.0f;
+-                        this->subCamEye.y = D_8090EB30->world.pos.y;
+-                        this->subCamEye.z = D_8090EB30->world.pos.z;
+-                        this->subCamAt.x = D_8090EB30->world.pos.x;
+-                        this->subCamAt.y = D_8090EB30->world.pos.y;
+-                        this->subCamAt.z = D_8090EB30->world.pos.z;
++                sNaviActor = play->actorCtx.actorLists[ACTORCAT_ITEMACTION].head;  // was D_8090EB30 [LLM:HIGH]
++                while (sNaviActor != NULL) {  // was D_8090EB30 [LLM:HIGH]
++                    if (sNaviActor->id == ACTOR_EN_ELF) {  // was D_8090EB30 [LLM:HIGH]
++                        this->subCamEye.x = sNaviActor->world.pos.x - 30.0f;  // was D_8090EB30 [LLM:HIGH]
++                        this->subCamEye.y = sNaviActor->world.pos.y;  // was D_8090EB30 [LLM:HIGH]
++                        this->subCamEye.z = sNaviActor->world.pos.z;  // was D_8090EB30 [LLM:HIGH]
++                        this->subCamAt.x = sNaviActor->world.pos.x;  // was D_8090EB30 [LLM:HIGH]
++                        this->subCamAt.y = sNaviActor->world.pos.y;  // was D_8090EB30 [LLM:HIGH]
++                        this->subCamAt.z = sNaviActor->world.pos.z;  // was D_8090EB30 [LLM:HIGH]
+                         break;
+                     }
+-                    D_8090EB30 = D_8090EB30->next;
++                    sNaviActor = sNaviActor->next;  // was D_8090EB30 [LLM:HIGH]
+                 }
+                 this->csState = 28;
+                 this->csTimer = 0;
+@@ -894,13 +916,13 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+             if (this->csTimer == 5) {
+                 Message_StartTextbox(play, 0x70D6, NULL);
+             }
+-            if (D_8090EB30 != NULL) {
+-                this->subCamEye.x = D_8090EB30->world.pos.x - 20.0f;
+-                this->subCamEye.y = D_8090EB30->world.pos.y;
+-                this->subCamEye.z = D_8090EB30->world.pos.z;
+-                Math_ApproachF(&this->subCamAt.x, D_8090EB30->world.pos.x, 0.2f, 50.0f);
+-                Math_ApproachF(&this->subCamAt.y, D_8090EB30->world.pos.y, 0.2f, 50.0f);
+-                Math_ApproachF(&this->subCamAt.z, D_8090EB30->world.pos.z, 0.2f, 50.0f);
++            if (sNaviActor != NULL) {  // was D_8090EB30 [LLM:HIGH]
++                this->subCamEye.x = sNaviActor->world.pos.x - 20.0f;  // was D_8090EB30 [LLM:HIGH]
++                this->subCamEye.y = sNaviActor->world.pos.y;  // was D_8090EB30 [LLM:HIGH]
++                this->subCamEye.z = sNaviActor->world.pos.z;  // was D_8090EB30 [LLM:HIGH]
++                Math_ApproachF(&this->subCamAt.x, sNaviActor->world.pos.x, 0.2f, 50.0f);  // was D_8090EB30 [LLM:HIGH]
++                Math_ApproachF(&this->subCamAt.y, sNaviActor->world.pos.y, 0.2f, 50.0f);  // was D_8090EB30 [LLM:HIGH]
++                Math_ApproachF(&this->subCamAt.z, sNaviActor->world.pos.z, 0.2f, 50.0f);  // was D_8090EB30 [LLM:HIGH]
+                 if ((this->csTimer > 40) && (Message_GetState(&play->msgCtx) == TEXT_STATE_NONE)) {
+                     this->csState = 29;
+                     this->csTimer = 0;
+@@ -940,7 +962,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+                 this->csState = 0;
+                 this->unk_337 = 1;
+-                func_808FFDB0(this, play);
++                BossGanon2_SetupIdle(this, play);  // was func_808FFDB0 [LLM:HIGH]
+                 this->unk_1A2[1] = 50;
+                 this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+                 sZelda->unk_3C8 = 7;
+@@ -962,7 +984,8 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808FF898(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808FF898: looks for a Demo_Gj rubble pile near the sword and knocks it apart with a rumble
++void BossGanon2_HitRubbleWithSword(BossGanon2* this, PlayState* play) {
+     if ((this->unk_312 != 0) && (this->subCamId == 0)) {
+         Actor* actor = play->actorCtx.actorLists[ACTORCAT_PROP].head;
+         while (actor != NULL) {
+@@ -1003,7 +1026,8 @@ void func_808FF898(BossGanon2* this, PlayState* play) {
+     }
+ }
+ 
+-s32 func_808FFA24(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808FFA24: true when a Demo_Gj rubble pile sits within 200 units of Ganondorf
++s32 BossGanon2_IsNearRubble(BossGanon2* this, PlayState* play) {
+     Actor* actor = play->actorCtx.actorLists[ACTORCAT_PROP].head;
+ 
+     while (actor != NULL) {
+@@ -1026,7 +1050,8 @@ s32 func_808FFA24(BossGanon2* this, PlayState* play) {
+     return false;
+ }
+ 
+-void func_808FFAC8(BossGanon2* this, PlayState* play, u8 arg2) {
++// LLM generated name (HIGH), was func_808FFAC8: eases the head yaw toward the player, clamped to 0x3000, and the pitch from the player's distance
++void BossGanon2_UpdateHeadTracking(BossGanon2* this, PlayState* play, u8 arg2) {
+     s16 temp_v1;
+     s16 phi_a1;
+ 
+@@ -1053,7 +1078,8 @@ void func_808FFAC8(BossGanon2* this, PlayState* play, u8 arg2) {
+     Math_ApproachS(&this->unk_31C, temp_v1, 5, 0x7D0);
+ }
+ 
+-void func_808FFBBC(BossGanon2* this, PlayState* play, u8 arg2) {
++// LLM generated name (HIGH), was func_808FFBBC: eases the body yaw onto the player at a rate that itself ramps up
++void BossGanon2_TurnTowardPlayer(BossGanon2* this, PlayState* play, u8 arg2) {
+     if (arg2 != 0 || this->unk_313) {
+         f32 phi_f0;
+         f32 phi_f2;
+@@ -1074,7 +1100,8 @@ void func_808FFBBC(BossGanon2* this, PlayState* play, u8 arg2) {
+     }
+ }
+ 
+-void func_808FFC84(BossGanon2* this) {
++// LLM generated name (HIGH), was func_808FFC84: sets the facing flag and picks the focus point according to whether the player is in front
++void BossGanon2_UpdateFacingPlayer(BossGanon2* this) {
+     if (ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) < 0x2800) {
+         this->unk_313 = true;
+         this->actor.focus.pos = this->unk_1B8;
+@@ -1084,27 +1111,28 @@ void func_808FFC84(BossGanon2* this) {
+     }
+ }
+ 
+-void func_808FFCFC(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808FFCFC: starts a sword swing when the player is close and in front, or when Ganondorf walks into rubble at a wall
++void BossGanon2_CheckSwingRange(BossGanon2* this, PlayState* play) {
+     if (this->actor.xzDistToPlayer < 150.0f &&
+         ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) < 0x2800) {
+         this->unk_311 = false;
+-        func_80900580(this, play);
++        BossGanon2_SetupSwordSwing(this, play);  // was func_80900580 [LLM:HIGH]
+         Audio_StopSfxById(NA_SE_EN_MGANON_UNARI);
+-    } else if ((this->actor.bgCheckFlags & BGCHECKFLAG_WALL) && func_808FFA24(this, play)) {
++    } else if ((this->actor.bgCheckFlags & BGCHECKFLAG_WALL) && BossGanon2_IsNearRubble(this, play)) {  // was func_808FFA24 [LLM:HIGH]
+         this->unk_311 = false;
+-        func_80900580(this, play);
++        BossGanon2_SetupSwordSwing(this, play);  // was func_80900580 [LLM:HIGH]
+         Audio_StopSfxById(NA_SE_EN_MGANON_UNARI);
+     }
+ }
+ 
+-void func_808FFDB0(BossGanon2* this, PlayState* play) {
++void BossGanon2_SetupIdle(BossGanon2* this, PlayState* play) {
+     s32 sp28;
+     s32 objectIdx = Object_GetIndex(&play->objectCtx, OBJECT_GANON2);
+ 
+     if (Object_IsLoaded(&play->objectCtx, objectIdx)) {
+         gSegments[6] = PHYSICAL_TO_VIRTUAL(play->objectCtx.status[objectIdx].segment);
+         Animation_MorphToLoop(&this->skelAnime, &gGanonGuardIdleAnim, -10.0f);
+-        this->actionFunc = func_808FFEBC;
++        this->actionFunc = BossGanon2_Idle;  // was func_808FFEBC [LLM:HIGH]
+ 
+         if (this->unk_334 != 0) {
+             this->unk_1A2[0] = Rand_ZeroFloat(30.0f);
+@@ -1117,11 +1145,11 @@ void func_808FFDB0(BossGanon2* this, PlayState* play) {
+         this->unk_228 = 1.0f;
+         this->unk_224 = 1.0f;
+     } else {
+-        this->actionFunc = func_808FFDB0;
++        this->actionFunc = BossGanon2_SetupIdle;  // was func_808FFDB0 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808FFEBC(BossGanon2* this, PlayState* play) {
++void BossGanon2_Idle(BossGanon2* this, PlayState* play) {
+     if (this->unk_390 == 0) {
+         this->unk_390 = (s16)Rand_ZeroFloat(50.0f) + 30;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_MGANON_UNARI);
+@@ -1131,29 +1159,30 @@ void func_808FFEBC(BossGanon2* this, PlayState* play) {
+     Math_ApproachZeroF(&this->actor.speedXZ, 0.5f, 1.0f);
+ 
+     if (this->unk_1A2[0] == 0) {
+-        func_809002CC(this, play);
++        BossGanon2_SetupWalk(this, play);  // was func_809002CC [LLM:HIGH]
+     } else if (this->unk_1A2[1] == 0) {
+-        func_808FFCFC(this, play);
++        BossGanon2_CheckSwingRange(this, play);  // was func_808FFCFC [LLM:HIGH]
+     }
+ 
+-    func_808FFAC8(this, play, 0);
+-    func_808FFBBC(this, play, 0);
++    BossGanon2_UpdateHeadTracking(this, play, 0);  // was func_808FFAC8 [LLM:HIGH]
++    BossGanon2_TurnTowardPlayer(this, play, 0);  // was func_808FFBBC [LLM:HIGH]
+ }
+ 
+-void func_808FFF90(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808FFF90: loops the guard idle with a 40-frame window and installs the look action
++void BossGanon2_SetupLookAround(BossGanon2* this, PlayState* play) {
+     Animation_MorphToLoop(&this->skelAnime, &gGanonGuardIdleAnim, -10.0f);
+-    this->actionFunc = func_808FFFE0;
++    this->actionFunc = BossGanon2_LookAround;  // was func_808FFFE0 [LLM:HIGH]
+     this->unk_1A2[0] = 40;
+ }
+ 
+-void func_808FFFE0(BossGanon2* this, PlayState* play) {
++void BossGanon2_LookAround(BossGanon2* this, PlayState* play) {
+     s16 target;
+ 
+     SkelAnime_Update(&this->skelAnime);
+     Math_ApproachZeroF(&this->actor.speedXZ, 0.5f, 1.0f);
+ 
+     if (this->unk_1A2[0] == 0) {
+-        func_809002CC(this, play);
++        BossGanon2_SetupWalk(this, play);  // was func_809002CC [LLM:HIGH]
+     }
+ 
+     if (this->unk_1A2[0] < 30 && this->unk_1A2[0] >= 10) {
+@@ -1165,14 +1194,15 @@ void func_808FFFE0(BossGanon2* this, PlayState* play) {
+     Math_ApproachS(&this->unk_31A, target, 2, 0x4000);
+ }
+ 
+-void func_809000A0(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809000A0: starts gGanonStunStartAnim and installs the stun action
++void BossGanon2_SetupStunned(BossGanon2* this, PlayState* play) {
+     Animation_MorphToLoop(&this->skelAnime, &gGanonStunStartAnim, -2.0f);
+     this->unk_194 = Animation_GetLastFrame(&gGanonStunStartAnim);
+     this->unk_1AC = 0;
+-    this->actionFunc = func_80900104;
++    this->actionFunc = BossGanon2_Stunned;  // was func_80900104 [LLM:HIGH]
+ }
+ 
+-void func_80900104(BossGanon2* this, PlayState* play) {
++void BossGanon2_Stunned(BossGanon2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     Math_ApproachZeroF(&this->actor.speedXZ, 0.5f, 1.0f);
+ 
+@@ -1193,36 +1223,37 @@ void func_80900104(BossGanon2* this, PlayState* play) {
+             break;
+         case 2:
+             if (Animation_OnFrame(&this->skelAnime, this->unk_194)) {
+-                func_809002CC(this, play);
++                BossGanon2_SetupWalk(this, play);  // was func_809002CC [LLM:HIGH]
+             }
+             break;
+     }
+ }
+ 
+-void func_80900210(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80900210: plays gGanonDamageAnim once and installs the flinch
++void BossGanon2_SetupDamage(BossGanon2* this, PlayState* play) {
+     Animation_MorphToPlayOnce(&this->skelAnime, &gGanonDamageAnim, -3.0f);
+     this->unk_194 = Animation_GetLastFrame(&gGanonDamageAnim);
+-    this->actionFunc = func_8090026C;
++    this->actionFunc = BossGanon2_Damage;  // was func_8090026C [LLM:HIGH]
+ }
+ 
+-void func_8090026C(BossGanon2* this, PlayState* play) {
++void BossGanon2_Damage(BossGanon2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     Math_ApproachZeroF(&this->actor.speedXZ, 0.5f, 2.0f);
+ 
+     if (Animation_OnFrame(&this->skelAnime, this->unk_194)) {
+-        func_809002CC(this, play);
++        BossGanon2_SetupWalk(this, play);  // was func_809002CC [LLM:HIGH]
+     }
+ }
+ 
+-void func_809002CC(BossGanon2* this, PlayState* play) {
++void BossGanon2_SetupWalk(BossGanon2* this, PlayState* play) {
+     Animation_MorphToLoop(&this->skelAnime, &gGanonGuardWalkAnim, -10.0f);
+-    this->actionFunc = func_80900344;
++    this->actionFunc = BossGanon2_Walk;  // was func_80900344 [LLM:HIGH]
+     this->unk_338 = 0;
+     this->unk_1A2[0] = 100;
+     this->unk_390 = (s16)Rand_ZeroFloat(50.0f) + 50;
+ }
+ 
+-void func_80900344(BossGanon2* this, PlayState* play) {
++void BossGanon2_Walk(BossGanon2* this, PlayState* play) {
+     f32 phi_f0;
+ 
+     if (this->unk_390 == 0) {
+@@ -1234,9 +1265,9 @@ void func_80900344(BossGanon2* this, PlayState* play) {
+ 
+     if (this->unk_338 != 0) {
+         if (Animation_OnFrame(&this->skelAnime, 13.0f)) {
+-            func_808FD4D4(this, play, 1, 3);
++            BossGanon2_SpawnFootstepDust(this, play, 1, 3);  // was func_808FD4D4 [LLM:HIGH]
+         } else if (Animation_OnFrame(&this->skelAnime, 28.0f)) {
+-            func_808FD4D4(this, play, 2, 3);
++            BossGanon2_SpawnFootstepDust(this, play, 2, 3);  // was func_808FD4D4 [LLM:HIGH]
+         }
+         if (this->actor.xzDistToPlayer < 200.0f) {
+             this->unk_338 = 0;
+@@ -1263,16 +1294,16 @@ void func_80900344(BossGanon2* this, PlayState* play) {
+     Math_ApproachF(&this->actor.speedXZ, phi_f0, 0.5f, 1.0f);
+ 
+     if (this->unk_1A2[0] == 0) {
+-        func_808FFDB0(this, play);
++        BossGanon2_SetupIdle(this, play);  // was func_808FFDB0 [LLM:HIGH]
+     } else {
+-        func_808FFCFC(this, play);
++        BossGanon2_CheckSwingRange(this, play);  // was func_808FFCFC [LLM:HIGH]
+     }
+ 
+-    func_808FFAC8(this, play, 1);
+-    func_808FFBBC(this, play, 1);
++    BossGanon2_UpdateHeadTracking(this, play, 1);  // was func_808FFAC8 [LLM:HIGH]
++    BossGanon2_TurnTowardPlayer(this, play, 1);  // was func_808FFBBC [LLM:HIGH]
+ }
+ 
+-void func_80900580(BossGanon2* this, PlayState* play) {
++void BossGanon2_SetupSwordSwing(BossGanon2* this, PlayState* play) {
+     if (this->unk_311 == 0) {
+         Animation_MorphToPlayOnce(&this->skelAnime, &gGanonLeftSwordSwingAnim, -5.0f);
+         this->unk_194 = Animation_GetLastFrame(&gGanonLeftSwordSwingAnim);
+@@ -1283,10 +1314,10 @@ void func_80900580(BossGanon2* this, PlayState* play) {
+         this->unk_198 = (this->unk_194 - 15.0f) - 5.0f;
+     }
+ 
+-    this->actionFunc = func_80900650;
++    this->actionFunc = BossGanon2_SwordSwing;  // was func_80900650 [LLM:HIGH]
+ }
+ 
+-void func_80900650(BossGanon2* this, PlayState* play) {
++void BossGanon2_SwordSwing(BossGanon2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+ 
+     if (Animation_OnFrame(&this->skelAnime, this->unk_198)) {
+@@ -1310,32 +1341,33 @@ void func_80900650(BossGanon2* this, PlayState* play) {
+         this->unk_311 = 1 - this->unk_311;
+ 
+         if ((this->unk_311 == 1) && (this->actor.xzDistToPlayer < 250.0f) && this->unk_313) {
+-            func_80900580(this, play);
++            BossGanon2_SetupSwordSwing(this, play);  // was func_80900580 [LLM:HIGH]
+         } else {
+-            func_808FFDB0(this, play);
++            BossGanon2_SetupIdle(this, play);  // was func_808FFDB0 [LLM:HIGH]
+         }
+     }
+ 
+-    func_808FFAC8(this, play, 0);
++    BossGanon2_UpdateHeadTracking(this, play, 0);  // was func_808FFAC8 [LLM:HIGH]
+ 
+     if ((this->unk_334 == 0) && (this->unk_311 == 0)) {
+         this->unk_320 = 0.0f;
+     } else {
+-        func_808FFBBC(this, play, 0);
++        BossGanon2_TurnTowardPlayer(this, play, 0);  // was func_808FFBBC [LLM:HIGH]
+     }
+ }
+ 
+-void func_80900818(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80900818: plays gGanonDownedStartAnim with NA_SE_EN_MGANON_DEAD1 and starts the downed cutscene
++void BossGanon2_SetupDowned(BossGanon2* this, PlayState* play) {
+     Animation_MorphToPlayOnce(&this->skelAnime, &gGanonDownedStartAnim, -5.0f);
+     this->unk_194 = Animation_GetLastFrame(&gGanonDownedStartAnim);
+-    this->actionFunc = func_80900890;
++    this->actionFunc = BossGanon2_DownedCs;  // was func_80900890 [LLM:HIGH]
+     this->unk_1AC = 0;
+     this->csState = 0;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_MGANON_DEAD1);
+     this->unk_336 = 0;
+ }
+ 
+-void func_80900890(BossGanon2* this, PlayState* play) {
++void BossGanon2_DownedCs(BossGanon2* this, PlayState* play) {
+     Vec3f sp5C;
+     Vec3f sp50;
+     Camera* sp4C;
+@@ -1476,7 +1508,7 @@ void func_80900890(BossGanon2* this, PlayState* play) {
+             Math_ApproachF(&this->unk_324, 255.0f, 1.0f, 10.0f);
+             Math_ApproachZeroF(&play->envCtx.unk_D8, 1.0f, 2.0f / 51.0f);
+             if (Animation_OnFrame(&this->skelAnime, this->unk_194)) {
+-                func_808FFDB0(this, play);
++                BossGanon2_SetupIdle(this, play);  // was func_808FFDB0 [LLM:HIGH]
+                 if (this->unk_334 == 0) {
+                     this->actor.colChkInfo.health = 25;
+                 }
+@@ -1488,17 +1520,19 @@ void func_80900890(BossGanon2* this, PlayState* play) {
+     Math_ApproachZeroF(&this->actor.speedXZ, 0.5f, 1.0f);
+ }
+ 
+-void func_80901020(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80901020: the same downed animation, but entering the final death cutscene and setting the fourth Ganondorf state
++void BossGanon2_SetupDeathCs(BossGanon2* this, PlayState* play) {
+     Animation_MorphToPlayOnce(&this->skelAnime, &gGanonDownedStartAnim, -5.0f);
+     this->unk_194 = Animation_GetLastFrame(&gGanonDownedStartAnim);
+-    this->actionFunc = func_8090120C;
++    this->actionFunc = BossGanon2_DeathCs;  // was func_8090120C [LLM:HIGH]
+     this->unk_1AC = 0;
+     this->csState = 0;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_MGANON_DEAD1);
+     this->unk_314 = 4;
+ }
+ 
+-void func_8090109C(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8090109C: throws seventy dust puffs from the head, green as shipped and red under the RedGanonBlood enhancement
++void BossGanon2_SpawnBloodDust(BossGanon2* this, PlayState* play) {
+     u8 i;
+ 
+     static Color_RGBA8 sPrimColor = { 0, 120, 0, 255 };
+@@ -1530,7 +1564,7 @@ void func_8090109C(BossGanon2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8090120C(BossGanon2* this, PlayState* play) {
++void BossGanon2_DeathCs(BossGanon2* this, PlayState* play) {
+     Player* player;
+     f32 temp_f14;
+     f32 temp_f12;
+@@ -1737,7 +1771,7 @@ void func_8090120C(BossGanon2* this, PlayState* play) {
+                 play->envCtx.unk_D8 = 1.0f;
+             }
+             if ((this->csTimer == 22) || (this->csTimer == 35) || (this->csTimer == 72) || (this->csTimer == 45)) {
+-                func_8090109C(this, play);
++                BossGanon2_SpawnBloodDust(this, play);  // was func_8090109C [LLM:HIGH]
+             }
+             if ((this->csTimer >= 34) && (this->csTimer < 40)) {
+                 this->subCamEye.x = 269.0f;
+@@ -1902,7 +1936,8 @@ void func_8090120C(BossGanon2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80902348(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80902348: knocks the player back off the blade and sets them alight when they stray outside the ring of fire
++void BossGanon2_UpdateCollision(BossGanon2* this, PlayState* play) {
+     Player* player;
+     f32 temp_f2;
+     f32 temp_f12;
+@@ -1956,7 +1991,7 @@ void BossGanon2_CollisionCheck(BossGanon2* this, PlayState* play) {
+     u8 phi_v1_2;
+ 
+     osSyncPrintf("this->no_hit_time %d\n", this->unk_316);
+-    if (this->unk_316 != 0 || ((this->unk_334 == 0) && (this->actionFunc == func_80900890))) {
++    if (this->unk_316 != 0 || ((this->unk_334 == 0) && (this->actionFunc == BossGanon2_DownedCs))) {  // was func_80900890 [LLM:HIGH]
+         for (i = 0; i < ARRAY_COUNT(this->unk_464); i++) {
+             this->unk_424.elements[i].info.bumperFlags &= ~2;
+         }
+@@ -1964,16 +1999,16 @@ void BossGanon2_CollisionCheck(BossGanon2* this, PlayState* play) {
+ 
+     osSyncPrintf("this->look_on %d\n", this->unk_313);
+     if (this->unk_313) {
+-        if (this->actionFunc != func_808FFFE0) {
++        if (this->actionFunc != BossGanon2_LookAround) {  // was func_808FFFE0 [LLM:HIGH]
+             if (this->unk_424.elements[0].info.bumperFlags & 2) {
+                 this->unk_424.elements[0].info.bumperFlags &= ~2;
+                 acHitInfo = this->unk_424.elements[0].info.acHitInfo;
+-                if ((acHitInfo->toucher.dmgFlags & 0x2000) && (this->actionFunc != func_80900890)) {
+-                    func_809000A0(this, play);
++                if ((acHitInfo->toucher.dmgFlags & 0x2000) && (this->actionFunc != BossGanon2_DownedCs)) {  // was func_80900890 [LLM:HIGH]
++                    BossGanon2_SetupStunned(this, play);  // was func_809000A0 [LLM:HIGH]
+                     Audio_PlayActorSound2(&this->actor, NA_SE_EN_FANTOM_HIT_THUNDER);
+                     Audio_PlayActorSound2(&this->actor, NA_SE_EN_MGANON_DAMAGE);
+                     Audio_StopSfxById(NA_SE_EN_MGANON_UNARI);
+-                } else if ((this->actionFunc == func_80900890) && (acHitInfo->toucher.dmgFlags & 0x9000200)) {
++                } else if ((this->actionFunc == BossGanon2_DownedCs) && (acHitInfo->toucher.dmgFlags & 0x9000200)) {  // was func_80900890 [LLM:HIGH]
+                     this->unk_316 = 60;
+                     this->unk_342 = 5;
+                     Audio_PlayActorSound2(&this->actor, NA_SE_EN_MGANON_DAMAGE);
+@@ -1981,16 +2016,16 @@ void BossGanon2_CollisionCheck(BossGanon2* this, PlayState* play) {
+                     this->actor.colChkInfo.health -= 2;
+                     temp_v0_4 = this->actor.colChkInfo.health;
+                     if (temp_v0_4 < 0x15 && this->unk_334 == 0) {
+-                        func_80900818(this, play);
++                        BossGanon2_SetupDowned(this, play);  // was func_80900818 [LLM:HIGH]
+                     } else {
+                         if (temp_v0_4 <= 0) {
+-                            func_80901020(this, play);
++                            BossGanon2_SetupDeathCs(this, play);  // was func_80901020 [LLM:HIGH]
+                         } else {
+-                            func_80900210(this, play);
++                            BossGanon2_SetupDamage(this, play);  // was func_80900210 [LLM:HIGH]
+                         }
+                     }
+-                } else if (this->actionFunc != func_80900890) {
+-                    func_808FFF90(this, play);
++                } else if (this->actionFunc != BossGanon2_DownedCs) {  // was func_80900890 [LLM:HIGH]
++                    BossGanon2_SetupLookAround(this, play);  // was func_808FFF90 [LLM:HIGH]
+                     Audio_PlayActorSound2(&this->actor, NA_SE_IT_HOOKSHOT_REFLECT);
+                 }
+             }
+@@ -2015,14 +2050,14 @@ void BossGanon2_CollisionCheck(BossGanon2* this, PlayState* play) {
+             this->actor.colChkInfo.health -= phi_v1_2;
+             temp_v0_4 = this->actor.colChkInfo.health;
+             if ((temp_v0_4 < 0x15) && (this->unk_334 == 0)) {
+-                func_80900818(this, play);
++                BossGanon2_SetupDowned(this, play);  // was func_80900818 [LLM:HIGH]
+             } else if ((temp_v0_4 <= 0) && (phi_v1_2 >= 2)) {
+-                func_80901020(this, play);
++                BossGanon2_SetupDeathCs(this, play);  // was func_80901020 [LLM:HIGH]
+             } else {
+                 if (temp_v0_4 <= 0) {
+                     this->actor.colChkInfo.health = 1;
+                 }
+-                func_80900210(this, play);
++                BossGanon2_SetupDamage(this, play);  // was func_80900210 [LLM:HIGH]
+             }
+         }
+     }
+@@ -2045,7 +2080,7 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+         BossGanon2_SetObjectSegment(this, play, OBJECT_GANON2, false);
+         Math_ApproachZeroF(&this->unk_30C, 1.0f, 0.5f);
+     }
+-    func_808FFC84(this);
++    BossGanon2_UpdateFacingPlayer(this);  // was func_808FFC84 [LLM:HIGH]
+     this->unk_312 = 0;
+     this->unk_19C++;
+     Actor_SetScale(&this->actor, 0.01f);
+@@ -2099,8 +2134,8 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+         Math_ApproachF(&this->unk_360.x, 2000.0f, 0.1f, 100.0f);
+         this->unk_370.y = 12000.0f;
+         Math_ApproachF(&this->unk_370.x, 1500.0f, 0.1f, 100.0f);
+-        if ((this->actionFunc == func_808FFEBC) || (this->actionFunc == func_808FFFE0) ||
+-            (this->actionFunc == func_80900104)) {
++        if ((this->actionFunc == BossGanon2_Idle) || (this->actionFunc == BossGanon2_LookAround) ||  // was func_808FFEBC [LLM:HIGH]
++            (this->actionFunc == BossGanon2_Stunned)) {  // was func_80900104 [LLM:HIGH]
+             Math_ApproachF(&this->unk_360.z, 1000.0f, 0.1f, 100.0f);
+             Math_ApproachF(&this->unk_370.z, 1000.0f, 0.1f, 100.0f);
+             Math_ApproachS(&this->unk_346, -0xFA0, 0xA, 0x64);
+@@ -2132,10 +2167,10 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+         this->unk_352[i] = Math_SinS(((s16)this->unk_36C + (i * (s16)this->unk_370.y))) * phi_f2 * this->unk_370.z;
+     }
+ 
+-    func_808FF898(this, play);
+-    func_80902348(this, play);
++    BossGanon2_HitRubbleWithSword(this, play);  // was func_808FF898 [LLM:HIGH]
++    BossGanon2_UpdateCollision(this, play);  // was func_80902348 [LLM:HIGH]
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->unk_424.base);
+-    if (this->actionFunc != func_8090120C) {
++    if (this->actionFunc != BossGanon2_DeathCs) {  // was func_8090120C [LLM:HIGH]
+         BossGanon2_CollisionCheck(this, play);
+         CollisionCheck_SetAC(play, &play->colChkCtx, &this->unk_424.base);
+         CollisionCheck_SetOC(play, &play->colChkCtx, &this->unk_444.base);
+@@ -2154,13 +2189,13 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+         play->envCtx.unk_BE = 0;
+         play->envCtx.unk_BD = (s8)Rand_ZeroFloat(1.9f) + 1;
+         play->envCtx.unk_D8 = 1.0f;
+-        D_8090EB20.y = 0.0f;
+-        D_8090EB20.x = D_8090EB20.y;
+-        D_8090EB20.z = D_8090EB20.x;
++        sLightningSfxPos.y = 0.0f;  // was D_8090EB20 [LLM:HIGH]
++        sLightningSfxPos.x = sLightningSfxPos.y;  // was D_8090EB20 [LLM:HIGH]
++        sLightningSfxPos.z = sLightningSfxPos.x;  // was D_8090EB20 [LLM:HIGH]
+         if (Rand_ZeroOne() < 0.5f) {
+-            D_8090EB20.z = Rand_ZeroFloat(1000.0f);
++            sLightningSfxPos.z = Rand_ZeroFloat(1000.0f);  // was D_8090EB20 [LLM:HIGH]
+         }
+-        Sfx_PlaySfxAtPos(&D_8090EB20, NA_SE_EV_LIGHTNING);
++        Sfx_PlaySfxAtPos(&sLightningSfxPos, NA_SE_EV_LIGHTNING);  // was D_8090EB20 [LLM:HIGH]
+         this->unk_328 = 0xFF;
+         this->unk_330 = 5;
+         this->unk_32C = 0.0f;
+@@ -2256,14 +2291,15 @@ void BossGanon2_Update(Actor* thisx, PlayState* play) {
+             sp4C.y = Rand_ZeroFloat(15.0f) + 15.0f;
+             sp58.x += sp4C.x * 10.0f * 0.1f;
+             sp58.z += sp4C.z * 10.0f * 0.1f;
+-            func_808FD27C(play, &sp58, &sp4C, Rand_ZeroFloat(0.3f) + 0.2f);
++            BossGanon2_SpawnDebrisEffect(play, &sp58, &sp4C, Rand_ZeroFloat(0.3f) + 0.2f);  // was func_808FD27C [LLM:HIGH]
+         }
+     }
+     this->unk_388 += 0.15f;
+     BossGanon2_UpdateEffects(this, play);
+ }
+ 
+-void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
++// LLM generated name (HIGH), was func_809034E4: pushes the sword tip and base into their four-deep history and rebuilds the trail vertices from it
++void BossGanon2_RecordSwordTrail(Vec3f* arg0, Vec3f* arg1) {
+     Vtx* vtx;
+     Vec3f sp2D0;
+     s16 temp_s1;
+@@ -2293,27 +2329,27 @@ void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
+ 
+     temp_s4 = 0;
+ 
+-    D_809105D8[3] = D_809105D8[2];
+-    D_809105D8[2] = D_809105D8[1];
+-    D_809105D8[1] = D_809105D8[0];
+-    D_809105D8[0] = *arg0;
++    sSwordTipTrail[3] = sSwordTipTrail[2];  // was D_809105D8 [LLM:HIGH]
++    sSwordTipTrail[2] = sSwordTipTrail[1];  // was D_809105D8 [LLM:HIGH]
++    sSwordTipTrail[1] = sSwordTipTrail[0];  // was D_809105D8 [LLM:HIGH]
++    sSwordTipTrail[0] = *arg0;  // was D_809105D8 [LLM:HIGH]
+ 
+-    sp2D0 = D_809105D8[0];
++    sp2D0 = sSwordTipTrail[0];  // was D_809105D8 [LLM:HIGH]
+ 
+-    temp_f20.x = D_809105D8[1].x - sp2D0.x;
+-    temp_f20.y = D_809105D8[1].y - sp2D0.y;
+-    temp_f20.z = D_809105D8[1].z - sp2D0.z;
++    temp_f20.x = sSwordTipTrail[1].x - sp2D0.x;  // was D_809105D8 [LLM:HIGH]
++    temp_f20.y = sSwordTipTrail[1].y - sp2D0.y;  // was D_809105D8 [LLM:HIGH]
++    temp_f20.z = sSwordTipTrail[1].z - sp2D0.z;  // was D_809105D8 [LLM:HIGH]
+ 
+     sp2CA = Math_Atan2S(temp_f20.z, temp_f20.x);
+     sp2C8 = Math_Atan2S(sqrtf(SQXZ(temp_f20)), temp_f20.y);
+ 
+-    temp_f2.x = D_809105D8[2].x - D_809105D8[1].x;
+-    temp_f2.y = D_809105D8[2].y - D_809105D8[1].y;
+-    temp_f2.z = D_809105D8[2].z - D_809105D8[1].z;
++    temp_f2.x = sSwordTipTrail[2].x - sSwordTipTrail[1].x;  // was D_809105D8 [LLM:HIGH]
++    temp_f2.y = sSwordTipTrail[2].y - sSwordTipTrail[1].y;  // was D_809105D8 [LLM:HIGH]
++    temp_f2.z = sSwordTipTrail[2].z - sSwordTipTrail[1].z;  // was D_809105D8 [LLM:HIGH]
+ 
+-    temp_f22.x = D_809105D8[3].x - D_809105D8[2].x;
+-    temp_f22.y = D_809105D8[3].y - D_809105D8[2].y;
+-    temp_f22.z = D_809105D8[3].z - D_809105D8[2].z;
++    temp_f22.x = sSwordTipTrail[3].x - sSwordTipTrail[2].x;  // was D_809105D8 [LLM:HIGH]
++    temp_f22.y = sSwordTipTrail[3].y - sSwordTipTrail[2].y;  // was D_809105D8 [LLM:HIGH]
++    temp_f22.z = sSwordTipTrail[3].z - sSwordTipTrail[2].z;  // was D_809105D8 [LLM:HIGH]
+ 
+     temp_f12 = sqrtf(SQXYZ(temp_f20)) + sqrtf(SQXYZ(temp_f2)) + sqrtf(SQXYZ(temp_f22));
+     if (temp_f12 <= 1.0f) {
+@@ -2327,9 +2363,9 @@ void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
+     phi_s2 = 1;
+ 
+     while (true) {
+-        temp_f20.x = D_809105D8[phi_s2].x - sp2D0.x;
+-        temp_f20.y = D_809105D8[phi_s2].y - sp2D0.y;
+-        temp_f20.z = D_809105D8[phi_s2].z - sp2D0.z;
++        temp_f20.x = sSwordTipTrail[phi_s2].x - sp2D0.x;  // was D_809105D8 [LLM:HIGH]
++        temp_f20.y = sSwordTipTrail[phi_s2].y - sp2D0.y;  // was D_809105D8 [LLM:HIGH]
++        temp_f20.z = sSwordTipTrail[phi_s2].z - sp2D0.z;  // was D_809105D8 [LLM:HIGH]
+ 
+         temp_s1 = Math_Atan2S(temp_f20.z, temp_f20.x);
+         temp_a1 = Math_Atan2S(sqrtf(SQXZ(temp_f20)), temp_f20.y);
+@@ -2345,9 +2381,9 @@ void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
+         sp2D0.y += temp_f28 * Math_SinS(sp2C8);
+         sp2D0.z += temp_f26 * Math_CosS(sp2CA);
+ 
+-        temp_f20.x = D_809105D8[phi_s2].x - sp2D0.x;
+-        temp_f20.y = D_809105D8[phi_s2].y - sp2D0.y;
+-        temp_f20.z = D_809105D8[phi_s2].z - sp2D0.z;
++        temp_f20.x = sSwordTipTrail[phi_s2].x - sp2D0.x;  // was D_809105D8 [LLM:HIGH]
++        temp_f20.y = sSwordTipTrail[phi_s2].y - sp2D0.y;  // was D_809105D8 [LLM:HIGH]
++        temp_f20.z = sSwordTipTrail[phi_s2].z - sp2D0.z;  // was D_809105D8 [LLM:HIGH]
+ 
+         if (phi_s2 < 3) {
+             if (sqrtf(SQXYZ(temp_f20)) <= phi_f30) {
+@@ -2369,27 +2405,27 @@ void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
+ 
+     temp_s4_2 = 0;
+ 
+-    D_80910608[3] = D_80910608[2];
+-    D_80910608[2] = D_80910608[1];
+-    D_80910608[1] = D_80910608[0];
+-    D_80910608[0] = *arg1;
++    sSwordBaseTrail[3] = sSwordBaseTrail[2];  // was D_80910608 [LLM:HIGH]
++    sSwordBaseTrail[2] = sSwordBaseTrail[1];  // was D_80910608 [LLM:HIGH]
++    sSwordBaseTrail[1] = sSwordBaseTrail[0];  // was D_80910608 [LLM:HIGH]
++    sSwordBaseTrail[0] = *arg1;  // was D_80910608 [LLM:HIGH]
+ 
+-    sp2D0 = D_80910608[0];
++    sp2D0 = sSwordBaseTrail[0];  // was D_80910608 [LLM:HIGH]
+ 
+-    temp_f20.x = D_80910608[1].x - sp2D0.x;
+-    temp_f20.y = D_80910608[1].y - sp2D0.y;
+-    temp_f20.z = D_80910608[1].z - sp2D0.z;
++    temp_f20.x = sSwordBaseTrail[1].x - sp2D0.x;  // was D_80910608 [LLM:HIGH]
++    temp_f20.y = sSwordBaseTrail[1].y - sp2D0.y;  // was D_80910608 [LLM:HIGH]
++    temp_f20.z = sSwordBaseTrail[1].z - sp2D0.z;  // was D_80910608 [LLM:HIGH]
+ 
+     sp2CA = Math_Atan2S(temp_f20.z, temp_f20.x);
+     sp2C8 = Math_Atan2S(sqrtf(SQXZ(temp_f20)), temp_f20.y);
+ 
+-    temp_f2.x = D_80910608[2].x - D_80910608[1].x;
+-    temp_f2.y = D_80910608[2].y - D_80910608[1].y;
+-    temp_f2.z = D_80910608[2].z - D_80910608[1].z;
++    temp_f2.x = sSwordBaseTrail[2].x - sSwordBaseTrail[1].x;  // was D_80910608 [LLM:HIGH]
++    temp_f2.y = sSwordBaseTrail[2].y - sSwordBaseTrail[1].y;  // was D_80910608 [LLM:HIGH]
++    temp_f2.z = sSwordBaseTrail[2].z - sSwordBaseTrail[1].z;  // was D_80910608 [LLM:HIGH]
+ 
+-    temp_f22.x = D_80910608[3].x - D_80910608[2].x;
+-    temp_f22.y = D_80910608[3].y - D_80910608[2].y;
+-    temp_f22.z = D_80910608[3].z - D_80910608[2].z;
++    temp_f22.x = sSwordBaseTrail[3].x - sSwordBaseTrail[2].x;  // was D_80910608 [LLM:HIGH]
++    temp_f22.y = sSwordBaseTrail[3].y - sSwordBaseTrail[2].y;  // was D_80910608 [LLM:HIGH]
++    temp_f22.z = sSwordBaseTrail[3].z - sSwordBaseTrail[2].z;  // was D_80910608 [LLM:HIGH]
+ 
+     temp_f12 = sqrtf(SQXYZ(temp_f20)) + sqrtf(SQXYZ(temp_f2)) + sqrtf(SQXYZ(temp_f22));
+     if (temp_f12 <= 1.0f) {
+@@ -2403,9 +2439,9 @@ void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
+     phi_s2 = 1;
+ 
+     while (true) {
+-        temp_f20.x = D_80910608[phi_s2].x - sp2D0.x;
+-        temp_f20.y = D_80910608[phi_s2].y - sp2D0.y;
+-        temp_f20.z = D_80910608[phi_s2].z - sp2D0.z;
++        temp_f20.x = sSwordBaseTrail[phi_s2].x - sp2D0.x;  // was D_80910608 [LLM:HIGH]
++        temp_f20.y = sSwordBaseTrail[phi_s2].y - sp2D0.y;  // was D_80910608 [LLM:HIGH]
++        temp_f20.z = sSwordBaseTrail[phi_s2].z - sp2D0.z;  // was D_80910608 [LLM:HIGH]
+ 
+         temp_s1 = Math_Atan2S(temp_f20.z, temp_f20.x);
+         temp_a1 = Math_Atan2S(sqrtf(SQXZ(temp_f20)), temp_f20.y);
+@@ -2421,9 +2457,9 @@ void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
+         sp2D0.y += temp_f28 * Math_SinS(sp2C8);
+         sp2D0.z += temp_f26 * Math_CosS(sp2CA);
+ 
+-        temp_f20.x = D_80910608[phi_s2].x - sp2D0.x;
+-        temp_f20.y = D_80910608[phi_s2].y - sp2D0.y;
+-        temp_f20.z = D_80910608[phi_s2].z - sp2D0.z;
++        temp_f20.x = sSwordBaseTrail[phi_s2].x - sp2D0.x;  // was D_80910608 [LLM:HIGH]
++        temp_f20.y = sSwordBaseTrail[phi_s2].y - sp2D0.y;  // was D_80910608 [LLM:HIGH]
++        temp_f20.z = sSwordBaseTrail[phi_s2].z - sp2D0.z;  // was D_80910608 [LLM:HIGH]
+ 
+         if (phi_s2 < 3) {
+             if (sqrtf(SQXYZ(temp_f20)) <= phi_f30) {
+@@ -2458,15 +2494,16 @@ void func_809034E4(Vec3f* arg0, Vec3f* arg1) {
+     }
+ }
+ 
+-void func_80903F38(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80903F38: draws gGanonSwordTrailDL once at least four trail points have been recorded
++void BossGanon2_DrawSwordTrail(BossGanon2* this, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     if (this->unk_312 != 0) {
+-        func_809034E4(&this->unk_200, &this->unk_20C);
++        BossGanon2_RecordSwordTrail(&this->unk_200, &this->unk_20C);  // was func_809034E4 [LLM:HIGH]
+         sSwordTrailAlpha = 0xFF;  // was D_80907080 [LLM:HIGH]
+     }
+ 
+-    if (D_80910638 >= 4) {
++    if (sSwordTrailLength >= 4) {  // was D_80910638 [LLM:HIGH]
+         gSPSegment(POLY_XLU_DISP++, 0x08,
+                    Gfx_TwoTexScrollEx(play->state.gfxCtx, 0, 0, 0, 32, 32, 1, play->gameplayFrames * 18, 0, 32, 32, 0,
+                                       0, 18, 0));
+@@ -2480,7 +2517,8 @@ void func_80903F38(BossGanon2* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80904108(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80904108: draws gGanonFireRingDL around the arena at the current ring alpha
++void BossGanon2_DrawFireRing(BossGanon2* this, PlayState* play) {
+     s32 pad;
+ 
+     if (this->unk_324 > 0.0f) {
+@@ -2503,7 +2541,8 @@ void func_80904108(BossGanon2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80904340(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80904340: draws five gGanonLightningDL bolts at random angles above the arena while the flash timer runs
++void BossGanon2_DrawLightning(BossGanon2* this, PlayState* play) {
+     s16 i;
+     f32 rand;
+     f32 angle;
+@@ -2554,7 +2593,8 @@ void func_80904340(BossGanon2* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_8090464C(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8090464C: draws gGanonTriforceDL billboarded at the head position
++void BossGanon2_DrawTriforce(BossGanon2* this, PlayState* play) {
+     s32 pad;
+ 
+     if (this->unk_1B4 > 0.0f) {
+@@ -2638,7 +2678,7 @@ void BossGanon2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+     temp_v0 = sLimbTrailIndices[limbIndex];  // was D_8090709C [LLM:GUESS]
+     if (temp_v0 >= 0) {
+         Matrix_MultVec3f(&sOrigin, &sp4C);  // was D_80906D60 [LLM:HIGH]
+-        func_808FD080(temp_v0, &this->unk_424, &sp4C);
++        BossGanon2_SetSphereCenter(temp_v0, &this->unk_424, &sp4C);  // was func_808FD080 [LLM:HIGH]
+     }
+ 
+     if ((limbIndex == 7) || (limbIndex == 13)) {
+@@ -2658,12 +2698,12 @@ void BossGanon2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+     if (*dList != NULL) {
+         if ((limbIndex == 7) && (this->unk_312 == 1)) {
+             Matrix_MultVec3f(&sSwordTrailAnchorOffset, &this->unk_218);  // was D_809070FC [LLM:GUESS]
+-            func_808FD080(0, &this->unk_444, &this->unk_218);
++            BossGanon2_SetSphereCenter(0, &this->unk_444, &this->unk_218);  // was func_808FD080 [LLM:HIGH]
+             Matrix_MultVec3f(&sSwordTipOffset, &this->unk_200);  // was D_80907120 [LLM:HIGH]
+             Matrix_MultVec3f(&sSwordBaseOffset, &this->unk_20C);  // was D_8090712C [LLM:HIGH]
+         } else if ((limbIndex == 13) && (this->unk_312 == 2)) {
+             Matrix_MultVec3f(&sSwordTrailAnchorOffset, &this->unk_218);  // was D_809070FC [LLM:GUESS]
+-            func_808FD080(1, &this->unk_444, &this->unk_218);
++            BossGanon2_SetSphereCenter(1, &this->unk_444, &this->unk_218);  // was func_808FD080 [LLM:HIGH]
+             Matrix_MultVec3f(&sSwordTipOffset, &this->unk_200);  // was D_80907120 [LLM:HIGH]
+             Matrix_MultVec3f(&sSwordBaseOffset, &this->unk_20C);  // was D_8090712C [LLM:HIGH]
+         }
+@@ -2672,7 +2712,8 @@ void BossGanon2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80904D88(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80904D88: draws a gGanonLightOrbModelDL at each of the fifteen tracked limb positions
++void BossGanon2_DrawLightOrbs(BossGanon2* this, PlayState* play) {
+     s32 pad;
+     s16 i;
+ 
+@@ -2706,7 +2747,8 @@ void func_80904D88(BossGanon2* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80904FC8(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80904FC8: draws two counter-rotating light orbs above Zelda
++void BossGanon2_DrawZeldaOrb(BossGanon2* this, PlayState* play) {
+     s32 pad;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -2731,7 +2773,8 @@ void func_80904FC8(BossGanon2* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_8090523C(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8090523C: draws the light orbs that gather on the player
++void BossGanon2_DrawPlayerOrbs(BossGanon2* this, PlayState* play) {
+     Player* player;
+     f32 phi_f20;
+ 
+@@ -2790,7 +2833,8 @@ void BossGanon2_PostLimbDraw2(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s
+     }
+ }
+ 
+-void func_80905674(BossGanon2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80905674: draws gGanonZeldaMagicDL as a scrolling beam beside Zelda
++void BossGanon2_DrawZeldaMagic(BossGanon2* this, PlayState* play) {
+     s32 pad;
+ 
+     if (this->unk_380 > 0.0f) {
+@@ -2837,8 +2881,8 @@ void BossGanon2_Draw(Actor* thisx, PlayState* play) {
+         case 2:
+             BossGanon2_SetObjectSegment(this, play, OBJECT_GANON2, true);
+             gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sEyeTextures[this->unk_310]));
+-            func_808FD080(0, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
+-            func_808FD080(1, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
++            BossGanon2_SetSphereCenter(0, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
++            BossGanon2_SetSphereCenter(1, &this->unk_444, &sBeamAnchorOffset);  // was D_8090717C [LLM:GUESS]
+             this->unk_218 = sBeamAnchorOffset;  // was D_8090717C [LLM:GUESS]
+             if (this->unk_342 & 1) {
+                 POLY_OPA_DISP = Gfx_SetFog(POLY_OPA_DISP, 0xFF, 0, 0, 0xFF, 0x384, 0x44B);
+@@ -2856,16 +2900,16 @@ void BossGanon2_Draw(Actor* thisx, PlayState* play) {
+     }
+ 
+     BossGanon2_SetObjectSegment(this, play, OBJECT_GANON2, true);
+-    func_80904340(this, play);
+-    func_80904108(this, play);
+-    func_80904D88(this, play);
+-    func_8090464C(this, play);
+-    func_80905674(this, play);
+-    func_80904FC8(this, play);
+-    func_8090523C(this, play);
++    BossGanon2_DrawLightning(this, play);  // was func_80904340 [LLM:HIGH]
++    BossGanon2_DrawFireRing(this, play);  // was func_80904108 [LLM:HIGH]
++    BossGanon2_DrawLightOrbs(this, play);  // was func_80904D88 [LLM:HIGH]
++    BossGanon2_DrawTriforce(this, play);  // was func_8090464C [LLM:HIGH]
++    BossGanon2_DrawZeldaMagic(this, play);  // was func_80905674 [LLM:HIGH]
++    BossGanon2_DrawZeldaOrb(this, play);  // was func_80904FC8 [LLM:HIGH]
++    BossGanon2_DrawPlayerOrbs(this, play);  // was func_8090523C [LLM:HIGH]
+ 
+     if ((this->unk_312 != 0) || (sSwordTrailAlpha != 0)) {  // was D_80907080 [LLM:HIGH]
+-        func_80903F38(this, play);
++        BossGanon2_DrawSwordTrail(this, play);  // was func_80903F38 [LLM:HIGH]
+         if (this->unk_312 == 0) {
+             s32 pad;
+ 
+@@ -2875,14 +2919,14 @@ void BossGanon2_Draw(Actor* thisx, PlayState* play) {
+             }
+         }
+ 
+-        D_80910638++;
++        sSwordTrailLength++;  // was D_80910638 [LLM:HIGH]
+     } else {
+         for (i = 0; i < 3; i++) {
+-            D_809105D8[i] = this->unk_200;
+-            D_80910608[i] = this->unk_20C;
++            sSwordTipTrail[i] = this->unk_200;  // was D_809105D8 [LLM:HIGH]
++            sSwordBaseTrail[i] = this->unk_20C;  // was D_80910608 [LLM:HIGH]
+         }
+ 
+-        D_80910638 = 0;
++        sSwordTrailLength = 0;  // was D_80910638 [LLM:HIGH]
+     }
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+@@ -3040,7 +3084,8 @@ void BossGanon2_DrawEffects(PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80906538(BossGanon2* this, u8* shadowTexture, f32 arg2) {
++// LLM generated name (HIGH), was func_80906538: stamps each limb's stripe into the shadow texture, interpolating toward its parent limb by the caller's weight
++void BossGanon2_StampShadowLimbs(BossGanon2* this, u8* shadowTexture, f32 arg2) {
+     s16 temp_t0;
+     s16 temp_v0;
+     s16 temp_a3;
+@@ -3128,7 +3173,7 @@ void BossGanon2_GenShadowTexture(void* shadowTexture, BossGanon2* this, PlayStat
+     Matrix_RotateX(1.0f, MTXMODE_NEW);
+ 
+     for (i = 0; i < 6; i++) {
+-        func_80906538(this, shadowTexture, i / 5.0f);
++        BossGanon2_StampShadowLimbs(this, shadowTexture, i / 5.0f);  // was func_80906538 [LLM:HIGH]
+     }
+ }
+ 
+@@ -3161,16 +3206,16 @@ void BossGanon2_DrawShadowTexture(void* shadowTexture, BossGanon2* this, PlaySta
+ }
+ 
+ void BossGanon2_Reset(void) {
+-    D_8090EB20.x = 0;
+-    D_8090EB20.y = 0;
+-    D_8090EB20.z = 0;
+-    D_80910638 = 0;
++    sLightningSfxPos.x = 0;  // was D_8090EB20 [LLM:HIGH]
++    sLightningSfxPos.y = 0;  // was D_8090EB20 [LLM:HIGH]
++    sLightningSfxPos.z = 0;  // was D_8090EB20 [LLM:HIGH]
++    sSwordTrailLength = 0;  // was D_80910638 [LLM:HIGH]
+     sZelda = NULL;
+-    D_8090EB30 = NULL;
++    sNaviActor = NULL;  // was D_8090EB30 [LLM:HIGH]
+     sSeed1 = 0;
+     sSeed2 = 0;
+     sSeed3 = 0;
+-    memset(D_809105D8, 0, sizeof(D_809105D8));
+-    memset(D_80910608, 0, sizeof(D_80910608));
++    memset(sSwordTipTrail, 0, sizeof(sSwordTipTrail));  // was D_809105D8 [LLM:HIGH]
++    memset(sSwordBaseTrail, 0, sizeof(sSwordBaseTrail));  // was D_80910608 [LLM:HIGH]
+     memset(sEffects, 0, sizeof(sEffects));
+ }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
+index e5e044411..3e42e375c 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2_data.c
+@@ -267,7 +267,7 @@ static u8 sSwordTrailTipVtx[] = { 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20 };  // w
+ // LLM generated name (HIGH), was D_80907090: the eleven gGanonSwordTrailVtx indices fed from the recorded sword-base trail
+ static u8 sSwordTrailBaseVtx[] = { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21 };  // was D_80907090 [LLM:HIGH]
+ 
+-// LLM generated name (GUESS), was D_8090709C: per-limb index handed to func_808FD080 with unk_424; that function's role is not established, so the trail reading is inferred from its pairing with the sword trail
++// LLM generated name (GUESS), was D_8090709C: per-limb index handed to BossGanon2_SetSphereCenter with unk_424; that function's role is not established, so the trail reading is inferred from its pairing with the sword trail
+ static s8 sLimbTrailIndices[] = {  // was D_8090709C [LLM:GUESS]
+     0xFF, 0xFF, 0x01, 0xFF, 0x03, 0x04, 0xFF, 0xFF, 0x05, 0xFF, 0x06, 0x07, 0xFF, 0xFF, 0x08, 0xFF,
+     0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -314,7 +314,7 @@ static void* sEyeTextures[] = {
+     gGanonEyeClosedTex,
+ };
+ 
+-// LLM generated name (GUESS), was D_8090717C: passed to func_808FD080 for both hands and copied into unk_218; named for the effect it anchors rather than an identified point
++// LLM generated name (GUESS), was D_8090717C: passed to BossGanon2_SetSphereCenter for both hands and copied into unk_218; named for the effect it anchors rather than an identified point
+ static Vec3f sBeamAnchorOffset = { 0.0f, -2000.0f, 0.0f };  // was D_8090717C [LLM:GUESS]
+ 
+ // LLM generated name (HIGH), was D_80907188: the six row half-widths of the narrowest limb stripe stamped into the shadow texture
+-- 
+2.55.0
+

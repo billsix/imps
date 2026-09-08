@@ -1,0 +1,108 @@
+From 0ebff48e5f1346cf3167c9ec76dcd5272e5a3b1d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:18 +0000
+Subject: [PATCH 233/488] soh: name the 3 address-named symbols defined in
+ z_bg_jya_haheniron.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_Bg_Jya_Haheniron/z_bg_jya_haheniron.c.
+
+  * D_80898794 -> sScales
+    deduced, confidence HIGH: f32 table indexed by actor.params and handed
+    to Actor_SetScale.
+
+  * D_808987A0 -> sPillarFragmentOffset
+    deduced, confidence HIGH: the Vec3f BgJyaHaheniron_PillarCrumble passes
+    to BgJyaHaheniron_SpawnFragments before killing the actor.
+
+  * D_808987AC -> sRubbleFragmentOffset
+    deduced, confidence HIGH: the Vec3f BgJyaHaheniron_RubbleCollide passes
+    to BgJyaHaheniron_SpawnFragments before killing the actor.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Jya_Haheniron/z_bg_jya_haheniron.c     | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Haheniron/z_bg_jya_haheniron.c b/soh/src/overlays/actors/ovl_Bg_Jya_Haheniron/z_bg_jya_haheniron.c
+index cfe9f115b..8e2ab34fa 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Haheniron/z_bg_jya_haheniron.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Haheniron/z_bg_jya_haheniron.c
+@@ -70,11 +70,14 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(uncullZoneDownward, 1000, ICHAIN_STOP),
+ };
+ 
+-static f32 D_80898794[] = { 0.13f, 0.1f, 0.1f };
++// LLM generated name (HIGH), was D_80898794: f32 table indexed by actor.params and handed to Actor_SetScale.
++static f32 sScales[] = { 0.13f, 0.1f, 0.1f };  // was D_80898794 [LLM:HIGH]
+ 
+-static Vec3f D_808987A0[] = { 0.0f, 14.0f, 0.0f };
++// LLM generated name (HIGH), was D_808987A0: the Vec3f BgJyaHaheniron_PillarCrumble passes to BgJyaHaheniron_SpawnFragments before killing the actor.
++static Vec3f sPillarFragmentOffset[] = { 0.0f, 14.0f, 0.0f };  // was D_808987A0 [LLM:HIGH]
+ 
+-static Vec3f D_808987AC[] = { 0.0f, 8.0f, 0.0f };
++// LLM generated name (HIGH), was D_808987AC: the Vec3f BgJyaHaheniron_RubbleCollide passes to BgJyaHaheniron_SpawnFragments before killing the actor.
++static Vec3f sRubbleFragmentOffset[] = { 0.0f, 8.0f, 0.0f };  // was D_808987AC [LLM:HIGH]
+ 
+ void BgJyaHaheniron_ColliderInit(BgJyaHaheniron* this, PlayState* play) {
+     s32 pad;
+@@ -121,7 +124,7 @@ void BgJyaHaheniron_Init(Actor* thisx, PlayState* play) {
+     BgJyaHaheniron* this = (BgJyaHaheniron*)thisx;
+ 
+     Actor_ProcessInitChain(&this->actor, sInitChain);
+-    Actor_SetScale(&this->actor, D_80898794[this->actor.params]);
++    Actor_SetScale(&this->actor, sScales[this->actor.params]);  // was D_80898794 [LLM:HIGH]
+     if (this->actor.params == 0) {
+         BgJyaHaheniron_ColliderInit(this, play);
+         this->actor.shape.rot.z = (Rand_ZeroOne() * 65535.0f);
+@@ -175,7 +178,7 @@ void BgJyaHaheniron_PillarCrumble(BgJyaHaheniron* this, PlayState* play) {
+     if (this->timer >= 8) {
+         Actor_MoveXZGravity(&this->actor);
+     } else if (this->timer >= 17) {
+-        BgJyaHaheniron_SpawnFragments(play, &this->actor.world.pos, D_808987A0);
++        BgJyaHaheniron_SpawnFragments(play, &this->actor.world.pos, sPillarFragmentOffset);  // was D_808987A0 [LLM:HIGH]
+         Actor_Kill(&this->actor);
+     }
+     this->actor.shape.rot.y += 0x258;
+@@ -188,7 +191,7 @@ void BgJyaHaheniron_SetupRubbleCollide(BgJyaHaheniron* this) {
+ 
+ void BgJyaHaheniron_RubbleCollide(BgJyaHaheniron* this, PlayState* play) {
+     if (this->timer >= 17) {
+-        BgJyaHaheniron_SpawnFragments(play, &this->actor.world.pos, D_808987AC);
++        BgJyaHaheniron_SpawnFragments(play, &this->actor.world.pos, sRubbleFragmentOffset);  // was D_808987AC [LLM:HIGH]
+         SoundSource_PlaySfxAtFixedWorldPos(play, &this->actor.world.pos, 80, NA_SE_EN_IRONNACK_BREAK_PILLAR2);
+         Actor_Kill(&this->actor);
+     }
+-- 
+2.55.0
+

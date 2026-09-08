@@ -1,0 +1,211 @@
+From 290aecc310fa860e3473f71c66a2779f8c6b5136 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:34 +0000
+Subject: [PATCH 405/488] soh: name the 6 address-named symbols defined in
+ audio_sfx.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/code/audio_sfx.c; updating their references touches 5 files in total.
+
+  * D_8013338C -> sSfxDebugPage
+    deduced, confidence GUESS: an s32 beside the SFX debug strings; read as
+    which page the debug display shows
+
+  * D_80133390 -> sSfxSeqHighLabel
+    deduced, confidence HIGH: the "SEQ H" label of the SFX debug display
+
+  * D_80133398 -> sSfxSeqLowLabel
+    deduced, confidence HIGH: the " L" label that pairs with it
+
+  * D_801333E4 -> sUnusedSfxValue1
+    deduced, confidence GUESS: an s32 already commented unused that nothing
+    in the tree reads
+
+  * D_801333EC -> sUnusedSfxValue2
+    deduced, confidence GUESS: the second such unused s32
+
+  * D_801333F0 -> sSfxDebugEnabled
+    deduced, confidence GUESS: a u8 flag beside those debug strings; read as
+    the switch that shows the display
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/variables.h             |  8 ++++----
+ soh/soh/Enhancements/savestates.cpp |  6 +++---
+ soh/src/code/audio_general.c        |  2 +-
+ soh/src/code/audio_seq.c            |  4 ++--
+ soh/src/code/audio_sfx.c            | 20 +++++++++++++-------
+ 5 files changed, 23 insertions(+), 17 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 4d1263b1f..32006529c 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -155,14 +155,14 @@ extern "C"
+ 	extern OcarinaNote sOcarinaSongNotes[OCARINA_SONG_MAX][20];
+ 	extern OcarinaSongButtons gOcarinaSongButtons[OCARINA_SONG_MAX];
+ 	extern SoundParams* gSoundParams[7];
+-	extern char D_80133390[];
+-	extern char D_80133398[];
++	extern char sSfxSeqHighLabel[];  // was D_80133390 [LLM:HIGH]
++	extern char sSfxSeqLowLabel[];  // was D_80133398 [LLM:HIGH]
+ 	extern SoundBankEntry* gSoundBanks[7];
+ 	extern u8 gSfxChannelLayout;
+ 	extern Vec3f gSfxDefaultPos;
+ 	extern f32 gSfxDefaultFreqAndVolScale;
+ 	extern s8 gSfxDefaultReverb;
+-	extern u8 D_801333F0;
++	extern u8 sSfxDebugEnabled;  // was D_801333F0 [LLM:GUESS]
+ 	extern u8 gAudioSfxSwapOff;
+ 	extern u8 gStartSeqDisabled;  // was D_80133408 [oot]
+ 	extern u8 gAudioDebugPrintSeqCmd;  // was D_8013340C [oot]
+@@ -224,7 +224,7 @@ extern "C"
+ 
+ 	extern ActiveSound gActiveSounds[7][MAX_CHANNELS_PER_BANK]; // total size = 0xA8
+ 	extern u8 gSoundBankMuted[];
+-	extern u8 D_801333F0;
++	extern u8 sSfxDebugEnabled;  // was D_801333F0 [LLM:GUESS]
+ 	extern u8 gAudioSfxSwapOff;
+ 	extern u16 gAudioSfxSwapSource[10];
+ 	extern u16 gAudioSfxSwapTarget[10];
+diff --git a/soh/soh/Enhancements/savestates.cpp b/soh/soh/Enhancements/savestates.cpp
+index d099d3453..713ec3f45 100644
+--- a/soh/soh/Enhancements/savestates.cpp
++++ b/soh/soh/Enhancements/savestates.cpp
+@@ -433,7 +433,7 @@ void SaveState::Save(void) {
+     memcpy(info->gActiveSoundsCopy, gActiveSounds, sizeof(gActiveSounds));
+     memcpy(&info->gSoundBankMutedCopy, gSoundBankMuted, sizeof(info->gSoundBankMutedCopy));
+ 
+-    info->D_801333F0_copy = D_801333F0;
++    info->D_801333F0_copy = sSfxDebugEnabled;  // was D_801333F0 [LLM:GUESS]
+     info->gAudioSfxSwapOff_copy = gAudioSfxSwapOff;
+ 
+     memcpy(&info->gAudioSfxSwapSource_copy, gAudioSfxSwapSource, sizeof(info->gAudioSfxSwapSource_copy));
+@@ -466,7 +466,7 @@ void SaveState::Load(void) {
+ 
+     memcpy(gActiveSounds, info->gActiveSoundsCopy, sizeof(gActiveSounds));
+     memcpy(gSoundBankMuted, &info->gSoundBankMutedCopy, sizeof(info->gSoundBankMutedCopy));
+-    D_801333F0 = info->D_801333F0_copy;
++    sSfxDebugEnabled = info->D_801333F0_copy;  // was D_801333F0 [LLM:GUESS]
+     gAudioSfxSwapOff = info->gAudioSfxSwapOff_copy;
+ 
+     memcpy(gAudioSfxSwapSource, &info->gAudioSfxSwapSource_copy, sizeof(info->gAudioSfxSwapSource_copy));
+@@ -477,4 +477,4 @@ void SaveState::Load(void) {
+     D_801755D0 = info->D_801755D0_copy;
+     LoadOverlayStaticData();
+     LoadTransitionActors();
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index eb52d4484..73116b869 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -3557,7 +3557,7 @@ void AudioDebug_ProcessInput_ScrPrt(void) {
+         }
+     }
+ 
+-    D_801333F0 = sAudioScrPrtWork[3] + (sAudioScrPrtWork[4] * 2) + (sAudioScrPrtWork[5] * 4) +
++    sSfxDebugEnabled = sAudioScrPrtWork[3] + (sAudioScrPrtWork[4] * 2) + (sAudioScrPrtWork[5] * 4) +  // was D_801333F0 [LLM:GUESS]
+                  (sAudioScrPrtWork[6] * 8) + (sAudioScrPrtWork[7] * 0x10) + (sAudioScrPrtWork[8] * 0x20);
+ }
+ 
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index f4f42bf21..206908a6b 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -139,8 +139,8 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+     f32 freqScale;
+ 
+     if (gAudioDebugPrintSeqCmd && (cmd & 0xF0000000) != 0x70000000) {
+-        AudioDebug_ScrPrt((const s8*)D_80133390, (cmd >> 16) & 0xFFFF); // "SEQ H"
+-        AudioDebug_ScrPrt((const s8*)D_80133398, cmd & 0xFFFF);         // "    L"
++        AudioDebug_ScrPrt((const s8*)sSfxSeqHighLabel, (cmd >> 16) & 0xFFFF); // "SEQ H", was D_80133390 [LLM:HIGH]
++        AudioDebug_ScrPrt((const s8*)sSfxSeqLowLabel, cmd & 0xFFFF);         // "    L", was D_80133398 [LLM:HIGH]
+     }
+ 
+     op = cmd >> 28;
+diff --git a/soh/src/code/audio_sfx.c b/soh/src/code/audio_sfx.c
+index 833fbeba3..2ec229031 100644
+--- a/soh/src/code/audio_sfx.c
++++ b/soh/src/code/audio_sfx.c
+@@ -30,11 +30,14 @@ char sSfxDebugName[] = "SE";
+ char sSfxDistOverPrintMsg[] = VT_COL(RED, WHITE) "<INAGAKI CHECK> dist over! flag:%04X ptr:%08X pos:%f-%f-%f" VT_RST "\n";
+ 
+ // file padding
+-s32 D_8013338C = 0;
++// LLM generated name (GUESS), was D_8013338C: an s32 beside the SFX debug strings; read as which page the debug display shows
++s32 sSfxDebugPage = 0;  // was D_8013338C [LLM:GUESS]
+ 
+ // rodata for Audio_ProcessSeqCmd (audio_seq.c, was code_800F9280.c)
+-char D_80133390[] = "SEQ H";
+-char D_80133398[] = "    L";
++// LLM generated name (HIGH), was D_80133390: the "SEQ H" label of the SFX debug display
++char sSfxSeqHighLabel[] = "SEQ H";  // was D_80133390 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80133398: the "    L" label that pairs with it
++char sSfxSeqLowLabel[] = "    L";  // was D_80133398 [LLM:HIGH]
+ 
+ // LLM generated name (HIGH), was D_8016BAD0: gSoundBanks[0]; the doc comment above that array names entry 0 "Player Bank size 9", matching this array's length.
+ SoundBankEntry sPlayerBank[9];  // was D_8016BAD0 [LLM:HIGH]
+@@ -95,13 +98,16 @@ Vec3f gSfxDefaultPos = { 0.0f, 0.0f, 0.0f }; // default pos
+ 
+ f32 gSfxDefaultFreqAndVolScale = 1.0f; // default freqScale
+ 
+-s32 D_801333E4 = 0; // unused
++// LLM generated name (GUESS), was D_801333E4: an s32 already commented unused that nothing in the tree reads
++s32 sUnusedSfxValue1 = 0; // unused, was D_801333E4 [LLM:GUESS]
+ 
+ s8 gSfxDefaultReverb = 0; // default reverbAdd
+ 
+-s32 D_801333EC = 0; // unused
++// LLM generated name (GUESS), was D_801333EC: the second such unused s32
++s32 sUnusedSfxValue2 = 0; // unused, was D_801333EC [LLM:GUESS]
+ 
+-u8 D_801333F0 = 0;
++// LLM generated name (GUESS), was D_801333F0: a u8 flag beside those debug strings; read as the switch that shows the display
++u8 sSfxDebugEnabled = 0;  // was D_801333F0 [LLM:GUESS]
+ 
+ u8 gAudioSfxSwapOff = 0;
+ 
+@@ -238,7 +244,7 @@ void Audio_ProcessSoundRequest(void) {
+         req->sfxId = newSfxId;
+     }
+     bankId = SFX_BANK(req->sfxId);
+-    if ((1 << bankId) & D_801333F0) {
++    if ((1 << bankId) & sSfxDebugEnabled) {  // was D_801333F0 [LLM:GUESS]
+         AudioDebug_ScrPrt((const s8*)sSfxDebugName, req->sfxId);
+         bankId = SFX_BANK(req->sfxId);
+     }
+-- 
+2.55.0
+

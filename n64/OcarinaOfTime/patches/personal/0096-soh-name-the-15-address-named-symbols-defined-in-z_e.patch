@@ -1,0 +1,345 @@
+From fa36a04ea972708c9dacff3f5a0487079499db53 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:06 +0000
+Subject: [PATCH 096/488] soh: name the 15 address-named symbols defined in
+ z_en_sa.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 15 are defined in soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c.
+
+  * func_80AF57D8 -> EnSa_UpdateTalking
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.99
+
+  * func_80AF5894 -> EnSa_ReverseAnimation
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AF58B8 -> EnSa_ExtendRightHand
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_80AF594C -> EnSa_HandsToFace
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_80AF59E0 -> EnSa_HandsBehindBack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_80AF5A74 -> EnSa_HandsOutFromBehindBack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80AF5B10 -> EnSa_HandsOnHips
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_80AF5BA4 -> EnSa_HandsOffHips
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80AF5C40 -> EnSa_HandToChest
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_80AF5F34 -> EnSa_UpdateTrackingMode
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.94
+
+  * func_80AF603C -> EnSa_EyesStayClosed
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.93
+
+  * func_80AF609C -> EnSa_Blink
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80AF6130 -> EnSa_CopyCueStartPos
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80AF6170 -> EnSa_CopyCueEndPos
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80AF67D0 -> EnSa_TalkInForestMeadow
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c | 79 ++++++++++++---------
+ 1 file changed, 47 insertions(+), 32 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
+index 010f5895b..9a2224a54 100644
+--- a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
++++ b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
+@@ -16,7 +16,8 @@ void EnSa_Update(Actor* thisx, PlayState* play);
+ void EnSa_Draw(Actor* thisx, PlayState* play);
+ 
+ void func_80AF6448(EnSa* this, PlayState* play);
+-void func_80AF67D0(EnSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_80AF67D0): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_TalkInForestMeadow(EnSa* this, PlayState* play);
+ void func_80AF683C(EnSa* this, PlayState* play);
+ void func_80AF68E4(EnSa* this, PlayState* play);
+ void func_80AF6B20(EnSa* this, PlayState* play);
+@@ -224,7 +225,8 @@ s16 EnSa_UpdateTalkState(PlayState* play, Actor* thisx) {
+     return ret;
+ }
+ 
+-void func_80AF57D8(EnSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AF57D8): adopted upstream's name for this address; body verified to match upstream at 0.99. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_UpdateTalking(EnSa* this, PlayState* play) {
+     if (play->sceneNum != SCENE_SACRED_FOREST_MEADOW ||
+         ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) < 0x1555 ||
+         this->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+@@ -233,7 +235,8 @@ void func_80AF57D8(EnSa* this, PlayState* play) {
+     }
+ }
+ 
+-f32 func_80AF5894(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF5894): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++f32 EnSa_ReverseAnimation(EnSa* this) {
+     f32 endFrame = this->skelAnime.endFrame;
+     f32 startFrame = this->skelAnime.startFrame;
+ 
+@@ -244,7 +247,8 @@ f32 func_80AF5894(EnSa* this) {
+     return startFrame;
+ }
+ 
+-void func_80AF58B8(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF58B8): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_ExtendRightHand(EnSa* this) {
+     switch (this->unk_20A) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo2, ENSA_ANIM2_3);
+@@ -258,7 +262,8 @@ void func_80AF58B8(EnSa* this) {
+     }
+ }
+ 
+-void func_80AF594C(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF594C): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_HandsToFace(EnSa* this) {
+     switch (this->unk_20A) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo2, ENSA_ANIM2_8);
+@@ -272,7 +277,8 @@ void func_80AF594C(EnSa* this) {
+     }
+ }
+ 
+-void func_80AF59E0(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF59E0): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_HandsBehindBack(EnSa* this) {
+     switch (this->unk_20A) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo2, ENSA_ANIM2_1);
+@@ -286,11 +292,12 @@ void func_80AF59E0(EnSa* this) {
+     }
+ }
+ 
+-void func_80AF5A74(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF5A74): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_HandsOutFromBehindBack(EnSa* this) {
+     switch (this->unk_20A) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo2, ENSA_ANIM2_1);
+-            func_80AF5894(this);
++            EnSa_ReverseAnimation(this);
+             this->unk_20A++;
+         case 1:
+             if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+@@ -301,7 +308,8 @@ void func_80AF5A74(EnSa* this) {
+     }
+ }
+ 
+-void func_80AF5B10(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF5B10): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_HandsOnHips(EnSa* this) {
+     switch (this->unk_20A) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo2, ENSA_ANIM2_6);
+@@ -315,11 +323,12 @@ void func_80AF5B10(EnSa* this) {
+     }
+ }
+ 
+-void func_80AF5BA4(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF5BA4): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_HandsOffHips(EnSa* this) {
+     switch (this->unk_20A) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo2, ENSA_ANIM2_6);
+-            func_80AF5894(this);
++            EnSa_ReverseAnimation(this);
+             this->unk_20A++;
+         case 1:
+             if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+@@ -330,7 +339,8 @@ void func_80AF5BA4(EnSa* this) {
+     }
+ }
+ 
+-void func_80AF5C40(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF5C40): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_HandToChest(EnSa* this) {
+     switch (this->unk_20A) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo2, ENSA_ANIM2_5);
+@@ -352,25 +362,25 @@ void func_80AF5CD4(EnSa* this, u8 arg1) {
+ void func_80AF5CE4(EnSa* this) {
+     switch (this->unk_20B) {
+         case 1:
+-            func_80AF58B8(this);
++            EnSa_ExtendRightHand(this);
+             break;
+         case 2:
+-            func_80AF594C(this);
++            EnSa_HandsToFace(this);
+             break;
+         case 3:
+-            func_80AF59E0(this);
++            EnSa_HandsBehindBack(this);
+             break;
+         case 4:
+-            func_80AF5A74(this);
++            EnSa_HandsOutFromBehindBack(this);
+             break;
+         case 5:
+-            func_80AF5B10(this);
++            EnSa_HandsOnHips(this);
+             break;
+         case 6:
+-            func_80AF5BA4(this);
++            EnSa_HandsOffHips(this);
+             break;
+         case 7:
+-            func_80AF5C40(this);
++            EnSa_HandToChest(this);
+             break;
+     }
+ }
+@@ -407,7 +417,8 @@ s32 func_80AF5DFC(EnSa* this, PlayState* play) {
+     return 0;
+ }
+ 
+-void func_80AF5F34(EnSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AF5F34): adopted upstream's name for this address; body verified to match upstream at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_UpdateTrackingMode(EnSa* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s16 trackingMode = NPC_TRACKING_PLAYER_AUTO_TURN;
+ 
+@@ -430,7 +441,8 @@ void func_80AF5F34(EnSa* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, 2, trackingMode);
+ }
+ 
+-s32 func_80AF603C(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF603C): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++s32 EnSa_EyesStayClosed(EnSa* this) {
+     if (this->skelAnime.animation != &gSariaPlayingOcarinaAnim &&
+         this->skelAnime.animation != &gSariaOcarinaToMouthAnim) {
+         return 0;
+@@ -445,10 +457,11 @@ s32 func_80AF603C(EnSa* this) {
+     return 1;
+ }
+ 
+-void func_80AF609C(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF609C): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_Blink(EnSa* this) {
+     s16 phi_v1;
+ 
+-    if (func_80AF603C(this) == 0) {
++    if (EnSa_EyesStayClosed(this) == 0) {
+         if (this->unk_20E == 0) {
+             phi_v1 = 0;
+         } else {
+@@ -468,13 +481,15 @@ void func_80AF609C(EnSa* this) {
+     }
+ }
+ 
+-void func_80AF6130(CsCmdActorCue* csAction, Vec3f* dst) {
++// Name from zeldaret/oot (was func_80AF6130): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_CopyCueStartPos(CsCmdActorCue* csAction, Vec3f* dst) {
+     dst->x = csAction->startPos.x;
+     dst->y = csAction->startPos.y;
+     dst->z = csAction->startPos.z;
+ }
+ 
+-void func_80AF6170(CsCmdActorCue* csAction, Vec3f* dst) {
++// Name from zeldaret/oot (was func_80AF6170): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_CopyCueEndPos(CsCmdActorCue* csAction, Vec3f* dst) {
+     dst->x = csAction->endPos.x;
+     dst->y = csAction->endPos.y;
+     dst->z = csAction->endPos.z;
+@@ -612,11 +627,11 @@ void func_80AF6448(EnSa* this, PlayState* play) {
+     }
+     if (this->interactInfo.talkState != NPC_TALK_STATE_IDLE && play->sceneNum == SCENE_SACRED_FOREST_MEADOW) {
+         Animation_Change(&this->skelAnime, &gSariaStopPlayingOcarinaAnim, 1.0f, 0.0f, 10.0f, ANIMMODE_ONCE, -10.0f);
+-        this->actionFunc = func_80AF67D0;
++        this->actionFunc = EnSa_TalkInForestMeadow;
+     }
+ }
+ 
+-void func_80AF67D0(EnSa* this, PlayState* play) {
++void EnSa_TalkInForestMeadow(EnSa* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         Animation_Change(&this->skelAnime, &gSariaStopPlayingOcarinaAnim, 0.0f, 10.0f, 0.0f, ANIMMODE_ONCE, -10.0f);
+         this->actionFunc = func_80AF6448;
+@@ -653,8 +668,8 @@ void func_80AF68E4(EnSa* this, PlayState* play) {
+     }
+     csAction = play->csCtx.npcActions[1];
+     if (csAction != NULL) {
+-        func_80AF6130(csAction, &startPos);
+-        func_80AF6170(csAction, &endPos);
++        EnSa_CopyCueStartPos(csAction, &startPos);
++        EnSa_CopyCueEndPos(csAction, &endPos);
+ 
+         if (this->unk_210 == 0) {
+             this->actor.world.pos = startPos;
+@@ -762,10 +777,10 @@ void EnSa_Update(Actor* thisx, PlayState* play) {
+         Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+     }
+ 
+-    func_80AF609C(this);
++    EnSa_Blink(this);
+     this->actionFunc(this, play);
+-    func_80AF57D8(this, play);
+-    func_80AF5F34(this, play);
++    EnSa_UpdateTalking(this, play);
++    EnSa_UpdateTrackingMode(this, play);
+ }
+ 
+ s32 EnSa_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx, Gfx** gfx) {
+-- 
+2.55.0
+

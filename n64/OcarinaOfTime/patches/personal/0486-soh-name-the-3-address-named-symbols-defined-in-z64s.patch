@@ -1,0 +1,105 @@
+From 545df4c0a9d8bb5db24ac7c0734323ee104ccba3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:41 +0000
+Subject: [PATCH 486/488] soh: name the 3 address-named symbols defined in
+ z64skin.h
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/include/z64skin.h; updating their references touches 2 files in total.
+
+  * Struct_800A57C0 -> SkinVertexAlias
+    deduced, confidence HIGH: a typedef alias of SkinVertex kept for the
+    address-named declarations
+
+  * Struct_800A598C -> SkinLimbModifAlias
+    deduced, confidence HIGH: a typedef alias of SkinLimbModif kept the same
+    way
+
+  * Struct_800A5E28 -> SkinAnimatedLimbDataAlias
+    deduced, confidence HIGH: a typedef alias of SkinAnimatedLimbData kept
+    the same way
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/z64skin.h                | 9 ++++++---
+ soh/soh/resource/type/SkeletonLimb.h | 6 +++---
+ 2 files changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/z64skin.h b/soh/include/z64skin.h
+index 1d77fad33..0140e4aac 100644
+--- a/soh/include/z64skin.h
++++ b/soh/include/z64skin.h
+@@ -50,10 +50,13 @@ typedef struct {
+ 
+ // ZAPD compatibility typedefs
+ // TODO: Remove when ZAPD adds support for them
+-typedef SkinVertex Struct_800A57C0;
++// LLM generated name (HIGH), was Struct_800A57C0: a typedef alias of SkinVertex kept for the address-named declarations
++typedef SkinVertex SkinVertexAlias;  // was Struct_800A57C0 [LLM:HIGH]
+ typedef SkinTransformation Struct_800A598C_2;
+-typedef SkinAnimatedLimbData Struct_800A5E28;
+-typedef SkinLimbModif Struct_800A598C;
++// LLM generated name (HIGH), was Struct_800A5E28: a typedef alias of SkinAnimatedLimbData kept the same way
++typedef SkinAnimatedLimbData SkinAnimatedLimbDataAlias;  // was Struct_800A5E28 [LLM:HIGH]
++// LLM generated name (HIGH), was Struct_800A598C: a typedef alias of SkinLimbModif kept the same way
++typedef SkinLimbModif SkinLimbModifAlias;  // was Struct_800A598C [LLM:HIGH]
+ 
+ #define SKIN_LIMB_TYPE_ANIMATED 4
+ #define SKIN_LIMB_TYPE_NORMAL 11
+diff --git a/soh/soh/resource/type/SkeletonLimb.h b/soh/soh/resource/type/SkeletonLimb.h
+index 42224d449..98afafc63 100644
+--- a/soh/soh/resource/type/SkeletonLimb.h
++++ b/soh/soh/resource/type/SkeletonLimb.h
+@@ -15,10 +15,10 @@ enum class LimbType {
+ 
+ enum class ZLimbSkinType {
+     SkinType_0,          // Segment = 0
+-    SkinType_4 = 4,      // Segment = segmented address // Struct_800A5E28
++    SkinType_4 = 4,      // Segment = segmented address // SkinAnimatedLimbDataAlias
+     SkinType_5 = 5,      // Segment = 0
+     SkinType_DList = 11, // Segment = DList address
+-};
++};  // was Struct_800A5E28 [LLM:HIGH]
+ 
+ /**
+  * Holds a compact version of a vertex used in the Skin system
+@@ -131,4 +131,4 @@ class SkeletonLimb : public Ship::Resource<SkeletonLimbData> {
+     std::vector<std::vector<SkinVertex>> skinLimbModifVertexArrays;
+     std::vector<std::vector<SkinTransformation>> skinLimbModifTransformationArrays;
+ };
+-} // namespace SOH
+\ No newline at end of file
++} // namespace SOH
+-- 
+2.55.0
+

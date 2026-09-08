@@ -1,0 +1,128 @@
+From 07824c39912dd236a2475817d8eb4745e7a33e16 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:18 +0000
+Subject: [PATCH 235/488] soh: name the 3 address-named symbols defined in
+ z_eff_ss_kirakira.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c.
+
+  * func_809AABF0 -> EffectSsKiraKira_UpdateDrifting
+    deduced, confidence HIGH: the updateMode 0 update: random XZ
+    acceleration, alpha ping-ponged by rAlphaStep, and rYaw advanced by
+    rRotSpeed. No velocity damping, unlike the other mode.
+
+  * func_809AACAC -> EffectSsKiraKira_UpdateDecelerating
+    deduced, confidence HIGH: the updateMode 1 update: identical to the
+    drifting one except it first damps velocity.x and velocity.z by 0.95
+    each frame.
+
+  * func_809AAD6C -> EffectSsKiraKira_UpdatePulsingScale
+    deduced, confidence HIGH: the update installed when life is passed in
+    negative; it does nothing but drive rScale through a full sine over the
+    particle's lifespan.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_eff_ss_kirakira.c                       | 21 +++++++++++--------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c b/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
+index 83b412a07..8d21e5ea8 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
+@@ -23,9 +23,12 @@
+ 
+ u32 EffectSsKiraKira_Init(PlayState* play, u32 index, EffectSs* this, void* initParamsx);
+ void EffectSsKiraKira_Draw(PlayState* play, u32 index, EffectSs* this);
+-void func_809AABF0(PlayState* play, u32 index, EffectSs* this);
+-void func_809AACAC(PlayState* play, u32 index, EffectSs* this);
+-void func_809AAD6C(PlayState* play, u32 index, EffectSs* this);
++// LLM generated name (HIGH), was func_809AABF0: the updateMode 0 update: random XZ acceleration, alpha ping-ponged by rAlphaStep, and rYaw advanced by rRotSpeed. No velocity damping, unlike the other mode.
++void EffectSsKiraKira_UpdateDrifting(PlayState* play, u32 index, EffectSs* this);  // was func_809AABF0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809AACAC: the updateMode 1 update: identical to the drifting one except it first damps velocity.x and velocity.z by 0.95 each frame.
++void EffectSsKiraKira_UpdateDecelerating(PlayState* play, u32 index, EffectSs* this);  // was func_809AACAC [LLM:HIGH]
++// LLM generated name (HIGH), was func_809AAD6C: the update installed when life is passed in negative; it does nothing but drive rScale through a full sine over the particle's lifespan.
++void EffectSsKiraKira_UpdatePulsingScale(PlayState* play, u32 index, EffectSs* this);  // was func_809AAD6C [LLM:HIGH]
+ 
+ EffectSsInit Effect_Ss_KiraKira_InitVars = {
+     EFFECT_SS_KIRAKIRA,
+@@ -42,16 +45,16 @@ u32 EffectSsKiraKira_Init(PlayState* play, u32 index, EffectSs* this, void* init
+     if ((this->life = initParams->life) < 0) {
+         this->life = -this->life;
+         this->gfx = SEGMENTED_TO_VIRTUAL(gEffSparklesDL);
+-        this->update = func_809AAD6C;
++        this->update = EffectSsKiraKira_UpdatePulsingScale;  // was func_809AAD6C [LLM:HIGH]
+         this->rEnvColorA = initParams->scale;
+         this->rScale = 0;
+     } else {
+         this->gfx = SEGMENTED_TO_VIRTUAL(gEffSparklesDL);
+ 
+         if (initParams->updateMode == 0) {
+-            this->update = func_809AABF0;
++            this->update = EffectSsKiraKira_UpdateDrifting;  // was func_809AABF0 [LLM:HIGH]
+         } else {
+-            this->update = func_809AACAC;
++            this->update = EffectSsKiraKira_UpdateDecelerating;  // was func_809AACAC [LLM:HIGH]
+         }
+ 
+         this->rEnvColorA = initParams->envColor.a;
+@@ -113,7 +116,7 @@ void EffectSsKiraKira_Draw(PlayState* play, u32 index, EffectSs* this) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_809AABF0(PlayState* play, u32 index, EffectSs* this) {
++void EffectSsKiraKira_UpdateDrifting(PlayState* play, u32 index, EffectSs* this) {
+     this->accel.x = (Rand_ZeroOne() * 0.4f) - 0.2f;
+     this->accel.z = (Rand_ZeroOne() * 0.4f) - 0.2f;
+     this->rEnvColorA += this->rAlphaStep;
+@@ -129,7 +132,7 @@ void func_809AABF0(PlayState* play, u32 index, EffectSs* this) {
+     this->rYaw += this->rRotSpeed;
+ }
+ 
+-void func_809AACAC(PlayState* play, u32 index, EffectSs* this) {
++void EffectSsKiraKira_UpdateDecelerating(PlayState* play, u32 index, EffectSs* this) {
+     this->velocity.x *= 0.95f;
+     this->velocity.z *= 0.95f;
+     this->accel.x = Rand_CenteredFloat(0.2f);
+@@ -147,6 +150,6 @@ void func_809AACAC(PlayState* play, u32 index, EffectSs* this) {
+     this->rYaw += this->rRotSpeed;
+ }
+ 
+-void func_809AAD6C(PlayState* play, u32 index, EffectSs* this) {
++void EffectSsKiraKira_UpdatePulsingScale(PlayState* play, u32 index, EffectSs* this) {
+     this->rScale = this->rEnvColorA * Math_SinS((32768.0f / this->rLifespan) * this->life);
+ }
+-- 
+2.55.0
+

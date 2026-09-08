@@ -1,0 +1,192 @@
+From 9bd0e34f4d255920e5715d4a01d246c4423c0117 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:58 +0000
+Subject: [PATCH 018/488] soh: name the 2 address-named symbols defined in
+ z_cutscene_spline.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_cutscene_spline.c; updating their references touches 5 files in total.
+
+  * func_800BB0A0 -> CutsceneCamera_CalcSpline
+    deduced, confidence HIGH
+
+  * func_800BB2B4 -> CutsceneCamera_UpdateSpline
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                                 | 4 ++--
+ soh/src/code/db_camera.c                                | 8 ++++----
+ soh/src/code/z_camera.c                                 | 8 ++++----
+ soh/src/code/z_cutscene_spline.c                        | 9 ++++++---
+ soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c | 6 +++---
+ 5 files changed, 19 insertions(+), 16 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index cd46d5483..7d0ba32cf 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1513,8 +1513,8 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam);
+ // ? func_800B91B0(?);
+ void DbCamera_Reset(Camera* cam, DbCamera* dbCam);
+ // ? DbCamera_UpdateDemoControl(?);
+-void func_800BB0A0(f32 u, Vec3f* pos, f32* roll, f32* viewAngle, f32* point0, f32* point1, f32* point2, f32* point3);
+-s32 func_800BB2B4(Vec3f* pos, f32* roll, f32* fov, CutsceneCameraPoint* point, s16* keyframe, f32* curFrame);
++void CutsceneCamera_CalcSpline(f32 u, Vec3f* pos, f32* roll, f32* viewAngle, f32* point0, f32* point1, f32* point2, f32* point3);  // was func_800BB0A0 [LLM:HIGH]
++s32 CutsceneCamera_UpdateSpline(Vec3f* pos, f32* roll, f32* fov, CutsceneCameraPoint* point, s16* keyframe, f32* curFrame);  // was func_800BB2B4 [LLM:HIGH]
+ s32 Mempak_Init(s32 controllerNb);
+ s32 Mempak_GetFreeBytes(s32 controllerNb);
+ s32 Mempak_FindFile(s32 controllerNb, char start, char end);
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index b973db540..61bd450a9 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -303,9 +303,9 @@ void func_800B44E0(DbCamera* dbCamera, Camera* cam) {
+         return;
+     }
+ 
+-    if (!func_800BB2B4(&sDbCamAnim.positionPos, &sDbCamAnim.roll, &sDbCamAnim.fov, dbCamera->sub.position,
++    if (!CutsceneCamera_UpdateSpline(&sDbCamAnim.positionPos, &sDbCamAnim.roll, &sDbCamAnim.fov, dbCamera->sub.position,
+                        &sDbCamAnim.keyframe, &sDbCamAnim.curFrame) &&
+-        !func_800BB2B4(&sDbCamAnim.lookAtPos, &sDbCamAnim.roll, &sDbCamAnim.fov, dbCamera->sub.lookAt,
++        !CutsceneCamera_UpdateSpline(&sDbCamAnim.lookAtPos, &sDbCamAnim.roll, &sDbCamAnim.fov, dbCamera->sub.lookAt,
+                        &sDbCamAnim.keyframe, &sDbCamAnim.curFrame) &&
+         sDbCamAnim.unk_0A == 1) {
+         Audio_PlaySfxGeneral(NA_SE_SY_HP_RECOVER, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -1685,9 +1685,9 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+         }
+     }
+ 
+-    if (!func_800BB2B4(&sDbCamAnim.positionPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[D_8016110C].position,
++    if (!CutsceneCamera_UpdateSpline(&sDbCamAnim.positionPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[D_8016110C].position,
+                        &sDbCamAnim.keyframe, &sDbCamAnim.curFrame) &&
+-        !func_800BB2B4(&sDbCamAnim.lookAtPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[D_8016110C].lookAt,
++        !CutsceneCamera_UpdateSpline(&sDbCamAnim.lookAtPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[D_8016110C].lookAt,
+                        &sDbCamAnim.keyframe, &sDbCamAnim.curFrame)) {
+ 
+         cameraStrings[73][7] = ((sDbCamAnim.keyframe + 1) / 10) + '0';
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index f23665c22..54d940b60 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -5757,8 +5757,8 @@ s32 Camera_Demo1(Camera* camera) {
+             }
+         case 1:
+             // follow CutsceneCameraPoints.  function returns 1 if at the end.
+-            if (func_800BB2B4(&csEyeUpdate, &newRoll, cameraFOV, csEyePoints, &anim->keyframe, &anim->curFrame) ||
+-                func_800BB2B4(&csAtUpdate, &newRoll, cameraFOV, csAtPoints, &anim->keyframe, &anim->curFrame)) {
++            if (CutsceneCamera_UpdateSpline(&csEyeUpdate, &newRoll, cameraFOV, csEyePoints, &anim->keyframe, &anim->curFrame) ||
++                CutsceneCamera_UpdateSpline(&csAtUpdate, &newRoll, cameraFOV, csAtPoints, &anim->keyframe, &anim->curFrame)) {
+                 camera->animState++;
+             }
+             if (*relativeToPlayer) {
+@@ -6394,9 +6394,9 @@ s32 Camera_Demo9(Camera* camera) {
+ 
+                 // Run the at and eye cs interpoloation functions, if either of them return 1 (that no more points
+                 // exist) change the animation state to 2 (standby)
+-                if (func_800BB2B4(&csEyeUpdate, &newRoll, camFOV, demo9OnePoint->onePointCs.eyePoints, &anim->keyframe,
++                if (CutsceneCamera_UpdateSpline(&csEyeUpdate, &newRoll, camFOV, demo9OnePoint->onePointCs.eyePoints, &anim->keyframe,
+                                   &anim->curFrame) != 0 ||
+-                    func_800BB2B4(&csAtUpdate, &newRoll, camFOV, demo9OnePoint->onePointCs.atPoints, &anim->keyframe,
++                    CutsceneCamera_UpdateSpline(&csAtUpdate, &newRoll, camFOV, demo9OnePoint->onePointCs.atPoints, &anim->keyframe,
+                                   &anim->curFrame) != 0) {
+                     camera->animState = 2;
+                 }
+diff --git a/soh/src/code/z_cutscene_spline.c b/soh/src/code/z_cutscene_spline.c
+index 0f2ee7d74..d54cecd44 100644
+--- a/soh/src/code/z_cutscene_spline.c
++++ b/soh/src/code/z_cutscene_spline.c
+@@ -2,7 +2,8 @@
+ 
+ // The code in this file is very similar to a spline system used in Super Mario 64 for cutscene camera movement
+ 
+-void func_800BB0A0(f32 u, Vec3f* pos, f32* roll, f32* viewAngle, f32* point0, f32* point1, f32* point2, f32* point3) {
++// LLM generated name (HIGH), was func_800BB0A0: B-spline blend of 4 control points into pos/roll/viewAngle.
++void CutsceneCamera_CalcSpline(f32 u, Vec3f* pos, f32* roll, f32* viewAngle, f32* point0, f32* point1, f32* point2, f32* point3) {
+     f32 coeff[4];
+ 
+     u = CLAMP_MAX(u, 1.0f);
+@@ -19,7 +20,9 @@ void func_800BB0A0(f32 u, Vec3f* pos, f32* roll, f32* viewAngle, f32* point0, f3
+     *viewAngle = (coeff[0] * point0[4]) + (coeff[1] * point1[4]) + (coeff[2] * point2[4]) + (coeff[3] * point3[4]);
+ }
+ 
+-s32 func_800BB2B4(Vec3f* pos, f32* roll, f32* fov, CutsceneCameraPoint* point, s16* keyFrame, f32* curFrame) {
++// LLM generated name (HIGH), was func_800BB2B4: advances spline keyframe/progress each frame, returns
++// done at end of path.
++s32 CutsceneCamera_UpdateSpline(Vec3f* pos, f32* roll, f32* fov, CutsceneCameraPoint* point, s16* keyFrame, f32* curFrame) {
+     s32 ret = false;
+     f32 pointData[4][5];
+     s32 i;
+@@ -45,7 +48,7 @@ s32 func_800BB2B4(Vec3f* pos, f32* roll, f32* fov, CutsceneCameraPoint* point, s
+         pointData[i][4] = point[key + i].viewAngle;
+     }
+ 
+-    func_800BB0A0(progress, pos, roll, fov, pointData[0], pointData[1], pointData[2], pointData[3]);
++    CutsceneCamera_CalcSpline(progress, pos, roll, fov, pointData[0], pointData[1], pointData[2], pointData[3]);
+ 
+     if (point[*keyFrame + 1].nextPointFrame != 0) {
+         speed1 = 1.0f / point[*keyFrame + 1].nextPointFrame;
+diff --git a/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c b/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
+index 971aa8d07..584765b97 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
++++ b/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
+@@ -798,7 +798,7 @@ void DemoKankyo_DrawWarpSparkles(Actor* thisx, PlayState* play) {
+ 
+             case 1:
+                 if (this->actor.params == DEMOKANKYO_WARP_OUT) {
+-                    if (func_800BB2B4(&camPos, &sWarpRoll, &sWarpFoV, sWarpOutCameraPoints, &this->unk_150[i].unk_20,
++                    if (CutsceneCamera_UpdateSpline(&camPos, &sWarpRoll, &sWarpFoV, sWarpOutCameraPoints, &this->unk_150[i].unk_20,
+                                       &this->unk_150[i].unk_1C) != 0) {
+                         this->unk_150[i].unk_22++;
+                     }
+@@ -808,7 +808,7 @@ void DemoKankyo_DrawWarpSparkles(Actor* thisx, PlayState* play) {
+                 } else {
+                     Audio_PlaySfxGeneral(NA_SE_EV_LINK_WARP_OUT - SFX_FLAG, &gSfxDefaultPos, 4,
+                                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-                    if (func_800BB2B4(&camPos, &sWarpRoll, &sWarpFoV, sWarpInCameraPoints, &this->unk_150[i].unk_20,
++                    if (CutsceneCamera_UpdateSpline(&camPos, &sWarpRoll, &sWarpFoV, sWarpInCameraPoints, &this->unk_150[i].unk_20,
+                                       &this->unk_150[i].unk_1C) != 0) {
+                         this->unk_150[i].unk_22++;
+                     }
+@@ -937,7 +937,7 @@ void DemoKankyo_DrawSparkles(Actor* thisx, PlayState* play) {
+                 this->unk_150[i].unk_23 = 0;
+                 this->unk_150[i].unk_22++;
+             case 1:
+-                if (func_800BB2B4(&camPos, &sSparklesRoll, &sSparklesFoV, sSparklesCameraPoints,
++                if (CutsceneCamera_UpdateSpline(&camPos, &sSparklesRoll, &sSparklesFoV, sSparklesCameraPoints,
+                                   &this->unk_150[i].unk_20, &this->unk_150[i].unk_1C) != 0) {
+                     this->unk_150[i].unk_22++;
+                 }
+-- 
+2.55.0
+

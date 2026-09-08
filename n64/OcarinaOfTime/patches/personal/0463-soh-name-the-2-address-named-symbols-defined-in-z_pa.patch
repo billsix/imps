@@ -1,0 +1,96 @@
+From 1eb09659dcac40b141bd3ab9b7222a7b74d1e66d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:39 +0000
+Subject: [PATCH 463/488] soh: name the 2 address-named symbols defined in
+ z_parameter.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_parameter.c.
+
+  * D_80125B1C -> sMagicMeterColors
+    deduced, confidence GUESS: rows of three s16 in Interface_Draw beside
+    the magic meter drawing; read as its colour sets
+
+  * D_80125B60 -> sInterfaceFlashState
+    deduced, confidence GUESS: a u8 Interface_Update keeps across frames;
+    read as the phase of a flashing element
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_parameter.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index a76309a4b..6e13c41a1 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -5113,7 +5113,7 @@ void Interface_Draw(PlayState* play) {
+     static s16 timerDigitLeftPos[] = { 16, 25, 34, 42, 51 };
+     static s16 digitWidth[] = { 9, 9, 8, 9, 9 };
+     // unused, most likely colors
+-    static s16 D_80125B1C[][3] = {
++    static s16 sMagicMeterColors[][3] = {  // was D_80125B1C [LLM:GUESS]
+         { 0, 150, 0 }, { 100, 255, 0 }, { 255, 255, 255 }, { 0, 0, 0 }, { 255, 255, 255 },
+     };
+     static s16 rupeeDigitsFirst[] = { 1, 0, 0, 0 };
+@@ -6515,7 +6515,7 @@ void Interface_DrawTotalGameplayTimer(PlayState* play) {
+ }
+ 
+ void Interface_Update(PlayState* play) {
+-    static u8 D_80125B60 = 0;
++    static u8 sInterfaceFlashState = 0;  // was D_80125B60 [LLM:GUESS]
+     static s16 sPrevTimeSpeed = 0;
+     MessageContext* msgCtx = &play->msgCtx;
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+@@ -6882,15 +6882,15 @@ void Interface_Update(PlayState* play) {
+         // handle suns song in areas where time moves
+         if (play->envCtx.timeIncrement != 0) {
+             if (gSaveContext.sunsSongState != SUNSSONG_SPEED_TIME) {
+-                D_80125B60 = 0;
++                sInterfaceFlashState = 0;  // was D_80125B60 [LLM:GUESS]
+                 if ((gSaveContext.dayTime >= 0x4555) && (gSaveContext.dayTime <= 0xC001)) {
+-                    D_80125B60 = 1;
++                    sInterfaceFlashState = 1;  // was D_80125B60 [LLM:GUESS]
+                 }
+ 
+                 gSaveContext.sunsSongState = SUNSSONG_SPEED_TIME;
+                 sPrevTimeSpeed = gTimeSpeed;
+                 gTimeSpeed = 400;
+-            } else if (D_80125B60 == 0) {
++            } else if (sInterfaceFlashState == 0) {  // was D_80125B60 [LLM:GUESS]
+                 if ((gSaveContext.dayTime >= 0x4555) && (gSaveContext.dayTime <= 0xC001)) {
+                     gSaveContext.sunsSongState = SUNSSONG_INACTIVE;
+                     gTimeSpeed = sPrevTimeSpeed;
+-- 
+2.55.0
+

@@ -1,0 +1,84 @@
+From 95ffbf8ec8ff8a239268e4d4272e684a367b59c2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:39 +0000
+Subject: [PATCH 465/488] soh: name the 2 address-named symbols defined in
+ z_bg_heavy_block.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c.
+
+  * D_80884EC8 -> sHeavyBlockOrigin
+    deduced, confidence HIGH: the zero vector BgHeavyBlock_Draw transforms
+
+  * D_80884ED4 -> sHeavyBlockTopOffset
+    deduced, confidence HIGH: the 400-unit-high point it transforms
+    alongside
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c       | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c b/soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c
+index 187348fa5..dbf69c2b3 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c
++++ b/soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c
+@@ -486,8 +486,8 @@ void BgHeavyBlock_Update(Actor* thisx, PlayState* play) {
+ }
+ 
+ void BgHeavyBlock_Draw(Actor* thisx, PlayState* play) {
+-    static Vec3f D_80884EC8 = { 0.0f, 0.0f, 0.0f };
+-    static Vec3f D_80884ED4 = { 0.0f, 400.0f, 0.0f };
++    static Vec3f sHeavyBlockOrigin = { 0.0f, 0.0f, 0.0f };  // was D_80884EC8 [LLM:HIGH]
++    static Vec3f sHeavyBlockTopOffset = { 0.0f, 400.0f, 0.0f };  // was D_80884ED4 [LLM:HIGH]
+     BgHeavyBlock* this = (BgHeavyBlock*)thisx;
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+@@ -500,11 +500,11 @@ void BgHeavyBlock_Draw(Actor* thisx, PlayState* play) {
+         Matrix_Translate(-this->unk_164.x, -this->unk_164.y, -this->unk_164.z, MTXMODE_APPLY);
+     } else if ((thisx->gravity == 0.0f) && (BgHeavyBlock_Land == this->actionFunc)) {
+         Matrix_SetTranslateRotateYXZ(thisx->home.pos.x, thisx->home.pos.y, thisx->home.pos.z, &thisx->shape.rot);
+-        Matrix_Translate(-D_80884ED4.x, -D_80884ED4.y, -D_80884ED4.z, MTXMODE_APPLY);
++        Matrix_Translate(-sHeavyBlockTopOffset.x, -sHeavyBlockTopOffset.y, -sHeavyBlockTopOffset.z, MTXMODE_APPLY);  // was D_80884ED4 [LLM:HIGH]
+     }
+ 
+-    Matrix_MultVec3f(&D_80884EC8, &thisx->world.pos);
+-    Matrix_MultVec3f(&D_80884ED4, &thisx->home.pos);
++    Matrix_MultVec3f(&sHeavyBlockOrigin, &thisx->world.pos);  // was D_80884EC8 [LLM:HIGH]
++    Matrix_MultVec3f(&sHeavyBlockTopOffset, &thisx->home.pos);  // was D_80884ED4 [LLM:HIGH]
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+ 
+     gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+-- 
+2.55.0
+

@@ -1,0 +1,132 @@
+From cb7977bcaa22ab3e4643c44b583a2b863cb7bbb8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:02 +0000
+Subject: [PATCH 058/488] soh: name the 4 address-named symbols defined in
+ z_en_horse.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c.
+
+  * D_80A65F38 -> sColChkInfoInit
+    deduced, confidence HIGH
+
+  * func_80A5BB90 -> EnHorse_ProjectPos
+    deduced, confidence HIGH
+
+  * func_80A5BBBC -> EnHorse_PosInCameraView
+    deduced, confidence HIGH
+
+  * D_80A667DC -> sUnusedBlinkTimes
+    deduced, confidence GUESS
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_En_Horse/z_en_horse.c | 20 +++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+index 0ac346f8d..088b5f67c 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
++++ b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+@@ -148,7 +148,8 @@ static ColliderJntSphInit sJntSphInit = {
+     sJntSphItemsInit,
+ };
+ 
+-static CollisionCheckInfoInit D_80A65F38 = { 10, 35, 100, MASS_HEAVY };
++// LLM generated name (HIGH), was D_80A65F38: collision-check info init (health/mass) passed to CollisionCheck_SetInfo.
++static CollisionCheckInfoInit sColChkInfoInit = { 10, 35, 100, MASS_HEAVY };
+ 
+ typedef struct {
+     s16 scene;
+@@ -639,16 +640,18 @@ f32 EnHorse_SlopeSpeedMultiplier(EnHorse* this, PlayState* play) {
+     return multiplier;
+ }
+ 
+-void func_80A5BB90(PlayState* play, Vec3f* vec, Vec3f* arg2, f32* arg3) {
++// LLM generated name (HIGH), was func_80A5BB90: projects a world pos through the view-projection matrix.
++void EnHorse_ProjectPos(PlayState* play, Vec3f* vec, Vec3f* arg2, f32* arg3) {
+     SkinMatrix_Vec3fMtxFMultXYZW(&play->viewProjectionMtxF, vec, arg2, arg3);
+ }
+ 
+-s32 func_80A5BBBC(PlayState* play, EnHorse* this, Vec3f* pos) {
++// LLM generated name (HIGH), was func_80A5BBBC: projects pos and tests whether it lies within the camera frustum.
++s32 EnHorse_PosInCameraView(PlayState* play, EnHorse* this, Vec3f* pos) {
+     Vec3f sp24;
+     f32 sp20;
+     f32 eyeDist;
+ 
+-    func_80A5BB90(play, pos, &sp24, &sp20);
++    EnHorse_ProjectPos(play, pos, &sp24, &sp20);
+     if (fabsf(sp20) < 0.008f) {
+         return false;
+     }
+@@ -697,7 +700,7 @@ s32 EnHorse_Spawn(EnHorse* this, PlayState* play) {
+                 dist = Math3D_Vec3f_DistXYZ(&player->actor.world.pos, &spawnPos);
+ 
+                 if (play->sceneNum) {}
+-                if (!(minDist < dist) && !func_80A5BBBC(play, this, &spawnPos)) {
++                if (!(minDist < dist) && !EnHorse_PosInCameraView(play, this, &spawnPos)) {
+                     minDist = dist;
+                     this->actor.world.pos.x = sHorseSpawns[i].pos.x;
+                     this->actor.world.pos.y = sHorseSpawns[i].pos.y;
+@@ -826,7 +829,7 @@ void EnHorse_Init(Actor* thisx, PlayState* play2) {
+     Collider_SetCylinder(play, &this->cyl2, &this->actor, &sCylinderInit2);
+     Collider_InitJntSph(play, &this->jntSph);
+     Collider_SetJntSph(play, &this->jntSph, &this->actor, &sJntSphInit, &this->jntSphList);
+-    CollisionCheck_SetInfo(&this->actor.colChkInfo, DamageTable_Get(0xB), &D_80A65F38);
++    CollisionCheck_SetInfo(&this->actor.colChkInfo, DamageTable_Get(0xB), &sColChkInfoInit);
+     this->actor.focus.pos = this->actor.world.pos;
+     this->actor.focus.pos.y += 70.0f;
+     this->playerControlled = false;
+@@ -1822,7 +1825,7 @@ void EnHorse_Idle(EnHorse* this, PlayState* play) {
+ 
+     if (DREG(53) && this->type == HORSE_EPONA) {
+         DREG(53) = 0;
+-        if (!func_80A5BBBC(play, this, &this->actor.world.pos)) {
++        if (!EnHorse_PosInCameraView(play, this, &this->actor.world.pos)) {
+             if (EnHorse_Spawn(this, play)) {
+                 Audio_PlaySfxGeneral(NA_SE_EV_HORSE_NEIGH, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+@@ -3826,7 +3829,8 @@ void EnHorse_PostDraw(Actor* thisx, PlayState* play, Skin* skin) {
+ }
+ 
+ // unused
+-static s32 D_80A667DC[] = { 0, 3, 7, 14 };
++// LLM generated name (GUESS), was D_80A667DC: unused static array; name flags it unused (values resemble blink timings).
++static s32 sUnusedBlinkTimes[] = { 0, 3, 7, 14 };
+ 
+ s32 EnHorse_OverrideLimbDraw(Actor* thisx, PlayState* play, s32 limbIndex, Skin* arg3) {
+     static void* eyeTextures[] = {
+-- 
+2.55.0
+

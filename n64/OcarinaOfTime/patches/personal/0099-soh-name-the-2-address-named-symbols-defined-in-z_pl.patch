@@ -1,0 +1,138 @@
+From b45ee003b0acc6d93103ebfbab45c415b898cfbe Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:06 +0000
+Subject: [PATCH 099/488] soh: name the 2 address-named symbols defined in
+ z_player.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_player_actor/z_player.c.
+
+  * func_8084663C -> Player_DoNothing
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80846720 -> Player_PutSwordInHand
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.82
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_player_actor/z_player.c        | 20 ++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 59952f929..8264cac4e 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -10626,11 +10626,12 @@ static ColliderQuadInit D_808546A0 = {
+     { { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } } },
+ };
+ 
+-void func_8084663C(Actor* thisx, PlayState* play) {
++// Name from zeldaret/oot (was func_8084663C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_player_actor/z_player.c]
++void Player_DoNothing(Actor* thisx, PlayState* play) {
+ }
+ 
+ void Player_StartMode_Nothing(PlayState* play, Player* this) {
+-    this->actor.update = func_8084663C;
++    this->actor.update = Player_DoNothing;
+     this->actor.draw = NULL;
+ }
+ 
+@@ -10647,7 +10648,8 @@ void Player_StartMode_BlueWarp(PlayState* play, Player* this) {
+ 
+ static u8 D_808546F0[] = { ITEM_SWORD_MASTER, ITEM_SWORD_KOKIRI };
+ 
+-void func_80846720(PlayState* play, Player* this, s32 arg2) {
++// Name from zeldaret/oot (was func_80846720): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_player_actor/z_player.c]
++void Player_PutSwordInHand(PlayState* play, Player* this, s32 arg2) {
+     s32 item = D_808546F0[(void)0, gSaveContext.linkAge];
+     s32 itemAction = sItemActions[item];
+ 
+@@ -10676,7 +10678,7 @@ void Player_StartMode_TimeTravel(PlayState* play, Player* this) {
+                          0.0f);
+     Player_StartAnimMovement(play, this, 0x28F);
+     if (LINK_IS_ADULT) {
+-        func_80846720(play, this, 0);
++        Player_PutSwordInHand(play, this, 0);
+     }
+     this->av2.actionVar2 = 20;
+ }
+@@ -16014,7 +16016,7 @@ void func_80851D80(PlayState* play, Player* this, CsCmdActorCue* cue) {
+     LinkAnimation_Update(play, &this->skelAnime);
+ 
+     if (LinkAnimation_OnFrame(&this->skelAnime, 6.0f)) {
+-        func_80846720(play, this, 0);
++        Player_PutSwordInHand(play, this, 0);
+     } else {
+         Player_ProcessAnimSfxList(this, D_808551B8);
+     }
+@@ -16149,7 +16151,7 @@ void func_80852298(PlayState* play, Player* this, CsCmdActorCue* cue) {
+         this->av2.actionVar2 = 1;
+     } else if (this->av2.actionVar2 == 0) {
+         if (LinkAnimation_OnFrame(&this->skelAnime, 10.0f)) {
+-            func_80846720(play, this, 1);
++            Player_PutSwordInHand(play, this, 1);
+         }
+     }
+ }
+@@ -16249,7 +16251,7 @@ void func_808525C0(PlayState* play, Player* this, CsCmdActorCue* cue) {
+ }
+ 
+ void func_80852608(PlayState* play, Player* this, CsCmdActorCue* cue) {
+-    func_80846720(play, this, 0);
++    Player_PutSwordInHand(play, this, 0);
+     Player_AnimPlayOnceAdjusted(play, this, &gPlayerAnim_link_demo_return_to_past);
+ }
+ 
+@@ -16321,7 +16323,7 @@ void func_8085283C(PlayState* play, Player* this, CsCmdActorCue* cue) {
+         // This is when link picks up the sword in the Ganon fight
+     } else if (this->av2.actionVar2 == 0) {
+         Item_Give(play, ITEM_SWORD_MASTER);
+-        func_80846720(play, this, 0);
++        Player_PutSwordInHand(play, this, 0);
+     } else {
+         func_8084E988(this);
+     }
+@@ -16333,7 +16335,7 @@ void func_808528C8(PlayState* play, Player* this, CsCmdActorCue* cue) {
+     }
+ 
+     if (this->heldItemAction != PLAYER_IA_SWORD_MASTER) {
+-        func_80846720(play, this, 1);
++        Player_PutSwordInHand(play, this, 1);
+     }
+ }
+ 
+-- 
+2.55.0
+

@@ -1,0 +1,804 @@
+From e76c9afabd7e4bd5b2b981f83e6bf1aa297087aa Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:08 +0000
+Subject: [PATCH 120/488] soh: name the 10 address-named symbols defined in
+ z_demo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 10 are defined in soh/src/code/z_demo.c; updating their references touches 20 files in total.
+
+  * func_80064520 -> Cutscene_StartManual
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_80064824 -> CutsceneCmd_Misc
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.95
+
+  * func_80068ECC -> Cutscene_SetupScripted
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.98
+
+  * D_8011E1C0 -> sCurTextId
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8011E1C4 -> sCurOcarinaAction
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8015FCC0 -> gCamAtSplinePointsAppliedFrame
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8015FCC2 -> gCamEyePointAppliedFrame
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8015FCC4 -> gCamAtPointAppliedFrame
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8015FCC6 -> sReturnToCamId
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8015FCC8 -> gUseCutsceneCam
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  2 +-
+ soh/include/variables.h                       |  8 +-
+ soh/src/code/db_camera.c                      |  2 +-
+ soh/src/code/z_demo.c                         | 98 ++++++++++---------
+ soh/src/code/z_kankyo.c                       |  2 +-
+ .../actors/ovl_Bg_Treemouth/z_bg_treemouth.c  |  6 +-
+ .../actors/ovl_Boss_Dodongo/z_boss_dodongo.c  |  4 +-
+ .../overlays/actors/ovl_Boss_Fd/z_boss_fd.c   |  2 +-
+ .../overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c |  2 +-
+ .../actors/ovl_Boss_Ganon/z_boss_ganon.c      |  6 +-
+ .../actors/ovl_Boss_Ganon2/z_boss_ganon2.c    | 12 +--
+ .../ovl_Boss_Ganondrof/z_boss_ganondrof.c     |  2 +-
+ .../actors/ovl_Boss_Goma/z_boss_goma.c        |  6 +-
+ .../overlays/actors/ovl_Boss_Mo/z_boss_mo.c   |  6 +-
+ .../overlays/actors/ovl_Boss_Sst/z_boss_sst.c |  4 +-
+ .../overlays/actors/ovl_Boss_Tw/z_boss_tw.c   |  6 +-
+ .../overlays/actors/ovl_Boss_Va/z_boss_va.c   |  8 +-
+ .../actors/ovl_En_Clear_Tag/z_en_clear_tag.c  |  2 +-
+ soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c |  2 +-
+ .../overlays/actors/ovl_Fishing/z_fishing.c   |  6 +-
+ 20 files changed, 98 insertions(+), 88 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index e96b17a8f..662264272 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -863,7 +863,7 @@ DebugDispObject* DebugDisplay_AddObject(f32 posX, f32 posY, f32 posZ, s16 rotX,
+                                         GraphicsContext* gfxCtx);
+ void DebugDisplay_DrawObjects(PlayState* play);
+ void Cutscene_InitContext(PlayState* play, CutsceneContext* csCtx);  // was func_8006450C [oot]
+-void func_80064520(PlayState* play, CutsceneContext* csCtx);
++void Cutscene_StartManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064520 [oot]
+ void Cutscene_StopManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064534 [oot]
+ void Cutscene_UpdateManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064558 [oot]
+ void func_800645A0(PlayState* play, CutsceneContext* csCtx);
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 49d9b2593..834f13004 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -189,10 +189,10 @@ extern "C"
+ 
+ 	extern SaveContext gSaveContext;
+ 	extern GameInfo* gGameInfo;
+-	extern u16 D_8015FCC0;
+-	extern u16 D_8015FCC2;
+-	extern u16 D_8015FCC4;
+-	extern u8 D_8015FCC8;
++	extern u16 gCamAtSplinePointsAppliedFrame;  // was D_8015FCC0 [oot]
++	extern u16 gCamEyePointAppliedFrame;  // was D_8015FCC2 [oot]
++	extern u16 gCamAtPointAppliedFrame;  // was D_8015FCC4 [oot]
++	extern u8 gUseCutsceneCam;  // was D_8015FCC8 [oot]
+ 	extern u8 gCustomLensFlareOn;
+ 	extern Vec3f gCustomLensFlarePos;
+ 	extern s16 gLensFlareScale;
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index 61bd450a9..9982ad570 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -2082,7 +2082,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+             }
+ 
+             if (CHECK_BTN_ALL(sPlayState->state.input[1].press.button, BTN_CRIGHT)) {
+-                D_8015FCC8 = 0;
++                gUseCutsceneCam = 0;
+                 gSaveContext.cutsceneIndex = 0xFFFD;
+                 gSaveContext.cutsceneTrigger = 1;
+                 sDbCamAnim.curFrame = 0.0f;
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 6471f1861..150adfd8c 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -36,8 +36,10 @@
+ #include "soh/ResourceManagerHelpers.h"
+ #include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
+ 
+-u16 D_8011E1C0 = 0;
+-u16 D_8011E1C4 = 0;
++// Name from zeldaret/oot (was D_8011E1C0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u16 sCurTextId = 0;
++// Name from zeldaret/oot (was D_8011E1C4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u16 sCurOcarinaAction = 0;
+ 
+ typedef void (*CutsceneStateHandler)(PlayState*, CutsceneContext*);
+ 
+@@ -104,17 +106,23 @@ void* D_8011E304[] = {
+     gDekuTreeIntroCs, gJabuJabuIntroCs, gDcOpeningCs, gMinuetCs, gIceCavernSerenadeCs, gTowerBarrierCs,
+ };
+ 
+-u16 D_8015FCC0;
+-u16 D_8015FCC2;
+-u16 D_8015FCC4;
+-s16 D_8015FCC6;
+-u8 D_8015FCC8;
++// Name from zeldaret/oot (was D_8015FCC0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u16 gCamAtSplinePointsAppliedFrame;
++// Name from zeldaret/oot (was D_8015FCC2): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u16 gCamEyePointAppliedFrame;
++// Name from zeldaret/oot (was D_8015FCC4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u16 gCamAtPointAppliedFrame;
++// Name from zeldaret/oot (was D_8015FCC6): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++s16 sReturnToCamId;
++// Name from zeldaret/oot (was D_8015FCC8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++u8 gUseCutsceneCam;
+ s16 sQuakeIndex;
+ u16 D_8015FCCC;      // only written to, never read
+ char D_8015FCD0[20]; // unreferenced
+ u8 D_8015FCE4;       // only written to, never read
+ 
+-void func_80068ECC(PlayState* play, CutsceneContext* csCtx);
++// Name from zeldaret/oot (was func_80068ECC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.98. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx);
+ 
+ void Cutscene_DrawDebugInfo(PlayState* play, Gfx** dlist, CutsceneContext* csCtx) {
+     GfxPrint printer;
+@@ -142,7 +150,8 @@ void Cutscene_InitContext(PlayState* play, CutsceneContext* csCtx) {
+     csCtx->unk_0C = 0.0f;
+ }
+ 
+-void func_80064520(PlayState* play, CutsceneContext* csCtx) {
++// Name from zeldaret/oot (was func_80064520): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++void Cutscene_StartManual(PlayState* play, CutsceneContext* csCtx) {
+     csCtx->state = CS_STATE_SKIPPABLE_INIT;
+     csCtx->linkAction = NULL;
+ }
+@@ -166,14 +175,14 @@ void func_800645A0(PlayState* play, CutsceneContext* csCtx) {
+ 
+     if (CVarGetInteger(CVAR_DEVELOPER_TOOLS("DebugEnabled"), 0) && CHECK_BTN_ALL(input->press.button, BTN_DLEFT) &&
+         (csCtx->state == CS_STATE_IDLE) && (gSaveContext.sceneLayer >= 4)) {
+-        D_8015FCC8 = 0;
++        gUseCutsceneCam = 0;
+         gSaveContext.cutsceneIndex = 0xFFFD;
+         gSaveContext.cutsceneTrigger = 1;
+     }
+ 
+     if (CVarGetInteger(CVAR_DEVELOPER_TOOLS("DebugEnabled"), 0) && CHECK_BTN_ALL(input->press.button, BTN_DUP) &&
+         (csCtx->state == CS_STATE_IDLE) && (gSaveContext.sceneLayer >= 4) && !gDbgCamEnabled) {
+-        D_8015FCC8 = 1;
++        gUseCutsceneCam = 1;
+         gSaveContext.cutsceneIndex = 0xFFFD;
+         gSaveContext.cutsceneTrigger = 1;
+     }
+@@ -189,7 +198,7 @@ void func_800645A0(PlayState* play, CutsceneContext* csCtx) {
+     }
+ 
+     if (gSaveContext.cutsceneIndex >= 0xFFF0) {
+-        func_80068ECC(play, csCtx);
++        Cutscene_SetupScripted(play, csCtx);
+         sCsStateHandlers2[csCtx->state](play, csCtx);
+     }
+ }
+@@ -224,7 +233,8 @@ void CutsceneHandler_StartScript(PlayState* play, CutsceneContext* csCtx) {
+ }
+ 
+ // Command 3: Misc. Actions
+-void func_80064824(PlayState* play, CutsceneContext* csCtx, CsCmdBase* cmd) {
++// Name from zeldaret/oot (was func_80064824): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++void CutsceneCmd_Misc(PlayState* play, CutsceneContext* csCtx, CsCmdBase* cmd) {
+     Player* player = GET_PLAYER(play);
+     f32 temp;
+     u8 sp3F = 0;
+@@ -1448,9 +1458,9 @@ size_t Cutscene_Command_CameraPositions(PlayState* play, CutsceneContext* csCtx,
+         csCtx->cameraPosition = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1A != 0) {
+             csCtx->unk_18 = cmdBase->startFrame;
+-            if (D_8015FCC8 != 0) {
++            if (gUseCutsceneCam != 0) {
+                 Play_CameraChangeSetting(play, csCtx->unk_14, CAM_SET_CS_0);
+-                Play_ChangeCameraStatus(play, D_8015FCC6, CAM_STAT_WAIT);
++                Play_ChangeCameraStatus(play, sReturnToCamId, CAM_STAT_WAIT);
+                 Play_ChangeCameraStatus(play, csCtx->unk_14, CAM_STAT_ACTIVE);
+                 Camera_ResetAnim(Play_GetCamera(play, csCtx->unk_14));
+                 Camera_SetCSParams(Play_GetCamera(play, csCtx->unk_14), csCtx->cameraFocus, csCtx->cameraPosition,
+@@ -1480,14 +1490,14 @@ size_t Cutscene_Command_CameraFocus(PlayState* play, CutsceneContext* csCtx, u8*
+     size = sizeof(CutsceneData) * 2;
+ 
+     if ((cmdBase->startFrame < csCtx->frames) && (csCtx->frames < cmdBase->endFrame) &&
+-        ((D_8015FCC0 < cmdBase->startFrame) || (D_8015FCC0 >= 0xF000))) {
++        ((gCamAtSplinePointsAppliedFrame < cmdBase->startFrame) || (gCamAtSplinePointsAppliedFrame >= 0xF000))) {
+         csCtx->unk_1A = 1;
+         csCtx->cameraFocus = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1B != 0) {
+-            D_8015FCC0 = cmdBase->startFrame;
+-            if (D_8015FCC8 != 0) {
++            gCamAtSplinePointsAppliedFrame = cmdBase->startFrame;
++            if (gUseCutsceneCam != 0) {
+                 Play_CameraChangeSetting(play, csCtx->unk_14, CAM_SET_CS_0);
+-                Play_ChangeCameraStatus(play, D_8015FCC6, CAM_STAT_WAIT);
++                Play_ChangeCameraStatus(play, sReturnToCamId, CAM_STAT_WAIT);
+                 Play_ChangeCameraStatus(play, csCtx->unk_14, CAM_STAT_ACTIVE);
+                 Camera_ResetAnim(Play_GetCamera(play, csCtx->unk_14));
+                 Camera_SetCSParams(Play_GetCamera(play, csCtx->unk_14), csCtx->cameraFocus, csCtx->cameraPosition,
+@@ -1520,12 +1530,12 @@ size_t Cutscene_Command_07(PlayState* play, CutsceneContext* csCtx, u8* cmd, u8
+     size = sizeof(CutsceneData) * 2;
+ 
+     if ((cmdBase->startFrame < csCtx->frames) && (csCtx->frames < cmdBase->endFrame) &&
+-        ((D_8015FCC2 < cmdBase->startFrame) || (D_8015FCC2 >= 0xF000))) {
++        ((gCamEyePointAppliedFrame < cmdBase->startFrame) || (gCamEyePointAppliedFrame >= 0xF000))) {
+         csCtx->unk_1B = 1;
+         csCtx->cameraPosition = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1A != 0) {
+-            D_8015FCC2 = cmdBase->startFrame;
+-            if (D_8015FCC8 != 0) {
++            gCamEyePointAppliedFrame = cmdBase->startFrame;
++            if (gUseCutsceneCam != 0) {
+                 sp2C = Play_GetCamera(play, csCtx->unk_14);
+                 sp2C->player = NULL;
+                 Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -1563,12 +1573,12 @@ size_t Cutscene_Command_08(PlayState* play, CutsceneContext* csCtx, u8* cmd, u8
+     size = sizeof(CutsceneData) * 2;
+ 
+     if ((cmdBase->startFrame < csCtx->frames) && (csCtx->frames < cmdBase->endFrame) &&
+-        ((D_8015FCC4 < cmdBase->startFrame) || (D_8015FCC4 >= 0xF000))) {
++        ((gCamAtPointAppliedFrame < cmdBase->startFrame) || (gCamAtPointAppliedFrame >= 0xF000))) {
+         csCtx->unk_1A = 1;
+         csCtx->cameraFocus = (CutsceneCameraPoint*)cmd;
+         if (csCtx->unk_1B != 0) {
+-            D_8015FCC4 = cmdBase->startFrame;
+-            if (D_8015FCC8 != 0) {
++            gCamAtPointAppliedFrame = cmdBase->startFrame;
++            if (gUseCutsceneCam != 0) {
+                 sp2C = Play_GetCamera(play, csCtx->unk_14);
+                 sp2C->player = NULL;
+                 Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -1598,8 +1608,8 @@ void Cutscene_Command_Textbox(PlayState* play, CutsceneContext* csCtx, CsCmdText
+ 
+     if ((cmd->startFrame < csCtx->frames) && (csCtx->frames <= cmd->endFrame)) {
+         if (cmd->type != 2) {
+-            if (D_8011E1C0 != cmd->base) {
+-                D_8011E1C0 = cmd->base;
++            if (sCurTextId != cmd->base) {
++                sCurTextId = cmd->base;
+                 if ((cmd->type == 3) && CHECK_QUEST_ITEM(QUEST_ZORA_SAPPHIRE)) {
+                     Message_StartTextbox(play, cmd->textId1, NULL);
+                 } else if ((cmd->type == 4) && CHECK_QUEST_ITEM(QUEST_GORON_RUBY)) {
+@@ -1653,8 +1663,8 @@ void Cutscene_Command_Textbox(PlayState* play, CutsceneContext* csCtx, CsCmdText
+                 return;
+             }
+         } else {
+-            if (D_8011E1C4 != cmd->base) {
+-                D_8011E1C4 = cmd->base;
++            if (sCurOcarinaAction != cmd->base) {
++                sCurOcarinaAction = cmd->base;
+                 Message_StartOcarinaSunsSongEnabled(play, cmd->base);
+                 return;
+             }
+@@ -1707,8 +1717,8 @@ void Cutscene_Command_Textbox(PlayState* play, CutsceneContext* csCtx, CsCmdText
+ 
+             if (csCtx->frames == originalCsFrames) {
+                 Interface_ChangeHudVisibilityMode(1);
+-                D_8011E1C0 = 0;
+-                D_8011E1C4 = 0;
++                sCurTextId = 0;
++                sCurOcarinaAction = 0;
+             }
+         }
+     }
+@@ -1757,7 +1767,7 @@ void Cutscene_ProcessCommands(PlayState* play, CutsceneContext* csCtx, u8* cutsc
+                 memcpy(&cmdEntries, cutscenePtr, sizeof(CutsceneData));
+                 cutscenePtr += sizeof(CutsceneData);
+                 for (j = 0; j < cmdEntries; j++) {
+-                    func_80064824(play, csCtx, (void*)cutscenePtr);
++                    CutsceneCmd_Misc(play, csCtx, (void*)cutscenePtr);
+                     cutscenePtr += sizeof(CutsceneData) * 12;
+                 }
+                 break;
+@@ -2116,18 +2126,18 @@ void func_80068DC0(PlayState* play, CutsceneContext* csCtx) {
+         gSaveContext.cutsceneIndex = 0;
+         gSaveContext.gameMode = GAMEMODE_NORMAL;
+ 
+-        if (D_8015FCC8 != 0) {
++        if (gUseCutsceneCam != 0) {
+             switch (gSaveContext.entranceIndex) {
+                 case ENTR_HYRULE_FIELD_11:
+                 case ENTR_HYRULE_FIELD_12:
+                 case ENTR_HYRULE_FIELD_13:
+                 case ENTR_HYRULE_FIELD_15:
+-                    Play_CopyCamera(play, D_8015FCC6, csCtx->unk_14);
++                    Play_CopyCamera(play, sReturnToCamId, csCtx->unk_14);
+             }
+ 
+-            Play_ChangeCameraStatus(play, D_8015FCC6, CAM_STAT_ACTIVE);
++            Play_ChangeCameraStatus(play, sReturnToCamId, CAM_STAT_ACTIVE);
+             Play_ClearCamera(play, csCtx->unk_14);
+-            Camera_SetFinishedFlag(play->cameraPtrs[D_8015FCC6]);
++            Camera_SetFinishedFlag(play->cameraPtrs[sReturnToCamId]);
+         }
+ 
+         Audio_SetCutsceneFlag(0);
+@@ -2135,7 +2145,7 @@ void func_80068DC0(PlayState* play, CutsceneContext* csCtx) {
+     }
+ }
+ 
+-void func_80068ECC(PlayState* play, CutsceneContext* csCtx) {
++void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx) {
+     u8 i;
+ 
+     if ((gSaveContext.cutsceneTrigger != 0) && (csCtx->state == CS_STATE_IDLE) && !Player_InCsMode(play)) {
+@@ -2145,8 +2155,8 @@ void func_80068ECC(PlayState* play, CutsceneContext* csCtx) {
+     if ((gSaveContext.cutsceneIndex >= 0xFFF0) && (csCtx->state == CS_STATE_IDLE)) {
+         Flags_UnsetEnv(play, 0);
+ 
+-        D_8011E1C0 = 0;
+-        D_8011E1C4 = 0;
++        sCurTextId = 0;
++        sCurOcarinaAction = 0;
+         csCtx->unk_12 = 0;
+         csCtx->linkAction = NULL;
+ 
+@@ -2161,14 +2171,14 @@ void func_80068ECC(PlayState* play, CutsceneContext* csCtx) {
+ 
+             csCtx->frames = 0xFFFF;
+             csCtx->unk_18 = 0xFFFF;
+-            D_8015FCC0 = 0xFFFF;
+-            D_8015FCC2 = 0xFFFF;
+-            D_8015FCC4 = 0xFFFF;
++            gCamAtSplinePointsAppliedFrame = 0xFFFF;
++            gCamEyePointAppliedFrame = 0xFFFF;
++            gCamAtPointAppliedFrame = 0xFFFF;
+             csCtx->unk_1A = 0;
+             csCtx->unk_1B = 0;
+-            D_8015FCC6 = play->activeCamera;
++            sReturnToCamId = play->activeCamera;
+ 
+-            if (D_8015FCC8 != 0) {
++            if (gUseCutsceneCam != 0) {
+                 csCtx->unk_14 = Play_CreateSubCamera(play);
+             }
+ 
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 1413511cc..b4b201b5b 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -403,7 +403,7 @@ void Environment_Init(PlayState* play2, EnvironmentContext* envCtx, s32 unused)
+     cREG(12) = 0;
+     cREG(13) = 0;
+     cREG(14) = 0;
+-    D_8015FCC8 = 1;
++    gUseCutsceneCam = 1;
+ 
+     for (i = 0; i < ARRAY_COUNT(sLightningBolts); i++) {
+         sLightningBolts[i].state = LIGHTNING_BOLT_INACTIVE;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+index 4d728d316..9af0b08bb 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
++++ b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+@@ -178,9 +178,9 @@ void func_808BC9EC(BgTreemouth* this, PlayState* play) {
+ 
+         play->csCtx.frames = 0;
+         play->csCtx.unk_18 = 0xFFFF;
+-        D_8015FCC0 = 0xFFFF;
+-        D_8015FCC2 = 0xFFFF;
+-        D_8015FCC4 = 0xFFFF;
++        gCamAtSplinePointsAppliedFrame = 0xFFFF;
++        gCamEyePointAppliedFrame = 0xFFFF;
++        gCamAtPointAppliedFrame = 0xFFFF;
+         play->csCtx.unk_1A = 0;
+         play->csCtx.unk_1B = 0;
+         play->csCtx.state = CS_STATE_SKIPPABLE_EXEC;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index cdc9a4ab5..fd8efe69a 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -451,7 +451,7 @@ void BossDodongo_IntroCutscene(BossDodongo* this, PlayState* play) {
+             }
+             break;
+         case 1:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+             Play_ClearAllSubCameras(play);
+             this->cutsceneCamera = Play_CreateSubCamera(play);
+@@ -1553,7 +1553,7 @@ void BossDodongo_DeathCutscene(BossDodongo* this, PlayState* play) {
+     switch (this->csState) {
+         case 0:
+             this->csState = 5;
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+             this->cutsceneCamera = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_UNK3);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+index 57396068c..6295b28e4 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+@@ -325,7 +325,7 @@ void BossFd_Fly(BossFd* this, PlayState* play) {
+                     (fabsf(player2->actor.world.pos.x - 340.0f) < 60.0f)) {
+ 
+                     this->introState = BFD_CS_START;
+-                    func_80064520(play, &play->csCtx);
++                    Cutscene_StartManual(play, &play->csCtx);
+                     Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+                     this->introCamera = Play_CreateSubCamera(play);
+                     Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c b/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
+index 9c0267bf4..78bbf5584 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
+@@ -662,7 +662,7 @@ void BossFd2_Death(BossFd2* this, PlayState* play) {
+     switch (this->deathState) {
+         case DEATH_START:
+             this->deathState = DEATH_RETREAT;
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+             this->deathCamera = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+index caa52ed52..6b8c48f03 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+@@ -577,7 +577,7 @@ void BossGanon_IntroCutscene(BossGanon* this, PlayState* play) {
+             this->actor.shape.yOffset = -7000.0f;
+             this->actor.shape.rot.y = 0;
+ 
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+             this->csCamIndex = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -1279,7 +1279,7 @@ void BossGanon_DeathAndTowerCutscene(BossGanon* this, PlayState* play) {
+ 
+     switch (this->csState) {
+         case 0:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+             this->csCamIndex = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -1558,7 +1558,7 @@ void BossGanon_DeathAndTowerCutscene(BossGanon* this, PlayState* play) {
+             break;
+ 
+         case 100:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+             this->csCamIndex = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index d4a4fb3db..5e2c79b51 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -245,7 +245,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+         case 0:
+             objectIdx = Object_GetIndex(&play->objectCtx, OBJECT_GANON_ANIME3);
+             if (Object_IsLoaded(&play->objectCtx, objectIdx)) {
+-                func_80064520(play, &play->csCtx);
++                Cutscene_StartManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+                 this->subCamId = Play_CreateSubCamera(play);
+                 Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -392,7 +392,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+                 Message_CloseTextbox(play);
+                 this->csState = 10;
+                 this->csTimer = 0;
+-                func_80064520(play, &play->csCtx);
++                Cutscene_StartManual(play, &play->csCtx);
+                 this->subCamId = Play_CreateSubCamera(play);
+                 Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+                 Play_ChangeCameraStatus(play, this->subCamId, CAM_STAT_ACTIVE);
+@@ -1354,7 +1354,7 @@ void func_80900890(BossGanon2* this, PlayState* play) {
+ 
+     switch (this->csState) {
+         case 0:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             this->subCamId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+             Play_ChangeCameraStatus(play, this->subCamId, CAM_STAT_ACTIVE);
+@@ -1411,7 +1411,7 @@ void func_80900890(BossGanon2* this, PlayState* play) {
+             }
+             break;
+         case 10:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             this->subCamId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+             Play_ChangeCameraStatus(play, this->subCamId, CAM_STAT_ACTIVE);
+@@ -1549,7 +1549,7 @@ void func_8090120C(BossGanon2* this, PlayState* play) {
+ 
+     switch (this->csState) {
+         case 0:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             this->subCamId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+             Play_ChangeCameraStatus(play, this->subCamId, CAM_STAT_ACTIVE);
+@@ -1704,7 +1704,7 @@ void func_8090120C(BossGanon2* this, PlayState* play) {
+             temp_a0_2 = Math_Atan2S(temp_f12, temp_f14) - player->actor.shape.rot.y;
+             if ((ABS(temp_a0_2) < 0x2000) && (sqrtf(SQ(temp_f14) + SQ(temp_f12)) < 70.0f) &&
+                 (player->meleeWeaponState != 0) && (player->heldItemAction == PLAYER_IA_SWORD_MASTER)) {
+-                func_80064520(play, &play->csCtx);
++                Cutscene_StartManual(play, &play->csCtx);
+                 GameInteractor_ExecuteOnBossDefeat(&this->actor);
+                 if (GameInteractor_Should(VB_SLAY_GANON, true)) {
+                     this->subCamId = Play_CreateSubCamera(play);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c b/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
+index 0e737226f..11cf90f67 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
+@@ -916,7 +916,7 @@ void BossGanondrof_Death(BossGanondrof* this, PlayState* play) {
+ 
+     switch (this->deathState) {
+         case DEATH_START:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+             this->deathCamera = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c b/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
+index 694a46197..5a0729069 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
++++ b/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
+@@ -635,7 +635,7 @@ void BossGoma_SetupEncounterState4(BossGoma* this, PlayState* play) {
+     player = GET_PLAYER(play);
+     this->actionState = 4;
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+-    func_80064520(play, &play->csCtx);
++    Cutscene_StartManual(play, &play->csCtx);
+     Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+     this->subCameraId = Play_CreateSubCamera(play);
+     Play_ChangeCameraStatus(play, 0, 3);
+@@ -700,7 +700,7 @@ void BossGoma_Encounter(BossGoma* this, PlayState* play) {
+             break;
+ 
+         case 1: // player entered the room
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             this->subCameraId = Play_CreateSubCamera(play);
+             osSyncPrintf("MAKE CAMERA !!!   1   !!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+             Play_ChangeCameraStatus(play, 0, 1);
+@@ -1059,7 +1059,7 @@ void BossGoma_Defeated(BossGoma* this, PlayState* play) {
+     switch (this->actionState) {
+         case 0:
+             this->actionState = 1;
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+             this->subCameraId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, 0, 3);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+index fbf71a5cd..e5e474b4e 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+@@ -813,7 +813,7 @@ void BossMo_Tentacle(BossMo* this, PlayState* play) {
+                     this->mashCounter = 0;
+                     this->sfxTimer = 30;
+                     Audio_ResetIncreasingTranspose();
+-                    func_80064520(play, &play->csCtx);
++                    Cutscene_StartManual(play, &play->csCtx);
+                     this->csCamera = Play_CreateSubCamera(play);
+                     Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+                     Play_ChangeCameraStatus(play, this->csCamera, CAM_STAT_ACTIVE);
+@@ -1270,7 +1270,7 @@ void BossMo_IntroCs(BossMo* this, PlayState* play) {
+                 ((fabsf(player->actor.world.pos.z - -180.0f) < 40.0f) &&
+                  (fabsf(player->actor.world.pos.x - -180.0f) < 40.0f))) {
+                 // checks if Link is on one of the four platforms
+-                func_80064520(play, &play->csCtx);
++                Cutscene_StartManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+                 this->csCamera = Play_CreateSubCamera(play);
+                 Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -1554,7 +1554,7 @@ void BossMo_DeathCs(BossMo* this, PlayState* play) {
+ 
+     switch (this->csState) {
+         case MO_DEATH_START:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+             this->csCamera = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c b/soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c
+index 6d2cadb81..f6ca283b3 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c
++++ b/soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c
+@@ -405,7 +405,7 @@ void BossSst_HeadSetupIntro(BossSst* this, PlayState* play) {
+     player->fallStartHeight = 0;
+     player->stateFlags1 |= PLAYER_STATE1_INPUT_DISABLED;
+ 
+-    func_80064520(play, &play->csCtx);
++    Cutscene_StartManual(play, &play->csCtx);
+     Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+     sSubCamId = Play_CreateSubCamera(play);
+     Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+@@ -1051,7 +1051,7 @@ void BossSst_HeadSetupDeath(BossSst* this, PlayState* play) {
+     Play_ChangeCameraStatus(play, sSubCamId, CAM_STAT_ACTIVE);
+     Play_CopyCamera(play, sSubCamId, CAM_ID_MAIN);
+     Player_SetCsActionWithHaltedActors(play, &player->actor, 8);
+-    func_80064520(play, &play->csCtx);
++    Cutscene_StartManual(play, &play->csCtx);
+     Math_Vec3f_Copy(&sSubCamEye, &GET_ACTIVE_CAM(play)->eye);
+     this->actionFunc = BossSst_HeadDeath;
+ }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+index 6d29819ab..3b33c4a66 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
++++ b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+@@ -1478,7 +1478,7 @@ void BossTw_TwinrovaMergeCS(BossTw* this, PlayState* play) {
+     switch (this->csState2) {
+         case 0:
+             this->csState2 = 1;
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 0x39);
+             this->subCamId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, 0, CAM_STAT_WAIT);
+@@ -1774,7 +1774,7 @@ void BossTw_TwinrovaIntroCS(BossTw* this, PlayState* play) {
+             if (SQ(player->actor.world.pos.x) + SQ(player->actor.world.pos.z) < SQ(150.0f)) {
+                 player->actor.world.pos.x = player->actor.world.pos.z = .0f;
+                 this->csState2 = 1;
+-                func_80064520(play, &play->csCtx);
++                Cutscene_StartManual(play, &play->csCtx);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 0x39);
+                 this->subCamId = Play_CreateSubCamera(play);
+                 Play_ChangeCameraStatus(play, 0, CAM_STAT_WAIT);
+@@ -2675,7 +2675,7 @@ void BossTw_TwinrovaDeathCS(BossTw* this, PlayState* play) {
+     switch (this->csState2) {
+         case 0:
+             this->csState2 = 1;
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+             this->subCamId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, 0, CAM_STAT_WAIT);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c b/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
+index b3adcc14e..31c41281c 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
++++ b/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
+@@ -686,7 +686,7 @@ void BossVa_Init(Actor* thisx, PlayState* play2) {
+                         play->envCtx.screenFillColor[1] = 0xDC;
+                         play->envCtx.screenFillColor[2] = 0xBE;
+                         play->envCtx.screenFillColor[3] = 0xD2;
+-                        func_80064520(play, &play->csCtx);
++                        Cutscene_StartManual(play, &play->csCtx);
+                         sSubCamId = Play_CreateSubCamera(play);
+                         Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+                         Play_ChangeCameraStatus(play, sSubCamId, CAM_STAT_ACTIVE);
+@@ -828,7 +828,7 @@ void BossVa_BodyIntro(BossVa* this, PlayState* play) {
+             sCsState++;
+             break;
+         case INTRO_LOOK_DOOR:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             if (sSubCamId == SUBCAM_FREE) {
+                 sSubCamId = Play_CreateSubCamera(play);
+             }
+@@ -870,7 +870,7 @@ void BossVa_BodyIntro(BossVa* this, PlayState* play) {
+             sCsState++;
+             break;
+         case INTRO_SPAWN_BARI:
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             if (sSubCamId == SUBCAM_FREE) {
+                 sSubCamId = Play_CreateSubCamera(play);
+             }
+@@ -1574,7 +1574,7 @@ void BossVa_BodyDeath(BossVa* this, PlayState* play) {
+     switch (sCsState) {
+         case DEATH_START:
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             sSubCamId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+             Play_ChangeCameraStatus(play, sSubCamId, CAM_STAT_ACTIVE);
+diff --git a/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c b/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
+index d0f06f867..87bb98500 100644
+--- a/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
+@@ -615,7 +615,7 @@ void EnClearTag_Update(Actor* thisx, PlayState* play2) {
+                     case CLEAR_TAG_CUTSCENE_MODE_SETUP:
+                         // Initializes Arwing cutscene camera data.
+                         this->cutsceneMode = CLEAR_TAG_CUTSCENE_MODE_PLAY;
+-                        func_80064520(play, &play->csCtx);
++                        Cutscene_StartManual(play, &play->csCtx);
+                         this->cameraId = Play_CreateSubCamera(play);
+                         Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+                         Play_ChangeCameraStatus(play, this->cameraId, CAM_STAT_ACTIVE);
+diff --git a/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c b/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
+index d7c7be6fb..a5bc84dc0 100644
+--- a/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
++++ b/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
+@@ -152,7 +152,7 @@ void EnfHG_Intro(EnfHG* this, PlayState* play) {
+                 }
+                 break;
+             }
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             Player_SetCsActionWithHaltedActors(play, &this->actor, 8);
+             this->cutsceneCamera = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index f3ee918d8..74d682e2a 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -3866,7 +3866,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                 player->unk_860 = 3;
+                 Rumble_Override(0.0f, 1, 3, 1);
+                 sFishesCaught++;
+-                func_80064520(play, &play->csCtx);
++                Cutscene_StartManual(play, &play->csCtx);
+                 sFishingPlayerCinematicState = 100;
+                 sCatchCamX = 45.0f;
+                 sRodCastState = 5;
+@@ -5489,7 +5489,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+         case 10: { // owner tells you to return the rod.
+             Camera* mainCam;
+ 
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             sSubCamId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+             Play_ChangeCameraStatus(play, sSubCamId, CAM_STAT_ACTIVE);
+@@ -5537,7 +5537,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+         case 20: { // found the sinking lure
+             Camera* mainCam;
+ 
+-            func_80064520(play, &play->csCtx);
++            Cutscene_StartManual(play, &play->csCtx);
+             sSubCamId = Play_CreateSubCamera(play);
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+             Play_ChangeCameraStatus(play, sSubCamId, CAM_STAT_ACTIVE);
+-- 
+2.55.0
+

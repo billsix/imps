@@ -1,0 +1,88 @@
+From 85dcecb68b29cf02d45f4c18de7cf0250db27551 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:02 +0000
+Subject: [PATCH 056/488] soh: name the 2 address-named symbols defined in
+ z_en_ganon_organ.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Ganon_Organ/z_en_ganon_organ.c.
+
+  * func_80A280BC -> EnGanonOrgan_SetupFadeDL8
+    deduced, confidence HIGH
+
+  * func_80A28148 -> EnGanonOrgan_SetupFadeDL9
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Ganon_Organ/z_en_ganon_organ.c       | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ganon_Organ/z_en_ganon_organ.c b/soh/src/overlays/actors/ovl_En_Ganon_Organ/z_en_ganon_organ.c
+index 41d1aff1c..08e892c14 100644
+--- a/soh/src/overlays/actors/ovl_En_Ganon_Organ/z_en_ganon_organ.c
++++ b/soh/src/overlays/actors/ovl_En_Ganon_Organ/z_en_ganon_organ.c
+@@ -59,7 +59,8 @@ Gfx* EnGanonOrgan_EmptyDList(GraphicsContext* gfxCtx) {
+     return displayList;
+ }
+ 
+-Gfx* func_80A280BC(GraphicsContext* gfxCtx, BossGanon* dorf) {
++// LLM generated name (HIGH), was func_80A280BC: builds fade env-color DL (organAlpha) bound to segment 0x08 in Draw
++Gfx* EnGanonOrgan_SetupFadeDL8(GraphicsContext* gfxCtx, BossGanon* dorf) {
+     Gfx* displayList;
+     Gfx* displayListHead;
+ 
+@@ -72,7 +73,8 @@ Gfx* func_80A280BC(GraphicsContext* gfxCtx, BossGanon* dorf) {
+     return displayList;
+ }
+ 
+-Gfx* func_80A28148(GraphicsContext* gfxCtx, BossGanon* dorf) {
++// LLM generated name (HIGH), was func_80A28148: builds fade env-color DL (organAlpha) bound to segment 0x09 in Draw
++Gfx* EnGanonOrgan_SetupFadeDL9(GraphicsContext* gfxCtx, BossGanon* dorf) {
+     Gfx* displayList;
+     Gfx* displayListHead;
+ 
+@@ -94,8 +96,8 @@ void EnGanonOrgan_Draw(Actor* thisx, PlayState* play) {
+     osSyncPrintf("ORGAN DRAW  1\n");
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     if ((thisx->params == 1) && (dorf->organAlpha != 255)) {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, func_80A280BC(play->state.gfxCtx, dorf));
+-        gSPSegment(POLY_OPA_DISP++, 0x09, func_80A28148(play->state.gfxCtx, dorf));
++        gSPSegment(POLY_OPA_DISP++, 0x08, EnGanonOrgan_SetupFadeDL8(play->state.gfxCtx, dorf));
++        gSPSegment(POLY_OPA_DISP++, 0x09, EnGanonOrgan_SetupFadeDL9(play->state.gfxCtx, dorf));
+     } else {
+         gSPSegment(POLY_OPA_DISP++, 0x08, EnGanonOrgan_EmptyDList(play->state.gfxCtx));
+         gSPSegment(POLY_OPA_DISP++, 0x09, EnGanonOrgan_EmptyDList(play->state.gfxCtx));
+-- 
+2.55.0
+

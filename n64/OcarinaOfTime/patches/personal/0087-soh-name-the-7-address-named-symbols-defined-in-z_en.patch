@@ -1,0 +1,254 @@
+From e8f8a9b67aa04c317d448f486eebf68ec5dcc540 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:05 +0000
+Subject: [PATCH 087/488] soh: name the 7 address-named symbols defined in
+ z_en_diving_game.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 7 are defined in soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c.
+
+  * func_809EDCB0 -> EnDivingGame_Reset
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.99
+
+  * func_809EE048 -> EnDivingGame_TalkOutsideMinigame
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_809EE0FC -> EnDivingGame_StartThrowAnimation
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_809EE194 -> EnDivingGame_BeforeRupeeThrow
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.99
+
+  * func_809EE780 -> EnDivingGame_UnderwaterViewCs
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_809EE800 -> EnDivingGame_StartMinigame
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_809EE96C -> EnDivingGame_EarnedScale
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_En_Diving_Game/z_en_diving_game.c     | 59 +++++++++++--------
+ 1 file changed, 33 insertions(+), 26 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+index f627e19ee..24b5d9a3b 100644
+--- a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
++++ b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+@@ -17,19 +17,26 @@ void EnDivingGame_Destroy(Actor* thisx, PlayState* play);
+ void EnDivingGame_Update(Actor* thisx, PlayState* play);
+ void EnDivingGame_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_809EDCB0(EnDivingGame* this, PlayState* play);
++// Name from zeldaret/oot (was func_809EDCB0): adopted upstream's name for this address; body verified to match upstream at 0.99. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c]
++void EnDivingGame_Reset(EnDivingGame* this, PlayState* play);
+ void EnDivingGame_Talk(EnDivingGame* this, PlayState* play);
+ void EnDivingGame_HandlePlayChoice(EnDivingGame* this, PlayState* play);
+-void func_809EE048(EnDivingGame* this, PlayState* play);
+-void func_809EE0FC(EnDivingGame* this, PlayState* play);
+-void func_809EE194(EnDivingGame* this, PlayState* play);
++// Name from zeldaret/oot (was func_809EE048): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c]
++void EnDivingGame_TalkOutsideMinigame(EnDivingGame* this, PlayState* play);
++// Name from zeldaret/oot (was func_809EE0FC): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c]
++void EnDivingGame_StartThrowAnimation(EnDivingGame* this, PlayState* play);
++// Name from zeldaret/oot (was func_809EE194): adopted upstream's name for this address; body verified to match upstream at 0.99. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c]
++void EnDivingGame_BeforeRupeeThrow(EnDivingGame* this, PlayState* play);
+ void EnDivingGame_SetupRupeeThrow(EnDivingGame* this, PlayState* play);
+ void EnDivingGame_RupeeThrow(EnDivingGame* this, PlayState* play);
+ void EnDivingGame_SetupUnderwaterViewCs(EnDivingGame* this, PlayState* play);
+-void func_809EE780(EnDivingGame* this, PlayState* play);
+-void func_809EE800(EnDivingGame* this, PlayState* play);
++// Name from zeldaret/oot (was func_809EE780): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c]
++void EnDivingGame_UnderwaterViewCs(EnDivingGame* this, PlayState* play);
++// Name from zeldaret/oot (was func_809EE800): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c]
++void EnDivingGame_StartMinigame(EnDivingGame* this, PlayState* play);
+ void func_809EE8F0(EnDivingGame* this, PlayState* play);
+-void func_809EE96C(EnDivingGame* this, PlayState* play);
++// Name from zeldaret/oot (was func_809EE96C): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c]
++void EnDivingGame_EarnedScale(EnDivingGame* this, PlayState* play);
+ void func_809EEA00(EnDivingGame* this, PlayState* play);
+ void func_809EEA90(EnDivingGame* this, PlayState* play);
+ void func_809EEAF8(EnDivingGame* this, PlayState* play);
+@@ -97,7 +104,7 @@ void EnDivingGame_Init(Actor* thisx, PlayState* play) {
+         sHasSpawned = true;
+         this->actor.targetMode = 0;
+         this->actor.colChkInfo.mass = MASS_IMMOVABLE;
+-        this->actionFunc = func_809EDCB0;
++        this->actionFunc = EnDivingGame_Reset;
+     }
+ }
+ 
+@@ -138,7 +145,7 @@ s32 EnDivingGame_HasMinigameFinished(EnDivingGame* this, PlayState* play) {
+         this->unk_292 = TEXT_STATE_EVENT;
+         this->allRupeesThrown = this->state = this->phase = this->unk_2A2 = this->grabbedRupeesCounter = 0;
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        this->actionFunc = func_809EE048;
++        this->actionFunc = EnDivingGame_TalkOutsideMinigame;
+         return true;
+     } else {
+         s32 rupeesNeeded = 5;
+@@ -164,9 +171,9 @@ s32 EnDivingGame_HasMinigameFinished(EnDivingGame* this, PlayState* play) {
+             Audio_PlayFanfare(NA_BGM_SMALL_ITEM_GET);
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+             if (!Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_SILVER_SCALE)) {
+-                this->actionFunc = func_809EE96C;
++                this->actionFunc = EnDivingGame_EarnedScale;
+             } else {
+-                this->actionFunc = func_809EE048;
++                this->actionFunc = EnDivingGame_TalkOutsideMinigame;
+             }
+             return true;
+         }
+@@ -175,7 +182,7 @@ s32 EnDivingGame_HasMinigameFinished(EnDivingGame* this, PlayState* play) {
+ }
+ 
+ // EnDivingGame_FinishMinigame ? // Reset probably
+-void func_809EDCB0(EnDivingGame* this, PlayState* play) {
++void EnDivingGame_Reset(EnDivingGame* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gZoraIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gZoraIdleAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+@@ -255,42 +262,42 @@ void EnDivingGame_HandlePlayChoice(EnDivingGame* this, PlayState* play) {
+             this->actor.textId == 0x2D) {
+             Message_ContinueTextbox(play, this->actor.textId);
+             this->unk_292 = TEXT_STATE_EVENT;
+-            this->actionFunc = func_809EE048;
++            this->actionFunc = EnDivingGame_TalkOutsideMinigame;
+         } else {
+             play->msgCtx.msgMode = MSGMODE_PAUSED;
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-            this->actionFunc = func_809EE0FC;
++            this->actionFunc = EnDivingGame_StartThrowAnimation;
+         }
+     }
+ }
+ 
+ // Waits for the message to close
+-void func_809EE048(EnDivingGame* this, PlayState* play) {
++void EnDivingGame_TalkOutsideMinigame(EnDivingGame* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_292 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         if (this->phase == ENDIVINGGAME_PHASE_ENDED) {
+             Message_CloseTextbox(play);
+             Player_SetCsActionWithHaltedActors(play, NULL, 7);
+-            this->actionFunc = func_809EDCB0;
++            this->actionFunc = EnDivingGame_Reset;
+         } else {
+             play->msgCtx.msgMode = MSGMODE_PAUSED;
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-            this->actionFunc = func_809EE0FC;
++            this->actionFunc = EnDivingGame_StartThrowAnimation;
+         }
+     }
+ }
+ 
+ // another "start minigame" step
+-void func_809EE0FC(EnDivingGame* this, PlayState* play) {
++void EnDivingGame_StartThrowAnimation(EnDivingGame* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gZoraThrowRupeesAnim);
+ 
+     Animation_Change(&this->skelAnime, &gZoraThrowRupeesAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_ONCE, -10.0f);
+     this->notPlayingMinigame = false;
+-    this->actionFunc = func_809EE194;
++    this->actionFunc = EnDivingGame_BeforeRupeeThrow;
+ }
+ 
+ // Wait a bit before start throwing the rupees.
+-void func_809EE194(EnDivingGame* this, PlayState* play) {
++void EnDivingGame_BeforeRupeeThrow(EnDivingGame* this, PlayState* play) {
+     f32 currentFrame = this->skelAnime.curFrame;
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -380,7 +387,7 @@ void EnDivingGame_RupeeThrow(EnDivingGame* this, PlayState* play) {
+         if (this->unk_2A2 != 0) {
+             this->csCameraTimer = 70;
+             this->unk_2A2 = 2;
+-            this->actionFunc = func_809EE780;
++            this->actionFunc = EnDivingGame_UnderwaterViewCs;
+         } else {
+             this->actionFunc = EnDivingGame_SetupUnderwaterViewCs;
+         }
+@@ -404,7 +411,7 @@ void EnDivingGame_SetupUnderwaterViewCs(EnDivingGame* this, PlayState* play) {
+ }
+ 
+ // EnDivingGame_SayStartAndWait ?
+-void func_809EE780(EnDivingGame* this, PlayState* play) {
++void EnDivingGame_UnderwaterViewCs(EnDivingGame* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->csCameraTimer == 0) {
+         Play_ClearCamera(play, this->subCamId);
+@@ -412,12 +419,12 @@ void func_809EE780(EnDivingGame* this, PlayState* play) {
+         this->actor.textId = 0x405A;
+         Message_ContinueTextbox(play, this->actor.textId);
+         this->unk_292 = TEXT_STATE_EVENT;
+-        this->actionFunc = func_809EE800;
++        this->actionFunc = EnDivingGame_StartMinigame;
+     }
+ }
+ 
+ // EnDivingGame_TalkDuringMinigame
+-void func_809EE800(EnDivingGame* this, PlayState* play) {
++void EnDivingGame_StartMinigame(EnDivingGame* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_292 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+@@ -448,7 +455,7 @@ void func_809EE8F0(EnDivingGame* this, PlayState* play) {
+ }
+ 
+ // EnDivingGame_SayCongratsAndWait ? // EnDivingGame_PlayerWonPhase1
+-void func_809EE96C(EnDivingGame* this, PlayState* play) {
++void EnDivingGame_EarnedScale(EnDivingGame* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((this->unk_292 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play))) {
+         Message_CloseTextbox(play);
+@@ -493,7 +500,7 @@ void func_809EEAF8(EnDivingGame* this, PlayState* play) {
+         osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ 正常終了 ☆☆☆☆☆ \n" VT_RST);
+         this->allRupeesThrown = this->state = this->phase = this->unk_2A2 = this->grabbedRupeesCounter = 0;
+         Flags_SetEventChkInf(EVENTCHKINF_OBTAINED_SILVER_SCALE);
+-        this->actionFunc = func_809EDCB0;
++        this->actionFunc = EnDivingGame_Reset;
+     }
+ }
+ 
+-- 
+2.55.0
+

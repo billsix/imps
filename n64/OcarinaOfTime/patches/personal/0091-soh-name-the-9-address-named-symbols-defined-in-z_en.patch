@@ -1,0 +1,320 @@
+From 7e5566ef618f7866b1af2ee504838b1cb7950805 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:05 +0000
+Subject: [PATCH 091/488] soh: name the 9 address-named symbols defined in
+ z_en_in.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 9 are defined in soh/src/overlays/actors/ovl_En_In/z_en_in.c.
+
+  * func_80A795C8 -> EnIn_UpdateTracking
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80A79BAC -> EnIn_StartTransition
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+  * func_80A79C78 -> EnIn_RentalTimeExpired
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.93
+
+  * func_80A7A4BC -> EnIn_Idle
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80A7AA40 -> EnIn_PlayerWonSecondRace
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.80
+
+  * func_80A7ABD4 -> EnIn_ClosingGate
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_80A7AE84 -> EnIn_FinishClosingGate
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_80A7AEF0 -> EnIn_GuardingGate
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.97
+
+  * func_80A7B018 -> EnIn_PlayerEscapesRanch
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_In/z_en_in.c | 71 ++++++++++++---------
+ 1 file changed, 40 insertions(+), 31 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_In/z_en_in.c b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+index 8f2cddbb7..a0407bf85 100644
+--- a/soh/src/overlays/actors/ovl_En_In/z_en_in.c
++++ b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+@@ -16,15 +16,21 @@ void func_80A7A304(EnIn* this, PlayState* play);
+ void func_80A7A4C8(EnIn* this, PlayState* play);
+ void func_80A7A568(EnIn* this, PlayState* play);
+ void func_80A7A848(EnIn* this, PlayState* play);
+-void func_80A7ABD4(EnIn* this, PlayState* play);
+-void func_80A7AEF0(EnIn* this, PlayState* play);
+-void func_80A7B018(EnIn* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7ABD4): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_ClosingGate(EnIn* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7AEF0): adopted upstream's name for this address; body verified to match upstream at 0.97. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_GuardingGate(EnIn* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7B018): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_PlayerEscapesRanch(EnIn* this, PlayState* play);
+ void func_80A7B024(EnIn* this, PlayState* play);
+-void func_80A7AE84(EnIn* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7AE84): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_FinishClosingGate(EnIn* this, PlayState* play);
+ void func_80A7A770(EnIn* this, PlayState* play);
+ void func_80A7A940(EnIn* this, PlayState* play);
+-void func_80A7AA40(EnIn* this, PlayState* play);
+-void func_80A7A4BC(EnIn* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7AA40): adopted upstream's name for this address; body verified to match upstream at 0.80. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_PlayerWonSecondRace(EnIn* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7A4BC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_Idle(EnIn* this, PlayState* play);
+ 
+ const ActorInit En_In_InitVars = {
+     ACTOR_EN_IN,
+@@ -317,7 +323,8 @@ s16 EnIn_UpdateTalkState(PlayState* play, Actor* thisx) {
+     return sp1E;
+ }
+ 
+-void func_80A795C8(EnIn* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A795C8): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_UpdateTracking(EnIn* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s16 npcTrackingMode;
+ 
+@@ -426,7 +433,8 @@ void func_80A79AB4(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A79BAC(EnIn* this, PlayState* play, s32 index, u32 transitionType) {
++// Name from zeldaret/oot (was func_80A79BAC): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_StartTransition(EnIn* this, PlayState* play, s32 index, u32 transitionType) {
+     s16 entrances[] = { ENTR_LON_LON_RANCH_8, ENTR_LON_LON_RANCH_6, ENTR_LON_LON_RANCH_ENTRANCE };
+ 
+     play->nextEntranceIndex = entrances[index];
+@@ -443,7 +451,8 @@ void func_80A79BAC(EnIn* this, PlayState* play, s32 index, u32 transitionType) {
+     gSaveContext.timerState = TIMER_STATE_OFF;
+ }
+ 
+-void func_80A79C78(EnIn* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A79C78): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
++void EnIn_RentalTimeExpired(EnIn* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     Vec3f sp48;
+     Vec3f sp3C;
+@@ -523,16 +532,16 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+         Actor_SetScale(&this->actor, 0.01f);
+         this->actor.targetMode = 6;
+         this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
+-        this->actionFunc = func_80A7A4BC;
++        this->actionFunc = EnIn_Idle;
+ 
+         switch (EnIn_GetStartMode(this, play)) {
+             case 1:
+                 EnIn_ChangeAnim(this, ENIN_ANIM_9);
+-                this->actionFunc = func_80A7A4BC;
++                this->actionFunc = EnIn_Idle;
+                 break;
+             case 3:
+                 EnIn_ChangeAnim(this, ENIN_ANIM_7);
+-                this->actionFunc = func_80A7A4BC;
++                this->actionFunc = EnIn_Idle;
+                 if (!Flags_GetEventChkInf(EVENTCHKINF_EPONA_OBTAINED)) {
+                     this->actor.params = 5;
+                 }
+@@ -540,7 +549,7 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+             case 4:
+                 EnIn_ChangeAnim(this, ENIN_ANIM_8);
+                 this->eyeIndex = 3;
+-                this->actionFunc = func_80A7A4BC;
++                this->actionFunc = EnIn_Idle;
+                 break;
+             case 0:
+                 Actor_Kill(&this->actor);
+@@ -599,7 +608,7 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+                         this->actor.targetMode = 3;
+                         EnIn_ChangeAnim(this, ENIN_ANIM_6);
+                         this->unk_1EC = 8;
+-                        this->actionFunc = func_80A7AA40;
++                        this->actionFunc = EnIn_PlayerWonSecondRace;
+                         break;
+                     case 7:
+                         EnIn_ChangeAnim(this, ENIN_ANIM_2);
+@@ -636,12 +645,12 @@ void func_80A7A304(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7A4BC(EnIn* this, PlayState* play) {
++void EnIn_Idle(EnIn* this, PlayState* play) {
+ }
+ 
+ void func_80A7A4C8(EnIn* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+-        func_80A79BAC(this, play, 1, TRANS_TYPE_CIRCLE(TCA_NORMAL, TCC_BLACK, TCS_FAST));
++        EnIn_StartTransition(this, play, 1, TRANS_TYPE_CIRCLE(TCA_NORMAL, TCC_BLACK, TCS_FAST));
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x000F) | 0x0001;
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x8000) | 0x8000;
+         Flags_UnsetInfTable(INFTABLE_A2);
+@@ -663,7 +672,7 @@ void func_80A7A568(EnIn* this, PlayState* play) {
+     if (gSaveContext.timerState == TIMER_STATE_STOP) {
+         Audio_PlaySfxGeneral(NA_SE_SY_FOUND, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-        func_80A79C78(this, play);
++        EnIn_RentalTimeExpired(this, play);
+         this->actionFunc = func_80A7B024;
+         gSaveContext.timerState = TIMER_STATE_OFF;
+     } else if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+@@ -693,7 +702,7 @@ void func_80A7A568(EnIn* this, PlayState* play) {
+             transitionType = TRANS_TYPE_CIRCLE(TCA_NORMAL, TCC_BLACK, TCS_FAST);
+         }
+         if (GameInteractor_Should(VB_RACE_INGO, true, phi_a2)) {
+-            func_80A79BAC(this, play, phi_a2, transitionType);
++            EnIn_StartTransition(this, play, phi_a2, transitionType);
+         }
+         play->msgCtx.stateTimer = 0;
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x8000) | 0x8000;
+@@ -727,7 +736,7 @@ void func_80A7A848(EnIn* this, PlayState* play) {
+             this->actionFunc = func_80A7A4C8;
+         } else {
+             if (GameInteractor_Should(VB_RACE_INGO, true, 2)) {
+-                func_80A79BAC(this, play, 2, TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_BLACK, TCS_FAST));
++                EnIn_StartTransition(this, play, 2, TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_BLACK, TCS_FAST));
+             }
+             gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0xF) | 2;
+             gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x8000) | 0x8000;
+@@ -755,7 +764,7 @@ void func_80A7A940(EnIn* this, PlayState* play) {
+     }
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+-        func_80A79BAC(this, play, 2, TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_BLACK, TCS_FAST));
++        EnIn_StartTransition(this, play, 2, TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_BLACK, TCS_FAST));
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x000F) | 0x0002;
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x8000) | 0x8000;
+         play->msgCtx.stateTimer = 0;
+@@ -765,7 +774,7 @@ void func_80A7A940(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7AA40(EnIn* this, PlayState* play) {
++void EnIn_PlayerWonSecondRace(EnIn* this, PlayState* play) {
+     Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
+     Vec3f sp30;
+     Vec3f sp24;
+@@ -801,10 +810,10 @@ void func_80A7AA40(EnIn* this, PlayState* play) {
+     play->csCtx.frames = 0;
+     Letterbox_SetSizeTarget(0x20);
+     Interface_ChangeHudVisibilityMode(HUD_VISIBILITY_NOTHING_ALT);
+-    this->actionFunc = func_80A7ABD4;
++    this->actionFunc = EnIn_ClosingGate;
+ }
+ 
+-void func_80A7ABD4(EnIn* this, PlayState* play) {
++void EnIn_ClosingGate(EnIn* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     Vec3f sp48;
+     Vec3f sp3C;
+@@ -835,7 +844,7 @@ void func_80A7ABD4(EnIn* this, PlayState* play) {
+         }
+     } else {
+         if (play->csCtx.frames++ >= 50) {
+-            this->actionFunc = func_80A7AE84;
++            this->actionFunc = EnIn_FinishClosingGate;
+             return;
+         }
+         if (play->csCtx.frames == 44) {
+@@ -861,15 +870,15 @@ void func_80A7ABD4(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7AE84(EnIn* this, PlayState* play) {
++void EnIn_FinishClosingGate(EnIn* this, PlayState* play) {
+     Play_ChangeCameraStatus(play, this->activeCamId, CAM_STAT_ACTIVE);
+     Play_ClearCamera(play, this->camId);
+     Player_SetCsActionWithHaltedActors(play, &this->actor, 7);
+     Interface_ChangeHudVisibilityMode(0x32);
+-    this->actionFunc = func_80A7AEF0;
++    this->actionFunc = EnIn_GuardingGate;
+ }
+ 
+-void func_80A7AEF0(EnIn* this, PlayState* play) {
++void EnIn_GuardingGate(EnIn* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 yaw;
+     Vec3f pos = this->actor.world.pos;
+@@ -881,7 +890,7 @@ void func_80A7AEF0(EnIn* this, PlayState* play) {
+         play->nextEntranceIndex = ENTR_HYRULE_FIELD_15;
+         play->transitionTrigger = TRANS_TRIGGER_START;
+         play->transitionType = TRANS_TYPE_FADE_WHITE_FAST;
+-        this->actionFunc = func_80A7B018;
++        this->actionFunc = EnIn_PlayerEscapesRanch;
+     } else if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         play->msgCtx.stateTimer = 4;
+         play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
+@@ -889,7 +898,7 @@ void func_80A7AEF0(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7B018(EnIn* this, PlayState* play) {
++void EnIn_PlayerEscapesRanch(EnIn* this, PlayState* play) {
+ }
+ 
+ void func_80A7B024(EnIn* this, PlayState* play) {
+@@ -904,7 +913,7 @@ void func_80A7B024(EnIn* this, PlayState* play) {
+             Flags_SetEventChkInf(EVENTCHKINF_RENTED_HORSE_FROM_INGO);
+             Flags_SetInfTable(INFTABLE_AB);
+         }
+-        func_80A79BAC(this, play, 0, TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_BLACK, TCS_FAST));
++        EnIn_StartTransition(this, play, 0, TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_BLACK, TCS_FAST));
+         gSaveContext.eventInf[0] = gSaveContext.eventInf[0] & ~0xF;
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x8000) | 0x8000;
+         play->msgCtx.stateTimer = 4;
+@@ -947,7 +956,7 @@ void EnIn_Update(Actor* thisx, PlayState* play) {
+                 this->unk_1F8 = Message_GetState(&play->msgCtx);
+             }
+         }
+-        func_80A795C8(this, play);
++        EnIn_UpdateTracking(this, play);
+     }
+ }
+ 
+-- 
+2.55.0
+

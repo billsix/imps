@@ -1,0 +1,101 @@
+From f18c99b67f11cef7678a6311109ed52dc0694f18 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:08 +0000
+Subject: [PATCH 123/488] soh: name the 2 address-named symbols defined in
+ z_room.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_room.c.
+
+  * func_80095AB4 -> Room_DrawNormal
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.95
+
+  * func_80095D04 -> Room_DrawCullable
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.94
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_room.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index cb9d4358a..b000893db 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -13,8 +13,10 @@
+ #include "soh/OTRGlobals.h"
+ #include "soh/ResourceManagerHelpers.h"
+ 
+-void func_80095AB4(PlayState* play, Room* room, u32 flags);
+-void func_80095D04(PlayState* play, Room* room, u32 flags);
++// Name from zeldaret/oot (was func_80095AB4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_room.c]
++void Room_DrawNormal(PlayState* play, Room* room, u32 flags);
++// Name from zeldaret/oot (was func_80095D04): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_room.c]
++void Room_DrawCullable(PlayState* play, Room* room, u32 flags);
+ void func_80096F6C(PlayState* play, Room* room, u32 flags);
+ 
+ Vec3f D_801270A0 = { 0.0f, 0.0f, 0.0f };
+@@ -38,16 +40,16 @@ s32 OTRRoom_RequestNewRoom(PlayState* play, RoomContext* roomCtx, s32 roomNum);
+ s32 OTRfunc_800973FC(PlayState* play, RoomContext* roomCtx);
+ 
+ void (*sRoomDrawHandlers[])(PlayState* play, Room* room, u32 flags) = {
+-    func_80095AB4,
++    Room_DrawNormal,
+     func_80096F6C,
+-    func_80095D04,
++    Room_DrawCullable,
+ };
+ 
+ void func_80095AA0(PlayState* play, Room* room, Input* arg2, UNK_TYPE arg3) {
+ }
+ 
+ // Room Draw Polygon Type 0
+-void func_80095AB4(PlayState* play, Room* room, u32 flags) {
++void Room_DrawNormal(PlayState* play, Room* room, u32 flags) {
+     s32 i;
+     PolygonType0* polygon0;
+     PolygonDlist* polygonDlist;
+@@ -95,7 +97,7 @@ typedef struct struct_80095D04 {
+ } struct_80095D04; // size = 0x10
+ 
+ // Room Draw Polygon Type 2
+-void func_80095D04(PlayState* play, Room* room, u32 flags) {
++void Room_DrawCullable(PlayState* play, Room* room, u32 flags) {
+     PolygonType2* polygon2;
+     PolygonDlist2* polygonDlist;
+     struct_80095D04 spB8[SHAPE_SORT_MAX];
+-- 
+2.55.0
+

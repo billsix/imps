@@ -1,0 +1,419 @@
+From 8ae8fa1fced60d842502870506c24d0c17f977be Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 338/488] soh: name the 14 address-named symbols defined in
+ z_en_horse_normal.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 14 are defined in soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c.
+
+  * D_80A6D428 -> sUnusedPath1
+    deduced, confidence HIGH: the in-tree comment above it reads "//
+    Unused"; it is an eight-waypoint path with a speed per point.
+
+  * D_80A6D468 -> sUnusedPath1Header
+    deduced, confidence HIGH: likewise marked "// Unused"; it pairs
+    sUnusedPath1 with its length.
+
+  * D_80A6D470 -> sUnusedPath2
+    deduced, confidence HIGH: the second "// Unused" waypoint list, nine
+    points long.
+
+  * D_80A6D4B8 -> sUnusedPath2Header
+    deduced, confidence HIGH: the matching "// Unused" header for
+    sUnusedPath2.
+
+  * func_80A6B250 -> EnHorseNormal_PlayWalkSfx
+    deduced, confidence HIGH: fires the walking hoofstep sfx as the
+    animation passes each of its two step frames.
+
+  * func_80A6B30C -> EnHorseNormal_GetAnimPlaySpeed
+    deduced, confidence HIGH: returns the playback rate for the current
+    animation, scaling the three moving gaits by the horse's own speed.
+
+  * func_80A6B91C -> EnHorseNormal_SetupFollowPath
+    deduced, confidence HIGH: enters HORSE_FOLLOW_PATH at the first waypoint
+    with the gallop animation and speed 7.
+
+  * func_80A6BC48 -> EnHorseNormal_SetupWander
+    deduced, confidence HIGH: enters HORSE_WANDER, stopping the horse and
+    returning it to the idle animation.
+
+  * func_80A6BCEC -> EnHorseNormal_PlayRunSfx
+    deduced, confidence HIGH: loops the running hoofbeat sfx for the two
+    galloping animations.
+
+  * func_80A6BD7C -> EnHorseNormal_PlayAnimSfx
+    deduced, confidence HIGH: fires the sand-dust and landing sounds once
+    each, on their fixed frames of the idle and rearing animations.
+
+  * func_80A6C4CC -> EnHorseNormal_SetupWait
+    deduced, confidence HIGH: enters HORSE_WAIT, stopping the horse and
+    returning it to the idle animation.
+
+  * func_80A6C6B0 -> EnHorseNormal_SetupWaitClone
+    deduced, confidence HIGH: enters HORSE_WAIT_CLONE, the same stop but
+    with culling disabled so the duplicate stays live off screen.
+
+  * func_80A6C8E0 -> EnHorseNormal_PitchToSlope
+    deduced, confidence HIGH: raycasts for the floor 30 units ahead and
+    pitches the horse to match the slope it is about to walk onto.
+
+  * func_80A6CC88 -> EnHorseNormal_PlaySfxAtScreenPos
+    deduced, confidence HIGH: projects a world point through the view matrix
+    and plays the horse's dust, landing and neigh sounds at that screen
+    position, each once per animation cycle.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_En_Horse_Normal/z_en_horse_normal.c   | 100 ++++++++++--------
+ 1 file changed, 57 insertions(+), 43 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c b/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
+index 8f7b1fc55..70d0d5b74 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
+@@ -33,11 +33,16 @@ void EnHorseNormal_Destroy(Actor* thisx, PlayState* play);
+ void EnHorseNormal_Update(Actor* thisx, PlayState* play);
+ void EnHorseNormal_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A6B91C(EnHorseNormal* this, PlayState* play);
+-void func_80A6BC48(EnHorseNormal* this);
+-void func_80A6BCEC(EnHorseNormal* this);
+-void func_80A6C4CC(EnHorseNormal* this);
+-void func_80A6C6B0(EnHorseNormal* this);
++// LLM generated name (HIGH), was func_80A6B91C: enters HORSE_FOLLOW_PATH at the first waypoint with the gallop animation and speed 7.
++void EnHorseNormal_SetupFollowPath(EnHorseNormal* this, PlayState* play);  // was func_80A6B91C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A6BC48: enters HORSE_WANDER, stopping the horse and returning it to the idle animation.
++void EnHorseNormal_SetupWander(EnHorseNormal* this);  // was func_80A6BC48 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A6BCEC: loops the running hoofbeat sfx for the two galloping animations.
++void EnHorseNormal_PlayRunSfx(EnHorseNormal* this);  // was func_80A6BCEC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A6C4CC: enters HORSE_WAIT, stopping the horse and returning it to the idle animation.
++void EnHorseNormal_SetupWait(EnHorseNormal* this);  // was func_80A6C4CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A6C6B0: enters HORSE_WAIT_CLONE, the same stop but with culling disabled so the duplicate stays live off screen.
++void EnHorseNormal_SetupWaitClone(EnHorseNormal* this);  // was func_80A6C6B0 [LLM:HIGH]
+ 
+ const ActorInit En_Horse_Normal_InitVars = {
+     ACTOR_EN_HORSE_NORMAL,
+@@ -128,25 +133,30 @@ static ColliderJntSphInit sJntSphInit = {
+ static CollisionCheckInfoInit sColChkInfoInit = { 10, 35, 100, MASS_HEAVY };
+ 
+ // Unused
+-static EnHorseNormalUnkStruct1 D_80A6D428[] = {
++// LLM generated name (HIGH), was D_80A6D428: the in-tree comment above it reads "// Unused"; it is an eight-waypoint path with a speed per point.
++static EnHorseNormalUnkStruct1 sUnusedPath1[] = {  // was D_80A6D428 [LLM:HIGH]
+     { { 1058, 1, 384 }, 7 },    { { 1653, 39, -381 }, 6 }, { { 1606, 1, -1048 }, 6 }, { { 1053, 1, -1620 }, 6 },
+     { { -1012, 1, -1633 }, 7 }, { { -1655, 1, -918 }, 6 }, { { -1586, 1, -134 }, 6 }, { { -961, 1, 403 }, 7 },
+ };
+ 
+ // Unused
+-static EnHorseNormalUnkStruct2 D_80A6D468 = { ARRAY_COUNT(D_80A6D428), D_80A6D428 };
++// LLM generated name (HIGH), was D_80A6D468: likewise marked "// Unused"; it pairs sUnusedPath1 with its length.
++static EnHorseNormalUnkStruct2 sUnusedPath1Header = { ARRAY_COUNT(sUnusedPath1), sUnusedPath1 };  // was D_80A6D428 [LLM:HIGH]
+ 
+ // Unused
+-static EnHorseNormalUnkStruct1 D_80A6D470[] = {
++// LLM generated name (HIGH), was D_80A6D470: the second "// Unused" waypoint list, nine points long.
++static EnHorseNormalUnkStruct1 sUnusedPath2[] = {  // was D_80A6D470 [LLM:HIGH]
+     { { 88, 0, 2078 }, 10 },       { { 2482, 376, 4631 }, 7 },    { { 2228, -28, 6605 }, 12 },
+     { { 654, -100, 8864 }, 7 },    { { -297, -500, 10667 }, 12 }, { { -5303, -420, 10640 }, 10 },
+     { { -6686, -500, 7760 }, 10 }, { { -5260, 100, 5411 }, 7 },   { { -3573, -269, 3893 }, 10 },
+ };
+ 
+ // Unused
+-static EnHorseNormalUnkStruct2 D_80A6D4B8 = { ARRAY_COUNT(D_80A6D470), D_80A6D470 };
++// LLM generated name (HIGH), was D_80A6D4B8: the matching "// Unused" header for sUnusedPath2.
++static EnHorseNormalUnkStruct2 sUnusedPath2Header = { ARRAY_COUNT(sUnusedPath2), sUnusedPath2 };  // was D_80A6D470 [LLM:HIGH]
+ 
+-void func_80A6B250(EnHorseNormal* this) {
++// LLM generated name (HIGH), was func_80A6B250: fires the walking hoofstep sfx as the animation passes each of its two step frames.
++void EnHorseNormal_PlayWalkSfx(EnHorseNormal* this) {
+     static s32 D_80A6D4C0[] = { 0, 16 };
+ 
+     if (D_80A6D4C0[this->unk_200] < this->skin.skelAnime.curFrame &&
+@@ -160,7 +170,8 @@ void func_80A6B250(EnHorseNormal* this) {
+     }
+ }
+ 
+-f32 func_80A6B30C(EnHorseNormal* this) {
++// LLM generated name (HIGH), was func_80A6B30C: returns the playback rate for the current animation, scaling the three moving gaits by the horse's own speed.
++f32 EnHorseNormal_GetAnimPlaySpeed(EnHorseNormal* this) {
+     static f32 D_80A6D4C8[] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.5f, 1.5f, 1.5f, 1.5f, 1.0f };
+     f32 result;
+ 
+@@ -233,7 +244,7 @@ void EnHorseNormal_Init(Actor* thisx, PlayState* play) {
+              this->actor.world.pos.z == -1100.0f) ||
+             (this->actor.world.pos.x == 880.0f && this->actor.world.pos.y == 0.0f &&
+              this->actor.world.pos.z == -1170.0f)) {
+-            func_80A6C6B0(this);
++            EnHorseNormal_SetupWaitClone(this);  // was func_80A6C6B0 [LLM:HIGH]
+             return;
+         }
+     } else if (play->sceneNum == SCENE_STABLE) {
+@@ -243,7 +254,7 @@ void EnHorseNormal_Init(Actor* thisx, PlayState* play) {
+         } else {
+             Skin_Init(play, &this->skin, &gHorseNormalSkel, &gHorseNormalIdleAnim);
+             Animation_PlayOnce(&this->skin.skelAnime, sAnimations[this->animationIdx]);
+-            func_80A6C6B0(this);
++            EnHorseNormal_SetupWaitClone(this);  // was func_80A6C6B0 [LLM:HIGH]
+             return;
+         }
+     } else if (play->sceneNum == SCENE_GERUDOS_FORTRESS) {
+@@ -251,7 +262,7 @@ void EnHorseNormal_Init(Actor* thisx, PlayState* play) {
+             this->actor.world.pos.z == -665.0f) {
+             Skin_Init(play, &this->skin, &gHorseNormalSkel, &gHorseNormalIdleAnim);
+             Animation_PlayOnce(&this->skin.skelAnime, sAnimations[this->animationIdx]);
+-            func_80A6C4CC(this);
++            EnHorseNormal_SetupWait(this);  // was func_80A6C4CC [LLM:HIGH]
+             return;
+         }
+         Skin_Init(play, &this->skin, &gHorseNormalSkel, &gHorseNormalIdleAnim);
+@@ -261,9 +272,9 @@ void EnHorseNormal_Init(Actor* thisx, PlayState* play) {
+         Animation_PlayOnce(&this->skin.skelAnime, sAnimations[this->animationIdx]);
+     }
+     if ((this->actor.params & 0xF0) == 0x10 && (this->actor.params & 0xF) != 0xF) {
+-        func_80A6B91C(this, play);
++        EnHorseNormal_SetupFollowPath(this, play);  // was func_80A6B91C [LLM:HIGH]
+     } else {
+-        func_80A6BC48(this);
++        EnHorseNormal_SetupWander(this);  // was func_80A6BC48 [LLM:HIGH]
+     }
+ }
+ 
+@@ -276,13 +287,13 @@ void EnHorseNormal_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyJntSph(play, &this->headCollider);
+ }
+ 
+-void func_80A6B91C(EnHorseNormal* this, PlayState* play) {
++void EnHorseNormal_SetupFollowPath(EnHorseNormal* this, PlayState* play) {
+     this->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+     this->action = HORSE_FOLLOW_PATH;
+     this->animationIdx = 6;
+     this->waypoint = 0;
+     this->actor.speedXZ = 7.0f;
+-    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                      Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+ }
+ 
+@@ -304,11 +315,11 @@ void EnHorseNormal_FollowPath(EnHorseNormal* this, PlayState* play) {
+             this->waypoint = 0;
+         }
+     }
+-    this->skin.skelAnime.playSpeed = func_80A6B30C(this);
++    this->skin.skelAnime.playSpeed = EnHorseNormal_GetAnimPlaySpeed(this);  // was func_80A6B30C [LLM:HIGH]
+     if (SkelAnime_Update(&this->skin.skelAnime)) {
+-        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                          Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+-        func_80A6BCEC(this);
++        EnHorseNormal_PlayRunSfx(this);  // was func_80A6BCEC [LLM:HIGH]
+     }
+ }
+ 
+@@ -331,18 +342,18 @@ void EnHorseNormal_CycleAnimations(EnHorseNormal* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A6BC48(EnHorseNormal* this) {
++void EnHorseNormal_SetupWander(EnHorseNormal* this) {
+     this->action = HORSE_WANDER;
+     this->animationIdx = 0;
+     this->unk_21C = 0;
+     this->unk_21E = 0;
+     this->actor.speedXZ = 0.0f;
+     this->unk_218 = 0.0f;
+-    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                      Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+ }
+ 
+-void func_80A6BCEC(EnHorseNormal* this) {
++void EnHorseNormal_PlayRunSfx(EnHorseNormal* this) {
+     if (this->animationIdx == 5) {
+         Audio_PlaySfxGeneral(NA_SE_EV_HORSE_RUN, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+@@ -352,7 +363,8 @@ void func_80A6BCEC(EnHorseNormal* this) {
+     }
+ }
+ 
+-void func_80A6BD7C(EnHorseNormal* this) {
++// LLM generated name (HIGH), was func_80A6BD7C: fires the sand-dust and landing sounds once each, on their fixed frames of the idle and rearing animations.
++void EnHorseNormal_PlayAnimSfx(EnHorseNormal* this) {
+     f32 frame = this->skin.skelAnime.curFrame;
+ 
+     if (this->animationIdx == 0 && frame > 28.0f && !(this->unk_1E4 & 1)) {
+@@ -374,7 +386,7 @@ void EnHorseNormal_Wander(EnHorseNormal* this, PlayState* play) {
+ 
+     switch (D_80A6D510[this->animationIdx]) {
+         case 0:
+-            func_80A6BD7C(this);
++            EnHorseNormal_PlayAnimSfx(this);  // was func_80A6BD7C [LLM:HIGH]
+             this->actor.speedXZ = 0.0f;
+             this->unk_218 = 0.0f;
+             break;
+@@ -388,7 +400,7 @@ void EnHorseNormal_Wander(EnHorseNormal* this, PlayState* play) {
+                 this->unk_218 = 0.0f;
+                 phi_t0 = 0;
+             } else if (this->actor.speedXZ < 3.0f) {
+-                func_80A6B250(this);
++                EnHorseNormal_PlayWalkSfx(this);  // was func_80A6B250 [LLM:HIGH]
+                 phi_t0 = 4;
+             } else if (this->actor.speedXZ < 6.0f) {
+                 phi_t0 = 5;
+@@ -437,9 +449,9 @@ void EnHorseNormal_Wander(EnHorseNormal* this, PlayState* play) {
+                 Audio_PlaySfxGeneral(NA_SE_EV_HORSE_NEIGH, &this->unk_204, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             } else {
+-                func_80A6BCEC(this);
++                EnHorseNormal_PlayRunSfx(this);  // was func_80A6BCEC [LLM:HIGH]
+             }
+-            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                              Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -3.0f);
+         } else {
+             switch (D_80A6D510[this->animationIdx]) {
+@@ -468,28 +480,28 @@ void EnHorseNormal_Wander(EnHorseNormal* this, PlayState* play) {
+                 Audio_PlaySfxGeneral(NA_SE_EV_HORSE_NEIGH, &this->unk_204, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             } else {
+-                func_80A6BCEC(this);
++                EnHorseNormal_PlayRunSfx(this);  // was func_80A6BCEC [LLM:HIGH]
+             }
+             if (phi_t0 != this->animationIdx) {
+                 this->animationIdx = phi_t0;
+-                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                                  Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -3.0f);
+             } else {
+-                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                                  Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+             }
+         }
+     }
+ }
+ 
+-void func_80A6C4CC(EnHorseNormal* this) {
++void EnHorseNormal_SetupWait(EnHorseNormal* this) {
+     this->action = HORSE_WAIT;
+     this->animationIdx = 0;
+     this->unk_21C = 0;
+     this->unk_21E = 0;
+     this->actor.speedXZ = 0.0f;
+     this->unk_218 = 0.0f;
+-    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                      Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+ }
+ 
+@@ -509,12 +521,12 @@ void EnHorseNormal_Wait(EnHorseNormal* this, PlayState* play) {
+                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+         }
+ 
+-        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                          Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+     }
+ }
+ 
+-void func_80A6C6B0(EnHorseNormal* this) {
++void EnHorseNormal_SetupWaitClone(EnHorseNormal* this) {
+     this->action = HORSE_WAIT_CLONE;
+     this->animationIdx = 0;
+     this->unk_21C = 0;
+@@ -522,12 +534,12 @@ void func_80A6C6B0(EnHorseNormal* this) {
+     this->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED;
+     this->actor.speedXZ = 0.0f;
+     this->unk_218 = 0.0f;
+-    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                      Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+ }
+ 
+ void EnHorseNormal_WaitClone(EnHorseNormal* this, PlayState* play) {
+-    func_80A6BD7C(this);
++    EnHorseNormal_PlayAnimSfx(this);  // was func_80A6BD7C [LLM:HIGH]
+ 
+     if (SkelAnime_Update(&this->skin.skelAnime)) {
+         f32 rand = Rand_ZeroOne();
+@@ -546,7 +558,7 @@ void EnHorseNormal_WaitClone(EnHorseNormal* this, PlayState* play) {
+                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+         }
+ 
+-        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A6B30C(this), 0.0f,
++        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseNormal_GetAnimPlaySpeed(this), 0.0f,  // was func_80A6B30C [LLM:HIGH]
+                          Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+ 
+         this->unk_1E4 &= ~1;
+@@ -556,7 +568,8 @@ void EnHorseNormal_WaitClone(EnHorseNormal* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A6C8E0(EnHorseNormal* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A6C8E0: raycasts for the floor 30 units ahead and pitches the horse to match the slope it is about to walk onto.
++void EnHorseNormal_PitchToSlope(EnHorseNormal* this, PlayState* play) {
+     s32 pad;
+     CollisionPoly* sp38;
+     s32 pad2;
+@@ -620,7 +633,8 @@ void EnHorseNormal_PostDraw(Actor* thisx, PlayState* play, Skin* skin) {
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->headCollider.base);
+ }
+ 
+-void func_80A6CC88(PlayState* play, EnHorseNormal* this, Vec3f* arg2) {
++// LLM generated name (HIGH), was func_80A6CC88: projects a world point through the view matrix and plays the horse's dust, landing and neigh sounds at that screen position, each once per animation cycle.
++void EnHorseNormal_PlaySfxAtScreenPos(PlayState* play, EnHorseNormal* this, Vec3f* arg2) {
+     f32 curFrame = this->skin.skelAnime.curFrame;
+     f32 wDest;
+ 
+@@ -654,7 +668,7 @@ void EnHorseNormal_Draw(Actor* thisx, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     if (play->sceneNum != SCENE_LON_LON_RANCH || play->sceneNum != SCENE_STABLE) {
+-        func_80A6C8E0(this, play);
++        EnHorseNormal_PitchToSlope(this, play);  // was func_80A6C8E0 [LLM:HIGH]
+     }
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     Skin_Draw(&this->actor, play, &this->skin, EnHorseNormal_PostDraw, true);  // was func_800A6330 [LLM:HIGH]
+@@ -696,7 +710,7 @@ void EnHorseNormal_Draw(Actor* thisx, PlayState* play) {
+                 cloneRotY = 0;
+             }
+         }
+-        func_80A6CC88(play, this, &clonePos);
++        EnHorseNormal_PlaySfxAtScreenPos(play, this, &clonePos);  // was func_80A6CC88 [LLM:HIGH]
+         SkinMatrix_SetTranslateRotateYXZScale(&skinMtx, this->actor.scale.x, this->actor.scale.y, this->actor.scale.z,
+                                               this->actor.shape.rot.x, cloneRotY, this->actor.shape.rot.z, clonePos.x,
+                                               (this->actor.shape.yOffset * this->actor.scale.y) + clonePos.y,
+-- 
+2.55.0
+

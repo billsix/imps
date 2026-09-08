@@ -1,0 +1,1186 @@
+From 460b675de4d2d21601b45cd733d00a07f12c841a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 377/488] soh: name the 37 address-named symbols defined in
+ z_en_elf.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 37 are defined in soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c.
+
+  * func_80A01C38 -> EnElf_SetMotionMode
+    deduced, confidence HIGH: stores a mode id and loads that mode's orbit
+    rates, radii, timer and motion function
+
+  * func_80A01F90 -> EnElf_IsFartherThanXZ
+    deduced, confidence HIGH: returns whether the XZ distance between two
+    points exceeds a radius
+
+  * func_80A01FE0 -> EnElf_WanderApproach
+    deduced, confidence HIGH: the mode 3 step: closes on the player, slowing
+    inside 30 units, then hands back to the wander chooser
+
+  * func_80A020A4 -> EnElf_WanderRetreat
+    deduced, confidence HIGH: the mode 2 step: waits until the fairy is more
+    than 50 units out, then hands back to the wander chooser
+
+  * func_80A0214C -> EnElf_WanderChoose
+    deduced, confidence HIGH: picks the next wander mode from the player's
+    distance, retreating when close and approaching when far
+
+  * func_80A0232C -> EnElf_RunWanderStep
+    deduced, confidence HIGH: resets to the base wander when the fairy
+    strays 100 units from its anchor, otherwise runs the current step
+
+  * func_80A0299C -> EnElf_Noop
+    deduced, confidence HIGH: empty function
+
+  * func_80A029A8 -> EnElf_AddDisappearTime
+    deduced, confidence HIGH: adds to the disappear timer, capped at 600
+
+  * func_80A02A20 -> EnElf_UpdateOrbitOffset
+    deduced, confidence HIGH: sweeps the orbit offset around a circle with a
+    vertical bob
+
+  * func_80A02AA4 -> EnElf_UpdateOrbitOffsetFlat
+    deduced, confidence HIGH: the same sweep with no vertical component and
+    a pulsing radius
+
+  * func_80A02B38 -> EnElf_UpdateOrbitOffsetPlayerAligned
+    deduced, confidence HIGH: sweeps the offset in the player's facing plane
+    rather than world axes
+
+  * func_80A02BD8 -> EnElf_StepVelocityY
+    deduced, confidence HIGH: eases the vertical velocity toward the offset
+    target, clamped to 20
+
+  * func_80A02C98 -> EnElf_StepVelocityToTarget
+    deduced, confidence HIGH: eases all three velocity components toward the
+    offset target and moves the actor
+
+  * func_80A02E30 -> EnElf_SnapToTargetXZ
+    deduced, confidence HIGH: eases the height but pins the XZ position
+    exactly onto the target plus the offset
+
+  * func_80A02EC0 -> EnElf_SnapToTargetXZNoVel
+    deduced, confidence HIGH: the same snap with the horizontal velocity
+    zeroed
+
+  * func_80A02F2C -> EnElf_StepVelocityYBobbing
+    deduced, confidence HIGH: eases the vertical velocity toward the target
+    with the bob phase advanced each frame
+
+  * func_80A03018 -> EnElf_TurnAndMove
+    deduced, confidence HIGH: picks a heading from the current wander mode,
+    eases the yaw onto it and moves the fairy
+
+  * func_80A03148 -> EnElf_FlyToTargetClamped
+    deduced, confidence HIGH: flies at the target with the speed clamped
+    between the caller's bounds
+
+  * func_80A0329C -> EnElf_Wander
+    deduced, confidence HIGH: the wandering action: re-rolls the bob now and
+    then, tracks the player's head height and runs the wander step
+
+  * func_80A0353C -> EnElf_FollowParent
+    deduced, confidence HIGH: orbits above the parent actor and dies with it
+
+  * func_80A03604 -> EnElf_DoNothing
+    deduced, confidence HIGH: empty action
+
+  * func_80A03610 -> EnElf_HealDiveIn
+    deduced, confidence GUESS: spirals in on the player while sparkling and
+    playing the heal sound, shrinking away below the head; read as the
+    healing fairy entering Link
+
+  * func_80A03814 -> EnElf_HealRiseAway
+    deduced, confidence GUESS: spirals upward with the heal sound until 200
+    units up and dies; the counterpart rise of EnElf_HealDiveIn
+
+  * func_80A03990 -> EnElf_HealPopOut
+    deduced, confidence GUESS: pops upward on a decaying impulse while
+    growing, then hands over to the rise
+
+  * func_80A03AB0 -> EnElf_RunMotion
+    deduced, confidence HIGH: runs the current motion function, first
+    updating the targeting colour when that flag is set
+
+  * func_80A03CF8 -> EnElf_UpdateNavi
+    deduced, confidence HIGH: Navi's main update: the cutscene mode, the
+    motion step, the arrow target and the light and scale
+
+  * func_80A04414 -> EnElf_UpdateTargetColorAndSfx
+    deduced, confidence HIGH: fades Navi's inner and outer colours toward
+    the targeting colours and plays the hello, enemy or hear cry
+
+  * func_80A0461C -> EnElf_UpdateCutsceneMode
+    deduced, confidence HIGH: maps the cue 8 action onto a motion mode so
+    cutscenes can drive Navi
+
+  * func_80A04D90 -> EnElf_UpdateShadow
+    deduced, confidence HIGH: raycasts the floor under the fairy and sets
+    the shadow alpha
+
+  * func_80A04DE4 -> EnElf_MoveToTalkPos
+    deduced, confidence HIGH: flies Navi to the talk position in front of
+    the player, sparkling above speed 5; the file's own comment calls this
+    moving to talk to the player
+
+  * func_80A04F94 -> EnElf_UpdateAfterTalk
+    deduced, confidence HIGH: turns Navi onto her travel heading and eases
+    the environment lights back; the file's own comment calls this moving
+    after talking
+
+  * func_80A05040 -> EnElf_TalkSariaAgain
+    deduced, confidence HIGH: the yes/no on hearing from Saria once more;
+    the file's own comment names it
+
+  * func_80A05114 -> EnElf_TalkSariaText
+    deduced, confidence HIGH: waits out Saria's message and offers to repeat
+    it
+
+  * func_80A05188 -> EnElf_TalkSariaStart
+    deduced, confidence HIGH: opens Saria's message text
+
+  * func_80A05208 -> EnElf_AskTalkToNavi
+    deduced, confidence HIGH: the yes/no on hearing from Navi; the file's
+    own comment names it
+
+  * func_80A052F4 -> EnElf_AskTalkToSaria
+    deduced, confidence HIGH: the yes/no on calling Saria, routing to her
+    message or back to Navi's
+
+  * func_80A053F0 -> EnElf_UpdateNaviIdle
+    deduced, confidence HIGH: the default update: opens the C-up
+    conversation when the nag timer or the debug register asks for it
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c | 341 ++++++++++--------
+ 1 file changed, 189 insertions(+), 152 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+index aa0d70655..4fb1aaad9 100644
+--- a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
++++ b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+@@ -18,41 +18,62 @@ void EnElf_Init(Actor* thisx, PlayState* play);
+ void EnElf_Destroy(Actor* thisx, PlayState* play);
+ void EnElf_Update(Actor* thisx, PlayState* play);
+ void EnElf_Draw(Actor* thisx, PlayState* play);
+-void func_80A053F0(Actor* thisx, PlayState* play);
+-void func_80A052F4(Actor* thisx, PlayState* play);
+-void func_80A05208(Actor* thisx, PlayState* play);
+-void func_80A05188(Actor* thisx, PlayState* play);
+-void func_80A05114(Actor* thisx, PlayState* play);
+-void func_80A05040(Actor* thisx, PlayState* play);
++// LLM generated name (HIGH), was func_80A053F0: the default update: opens the C-up conversation when the nag timer or the debug register asks for it
++void EnElf_UpdateNaviIdle(Actor* thisx, PlayState* play);  // was func_80A053F0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A052F4: the yes/no on calling Saria, routing to her message or back to Navi's
++void EnElf_AskTalkToSaria(Actor* thisx, PlayState* play);  // was func_80A052F4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A05208: the yes/no on hearing from Navi; the file's own comment names it
++void EnElf_AskTalkToNavi(Actor* thisx, PlayState* play);  // was func_80A05208 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A05188: opens Saria's message text
++void EnElf_TalkSariaStart(Actor* thisx, PlayState* play);  // was func_80A05188 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A05114: waits out Saria's message and offers to repeat it
++void EnElf_TalkSariaText(Actor* thisx, PlayState* play);  // was func_80A05114 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A05040: the yes/no on hearing from Saria once more; the file's own comment names it
++void EnElf_TalkSariaAgain(Actor* thisx, PlayState* play);  // was func_80A05040 [LLM:HIGH]
+ 
+ // Navi
+-void func_80A03CF8(EnElf* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A03CF8: Navi's main update: the cutscene mode, the motion step, the arrow target and the light and scale
++void EnElf_UpdateNavi(EnElf* this, PlayState* play);  // was func_80A03CF8 [LLM:HIGH]
+ 
+ // Healing Fairies
+-void func_80A0329C(EnElf* this, PlayState* play);
+-void func_80A03610(EnElf* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A0329C: the wandering action: re-rolls the bob now and then, tracks the player's head height and runs the wander step
++void EnElf_Wander(EnElf* this, PlayState* play);  // was func_80A0329C [LLM:HIGH]
++// LLM generated name (GUESS), was func_80A03610: spirals in on the player while sparkling and playing the heal sound, shrinking away below the head; read as the healing fairy entering Link
++void EnElf_HealDiveIn(EnElf* this, PlayState* play);  // was func_80A03610 [LLM:GUESS]
+ 
+ // Healing Fairies Revive From Death
+-void func_80A03990(EnElf* this, PlayState* play);
+-void func_80A03814(EnElf* this, PlayState* play);
++// LLM generated name (GUESS), was func_80A03990: pops upward on a decaying impulse while growing, then hands over to the rise
++void EnElf_HealPopOut(EnElf* this, PlayState* play);  // was func_80A03990 [LLM:GUESS]
++// LLM generated name (GUESS), was func_80A03814: spirals upward with the heal sound until 200 units up and dies; the counterpart rise of EnElf_HealDiveIn
++void EnElf_HealRiseAway(EnElf* this, PlayState* play);  // was func_80A03814 [LLM:GUESS]
+ 
+ // Kokiri Fairies
+-void func_80A0353C(EnElf* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A0353C: orbits above the parent actor and dies with it
++void EnElf_FollowParent(EnElf* this, PlayState* play);  // was func_80A0353C [LLM:HIGH]
+ 
+ // Fairy Spawner
+-void func_80A03604(EnElf* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A03604: empty action
++void EnElf_DoNothing(EnElf* this, PlayState* play);  // was func_80A03604 [LLM:HIGH]
+ 
+ // Move(?) functions
+-void func_80A0214C(EnElf* this, PlayState* play);
+-void func_80A02AA4(EnElf* this, PlayState* play);
+-void func_80A02A20(EnElf* this, PlayState* play);
+-void func_80A02B38(EnElf* this, PlayState* play);
+-void func_80A020A4(EnElf* this, PlayState* play);
+-void func_80A01FE0(EnElf* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A0214C: picks the next wander mode from the player's distance, retreating when close and approaching when far
++void EnElf_WanderChoose(EnElf* this, PlayState* play);  // was func_80A0214C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A02AA4: the same sweep with no vertical component and a pulsing radius
++void EnElf_UpdateOrbitOffsetFlat(EnElf* this, PlayState* play);  // was func_80A02AA4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A02A20: sweeps the orbit offset around a circle with a vertical bob
++void EnElf_UpdateOrbitOffset(EnElf* this, PlayState* play);  // was func_80A02A20 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A02B38: sweeps the offset in the player's facing plane rather than world axes
++void EnElf_UpdateOrbitOffsetPlayerAligned(EnElf* this, PlayState* play);  // was func_80A02B38 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A020A4: the mode 2 step: waits until the fairy is more than 50 units out, then hands back to the wander chooser
++void EnElf_WanderRetreat(EnElf* this, PlayState* play);  // was func_80A020A4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A01FE0: the mode 3 step: closes on the player, slowing inside 30 units, then hands back to the wander chooser
++void EnElf_WanderApproach(EnElf* this, PlayState* play);  // was func_80A01FE0 [LLM:HIGH]
+ 
+ // misc
+-void func_80A04414(EnElf* this, PlayState* play);
+-void func_80A0461C(EnElf* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A04414: fades Navi's inner and outer colours toward the targeting colours and plays the hello, enemy or hear cry
++void EnElf_UpdateTargetColorAndSfx(EnElf* this, PlayState* play);  // was func_80A04414 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A0461C: maps the cue 8 action onto a motion mode so cutscenes can drive Navi
++void EnElf_UpdateCutsceneMode(EnElf* this, PlayState* play);  // was func_80A0461C [LLM:HIGH]
+ void EnElf_SpawnSparkles(EnElf* this, PlayState* play, s32 sparkleLife);
+ void EnElf_GetCutsceneNextPos(Vec3f* vec, PlayState* play, s32 action);
+ 
+@@ -96,14 +117,15 @@ void EnElf_SetupAction(EnElf* this, EnElfActionFunc actionFunc) {
+     this->actionFunc = actionFunc;
+ }
+ 
+-void func_80A01C38(EnElf* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80A01C38: stores a mode id and loads that mode's orbit rates, radii, timer and motion function
++void EnElf_SetMotionMode(EnElf* this, s32 arg1) {
+     this->unk_2A8 = arg1;
+ 
+     switch (this->unk_2A8) {
+         case 0:
+             this->unk_2AE = 0x400;
+             this->unk_2B0 = 0x200;
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2C0 = 100;
+             this->unk_2B4 = 5.0f;
+             this->unk_2B8 = 20.0f;
+@@ -112,7 +134,7 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+         case 12:
+             this->unk_2AE = 0x400;
+             this->unk_2B0 = 0x200;
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2C0 = 100;
+             this->unk_2B4 = 1.0f;
+             this->unk_2B8 = 5.0f;
+@@ -121,7 +143,7 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+         case 10:
+             this->unk_2AE = 0x400;
+             this->unk_2B0 = 0;
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2B8 = 0.0f;
+             this->unk_2B4 = 5.0f;
+             this->skelAnime.playSpeed = 1.0f;
+@@ -129,13 +151,13 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+         case 9:
+             this->unk_2AE = 0x1000;
+             this->unk_2B0 = 0x200;
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2B4 = 3.0f;
+             this->unk_2B8 = 10.0f;
+             this->skelAnime.playSpeed = 1.0f;
+             break;
+         case 7:
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2AE = 0x1E;
+             this->unk_2C0 = 1;
+             this->unk_2B4 = 0.0f;
+@@ -145,7 +167,7 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+         case 8:
+             this->unk_2AE = 0x1000;
+             this->unk_2B0 = 0x200;
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2B4 = 0.0f;
+             this->unk_2B8 = 0.0f;
+             this->skelAnime.playSpeed = 1.0f;
+@@ -153,7 +175,7 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+         case 1:
+             this->unk_2AE = 0x1000;
+             this->unk_2B0 = 0x800;
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2B4 = 5.0f;
+             this->unk_2B8 = 7.5f;
+             this->skelAnime.playSpeed = 2.0f;
+@@ -161,28 +183,28 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+         case 2:
+             this->unk_2AE = 0x400;
+             this->unk_2B0 = 0x1000;
+-            this->func_2C8 = func_80A02AA4;
++            this->func_2C8 = EnElf_UpdateOrbitOffsetFlat;  // was func_80A02AA4 [LLM:HIGH]
+             this->unk_2B4 = 10.0f;
+             this->unk_2B8 = 20.0f;
+             this->skelAnime.playSpeed = 1.0f;
+             break;
+         case 3:
+             this->unk_2B0 = 0x600;
+-            this->func_2C8 = func_80A02B38;
++            this->func_2C8 = EnElf_UpdateOrbitOffsetPlayerAligned;  // was func_80A02B38 [LLM:HIGH]
+             this->unk_2B8 = 1.0f;
+             this->unk_2B4 = 1.0f;
+             this->skelAnime.playSpeed = 1.0f;
+             break;
+         case 4:
+             this->unk_2B0 = 0x800;
+-            this->func_2C8 = func_80A02B38;
++            this->func_2C8 = EnElf_UpdateOrbitOffsetPlayerAligned;  // was func_80A02B38 [LLM:HIGH]
+             this->unk_2B4 = 20.0f;
+             this->unk_2B8 = 10.0;
+             this->skelAnime.playSpeed = 2.0f;
+             break;
+         case 5:
+             this->unk_2B0 = 0x200;
+-            this->func_2C8 = func_80A02B38;
++            this->func_2C8 = EnElf_UpdateOrbitOffsetPlayerAligned;  // was func_80A02B38 [LLM:HIGH]
+             this->unk_2B4 = 10.0f;
+             this->unk_2B8 = 10.0f;
+             this->skelAnime.playSpeed = 0.5f;
+@@ -190,7 +212,7 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+         case 6:
+             this->unk_2AE = 0x1000;
+             this->unk_2B0 = 0x800;
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2B4 = 60.0f;
+             this->unk_2B8 = 20.0f;
+             this->skelAnime.playSpeed = 2.0f;
+@@ -198,7 +220,7 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+         case 11:
+             this->unk_2AE = 0x400;
+             this->unk_2B0 = 0x2000;
+-            this->func_2C8 = func_80A02A20;
++            this->func_2C8 = EnElf_UpdateOrbitOffset;  // was func_80A02A20 [LLM:HIGH]
+             this->unk_2C0 = 42;
+             this->unk_2B4 = 5.0f;
+             this->unk_2B8 = 1.0f;
+@@ -207,14 +229,15 @@ void func_80A01C38(EnElf* this, s32 arg1) {
+     }
+ }
+ 
+-s32 func_80A01F90(Vec3f* this, Vec3f* arg1, f32 arg2) {
++// LLM generated name (HIGH), was func_80A01F90: returns whether the XZ distance between two points exceeds a radius
++s32 EnElf_IsFartherThanXZ(Vec3f* this, Vec3f* arg1, f32 arg2) {
+     return SQ(arg2) < (SQ(arg1->x - this->x) + SQ(arg1->z - this->z));
+ }
+ 
+-void func_80A01FE0(EnElf* this, PlayState* play) {
++void EnElf_WanderApproach(EnElf* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+-    if (!func_80A01F90(&this->actor.world.pos, &player->actor.world.pos, 30.0f)) {
++    if (!EnElf_IsFartherThanXZ(&this->actor.world.pos, &player->actor.world.pos, 30.0f)) {  // was func_80A01F90 [LLM:HIGH]
+         this->unk_2B8 = 0.5f;
+     } else {
+         this->unk_2B8 = 2.0f;
+@@ -227,14 +250,14 @@ void func_80A01FE0(EnElf* this, PlayState* play) {
+         this->unk_2AC = 0x80;
+         this->unk_2B8 = Rand_ZeroFloat(1.0f) + 0.5f;
+         this->unk_2B0 = Rand_CenteredFloat(32767.0f);
+-        this->func_2C8 = func_80A0214C;
++        this->func_2C8 = EnElf_WanderChoose;  // was func_80A0214C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A020A4(EnElf* this, PlayState* play) {
++void EnElf_WanderRetreat(EnElf* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+-    if (func_80A01F90(&this->actor.world.pos, &player->actor.world.pos, 50.0f)) {
++    if (EnElf_IsFartherThanXZ(&this->actor.world.pos, &player->actor.world.pos, 50.0f)) {  // was func_80A01F90 [LLM:HIGH]
+         if (this->unk_2C0 > 0) {
+             this->unk_2C0--;
+         } else {
+@@ -242,12 +265,12 @@ void func_80A020A4(EnElf* this, PlayState* play) {
+             this->unk_2AC = 0x80;
+             this->unk_2B8 = Rand_ZeroFloat(1.0f) + 0.5f;
+             this->unk_2B0 = Rand_CenteredFloat(32767.0f);
+-            this->func_2C8 = func_80A0214C;
++            this->func_2C8 = EnElf_WanderChoose;  // was func_80A0214C [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A0214C(EnElf* this, PlayState* play) {
++void EnElf_WanderChoose(EnElf* this, PlayState* play) {
+     f32 xzDistToPlayer;
+ 
+     if (this->unk_2C0 > 0) {
+@@ -259,7 +282,7 @@ void func_80A0214C(EnElf* this, PlayState* play) {
+                 this->unk_2A8 = 2;
+                 this->unk_2AC = 0x400;
+                 this->unk_2B8 = 2.0f;
+-                this->func_2C8 = func_80A020A4;
++                this->func_2C8 = EnElf_WanderRetreat;  // was func_80A020A4 [LLM:HIGH]
+                 this->actor.speedXZ = 1.5f;
+                 this->unk_2C0 = (s16)Rand_ZeroFloat(8.0f) + 4;
+             } else {
+@@ -276,7 +299,7 @@ void func_80A0214C(EnElf* this, PlayState* play) {
+                 this->unk_2A8 = 3;
+                 this->unk_2AC = 0x200;
+                 this->unk_2B8 = (xzDistToPlayer * 2.0f) + 1.0f;
+-                this->func_2C8 = func_80A01FE0;
++                this->func_2C8 = EnElf_WanderApproach;  // was func_80A01FE0 [LLM:HIGH]
+                 this->unk_2C0 = (s16)Rand_ZeroFloat(16.0f) + 0x10;
+             } else {
+                 this->unk_2C0 = 10;
+@@ -292,11 +315,12 @@ void func_80A0214C(EnElf* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A0232C(EnElf* this, PlayState* play) {
+-    if (func_80A01F90(&this->unk_28C, &this->actor.world.pos, 100.0f)) {
++// LLM generated name (HIGH), was func_80A0232C: resets to the base wander when the fairy strays 100 units from its anchor, otherwise runs the current step
++void EnElf_RunWanderStep(EnElf* this, PlayState* play) {
++    if (EnElf_IsFartherThanXZ(&this->unk_28C, &this->actor.world.pos, 100.0f)) {  // was func_80A01F90 [LLM:HIGH]
+         this->unk_2A8 = 0;
+         this->unk_2AC = 0x200;
+-        this->func_2C8 = func_80A0214C;
++        this->func_2C8 = EnElf_WanderChoose;  // was func_80A0214C [LLM:HIGH]
+         this->unk_2B8 = 1.5f;
+     } else {
+         this->func_2C8(this, play);
+@@ -342,10 +366,10 @@ void EnElf_Init(Actor* thisx, PlayState* play) {
+     switch (thisx->params) {
+         case FAIRY_NAVI:
+             thisx->room = -1;
+-            EnElf_SetupAction(this, func_80A03CF8);
+-            func_80A01C38(this, 0);
++            EnElf_SetupAction(this, EnElf_UpdateNavi);  // was func_80A03CF8 [LLM:HIGH]
++            EnElf_SetMotionMode(this, 0);  // was func_80A01C38 [LLM:HIGH]
+             this->fairyFlags |= 4;
+-            thisx->update = func_80A053F0;
++            thisx->update = EnElf_UpdateNaviIdle;  // was func_80A053F0 [LLM:HIGH]
+             this->elfMsg = NULL;
+             this->unk_2C7 = 0x14;
+ 
+@@ -355,7 +379,7 @@ void EnElf_Init(Actor* thisx, PlayState* play) {
+             break;
+         case FAIRY_REVIVE_BOTTLE:
+             colorConfig = -1;
+-            EnElf_SetupAction(this, func_80A03610);
++            EnElf_SetupAction(this, EnElf_HealDiveIn);  // was func_80A03610 [LLM:GUESS]
+             this->unk_2B8 = Math_Vec3f_DistXZ(&thisx->world.pos, &player->actor.world.pos);
+             this->unk_2AC = player->actor.shape.rot.y;
+             this->unk_2B0 = -0x1000;
+@@ -365,7 +389,7 @@ void EnElf_Init(Actor* thisx, PlayState* play) {
+             break;
+         case FAIRY_REVIVE_DEATH:
+             colorConfig = -1;
+-            EnElf_SetupAction(this, func_80A03990);
++            EnElf_SetupAction(this, EnElf_HealPopOut);  // was func_80A03990 [LLM:GUESS]
+             this->unk_2B8 = 0.0f;
+             this->unk_2AC = player->actor.shape.rot.y;
+             this->unk_2B0 = 0;
+@@ -380,25 +404,25 @@ void EnElf_Init(Actor* thisx, PlayState* play) {
+             this->fairyFlags |= FAIRY_FLAG_TIMED;
+         case FAIRY_HEAL:
+             colorConfig = -1;
+-            EnElf_SetupAction(this, func_80A0329C);
++            EnElf_SetupAction(this, EnElf_Wander);  // was func_80A0329C [LLM:HIGH]
+             this->unk_2B4 = Rand_ZeroFloat(10.0f) + 10.0f;
+             this->unk_2AA = 0;
+             this->unk_2AE = (s16)(Rand_ZeroFloat(1048.0f)) + 0x200;
+             this->unk_28C = thisx->world.pos;
+             this->unk_2BC = Rand_CenteredFloat(32767.0f);
+-            this->func_2C8 = func_80A0214C;
+-            func_80A0232C(this, play);
++            this->func_2C8 = EnElf_WanderChoose;  // was func_80A0214C [LLM:HIGH]
++            EnElf_RunWanderStep(this, play);  // was func_80A0232C [LLM:HIGH]
+             this->unk_2C0 = 0;
+             this->disappearTimer = 240;
+             break;
+         case FAIRY_KOKIRI:
+             colorConfig = Rand_ZeroFloat(11.99f) + 1.0f;
+-            EnElf_SetupAction(this, func_80A0353C);
+-            func_80A01C38(this, 0);
++            EnElf_SetupAction(this, EnElf_FollowParent);  // was func_80A0353C [LLM:HIGH]
++            EnElf_SetMotionMode(this, 0);  // was func_80A01C38 [LLM:HIGH]
+             break;
+         case FAIRY_SPAWNER:
+-            EnElf_SetupAction(this, func_80A03604);
+-            func_80A01C38(this, 8);
++            EnElf_SetupAction(this, EnElf_DoNothing);  // was func_80A03604 [LLM:HIGH]
++            EnElf_SetMotionMode(this, 8);  // was func_80A01C38 [LLM:HIGH]
+ 
+             if (GameInteractor_Should(VB_SPAWN_FOUNTAIN_FAIRIES, true, this)) {
+                 for (i = 0; i < 8; i++) {
+@@ -426,10 +450,12 @@ void EnElf_Init(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_80A0299C(EnElf* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80A0299C: empty function
++void EnElf_Noop(EnElf* this, s32 arg1) {
+ }
+ 
+-void func_80A029A8(EnElf* this, s16 increment) {
++// LLM generated name (HIGH), was func_80A029A8: adds to the disappear timer, capped at 600
++void EnElf_AddDisappearTime(EnElf* this, s16 increment) {
+     if (this->disappearTimer < 600) {
+         this->disappearTimer += increment;
+     }
+@@ -443,7 +469,7 @@ void EnElf_Destroy(Actor* thisx, PlayState* play) {
+     LightContext_RemoveLight(play, &play->lightCtx, this->lightNodeNoGlow);
+ }
+ 
+-void func_80A02A20(EnElf* this, PlayState* play) {
++void EnElf_UpdateOrbitOffset(EnElf* this, PlayState* play) {
+     this->unk_28C.x = Math_SinS(this->unk_2AC) * this->unk_2B8;
+     this->unk_28C.y = Math_SinS(this->unk_2AA) * this->unk_2B4;
+     this->unk_28C.z = Math_CosS(this->unk_2AC) * this->unk_2B8;
+@@ -451,7 +477,7 @@ void func_80A02A20(EnElf* this, PlayState* play) {
+     this->unk_2AA += this->unk_2AE;
+ }
+ 
+-void func_80A02AA4(EnElf* this, PlayState* play) {
++void EnElf_UpdateOrbitOffsetFlat(EnElf* this, PlayState* play) {
+     f32 xzScale;
+ 
+     xzScale = (Math_CosS(this->unk_2AA) * this->unk_2B4) + this->unk_2B8;
+@@ -464,7 +490,7 @@ void func_80A02AA4(EnElf* this, PlayState* play) {
+     this->unk_2AA += this->unk_2AE;
+ }
+ 
+-void func_80A02B38(EnElf* this, PlayState* play) {
++void EnElf_UpdateOrbitOffsetPlayerAligned(EnElf* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->unk_2AA = (this->unk_2AC * 2) & 0xFFFF;
+@@ -475,7 +501,8 @@ void func_80A02B38(EnElf* this, PlayState* play) {
+     this->unk_2AC += this->unk_2B0;
+ }
+ 
+-void func_80A02BD8(EnElf* this, Vec3f* targetPos, f32 arg2) {
++// LLM generated name (HIGH), was func_80A02BD8: eases the vertical velocity toward the offset target, clamped to 20
++void EnElf_StepVelocityY(EnElf* this, Vec3f* targetPos, f32 arg2) {
+     f32 yVelTarget;
+     f32 yVelDirection;
+ 
+@@ -486,7 +513,8 @@ void func_80A02BD8(EnElf* this, Vec3f* targetPos, f32 arg2) {
+     Math_StepToF(&this->actor.velocity.y, yVelTarget, 32.0f);
+ }
+ 
+-void func_80A02C98(EnElf* this, Vec3f* targetPos, f32 arg2) {
++// LLM generated name (HIGH), was func_80A02C98: eases all three velocity components toward the offset target and moves the actor
++void EnElf_StepVelocityToTarget(EnElf* this, Vec3f* targetPos, f32 arg2) {
+     f32 xVelTarget;
+     f32 zVelTarget;
+     f32 xVelDirection;
+@@ -504,14 +532,15 @@ void func_80A02C98(EnElf* this, Vec3f* targetPos, f32 arg2) {
+     xVelTarget = CLAMP(xVelTarget, 0.0f, 20.0f) * xVelDirection;
+     zVelTarget = CLAMP(zVelTarget, 0.0f, 20.0f) * zVelDirection;
+ 
+-    func_80A02BD8(this, targetPos, arg2);
++    EnElf_StepVelocityY(this, targetPos, arg2);  // was func_80A02BD8 [LLM:HIGH]
+     Math_StepToF(&this->actor.velocity.x, xVelTarget, 1.5f);
+     Math_StepToF(&this->actor.velocity.z, zVelTarget, 1.5f);
+     Actor_UpdatePos(&this->actor);
+ }
+ 
+-void func_80A02E30(EnElf* this, Vec3f* targetPos) {
+-    func_80A02BD8(this, targetPos, 0.2f);
++// LLM generated name (HIGH), was func_80A02E30: eases the height but pins the XZ position exactly onto the target plus the offset
++void EnElf_SnapToTargetXZ(EnElf* this, Vec3f* targetPos) {
++    EnElf_StepVelocityY(this, targetPos, 0.2f);  // was func_80A02BD8 [LLM:HIGH]
+     this->actor.velocity.x = (targetPos->x + this->unk_28C.x) - this->actor.world.pos.x;
+     this->actor.velocity.z = (targetPos->z + this->unk_28C.z) - this->actor.world.pos.z;
+     Actor_UpdatePos(&this->actor);
+@@ -519,15 +548,17 @@ void func_80A02E30(EnElf* this, Vec3f* targetPos) {
+     this->actor.world.pos.z = targetPos->z + this->unk_28C.z;
+ }
+ 
+-void func_80A02EC0(EnElf* this, Vec3f* targetPos) {
+-    func_80A02BD8(this, targetPos, 0.2f);
++// LLM generated name (HIGH), was func_80A02EC0: the same snap with the horizontal velocity zeroed
++void EnElf_SnapToTargetXZNoVel(EnElf* this, Vec3f* targetPos) {
++    EnElf_StepVelocityY(this, targetPos, 0.2f);  // was func_80A02BD8 [LLM:HIGH]
+     this->actor.velocity.x = this->actor.velocity.z = 0.0f;
+     Actor_UpdatePos(&this->actor);
+     this->actor.world.pos.x = targetPos->x + this->unk_28C.x;
+     this->actor.world.pos.z = targetPos->z + this->unk_28C.z;
+ }
+ 
+-void func_80A02F2C(EnElf* this, Vec3f* targetPos) {
++// LLM generated name (HIGH), was func_80A02F2C: eases the vertical velocity toward the target with the bob phase advanced each frame
++void EnElf_StepVelocityYBobbing(EnElf* this, Vec3f* targetPos) {
+     f32 yVelTarget;
+     f32 yVelDirection;
+ 
+@@ -539,7 +570,8 @@ void func_80A02F2C(EnElf* this, Vec3f* targetPos) {
+     Math_StepToF(&this->actor.velocity.y, yVelTarget, 1.5f);
+ }
+ 
+-void func_80A03018(EnElf* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A03018: picks a heading from the current wander mode, eases the yaw onto it and moves the fairy
++void EnElf_TurnAndMove(EnElf* this, PlayState* play) {
+     s32 pad[2];
+     Player* player = GET_PLAYER(play);
+     s16 targetYaw;
+@@ -572,7 +604,8 @@ void func_80A03018(EnElf* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_80A03148(EnElf* this, Vec3f* arg1, f32 arg2, f32 arg3, f32 arg4) {
++// LLM generated name (HIGH), was func_80A03148: flies at the target with the speed clamped between the caller's bounds
++void EnElf_FlyToTargetClamped(EnElf* this, Vec3f* arg1, f32 arg2, f32 arg3, f32 arg4) {
+     f32 xVelTarget;
+     f32 zVelTarget;
+     f32 xzVelocity;
+@@ -583,7 +616,7 @@ void func_80A03148(EnElf* this, Vec3f* arg1, f32 arg2, f32 arg3, f32 arg4) {
+     arg4 += 0.3f;
+     arg3 += 30.0f;
+ 
+-    func_80A02BD8(this, arg1, arg4);
++    EnElf_StepVelocityY(this, arg1, arg4);  // was func_80A02BD8 [LLM:HIGH]
+ 
+     xzVelocity = sqrtf(SQ(xVelTarget) + SQ(zVelTarget));
+ 
+@@ -600,7 +633,7 @@ void func_80A03148(EnElf* this, Vec3f* arg1, f32 arg2, f32 arg3, f32 arg4) {
+     Actor_UpdatePos(&this->actor);
+ }
+ 
+-void func_80A0329C(EnElf* this, PlayState* play) {
++void EnElf_Wander(EnElf* this, PlayState* play) {
+     Player* refActor = GET_PLAYER(play);
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+@@ -613,10 +646,10 @@ void func_80A0329C(EnElf* this, PlayState* play) {
+         this->unk_2AE = (s16)(Rand_ZeroFloat(1024.0f)) + 0x200;
+     }
+ 
+-    func_80A0232C(this, play);
++    EnElf_RunWanderStep(this, play);  // was func_80A0232C [LLM:HIGH]
+     this->unk_28C.y = player->bodyPartsPos[0].y;
+-    func_80A02F2C(this, &this->unk_28C);
+-    func_80A03018(this, play);
++    EnElf_StepVelocityYBobbing(this, &this->unk_28C);  // was func_80A02F2C [LLM:HIGH]
++    EnElf_TurnAndMove(this, play);  // was func_80A03018 [LLM:HIGH]
+ 
+     if ((this->unk_2A8 == 2) || (this->unk_2A8 == 3)) {
+         EnElf_SpawnSparkles(this, play, 16);
+@@ -631,7 +664,7 @@ void func_80A0329C(EnElf* this, PlayState* play) {
+         heightDiff = this->actor.world.pos.y - refActor->actor.world.pos.y;
+ 
+         if ((heightDiff > 0.0f) && (heightDiff < 60.0f)) {
+-            if (!func_80A01F90(&this->actor.world.pos, &refActor->actor.world.pos, 10.0f)) {
++            if (!EnElf_IsFartherThanXZ(&this->actor.world.pos, &refActor->actor.world.pos, 10.0f)) {  // was func_80A01F90 [LLM:HIGH]
+                 if (GameInteractor_Should(VB_FAIRY_HEAL, true, this)) {
+                     Health_ChangeBy(play, 128);
+                 }
+@@ -644,7 +677,7 @@ void func_80A0329C(EnElf* this, PlayState* play) {
+                 this->unk_28C.y = 30.0f;
+                 this->unk_2B4 = 0.0f;
+                 this->unk_2AA = 0;
+-                EnElf_SetupAction(this, func_80A03610);
++                EnElf_SetupAction(this, EnElf_HealDiveIn);  // was func_80A03610 [LLM:GUESS]
+                 return;
+             }
+         }
+@@ -671,18 +704,18 @@ void func_80A0329C(EnElf* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A0353C(EnElf* this, PlayState* play) {
++void EnElf_FollowParent(EnElf* this, PlayState* play) {
+     Vec3f parentPos;
+     Actor* parent;
+ 
+     SkelAnime_Update(&this->skelAnime);
+-    func_80A02A20(this, play);
++    EnElf_UpdateOrbitOffset(this, play);  // was func_80A02A20 [LLM:HIGH]
+     parent = this->actor.parent;
+ 
+     if ((parent != NULL) && (parent->update != NULL)) {
+         parentPos = this->actor.parent->world.pos;
+         parentPos.y += ((1500.0f * this->actor.scale.y) + 40.0f);
+-        func_80A02C98(this, &parentPos, 0.2f);
++        EnElf_StepVelocityToTarget(this, &parentPos, 0.2f);  // was func_80A02C98 [LLM:HIGH]
+     } else {
+         Actor_Kill(&this->actor);
+     }
+@@ -690,10 +723,10 @@ void func_80A0353C(EnElf* this, PlayState* play) {
+     this->unk_2BC = Math_Atan2S(this->actor.velocity.z, this->actor.velocity.x);
+ }
+ 
+-void func_80A03604(EnElf* this, PlayState* play) {
++void EnElf_DoNothing(EnElf* this, PlayState* play) {
+ }
+ 
+-void func_80A03610(EnElf* this, PlayState* play) {
++void EnElf_HealDiveIn(EnElf* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -718,7 +751,7 @@ void func_80A03610(EnElf* this, PlayState* play) {
+ 
+     this->unk_28C.z = Math_SinS(this->unk_2AC) * -this->unk_2B8;
+     this->unk_2AC += this->unk_2B0;
+-    func_80A02C98(this, &player->actor.world.pos, 0.2f);
++    EnElf_StepVelocityToTarget(this, &player->actor.world.pos, 0.2f);  // was func_80A02C98 [LLM:HIGH]
+ 
+     if (this->unk_2B4 < 0.0f) {
+         if ((this->unk_28C.y < 20.0f) && (this->unk_28C.y > 0.0f)) {
+@@ -736,7 +769,7 @@ void func_80A03610(EnElf* this, PlayState* play) {
+     Audio_PlayActorSound2(&this->actor, NA_SE_EV_FIATY_HEAL - SFX_FLAG);
+ }
+ 
+-void func_80A03814(EnElf* this, PlayState* play) {
++void EnElf_HealRiseAway(EnElf* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -765,13 +798,13 @@ void func_80A03814(EnElf* this, PlayState* play) {
+     this->unk_28C.x = Math_CosS(this->unk_2AC) * this->unk_2B8;
+     this->unk_28C.z = Math_SinS(this->unk_2AC) * -this->unk_2B8;
+     this->unk_2AC += this->unk_2B0;
+-    func_80A02E30(this, &player->bodyPartsPos[0]);
++    EnElf_SnapToTargetXZ(this, &player->bodyPartsPos[0]);  // was func_80A02E30 [LLM:HIGH]
+     this->unk_2BC = Math_Atan2S(this->actor.velocity.z, this->actor.velocity.x);
+     EnElf_SpawnSparkles(this, play, 32);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EV_FIATY_HEAL - SFX_FLAG);
+ }
+ 
+-void func_80A03990(EnElf* this, PlayState* play) {
++void EnElf_HealPopOut(EnElf* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -782,23 +815,24 @@ void func_80A03990(EnElf* this, PlayState* play) {
+     this->unk_2B4 -= 0.35f;
+ 
+     if (this->unk_2B4 <= 0.0f) {
+-        EnElf_SetupAction(this, func_80A03814);
++        EnElf_SetupAction(this, EnElf_HealRiseAway);  // was func_80A03814 [LLM:GUESS]
+         this->unk_2B0 = 0x800;
+         this->unk_2AE = 0;
+         this->unk_2B4 = 0.0f;
+         this->unk_2B8 = 1.0f;
+     }
+ 
+-    func_80A02E30(this, &player->bodyPartsPos[0]);
++    EnElf_SnapToTargetXZ(this, &player->bodyPartsPos[0]);  // was func_80A02E30 [LLM:HIGH]
+     Actor_SetScale(&this->actor, (1.0f - (SQ(this->unk_2B4) * SQ(1.0f / 9.0f))) * 0.008f);
+     this->unk_2BC = Math_Atan2S(this->actor.velocity.z, this->actor.velocity.x);
+     EnElf_SpawnSparkles(this, play, 32);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EV_FIATY_HEAL - SFX_FLAG);
+ }
+ 
+-void func_80A03AB0(EnElf* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A03AB0: runs the current motion function, first updating the targeting colour when that flag is set
++void EnElf_RunMotion(EnElf* this, PlayState* play) {
+     if (this->fairyFlags & 4) {
+-        func_80A04414(this, play);
++        EnElf_UpdateTargetColorAndSfx(this, play);  // was func_80A04414 [LLM:HIGH]
+     }
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -838,7 +872,7 @@ void EnElf_UpdateLights(EnElf* this, PlayState* play) {
+     Actor_SetScale(&this->actor, this->actor.scale.x);
+ }
+ 
+-void func_80A03CF8(EnElf* this, PlayState* play) {
++void EnElf_UpdateNavi(EnElf* this, PlayState* play) {
+     Vec3f nextPos;
+     Vec3f prevPos;
+     Player* player = GET_PLAYER(play);
+@@ -846,8 +880,8 @@ void func_80A03CF8(EnElf* this, PlayState* play) {
+     f32 xScale;
+     f32 distFromLinksHead;
+ 
+-    func_80A0461C(this, play);
+-    func_80A03AB0(this, play);
++    EnElf_UpdateCutsceneMode(this, play);  // was func_80A0461C [LLM:HIGH]
++    EnElf_RunMotion(this, play);  // was func_80A03AB0 [LLM:HIGH]
+ 
+     xScale = 0.0f;
+ 
+@@ -861,9 +895,9 @@ void func_80A03CF8(EnElf* this, PlayState* play) {
+         prevPos = this->actor.world.pos;
+ 
+         if (this->unk_2A8 == 0xA) {
+-            func_80A02EC0(this, &nextPos);
++            EnElf_SnapToTargetXZNoVel(this, &nextPos);  // was func_80A02EC0 [LLM:HIGH]
+         } else {
+-            func_80A02C98(this, &nextPos, 0.2f);
++            EnElf_StepVelocityToTarget(this, &nextPos, 0.2f);  // was func_80A02C98 [LLM:HIGH]
+         }
+ 
+         if ((play->sceneNum == SCENE_LINKS_HOUSE) && (gSaveContext.sceneLayer == 4)) {
+@@ -891,7 +925,7 @@ void func_80A03CF8(EnElf* this, PlayState* play) {
+ 
+         switch (this->unk_2A8) {
+             case 7:
+-                func_80A02C98(this, &player->bodyPartsPos[8], 1.0f - this->unk_2AE * (1.0f / 30.0f));
++                EnElf_StepVelocityToTarget(this, &player->bodyPartsPos[8], 1.0f - this->unk_2AE * (1.0f / 30.0f));  // was func_80A02C98 [LLM:HIGH]
+                 xScale = Math_Vec3f_DistXYZ(&player->bodyPartsPos[8], &this->actor.world.pos);
+ 
+                 if (distFromLinksHead < 7.0f) {
+@@ -907,14 +941,14 @@ void func_80A03CF8(EnElf* this, PlayState* play) {
+                 EnElf_SpawnSparkles(this, play, 16);
+                 break;
+             case 8:
+-                func_80A02C98(this, &player->bodyPartsPos[8], 0.2f);
++                EnElf_StepVelocityToTarget(this, &player->bodyPartsPos[8], 0.2f);  // was func_80A02C98 [LLM:HIGH]
+                 this->actor.world.pos = player->bodyPartsPos[8];
+-                func_80A029A8(this, 1);
++                EnElf_AddDisappearTime(this, 1);  // was func_80A029A8 [LLM:HIGH]
+                 break;
+             case 11:
+                 nextPos = player->bodyPartsPos[8];
+                 nextPos.y += 1500.0f * this->actor.scale.y;
+-                func_80A02E30(this, &nextPos);
++                EnElf_SnapToTargetXZ(this, &nextPos);  // was func_80A02E30 [LLM:HIGH]
+                 EnElf_SpawnSparkles(this, play, 16);
+ 
+                 if (this->unk_2B8 <= 19.0f) {
+@@ -927,22 +961,22 @@ void func_80A03CF8(EnElf* this, PlayState* play) {
+ 
+                 if (this->unk_2C0 < 0x20) {
+                     this->unk_2B0 = (this->unk_2C0 * 0xF0) + 0x200;
+-                    func_80A0299C(this, 1);
++                    EnElf_Noop(this, 1);  // was func_80A0299C [LLM:HIGH]
+                 }
+                 break;
+             case 12:
+                 nextPos = GET_ACTIVE_CAM(play)->eye;
+                 nextPos.y += (-2000.0f * this->actor.scale.y);
+-                func_80A03148(this, &nextPos, 0.0f, 20.0f, 0.2f);
++                EnElf_FlyToTargetClamped(this, &nextPos, 0.0f, 20.0f, 0.2f);  // was func_80A03148 [LLM:HIGH]
+                 break;
+             default:
+-                func_80A029A8(this, 1);
++                EnElf_AddDisappearTime(this, 1);  // was func_80A029A8 [LLM:HIGH]
+                 nextPos = play->actorCtx.targetCtx.naviRefPos;
+                 nextPos.y += (1500.0f * this->actor.scale.y);
+                 arrowPointedActor = play->actorCtx.targetCtx.arrowPointedActor;
+ 
+                 if (arrowPointedActor != NULL) {
+-                    func_80A03148(this, &nextPos, 0.0f, 20.0f, 0.2f);
++                    EnElf_FlyToTargetClamped(this, &nextPos, 0.0f, 20.0f, 0.2f);  // was func_80A03148 [LLM:HIGH]
+ 
+                     if (this->actor.speedXZ >= 5.0f) {
+                         EnElf_SpawnSparkles(this, play, 16);
+@@ -957,7 +991,7 @@ void func_80A03CF8(EnElf* this, PlayState* play) {
+                             this->fairyFlags ^= 2;
+                         }
+ 
+-                        func_80A03148(this, &nextPos, 0.0f, 20.0f, 0.2f);
++                        EnElf_FlyToTargetClamped(this, &nextPos, 0.0f, 20.0f, 0.2f);  // was func_80A03148 [LLM:HIGH]
+                         EnElf_SpawnSparkles(this, play, 16);
+                     } else {
+                         if (distFromLinksHead > 100.0f) {
+@@ -969,7 +1003,7 @@ void func_80A03CF8(EnElf* this, PlayState* play) {
+ 
+                             this->unk_2C0 = 0x64;
+                         }
+-                        func_80A03148(this, &nextPos, 0.0f, this->unk_2A0, 0.2f);
++                        EnElf_FlyToTargetClamped(this, &nextPos, 0.0f, this->unk_2A0, 0.2f);  // was func_80A03148 [LLM:HIGH]
+                     }
+                 }
+                 break;
+@@ -1001,7 +1035,7 @@ void EnElf_ChangeColor(Color_RGBAf* dest, Color_RGBAf* newColor, Color_RGBAf* cu
+     dest->a += (rgbaDiff.a * rate);
+ }
+ 
+-void func_80A04414(EnElf* this, PlayState* play) {
++void EnElf_UpdateTargetColorAndSfx(EnElf* this, PlayState* play) {
+     Actor* arrowPointedActor = play->actorCtx.targetCtx.arrowPointedActor;
+     Player* player = GET_PLAYER(play);
+     f32 transitionRate;
+@@ -1057,7 +1091,7 @@ void func_80A04414(EnElf* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A0461C(EnElf* this, PlayState* play) {
++void EnElf_UpdateCutsceneMode(EnElf* this, PlayState* play) {
+     s32 temp;
+     Actor* arrowPointedActor;
+     Player* player = GET_PLAYER(play);
+@@ -1118,7 +1152,7 @@ void func_80A0461C(EnElf* this, PlayState* play) {
+                             }
+                         } else {
+                             temp = 8;
+-                            func_80A029A8(this, 10);
++                            EnElf_AddDisappearTime(this, 10);  // was func_80A029A8 [LLM:HIGH]
+                         }
+                         break;
+                     case 8:
+@@ -1152,7 +1186,7 @@ void func_80A0461C(EnElf* this, PlayState* play) {
+                 break;
+             case 8:
+                 if (player->stateFlags2 & PLAYER_STATE2_NAVI_ACTIVE) {
+-                    func_80A0299C(this, 0x32);
++                    EnElf_Noop(this, 0x32);  // was func_80A0299C [LLM:HIGH]
+                     this->unk_2C0 = 42;
+                     temp = 11;
+                     if (this->unk_2C7 == 0) {
+@@ -1170,7 +1204,7 @@ void func_80A0461C(EnElf* this, PlayState* play) {
+     }
+ 
+     if (temp != this->unk_2A8) {
+-        func_80A01C38(this, temp);
++        EnElf_SetMotionMode(this, temp);  // was func_80A01C38 [LLM:HIGH]
+ 
+         if (temp == 11) {
+             this->unk_2B8 = Math_Vec3f_DistXZ(&player->bodyPartsPos[8], &this->actor.world.pos);
+@@ -1203,7 +1237,8 @@ void EnElf_SpawnSparkles(EnElf* this, PlayState* play, s32 sparkleLife) {
+                                     sparkleLife);
+ }
+ 
+-void func_80A04D90(EnElf* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A04D90: raycasts the floor under the fairy and sets the shadow alpha
++void EnElf_UpdateShadow(EnElf* this, PlayState* play) {
+     s32 pad;
+     s32 bgId;
+ 
+@@ -1213,7 +1248,8 @@ void func_80A04D90(EnElf* this, PlayState* play) {
+ }
+ 
+ // move to talk to player
+-void func_80A04DE4(EnElf* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A04DE4: flies Navi to the talk position in front of the player, sparkling above speed 5; the file's own comment calls this moving to talk to the player
++void EnElf_MoveToTalkPos(EnElf* this, PlayState* play) {
+     Vec3f headCopy;
+     Player* player = GET_PLAYER(play);
+     Vec3f naviRefPos;
+@@ -1232,10 +1268,10 @@ void func_80A04DE4(EnElf* this, PlayState* play) {
+         this->fairyFlags &= ~0x10;
+     }
+ 
+-    func_80A03AB0(this, play);
++    EnElf_RunMotion(this, play);  // was func_80A03AB0 [LLM:HIGH]
+     headCopy = this->actor.focus.pos;
+ 
+-    func_80A03148(this, &headCopy, 0, 20.0f, 0.2f);
++    EnElf_FlyToTargetClamped(this, &headCopy, 0, 20.0f, 0.2f);  // was func_80A03148 [LLM:HIGH]
+ 
+     if (this->actor.speedXZ >= 5.0f) {
+         EnElf_SpawnSparkles(this, play, 16);
+@@ -1246,7 +1282,8 @@ void func_80A04DE4(EnElf* this, PlayState* play) {
+ }
+ 
+ // move after talking to player
+-void func_80A04F94(EnElf* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A04F94: turns Navi onto her travel heading and eases the environment lights back; the file's own comment calls this moving after talking
++void EnElf_UpdateAfterTalk(EnElf* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     Math_SmoothStepToS(&this->actor.shape.rot.y, this->unk_2BC, 5, 0x1000, 0x400);
+@@ -1256,61 +1293,61 @@ void func_80A04F94(EnElf* this, PlayState* play) {
+ }
+ 
+ // ask to talk to saria again
+-void func_80A05040(Actor* thisx, PlayState* play) {
++void EnElf_TalkSariaAgain(Actor* thisx, PlayState* play) {
+     EnElf* this = (EnElf*)thisx;
+ 
+-    func_80A04DE4(this, play);
++    EnElf_MoveToTalkPos(this, play);  // was func_80A04DE4 [LLM:HIGH]
+ 
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE) && Message_ShouldAdvance(play)) {
+         switch (play->msgCtx.choiceIndex) {
+             case 0: // yes
+                 Message_ContinueTextbox(play, ElfMessage_GetSariaText(play));
+-                this->actor.update = func_80A05114;
++                this->actor.update = EnElf_TalkSariaText;  // was func_80A05114 [LLM:HIGH]
+                 break;
+             case 1: // no
+                 Message_CloseTextbox(play);
+-                this->actor.update = func_80A053F0;
+-                func_80A01C38(this, 0);
++                this->actor.update = EnElf_UpdateNaviIdle;  // was func_80A053F0 [LLM:HIGH]
++                EnElf_SetMotionMode(this, 0);  // was func_80A01C38 [LLM:HIGH]
+                 this->fairyFlags &= ~0x20;
+                 break;
+         }
+     }
+ 
+-    func_80A04F94(this, play);
++    EnElf_UpdateAfterTalk(this, play);  // was func_80A04F94 [LLM:HIGH]
+ }
+ 
+-void func_80A05114(Actor* thisx, PlayState* play) {
++void EnElf_TalkSariaText(Actor* thisx, PlayState* play) {
+     EnElf* this = (EnElf*)thisx;
+ 
+-    func_80A04DE4(this, play);
++    EnElf_MoveToTalkPos(this, play);  // was func_80A04DE4 [LLM:HIGH]
+ 
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         Message_ContinueTextbox(play, 0xE3);
+-        this->actor.update = func_80A05040;
++        this->actor.update = EnElf_TalkSariaAgain;  // was func_80A05040 [LLM:HIGH]
+     }
+ 
+-    func_80A04F94(this, play);
++    EnElf_UpdateAfterTalk(this, play);  // was func_80A04F94 [LLM:HIGH]
+ }
+ 
+-void func_80A05188(Actor* thisx, PlayState* play) {
++void EnElf_TalkSariaStart(Actor* thisx, PlayState* play) {
+     EnElf* this = (EnElf*)thisx;
+ 
+-    func_80A04DE4(this, play);
++    EnElf_MoveToTalkPos(this, play);  // was func_80A04DE4 [LLM:HIGH]
+ 
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         Message_ContinueTextbox(play, ElfMessage_GetSariaText(play));
+-        this->actor.update = func_80A05114;
++        this->actor.update = EnElf_TalkSariaText;  // was func_80A05114 [LLM:HIGH]
+     }
+ 
+-    func_80A04F94(this, play);
++    EnElf_UpdateAfterTalk(this, play);  // was func_80A04F94 [LLM:HIGH]
+ }
+ 
+ // ask to talk to navi
+-void func_80A05208(Actor* thisx, PlayState* play) {
++void EnElf_AskTalkToNavi(Actor* thisx, PlayState* play) {
+     s32 naviCUpText;
+     EnElf* this = (EnElf*)thisx;
+ 
+-    func_80A04DE4(this, play);
++    EnElf_MoveToTalkPos(this, play);  // was func_80A04DE4 [LLM:HIGH]
+ 
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE) && Message_ShouldAdvance(play)) {
+         switch (play->msgCtx.choiceIndex) {
+@@ -1323,25 +1360,25 @@ void func_80A05208(Actor* thisx, PlayState* play) {
+                     Message_ContinueTextbox(play, 0x15F);
+                 }
+ 
+-                this->actor.update = func_80A052F4;
++                this->actor.update = EnElf_AskTalkToSaria;  // was func_80A052F4 [LLM:HIGH]
+                 break;
+             case 1: // no
+                 Message_CloseTextbox(play);
+-                this->actor.update = func_80A053F0;
+-                func_80A01C38(this, 0);
++                this->actor.update = EnElf_UpdateNaviIdle;  // was func_80A053F0 [LLM:HIGH]
++                EnElf_SetMotionMode(this, 0);  // was func_80A01C38 [LLM:HIGH]
+                 this->fairyFlags &= ~0x20;
+                 break;
+         }
+     }
+ 
+-    func_80A04F94(this, play);
++    EnElf_UpdateAfterTalk(this, play);  // was func_80A04F94 [LLM:HIGH]
+ }
+ 
+ // ask to talk to saria
+-void func_80A052F4(Actor* thisx, PlayState* play) {
++void EnElf_AskTalkToSaria(Actor* thisx, PlayState* play) {
+     EnElf* this = (EnElf*)thisx;
+ 
+-    func_80A04DE4(this, play);
++    EnElf_MoveToTalkPos(this, play);  // was func_80A04DE4 [LLM:HIGH]
+ 
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE) {
+         if (Message_ShouldAdvance(play)) {
+@@ -1349,25 +1386,25 @@ void func_80A052F4(Actor* thisx, PlayState* play) {
+ 
+             switch (play->msgCtx.choiceIndex) {
+                 case 0: // yes
+-                    this->actor.update = func_80A05188;
++                    this->actor.update = EnElf_TalkSariaStart;  // was func_80A05188 [LLM:HIGH]
+                     Message_ContinueTextbox(play, 0xE2);
+                     break;
+                 case 1: // no
+-                    this->actor.update = func_80A05208;
++                    this->actor.update = EnElf_AskTalkToNavi;  // was func_80A05208 [LLM:HIGH]
+                     Message_ContinueTextbox(play, 0xE1);
+                     break;
+             }
+         }
+     } else if (Actor_TextboxIsClosing(thisx, play)) {
+-        this->actor.update = func_80A053F0;
+-        func_80A01C38(this, 0);
++        this->actor.update = EnElf_UpdateNaviIdle;  // was func_80A053F0 [LLM:HIGH]
++        EnElf_SetMotionMode(this, 0);  // was func_80A01C38 [LLM:HIGH]
+         this->fairyFlags &= ~0x20;
+     }
+ 
+-    func_80A04F94(this, play);
++    EnElf_UpdateAfterTalk(this, play);  // was func_80A04F94 [LLM:HIGH]
+ }
+ 
+-void func_80A053F0(Actor* thisx, PlayState* play) {
++void EnElf_UpdateNaviIdle(Actor* thisx, PlayState* play) {
+     u8 unk2C7;
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+@@ -1399,8 +1436,8 @@ void func_80A053F0(Actor* thisx, PlayState* play) {
+ 
+         this->fairyFlags |= 0x10;
+         this->fairyFlags |= 0x20;
+-        thisx->update = func_80A052F4;
+-        func_80A01C38(this, 3);
++        thisx->update = EnElf_AskTalkToSaria;  // was func_80A052F4 [LLM:HIGH]
++        EnElf_SetMotionMode(this, 3);  // was func_80A01C38 [LLM:HIGH]
+ 
+         if (this->elfMsg != NULL) {
+             this->elfMsg->actor.flags |= ACTOR_FLAG_TALK;
+@@ -1446,7 +1483,7 @@ void func_80A053F0(Actor* thisx, PlayState* play) {
+         this->unk_2C7 = 1;
+     }
+ 
+-    func_80A04D90(this, play);
++    EnElf_UpdateShadow(this, play);  // was func_80A04D90 [LLM:HIGH]
+ }
+ 
+ void EnElf_Update(Actor* thisx, PlayState* play) {
+@@ -1458,7 +1495,7 @@ void EnElf_Update(Actor* thisx, PlayState* play) {
+     this->timer++;
+ 
+     if (this->fairyFlags & FAIRY_FLAG_BIG) {
+-        func_80A04D90(this, play);
++        EnElf_UpdateShadow(this, play);  // was func_80A04D90 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

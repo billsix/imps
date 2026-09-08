@@ -1,0 +1,286 @@
+From ec195072486b2db5b236808c5cd4bdbaaf1ea1bc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 330/488] soh: name the 12 address-named symbols defined in
+ z_bg_jya_zurerukabe.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 12 are defined in soh/src/overlays/actors/ovl_Bg_Jya_Zurerukabe/z_bg_jya_zurerukabe.c.
+
+  * D_8089B9C0 -> sWallSpeeds
+    deduced, confidence HIGH: the current sliding speed of each of the four
+    wall segments, shared between all four actors so the ladder check can
+    see whether a neighbouring segment is moving.
+
+  * D_8089B9F0 -> sWallHeights
+    deduced, confidence HIGH: the home Y of each of the four wall segments;
+    Init matches its own height against the list to learn which segment it
+    is.
+
+  * D_8089B9F8 -> sWallDirections
+    deduced, confidence HIGH: the direction each segment starts sliding in,
+    alternating so neighbouring rows move opposite ways.
+
+  * D_8089BA00 -> sWallPauseFrames
+    deduced, confidence HIGH: how long each segment rests between slides.
+
+  * D_8089BA08 -> sWallSlideSpeeds
+    deduced, confidence HIGH: how fast each segment slides while it is
+    moving.
+
+  * D_8089BA18 -> sLadderBands
+    deduced, confidence HIGH: the six climbable height bands of the ladder
+    wall, each a low and high Y; the knock-off check finds which band the
+    player is hanging in.
+
+  * D_8089BA30 -> sBandToSegment
+    deduced, confidence HIGH: which wall segment each of those six bands
+    belongs to, so the check can read that segment's speed out of
+    sWallSpeeds.
+
+  * func_8089B4C8 -> BgJyaZurerukabe_CheckKnockOffLadder
+    deduced, confidence HIGH: while the player is on the ladder, knocks them
+    off if the segment they are hanging on is sliding, or if they straddle
+    two segments that are sliding apart.
+
+  * func_8089B7B4 -> BgJyaZurerukabe_SetupWait
+    deduced, confidence HIGH: installs the resting action between slides.
+
+  * func_8089B7C4 -> BgJyaZurerukabe_Wait
+    deduced, confidence HIGH: holds the segment still, reporting zero speed,
+    until its pause timer runs out.
+
+  * func_8089B80C -> BgJyaZurerukabe_SetupSlide
+    deduced, confidence HIGH: arms this segment's pause length, reverses its
+    direction at the ends of the run and steps its target one notch along.
+
+  * func_8089B870 -> BgJyaZurerukabe_Slide
+    deduced, confidence HIGH: moves the segment 75 units per notch at its
+    own speed with the sliding sfx, publishing that speed into sWallSpeeds,
+    and returns to waiting on arrival.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_bg_jya_zurerukabe.c                     | 86 +++++++++++--------
+ 1 file changed, 49 insertions(+), 37 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Zurerukabe/z_bg_jya_zurerukabe.c b/soh/src/overlays/actors/ovl_Bg_Jya_Zurerukabe/z_bg_jya_zurerukabe.c
+index 7f673c7c6..3d4e7a2d9 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Zurerukabe/z_bg_jya_zurerukabe.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Zurerukabe/z_bg_jya_zurerukabe.c
+@@ -15,13 +15,19 @@ void BgJyaZurerukabe_Destroy(Actor* thisx, PlayState* play);
+ void BgJyaZurerukabe_Update(Actor* thisx, PlayState* play);
+ void BgJyaZurerukabe_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8089B4C8(BgJyaZurerukabe* this, PlayState* play);
+-void func_8089B7B4(BgJyaZurerukabe* this);
+-void func_8089B7C4(BgJyaZurerukabe* this, PlayState* play);
+-void func_8089B80C(BgJyaZurerukabe* this);
+-void func_8089B870(BgJyaZurerukabe* this, PlayState* play);
+-
+-static f32 D_8089B9C0[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was func_8089B4C8: while the player is on the ladder, knocks them off if the segment they are hanging on is sliding, or if they straddle two segments that are sliding apart.
++void BgJyaZurerukabe_CheckKnockOffLadder(BgJyaZurerukabe* this, PlayState* play);  // was func_8089B4C8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8089B7B4: installs the resting action between slides.
++void BgJyaZurerukabe_SetupWait(BgJyaZurerukabe* this);  // was func_8089B7B4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8089B7C4: holds the segment still, reporting zero speed, until its pause timer runs out.
++void BgJyaZurerukabe_Wait(BgJyaZurerukabe* this, PlayState* play);  // was func_8089B7C4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8089B80C: arms this segment's pause length, reverses its direction at the ends of the run and steps its target one notch along.
++void BgJyaZurerukabe_SetupSlide(BgJyaZurerukabe* this);  // was func_8089B80C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8089B870: moves the segment 75 units per notch at its own speed with the sliding sfx, publishing that speed into sWallSpeeds, and returns to waiting on arrival.
++void BgJyaZurerukabe_Slide(BgJyaZurerukabe* this, PlayState* play);  // was func_8089B870 [LLM:HIGH]
++
++// LLM generated name (HIGH), was D_8089B9C0: the current sliding speed of each of the four wall segments, shared between all four actors so the ladder check can see whether a neighbouring segment is moving.
++static f32 sWallSpeeds[4] = { 0.0f, 0.0f, 0.0f, 0.0f };  // was D_8089B9C0 [LLM:HIGH]
+ 
+ const ActorInit Bg_Jya_Zurerukabe_InitVars = {
+     ACTOR_BG_JYA_ZURERUKABE,
+@@ -36,20 +42,26 @@ const ActorInit Bg_Jya_Zurerukabe_InitVars = {
+     NULL,
+ };
+ 
+-static s16 D_8089B9F0[4] = { 943, 1043, 1243, 1343 };
++// LLM generated name (HIGH), was D_8089B9F0: the home Y of each of the four wall segments; Init matches its own height against the list to learn which segment it is.
++static s16 sWallHeights[4] = { 943, 1043, 1243, 1343 };  // was D_8089B9F0 [LLM:HIGH]
+ 
+-static s16 D_8089B9F8[4] = { -1, 1, -1, 1 };
++// LLM generated name (HIGH), was D_8089B9F8: the direction each segment starts sliding in, alternating so neighbouring rows move opposite ways.
++static s16 sWallDirections[4] = { -1, 1, -1, 1 };  // was D_8089B9F8 [LLM:HIGH]
+ 
+-static s16 D_8089BA00[4] = { 48, 48, 36, 36 };
++// LLM generated name (HIGH), was D_8089BA00: how long each segment rests between slides.
++static s16 sWallPauseFrames[4] = { 48, 48, 36, 36 };  // was D_8089BA00 [LLM:HIGH]
+ 
+-static f32 D_8089BA08[4] = { 8.0f, 8.0f, 10.0f, 10.0f };
++// LLM generated name (HIGH), was D_8089BA08: how fast each segment slides while it is moving.
++static f32 sWallSlideSpeeds[4] = { 8.0f, 8.0f, 10.0f, 10.0f };  // was D_8089BA08 [LLM:HIGH]
+ 
+-static s16 D_8089BA18[6][2] = {
++// LLM generated name (HIGH), was D_8089BA18: the six climbable height bands of the ladder wall, each a low and high Y; the knock-off check finds which band the player is hanging in.
++static s16 sLadderBands[6][2] = {  // was D_8089BA18 [LLM:HIGH]
+     { 0x0388, 0x0395 }, { 0x03EA, 0x03FF }, { 0x0454, 0x0467 },
+     { 0x04B4, 0x04C1 }, { 0x0518, 0x0528 }, { 0x0581, 0x0590 },
+ };
+ 
+-static s16 D_8089BA30[6] = {
++// LLM generated name (HIGH), was D_8089BA30: which wall segment each of those six bands belongs to, so the check can read that segment's speed out of sWallSpeeds.
++static s16 sBandToSegment[6] = {  // was D_8089BA30 [LLM:HIGH]
+     0, 0, 1, 2, 2, 3,
+ };
+ 
+@@ -74,16 +86,16 @@ void BgJyaZurerukabe_InitDynaPoly(BgJyaZurerukabe* this, PlayState* play, Collis
+     }
+ }
+ 
+-void func_8089B4C8(BgJyaZurerukabe* this, PlayState* play) {
++void BgJyaZurerukabe_CheckKnockOffLadder(BgJyaZurerukabe* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if ((player->stateFlags1 == PLAYER_STATE1_CLIMBING_LADDER) && (player->actor.wallPoly != NULL)) {
+         s32 i;
+ 
+-        for (i = 0; i < ARRAY_COUNT(D_8089BA18); i++) {
++        for (i = 0; i < ARRAY_COUNT(sLadderBands); i++) {  // was D_8089BA18 [LLM:HIGH]
+             f32 posY = player->actor.world.pos.y;
+ 
+-            if ((posY >= D_8089BA18[i][0]) && (posY <= D_8089BA18[i][1])) {
++            if ((posY >= sLadderBands[i][0]) && (posY <= sLadderBands[i][1])) {  // was D_8089BA18 [LLM:HIGH]
+                 break;
+             }
+         }
+@@ -93,13 +105,13 @@ void func_8089B4C8(BgJyaZurerukabe* this, PlayState* play) {
+             case 2:
+             case 3:
+             case 5:
+-                if (fabsf(D_8089B9C0[D_8089BA30[i]]) > 1.0f) {
++                if (fabsf(sWallSpeeds[sBandToSegment[i]]) > 1.0f) {  // was D_8089B9C0 [LLM:HIGH]
+                     Actor_SetPlayerKnockbackLarge(play, &this->dyna.actor, 1.5f, this->dyna.actor.shape.rot.y, 0.0f, 0);
+                 }
+                 break;
+             case 1:
+             case 4:
+-                if (fabsf(D_8089B9C0[D_8089BA30[i]] - D_8089B9C0[D_8089BA30[i + 1]]) > 1.0f) {
++                if (fabsf(sWallSpeeds[sBandToSegment[i]] - sWallSpeeds[sBandToSegment[i + 1]]) > 1.0f) {  // was D_8089B9C0 [LLM:HIGH]
+                     Actor_SetPlayerKnockbackLarge(play, &this->dyna.actor, 1.5f, this->dyna.actor.shape.rot.y, 0.0f, 0);
+                 }
+                 break;
+@@ -114,22 +126,22 @@ void BgJyaZurerukabe_Init(Actor* thisx, PlayState* play) {
+     BgJyaZurerukabe_InitDynaPoly(this, play, &gZurerukabeCol, DPM_UNK);
+     Actor_ProcessInitChain(thisx, sInitChain);
+ 
+-    for (i = 0; i < ARRAY_COUNT(D_8089B9F0); i++) {
+-        if (fabsf(D_8089B9F0[i] - this->dyna.actor.home.pos.y) < 1.0f) {
++    for (i = 0; i < ARRAY_COUNT(sWallHeights); i++) {  // was D_8089B9F0 [LLM:HIGH]
++        if (fabsf(sWallHeights[i] - this->dyna.actor.home.pos.y) < 1.0f) {  // was D_8089B9F0 [LLM:HIGH]
+             this->unk_168 = i;
+             break;
+         }
+     }
+ 
+-    if (i == ARRAY_COUNT(D_8089B9F0)) {
++    if (i == ARRAY_COUNT(sWallHeights)) {  // was D_8089B9F0 [LLM:HIGH]
+         osSyncPrintf(VT_COL(RED, WHITE));
+         osSyncPrintf("home pos が変更されたみたい(%s %d)(arg_data 0x%04x)\n", __FILE__, __LINE__,
+                      this->dyna.actor.params);
+         osSyncPrintf(VT_RST);
+     }
+ 
+-    this->unk_16E = D_8089B9F8[this->unk_168];
+-    func_8089B7B4(this);
++    this->unk_16E = sWallDirections[this->unk_168];  // was D_8089B9F8 [LLM:HIGH]
++    BgJyaZurerukabe_SetupWait(this);  // was func_8089B7B4 [LLM:HIGH]
+     osSyncPrintf("(jya ずれる壁)(arg_data 0x%04x)\n", this->dyna.actor.params);
+ }
+ 
+@@ -137,36 +149,36 @@ void BgJyaZurerukabe_Destroy(Actor* thisx, PlayState* play) {
+     BgJyaZurerukabe* this = (BgJyaZurerukabe*)thisx;
+ 
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+-    D_8089B9C0[this->unk_168] = 0.0f;
++    sWallSpeeds[this->unk_168] = 0.0f;  // was D_8089B9C0 [LLM:HIGH]
+ }
+ 
+-void func_8089B7B4(BgJyaZurerukabe* this) {
+-    this->actionFunc = func_8089B7C4;
++void BgJyaZurerukabe_SetupWait(BgJyaZurerukabe* this) {
++    this->actionFunc = BgJyaZurerukabe_Wait;  // was func_8089B7C4 [LLM:HIGH]
+ }
+ 
+-void func_8089B7C4(BgJyaZurerukabe* this, PlayState* play) {
++void BgJyaZurerukabe_Wait(BgJyaZurerukabe* this, PlayState* play) {
+     if (this->unk_16A <= 0) {
+-        func_8089B80C(this);
++        BgJyaZurerukabe_SetupSlide(this);  // was func_8089B80C [LLM:HIGH]
+     }
+-    D_8089B9C0[this->unk_168] = 0.0f;
++    sWallSpeeds[this->unk_168] = 0.0f;  // was D_8089B9C0 [LLM:HIGH]
+ }
+ 
+-void func_8089B80C(BgJyaZurerukabe* this) {
+-    this->actionFunc = func_8089B870;
+-    this->unk_16A = D_8089BA00[this->unk_168];
++void BgJyaZurerukabe_SetupSlide(BgJyaZurerukabe* this) {
++    this->actionFunc = BgJyaZurerukabe_Slide;  // was func_8089B870 [LLM:HIGH]
++    this->unk_16A = sWallPauseFrames[this->unk_168];  // was D_8089BA00 [LLM:HIGH]
+     if (ABS(this->unk_16C) == 4) {
+         this->unk_16E = -this->unk_16E;
+     }
+     this->unk_16C += this->unk_16E;
+ }
+ 
+-void func_8089B870(BgJyaZurerukabe* this, PlayState* play) {
++void BgJyaZurerukabe_Slide(BgJyaZurerukabe* this, PlayState* play) {
+     if (Math_StepToF(&this->dyna.actor.world.pos.x, this->dyna.actor.home.pos.x + (this->unk_16C * 75),
+-                     D_8089BA08[this->unk_168])) {
+-        func_8089B7B4(this);
++                     sWallSlideSpeeds[this->unk_168])) {  // was D_8089BA08 [LLM:HIGH]
++        BgJyaZurerukabe_SetupWait(this);  // was func_8089B7B4 [LLM:HIGH]
+     }
+ 
+-    D_8089B9C0[this->unk_168] = D_8089BA08[this->unk_168] * this->unk_16E;
++    sWallSpeeds[this->unk_168] = sWallSlideSpeeds[this->unk_168] * this->unk_16E;  // was D_8089B9C0 [LLM:HIGH]
+     Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_ELEVATOR_MOVE - SFX_FLAG);
+ }
+ 
+@@ -180,7 +192,7 @@ void BgJyaZurerukabe_Update(Actor* thisx, PlayState* play) {
+     this->actionFunc(this, play);
+ 
+     if (this->unk_168 == 0) {
+-        func_8089B4C8(this, play);
++        BgJyaZurerukabe_CheckKnockOffLadder(this, play);  // was func_8089B4C8 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

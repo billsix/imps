@@ -1,0 +1,217 @@
+From ed528cea64927165cca52e6707d7ec924f96d947 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:21 +0000
+Subject: [PATCH 267/488] soh: name the 5 address-named symbols defined in
+ audio_init_params.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/code/audio_init_params.c; updating their references touches 4 files in total.
+
+  * D_8016F0E0 -> gUnusedAudioBuffer
+    deduced, confidence HIGH: the in-tree comment on its declaration reads
+    "// unused"; it is a 0xA0-byte buffer with no reader.
+
+  * D_801755D8 -> gUnusedAudioValues
+    deduced, confidence HIGH: the in-tree comment on its declaration reads
+    "// unused"; three s32 slots with no reader.
+
+  * D_8014A6C0 -> gAudioTatumInit
+    deduced, confidence GUESS: const s16 pair whose second element is
+    gTatumsPerBeat (variables.h defines that macro as element 1) and whose
+    first the file marks "// unused"; named for the one identified member
+    because nothing else pins down what the pair is.
+
+  * D_8014A6C4 -> gAudioHeapInitSizes
+    deduced, confidence HIGH: the const AudioContextInitSizes read by
+    AudioLoad for heapSize, initPoolSize and permanentPoolSize, and printed
+    as the audio TOTAL in the debug display.
+
+  * D_80133420 -> gReverbSettings
+    deduced, confidence HIGH: the per-spec ReverbSettings rows that every
+    entry of the audio-spec table points into.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/variables.h          |  6 ++--
+ soh/src/code/audio_general.c     |  2 +-
+ soh/src/code/audio_init_params.c | 51 ++++++++++++++++++--------------
+ soh/src/code/audio_load.c        | 12 ++++----
+ 4 files changed, 38 insertions(+), 33 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index b620e1a74..e52fe6734 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -178,9 +178,9 @@ extern "C"
+ 	extern f32 triforcePieceScale;
+ 	extern f32 mysteryItemScale;
+ 	
+-	extern const s16 D_8014A6C0[];
+-#define gTatumsPerBeat (D_8014A6C0[1])
+-	extern const AudioContextInitSizes D_8014A6C4;
++	extern const s16 gAudioTatumInit[];  // was D_8014A6C0 [LLM:GUESS]
++#define gTatumsPerBeat (gAudioTatumInit[1])  // was D_8014A6C0 [LLM:GUESS]
++	extern const AudioContextInitSizes gAudioHeapInitSizes;  // was D_8014A6C4 [LLM:HIGH]
+ 	extern s16 gOcarinaSongItemMap[];
+ 	extern u8 D_80155F50[];
+ 	extern u8 D_80157580[];
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index cbf1530c7..dab6db2fd 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -3100,7 +3100,7 @@ void AudioDebug_Draw(GfxPrint* printer) {
+         case PAGE_HEAP_INFO:
+             SETCOL(255, 255, 255);
+             GfxPrint_SetPos(printer, 3, 4);
+-            GfxPrint_Printf(printer, "TOTAL  %d", D_8014A6C4.heapSize);
++            GfxPrint_Printf(printer, "TOTAL  %d", gAudioHeapInitSizes.heapSize);  // was D_8014A6C4 [LLM:HIGH]
+ 
+             GfxPrint_SetPos(printer, 3, 5);
+             GfxPrint_Printf(printer, "DRIVER %05X / %05X",
+diff --git a/soh/src/code/audio_init_params.c b/soh/src/code/audio_init_params.c
+index 77b826ca9..b36ab3b1f 100644
+--- a/soh/src/code/audio_init_params.c
++++ b/soh/src/code/audio_init_params.c
+@@ -1,19 +1,24 @@
+ #include "global.h"
+ 
+-u8 D_8016F0E0[0xA0]; // unused
++// LLM generated name (HIGH), was D_8016F0E0: the in-tree comment on its declaration reads "// unused"; it is a 0xA0-byte buffer with no reader.
++u8 gUnusedAudioBuffer[0xA0]; // unused, was D_8016F0E0 [LLM:HIGH]
+ AudioContext gAudioContext;
+ void (*D_801755D0)(void);
+-s32 D_801755D8[3]; // unused
++// LLM generated name (HIGH), was D_801755D8: the in-tree comment on its declaration reads "// unused"; three s32 slots with no reader.
++s32 gUnusedAudioValues[3]; // unused, was D_801755D8 [LLM:HIGH]
+ 
+-const s16 D_8014A6C0[] = {
++// LLM generated name (GUESS), was D_8014A6C0: const s16 pair whose second element is gTatumsPerBeat (variables.h defines that macro as element 1) and whose first the file marks "// unused"; named for the one identified member because nothing else pins down what the pair is.
++const s16 gAudioTatumInit[] = {  // was D_8014A6C0 [LLM:GUESS]
+     0x1C00, // unused
+     0x0030, // gTatumsPerBeat
+ };
+ 
+ // OTRTODO: This might be overkill...
+-const AudioContextInitSizes D_8014A6C4 = { 0x37F000, 0xE0E00, 0xBCE00 };
++// LLM generated name (HIGH), was D_8014A6C4: the const AudioContextInitSizes read by AudioLoad for heapSize, initPoolSize and permanentPoolSize, and printed as the audio TOTAL in the debug display.
++const AudioContextInitSizes gAudioHeapInitSizes = { 0x37F000, 0xE0E00, 0xBCE00 };  // was D_8014A6C4 [LLM:HIGH]
+ 
+-ReverbSettings D_80133420[][3] = {
++// LLM generated name (HIGH), was D_80133420: the per-spec ReverbSettings rows that every entry of the audio-spec table points into.
++ReverbSettings gReverbSettings[][3] = {  // was D_80133420 [LLM:HIGH]
+     {
+         { 1, 0x30, 0x3000, 0, 0, 0x7FFF, 0x0000, 0x0000, 0xFF, 0x3000, 0x0, 0x0 },
+         { 1, 0x20, 0x0800, 0, 0, 0x7FFF, 0x0000, 0x0000, 0xFF, 0x0000, 0x0, 0x0 },
+@@ -68,22 +73,22 @@ ReverbSettings D_80133420[][3] = {
+ };
+ 
+ AudioSpec gAudioSpecs[18] = {
+-    { 32000, 1, 24, 4, 0, 0, 2, D_80133420[0], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x4000, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 24, 4, 0, 0, 2, D_80133420[1], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 24, 4, 0, 0, 2, D_80133420[2], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 23, 4, 0, 0, 2, D_80133420[4], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 23, 4, 0, 0, 2, D_80133420[5], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 24, 4, 0, 0, 2, D_80133420[6], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 24, 4, 0, 0, 2, D_80133420[7], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 23, 4, 0, 0, 2, D_80133420[8], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 24, 4, 0, 0, 2, D_80133420[9], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 23, 4, 0, 0, 2, D_80133420[8], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 28, 3, 0, 0, 2, D_80133420[10], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x2800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 28, 3, 0, 0, 1, D_80133420[11], 0x300, 0x200, 0x7FFF, 0, 0x4800, 0, 0x4000, 0, 0, 0, 0 },
+-    { 32000, 1, 28, 3, 0, 0, 1, D_80133420[11], 0x300, 0x200, 0x7FFF, 0, 0, 0, 0x4000, 0x4800, 0, 0, 0 },
+-    { 32000, 1, 22, 4, 0, 0, 2, D_80133420[0], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 22, 4, 0, 0, 2, D_80133420[8], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 16, 4, 0, 0, 2, D_80133420[0], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 22050, 1, 24, 4, 0, 0, 2, D_80133420[0], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },
+-    { 32000, 1, 24, 4, 0, 0, 2, D_80133420[2], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3600, 0x2600, 0, 0, 0 },
++    { 32000, 1, 24, 4, 0, 0, 2, gReverbSettings[0], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x4000, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 24, 4, 0, 0, 2, gReverbSettings[1], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 24, 4, 0, 0, 2, gReverbSettings[2], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 23, 4, 0, 0, 2, gReverbSettings[4], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 23, 4, 0, 0, 2, gReverbSettings[5], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 24, 4, 0, 0, 2, gReverbSettings[6], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 24, 4, 0, 0, 2, gReverbSettings[7], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 23, 4, 0, 0, 2, gReverbSettings[8], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 24, 4, 0, 0, 2, gReverbSettings[9], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 23, 4, 0, 0, 2, gReverbSettings[8], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 28, 3, 0, 0, 2, gReverbSettings[10], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x2800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 28, 3, 0, 0, 1, gReverbSettings[11], 0x300, 0x200, 0x7FFF, 0, 0x4800, 0, 0x4000, 0, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 28, 3, 0, 0, 1, gReverbSettings[11], 0x300, 0x200, 0x7FFF, 0, 0, 0, 0x4000, 0x4800, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 22, 4, 0, 0, 2, gReverbSettings[0], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 22, 4, 0, 0, 2, gReverbSettings[8], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 16, 4, 0, 0, 2, gReverbSettings[0], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 22050, 1, 24, 4, 0, 0, 2, gReverbSettings[0], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3800, 0x2880, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
++    { 32000, 1, 24, 4, 0, 0, 2, gReverbSettings[2], 0x300, 0x200, 0x7FFF, 0x7F0, 0xE00, 0, 0x3600, 0x2600, 0, 0, 0 },  // was D_80133420 [LLM:HIGH]
+ };
+diff --git a/soh/src/code/audio_load.c b/soh/src/code/audio_load.c
+index 79d180c04..4846f0ff0 100644
+--- a/soh/src/code/audio_load.c
++++ b/soh/src/code/audio_load.c
+@@ -1300,7 +1300,7 @@ void AudioLoad_Init(void* heap, size_t heapSize) {
+ 
+     if (heap == NULL) {
+         gAudioContext.audioHeap = gAudioHeap;
+-        gAudioContext.audioHeapSize = D_8014A6C4.heapSize;
++        gAudioContext.audioHeapSize = gAudioHeapInitSizes.heapSize;  // was D_8014A6C4 [LLM:HIGH]
+     } else {
+         void** hp = &heap;
+ 
+@@ -1313,7 +1313,7 @@ void AudioLoad_Init(void* heap, size_t heapSize) {
+     }
+ 
+     // Main Pool Split (split entirety of audio heap into initPool and sessionPool)
+-    AudioHeap_InitMainPools(D_8014A6C4.initPoolSize);
++    AudioHeap_InitMainPools(gAudioHeapInitSizes.initPoolSize);  // was D_8014A6C4 [LLM:HIGH]
+ 
+     // Initialize the audio interface buffers
+     for (i = 0; i < ARRAY_COUNT(gAudioContext.aiBuffers); i++) {
+@@ -1463,12 +1463,12 @@ void AudioLoad_Init(void* heap, size_t heapSize) {
+     // #end region
+     gAudioContext.soundFonts = AudioHeap_Alloc(&gAudioContext.audioInitPool, numFonts * sizeof(SoundFont));
+ 
+-    if (addr = AudioHeap_Alloc(&gAudioContext.audioInitPool, D_8014A6C4.permanentPoolSize), addr == NULL) {
+-        // cast away const from D_8014A6C4
+-        *((u32*)&D_8014A6C4.permanentPoolSize) = 0;
++    if (addr = AudioHeap_Alloc(&gAudioContext.audioInitPool, gAudioHeapInitSizes.permanentPoolSize), addr == NULL) {  // was D_8014A6C4 [LLM:HIGH]
++        // cast away const from gAudioHeapInitSizes, was D_8014A6C4 [LLM:HIGH]
++        *((u32*)&gAudioHeapInitSizes.permanentPoolSize) = 0;  // was D_8014A6C4 [LLM:HIGH]
+     }
+ 
+-    AudioHeap_AllocPoolInit(&gAudioContext.permanentPool, addr, D_8014A6C4.permanentPoolSize);
++    AudioHeap_AllocPoolInit(&gAudioContext.permanentPool, addr, gAudioHeapInitSizes.permanentPoolSize);  // was D_8014A6C4 [LLM:HIGH]
+     gAudioContextInitalized = true;
+     osSendMesg(gAudioContext.taskStartQueueP, OS_MESG_32(gAudioContext.totalTaskCnt), OS_MESG_NOBLOCK);
+ }
+-- 
+2.55.0
+

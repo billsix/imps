@@ -1,0 +1,83 @@
+From 8565dc675c50153c745efc7068febc9a29511a89 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:15 +0000
+Subject: [PATCH 196/488] soh: rename D_8089EE40 -> sActiveSfxFlags
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: file-static bit set shared by every Bg_Mizu_Movebg instance: an instance claims bit 2 (elevator move) or bit 1 before playing the looping sfx and releases it in Destroy, so only one instance plays it at a time.
+Defined in soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c     | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c b/soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c
+index c5e41bf8b..782f4d6c0 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c
+@@ -67,7 +67,8 @@ static Vec3f sOffsetPosition1 = { 0.0f, 80.0f, 23.0f };
+ // Name from zeldaret/oot (was D_8089EBAC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c]
+ static Vec3f sOffsetPosition2 = { 0.0f, 80.0f, 23.0f };
+ 
+-static u8 D_8089EE40;
++// LLM generated name (HIGH), was D_8089EE40: file-static bit set shared by every Bg_Mizu_Movebg instance: an instance claims bit 2 (elevator move) or bit 1 before playing the looping sfx and releases it in Destroy, so only one instance plays it at a time.
++static u8 sActiveSfxFlags;  // was D_8089EE40 [LLM:HIGH]
+ 
+ s32 BgMizuMovebg_GetDragonStatueBossRoomOffsetIndex(PlayState* play) {
+     s32 result;
+@@ -184,12 +185,12 @@ void BgMizuMovebg_Destroy(Actor* thisx, PlayState* play) {
+         case 5:
+         case 6:
+             if (this->sfxFlags & 2) {
+-                D_8089EE40 &= ~2;
++                sActiveSfxFlags &= ~2;  // was D_8089EE40 [LLM:HIGH]
+             }
+             break;
+         case 7:
+             if (this->sfxFlags & 1) {
+-                D_8089EE40 &= ~1;
++                sActiveSfxFlags &= ~1;  // was D_8089EE40 [LLM:HIGH]
+             }
+             break;
+     }
+@@ -272,8 +273,8 @@ void BgMizuMovebg_UpdateMain(BgMizuMovebg* this, PlayState* play) {
+         case 3:
+             phi_f0 = this->homeY + sDragonStatueBossRoomOffsetPosY[BgMizuMovebg_GetDragonStatueBossRoomOffsetIndex(play)];
+             if (!Math_StepToF(&this->dyna.actor.world.pos.y, phi_f0, 1.0f)) {
+-                if (!(D_8089EE40 & 2) && MOVEBG_SPEED(this->dyna.actor.params) != 0) {
+-                    D_8089EE40 |= 2;
++                if (!(sActiveSfxFlags & 2) && MOVEBG_SPEED(this->dyna.actor.params) != 0) {  // was D_8089EE40 [LLM:HIGH]
++                    sActiveSfxFlags |= 2;  // was D_8089EE40 [LLM:HIGH]
+                     this->sfxFlags |= 2;
+                 }
+                 if (this->sfxFlags & 2) {
+@@ -294,8 +295,8 @@ void BgMizuMovebg_UpdateMain(BgMizuMovebg* this, PlayState* play) {
+                 phi_f0 = this->homeY;
+             }
+             if (!Math_StepToF(&this->dyna.actor.world.pos.y, phi_f0, 1.0f)) {
+-                if (!(D_8089EE40 & 2) && MOVEBG_SPEED(this->dyna.actor.params) != 0) {
+-                    D_8089EE40 |= 2;
++                if (!(sActiveSfxFlags & 2) && MOVEBG_SPEED(this->dyna.actor.params) != 0) {  // was D_8089EE40 [LLM:HIGH]
++                    sActiveSfxFlags |= 2;  // was D_8089EE40 [LLM:HIGH]
+                     this->sfxFlags |= 2;
+                 }
+                 if (this->sfxFlags & 2) {
+@@ -350,8 +351,8 @@ void BgMizuMovebg_UpdateHookshotPlatform(BgMizuMovebg* this, PlayState* play) {
+                                         MOVEBG_PATH_ID(this->dyna.actor.params), 0);
+         }
+     }
+-    if (!(D_8089EE40 & 1) && MOVEBG_SPEED(this->dyna.actor.params) != 0) {
+-        D_8089EE40 |= 1;
++    if (!(sActiveSfxFlags & 1) && MOVEBG_SPEED(this->dyna.actor.params) != 0) {  // was D_8089EE40 [LLM:HIGH]
++        sActiveSfxFlags |= 1;  // was D_8089EE40 [LLM:HIGH]
+         this->sfxFlags |= 1;
+     }
+     if (this->sfxFlags & 1) {
+-- 
+2.55.0
+

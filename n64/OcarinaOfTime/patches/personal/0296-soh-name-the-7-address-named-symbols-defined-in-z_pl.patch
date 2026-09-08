@@ -1,0 +1,280 @@
+From 137441f04c05ad576510915597a6de9cea437009 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:24 +0000
+Subject: [PATCH 296/488] soh: name the 7 address-named symbols defined in
+ z_play.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 7 are defined in soh/src/code/z_play.c; updating their references touches 6 files in total.
+
+  * func_800BC88C -> Play_ClearTransition
+    deduced, confidence HIGH: sets transitionCtx.transitionType back to -1;
+    called from Play_Init and from both scene-transition paths.
+
+  * func_800BFCB8 -> Play_GetFloorAlignMtx
+    deduced, confidence HIGH: raycasts for the floor under a position and
+    fills the caller's MtxF with a transform aligned to that floor's normal
+    and translated to the contact point, falling back to an axis-aligned
+    matrix at the given position when there is no floor; it returns the
+    floor height.
+
+  * func_800C09D8 -> Play_CheckCameraActive
+    deduced, confidence GUESS: meant to report whether the camera at a given
+    id still matches a uid and is active, returning 2 for inactive and 1 for
+    active. Nothing calls it, and its first branch returns 0 whenever the
+    camera is non-NULL, which makes every later branch unreachable and would
+    dereference NULL if it were ever taken -- so the name describes the
+    evident intent, not the behaviour.
+
+  * func_800C0D34 -> Play_GetDoorFacingYaw
+    deduced, confidence HIGH: for an ACTORCAT_DOOR transition actor whose
+    two sides are different rooms, writes the yaw that faces out of the
+    actor's own room and returns 1; the camera uses it when framing a door.
+
+  * func_800C0DB4 -> Play_IsPosUnderwater
+    deduced, confidence HIGH: returns true when a water surface exists above
+    the given position and a floor exists beneath that surface point.
+
+  * D_801614B8 -> sArenaFaultClient
+    deduced, confidence HIGH: the FaultClient registered with
+    ZeldaArena_Display in Play_Init and removed in Play_Destroy.
+
+  * D_8012D1F4 -> sUnusedPlayValue
+    deduced, confidence HIGH: the in-tree comment on its declaration reads
+    "// unused".
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  6 ++--
+ soh/src/code/z_actor.c                        |  2 +-
+ soh/src/code/z_camera.c                       |  2 +-
+ soh/src/code/z_play.c                         | 31 ++++++++++++-------
+ .../ovl_En_Diving_Game/z_en_diving_game.c     |  2 +-
+ .../ovl_Effect_Ss_Blast/z_eff_ss_blast.c      |  2 +-
+ 6 files changed, 26 insertions(+), 19 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 51da2ede9..fe7b8c161 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1547,7 +1547,7 @@ u8 CheckMedallionCount();
+ u8 CheckDungeonCount();
+ u8 CheckBridgeRewardCount();
+ s32 Play_InCsMode(PlayState* play);
+-f32 func_800BFCB8(PlayState* play, MtxF* mf, Vec3f* vec);
++f32 Play_GetFloorAlignMtx(PlayState* play, MtxF* mf, Vec3f* vec);  // was func_800BFCB8 [LLM:HIGH]
+ void* Play_LoadFile(PlayState* play, RomFile* file);
+ void Play_SpawnScene(PlayState* play, s32 sceneId, s32 spawn);
+ void Play_GetScreenPos(PlayState* play, Vec3f* src, Vec3f* dest);  // was func_800C016C [oot]
+@@ -1571,8 +1571,8 @@ void Play_TriggerVoidOut(PlayState* play);
+ void Play_TriggerRespawn(PlayState* play);
+ s32 Play_CamIsNotFixed(PlayState* play);
+ s32 FrameAdvance_IsEnabled(PlayState* play);
+-s32 func_800C0D34(PlayState* play, Actor* actor, s16* yaw);
+-s32 func_800C0DB4(PlayState* play, Vec3f* pos);
++s32 Play_GetDoorFacingYaw(PlayState* play, Actor* actor, s16* yaw);  // was func_800C0D34 [LLM:HIGH]
++s32 Play_IsPosUnderwater(PlayState* play, Vec3f* pos);  // was func_800C0DB4 [LLM:HIGH]
+ void Play_PerformSave(PlayState* play);
+ void PreRender_SetValuesSave(PreRender* this, u32 width, u32 height, void* fbuf, void* zbuf, void* cvg);
+ void PreRender_Init(PreRender* this);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 9105e1a87..634381a8f 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -220,7 +220,7 @@ void ActorShadow_DrawFeet(Actor* actor, Lights* lights, PlayState* play) {
+ 
+         for (i = 0; i < 2; i++) {
+             feetPosPtr->y += 50.0f;
+-            *floorHeightPtr = func_800BFCB8(play, &floorMtx, feetPosPtr);
++            *floorHeightPtr = Play_GetFloorAlignMtx(play, &floorMtx, feetPosPtr);  // was func_800BFCB8 [LLM:HIGH]
+             feetPosPtr->y -= 50.0f;
+             actor->shape.feetFloorFlags <<= 1;
+             distToFloor = feetPosPtr->y - *floorHeightPtr;
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index cd223b729..a09a00020 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -6139,7 +6139,7 @@ s32 Camera_Demo5(Camera* camera) {
+         // the target is a door.
+         D_8011D954[0].timerInit = camera->timer - 5;
+         sp4A = 0;
+-        if (!func_800C0D34(camera->play, camera->target, &sp4A)) {
++        if (!Play_GetDoorFacingYaw(camera->play, camera->target, &sp4A)) {  // was func_800C0D34 [LLM:HIGH]
+             osSyncPrintf(VT_COL(YELLOW, BLACK) "camera: attention demo: this door is dummy door!\n" VT_RST);
+             if (ABS(playerTargetGeo.yaw - camera->target->shape.rot.y) >= 0x4000) {
+                 sp4A = camera->target->shape.rot.y;
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index d754b7059..e171c5675 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -22,12 +22,14 @@ s32 gTrnsnUnkState;
+ VisMono gPlayVisMono;
+ Color_RGBA8_u32 gVisMonoColor;
+ 
+-FaultClient D_801614B8;
++// LLM generated name (HIGH), was D_801614B8: the FaultClient registered with ZeldaArena_Display in Play_Init and removed in Play_Destroy.
++FaultClient sArenaFaultClient;  // was D_801614B8 [LLM:HIGH]
+ 
+ s16 sTransitionFillTimer;
+ 
+ void* gDebugCutsceneScript = NULL;
+-UNK_TYPE D_8012D1F4 = 0; // unused
++// LLM generated name (HIGH), was D_8012D1F4: the in-tree comment on its declaration reads "// unused".
++UNK_TYPE sUnusedPlayValue = 0; // unused, was D_8012D1F4 [LLM:HIGH]
+ 
+ Input* D_8012D1F8 = NULL;
+ 
+@@ -185,7 +187,8 @@ void Gameplay_SetupTransition(PlayState* play, s32 transitionType) {
+     }
+ }
+ 
+-void func_800BC88C(PlayState* play) {
++// LLM generated name (HIGH), was func_800BC88C: sets transitionCtx.transitionType back to -1; called from Play_Init and from both scene-transition paths.
++void Play_ClearTransition(PlayState* play) {
+     play->transitionCtx.transitionType = -1;
+ }
+ 
+@@ -218,7 +221,7 @@ void Play_Destroy(GameState* thisx) {
+ 
+     if (play->transitionMode == TRANS_MODE_INSTANCE_RUNNING) {
+         play->transitionCtx.destroy(&play->transitionCtx.data);
+-        func_800BC88C(play);
++        Play_ClearTransition(play);  // was func_800BC88C [LLM:HIGH]
+         play->transitionMode = TRANS_MODE_OFF;
+     }
+ 
+@@ -237,7 +240,7 @@ void Play_Destroy(GameState* thisx) {
+     KaleidoManager_Destroy();
+     ZeldaArena_Cleanup();
+ 
+-    Fault_RemoveClient(&D_801614B8);
++    Fault_RemoveClient(&sArenaFaultClient);  // was D_801614B8 [LLM:HIGH]
+ 
+     disableBetaQuest();
+ 
+@@ -557,7 +560,7 @@ void Play_Init(GameState* thisx) {
+     osSyncPrintf("ゼルダヒープ %08x-%08x\n", zAllocAligned,
+                  (u8*)zAllocAligned + zAllocSize - (s32)(zAllocAligned - zAlloc));
+ 
+-    Fault_AddClient(&D_801614B8, ZeldaArena_Display, NULL, NULL);
++    Fault_AddClient(&sArenaFaultClient, ZeldaArena_Display, NULL, NULL);  // was D_801614B8 [LLM:HIGH]
+ 
+     // Handle Rocs Feather requirement
+     gItemAgeReqs[ITEM_ROCS_FEATHER] = AGE_REQ_NONE;
+@@ -889,7 +892,7 @@ void Play_Update(PlayState* play) {
+                         if (play->transitionCtx.transitionType >= TRANS_TYPE_MAX) {
+                             if (play->transitionTrigger == TRANS_TRIGGER_END) {
+                                 play->transitionCtx.destroy(&play->transitionCtx.data);
+-                                func_800BC88C(play);
++                                Play_ClearTransition(play);  // was func_800BC88C [LLM:HIGH]
+                                 play->transitionMode = TRANS_MODE_OFF;
+                             }
+                         } else if (play->transitionTrigger != TRANS_TRIGGER_END) {
+@@ -907,7 +910,7 @@ void Play_Update(PlayState* play) {
+                             }
+                         } else {
+                             play->transitionCtx.destroy(&play->transitionCtx.data);
+-                            func_800BC88C(play);
++                            Play_ClearTransition(play);  // was func_800BC88C [LLM:HIGH]
+                             play->transitionMode = TRANS_MODE_OFF;
+ 
+                             if (gTrnsnUnkState == 3) {
+@@ -1714,7 +1717,8 @@ s32 Play_InCsMode(PlayState* play) {
+     return (play->csCtx.state != CS_STATE_IDLE) || Player_InCsMode(play);
+ }
+ 
+-f32 func_800BFCB8(PlayState* play, MtxF* mf, Vec3f* pos) {
++// LLM generated name (HIGH), was func_800BFCB8: raycasts for the floor under a position and fills the caller's MtxF with a transform aligned to that floor's normal and translated to the contact point, falling back to an axis-aligned matrix at the given position when there is no floor; it returns the floor height.
++f32 Play_GetFloorAlignMtx(PlayState* play, MtxF* mf, Vec3f* pos) {
+     CollisionPoly poly;
+     f32 temp1;
+     f32 temp2;
+@@ -2037,7 +2041,8 @@ s16 Play_CameraGetUID(PlayState* play, s16 camId) {
+     }
+ }
+ 
+-s16 func_800C09D8(PlayState* play, s16 camId, s16 arg2) {
++// LLM generated name (GUESS), was func_800C09D8: meant to report whether the camera at a given id still matches a uid and is active, returning 2 for inactive and 1 for active. Nothing calls it, and its first branch returns 0 whenever the camera is non-NULL, which makes every later branch unreachable and would dereference NULL if it were ever taken -- so the name describes the evident intent, not the behaviour.
++s16 Play_CheckCameraActive(PlayState* play, s16 camId, s16 arg2) {
+     Camera* camera = play->cameraPtrs[camId];
+ 
+     if (camera != NULL) {
+@@ -2130,7 +2135,8 @@ s32 FrameAdvance_IsEnabled(PlayState* play) {
+     return !!play->frameAdvCtx.enabled;
+ }
+ 
+-s32 func_800C0D34(PlayState* play, Actor* actor, s16* yaw) {
++// LLM generated name (HIGH), was func_800C0D34: for an ACTORCAT_DOOR transition actor whose two sides are different rooms, writes the yaw that faces out of the actor's own room and returns 1; the camera uses it when framing a door.
++s32 Play_GetDoorFacingYaw(PlayState* play, Actor* actor, s16* yaw) {
+     TransitionActorEntry* transitionActor;
+     s32 frontRoom;
+ 
+@@ -2154,7 +2160,8 @@ s32 func_800C0D34(PlayState* play, Actor* actor, s16* yaw) {
+     return 1;
+ }
+ 
+-s32 func_800C0DB4(PlayState* play, Vec3f* pos) {
++// LLM generated name (HIGH), was func_800C0DB4: returns true when a water surface exists above the given position and a floor exists beneath that surface point.
++s32 Play_IsPosUnderwater(PlayState* play, Vec3f* pos) {
+     WaterBox* waterBox;
+     CollisionPoly* poly;
+     Vec3f waterSurfacePos;
+diff --git a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+index 40180ee3d..871d55937 100644
+--- a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
++++ b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+@@ -350,7 +350,7 @@ void EnDivingGame_SetupRupeeThrow(EnDivingGame* this, PlayState* play) {
+ // Throws rupee when this->spawnRuppyTimer == 0
+ void EnDivingGame_RupeeThrow(EnDivingGame* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+-    if (func_800C0DB4(play, &this->actor.projectedPos)) {
++    if (Play_IsPosUnderwater(play, &this->actor.projectedPos)) {  // was func_800C0DB4 [LLM:HIGH]
+         Audio_SetExtraFilter(0);
+     }
+     if (this->subCamId != 0) {
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c b/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
+index 6778a7cd1..61228f8b3 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
+@@ -67,7 +67,7 @@ void EffectSsBlast_Draw(PlayState* play, u32 index, EffectSs* this) {
+ 
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+     gDPSetEnvColor(POLY_XLU_DISP++, this->rEnvColorR, this->rEnvColorG, this->rEnvColorB, this->rEnvColorA);
+-    func_800BFCB8(play, &mf, &this->pos);
++    Play_GetFloorAlignMtx(play, &mf, &this->pos);  // was func_800BFCB8 [LLM:HIGH]
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, this->rPrimColorR, this->rPrimColorG, this->rPrimColorB, this->rPrimColorA);
+     Matrix_Put(&mf);
+     Matrix_Scale(radius, radius, radius, MTXMODE_APPLY);
+-- 
+2.55.0
+

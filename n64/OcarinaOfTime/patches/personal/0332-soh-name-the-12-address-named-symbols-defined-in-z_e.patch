@@ -1,0 +1,395 @@
+From 4ccd06466a5bbf5b01539887338c16a9fe96b7be Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 332/488] soh: name the 12 address-named symbols defined in
+ z_en_go.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 12 are defined in soh/src/overlays/actors/ovl_En_Go/z_en_go.c.
+
+  * func_80A3F060 -> EnGo_TrackPlayer
+    deduced, confidence HIGH: feeds the player's position to Npc_TrackPoint
+    at the per-variant Y offset, disabling tracking entirely for the states
+    that must not turn their head.
+
+  * func_80A3F0E4 -> EnGo_UpdateEyes
+    deduced, confidence HIGH: steps the eye index through its three frames
+    on a randomised 30-60 frame cycle, the standard NPC blink shape.
+
+  * func_80A3FEB4 -> EnGo_WaitForPlayerNear
+    deduced, confidence HIGH: holds the rolling Goron dormant until the
+    player is within 1200 units, then starts him rolling.
+
+  * func_80A4008C -> EnGo_SlowToStop
+    deduced, confidence HIGH: waits for the rolling Goron to bounce to a
+    halt, then zeroes his shape offset and curls him up.
+
+  * func_80A40494 -> EnGo_CurlUp
+    deduced, confidence HIGH: winds the uncurl animation backwards to frame
+    0, then plays the landing sfx, throws dust and installs the curled-up
+    idle.
+
+  * func_80A405CC -> EnGo_Uncurl
+    deduced, confidence HIGH: plays the uncurl animation forward to its last
+    frame, then installs either the standing idle or the Goron-City-doors
+    variant.
+
+  * func_80A408D8 -> EnGo_Sit
+    deduced, confidence HIGH: winds the animation back to the seated frame
+    and then either curls up when its timer runs out, or stands again when
+    the camera settles on the Goron.
+
+  * func_80A40A54 -> EnGo_WalkPath
+    deduced, confidence HIGH: drives the Goron along his path with a
+    sine-shaped walking speed and returns him to the standing idle when he
+    reaches the end.
+
+  * func_80A40B1C -> EnGo_WaitToWalk
+    deduced, confidence HIGH: holds the Goron City doors Goron in the
+    standing idle until INFTABLE_EB is set, then starts him walking his
+    path.
+
+  * func_80A40C78 -> EnGo_FinishGetItem
+    deduced, confidence HIGH: after a trade item changes hands it either
+    ends the conversation or opens the follow-up line for the prescription
+    and claim check, clearing the Biggoron sword day count for the latter.
+
+  * func_80A40DCC -> EnGo_WaitForEyedropsText
+    deduced, confidence HIGH: waits out the eye-drops line, resets the
+    animation and hands over to the get-item state.
+
+  * func_80A3F908 -> EnGo_RunTalkUpdate
+    deduced, confidence HIGH: the per-frame talk driver: for the states that
+    can be spoken to it scales the interact range by the Goron's own size
+    and calls EnGo_UpdateTalking for the big-Goron variant or
+    Npc_UpdateTalking otherwise. Named RunTalkUpdate because both
+    EnGo_UpdateTalking and EnGo_UpdateTalkState already exist as the
+    routines it calls.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Go/z_en_go.c | 94 ++++++++++++---------
+ 1 file changed, 53 insertions(+), 41 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+index e762a4bb9..a5f556c09 100644
+--- a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
++++ b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+@@ -13,24 +13,32 @@ void EnGo_Destroy(Actor* thisx, PlayState* play);
+ void EnGo_Update(Actor* thisx, PlayState* play);
+ void EnGo_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A3FEB4(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A3FEB4: holds the rolling Goron dormant until the player is within 1200 units, then starts him rolling.
++void EnGo_WaitForPlayerNear(EnGo* this, PlayState* play);  // was func_80A3FEB4 [LLM:HIGH]
+ void EnGo_StopRolling(EnGo* this, PlayState* play);
+-void func_80A4008C(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A4008C: waits for the rolling Goron to bounce to a halt, then zeroes his shape offset and curls him up.
++void EnGo_SlowToStop(EnGo* this, PlayState* play);  // was func_80A4008C [LLM:HIGH]
+ void EnGo_GoronLinkRolling(EnGo* this, PlayState* play);
+ void EnGo_FireGenericActionFunc(EnGo* this, PlayState* play);
+ void EnGo_CurledUp(EnGo* this, PlayState* play);
+ void EnGo_WakeUp(EnGo* this, PlayState* play);
+ 
+-void func_80A40494(EnGo* this, PlayState* play);
+-void func_80A405CC(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A40494: winds the uncurl animation backwards to frame 0, then plays the landing sfx, throws dust and installs the curled-up idle.
++void EnGo_CurlUp(EnGo* this, PlayState* play);  // was func_80A40494 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A405CC: plays the uncurl animation forward to its last frame, then installs either the standing idle or the Goron-City-doors variant.
++void EnGo_Uncurl(EnGo* this, PlayState* play);  // was func_80A405CC [LLM:HIGH]
+ void EnGo_BiggoronActionFunc(EnGo* this, PlayState* play);
+-void func_80A408D8(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A408D8: winds the animation back to the seated frame and then either curls up when its timer runs out, or stands again when the camera settles on the Goron.
++void EnGo_Sit(EnGo* this, PlayState* play);  // was func_80A408D8 [LLM:HIGH]
+ 
+-void func_80A40B1C(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A40B1C: holds the Goron City doors Goron in the standing idle until INFTABLE_EB is set, then starts him walking his path.
++void EnGo_WaitToWalk(EnGo* this, PlayState* play);  // was func_80A40B1C [LLM:HIGH]
+ void EnGo_GetItem(EnGo* this, PlayState* play);
+-void func_80A40C78(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A40C78: after a trade item changes hands it either ends the conversation or opens the follow-up line for the prescription and claim check, clearing the Biggoron sword day count for the latter.
++void EnGo_FinishGetItem(EnGo* this, PlayState* play);  // was func_80A40C78 [LLM:HIGH]
+ void EnGo_Eyedrops(EnGo* this, PlayState* play);
+-void func_80A40DCC(EnGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A40DCC: waits out the eye-drops line, resets the animation and hands over to the get-item state.
++void EnGo_WaitForEyedropsText(EnGo* this, PlayState* play);  // was func_80A40DCC [LLM:HIGH]
+ 
+ void EnGo_SpawnEffectDust(EnGo* this, Vec3f* pos, Vec3f* velocity, Vec3f* accel, u8 initialTimer, f32 scale,
+                           f32 scaleStep);
+@@ -398,12 +406,13 @@ f32 EnGo_GetPlayerTrackingYOffset(EnGo* this) {
+     }
+ }
+ 
+-void func_80A3F060(EnGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A3F060: feeds the player's position to Npc_TrackPoint at the per-variant Y offset, disabling tracking entirely for the states that must not turn their head.
++void EnGo_TrackPlayer(EnGo* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s16 trackingMode;
+ 
+     if (this->actionFunc != EnGo_BiggoronActionFunc && this->actionFunc != EnGo_FireGenericActionFunc &&
+-        this->actionFunc != func_80A40B1C) {
++        this->actionFunc != EnGo_WaitToWalk) {  // was func_80A40B1C [LLM:HIGH]
+         trackingMode = NPC_TRACKING_NONE;
+     }
+ 
+@@ -412,7 +421,8 @@ void func_80A3F060(EnGo* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, 4, trackingMode);
+ }
+ 
+-void func_80A3F0E4(EnGo* this) {
++// LLM generated name (HIGH), was func_80A3F0E4: steps the eye index through its three frames on a randomised 30-60 frame cycle, the standard NPC blink shape.
++void EnGo_UpdateEyes(EnGo* this) {
+     if (DECR(this->unk_214) == 0) {
+         this->unk_216++;
+         if (this->unk_216 >= 3) {
+@@ -573,15 +583,16 @@ s32 EnGo_IsRollingOnGround(EnGo* this, s16 unkArg1, f32 unkArg2) {
+     }
+ }
+ 
+-void func_80A3F908(EnGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A3F908: the per-frame talk driver: for the states that can be spoken to it scales the interact range by the Goron's own size and calls EnGo_UpdateTalking for the big-Goron variant or Npc_UpdateTalking otherwise. Named RunTalkUpdate because both EnGo_UpdateTalking and EnGo_UpdateTalkState already exist as the routines it calls.
++void EnGo_RunTalkUpdate(EnGo* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 interactRange;
+     s32 dialogStarted;
+ 
+     if (this->actionFunc == EnGo_BiggoronActionFunc || this->actionFunc == EnGo_GoronLinkRolling ||
+         this->actionFunc == EnGo_FireGenericActionFunc || this->actionFunc == EnGo_Eyedrops ||
+-        this->actionFunc == func_80A40DCC || this->actionFunc == EnGo_GetItem || this->actionFunc == func_80A40C78 ||
+-        this->actionFunc == func_80A40B1C) {
++        this->actionFunc == EnGo_WaitForEyedropsText || this->actionFunc == EnGo_GetItem || this->actionFunc == EnGo_FinishGetItem ||  // was func_80A40C78 [LLM:HIGH]
++        this->actionFunc == EnGo_WaitToWalk) {  // was func_80A40B1C [LLM:HIGH]
+ 
+         interactRange = (this->collider.dim.radius + 30.0f);
+         interactRange *= (this->actor.scale.x / 0.01f);
+@@ -677,7 +688,7 @@ void EnGo_Init(Actor* thisx, PlayState* play) {
+         case 0x30:
+             this->actor.shape.yOffset = 1400.0f;
+             Actor_SetScale(&this->actor, 0.01f);
+-            EnGo_SetupAction(this, func_80A3FEB4);
++            EnGo_SetupAction(this, EnGo_WaitForPlayerNear);  // was func_80A3FEB4 [LLM:HIGH]
+             break;
+         case 0x90:
+             this->actor.targetMode = 5;
+@@ -703,7 +714,7 @@ void EnGo_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80A3FEB4(EnGo* this, PlayState* play) {
++void EnGo_WaitForPlayerNear(EnGo* this, PlayState* play) {
+     if (!(this->actor.xyzDistToPlayerSq > SQ(1200.0f))) {
+         EnGo_SetupAction(this, EnGo_StopRolling);
+     }
+@@ -730,7 +741,7 @@ void EnGo_StopRolling(EnGo* this, PlayState* play) {
+         }
+ 
+         this->actor.speedXZ = 0.0f;
+-        EnGo_SetupAction(this, func_80A4008C);
++        EnGo_SetupAction(this, EnGo_SlowToStop);  // was func_80A4008C [LLM:HIGH]
+     }
+ 
+     this->actor.shape.rot = this->actor.world.rot;
+@@ -740,7 +751,7 @@ void EnGo_StopRolling(EnGo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A4008C(EnGo* this, PlayState* play) {
++void EnGo_SlowToStop(EnGo* this, PlayState* play) {
+     if (EnGo_IsRollingOnGround(this, 3, 6.0f)) {
+         if (this->unk_21A == 0) {
+             this->actor.shape.yOffset = 0.0f;
+@@ -755,7 +766,7 @@ void EnGo_GoronLinkRolling(EnGo* this, PlayState* play) {
+     if ((EnGo_FollowPath(this, play) == true) && Flags_GetSwitch(play, this->actor.params >> 8) &&
+         (this->unk_218 == 0)) {
+         this->actor.speedXZ = 0.0f;
+-        EnGo_SetupAction(this, func_80A4008C);
++        EnGo_SetupAction(this, EnGo_SlowToStop);  // was func_80A4008C [LLM:HIGH]
+         Flags_SetInfTable(INFTABLE_GORON_CITY_DOORS_UNLOCKED);
+     }
+ 
+@@ -808,15 +819,15 @@ void EnGo_WakeUp(EnGo* this, PlayState* play) {
+     if (DECR(this->unk_212) == 0) {
+         Audio_PlaySfxGeneral(NA_SE_EN_GOLON_SIT_DOWN, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-        EnGo_SetupAction(this, func_80A405CC);
++        EnGo_SetupAction(this, EnGo_Uncurl);  // was func_80A405CC [LLM:HIGH]
+     } else if (!EnGo_IsCameraModified(this, play)) {
+         EnGo_ReverseAnimation(this);
+         this->skelAnime.playSpeed = 0.0f;
+-        EnGo_SetupAction(this, func_80A40494);
++        EnGo_SetupAction(this, EnGo_CurlUp);  // was func_80A40494 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A40494(EnGo* this, PlayState* play) {
++void EnGo_CurlUp(EnGo* this, PlayState* play) {
+     f32 frame;
+ 
+     Math_SmoothStepToF(&this->skelAnime.playSpeed, ((this->actor.params & 0xF0) == 0x90 ? 0.5f : 1.0f) * -0.5f, 0.1f,
+@@ -836,7 +847,7 @@ void func_80A40494(EnGo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A405CC(EnGo* this, PlayState* play) {
++void EnGo_Uncurl(EnGo* this, PlayState* play) {
+     f32 lastFrame;
+     f32 frame;
+ 
+@@ -852,7 +863,7 @@ void func_80A405CC(EnGo* this, PlayState* play) {
+         this->skelAnime.playSpeed = 0.0f;
+         this->unk_212 = Rand_S16Offset(30, 30);
+         if (((this->actor.params & 0xF0) == 0x40) && ((Flags_GetInfTable(INFTABLE_EB)) == 0)) {
+-            EnGo_SetupAction(this, func_80A40B1C);
++            EnGo_SetupAction(this, EnGo_WaitToWalk);  // was func_80A40B1C [LLM:HIGH]
+         } else {
+             EnGo_SetupAction(this, EnGo_BiggoronActionFunc);
+         }
+@@ -888,12 +899,12 @@ void EnGo_BiggoronActionFunc(EnGo* this, PlayState* play) {
+             EnGo_ReverseAnimation(this);
+             this->skelAnime.playSpeed = -0.1f;
+             this->skelAnime.playSpeed *= (this->actor.params & 0xF0) == 0x90 ? 0.5f : 1.0f;
+-            EnGo_SetupAction(this, func_80A408D8);
++            EnGo_SetupAction(this, EnGo_Sit);  // was func_80A408D8 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A408D8(EnGo* this, PlayState* play) {
++void EnGo_Sit(EnGo* this, PlayState* play) {
+     f32 frame;
+ 
+     if (this->skelAnime.playSpeed != 0.0f) {
+@@ -914,17 +925,18 @@ void func_80A408D8(EnGo* this, PlayState* play) {
+     }
+ 
+     if (DECR(this->unk_212) == 0) {
+-        EnGo_SetupAction(this, func_80A40494);
++        EnGo_SetupAction(this, EnGo_CurlUp);  // was func_80A40494 [LLM:HIGH]
+     } else if (EnGo_IsCameraModified(this, play)) {
+         EnGo_ReverseAnimation(this);
+         Audio_PlaySfxGeneral(NA_SE_EN_GOLON_SIT_DOWN, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+         this->skelAnime.playSpeed = 0.0f;
+-        EnGo_SetupAction(this, func_80A405CC);
++        EnGo_SetupAction(this, EnGo_Uncurl);  // was func_80A405CC [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A40A54(EnGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A40A54: drives the Goron along his path with a sine-shaped walking speed and returns him to the standing idle when he reaches the end.
++void EnGo_WalkPath(EnGo* this, PlayState* play) {
+     f32 float1 = ((f32)0x8000 / Animation_GetLastFrame(&gGoronAnim_010590));
+     f32 float2 = this->skelAnime.curFrame * float1;
+ 
+@@ -937,10 +949,10 @@ void func_80A40A54(EnGo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A40B1C(EnGo* this, PlayState* play) {
++void EnGo_WaitToWalk(EnGo* this, PlayState* play) {
+     if (Flags_GetInfTable(INFTABLE_EB)) {
+         EnGo_ChangeAnim(this, ENGO_ANIM_3);
+-        EnGo_SetupAction(this, func_80A40A54);
++        EnGo_SetupAction(this, EnGo_WalkPath);  // was func_80A40A54 [LLM:HIGH]
+     } else {
+         EnGo_BiggoronActionFunc(this, play);
+     }
+@@ -955,7 +967,7 @@ void EnGo_GetItem(EnGo* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         this->interactInfo.talkState = NPC_TALK_STATE_ACTION;
+         this->actor.parent = NULL;
+-        EnGo_SetupAction(this, func_80A40C78);
++        EnGo_SetupAction(this, EnGo_FinishGetItem);  // was func_80A40C78 [LLM:HIGH]
+     } else {
+         this->unk_20C = 0;
+         if ((this->actor.params & 0xF0) == 0x90) {
+@@ -981,7 +993,7 @@ void EnGo_GetItem(EnGo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A40C78(EnGo* this, PlayState* play) {
++void EnGo_FinishGetItem(EnGo* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ITEM_GIVEN) {
+         EnGo_SetupAction(this, EnGo_BiggoronActionFunc);
+         if ((this->actor.params & 0xF0) != 0x90) {
+@@ -1007,11 +1019,11 @@ void EnGo_Eyedrops(EnGo* this, PlayState* play) {
+         this->actor.textId = 0x305A;
+         Message_ContinueTextbox(play, this->actor.textId);
+         this->interactInfo.talkState = NPC_TALK_STATE_TALKING;
+-        EnGo_SetupAction(this, func_80A40DCC);
++        EnGo_SetupAction(this, EnGo_WaitForEyedropsText);  // was func_80A40DCC [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A40DCC(EnGo* this, PlayState* play) {
++void EnGo_WaitForEyedropsText(EnGo* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         EnGo_ChangeAnim(this, ENGO_ANIM_1);
+         this->skelAnime.curFrame = Animation_GetLastFrame(&gGoronAnim_004930);
+@@ -1030,7 +1042,7 @@ void EnGo_Update(Actor* thisx, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+ 
+     if (this->actionFunc == EnGo_BiggoronActionFunc || this->actionFunc == EnGo_FireGenericActionFunc ||
+-        this->actionFunc == func_80A40B1C) {
++        this->actionFunc == EnGo_WaitToWalk) {  // was func_80A40B1C [LLM:HIGH]
+         Actor_UpdateFidgetTables(play, this->jointTable, this->morphTable, 18);
+     }
+ 
+@@ -1041,10 +1053,10 @@ void EnGo_Update(Actor* thisx, PlayState* play) {
+     }
+ 
+     Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+-    func_80A3F0E4(this);
+-    func_80A3F908(this, play);
++    EnGo_UpdateEyes(this);  // was func_80A3F0E4 [LLM:HIGH]
++    EnGo_RunTalkUpdate(this, play);  // was func_80A3F908 [LLM:HIGH]
+     this->actionFunc(this, play);
+-    func_80A3F060(this, play);
++    EnGo_TrackPlayer(this, play);  // was func_80A3F060 [LLM:HIGH]
+ }
+ 
+ void EnGo_DrawCurledUp(EnGo* this, PlayState* play) {
+@@ -1134,8 +1146,8 @@ void EnGo_Draw(Actor* thisx, PlayState* play) {
+ 
+     if (this->actionFunc == EnGo_CurledUp) {
+         EnGo_DrawCurledUp(this, play);
+-    } else if (this->actionFunc == EnGo_GoronLinkRolling || this->actionFunc == func_80A3FEB4 ||
+-               this->actionFunc == EnGo_StopRolling || this->actionFunc == func_80A3FEB4) {
++    } else if (this->actionFunc == EnGo_GoronLinkRolling || this->actionFunc == EnGo_WaitForPlayerNear ||  // was func_80A3FEB4 [LLM:HIGH]
++               this->actionFunc == EnGo_StopRolling || this->actionFunc == EnGo_WaitForPlayerNear) {  // was func_80A3FEB4 [LLM:HIGH]
+         EnGo_DrawRolling(this, play);
+     } else {
+         Gfx_SetupDL_37Opa(play->state.gfxCtx);
+-- 
+2.55.0
+

@@ -1,0 +1,79 @@
+From 4d79ea46df83d30d7d1b5075b57775ff3ca7ea7b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:40 +0000
+Subject: [PATCH 471/488] soh: name the 2 address-named symbols defined in
+ z_en_vali.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c.
+
+  * D_80B28970 -> sValiTentacleOffsetA
+    deduced, confidence HIGH: the first point EnVali_PostLimbDraw transforms
+    for its tentacles
+
+  * D_80B2897C -> sValiTentacleOffsetB
+    deduced, confidence HIGH: the second such point
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c b/soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c
+index d62118a65..b9dce1e5a 100644
+--- a/soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c
++++ b/soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c
+@@ -700,16 +700,16 @@ s32 EnVali_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
+ }
+ 
+ void EnVali_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx, Gfx** gfx) {
+-    static Vec3f D_80B28970 = { 3000.0f, 0.0f, 0.0f };
+-    static Vec3f D_80B2897C = { -1000.0f, 0.0f, 0.0f };
++    static Vec3f sValiTentacleOffsetA = { 3000.0f, 0.0f, 0.0f };  // was D_80B28970 [LLM:HIGH]
++    static Vec3f sValiTentacleOffsetB = { -1000.0f, 0.0f, 0.0f };  // was D_80B2897C [LLM:HIGH]
+     Vec3f sp3C;
+     Vec3f sp30;
+     EnVali* this = (EnVali*)thisx;
+ 
+     if (this->actionFunc == EnVali_FloatIdle) {
+         if ((limbIndex == EN_VALI_LIMB_LEFT_FOREARM_BASE) || (limbIndex == EN_VALI_LIMB_RIGHT_FOREARM_BASE)) {
+-            Matrix_MultVec3f(&D_80B28970, &sp3C);
+-            Matrix_MultVec3f(&D_80B2897C, &sp30);
++            Matrix_MultVec3f(&sValiTentacleOffsetA, &sp3C);  // was D_80B28970 [LLM:HIGH]
++            Matrix_MultVec3f(&sValiTentacleOffsetB, &sp30);  // was D_80B2897C [LLM:HIGH]
+ 
+             if (limbIndex == EN_VALI_LIMB_LEFT_FOREARM_BASE) {
+                 Collider_SetQuadVertices(&this->leftArmCollider, &sp30, &sp3C, &this->leftArmCollider.dim.quad[0],
+-- 
+2.55.0
+

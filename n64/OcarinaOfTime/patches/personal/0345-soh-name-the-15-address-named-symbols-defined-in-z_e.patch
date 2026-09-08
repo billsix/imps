@@ -1,0 +1,385 @@
+From ce0ababa4af4c0cfc3babbdb3602469a71d0c774 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 345/488] soh: name the 15 address-named symbols defined in
+ z_en_zl1.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 15 are defined in soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c.
+
+  * D_80B4E61C -> sEyeTextures
+    deduced, confidence HIGH: the eye textures Zelda's blink cycles through,
+    indexed by the blink frame.
+
+  * D_80B4E62C -> sMouthTextures
+    deduced, confidence HIGH: the mouth textures, indexed by the mouth
+    state; only the neutral one exists.
+
+  * func_80B4AB40 -> EnZl1_DoNothing1
+    deduced, confidence HIGH: an empty function with no arguments; the file
+    has two such stubs at consecutive addresses.
+
+  * func_80B4AB48 -> EnZl1_DoNothing2
+    deduced, confidence HIGH: the second of those two empty stubs.
+
+  * func_80B4AE18 -> EnZl1_UpdateFace
+    deduced, confidence HIGH: drives Zelda's blink on a randomised timer and
+    picks the eye and mouth textures, holding a fixed sideways glance during
+    the first frames of one animation.
+
+  * func_80B4AF18 -> EnZl1_Idle
+    deduced, confidence HIGH: tracks the player with her head and offers
+    talk once he is level with her or below, running the collision check
+    each frame.
+
+  * func_80B4B010 -> EnZl1_StartCourtyardCutscene
+    deduced, confidence HIGH: on the first conversation it starts her
+    turn-around animation, creates the sub-camera and whites the screen out
+    to open the courtyard scene.
+
+  * func_80B4B240 -> EnZl1_CourtyardCutscene
+    deduced, confidence HIGH: runs that scene as a numbered sequence of
+    animation frames, camera moves and textboxes.
+
+  * func_80B4B7F4 -> EnZl1_GetCueStartPos
+    deduced, confidence HIGH: copies an actor cue's start position into a
+    Vec3f.
+
+  * func_80B4B834 -> EnZl1_GetCueEndPos
+    deduced, confidence HIGH: copies an actor cue's end position into a
+    Vec3f.
+
+  * func_80B4B874 -> EnZl1_MoveActor
+    deduced, confidence HIGH: enables root motion on the skeleton and queues
+    the animation system's actor move.
+
+  * func_80B4B8B4 -> EnZl1_CsPlayCueAnimation
+    deduced, confidence HIGH: plays the animation the current actor cue
+    calls for and keeps Zelda on the cue's path.
+
+  * func_80B4BBC4 -> EnZl1_StartPeepholeTalk
+    deduced, confidence HIGH: starts her looping surprised animation, halts
+    the actors, plays Link's surprise voice and opens the first line of the
+    window conversation.
+
+  * func_80B4BC78 -> EnZl1_CsFollowCue
+    deduced, confidence HIGH: the cutscene action that keeps playing the
+    cue's animation and following its path.
+
+  * func_80B4BF2C -> EnZl1_PeepholeTalk
+    deduced, confidence HIGH: steps that window conversation through its
+    numbered lines, branching on the player's choice.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c | 101 ++++++++++--------
+ 1 file changed, 58 insertions(+), 43 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c b/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c
+index 1130f9e09..44d0e8d7f 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c
++++ b/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c
+@@ -14,14 +14,22 @@ void EnZl1_Destroy(Actor* thisx, PlayState* play);
+ void EnZl1_Update(Actor* thisx, PlayState* play);
+ void EnZl1_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80B4AE18(EnZl1* this);
+-void func_80B4AF18(EnZl1* this, PlayState* play);
+-void func_80B4B010(EnZl1* this, PlayState* play);
+-void func_80B4B240(EnZl1* this, PlayState* play);
+-void func_80B4B8B4(EnZl1* this, PlayState* play);
+-void func_80B4BBC4(EnZl1* this, PlayState* play);
+-void func_80B4BC78(EnZl1* this, PlayState* play);
+-void func_80B4BF2C(EnZl1* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B4AE18: drives Zelda's blink on a randomised timer and picks the eye and mouth textures, holding a fixed sideways glance during the first frames of one animation.
++void EnZl1_UpdateFace(EnZl1* this);  // was func_80B4AE18 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B4AF18: tracks the player with her head and offers talk once he is level with her or below, running the collision check each frame.
++void EnZl1_Idle(EnZl1* this, PlayState* play);  // was func_80B4AF18 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B4B010: on the first conversation it starts her turn-around animation, creates the sub-camera and whites the screen out to open the courtyard scene.
++void EnZl1_StartCourtyardCutscene(EnZl1* this, PlayState* play);  // was func_80B4B010 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B4B240: runs that scene as a numbered sequence of animation frames, camera moves and textboxes.
++void EnZl1_CourtyardCutscene(EnZl1* this, PlayState* play);  // was func_80B4B240 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B4B8B4: plays the animation the current actor cue calls for and keeps Zelda on the cue's path.
++void EnZl1_CsPlayCueAnimation(EnZl1* this, PlayState* play);  // was func_80B4B8B4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B4BBC4: starts her looping surprised animation, halts the actors, plays Link's surprise voice and opens the first line of the window conversation.
++void EnZl1_StartPeepholeTalk(EnZl1* this, PlayState* play);  // was func_80B4BBC4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B4BC78: the cutscene action that keeps playing the cue's animation and following its path.
++void EnZl1_CsFollowCue(EnZl1* this, PlayState* play);  // was func_80B4BC78 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B4BF2C: steps that window conversation through its numbered lines, branching on the player's choice.
++void EnZl1_PeepholeTalk(EnZl1* this, PlayState* play);  // was func_80B4BF2C [LLM:HIGH]
+ 
+ // Name from zeldaret/oot (was D_80B4C5D0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zl1/z_en_zl1.c]
+ extern CutsceneData gTriforceCreationStartCs[];
+@@ -61,18 +69,22 @@ static ColliderCylinderInit sCylinderInit = {
+     { 20, 46, 0, { 0, 0, 0 } },
+ };
+ 
+-static void* D_80B4E61C[] = {
++// LLM generated name (HIGH), was D_80B4E61C: the eye textures Zelda's blink cycles through, indexed by the blink frame.
++static void* sEyeTextures[] = {  // was D_80B4E61C [LLM:HIGH]
+     gChildZelda1EyeOpenLookingUpRightTex,
+     gChildZelda1EyeHalf2Tex,
+     gChildZelda1EyeClosedTex,
+     gChildZelda1EyeHalf2Tex,
+ };
+-static void* D_80B4E62C[] = { gChildZelda1MouthNeutralTex };
++// LLM generated name (HIGH), was D_80B4E62C: the mouth textures, indexed by the mouth state; only the neutral one exists.
++static void* sMouthTextures[] = { gChildZelda1MouthNeutralTex };  // was D_80B4E62C [LLM:HIGH]
+ 
+-void func_80B4AB40(void) {
++// LLM generated name (HIGH), was func_80B4AB40: an empty function with no arguments; the file has two such stubs at consecutive addresses.
++void EnZl1_DoNothing1(void) {
+ }
+ 
+-void func_80B4AB48(void) {
++// LLM generated name (HIGH), was func_80B4AB48: the second of those two empty stubs.
++void EnZl1_DoNothing2(void) {
+ }
+ 
+ void EnZl1_Init(Actor* thisx, PlayState* play) {
+@@ -93,7 +105,7 @@ void EnZl1_Init(Actor* thisx, PlayState* play) {
+         frameCount = Animation_GetLastFrame(&gChildZelda1Anim_00438);
+         Animation_Change(&this->skelAnime, &gChildZelda1Anim_00438, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, 0.0f);
+         this->unk_1E6 = 0;
+-        this->actionFunc = func_80B4BC78;
++        this->actionFunc = EnZl1_CsFollowCue;  // was func_80B4BC78 [LLM:HIGH]
+     } else if (Flags_GetEventChkInf(EVENTCHKINF_USED_DEKU_TREE_BLUE_WARP) &&
+                Flags_GetEventChkInf(EVENTCHKINF_USED_DODONGOS_CAVERN_BLUE_WARP) &&
+                Flags_GetEventChkInf(EVENTCHKINF_USED_JABU_JABUS_BELLY_BLUE_WARP)) {
+@@ -105,15 +117,15 @@ void EnZl1_Init(Actor* thisx, PlayState* play) {
+         frameCount = Animation_GetLastFrame(&gChildZelda1Anim_00438);
+         Animation_Change(&this->skelAnime, &gChildZelda1Anim_00438, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, 0.0f);
+         this->actor.textId = 0x703D;
+-        this->actionFunc = func_80B4AF18;
++        this->actionFunc = EnZl1_Idle;  // was func_80B4AF18 [LLM:HIGH]
+     } else if (Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_ZELDAS_LETTER)) {
+         frameCount = Animation_GetLastFrame(&gChildZelda1Anim_00438);
+         Animation_Change(&this->skelAnime, &gChildZelda1Anim_00438, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, 0.0f);
+         this->actor.textId = 0x703C;
+-        this->actionFunc = func_80B4AF18;
++        this->actionFunc = EnZl1_Idle;  // was func_80B4AF18 [LLM:HIGH]
+     } else {
+         this->actor.textId = 0xFFFF;
+-        this->actionFunc = func_80B4B010;
++        this->actionFunc = EnZl1_StartCourtyardCutscene;  // was func_80B4B010 [LLM:HIGH]
+     }
+ }
+ 
+@@ -124,7 +136,7 @@ void EnZl1_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80B4AE18(EnZl1* this) {
++void EnZl1_UpdateFace(EnZl1* this) {
+     if ((this->skelAnime.animation == &gChildZelda1Anim_10B38) && (this->skelAnime.curFrame < 26.0f)) {
+         this->unk_1F4 = gChildZelda1EyeOpenLookingRightTex;
+         this->unk_1F8 = gChildZelda1EyeOpenLookingLeftTex;
+@@ -135,13 +147,13 @@ void func_80B4AE18(EnZl1* this) {
+         }
+         this->unk_1FE = (this->unk_1FC < 4) ? this->unk_1FC : 0;
+ 
+-        this->unk_1F4 = D_80B4E61C[this->unk_1FE];
+-        this->unk_1F8 = D_80B4E61C[this->unk_1FE];
+-        this->unk_1EC = D_80B4E62C[this->unk_1F2];
++        this->unk_1F4 = sEyeTextures[this->unk_1FE];  // was D_80B4E61C [LLM:HIGH]
++        this->unk_1F8 = sEyeTextures[this->unk_1FE];  // was D_80B4E61C [LLM:HIGH]
++        this->unk_1EC = sMouthTextures[this->unk_1F2];  // was D_80B4E62C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B4AF18(EnZl1* this, PlayState* play) {
++void EnZl1_Idle(EnZl1* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 pad;
+ 
+@@ -161,7 +173,7 @@ void func_80B4AF18(EnZl1* this, PlayState* play) {
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+ }
+ 
+-void func_80B4B010(EnZl1* this, PlayState* play) {
++void EnZl1_StartCourtyardCutscene(EnZl1* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 pad2;
+     s32 pad3;
+@@ -190,7 +202,7 @@ void func_80B4B010(EnZl1* this, PlayState* play) {
+         player->actor.world.pos = playerPos;
+         player->actor.speedXZ = 0.0f;
+         this->unk_1E2 = 0;
+-        this->actionFunc = func_80B4B240;
++        this->actionFunc = EnZl1_CourtyardCutscene;  // was func_80B4B240 [LLM:HIGH]
+         Audio_PlayFanfare(NA_BGM_APPEAR);
+     } else {
+         rotDiff = ABS(this->actor.yawTowardsPlayer - this->actor.shape.rot.y);
+@@ -200,7 +212,7 @@ void func_80B4B010(EnZl1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B4B240(EnZl1* this, PlayState* play) {
++void EnZl1_CourtyardCutscene(EnZl1* this, PlayState* play) {
+     Vec3f sp74 = { -427.0f, 108.0, 26.0 };
+     Vec3f sp68 = { -340.0f, 108.0f, 98.0f };
+     s32 pad;
+@@ -324,7 +336,7 @@ void func_80B4B240(EnZl1* this, PlayState* play) {
+                 sp3C = 1;
+                 play->csCtx.segment = gTriforceCreationStartCs;
+                 gSaveContext.cutsceneTrigger = 1;
+-                this->actionFunc = func_80B4B8B4;
++                this->actionFunc = EnZl1_CsPlayCueAnimation;  // was func_80B4B8B4 [LLM:HIGH]
+                 this->unk_1E2++;
+             }
+             break;
+@@ -336,24 +348,27 @@ void func_80B4B240(EnZl1* this, PlayState* play) {
+     Actor_TrackPlayer(play, &this->actor, &this->unk_200, &this->unk_206, this->actor.focus.pos);
+ }
+ 
+-void func_80B4B7F4(CsCmdActorCue* npcAction, Vec3f* pos) {
++// LLM generated name (HIGH), was func_80B4B7F4: copies an actor cue's start position into a Vec3f.
++void EnZl1_GetCueStartPos(CsCmdActorCue* npcAction, Vec3f* pos) {
+     pos->x = npcAction->startPos.x;
+     pos->y = npcAction->startPos.y;
+     pos->z = npcAction->startPos.z;
+ }
+ 
+-void func_80B4B834(CsCmdActorCue* npcAction, Vec3f* pos) {
++// LLM generated name (HIGH), was func_80B4B834: copies an actor cue's end position into a Vec3f.
++void EnZl1_GetCueEndPos(CsCmdActorCue* npcAction, Vec3f* pos) {
+     pos->x = npcAction->endPos.x;
+     pos->y = npcAction->endPos.y;
+     pos->z = npcAction->endPos.z;
+ }
+ 
+-void func_80B4B874(EnZl1* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B4B874: enables root motion on the skeleton and queues the animation system's actor move.
++void EnZl1_MoveActor(EnZl1* this, PlayState* play) {
+     this->skelAnime.movementFlags |= 1;
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+ 
+-void func_80B4B8B4(EnZl1* this, PlayState* play) {
++void EnZl1_CsPlayCueAnimation(EnZl1* this, PlayState* play) {
+     AnimationHeader* spB0[] = {
+         NULL,
+         NULL,
+@@ -382,16 +397,16 @@ void func_80B4B8B4(EnZl1* this, PlayState* play) {
+     Vec3f sp48;
+ 
+     SkelAnime_Update(&this->skelAnime);
+-    func_80B4B874(this, play);
++    EnZl1_MoveActor(this, play);  // was func_80B4B874 [LLM:HIGH]
+     if (play->csCtx.state == CS_STATE_IDLE) {
+-        this->actionFunc = func_80B4BBC4;
++        this->actionFunc = EnZl1_StartPeepholeTalk;  // was func_80B4BBC4 [LLM:HIGH]
+         return;
+     }
+ 
+     npcAction = play->csCtx.npcActions[0];
+     if (npcAction != NULL) {
+-        func_80B4B7F4(npcAction, &sp74);
+-        func_80B4B834(npcAction, &sp68);
++        EnZl1_GetCueStartPos(npcAction, &sp74);  // was func_80B4B7F4 [LLM:HIGH]
++        EnZl1_GetCueEndPos(npcAction, &sp68);  // was func_80B4B834 [LLM:HIGH]
+         if (this->unk_1E6 == 0) {
+             sp48 = sp74;
+             this->actor.home.pos = sp48;
+@@ -420,7 +435,7 @@ void func_80B4B8B4(EnZl1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B4BBC4(EnZl1* this, PlayState* play) {
++void EnZl1_StartPeepholeTalk(EnZl1* this, PlayState* play) {
+     s32 pad;
+     f32 frameCount = Animation_GetLastFrame(&gChildZelda1Anim_00438);
+     Player* player = GET_PLAYER(play);
+@@ -431,10 +446,10 @@ void func_80B4BBC4(EnZl1* this, PlayState* play) {
+     this->actor.textId = 0x7039;
+     Message_StartTextbox(play, this->actor.textId, NULL);
+     this->unk_1E2 = 0;
+-    this->actionFunc = func_80B4BF2C;
++    this->actionFunc = EnZl1_PeepholeTalk;  // was func_80B4BF2C [LLM:HIGH]
+ }
+ 
+-void func_80B4BC78(EnZl1* this, PlayState* play) {
++void EnZl1_CsFollowCue(EnZl1* this, PlayState* play) {
+     AnimationHeader* sp90[] = {
+         NULL,
+         NULL,
+@@ -463,11 +478,11 @@ void func_80B4BC78(EnZl1* this, PlayState* play) {
+         frameCount = Animation_GetLastFrame(&gChildZelda1Anim_11348);
+         Animation_Change(&this->skelAnime, &gChildZelda1Anim_11348, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, -10.0f);
+     }
+-    func_80B4B874(this, play);
++    EnZl1_MoveActor(this, play);  // was func_80B4B874 [LLM:HIGH]
+     npcAction = play->csCtx.npcActions[0];
+     if (npcAction != NULL) {
+-        func_80B4B7F4(npcAction, &sp70);
+-        func_80B4B834(npcAction, &sp64);
++        EnZl1_GetCueStartPos(npcAction, &sp70);  // was func_80B4B7F4 [LLM:HIGH]
++        EnZl1_GetCueEndPos(npcAction, &sp64);  // was func_80B4B834 [LLM:HIGH]
+         if (this->unk_1E6 == 0) {
+             this->actor.world.pos = this->actor.home.pos = sp70;
+         }
+@@ -492,7 +507,7 @@ void func_80B4BC78(EnZl1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B4BF2C(EnZl1* this, PlayState* play) {
++void EnZl1_PeepholeTalk(EnZl1* this, PlayState* play) {
+     s32 pad;
+     MessageContext* msgCtx = &play->msgCtx;
+     Player* player = GET_PLAYER(play);
+@@ -573,19 +588,19 @@ void EnZl1_Update(Actor* thisx, PlayState* play) {
+     s32 pad;
+     EnZl1* this = (EnZl1*)thisx;
+ 
+-    if ((this->actionFunc != func_80B4B8B4) && (this->actionFunc != func_80B4BC78)) {
++    if ((this->actionFunc != EnZl1_CsPlayCueAnimation) && (this->actionFunc != EnZl1_CsFollowCue)) {  // was func_80B4B8B4 [LLM:HIGH]
+         SkelAnime_Update(&this->skelAnime);
+     }
+     Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 5);
+     this->actionFunc(this, play);
+-    if (this->actionFunc != func_80B4B8B4) {
++    if (this->actionFunc != EnZl1_CsPlayCueAnimation) {  // was func_80B4B8B4 [LLM:HIGH]
+         Collider_UpdateCylinder(&this->actor, &this->collider);
+         CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+     }
+     Math_SmoothStepToS(&this->actor.shape.rot.x, this->actor.world.rot.x, 0xA, 0x3E8, 1);
+     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.world.rot.y, 0xA, 0x3E8, 1);
+     Math_SmoothStepToS(&this->actor.shape.rot.z, this->actor.world.rot.z, 0xA, 0x3E8, 1);
+-    func_80B4AE18(this);
++    EnZl1_UpdateFace(this);  // was func_80B4AE18 [LLM:HIGH]
+ }
+ 
+ s32 EnZl1_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx) {
+-- 
+2.55.0
+

@@ -1,0 +1,179 @@
+From 2d0c01b700da64c5b7b2bcbd9f438cd53bf20cca Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 248/488] soh: name the 4 address-named symbols defined in
+ z_bg_ydan_maruta.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c; updating their references touches 2 files in total.
+
+  * func_808BEFF4 -> BgYdanMaruta_Roll
+    deduced, confidence HIGH: the params 0 action: spins the spiked log on
+    shape.rot.x, knocks the player back on an AT hit and loops the rolling
+    sfx.
+
+  * func_808BF078 -> BgYdanMaruta_WaitForHit
+    deduced, confidence HIGH: the ladder variant's idle: runs the AC check
+    until struck, then sets the switch flag, plays the correct-chime and
+    starts the shake with a one-point cutscene.
+
+  * func_808BF108 -> BgYdanMaruta_Shake
+    deduced, confidence HIGH: jitters the ladder around home.pos for twenty
+    frames with the sliding-trap sfx, then hands off to the fall.
+
+  * func_808BF1EC -> BgYdanMaruta_Fall
+    deduced, confidence HIGH: accelerates world.pos.y down to home.pos.y,
+    plays the ladder landing sfx and installs the do-nothing action.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/soh/Network/Anchor/HookHandlers.cpp       |  4 +--
+ .../ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c     | 28 +++++++++++--------
+ 2 files changed, 18 insertions(+), 14 deletions(-)
+
+diff --git a/soh/soh/Network/Anchor/HookHandlers.cpp b/soh/soh/Network/Anchor/HookHandlers.cpp
+index 915abe953..4b0532649 100644
+--- a/soh/soh/Network/Anchor/HookHandlers.cpp
++++ b/soh/soh/Network/Anchor/HookHandlers.cpp
+@@ -44,7 +44,7 @@ void ObjHamishi_Break(ObjHamishi* objHamishi, PlayState* play);
+ void BgJyaBombchuiwa_WaitForExplosion(BgJyaBombchuiwa* bgJyaBombchuiwa, PlayState* play);
+ void BgMizuBwall_Idle(BgMizuBwall* bgMizuBwall, PlayState* play);
+ void BgSpot17Bakudankabe_SpawnFragments(BgSpot17Bakudankabe* bgSpot17Bakudankabe, PlayState* play);
+-void func_808BF078(BgYdanMaruta* bgYdanMaruta, PlayState* play);
++void BgYdanMaruta_WaitForHit(BgYdanMaruta* bgYdanMaruta, PlayState* play);  // was func_808BF078 [LLM:HIGH]
+ void BgYdanSp_FloorWebIdle(BgYdanSp* bgYdanSp, PlayState* play);
+ void BgYdanSp_WallWebIdle(BgYdanSp* bgYdanSp, PlayState* play);
+ void BgYdanSp_BurnWeb(BgYdanSp* bgYdanSp, PlayState* play);
+@@ -318,7 +318,7 @@ void Anchor::RegisterHooks() {
+     COND_ID_HOOK(ShouldActorUpdate, ACTOR_BG_YDAN_MARUTA, isConnected, [&](void* refActor, bool* should) {
+         BgYdanMaruta* actor = static_cast<BgYdanMaruta*>(refActor);
+ 
+-        if (actor->actionFunc == func_808BF078 && Flags_GetSwitch(gPlayState, actor->switchFlag)) {
++        if (actor->actionFunc == BgYdanMaruta_WaitForHit && Flags_GetSwitch(gPlayState, actor->switchFlag)) {  // was func_808BF078 [LLM:HIGH]
+             actor->collider.base.acFlags |= AC_HIT;
+         }
+     });
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c b/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
+index 11565b5c3..813347fd5 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
+@@ -14,11 +14,15 @@ void BgYdanMaruta_Destroy(Actor* thisx, PlayState* play);
+ void BgYdanMaruta_Update(Actor* thisx, PlayState* play);
+ void BgYdanMaruta_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_808BEFF4(BgYdanMaruta* this, PlayState* play);
++// LLM generated name (HIGH), was func_808BEFF4: the params 0 action: spins the spiked log on shape.rot.x, knocks the player back on an AT hit and loops the rolling sfx.
++void BgYdanMaruta_Roll(BgYdanMaruta* this, PlayState* play);  // was func_808BEFF4 [LLM:HIGH]
+ void BgYdanMaruta_DoNothing(BgYdanMaruta* this, PlayState* play);
+-void func_808BF078(BgYdanMaruta* this, PlayState* play);
+-void func_808BF108(BgYdanMaruta* this, PlayState* play);
+-void func_808BF1EC(BgYdanMaruta* this, PlayState* play);
++// LLM generated name (HIGH), was func_808BF078: the ladder variant's idle: runs the AC check until struck, then sets the switch flag, plays the correct-chime and starts the shake with a one-point cutscene.
++void BgYdanMaruta_WaitForHit(BgYdanMaruta* this, PlayState* play);  // was func_808BF078 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808BF108: jitters the ladder around home.pos for twenty frames with the sliding-trap sfx, then hands off to the fall.
++void BgYdanMaruta_Shake(BgYdanMaruta* this, PlayState* play);  // was func_808BF108 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808BF1EC: accelerates world.pos.y down to home.pos.y, plays the ladder landing sfx and installs the do-nothing action.
++void BgYdanMaruta_Fall(BgYdanMaruta* this, PlayState* play);  // was func_808BF1EC [LLM:HIGH]
+ 
+ const ActorInit Bg_Ydan_Maruta_InitVars = {
+     ACTOR_BG_YDAN_MARUTA,
+@@ -94,7 +98,7 @@ void BgYdanMaruta_Init(Actor* thisx, PlayState* play) {
+ 
+     if (this->dyna.actor.params == 0) {
+         triInit = &sTrisElementsInit[0];
+-        this->actionFunc = func_808BEFF4;
++        this->actionFunc = BgYdanMaruta_Roll;  // was func_808BEFF4 [LLM:HIGH]
+     } else {
+         triInit = &sTrisElementsInit[1];
+         DynaPolyActor_Init(&this->dyna, DPM_UNK);
+@@ -105,7 +109,7 @@ void BgYdanMaruta_Init(Actor* thisx, PlayState* play) {
+             thisx->world.pos.y = thisx->home.pos.y;
+             this->actionFunc = BgYdanMaruta_DoNothing;
+         } else {
+-            this->actionFunc = func_808BF078;
++            this->actionFunc = BgYdanMaruta_WaitForHit;  // was func_808BF078 [LLM:HIGH]
+         }
+     }
+ 
+@@ -136,7 +140,7 @@ void BgYdanMaruta_Destroy(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_808BEFF4(BgYdanMaruta* this, PlayState* play) {
++void BgYdanMaruta_Roll(BgYdanMaruta* this, PlayState* play) {
+     if (this->collider.base.atFlags & AT_HIT) {
+         Actor_SetPlayerKnockbackLargeNoDamage(play, &this->dyna.actor, 7.0f, this->dyna.actor.shape.rot.y, 6.0f);
+     }
+@@ -145,26 +149,26 @@ void func_808BEFF4(BgYdanMaruta* this, PlayState* play) {
+     Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_TOGE_STICK_ROLLING - SFX_FLAG);
+ }
+ 
+-void func_808BF078(BgYdanMaruta* this, PlayState* play) {
++void BgYdanMaruta_WaitForHit(BgYdanMaruta* this, PlayState* play) {
+     if (this->collider.base.acFlags & AC_HIT) {
+         this->unk_16A = 20;
+         Flags_SetSwitch(play, this->switchFlag);
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+-        this->actionFunc = func_808BF108;
++        this->actionFunc = BgYdanMaruta_Shake;  // was func_808BF108 [LLM:HIGH]
+         OnePointCutscene_Init(play, 3010, 50, &this->dyna.actor, CAM_ID_MAIN);
+     } else {
+         CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+     }
+ }
+ 
+-void func_808BF108(BgYdanMaruta* this, PlayState* play) {
++void BgYdanMaruta_Shake(BgYdanMaruta* this, PlayState* play) {
+     s16 temp;
+ 
+     if (this->unk_16A != 0) {
+         this->unk_16A--;
+     }
+     if (this->unk_16A == 0) {
+-        this->actionFunc = func_808BF1EC;
++        this->actionFunc = BgYdanMaruta_Fall;  // was func_808BF1EC [LLM:HIGH]
+     }
+ 
+     temp = (this->unk_16A % 4) - 2;
+@@ -180,7 +184,7 @@ void func_808BF108(BgYdanMaruta* this, PlayState* play) {
+     Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_TRAP_OBJ_SLIDE - SFX_FLAG);
+ }
+ 
+-void func_808BF1EC(BgYdanMaruta* this, PlayState* play) {
++void BgYdanMaruta_Fall(BgYdanMaruta* this, PlayState* play) {
+     this->dyna.actor.velocity.y += 1.0f;
+     if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y, this->dyna.actor.velocity.y)) {
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_LADDER_DOUND);
+-- 
+2.55.0
+

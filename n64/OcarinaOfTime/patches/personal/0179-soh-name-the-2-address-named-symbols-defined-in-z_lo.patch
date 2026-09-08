@@ -1,0 +1,99 @@
+From b4e0d39027bd3b5b9c40bda1b3b2083d1cdf894e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:13 +0000
+Subject: [PATCH 179/488] soh: name the 2 address-named symbols defined in
+ z_locale.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/boot/z_locale.c; updating their references touches 2 files in total.
+
+  * func_80001F48 -> Locale_IsForeignRegionWithoutCtrlr3
+    deduced, confidence GUESS: returns true only when the console region is
+    not REGION_NATIVE and no controller is present in port 3. Unused, so the
+    purpose behind the pairing of region and port 3 is inference; the name
+    states only the test performed.
+
+  * func_80001F8C -> Locale_IsForeignRegionWithCtrlr3
+    deduced, confidence GUESS: the complement of
+    Locale_IsForeignRegionWithoutCtrlr3 -- true when the region is not
+    native AND a controller IS in port 3. Also unused; named for the test,
+    not a supposed purpose.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h | 4 ++--
+ soh/src/boot/z_locale.c | 6 ++++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 472c15e71..b4a484b65 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -56,8 +56,8 @@ void Yaz0_DecompressImpl(Yaz0Header* hdr, u8* dst);
+ void Yaz0_Decompress(uintptr_t romStart, void* dst, size_t size);
+ void Locale_Init(void);
+ void Locale_ResetRegion(void);
+-u32 func_80001F48(void);
+-u32 func_80001F8C(void);
++u32 Locale_IsForeignRegionWithoutCtrlr3(void);  // was func_80001F48 [LLM:GUESS]
++u32 Locale_IsForeignRegionWithCtrlr3(void);  // was func_80001F8C [LLM:GUESS]
+ u32 Locale_IsRegionNative(void);
+ #ifdef __WIIU__
+ void _assert(const char* exp, const char* file, s32 line);
+diff --git a/soh/src/boot/z_locale.c b/soh/src/boot/z_locale.c
+index 8ee57ba83..d37c3cadb 100644
+--- a/soh/src/boot/z_locale.c
++++ b/soh/src/boot/z_locale.c
+@@ -33,7 +33,8 @@ void Locale_ResetRegion(void) {
+     gCurrentRegion = REGION_NULL;
+ }
+ 
+-u32 func_80001F48(void) {
++// LLM generated name (GUESS), was func_80001F48: returns true only when the console region is not REGION_NATIVE and no controller is present in port 3. Unused, so the purpose behind the pairing of region and port 3 is inference; the name states only the test performed.
++u32 Locale_IsForeignRegionWithoutCtrlr3(void) {
+     if (gCurrentRegion == REGION_NATIVE) {
+         return 0;
+     }
+@@ -45,7 +46,8 @@ u32 func_80001F48(void) {
+     return 1;
+ }
+ 
+-u32 func_80001F8C(void) {
++// LLM generated name (GUESS), was func_80001F8C: the complement of Locale_IsForeignRegionWithoutCtrlr3 -- true when the region is not native AND a controller IS in port 3. Also unused; named for the test, not a supposed purpose.
++u32 Locale_IsForeignRegionWithCtrlr3(void) {
+     if (gCurrentRegion == REGION_NATIVE) {
+         return 0;
+     }
+-- 
+2.55.0
+

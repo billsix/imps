@@ -1,0 +1,80 @@
+From 5062e1f14fc3e654505c237509791269643f27d7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:39 +0000
+Subject: [PATCH 460/488] soh: name the 2 address-named symbols defined in
+ audio_effects.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/audio_effects.c.
+
+  * D_80130510 -> sVibratoFreqScale
+    deduced, confidence HIGH: the frequency scale Audio_GetVibratoFreqScale
+    keeps between calls
+
+  * D_80130514 -> sVibratoState
+    deduced, confidence HIGH: the state that goes with it
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/audio_effects.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/code/audio_effects.c b/soh/src/code/audio_effects.c
+index 476e8e3ba..358c2988d 100644
+--- a/soh/src/code/audio_effects.c
++++ b/soh/src/code/audio_effects.c
+@@ -109,8 +109,8 @@ s16 Audio_GetVibratoPitchChange(VibratoState* vib) {
+ }
+ 
+ f32 Audio_GetVibratoFreqScale(VibratoState* vib) {
+-    static f32 D_80130510 = 0.0f;
+-    static s32 D_80130514 = 0;
++    static f32 sVibratoFreqScale = 0.0f;  // was D_80130510 [LLM:HIGH]
++    static s32 sVibratoState = 0;  // was D_80130514 [LLM:HIGH]
+     f32 pitchChange;
+     f32 extent;
+     f32 invExtent;
+@@ -166,8 +166,8 @@ f32 Audio_GetVibratoFreqScale(VibratoState* vib) {
+ 
+     result = 1.0f / ((extent - invExtent) * pitchChange / 65536.0f + invExtent);
+ 
+-    D_80130510 += result;
+-    D_80130514++;
++    sVibratoFreqScale += result;  // was D_80130510 [LLM:HIGH]
++    sVibratoState++;  // was D_80130514 [LLM:HIGH]
+ 
+     return result;
+ }
+-- 
+2.55.0
+

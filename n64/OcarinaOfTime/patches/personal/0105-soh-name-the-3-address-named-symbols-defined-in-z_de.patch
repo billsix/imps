@@ -1,0 +1,111 @@
+From 781631f8115d0401bcefde9784b0f2ffff343a1c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:06 +0000
+Subject: [PATCH 105/488] soh: name the 3 address-named symbols defined in
+ z_demo_sa.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c.
+
+  * func_8098EBF8 -> DemoSa_Action_RiseThroughBlueWarp
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_8098EC28 -> DemoSa_Action_ChamberOfSagesDialog
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_8098EC60 -> DemoSa_Action_RaiseArmsForMedallion
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c b/soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c
+index 29694b4cf..88733c6c2 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c
++++ b/soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c
+@@ -21,9 +21,12 @@ void DemoSa_Draw(Actor* thisx, PlayState* play);
+ 
+ void func_8098EBB8(DemoSa* this, PlayState* play);
+ void func_8098EBD8(DemoSa* this, PlayState* play);
+-void func_8098EBF8(DemoSa* this, PlayState* play);
+-void func_8098EC28(DemoSa* this, PlayState* play);
+-void func_8098EC60(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098EBF8): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_RiseThroughBlueWarp(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098EC28): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_ChamberOfSagesDialog(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098EC60): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_RaiseArmsForMedallion(DemoSa* this, PlayState* play);
+ void func_8098EC94(DemoSa* this, PlayState* play);
+ void func_8098ECCC(DemoSa* this, PlayState* play);
+ void func_8098F0E8(DemoSa* this, PlayState* play);
+@@ -75,7 +78,7 @@ static u32 D_80990108 = 0;
+ #include "z_demo_sa_cutscene_data.c" EARLY
+ 
+ static DemoSaActionFunc sActionFuncs[] = {
+-    func_8098EBB8, func_8098EBD8, func_8098EBF8, func_8098EC28, func_8098EC60, func_8098EC94, func_8098ECCC,
++    func_8098EBB8, func_8098EBD8, DemoSa_Action_RiseThroughBlueWarp, DemoSa_Action_ChamberOfSagesDialog, DemoSa_Action_RaiseArmsForMedallion, func_8098EC94, func_8098ECCC,
+     func_8098F0E8, func_8098F118, func_8098F16C, func_8098F3F0, func_8098F714, func_8098F734, func_8098F77C,
+     func_8098F7BC, func_8098F7FC, func_8098FC44, func_8098FC64, func_8098FC9C, func_8098FCD4, func_8098FD0C,
+ };
+@@ -334,19 +337,19 @@ void func_8098EBD8(DemoSa* this, PlayState* play) {
+     func_8098E9EC(this, play);
+ }
+ 
+-void func_8098EBF8(DemoSa* this, PlayState* play) {
++void DemoSa_Action_RiseThroughBlueWarp(DemoSa* this, PlayState* play) {
+     DemoSa_CsForestMedallion_Rise(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_CsForestMedallion_EndRise(this);
+ }
+ 
+-void func_8098EC28(DemoSa* this, PlayState* play) {
++void DemoSa_Action_ChamberOfSagesDialog(DemoSa* this, PlayState* play) {
+     func_8098E5C8(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_CsForestMedallion_CheckStartRaisingArms(this, play);
+ }
+ 
+-void func_8098EC60(DemoSa* this, PlayState* play) {
++void DemoSa_Action_RaiseArmsForMedallion(DemoSa* this, PlayState* play) {
+     func_8098E5C8(this, play);
+     DemoSa_CsForestMedallion_HoldArmsUp(this, DemoSa_UpdateSkelAnime(this));
+ }
+-- 
+2.55.0
+

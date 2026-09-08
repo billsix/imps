@@ -1,0 +1,150 @@
+From 1783c871207fd874bd87c68704456f4cee964816 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:40 +0000
+Subject: [PATCH 474/488] soh: name the 3 address-named symbols defined in
+ z_actor.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/code/z_actor.c.
+
+  * D_8015BC10 -> sFaroresWindLightNode
+    deduced, confidence HIGH: the light node the Farore's Wind point is
+    inserted as, so it can be removed again
+
+  * D_8015BBE8 -> sNearestTargetActor
+    deduced, confidence HIGH: the best Z-target candidate found so far in
+    the search
+
+  * D_8015BBEC -> sNearestTargetActorAlt
+    deduced, confidence HIGH: the fallback candidate used when the search
+    finds no preferred one
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_actor.c | 27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 2a52b5fb6..e72fb077c 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -2355,7 +2355,8 @@ s32 Actor_CheckBlueBloodWall(PlayState* play, Actor* actor, CollisionPoly* poly,
+ // Local data used for Farore's Wind light (stored in BSS, possibly a struct?)
+ // LLM generated name (HIGH), was D_8015BC00: the light placed at the Farore's Wind warp point
+ LightInfo sFaroresWindLight;  // was D_8015BC00 [LLM:HIGH]
+-LightNode* D_8015BC10;
++// LLM generated name (HIGH), was D_8015BC10: the light node the Farore's Wind point is inserted as, so it can be removed again
++LightNode* sFaroresWindLightNode;  // was D_8015BC10 [LLM:HIGH]
+ // LLM generated name (HIGH), was D_8015BC14: counts the frames of the Farore's Wind warp effect down
+ s32 sFaroresWindTimer;  // was D_8015BC14 [LLM:HIGH]
+ // LLM generated name (GUESS), was D_8015BC18: drives the pull toward the warp point once the timer expires; read as progress from how it is stepped to zero
+@@ -2389,7 +2390,7 @@ void Actor_InitFaroresWindPoint(PlayState* play) {
+ 
+     Lights_PointNoGlowSetInfo(&sFaroresWindLight, lightPos.x, lightPos.y, lightPos.z, 0xFF, 0xFF, 0xFF, -1);  // was D_8015BC00 [LLM:HIGH]
+ 
+-    D_8015BC10 = LightContext_InsertLight(play, &play->lightCtx, &sFaroresWindLight);  // was D_8015BC00 [LLM:HIGH]
++    sFaroresWindLightNode = LightContext_InsertLight(play, &play->lightCtx, &sFaroresWindLight);  // was D_8015BC00 [LLM:HIGH]
+     sFaroresWindTimer = 0;  // was D_8015BC14 [LLM:HIGH]
+     sFaroresWindWarpProgress = 0.0f;  // was D_8015BC18 [LLM:GUESS]
+ }
+@@ -2551,7 +2552,7 @@ void Actor_DrawFaroresWindPointer(PlayState* play) {
+ 
+ // LLM generated name (HIGH), was func_80030488: removes that light from the light context
+ void Actor_RemoveFaroresWindLight(PlayState* play) {
+-    LightContext_RemoveLight(play, &play->lightCtx, D_8015BC10);
++    LightContext_RemoveLight(play, &play->lightCtx, sFaroresWindLightNode);  // was D_8015BC10 [LLM:HIGH]
+ }
+ 
+ void Actor_DisableLens(PlayState* play) {
+@@ -3577,8 +3578,10 @@ s32 Attention_ActorOnScreen(PlayState* play, Actor* actor) {
+     return (sp1E > -20) && (sp1E < 340) && (sp1C > -160) && (sp1C < 400);
+ }
+ 
+-Actor* D_8015BBE8;
+-Actor* D_8015BBEC;
++// LLM generated name (HIGH), was D_8015BBE8: the best Z-target candidate found so far in the search
++Actor* sNearestTargetActor;  // was D_8015BBE8 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8015BBEC: the fallback candidate used when the search finds no preferred one
++Actor* sNearestTargetActorAlt;  // was D_8015BBEC [LLM:HIGH]
+ // LLM generated name (HIGH), was D_8015BBF0: the best weighted distance found so far while searching for a Z-target
+ f32 sNearestTargetDistSq;  // was D_8015BBF0 [LLM:HIGH]
+ f32 sbgmEnemyDistSq;
+@@ -3623,11 +3626,11 @@ void Attention_FindActorInCategory(PlayState* play, ActorContext* actorCtx, Play
+                      SurfaceType_IsIgnoredByProjectiles(&play->colCtx, sp80, sp7C))) {
+                     if (actor->targetPriority != 0) {
+                         if (actor->targetPriority < sBestTargetPriority) {  // was D_8015BBF8 [LLM:HIGH]
+-                            D_8015BBEC = actor;
++                            sNearestTargetActorAlt = actor;  // was D_8015BBEC [LLM:HIGH]
+                             sBestTargetPriority = actor->targetPriority;  // was D_8015BBF8 [LLM:HIGH]
+                         }
+                     } else {
+-                        D_8015BBE8 = actor;
++                        sNearestTargetActor = actor;  // was D_8015BBE8 [LLM:HIGH]
+                         sNearestTargetDistSq = var;  // was D_8015BBF0 [LLM:HIGH]
+                     }
+                 }
+@@ -3648,7 +3651,7 @@ Actor* Attention_FindActor(PlayState* play, ActorContext* actorCtx, Actor** acto
+     s32 i;
+     u8* entry;
+ 
+-    D_8015BBE8 = D_8015BBEC = NULL;
++    sNearestTargetActor = sNearestTargetActorAlt = NULL;  // was D_8015BBE8 [LLM:HIGH]
+     sNearestTargetDistSq = sbgmEnemyDistSq = FLT_MAX;  // was D_8015BBF0 [LLM:HIGH]
+     sBestTargetPriority = 0x7FFFFFFF;  // was D_8015BBF8 [LLM:HIGH]
+ 
+@@ -3663,7 +3666,7 @@ Actor* Attention_FindActor(PlayState* play, ActorContext* actorCtx, Actor** acto
+             entry++;
+         }
+ 
+-        if (D_8015BBE8 == NULL) {
++        if (sNearestTargetActor == NULL) {  // was D_8015BBE8 [LLM:HIGH]
+             for (; i < ARRAY_COUNT(sTargetCategorySearchOrder); i++) {  // was D_801160A0 [LLM:HIGH]
+                 Attention_FindActorInCategory(play, actorCtx, player, *entry);
+                 entry++;
+@@ -3671,10 +3674,10 @@ Actor* Attention_FindActor(PlayState* play, ActorContext* actorCtx, Actor** acto
+         }
+     }
+ 
+-    if (D_8015BBE8 == 0) {
+-        *actorPtr = D_8015BBEC;
++    if (sNearestTargetActor == 0) {  // was D_8015BBE8 [LLM:HIGH]
++        *actorPtr = sNearestTargetActorAlt;  // was D_8015BBEC [LLM:HIGH]
+     } else {
+-        *actorPtr = D_8015BBE8;
++        *actorPtr = sNearestTargetActor;  // was D_8015BBE8 [LLM:HIGH]
+     }
+ 
+     return *actorPtr;
+-- 
+2.55.0
+

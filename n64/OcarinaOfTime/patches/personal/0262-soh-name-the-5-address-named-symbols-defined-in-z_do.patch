@@ -1,0 +1,194 @@
+From bd4e2ce9fc8e7099ef68ad87261a2ec2efd3a58b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:20 +0000
+Subject: [PATCH 262/488] soh: name the 5 address-named symbols defined in
+ z_door_gerudo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c; updating their references touches 2 files in total.
+
+  * func_809946BC -> DoorGerudo_GetPlayerLocalZ
+    deduced, confidence HIGH: transforms the player's position into the
+    door's local frame and returns the Z component, or FLT_MAX when the
+    player is outside the given X and Y window.
+
+  * func_80994750 -> DoorGerudo_GetApproachDirection
+    deduced, confidence HIGH: returns 1 or -1 for the side the player is
+    standing on when they are within 40 units of the door plane and facing
+    it, and 0 otherwise.
+
+  * func_8099485C -> DoorGerudo_Idle
+    deduced, confidence HIGH: the resting action: on the unlock trigger it
+    spends a small key, sets the switch flag and plays the unlock sfx;
+    otherwise it hands the player a sliding-door interaction or the "no key"
+    / "not yet" Navi message.
+
+  * func_8099496C -> DoorGerudo_Unlock
+    deduced, confidence HIGH: counts down the lock animation timer that the
+    draw function also reads, then plays the sliding-door sfx and starts the
+    opening slide.
+
+  * func_809949C8 -> DoorGerudo_Open
+    deduced, confidence HIGH: accelerates the door upward to speed 15 and
+    raises it 200 units above home.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../Enhancements/randomizer/hook_handlers.cpp |  4 +--
+ .../actors/ovl_Door_Gerudo/z_door_gerudo.c    | 35 +++++++++++--------
+ 2 files changed, 22 insertions(+), 17 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 16932e0d7..4d58df8af 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -2600,7 +2600,7 @@ void RandomizerOnGameFrameUpdateHandler() {
+     }
+ }
+ 
+-extern "C" void func_8099485C(DoorGerudo* gerudoDoor, PlayState* play);
++extern "C" void DoorGerudo_Idle(DoorGerudo* gerudoDoor, PlayState* play);  // was func_8099485C [LLM:HIGH]
+ 
+ void RandomizerOnActorUpdateHandler(void* refActor) {
+     Actor* actor = static_cast<Actor*>(refActor);
+@@ -2616,7 +2616,7 @@ void RandomizerOnActorUpdateHandler(void* refActor) {
+             }
+         } else if (actor->id == ACTOR_DOOR_GERUDO) {
+             DoorGerudo* gerudoDoor = reinterpret_cast<DoorGerudo*>(actor);
+-            gerudoDoor->actionFunc = func_8099485C;
++            gerudoDoor->actionFunc = DoorGerudo_Idle;  // was func_8099485C [LLM:HIGH]
+             gerudoDoor->dyna.actor.world.pos.y = gerudoDoor->dyna.actor.home.pos.y + 200.0f;
+         }
+     }
+diff --git a/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c b/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
+index 29eccfdd7..a4ec874f1 100644
+--- a/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
++++ b/soh/src/overlays/actors/ovl_Door_Gerudo/z_door_gerudo.c
+@@ -15,10 +15,14 @@ void DoorGerudo_Destroy(Actor* thisx, PlayState* play);
+ void DoorGerudo_Update(Actor* thisx, PlayState* play);
+ void DoorGerudo_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8099485C(DoorGerudo* this, PlayState* play);
+-s32 func_80994750(DoorGerudo* this, PlayState* play);
+-void func_8099496C(DoorGerudo* this, PlayState* play);
+-void func_809949C8(DoorGerudo* this, PlayState* play);
++// LLM generated name (HIGH), was func_8099485C: the resting action: on the unlock trigger it spends a small key, sets the switch flag and plays the unlock sfx; otherwise it hands the player a sliding-door interaction or the "no key" / "not yet" Navi message.
++void DoorGerudo_Idle(DoorGerudo* this, PlayState* play);  // was func_8099485C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80994750: returns 1 or -1 for the side the player is standing on when they are within 40 units of the door plane and facing it, and 0 otherwise.
++s32 DoorGerudo_GetApproachDirection(DoorGerudo* this, PlayState* play);  // was func_80994750 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8099496C: counts down the lock animation timer that the draw function also reads, then plays the sliding-door sfx and starts the opening slide.
++void DoorGerudo_Unlock(DoorGerudo* this, PlayState* play);  // was func_8099496C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809949C8: accelerates the door upward to speed 15 and raises it 200 units above home.
++void DoorGerudo_Open(DoorGerudo* this, PlayState* play);  // was func_809949C8 [LLM:HIGH]
+ 
+ const ActorInit Door_Gerudo_InitVars = {
+     ACTOR_DOOR_GERUDO,
+@@ -47,10 +51,10 @@ void DoorGerudo_Init(Actor* thisx, PlayState* play) {
+     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, thisx, colHeader);
+ 
+     if (Flags_GetSwitch(play, thisx->params & 0x3F)) {
+-        this->actionFunc = func_8099485C;
++        this->actionFunc = DoorGerudo_Idle;  // was func_8099485C [LLM:HIGH]
+         thisx->world.pos.y = thisx->home.pos.y + 200.0f;
+     } else {
+-        this->actionFunc = func_8099485C;
++        this->actionFunc = DoorGerudo_Idle;  // was func_8099485C [LLM:HIGH]
+         this->unk_166 = 10;
+     }
+ }
+@@ -61,7 +65,8 @@ void DoorGerudo_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-f32 func_809946BC(PlayState* play, DoorGerudo* this, f32 arg2, f32 arg3, f32 arg4) {
++// LLM generated name (HIGH), was func_809946BC: transforms the player's position into the door's local frame and returns the Z component, or FLT_MAX when the player is outside the given X and Y window.
++f32 DoorGerudo_GetPlayerLocalZ(PlayState* play, DoorGerudo* this, f32 arg2, f32 arg3, f32 arg4) {
+     Player* player = GET_PLAYER(play);
+     Vec3f playerPos;
+     Vec3f sp1C;
+@@ -78,13 +83,13 @@ f32 func_809946BC(PlayState* play, DoorGerudo* this, f32 arg2, f32 arg3, f32 arg
+     }
+ }
+ 
+-s32 func_80994750(DoorGerudo* this, PlayState* play) {
++s32 DoorGerudo_GetApproachDirection(DoorGerudo* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 temp_f0;
+     s16 rotYDiff;
+ 
+     if (!Player_InCsMode(play)) {
+-        temp_f0 = func_809946BC(play, this, 0.0f, 20.0f, 15.0f);
++        temp_f0 = DoorGerudo_GetPlayerLocalZ(play, this, 0.0f, 20.0f, 15.0f);  // was func_809946BC [LLM:HIGH]
+         if (fabsf(temp_f0) < 40.0f) {
+             rotYDiff = player->actor.shape.rot.y - this->dyna.actor.shape.rot.y;
+             if (temp_f0 > 0.0f) {
+@@ -98,15 +103,15 @@ s32 func_80994750(DoorGerudo* this, PlayState* play) {
+     return 0;
+ }
+ 
+-void func_8099485C(DoorGerudo* this, PlayState* play) {
++void DoorGerudo_Idle(DoorGerudo* this, PlayState* play) {
+     if (this->unk_164 != 0) {
+-        this->actionFunc = func_8099496C;
++        this->actionFunc = DoorGerudo_Unlock;  // was func_8099496C [LLM:HIGH]
+         gSaveContext.inventory.dungeonKeys[gSaveContext.mapIndex] -= 1;
+         Flags_SetSwitch(play, this->dyna.actor.params & 0x3F);
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_CHAIN_KEY_UNLOCK);
+         GameInteractor_ExecuteOnDungeonKeyUsedHooks(gSaveContext.mapIndex);
+     } else {
+-        s32 direction = func_80994750(this, play);
++        s32 direction = DoorGerudo_GetApproachDirection(this, play);  // was func_80994750 [LLM:HIGH]
+ 
+         if (direction != 0) {
+             Player* player = GET_PLAYER(play);
+@@ -125,14 +130,14 @@ void func_8099485C(DoorGerudo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8099496C(DoorGerudo* this, PlayState* play) {
++void DoorGerudo_Unlock(DoorGerudo* this, PlayState* play) {
+     if (DECR(this->unk_166) == 0) {
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_SLIDE_DOOR_OPEN);
+-        this->actionFunc = func_809949C8;
++        this->actionFunc = DoorGerudo_Open;  // was func_809949C8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809949C8(DoorGerudo* this, PlayState* play) {
++void DoorGerudo_Open(DoorGerudo* this, PlayState* play) {
+     Math_StepToF(&this->dyna.actor.velocity.y, 15.0f, 3.0f);
+     Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y + 200.0f, this->dyna.actor.velocity.y);
+ }
+-- 
+2.55.0
+

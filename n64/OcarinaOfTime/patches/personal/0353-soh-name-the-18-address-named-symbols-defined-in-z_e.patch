@@ -1,0 +1,521 @@
+From d9fab854a636cc11f8b0d91593ca9ea9c661af30 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 353/488] soh: name the 18 address-named symbols defined in
+ z_en_bw.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 18 are defined in soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c.
+
+  * func_809CE884 -> EnBw_Land
+    deduced, confidence HIGH: squashes the Torch Slug's scale back to round
+    as it settles from a bounce, then hands off to the walking setup.
+
+  * func_809CE9A8 -> EnBw_SetupWalk
+    deduced, confidence HIGH: starts the looping eyestalk-wave animation,
+    arms a randomised wander timer and installs the walking action.
+
+  * func_809CEA24 -> EnBw_Walk
+    deduced, confidence HIGH: the wandering action: it steers the slug over
+    the floor on a wobbling path, tracks the player and picks the next
+    behaviour when its timer expires.
+
+  * func_809CF72C -> EnBw_SetupRearUp
+    deduced, confidence HIGH: plays the eyestalk-raise animation with the
+    aiming sfx and installs the rearing action.
+
+  * func_809CF7AC -> EnBw_RearUp
+    deduced, confidence HIGH: stretches the slug tall as it rears, then
+    returns it to walking when the stretch runs out.
+
+  * func_809CF8F0 -> EnBw_SetupLunge
+    deduced, confidence HIGH: aims at the player, launches the slug forward
+    and upward with the jump sfx and installs the lunging action.
+
+  * func_809CF984 -> EnBw_Lunge
+    deduced, confidence HIGH: carries the lunge through, bouncing the slug
+    back off the player on a hit and stretching its body along the arc.
+
+  * func_809CFBA8 -> EnBw_SetupFlipOver
+    deduced, confidence HIGH: starts the flailing animation with the reverse
+    sfx and installs the upside-down action.
+
+  * func_809CFC4C -> EnBw_FlippedOver
+    deduced, confidence HIGH: rolls the slug onto its back and leaves it
+    hopping helplessly, throwing dust on each landing.
+
+  * func_809CFF10 -> EnBw_SetupFlipBack
+    deduced, confidence HIGH: starts the same flailing animation with the
+    reverse sfx and installs the righting action.
+
+  * func_809CFF98 -> EnBw_FlipBack
+    deduced, confidence HIGH: rolls the slug back upright, fading its colour
+    to normal, and returns it to the landing action once it touches down.
+
+  * func_809D00F4 -> EnBw_SetupDie
+    deduced, confidence HIGH: plays the death sfx, drops targeting and
+    installs the dying action.
+
+  * func_809D014C -> EnBw_Die
+    deduced, confidence HIGH: flattens and fades the slug out over forty
+    frames, then kills the actor.
+
+  * func_809D01CC -> EnBw_SetupFreeze
+    deduced, confidence HIGH: arms the ice timer and the freeze duration and
+    installs the frozen action.
+
+  * func_809D0268 -> EnBw_Frozen
+    deduced, confidence HIGH: shifts the slug's colour toward blue while it
+    is frozen and shivers it on a random cycle.
+
+  * func_809D03CC -> EnBw_SetupStun
+    deduced, confidence HIGH: stops the slug, arms the ice timer for an ice
+    hit, plays the freeze sfx and installs the stunned action.
+
+  * func_809D0424 -> EnBw_Stunned
+    deduced, confidence HIGH: waits out the colour-filter timer and then
+    restores whichever behaviour the slug was in before it was stunned.
+
+  * func_809D0584 -> EnBw_CheckDamage
+    deduced, confidence HIGH: kills the slug when it falls into a hazard and
+    otherwise turns each AC hit into the matching freeze, stun, flip or
+    death reaction.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c | 144 +++++++++++---------
+ 1 file changed, 81 insertions(+), 63 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c b/soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c
+index 9988a5d88..20713f3e1 100644
+--- a/soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c
++++ b/soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c
+@@ -18,23 +18,40 @@ void EnBw_Update(Actor* thisx, PlayState* play);
+ void EnBw_Draw(Actor* thisx, PlayState* play);
+ void EnBw_Reset(void);
+ 
+-void func_809CE884(EnBw* this, PlayState* play);
+-void func_809CE9A8(EnBw* this);
+-void func_809CEA24(EnBw* this, PlayState* play);
+-void func_809CF72C(EnBw* this);
+-void func_809CF7AC(EnBw* this, PlayState* play);
+-void func_809CF8F0(EnBw* this);
+-void func_809CF984(EnBw* this, PlayState* play);
+-void func_809CFBA8(EnBw* this);
+-void func_809CFC4C(EnBw* this, PlayState* play);
+-void func_809CFF10(EnBw* this);
+-void func_809CFF98(EnBw* this, PlayState* play);
+-void func_809D00F4(EnBw* this);
+-void func_809D014C(EnBw* this, PlayState* play);
+-void func_809D01CC(EnBw* this);
+-void func_809D0268(EnBw* this, PlayState* play);
+-void func_809D03CC(EnBw* this);
+-void func_809D0424(EnBw* this, PlayState* play);
++// LLM generated name (HIGH), was func_809CE884: squashes the Torch Slug's scale back to round as it settles from a bounce, then hands off to the walking setup.
++void EnBw_Land(EnBw* this, PlayState* play);  // was func_809CE884 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CE9A8: starts the looping eyestalk-wave animation, arms a randomised wander timer and installs the walking action.
++void EnBw_SetupWalk(EnBw* this);  // was func_809CE9A8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CEA24: the wandering action: it steers the slug over the floor on a wobbling path, tracks the player and picks the next behaviour when its timer expires.
++void EnBw_Walk(EnBw* this, PlayState* play);  // was func_809CEA24 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CF72C: plays the eyestalk-raise animation with the aiming sfx and installs the rearing action.
++void EnBw_SetupRearUp(EnBw* this);  // was func_809CF72C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CF7AC: stretches the slug tall as it rears, then returns it to walking when the stretch runs out.
++void EnBw_RearUp(EnBw* this, PlayState* play);  // was func_809CF7AC [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CF8F0: aims at the player, launches the slug forward and upward with the jump sfx and installs the lunging action.
++void EnBw_SetupLunge(EnBw* this);  // was func_809CF8F0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CF984: carries the lunge through, bouncing the slug back off the player on a hit and stretching its body along the arc.
++void EnBw_Lunge(EnBw* this, PlayState* play);  // was func_809CF984 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CFBA8: starts the flailing animation with the reverse sfx and installs the upside-down action.
++void EnBw_SetupFlipOver(EnBw* this);  // was func_809CFBA8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CFC4C: rolls the slug onto its back and leaves it hopping helplessly, throwing dust on each landing.
++void EnBw_FlippedOver(EnBw* this, PlayState* play);  // was func_809CFC4C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CFF10: starts the same flailing animation with the reverse sfx and installs the righting action.
++void EnBw_SetupFlipBack(EnBw* this);  // was func_809CFF10 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809CFF98: rolls the slug back upright, fading its colour to normal, and returns it to the landing action once it touches down.
++void EnBw_FlipBack(EnBw* this, PlayState* play);  // was func_809CFF98 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809D00F4: plays the death sfx, drops targeting and installs the dying action.
++void EnBw_SetupDie(EnBw* this);  // was func_809D00F4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809D014C: flattens and fades the slug out over forty frames, then kills the actor.
++void EnBw_Die(EnBw* this, PlayState* play);  // was func_809D014C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809D01CC: arms the ice timer and the freeze duration and installs the frozen action.
++void EnBw_SetupFreeze(EnBw* this);  // was func_809D01CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_809D0268: shifts the slug's colour toward blue while it is frozen and shivers it on a random cycle.
++void EnBw_Frozen(EnBw* this, PlayState* play);  // was func_809D0268 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809D03CC: stops the slug, arms the ice timer for an ice hit, plays the freeze sfx and installs the stunned action.
++void EnBw_SetupStun(EnBw* this);  // was func_809D03CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_809D0424: waits out the colour-filter timer and then restores whichever behaviour the slug was in before it was stunned.
++void EnBw_Stunned(EnBw* this, PlayState* play);  // was func_809D0424 [LLM:HIGH]
+ 
+ const ActorInit En_Bw_InitVars = {
+     ACTOR_EN_BW,
+@@ -147,7 +164,7 @@ void EnBw_Init(Actor* thisx, PlayState* play) {
+     this->actor.colChkInfo.health = 6;
+     this->actor.colChkInfo.mass = MASS_HEAVY;
+     this->actor.focus.pos = this->actor.world.pos;
+-    func_809CE9A8(this);
++    EnBw_SetupWalk(this);  // was func_809CE9A8 [LLM:HIGH]
+     this->color1.a = this->color1.r = 255;
+     this->color1.g = this->color1.b = 0;
+     this->unk_248 = 0.6f;
+@@ -169,7 +186,7 @@ void EnBw_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider2);
+ }
+ 
+-void func_809CE884(EnBw* this, PlayState* play) {
++void EnBw_Land(EnBw* this, PlayState* play) {
+     Math_SmoothStepToF(&this->actor.speedXZ, 0.0f, 1.0f, 0.5f, 0.0f);
+     this->unk_222 -= 250;
+     this->actor.scale.x = 0.013f + Math_SinF(this->unk_222 * 0.001f) * 0.0069999998f;
+@@ -177,20 +194,20 @@ void func_809CE884(EnBw* this, PlayState* play) {
+     this->actor.scale.z = 0.013f + Math_SinF(this->unk_222 * 0.001f) * 0.0069999998f;
+     if (this->unk_222 == 0) {
+         this->actor.world.rot.y = this->actor.shape.rot.y;
+-        func_809CE9A8(this);
++        EnBw_SetupWalk(this);  // was func_809CE9A8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809CE9A8(EnBw* this) {
++void EnBw_SetupWalk(EnBw* this) {
+     Animation_MorphToLoop(&this->skelAnime, &gTorchSlugEyestalkWaveAnim, -2.0f);
+     this->unk_220 = 2;
+     this->unk_222 = Rand_ZeroOne() * 200.0f + 200.0f;
+     this->unk_232 = 0;
+     this->actor.speedXZ = 0.0f;
+-    EnBw_SetupAction(this, func_809CEA24);
++    EnBw_SetupAction(this, EnBw_Walk);  // was func_809CEA24 [LLM:HIGH]
+ }
+ 
+-void func_809CEA24(EnBw* this, PlayState* play) {
++void EnBw_Walk(EnBw* this, PlayState* play) {
+     CollisionPoly* sp74 = NULL;
+     Vec3f sp68;
+     u32 sp64 = 0;
+@@ -341,7 +358,7 @@ void func_809CEA24(EnBw* this, PlayState* play) {
+             Math_SmoothStepToF(&this->unk_248, 0.6f, 1.0f, 0.05f, 0.0f);
+             if ((this->unk_224 == 0) && (this->actor.xzDistToPlayer < 200.0f) &&
+                 (ABS(this->actor.yDistToPlayer) < 50.0f) && Actor_IsFacingPlayer(&this->actor, 0x1C70)) {
+-                func_809CF72C(this);
++                EnBw_SetupRearUp(this);  // was func_809CF72C [LLM:HIGH]
+             } else {
+                 Math_SmoothStepToS(&this->actor.world.rot.y, this->unk_236 + this->unk_238, 1,
+                                    this->actor.speedXZ * 1000.0f, 0);
+@@ -355,7 +372,7 @@ void func_809CEA24(EnBw* this, PlayState* play) {
+                 if ((this->actor.xzDistToPlayer < 90.0f) && (this->actor.yDistToPlayer < 50.0f) &&
+                     Actor_IsFacingPlayer(&this->actor, 0x1554) &&
+                     Actor_TestFloorInDirection(&this->actor, play, 71.24802f, this->actor.yawTowardsPlayer)) {
+-                    func_809CF8F0(this);
++                    EnBw_SetupLunge(this);  // was func_809CF8F0 [LLM:HIGH]
+                 }
+             } else {
+                 Math_SmoothStepToS(&this->actor.world.rot.y, this->unk_236 + this->unk_238, 1,
+@@ -397,7 +414,7 @@ void func_809CEA24(EnBw* this, PlayState* play) {
+     this->actor.shape.rot.y = this->actor.world.rot.y;
+ }
+ 
+-void func_809CF72C(EnBw* this) {
++void EnBw_SetupRearUp(EnBw* this) {
+     Animation_MorphToPlayOnce(&this->skelAnime, &gTorchSlugEyestalkRaiseAnim, -2.0f);
+     this->unk_220 = 3;
+     this->unk_221 = 0;
+@@ -406,10 +423,10 @@ void func_809CF72C(EnBw* this) {
+     this->unk_224 = 0xBB8;
+     this->actor.speedXZ = 0.0f;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_BUBLEWALK_AIM);
+-    EnBw_SetupAction(this, func_809CF7AC);
++    EnBw_SetupAction(this, EnBw_RearUp);  // was func_809CF7AC [LLM:HIGH]
+ }
+ 
+-void func_809CF7AC(EnBw* this, PlayState* play) {
++void EnBw_RearUp(EnBw* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if (this->unk_222 > 0) {
+             this->unk_222--;
+@@ -424,12 +441,12 @@ void func_809CF7AC(EnBw* this, PlayState* play) {
+     this->actor.scale.y = 0.013f + Math_SinF(this->unk_224 * 0.001f) * 0.0245f;
+     this->actor.scale.z = 0.013f - Math_SinF(this->unk_224 * 0.001f) * 0.0034999999f;
+     if (this->unk_224 == 0) {
+-        func_809CE9A8(this);
++        EnBw_SetupWalk(this);  // was func_809CE9A8 [LLM:HIGH]
+         this->unk_224 = 200;
+     }
+ }
+ 
+-void func_809CF8F0(EnBw* this) {
++void EnBw_SetupLunge(EnBw* this) {
+     Animation_MorphToPlayOnce(&this->skelAnime, &gTorchSlugEyestalkFlailAnim, -1.0f);
+     this->actor.speedXZ = 7.0f;
+     this->actor.world.rot.y = this->actor.shape.rot.y = this->actor.yawTowardsPlayer;
+@@ -438,10 +455,10 @@ void func_809CF8F0(EnBw* this) {
+     this->actor.velocity.y = 11.0f;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_STAL_JUMP);
+     this->actor.flags |= ACTOR_FLAG_SFX_FOR_PLAYER_BODY_HIT;
+-    EnBw_SetupAction(this, func_809CF984);
++    EnBw_SetupAction(this, EnBw_Lunge);  // was func_809CF984 [LLM:HIGH]
+ }
+ 
+-void func_809CF984(EnBw* this, PlayState* play) {
++void EnBw_Lunge(EnBw* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 floorPolyType;
+ 
+@@ -470,11 +487,11 @@ void func_809CF984(EnBw* this, PlayState* play) {
+         this->actor.flags &= ~ACTOR_FLAG_SFX_FOR_PLAYER_BODY_HIT;
+         this->actor.speedXZ = 0.0f;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_DODO_M_GND);
+-        EnBw_SetupAction(this, func_809CE884);
++        EnBw_SetupAction(this, EnBw_Land);  // was func_809CE884 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809CFBA8(EnBw* this) {
++void EnBw_SetupFlipOver(EnBw* this) {
+     Animation_MorphToLoop(&this->skelAnime, &gTorchSlugEyestalkFlailAnim, -1.0f);
+     this->unk_220 = 5;
+     this->unk_222 = 1000;
+@@ -484,10 +501,10 @@ void func_809CFBA8(EnBw* this) {
+     this->unk_25C = Rand_ZeroOne() * 0.25f + 1.0f;
+     this->unk_224 = 0xBB8;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_BUBLEWALK_REVERSE);
+-    EnBw_SetupAction(this, func_809CFC4C);
++    EnBw_SetupAction(this, EnBw_FlippedOver);  // was func_809CFC4C [LLM:HIGH]
+ }
+ 
+-void func_809CFC4C(EnBw* this, PlayState* play) {
++void EnBw_FlippedOver(EnBw* this, PlayState* play) {
+     Math_SmoothStepToS(&this->actor.shape.rot.z, 0x7FFF, 1, 0xFA0, 0);
+     Math_SmoothStepToF(&this->unk_248, 0.0f, 1.0f, 0.05f, 0.0f);
+     SkelAnime_Update(&this->skelAnime);
+@@ -510,7 +527,7 @@ void func_809CFC4C(EnBw* this, PlayState* play) {
+         }
+         this->unk_222--;
+         if (this->unk_222 == 0) {
+-            func_809CFF10(this);
++            EnBw_SetupFlipBack(this);  // was func_809CFF10 [LLM:HIGH]
+         }
+     } else {
+         this->color1.r -= 8;
+@@ -532,7 +549,7 @@ void func_809CFC4C(EnBw* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809CFF10(EnBw* this) {
++void EnBw_SetupFlipBack(EnBw* this) {
+     Animation_MorphToLoop(&this->skelAnime, &gTorchSlugEyestalkFlailAnim, -1.0f);
+     this->unk_220 = 6;
+     this->unk_222 = 1000;
+@@ -541,10 +558,10 @@ void func_809CFF10(EnBw* this) {
+     this->actor.velocity.y = 11.0f;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_BUBLEWALK_REVERSE);
+     this->actor.bgCheckFlags &= ~1;
+-    EnBw_SetupAction(this, func_809CFF98);
++    EnBw_SetupAction(this, EnBw_FlipBack);  // was func_809CFF98 [LLM:HIGH]
+ }
+ 
+-void func_809CFF98(EnBw* this, PlayState* play) {
++void EnBw_FlipBack(EnBw* this, PlayState* play) {
+     Math_SmoothStepToS(&this->actor.shape.rot.z, 0, 1, 0xFA0, 0);
+     Math_SmoothStepToF(&this->unk_248, 0.6f, 1.0f, 0.05f, 0.0f);
+     SkelAnime_Update(&this->skelAnime);
+@@ -553,7 +570,7 @@ void func_809CFF98(EnBw* this, PlayState* play) {
+         this->unk_222 = 0xBB8;
+         this->unk_250 = 0.0f;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_DODO_M_GND);
+-        EnBw_SetupAction(this, func_809CE884);
++        EnBw_SetupAction(this, EnBw_Land);  // was func_809CE884 [LLM:HIGH]
+     }
+     if (this->color1.r < 247) {
+         this->color1.r += 8;
+@@ -575,17 +592,17 @@ void func_809CFF98(EnBw* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809D00F4(EnBw* this) {
++void EnBw_SetupDie(EnBw* this) {
+     this->unk_220 = 0;
+     this->unk_222 = 40;
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+     this->actor.speedXZ = 0.0f;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_BUBLEWALK_DEAD);
+-    EnBw_SetupAction(this, func_809D014C);
++    EnBw_SetupAction(this, EnBw_Die);  // was func_809D014C [LLM:HIGH]
+     GameInteractor_ExecuteOnEnemyDefeat(&this->actor);
+ }
+ 
+-void func_809D014C(EnBw* this, PlayState* play) {
++void EnBw_Die(EnBw* this, PlayState* play) {
+     if (this->unk_230) {
+         this->actor.scale.x += 0.0002f;
+         this->actor.scale.y -= 0.0002f;
+@@ -598,7 +615,7 @@ void func_809D014C(EnBw* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809D01CC(EnBw* this) {
++void EnBw_SetupFreeze(EnBw* this) {
+     this->unk_220 = 1;
+     this->actor.speedXZ = 0.0f;
+     this->unk_25C = (Rand_ZeroOne() * 0.25f) + 1.0f;
+@@ -607,10 +624,10 @@ void func_809D01CC(EnBw* this) {
+         this->iceTimer = 0x50;
+     }
+     this->unk_222 = (this->actor.colorFilterParams & 0x4000) ? 25 : 80;
+-    EnBw_SetupAction(this, func_809D0268);
++    EnBw_SetupAction(this, EnBw_Frozen);  // was func_809D0268 [LLM:HIGH]
+ }
+ 
+-void func_809D0268(EnBw* this, PlayState* play) {
++void EnBw_Frozen(EnBw* this, PlayState* play) {
+     this->color1.r -= 1;
+     this->color1.g += 4;
+     this->color1.b += 5;
+@@ -632,7 +649,7 @@ void func_809D0268(EnBw* this, PlayState* play) {
+     }
+     this->unk_222--;
+     if (this->unk_222 == 0) {
+-        func_809CE9A8(this);
++        EnBw_SetupWalk(this);  // was func_809CE9A8 [LLM:HIGH]
+         this->color1.r = this->color1.g = 200;
+         this->color1.b = 255;
+         this->unk_224 = 0x258;
+@@ -642,22 +659,22 @@ void func_809D0268(EnBw* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809D03CC(EnBw* this) {
++void EnBw_SetupStun(EnBw* this) {
+     this->actor.speedXZ = 0.0f;
+     if (this->damageEffect == 0xE) {
+         this->iceTimer = 32;
+     }
+     this->unk_23C = this->actor.colorFilterTimer;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_GOMA_JR_FREEZE);
+-    EnBw_SetupAction(this, func_809D0424);
++    EnBw_SetupAction(this, EnBw_Stunned);  // was func_809D0424 [LLM:HIGH]
+ }
+ 
+-void func_809D0424(EnBw* this, PlayState* play) {
++void EnBw_Stunned(EnBw* this, PlayState* play) {
+     if (this->actor.colorFilterTimer == 0) {
+         this->unk_23C = 0;
+         if (this->actor.colChkInfo.health != 0) {
+             if ((this->unk_220 != 5) && (this->unk_220 != 6)) {
+-                func_809CE9A8(this);
++                EnBw_SetupWalk(this);  // was func_809CE9A8 [LLM:HIGH]
+                 this->color1.r = this->color1.g = 200;
+                 this->color1.b = 255;
+                 this->unk_224 = 0x258;
+@@ -665,9 +682,9 @@ void func_809D0424(EnBw* this, PlayState* play) {
+                 this->unk_250 = 0.7f;
+                 this->unk_236++;
+             } else if (this->unk_220 != 5) {
+-                EnBw_SetupAction(this, func_809CFF98);
++                EnBw_SetupAction(this, EnBw_FlipBack);  // was func_809CFF98 [LLM:HIGH]
+             } else {
+-                func_809CFF10(this);
++                EnBw_SetupFlipBack(this);  // was func_809CFF10 [LLM:HIGH]
+             }
+         } else {
+             if (func_800355E4(play, &this->collider2.base)) {
+@@ -678,17 +695,18 @@ void func_809D0424(EnBw* this, PlayState* play) {
+                 this->unk_230 = 1;
+             }
+             Item_DropCollectibleRandom(play, &this->actor, &this->actor.world.pos, 0x90);
+-            func_809D00F4(this);
++            EnBw_SetupDie(this);  // was func_809D00F4 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_809D0584(EnBw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809D0584: kills the slug when it falls into a hazard and otherwise turns each AC hit into the matching freeze, stun, flip or death reaction.
++void EnBw_CheckDamage(EnBw* this, PlayState* play) {
+     if ((this->actor.bgCheckFlags & 0x10) && (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+         this->unk_230 = 0;
+         this->actor.scale.y -= 0.009f;
+         Actor_SpawnFloorDustRing(play, &this->actor, &this->actor.world.pos, 30.0f, 11, 4.0f, 0, 0, false);
+-        func_809D00F4(this);
++        EnBw_SetupDie(this);  // was func_809D00F4 [LLM:HIGH]
+     } else {
+         if (this->collider2.base.acFlags & AC_HIT) {
+             this->collider2.base.acFlags &= ~AC_HIT;
+@@ -701,7 +719,7 @@ void func_809D0584(EnBw* this, PlayState* play) {
+                 if (this->unk_23C == 0) {
+                     Actor_ApplyDamage(&this->actor);
+                     Actor_SetColorFilter(&this->actor, 0, 0x78, 0, 0x50);
+-                    func_809D03CC(this);
++                    EnBw_SetupStun(this);  // was func_809D03CC [LLM:HIGH]
+                     this->unk_248 = 0.0f;
+                 }
+                 return;
+@@ -721,13 +739,13 @@ void func_809D0584(EnBw* this, PlayState* play) {
+                         this->unk_230 = 1;
+                     }
+                     Item_DropCollectibleRandom(play, &this->actor, &this->actor.world.pos, 0x90);
+-                    func_809D00F4(this);
++                    EnBw_SetupDie(this);  // was func_809D00F4 [LLM:HIGH]
+                 }
+             } else if ((this->unk_220 != 1) && (this->unk_220 != 6)) {
+                 Audio_PlayActorSound2(&this->actor, NA_SE_EN_BUBLEWALK_DAMAGE);
+                 Actor_SetColorFilter(&this->actor, 0x4000, 0xFF, 0, 8);
+                 if (this->unk_220 != 5) {
+-                    func_809D01CC(this);
++                    EnBw_SetupFreeze(this);  // was func_809D01CC [LLM:HIGH]
+                 }
+                 this->unk_248 = 0.0f;
+             }
+@@ -736,10 +754,10 @@ void func_809D0584(EnBw* this, PlayState* play) {
+             (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+             if (this->unk_220 == 5) {
+                 this->unk_23C = 0;
+-                func_809CFF10(this);
++                EnBw_SetupFlipBack(this);  // was func_809CFF10 [LLM:HIGH]
+             } else if (this->unk_220 != 0) {
+                 this->unk_23C = 0;
+-                func_809CFBA8(this);
++                EnBw_SetupFlipOver(this);  // was func_809CFBA8 [LLM:HIGH]
+             }
+         }
+     }
+@@ -756,7 +774,7 @@ void EnBw_Update(Actor* thisx, PlayState* play2) {
+     Color_RGBA8 sp48 = { 0, 0, 0, 255 };
+     Color_RGBA8 sp44 = { 0, 0, 0, 220 };
+ 
+-    func_809D0584(this, play);
++    EnBw_CheckDamage(this, play);  // was func_809D0584 [LLM:HIGH]
+     if (thisx->colChkInfo.damageEffect != 6) {
+         this->actionFunc(this, play);
+         if (this->unk_23C == 0) {
+-- 
+2.55.0
+

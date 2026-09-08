@@ -13,14 +13,52 @@
 set -e
 cd "$(dirname "$0")"
 
+# A `git am` interrupted midway (Ctrl-C, a closed pipe, a conflict) leaves
+# .git/rebase-apply behind, and the next run dies with the unhelpful "previous
+# rebase directory ... still exists but mbox given". Say what is wrong instead.
+if [ -d Shipwright/.git/rebase-apply ]; then
+    echo "Shipwright/ has an interrupted 'git am' in progress." >&2
+    echo "Finish or discard it first:  git -C Shipwright am --abort" >&2
+    exit 1
+fi
+
 PIN_SHA=$(sed -n 's/^PIN_SHA=//p' fetch.sh)
 if [ "$(git -C Shipwright rev-parse HEAD)" != "$PIN_SHA" ]; then
     echo "Shipwright/ is not at the pristine pin ($PIN_SHA). Run ./fetch.sh first." >&2
     exit 1
 fi
 
+# Stream apply order. Normally irrelevant (streams commute), but a project may
+# pin an order in patches/ORDER when one stream must precede the others -- for
+# Ocarina that is `personal`, whose decomp renames every later stream is written
+# against. Listed streams come first, in file order; the rest follow
+# alphabetically.
+ordered_streams() {
+    local dir=$1 listed=() rest=() name
+    if [ -f "$dir/ORDER" ]; then
+        while read -r name; do
+            name=${name%%#*}                       # strip comments
+            name=$(echo "$name" | tr -d '[:space:]')
+            [ -n "$name" ] || continue
+            if [ -d "$dir/$name" ]; then
+                listed+=("$dir/$name/")
+            else
+                echo "$dir/ORDER names a missing stream: $name" >&2
+                exit 1
+            fi
+        done < "$dir/ORDER"
+    fi
+    for stream in "$dir"/*/; do
+        case " ${listed[*]-} " in
+            *" $stream "*) ;;
+            *) rest+=("$stream") ;;
+        esac
+    done
+    printf '%s\n' ${listed[@]+"${listed[@]}"} ${rest[@]+"${rest[@]}"}
+}
+
 # --- Lane 1: game tree — apply each stream (subfolder), in-folder order ---
-for stream in patches/*/; do
+for stream in $(ordered_streams patches); do
     if ls "$stream"*.patch >/dev/null 2>&1; then
         echo "apply game-tree stream: $stream"
         git -C Shipwright am --3way "$PWD/$stream"*.patch
@@ -36,7 +74,7 @@ if ls patches-libultraship/*/*.patch >/dev/null 2>&1; then
         exit 1
     fi
     git -C "$LUS_DIR" config commit.gpgsign false
-    for stream in patches-libultraship/*/; do
+    for stream in $(ordered_streams patches-libultraship); do
         if ls "$stream"*.patch >/dev/null 2>&1; then
             echo "apply libultraship stream: $stream"
             git -C "$LUS_DIR" am --3way "$PWD/$stream"*.patch

@@ -1,0 +1,173 @@
+From 1cbf39bb239c5ea722e9a7a3ceed22f58ce0b701 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 284/488] soh: name the 6 address-named symbols defined in
+ z_en_part.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_En_Part/z_en_part.c.
+
+  * func_80ACDDE8 -> EnPart_SetupMotion
+    deduced, confidence HIGH: sActionFuncs[0]: gives the piece its
+    randomised yaw, speed, gravity, spin rate and lifetime according to
+    params, then advances to action 1.
+
+  * func_80ACE13C -> EnPart_Move
+    deduced, confidence HIGH: sActionFuncs[1]: the flight state, running the
+    bg check for the grounded variants and spawning the per-params despawn
+    effect when the lifetime expires.
+
+  * func_80ACE5B8 -> EnPart_SetupGroundWave
+    deduced, confidence HIGH: sActionFuncs[2]: a one-frame transition that
+    advances to action 3, the ground-wave state.
+
+  * func_80ACE5C8 -> EnPart_GroundWave
+    deduced, confidence HIGH: sActionFuncs[3]: the travelling shockwave --
+    it damages and knocks back the player within 40 units, throws dust and
+    debris, loops the ground-wave sfx and kills itself on the timer.
+
+  * func_80ACE7E8 -> EnPart_ReturnToParent
+    deduced, confidence HIGH: sActionFuncs[4]: eases a detached body part
+    back onto its parent's position and rotation, ticking the parent's
+    counter and playing the damage sfx when it arrives, and dies if the
+    parent goes away or recovers.
+
+  * func_80ACEAC0 -> EnPart_AllocColorDList
+    deduced, confidence HIGH: allocates a four-command display list holding
+    a prim and an env colour, bound to segments 8, 9 and 0x0A by the draw
+    function.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_En_Part/z_en_part.c   | 38 +++++++++++--------
+ 1 file changed, 22 insertions(+), 16 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Part/z_en_part.c b/soh/src/overlays/actors/ovl_En_Part/z_en_part.c
+index c47a46a21..8756c50ce 100644
+--- a/soh/src/overlays/actors/ovl_En_Part/z_en_part.c
++++ b/soh/src/overlays/actors/ovl_En_Part/z_en_part.c
+@@ -36,7 +36,8 @@ void EnPart_Init(Actor* thisx, PlayState* play) {
+ void EnPart_Destroy(Actor* thisx, PlayState* play) {
+ }
+ 
+-void func_80ACDDE8(EnPart* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80ACDDE8: sActionFuncs[0]: gives the piece its randomised yaw, speed, gravity, spin rate and lifetime according to params, then advances to action 1.
++void EnPart_SetupMotion(EnPart* this, PlayState* play) {
+     f32 sign = 1.0f;
+ 
+     this->action = 1;
+@@ -99,7 +100,8 @@ void func_80ACDDE8(EnPart* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ACE13C(EnPart* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80ACE13C: sActionFuncs[1]: the flight state, running the bg check for the grounded variants and spawning the per-params despawn effect when the lifetime expires.
++void EnPart_Move(EnPart* this, PlayState* play) {
+     s32 i;
+     Vec3f pos;
+     Vec3f velocity = { 0.0f, 0.0f, 0.0f };
+@@ -168,11 +170,13 @@ void func_80ACE13C(EnPart* this, PlayState* play) {
+     this->rotZ += this->rotZSpeed;
+ }
+ 
+-void func_80ACE5B8(EnPart* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80ACE5B8: sActionFuncs[2]: a one-frame transition that advances to action 3, the ground-wave state.
++void EnPart_SetupGroundWave(EnPart* this, PlayState* play) {
+     this->action = 3;
+ }
+ 
+-void func_80ACE5C8(EnPart* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80ACE5C8: sActionFuncs[3]: the travelling shockwave -- it damages and knocks back the player within 40 units, throws dust and debris, loops the ground-wave sfx and kills itself on the timer.
++void EnPart_GroundWave(EnPart* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->timer--;
+@@ -208,7 +212,8 @@ void func_80ACE5C8(EnPart* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ACE7E8(EnPart* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80ACE7E8: sActionFuncs[4]: eases a detached body part back onto its parent's position and rotation, ticking the parent's counter and playing the damage sfx when it arrives, and dies if the parent goes away or recovers.
++void EnPart_ReturnToParent(EnPart* this, PlayState* play) {
+     Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
+ 
+     if ((this->actor.parent == NULL) || (this->actor.parent->update == NULL)) {
+@@ -240,7 +245,7 @@ void func_80ACE7E8(EnPart* this, PlayState* play) {
+ 
+ void EnPart_Update(Actor* thisx, PlayState* play) {
+     static EnPartActionFunc sActionFuncs[] = {
+-        func_80ACDDE8, func_80ACE13C, func_80ACE5B8, func_80ACE5C8, func_80ACE7E8,
++        EnPart_SetupMotion, EnPart_Move, EnPart_SetupGroundWave, EnPart_GroundWave, EnPart_ReturnToParent,  // was func_80ACDDE8 [LLM:HIGH]
+     };
+ 
+     EnPart* this = (EnPart*)thisx;
+@@ -261,7 +266,8 @@ void EnPart_Update(Actor* thisx, PlayState* play) {
+     sActionFuncs[this->action](this, play);
+ }
+ 
+-Gfx* func_80ACEAC0(GraphicsContext* gfxCtx, u8 primR, u8 primG, u8 primB, u8 envR, u8 envG, u8 envB) {
++// LLM generated name (HIGH), was func_80ACEAC0: allocates a four-command display list holding a prim and an env colour, bound to segments 8, 9 and 0x0A by the draw function.
++Gfx* EnPart_AllocColorDList(GraphicsContext* gfxCtx, u8 primR, u8 primG, u8 primB, u8 envR, u8 envG, u8 envB) {
+     Gfx* dList;
+     Gfx* dListHead;
+ 
+@@ -289,17 +295,17 @@ void EnPart_Draw(Actor* thisx, PlayState* play) {
+     func_8002EBCC(thisx, play, 0);
+ 
+     if (thisx->params == 5) {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, func_80ACEAC0(play->state.gfxCtx, 245, 255, 205, 30, 35, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x09, func_80ACEAC0(play->state.gfxCtx, 185, 135, 25, 20, 20, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x0A, func_80ACEAC0(play->state.gfxCtx, 255, 255, 255, 30, 40, 20));
++        gSPSegment(POLY_OPA_DISP++, 0x08, EnPart_AllocColorDList(play->state.gfxCtx, 245, 255, 205, 30, 35, 0));  // was func_80ACEAC0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x09, EnPart_AllocColorDList(play->state.gfxCtx, 185, 135, 25, 20, 20, 0));  // was func_80ACEAC0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x0A, EnPart_AllocColorDList(play->state.gfxCtx, 255, 255, 255, 30, 40, 20));  // was func_80ACEAC0 [LLM:HIGH]
+     } else if (thisx->params == 6) {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, func_80ACEAC0(play->state.gfxCtx, 55, 65, 55, 0, 0, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x09, func_80ACEAC0(play->state.gfxCtx, 205, 165, 75, 25, 20, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x0A, func_80ACEAC0(play->state.gfxCtx, 205, 165, 75, 25, 20, 0));
++        gSPSegment(POLY_OPA_DISP++, 0x08, EnPart_AllocColorDList(play->state.gfxCtx, 55, 65, 55, 0, 0, 0));  // was func_80ACEAC0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x09, EnPart_AllocColorDList(play->state.gfxCtx, 205, 165, 75, 25, 20, 0));  // was func_80ACEAC0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x0A, EnPart_AllocColorDList(play->state.gfxCtx, 205, 165, 75, 25, 20, 0));  // was func_80ACEAC0 [LLM:HIGH]
+     } else if (thisx->params == 7) {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, func_80ACEAC0(play->state.gfxCtx, 255, 255, 255, 180, 180, 180));
+-        gSPSegment(POLY_OPA_DISP++, 0x09, func_80ACEAC0(play->state.gfxCtx, 225, 205, 115, 25, 20, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x0A, func_80ACEAC0(play->state.gfxCtx, 225, 205, 115, 25, 20, 0));
++        gSPSegment(POLY_OPA_DISP++, 0x08, EnPart_AllocColorDList(play->state.gfxCtx, 255, 255, 255, 180, 180, 180));  // was func_80ACEAC0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x09, EnPart_AllocColorDList(play->state.gfxCtx, 225, 205, 115, 25, 20, 0));  // was func_80ACEAC0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x0A, EnPart_AllocColorDList(play->state.gfxCtx, 225, 205, 115, 25, 20, 0));  // was func_80ACEAC0 [LLM:HIGH]
+         // #region SOH [Port] DL references are stored as resource paths so we need to use string comparison to check
+         // for equality. Additionally, we added a fallback for checking the parent actor ID to account for mods the
+         // override the Tektite skelton
+-- 
+2.55.0
+

@@ -1,0 +1,158 @@
+From cf7a13c0b60d70017ea0a231655fc42e7840d963 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:20 +0000
+Subject: [PATCH 256/488] soh: name the 5 address-named symbols defined in
+ z_bg_jya_kanaami.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c.
+
+  * func_80899880 -> BgJyaKanaami_SetupWait
+    deduced, confidence HIGH: installs the waiting action and clears its
+    counter.
+
+  * func_80899894 -> BgJyaKanaami_Wait
+    deduced, confidence HIGH: once the switch flag trips, starts a one-point
+    cutscene and counts ten frames before releasing the grate.
+
+  * func_8089993C -> BgJyaKanaami_SetupSwingDown
+    deduced, confidence HIGH: installs the swing-down action and zeroes its
+    angular-speed accumulator.
+
+  * func_80899950 -> BgJyaKanaami_SwingDown
+    deduced, confidence HIGH: accelerates world.rot.x round to 0x4000, then
+    plays the trap-bound sfx and shakes the camera.
+
+  * func_80899A08 -> BgJyaKanaami_SetLowered
+    deduced, confidence HIGH: the terminal state: pins world.rot.x at 0x4000
+    and clears actionFunc so nothing runs again.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c     | 37 +++++++++++--------
+ 1 file changed, 21 insertions(+), 16 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c b/soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c
+index 0facac9cb..1497f9a05 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Kanaami/z_bg_jya_kanaami.c
+@@ -14,11 +14,16 @@ void BgJyaKanaami_Destroy(Actor* thisx, PlayState* play);
+ void BgJyaKanaami_Update(Actor* thisx, PlayState* play);
+ void BgJyaKanaami_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80899880(BgJyaKanaami* this);
+-void func_80899894(BgJyaKanaami* this, PlayState* play);
+-void func_8089993C(BgJyaKanaami* this);
+-void func_80899950(BgJyaKanaami* this, PlayState* play);
+-void func_80899A08(BgJyaKanaami* this);
++// LLM generated name (HIGH), was func_80899880: installs the waiting action and clears its counter.
++void BgJyaKanaami_SetupWait(BgJyaKanaami* this);  // was func_80899880 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80899894: once the switch flag trips, starts a one-point cutscene and counts ten frames before releasing the grate.
++void BgJyaKanaami_Wait(BgJyaKanaami* this, PlayState* play);  // was func_80899894 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8089993C: installs the swing-down action and zeroes its angular-speed accumulator.
++void BgJyaKanaami_SetupSwingDown(BgJyaKanaami* this);  // was func_8089993C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80899950: accelerates world.rot.x round to 0x4000, then plays the trap-bound sfx and shakes the camera.
++void BgJyaKanaami_SwingDown(BgJyaKanaami* this, PlayState* play);  // was func_80899950 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80899A08: the terminal state: pins world.rot.x at 0x4000 and clears actionFunc so nothing runs again.
++void BgJyaKanaami_SetLowered(BgJyaKanaami* this);  // was func_80899A08 [LLM:HIGH]
+ 
+ const ActorInit Bg_Jya_Kanaami_InitVars = {
+     ACTOR_BG_JYA_KANAAMI,
+@@ -60,9 +65,9 @@ void BgJyaKanaami_Init(Actor* thisx, PlayState* play) {
+     BgJyaKanaami_InitDynaPoly(this, play, &gKanaamiCol, DPM_UNK);
+     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
+     if (Flags_GetSwitch(play, this->dyna.actor.params & 0x3F)) {
+-        func_80899A08(this);
++        BgJyaKanaami_SetLowered(this);  // was func_80899A08 [LLM:HIGH]
+     } else {
+-        func_80899880(this);
++        BgJyaKanaami_SetupWait(this);  // was func_80899880 [LLM:HIGH]
+     }
+     osSyncPrintf("(jya 金網)(arg_data 0x%04x)\n", this->dyna.actor.params);
+ }
+@@ -73,35 +78,35 @@ void BgJyaKanaami_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80899880(BgJyaKanaami* this) {
+-    this->actionFunc = func_80899894;
++void BgJyaKanaami_SetupWait(BgJyaKanaami* this) {
++    this->actionFunc = BgJyaKanaami_Wait;  // was func_80899894 [LLM:HIGH]
+     this->unk_16A = 0;
+ }
+ 
+-void func_80899894(BgJyaKanaami* this, PlayState* play) {
++void BgJyaKanaami_Wait(BgJyaKanaami* this, PlayState* play) {
+     if (Flags_GetSwitch(play, this->dyna.actor.params & 0x3F) || this->unk_16A > 0) {
+         if (this->dyna.actor.world.pos.x > -1000.0f && this->unk_16A == 0) {
+             OnePointCutscene_Init(play, 3450, -99, &this->dyna.actor, CAM_ID_MAIN);
+         }
+         this->unk_16A += 1;
+         if (this->unk_16A >= 0xA) {
+-            func_8089993C(this);
++            BgJyaKanaami_SetupSwingDown(this);  // was func_8089993C [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_8089993C(BgJyaKanaami* this) {
+-    this->actionFunc = func_80899950;
++void BgJyaKanaami_SetupSwingDown(BgJyaKanaami* this) {
++    this->actionFunc = BgJyaKanaami_SwingDown;  // was func_80899950 [LLM:HIGH]
+     this->unk_168 = 0;
+ }
+ 
+-void func_80899950(BgJyaKanaami* this, PlayState* play) {
++void BgJyaKanaami_SwingDown(BgJyaKanaami* this, PlayState* play) {
+     s32 pad[2];
+     s32 quakeId;
+ 
+     this->unk_168 += 0x20;
+     if (Math_ScaledStepToS(&this->dyna.actor.world.rot.x, 0x4000, this->unk_168)) {
+-        func_80899A08(this);
++        BgJyaKanaami_SetLowered(this);  // was func_80899A08 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_TRAP_BOUND);
+         quakeId = Quake_Add(GET_ACTIVE_CAM(play), 3);
+         Quake_SetSpeed(quakeId, 25000);
+@@ -110,7 +115,7 @@ void func_80899950(BgJyaKanaami* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80899A08(BgJyaKanaami* this) {
++void BgJyaKanaami_SetLowered(BgJyaKanaami* this) {
+     this->actionFunc = 0;
+     this->dyna.actor.world.rot.x = 0x4000;
+ }
+-- 
+2.55.0
+

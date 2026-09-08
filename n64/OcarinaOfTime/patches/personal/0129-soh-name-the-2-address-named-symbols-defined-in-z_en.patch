@@ -1,0 +1,106 @@
+From 963701313bf365814d6f141d64c97969e895ef10 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:09 +0000
+Subject: [PATCH 129/488] soh: name the 2 address-named symbols defined in
+ z_en_hs2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Hs2/z_en_hs2.c.
+
+  * func_80A6F164 -> EnHs2_Talking
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_80A6F1A4 -> EnHs2_Idle
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.97
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Hs2/z_en_hs2.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Hs2/z_en_hs2.c b/soh/src/overlays/actors/ovl_En_Hs2/z_en_hs2.c
+index e1a3fab88..533e6fdaf 100644
+--- a/soh/src/overlays/actors/ovl_En_Hs2/z_en_hs2.c
++++ b/soh/src/overlays/actors/ovl_En_Hs2/z_en_hs2.c
+@@ -14,7 +14,8 @@ void EnHs2_Init(Actor* thisx, PlayState* play);
+ void EnHs2_Destroy(Actor* thisx, PlayState* play);
+ void EnHs2_Update(Actor* thisx, PlayState* play);
+ void EnHs2_Draw(Actor* thisx, PlayState* play);
+-void func_80A6F1A4(EnHs2* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A6F1A4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.97. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Hs2/z_en_hs2.c]
++void EnHs2_Idle(EnHs2* this, PlayState* play);
+ 
+ const ActorInit En_Hs2_InitVars = {
+     ACTOR_EN_HS2,
+@@ -62,7 +63,7 @@ void EnHs2_Init(Actor* thisx, PlayState* play) {
+     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
+     Actor_SetScale(&this->actor, 0.01f);
+     osSyncPrintf(VT_FGCOL(CYAN) " ヒヨコの店(子人の時) \n" VT_RST);
+-    this->actionFunc = func_80A6F1A4;
++    this->actionFunc = EnHs2_Idle;
+     this->unk_2A8 = 0;
+     this->actor.targetMode = 6;
+ }
+@@ -89,14 +90,15 @@ s32 EnHs2_Interact(EnHs2* this, PlayState* play, u16 textId, EnHs2ActionFunc act
+     return 0;
+ }
+ 
+-void func_80A6F164(EnHs2* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A6F164): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Hs2/z_en_hs2.c]
++void EnHs2_Talking(EnHs2* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+-        this->actionFunc = func_80A6F1A4;
++        this->actionFunc = EnHs2_Idle;
+     }
+     this->unk_2A8 |= 0x1;
+ }
+ 
+-void func_80A6F1A4(EnHs2* this, PlayState* play) {
++void EnHs2_Idle(EnHs2* this, PlayState* play) {
+     u16 textId;
+ 
+     textId = Text_GetFaceReaction(play, 9);
+@@ -104,7 +106,7 @@ void func_80A6F1A4(EnHs2* this, PlayState* play) {
+         textId = 0x5069;
+     }
+ 
+-    EnHs2_Interact(this, play, textId, func_80A6F164);
++    EnHs2_Interact(this, play, textId, EnHs2_Talking);
+ }
+ 
+ void EnHs2_Update(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

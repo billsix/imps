@@ -90,12 +90,37 @@ the series, the podman AppImage build — is in `n64/CLAUDE.md`).
 - `.gitignore` — the upstream checkout, `build-cmake/`, `bldInstall/`, and
   `runDir/` are all untracked.
 
-## Patch philosophy — upstream first, personal second
+**`runDir/` IS SACRED — never delete or rewrite it** (William Emerison Six
+<billsix@gmail.com>, 2026-09-07). It holds irreplaceable personal state: save
+files (`runDir/Save/`), the extracted `.o2r` (regenerable only from the
+maintainer's own ROM), controller/graphics config, and installed texture-pack
+mods under `runDir/mods/`. **Reworking patches must never touch it.** This is
+structurally safe today and must stay that way:
 
-(William Emerison Six <billsix@gmail.com>, 2026-09-01.) The project has
-two goals, ranked:
+- `runDir/` is a **sibling** of the upstream checkout, not inside it, so every
+  `git` operation on the checkout (`reset --hard`, `clean -fd`, `am`, `mv`)
+  cannot reach it by construction. Keep it that way — never place it inside the
+  checkout.
+- `fetch.sh`, `apply.sh` and `build.sh` never mention `runDir`; only `run.sh`
+  touches it, and only via `mkdir -p`.
+- The Makefile's `clean` removes `build-cmake/`, `_packages/` and `out/` — **not
+  `runDir/`**. A `clean` target that deletes `runDir` would be a bug.
 
-1. **Upstreaming is the ultimate goal.** If a change is something
+When rewriting a patch series, work only inside the checkout, and scope any
+`git clean` to the source subtree (e.g. `git clean -fd soh`) rather than the
+whole tree.
+
+## Patch philosophy — must keep working; upstream where it can
+
+(William Emerison Six <billsix@gmail.com>, 2026-09-01; reframed 2026-09-07.)
+Two goals, and the ranking matters:
+
+0. **The patches must keep working for the maintainer over time, across
+   machines, as he pulls from upstream.** This is the primary goal and the
+   reason imps exists — see the paragraphs below. Upstreaming is the ideal
+   outcome and has proven hard in practice, so it is the aspiration, not the
+   mechanism.
+1. **Shape for upstreaming anyway, where the change plausibly fits.** If a change is something
    upstream would plausibly accept — a bug fix, a portability fix, a doc
    correction — shape it as a **standalone, submission-ready patch**:
    its own commit, a commit message written for an upstream reviewer
@@ -109,6 +134,48 @@ two goals, ranked:
    the same series and **replayed onto newer upstream pins as time
    progresses** — that replay (the pin-bump operation below) is a core
    workflow, not an afterthought.
+
+**What imps actually buys, and must keep buying:**
+
+- **Repeatability across computers.** A pin + a patch series reproduces the
+  same tree anywhere, with no per-project git branches to keep in sync between
+  machines. That is the thing forks were failing to provide.
+- **Survivable pin bumps.** The patches are replayed onto newer upstream
+  commits as a routine operation; a patch's long-term rebase cost is a design
+  consideration when writing it (prefer the port's event/enhancement layers over
+  editing decomp internals).
+- **No fork maintenance.** No branches, no merges, no divergence to reconcile —
+  just a SHA and a folder of patches.
+- **Coordination cost is real and deliberate to avoid.** Patching libultraship
+  and its downstream consumers would mean keeping several projects in step; the
+  patch-carrier design is what keeps that tractable rather than a standing
+  obligation.
+
+So when a choice arises between "shaped for upstream" and "survives the next
+pin bump cleanly", both matter — but a patch that no longer applies has failed
+at its primary job.
+
+**That invariant is gated** (2026-09-07). `tools/check_patches_apply.sh` resets
+every project to its pin and runs the project's own `apply.sh` — the real path,
+including stream order, both lanes, and the pin guard — then reports the commit
+count per lane:
+
+```sh
+tools/check_patches_apply.sh                 # every project
+tools/check_patches_apply.sh OcarinaOfTime   # just one
+```
+
+A companion at the same level, **not** a gate: `tools/squash_series.py` regroups
+a series that was produced one-change-per-commit into the units a human would
+review, without losing the per-commit reasoning. Run deliberately, once, when a
+series is finished; the method (and its traps) is
+`tasks/reference/imps/squashing-a-produced-series-for-review.md`.
+
+Run it after a pin bump, after reshaping a series, and when picking the repo up
+after a gap. A failure IS the pin-bump conflict surfacing early, which is the
+point. It leaves each checkout on the fully-applied series — the documented
+default working state — so it doubles as "put everything back in a known-good
+state". It never touches `runDir/` (a sibling of the checkout; see above).
 
 Lifecycle consequence: an upstreamable patch is temporary — once merged
 upstream, it retires at the next pin bump (the bump's `git am` will show

@@ -1,0 +1,148 @@
+From 2507dcaa218fe18c4a1e1cfb1f4afe295e583837 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:21 +0000
+Subject: [PATCH 269/488] soh: name the 4 address-named symbols defined in
+ z_en_guest.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Guest/z_en_guest.c.
+
+  * func_80A5046C -> EnGuest_Blink
+    deduced, confidence HIGH: runs the eye state through its three frames on
+    a randomised 20-80 frame cycle, the standard NPC blink shape.
+
+  * func_80A50518 -> EnGuest_WaitForTalk
+    deduced, confidence HIGH: offers talk inside 100 units and switches to
+    the conversation state when the player accepts.
+
+  * func_80A5057C -> EnGuest_Talk
+    deduced, confidence HIGH: holds until the textbox is finished and the
+    player advances it, then returns to the waiting state.
+
+  * func_80A50708 -> EnGuest_AllocEnvColorDList
+    deduced, confidence HIGH: allocates a two-instruction display list
+    holding a gDPSetEnvColor and an end marker, bound to segments 8 and 9 by
+    the draw function.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_En_Guest/z_en_guest.c | 28 +++++++++++--------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Guest/z_en_guest.c b/soh/src/overlays/actors/ovl_En_Guest/z_en_guest.c
+index 7ee501ace..8f0ff481b 100644
+--- a/soh/src/overlays/actors/ovl_En_Guest/z_en_guest.c
++++ b/soh/src/overlays/actors/ovl_En_Guest/z_en_guest.c
+@@ -17,8 +17,10 @@ void EnGuest_Destroy(Actor* thisx, PlayState* play);
+ void EnGuest_Update(Actor* thisx, PlayState* play);
+ void EnGuest_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A50518(EnGuest* this, PlayState* play);
+-void func_80A5057C(EnGuest* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A50518: offers talk inside 100 units and switches to the conversation state when the player accepts.
++void EnGuest_WaitForTalk(EnGuest* this, PlayState* play);  // was func_80A50518 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A5057C: holds until the textbox is finished and the player advances it, then returns to the waiting state.
++void EnGuest_Talk(EnGuest* this, PlayState* play);  // was func_80A5057C [LLM:HIGH]
+ void func_80A505CC(Actor* thisx, PlayState* play);
+ 
+ const ActorInit En_Guest_InitVars = {
+@@ -100,11 +102,12 @@ void EnGuest_Update(Actor* thisx, PlayState* play) {
+         this->unk_30D = 0;
+         this->unk_2CA = 0;
+         this->actor.textId = 0x700D;
+-        this->actionFunc = func_80A50518;
++        this->actionFunc = EnGuest_WaitForTalk;  // was func_80A50518 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A5046C(EnGuest* this) {
++// LLM generated name (HIGH), was func_80A5046C: runs the eye state through its three frames on a randomised 20-80 frame cycle, the standard NPC blink shape.
++void EnGuest_Blink(EnGuest* this) {
+     if (this->unk_30D == 0) {
+         if (this->unk_2CA != 0) {
+             this->unk_2CA--;
+@@ -127,17 +130,17 @@ void func_80A5046C(EnGuest* this) {
+     }
+ }
+ 
+-void func_80A50518(EnGuest* this, PlayState* play) {
++void EnGuest_WaitForTalk(EnGuest* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+-        this->actionFunc = func_80A5057C;
++        this->actionFunc = EnGuest_Talk;  // was func_80A5057C [LLM:HIGH]
+     } else if (this->actor.xzDistToPlayer < 100.0f) {
+         Actor_OfferTalk(&this->actor, play, 100.0f);
+     }
+ }
+ 
+-void func_80A5057C(EnGuest* this, PlayState* play) {
++void EnGuest_Talk(EnGuest* this, PlayState* play) {
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_DONE) && Message_ShouldAdvance(play)) {
+-        this->actionFunc = func_80A50518;
++        this->actionFunc = EnGuest_WaitForTalk;  // was func_80A50518 [LLM:HIGH]
+     }
+ }
+ 
+@@ -149,7 +152,7 @@ void func_80A505CC(Actor* thisx, PlayState* play) {
+     player = GET_PLAYER(play);
+     this->unk_2C8++;
+ 
+-    func_80A5046C(this);
++    EnGuest_Blink(this);  // was func_80A5046C [LLM:HIGH]
+     this->actionFunc(this, play);
+ 
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -171,7 +174,8 @@ void func_80A505CC(Actor* thisx, PlayState* play) {
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+ }
+ 
+-Gfx* func_80A50708(GraphicsContext* gfxCtx, u8 r, u8 g, u8 b, u8 a) {
++// LLM generated name (HIGH), was func_80A50708: allocates a two-instruction display list holding a gDPSetEnvColor and an end marker, bound to segments 8 and 9 by the draw function.
++Gfx* EnGuest_AllocEnvColorDList(GraphicsContext* gfxCtx, u8 r, u8 g, u8 b, u8 a) {
+     Gfx* dlist;
+ 
+     dlist = Graph_Alloc(gfxCtx, 2 * sizeof(Gfx));
+@@ -225,8 +229,8 @@ void EnGuest_Draw(Actor* thisx, PlayState* play) {
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+ 
+-    gSPSegment(POLY_OPA_DISP++, 0x08, func_80A50708(play->state.gfxCtx, 255, 255, 255, 255));
+-    gSPSegment(POLY_OPA_DISP++, 0x09, func_80A50708(play->state.gfxCtx, 160, 60, 220, 255));
++    gSPSegment(POLY_OPA_DISP++, 0x08, EnGuest_AllocEnvColorDList(play->state.gfxCtx, 255, 255, 255, 255));  // was func_80A50708 [LLM:HIGH]
++    gSPSegment(POLY_OPA_DISP++, 0x09, EnGuest_AllocEnvColorDList(play->state.gfxCtx, 160, 60, 220, 255));  // was func_80A50708 [LLM:HIGH]
+     gSPSegment(POLY_OPA_DISP++, 0x0A, SEGMENTED_TO_VIRTUAL(D_80A50BA4[this->unk_30E]));
+ 
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnGuest_OverrideLimbDraw, NULL, this);
+-- 
+2.55.0
+

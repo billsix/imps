@@ -1,0 +1,112 @@
+From 383bad1ace723a49f5e49af8cb93ff91b479d1b6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:05 +0000
+Subject: [PATCH 094/488] soh: name the 2 address-named symbols defined in
+ z_en_nutsball.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c.
+
+  * func_80ABBB34 -> EnNutsball_WaitForObject
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80ABBBA8 -> EnNutsball_Projectile
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.95
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Nutsball/z_en_nutsball.c       | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c b/soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c
+index 581487b25..7cb890d81 100644
+--- a/soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c
++++ b/soh/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c
+@@ -20,8 +20,10 @@ void EnNutsball_Destroy(Actor* thisx, PlayState* play);
+ void EnNutsball_Update(Actor* thisx, PlayState* play);
+ void EnNutsball_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80ABBB34(EnNutsball* this, PlayState* play);
+-void func_80ABBBA8(EnNutsball* this, PlayState* play);
++// Name from zeldaret/oot (was func_80ABBB34): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c]
++void EnNutsball_WaitForObject(EnNutsball* this, PlayState* play);
++// Name from zeldaret/oot (was func_80ABBBA8): adopted upstream's name for this address; body verified to match upstream at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Nutsball/z_en_nutsball.c]
++void EnNutsball_Projectile(EnNutsball* this, PlayState* play);
+ 
+ const ActorInit En_Nutsball_InitVars = {
+     ACTOR_EN_NUTSBALL,
+@@ -84,7 +86,7 @@ void EnNutsball_Init(Actor* thisx, PlayState* play) {
+     if (this->objBankIndex < 0) {
+         Actor_Kill(&this->actor);
+     } else {
+-        this->actionFunc = func_80ABBB34;
++        this->actionFunc = EnNutsball_WaitForObject;
+     }
+ }
+ 
+@@ -94,18 +96,18 @@ void EnNutsball_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80ABBB34(EnNutsball* this, PlayState* play) {
++void EnNutsball_WaitForObject(EnNutsball* this, PlayState* play) {
+     if (Object_IsLoaded(&play->objectCtx, this->objBankIndex)) {
+         this->actor.objBankIndex = this->objBankIndex;
+         this->actor.draw = EnNutsball_Draw;
+         this->actor.shape.rot.y = 0;
+         this->timer = 30;
+-        this->actionFunc = func_80ABBBA8;
++        this->actionFunc = EnNutsball_Projectile;
+         this->actor.speedXZ = 10.0f;
+     }
+ }
+ 
+-void func_80ABBBA8(EnNutsball* this, PlayState* play) {
++void EnNutsball_Projectile(EnNutsball* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     Vec3s sp4C;
+     Vec3f sp40;
+@@ -159,7 +161,7 @@ void EnNutsball_Update(Actor* thisx, PlayState* play) {
+ 
+     if (!(player->stateFlags1 &
+           (PLAYER_STATE1_TALKING | PLAYER_STATE1_DEAD | PLAYER_STATE1_IN_ITEM_CS | PLAYER_STATE1_IN_CUTSCENE)) ||
+-        (this->actionFunc == func_80ABBB34)) {
++        (this->actionFunc == EnNutsball_WaitForObject)) {
+         this->actionFunc(this, play);
+ 
+         Actor_MoveXZGravity(&this->actor);
+-- 
+2.55.0
+

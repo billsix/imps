@@ -1,0 +1,1859 @@
+From 6db302614f422c1fc45b1c5498c0615d6f2b034e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 378/488] soh: name the 44 address-named symbols defined in
+ audio_general.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 44 are defined in soh/src/code/audio_general.c; updating their references touches 43 files in total.
+
+  * func_800F3138 -> Audio_Noop1
+    deduced, confidence GUESS: empty one-argument function; nothing in the
+    tree records what it was for
+
+  * func_800F3140 -> Audio_Noop2
+    deduced, confidence GUESS: empty two-argument function; nothing in the
+    tree records what it was for
+
+  * func_800F314C -> Audio_SetMainBgmIoPort
+    deduced, confidence GUESS: queues an 0x82 command on the main BGM player
+    with the argument in the port byte and a value of 1; the port's meaning
+    is not established
+
+  * func_800F37B8 -> Audio_ComputeSoundFilter
+    deduced, confidence HIGH: returns the low-pass filter index for a
+    surround-mode sound from its Z depth and pan, in the style of the
+    neighbouring Audio_ComputeSound* helpers
+
+  * func_800F3990 -> Audio_ComputeSoundHeightParam
+    deduced, confidence GUESS: maps a sound's Y position onto 0-127 with the
+    low bit forced, and the result goes out as a per-channel parameter in
+    surround mode; what the receiving channel does with it is not
+    established
+
+  * func_800F3F84 -> Audio_SetSfxScalesFromSpeed
+    deduced, confidence HIGH: turns a speed into the shared frequency and
+    volume scales, saturating above 6
+
+  * func_800F4010 -> Audio_PlayWalkSfx
+    deduced, confidence GUESS: scales the sfx by the speed and may add a
+    second randomised sound; its only caller passes the player's
+    floorSfxOffset from the camera, so the walking reading comes from that
+    caller rather than from the body
+
+  * func_800F4138 -> Audio_PlaySfxWithSpeedScales
+    deduced, confidence HIGH: plays a sound with the frequency and volume
+    scales derived from the caller's speed
+
+  * func_800F4190 -> Audio_PlaySfxWithFixedScales
+    deduced, confidence HIGH: plays a sound with the file's constant
+    frequency scale and reverb
+
+  * func_800F436C -> Audio_PlaySfxScaledByRate
+    deduced, confidence HIGH: scales the volume by a machine's motion rate,
+    compressing it below 0.75 and skipping the sound entirely below 0.5
+
+  * func_800F4414 -> Audio_PlaySfxAtInterval
+    deduced, confidence HIGH: fires the sound on a countdown whose period
+    shortens as the caller's rate rises
+
+  * func_800F44EC -> Audio_SetSfxIntervalRange
+    deduced, confidence HIGH: arms that countdown and stores the two bounds
+    its period is computed from
+
+  * func_800F4524 -> Audio_PlaySfxWithReverb
+    deduced, confidence HIGH: plays a sound with a caller-supplied reverb
+    and default scales
+
+  * func_800F4578 -> Audio_PlaySfxWithVolume
+    deduced, confidence HIGH: plays a sound with a caller-supplied volume
+    scale and default frequency and reverb
+
+  * func_800F45D0 -> Audio_PlayFishingReelSfx
+    deduced, confidence HIGH: drives NA_SE_IT_FISHING_REEL_SLOW on the
+    interval timer with a rate-scaled companion sound
+
+  * func_800F4C58 -> Audio_SetSfxIoForActiveSfxId
+    deduced, confidence HIGH: sends channel io value 6 to every SFX channel
+    currently playing the given sfx id
+
+  * func_800F4E30 -> Audio_PanBgmToNearestSource
+    deduced, confidence HIGH: keeps the nearest positional BGM source and
+    pans and attenuates every main BGM channel by its X and distance
+
+  * func_800F5ACC -> Audio_PlayMiniBossBgm
+    deduced, confidence HIGH: stacks the current main BGM and starts the
+    caller's sequence; its own printf calls this the middle boss BGM
+
+  * func_800F5BF0 -> Audio_PlayNatureAmbienceWithRestore
+    deduced, confidence HIGH: stacks the current main BGM before starting a
+    nature ambience sequence
+
+  * func_800F64E0 -> Audio_SetPauseState
+    deduced, confidence HIGH: records the pause flag and plays the window
+    open or close sound; kaleido passes 1 on opening and 0 on closing
+
+  * func_800F6964 -> Audio_FadeOutAllPlayers
+    deduced, confidence HIGH: fades the main BGM, the fanfare player and
+    every channel over the caller's duration
+
+  * func_800F6B3C -> Audio_StartSfxSequence
+    deduced, confidence HIGH: starts sequence 0 on the SFX player
+
+  * func_800F6BB8 -> Audio_GetActiveNoteCount
+    deduced, confidence HIGH: forwards AudioThread_GetActiveNoteCount
+
+  * func_800F6BDC -> Audio_StopAllSeqAndWait
+    deduced, confidence HIGH: disables every sequence and spins until no
+    notes are left playing
+
+  * func_800F7170 -> Audio_RestartAudio
+    deduced, confidence GUESS: restarts the SFX sequence and pushes the mute
+    and reset commands through; whether this belongs to a spec change or
+    another reset path is not established
+
+  * func_800F71BC -> Audio_ResetForSpecChange
+    deduced, confidence HIGH: the reset audio_seq.c runs when the audio spec
+    changes: resets the data, ocarina staffs, channel state, sequences and
+    sounds
+
+  * func_800F7208 -> Audio_ResetSequencesAndSfx
+    deduced, confidence HIGH: resets the active sequences and channel state
+    and restarts the SFX player
+
+  * D_801305B0 -> sFixedFreqScale
+    deduced, confidence HIGH: the constant frequency scale
+    Audio_PlaySfxWithFixedScales passes
+
+  * D_801305B4 -> sFixedReverb
+    deduced, confidence HIGH: the constant reverb that goes with it
+
+  * D_801305B8 -> sSfxIntervalCounter
+    deduced, confidence HIGH: the countdown Audio_PlaySfxAtInterval fires on
+
+  * D_801305BC -> sSfxIntervalLimit
+    deduced, confidence HIGH: subtracted from the base in that period
+    formula, so the fastest period is base minus this
+
+  * D_801305C0 -> sSfxIntervalBase
+    deduced, confidence HIGH: the period at full rate, and the constant the
+    rate-scaled part is added to
+
+  * D_80130608 -> sAudioPaused
+    deduced, confidence HIGH: set while the pause menu is open, and read to
+    hold off the river-sound BGM restore
+
+  * D_80130650 -> sNearestBgmSourceDist
+    deduced, confidence HIGH: the distance of the source
+    Audio_PanBgmToNearestSource is currently following
+
+  * D_8016B7A8 -> sSpeedVolScale
+    deduced, confidence HIGH: the volume scale Audio_SetSfxScalesFromSpeed
+    writes, 0.775 to 1.0
+
+  * D_8016B7AC -> sSecondSfxVolScale
+    deduced, confidence HIGH: the volume scale for the second sound
+    Audio_PlayWalkSfx may add
+
+  * D_8016B7B0 -> sSpeedFreqScale
+    deduced, confidence HIGH: the frequency scale
+    Audio_SetSfxScalesFromSpeed writes, 0.9 to 1.1
+
+  * D_8016B7B4 -> sUnusedScale
+    deduced, confidence GUESS: an f32 declared beside the other scale
+    variables that nothing in the tree reads or writes
+
+  * D_8016B7D8 -> sRateVolScale
+    deduced, confidence HIGH: the rate-derived volume
+    Audio_PlaySfxScaledByRate and Audio_PlaySfxAtInterval pass
+
+  * D_8016B7DC -> sSfxReverbArg
+    deduced, confidence HIGH: holds the caller's reverb for the duration of
+    Audio_PlaySfxWithReverb
+
+  * D_8016B7E0 -> sSfxVolArg
+    deduced, confidence HIGH: holds the caller's volume for the duration of
+    Audio_PlaySfxWithVolume
+
+  * D_8016B9F3 -> sSariaBgmSkipFrames
+    deduced, confidence HIGH: set to 1 by the audio reset so the first
+    Audio_PlaySariaBgm call after it is skipped
+
+  * func_800F5C2C -> Audio_RestoreStackedBgm
+    deduced, confidence HIGH: restarts the stacked main BGM and clears the
+    stack; named RestoreStacked because Audio_RestorePrevBgm is already
+    taken
+
+  * D_8016B7E4 -> sUnusedAudioDebugValue
+    deduced, confidence GUESS: a u16 already commented as debug-only that
+    nothing in the tree reads or writes; z_debug.c already owns the plain
+    sUnusedDebugValue
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  38 +--
+ soh/soh/Enhancements/QoL/BetterSaveMenu.cpp   |   4 +-
+ soh/soh/Enhancements/QoL/PauseWarp.cpp        |   2 +-
+ soh/soh/Enhancements/audio/AudioEditor.cpp    |   4 +-
+ soh/src/code/audio_general.c                  | 266 ++++++++++--------
+ soh/src/code/audio_seq.c                      |   6 +-
+ soh/src/code/z_actor.c                        |   2 +-
+ soh/src/code/z_camera.c                       |   2 +-
+ soh/src/code/z_kaleido_setup.c                |   2 +-
+ soh/src/code/z_parameter.c                    |   4 +-
+ soh/src/code/z_play.c                         |   2 +-
+ .../ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c   |   2 +-
+ .../overlays/actors/ovl_Bg_Haka/z_bg_haka.c   |   2 +-
+ .../ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c |   2 +-
+ .../ovl_Bg_Relay_Objects/z_bg_relay_objects.c |   2 +-
+ .../ovl_Bg_Spot01_Fusya/z_bg_spot01_fusya.c   |   2 +-
+ .../ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c |   4 +-
+ .../overlays/actors/ovl_Boss_Va/z_boss_va.c   |  12 +-
+ .../actors/ovl_En_Bigokuta/z_en_bigokuta.c    |   4 +-
+ soh/src/overlays/actors/ovl_En_Dh/z_en_dh.c   |   2 +-
+ .../ovl_En_Diving_Game/z_en_diving_game.c     |   2 +-
+ .../actors/ovl_En_Dnt_Demo/z_en_dnt_demo.c    |   2 +-
+ soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c |   2 +-
+ soh/src/overlays/actors/ovl_En_Fd/z_en_fd.c   |   2 +-
+ .../overlays/actors/ovl_En_GeldB/z_en_geldb.c |   2 +-
+ soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c |  12 +-
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c   |   4 +-
+ soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c |  14 +-
+ .../ovl_En_Po_Sisters/z_en_po_sisters.c       |   4 +-
+ .../ovl_En_River_Sound/z_en_river_sound.c     |   2 +-
+ .../actors/ovl_En_Siofuki/z_en_siofuki.c      |   4 +-
+ soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c |   6 +-
+ soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c   |   2 +-
+ .../overlays/actors/ovl_En_Test/z_en_test.c   |   2 +-
+ .../actors/ovl_En_Torch2/z_en_torch2.c        |   8 +-
+ soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c   |   2 +-
+ soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c   |   2 +-
+ soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c   |   2 +-
+ .../overlays/actors/ovl_Fishing/z_fishing.c   |   4 +-
+ .../ovl_Object_Kankyo/z_object_kankyo.c       |   4 +-
+ .../actors/ovl_player_actor/z_player.c        |  12 +-
+ .../ovl_file_choose/z_file_choose.c           |   2 +-
+ .../ovl_kaleido_scope/z_kaleido_scope_PAL.c   |  14 +-
+ 43 files changed, 259 insertions(+), 215 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index f94b3e94d..6fce40420 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2071,17 +2071,17 @@ void AudioDebug_ScrPrt(const s8* str, u16 num);
+ void Audio_Update(void);
+ void Audio_SetSfxProperties(u8 bankId, u8 entryIdx, u8 channelIdx);
+ void Audio_PlayCutsceneEffectsSequence(u8);  // was func_800F3F3C [oot]
+-void func_800F4010(Vec3f* pos, u16 sfxId, f32);
++void Audio_PlayWalkSfx(Vec3f* pos, u16 sfxId, f32);  // was func_800F4010 [LLM:GUESS]
+ void Audio_PlaySoundRandom(Vec3f* pos, u16 baseSfxId, u8 randLim);
+-void func_800F4138(Vec3f* pos, u16 sfxId, f32);
+-void func_800F4190(Vec3f* pos, u16 sfxId);
+-void func_800F436C(Vec3f* pos, u16 sfxId, f32 arg2);
+-void func_800F4414(Vec3f* pos, u16 sfxId, f32);
+-void func_800F44EC(s8 arg0, s8 arg1);
+-void func_800F4524(Vec3f* pos, u16 sfxId, s8 arg2);
++void Audio_PlaySfxWithSpeedScales(Vec3f* pos, u16 sfxId, f32);  // was func_800F4138 [LLM:HIGH]
++void Audio_PlaySfxWithFixedScales(Vec3f* pos, u16 sfxId);  // was func_800F4190 [LLM:HIGH]
++void Audio_PlaySfxScaledByRate(Vec3f* pos, u16 sfxId, f32 arg2);  // was func_800F436C [LLM:HIGH]
++void Audio_PlaySfxAtInterval(Vec3f* pos, u16 sfxId, f32);  // was func_800F4414 [LLM:HIGH]
++void Audio_SetSfxIntervalRange(s8 arg0, s8 arg1);  // was func_800F44EC [LLM:HIGH]
++void Audio_PlaySfxWithReverb(Vec3f* pos, u16 sfxId, s8 arg2);  // was func_800F4524 [LLM:HIGH]
+ void Audio_PlaySwordChargeSfx(Vec3f* pos, u8 arg1);  // was func_800F4254 [oot]
+-void func_800F436C(Vec3f*, u16 sfxId, f32 arg2);
+-void func_800F4414(Vec3f*, u16 sfxId, f32 arg2);
++void Audio_PlaySfxScaledByRate(Vec3f*, u16 sfxId, f32 arg2);  // was func_800F436C [LLM:HIGH]
++void Audio_PlaySfxAtInterval(Vec3f*, u16 sfxId, f32 arg2);  // was func_800F4414 [LLM:HIGH]
+ void Audio_PlaySoundRiver(Vec3f* pos, f32 freqScale);
+ void Audio_PlaySoundWaterfall(Vec3f* pos, f32 freqScale);
+ void Audio_SetBgmVolumeOffDuringFanfare(void);
+@@ -2092,8 +2092,8 @@ void Audio_LowerMainBgmVolume(u8);  // was func_800F4A54 [oot]
+ void Audio_PlaySoundIncreasinglyTransposed(Vec3f* pos, s16 sfxId, u8* semitones);
+ void Audio_ResetIncreasingTranspose(void);
+ void Audio_PlaySoundTransposed(Vec3f* pos, u16 sfxId, s8 semitone);
+-void func_800F4C58(Vec3f* pos, u16 sfxId, u8);
+-void func_800F4E30(Vec3f* pos, f32);
++void Audio_SetSfxIoForActiveSfxId(Vec3f* pos, u16 sfxId, u8);  // was func_800F4C58 [LLM:HIGH]
++void Audio_PanBgmToNearestSource(Vec3f* pos, f32);  // was func_800F4E30 [LLM:HIGH]
+ void Audio_ClearSariaBgm(void);
+ void Audio_ClearSariaBgmAtPos(Vec3f* pos);
+ void Audio_PlaySariaBgm(Vec3f* pos, u16 seqId, u16 distMax);
+@@ -2106,18 +2106,18 @@ void Audio_SetFastTempoForTimedMinigame(void);
+ void Audio_PlaySequenceInCutscene(u16);
+ void Audio_StopSequenceInCutscene(u16);
+ s32 Audio_IsSequencePlaying(u8);
+-void func_800F5ACC(u16 seqId);
++void Audio_PlayMiniBossBgm(u16 seqId);  // was func_800F5ACC [LLM:HIGH]
+ void PreviewSequence(u16 seqId);
+ void Audio_RestorePrevBgm(void);  // was func_800F5B58 [LLM:HIGH]
+-void func_800F5BF0(u8 natureAmbienceId);
++void Audio_PlayNatureAmbienceWithRestore(u8 natureAmbienceId);  // was func_800F5BF0 [LLM:HIGH]
+ void Audio_PlayFanfare(u16);
+ void Audio_PlayFanfare_Rando(GetItemEntry getItem);
+-void func_800F5C2C(void);
++void Audio_RestoreStackedBgm(void);  // was func_800F5C2C [LLM:HIGH]
+ void Audio_PlaySequenceWithSeqPlayerIO(u8 playerIdx, u16 seqId, u8 fadeTimer, s8 arg3, s8 arg4);
+ void Audio_SetSequenceMode(u8 seqMode);
+ void Audio_SetBgmEnemyVolume(f32 dist);
+ void Audio_UpdateMalonSinging(f32 dist, u16);
+-void func_800F64E0(u8 arg0);
++void Audio_SetPauseState(u8 arg0);  // was func_800F64E0 [LLM:HIGH]
+ void Audio_ToggleMalonSinging(u8 arg0);
+ void Audio_SetEnvReverb(s8 reverb);
+ void Audio_SetCodeReverb(s8 reverb);
+@@ -2126,18 +2126,18 @@ void Audio_SetBaseFilter(u8);
+ void Audio_SetExtraFilter(u8);
+ void Audio_SetCutsceneFlag(s8 flag);
+ void Audio_PlaySfxIfNotInCutscene(u16 sfxId);
+-void func_800F6964(u16);
++void Audio_FadeOutAllPlayers(u16);  // was func_800F6964 [LLM:HIGH]
+ void Audio_StopBgmAndFanfare(u16);
+ // ? Audio_DisableAllSeq(?);
+-// ? func_800F6BB8(?);
++// ? Audio_GetActiveNoteCount(?);, was func_800F6BB8 [LLM:HIGH]
+ void Audio_PreNMI();
+ // ? Audio_ResetData(?);
+ void Audio_SetNatureAmbienceChannelIO(u8 channelIdxRange, u8 port, u8 val);
+ void Audio_PlayNatureAmbienceSequence(u8 natureAmbienceId);
+ void Audio_Init();
+ void Audio_InitSound();
+-void func_800F7170(void);
+-void func_800F71BC(s32 arg0);
++void Audio_RestartAudio(void);  // was func_800F7170 [LLM:GUESS]
++void Audio_ResetForSpecChange(s32 arg0);  // was func_800F71BC [LLM:HIGH]
+ void Audio_SetSfxBanksMute(u16 muteMask);
+ void Audio_QueueSeqCmdMute(u8 channelIdx);
+ void Audio_ClearBGMMute(u8 channelIdx);
+diff --git a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+index 2de021cfd..fbc23be2f 100644
+--- a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
++++ b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+@@ -94,7 +94,7 @@ void HandleSaveMenu(bool* should, PlayState* play) {
+                     pauseCtx->unk_1EC = 2;
+                     WREG(2) = -6240;
+                     YREG(8) = static_cast<int16_t>(pauseCtx->unk_204);
+-                    func_800F64E0(0);
++                    Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                 }
+             }
+             break;
+@@ -114,7 +114,7 @@ void HandleSaveMenu(bool* should, PlayState* play) {
+                         pauseCtx->unk_1EC = 5;
+                         WREG(2) = -6240;
+                         YREG(8) = static_cast<int16_t>(pauseCtx->unk_204);
+-                        func_800F64E0(0);
++                        Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                         break;
+                     case 1:
+                         // Reset (Dungeon) / Return to Spawn (Overworld)
+diff --git a/soh/soh/Enhancements/QoL/PauseWarp.cpp b/soh/soh/Enhancements/QoL/PauseWarp.cpp
+index 21d93fc66..e6693f473 100644
+--- a/soh/soh/Enhancements/QoL/PauseWarp.cpp
++++ b/soh/soh/Enhancements/QoL/PauseWarp.cpp
+@@ -70,7 +70,7 @@ static void ActivateWarp(PauseContext* pauseCtx, int song) {
+     Interface_SetDoAction(gPlayState, DO_ACTION_NONE);
+     pauseCtx->state = 0x12;
+     WREG(2) = -6240;
+-    func_800F64E0(0);
++    Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+     pauseCtx->unk_1E4 = 0;
+     int idx = song - QUEST_SONG_MINUET;
+     gPlayState->msgCtx.lastPlayedSong = ocarinaSongMap[idx];
+diff --git a/soh/soh/Enhancements/audio/AudioEditor.cpp b/soh/soh/Enhancements/audio/AudioEditor.cpp
+index 032e74639..780ba6524 100644
+--- a/soh/soh/Enhancements/audio/AudioEditor.cpp
++++ b/soh/soh/Enhancements/audio/AudioEditor.cpp
+@@ -222,7 +222,7 @@ void DrawPreviewButton(uint16_t sequenceId, std::string sfxKey, SeqType sequence
+                                                       .Padding(ImVec2(10.0f, 6.0f))
+                                                       .Tooltip("Stop Preview")
+                                                       .Color(THEME_COLOR))) {
+-            func_800F5C2C();
++            Audio_RestoreStackedBgm();  // was func_800F5C2C [LLM:HIGH]
+             CVarSetInteger(CVAR_AUDIO("Playing"), 0);
+         }
+     } else {
+@@ -232,7 +232,7 @@ void DrawPreviewButton(uint16_t sequenceId, std::string sfxKey, SeqType sequence
+                                                          .Tooltip("Play Preview")
+                                                          .Color(THEME_COLOR))) {
+             if (CVarGetInteger(CVAR_AUDIO("Playing"), 0) != 0) {
+-                func_800F5C2C();
++                Audio_RestoreStackedBgm();  // was func_800F5C2C [LLM:HIGH]
+                 CVarSetInteger(CVAR_AUDIO("Playing"), 0);
+             } else {
+                 if (sequenceType == SEQ_SFX || sequenceType == SEQ_VOICE) {
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index dab6db2fd..eb52d4484 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -115,11 +115,16 @@ u8 gUsedChannelsPerBank[4][7] = {
+     { 2, 1, 0, 0, 1, 1, 1 },
+ };
+ 
+-f32 D_801305B0 = 0.7950898f;
+-s8 D_801305B4 = 35;
+-s8 D_801305B8 = 20;
+-s8 D_801305BC = 30;
+-s8 D_801305C0 = 20;
++// LLM generated name (HIGH), was D_801305B0: the constant frequency scale Audio_PlaySfxWithFixedScales passes
++f32 sFixedFreqScale = 0.7950898f;  // was D_801305B0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_801305B4: the constant reverb that goes with it
++s8 sFixedReverb = 35;  // was D_801305B4 [LLM:HIGH]
++// LLM generated name (HIGH), was D_801305B8: the countdown Audio_PlaySfxAtInterval fires on
++s8 sSfxIntervalCounter = 20;  // was D_801305B8 [LLM:HIGH]
++// LLM generated name (HIGH), was D_801305BC: subtracted from the base in that period formula, so the fastest period is base minus this
++s8 sSfxIntervalLimit = 30;  // was D_801305BC [LLM:HIGH]
++// LLM generated name (HIGH), was D_801305C0: the period at full rate, and the constant the rate-scaled part is added to
++s8 sSfxIntervalBase = 20;  // was D_801305C0 [LLM:HIGH]
+ f32 sBehindScreenZ[2] = { -15.0f, -65.0f };
+ u8 sAudioIncreasingTranspose = 0;
+ u8 gMorphaTransposeTable[16] = { 0, 0, 0, 1, 1, 2, 4, 6, 8, 8, 8, 8, 8, 8, 8, 8 };
+@@ -129,7 +134,8 @@ f32 sSfxSwordChargeFreq = 1.0f;
+ u8 sGanonsTowerLevelsVol[8] = { 127, 80, 75, 73, 70, 68, 65, 60 };
+ u8 sEnterGanonsTowerTimer = 0;
+ s8 sSoundOutputMode = 2;
+-s8 D_80130608 = 0;
++// LLM generated name (HIGH), was D_80130608: set while the pause menu is open, and read to hold off the river-sound BGM restore
++s8 sAudioPaused = 0;  // was D_80130608 [LLM:HIGH]
+ s8 sAudioCutsceneFlag = 0;
+ s8 sSpecReverb = 0;
+ s8 sAudioEnvReverb = 0;
+@@ -150,13 +156,14 @@ u8 sAudioExtraFilter = 0;
+ u8 sAudioBaseFilter2 = 0;
+ u8 sAudioExtraFilter2 = 0;
+ Vec3f* sSariaBgmPtr = NULL;
+-f32 D_80130650 = 2000.0f;
++// LLM generated name (HIGH), was D_80130650: the distance of the source Audio_PanBgmToNearestSource is currently following
++f32 sNearestBgmSourceDist = 2000.0f;  // was D_80130650 [LLM:HIGH]
+ u8 sSeqModeInput = 0; // decomp: debug only
+ 
+ #define SEQ_FLAG_ENEMY (1 << 0) // Allows enemy bgm
+ #define SEQ_FLAG_FANFARE (1 << 1)
+ #define SEQ_FLAG_FANFARE_GANON (1 << 2)
+-#define SEQ_FLAG_RESTORE (1 << 3) // required for Audio_RestorePrevBgm to restore a sequence after func_800F5ACC
++#define SEQ_FLAG_RESTORE (1 << 3) // required for Audio_RestorePrevBgm to restore a sequence after Audio_PlayMiniBossBgm, was func_800F5ACC [LLM:HIGH]
+ 
+ /**
+  * These two sequence flags work together to implement a “resume playing from where you left off” system for scene
+@@ -1254,16 +1261,24 @@ OcarinaSongButtons gOcarinaSongButtons[OCARINA_SONG_MAX] = {
+ 
+ u32 sAudioUpdateStartTime; // decomp: debug only
+ u32 sAudioUpdateEndTime;   // decomp: debug only
+-f32 D_8016B7A8;
+-f32 D_8016B7AC;
+-f32 D_8016B7B0;
+-f32 D_8016B7B4;
++// LLM generated name (HIGH), was D_8016B7A8: the volume scale Audio_SetSfxScalesFromSpeed writes, 0.775 to 1.0
++f32 sSpeedVolScale;  // was D_8016B7A8 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016B7AC: the volume scale for the second sound Audio_PlayWalkSfx may add
++f32 sSecondSfxVolScale;  // was D_8016B7AC [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016B7B0: the frequency scale Audio_SetSfxScalesFromSpeed writes, 0.9 to 1.1
++f32 sSpeedFreqScale;  // was D_8016B7B0 [LLM:HIGH]
++// LLM generated name (GUESS), was D_8016B7B4: an f32 declared beside the other scale variables that nothing in the tree reads or writes
++f32 sUnusedScale;  // was D_8016B7B4 [LLM:GUESS]
+ FreqLerp sRiverFreqScaleLerp;
+ FreqLerp sWaterfallFreqScaleLerp;
+-f32 D_8016B7D8;
+-s8 D_8016B7DC;
+-f32 D_8016B7E0;
+-u16 D_8016B7E4; // decomp: debug only
++// LLM generated name (HIGH), was D_8016B7D8: the rate-derived volume Audio_PlaySfxScaledByRate and Audio_PlaySfxAtInterval pass
++f32 sRateVolScale;  // was D_8016B7D8 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016B7DC: holds the caller's reverb for the duration of Audio_PlaySfxWithReverb
++s8 sSfxReverbArg;  // was D_8016B7DC [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016B7E0: holds the caller's volume for the duration of Audio_PlaySfxWithVolume
++f32 sSfxVolArg;  // was D_8016B7E0 [LLM:HIGH]
++// LLM generated name (GUESS), was D_8016B7E4: a u16 already commented as debug-only that nothing in the tree reads or writes; z_debug.c already owns the plain sUnusedDebugValue
++u16 sUnusedAudioDebugValue; // decomp: debug only, was D_8016B7E4 [LLM:GUESS]
+ struct {
+     s8 str[5];
+     u16 num;
+@@ -1279,7 +1294,8 @@ char sBinToStrBuf[0x20]; // decomp: debug only
+ u8 sMalonSingingTimer;
+ u8 sAudioSpecPeakNumNotes[0x12]; // decomp: debug only
+ u8 sMalonSingingDisabled;
+-u8 D_8016B9F3;
++// LLM generated name (HIGH), was D_8016B9F3: set to 1 by the audio reset so the first Audio_PlaySariaBgm call after it is skipped
++u8 sSariaBgmSkipFrames;  // was D_8016B9F3 [LLM:HIGH]
+ u8 sFanfareStartTimer;
+ u16 sFanfareSeqId;
+ 
+@@ -1318,16 +1334,16 @@ s32 sAudioUpdateTaskEnd;      // decomp: debug only
+     F(sOcarinaSongNotes[OCARINA_SONG_SCARECROW_SPAWN]) \
+     F(sOcaMemoryGameAppendPos)                         \
+     F(sOcaMemoryGameEndPos)                            \
+-    F(D_801305B0)                                      \
+-    F(D_801305B4)                                      \
+-    F(D_801305B8)                                      \
+-    F(D_801305BC)                                      \
+-    F(D_801305C0)                                      \
++    F(sFixedFreqScale)                                      \
++    F(sFixedReverb)                                      \
++    F(sSfxIntervalCounter)                                      \
++    F(sSfxIntervalLimit)                                      \
++    F(sSfxIntervalBase)                                      \
+     F(sAudioIncreasingTranspose)                       \
+     F(sPrevChargeLevel)                                \
+     F(sSfxSwordChargeFreq)                             \
+     F(sEnterGanonsTowerTimer)                          \
+-    F(D_80130608)                                      \
++    F(sAudioPaused)                                      \
+     F(sAudioCutsceneFlag)                              \
+     F(sSpecReverb)                                     \
+     F(sAudioEnvReverb)                                 \
+@@ -1345,16 +1361,16 @@ s32 sAudioUpdateTaskEnd;      // decomp: debug only
+     F(sAudioBaseFilter2)                               \
+     F(sAudioExtraFilter2)                              \
+     F(sSariaBgmPtr)                                    \
+-    F(D_80130650)                                      \
+-    F(D_8016B7A8)                                      \
+-    F(D_8016B7AC)                                      \
+-    F(D_8016B7B0)                                      \
+-    F(D_8016B7B4)                                      \
++    F(sNearestBgmSourceDist)                                      \
++    F(sSpeedVolScale)                                      \
++    F(sSecondSfxVolScale)                                      \
++    F(sSpeedFreqScale)                                      \
++    F(sUnusedScale)                                      \
+     F(sRiverFreqScaleLerp)                             \
+     F(sWaterfallFreqScaleLerp)                         \
+-    F(D_8016B7D8)                                      \
+-    F(D_8016B7DC)                                      \
+-    F(D_8016B7E0)                                      \
++    F(sRateVolScale)                                      \
++    F(sSfxReverbArg)                                      \
++    F(sSfxVolArg)                                      \
+     F(sRiverSoundMainBgmVol)                           \
+     F(sRiverSoundMainBgmCurrentVol)                    \
+     F(sRiverSoundMainBgmLower)                         \
+@@ -1363,7 +1379,7 @@ s32 sAudioUpdateTaskEnd;      // decomp: debug only
+     F(sSfxChannelState)                                \
+     F(sMalonSingingTimer)                              \
+     F(sMalonSingingDisabled)                           \
+-    F(D_8016B9F3)                                      \
++    F(sSariaBgmSkipFrames)                                      \
+     F(sFanfareStartTimer)                              \
+     F(sFanfareSeqId)                                   \
+     F(sRecordingState)                                 \
+@@ -3439,7 +3455,7 @@ void AudioDebug_ProcessInput_SndCont(void) {
+ 
+     if (CHECK_BTN_ANY(sDebugPadPress, BTN_CRIGHT)) {
+         if (sAudioSndContSel == 0) {
+-            func_800F5ACC(sAudioSndContWork[sAudioSndContSel]);
++            Audio_PlayMiniBossBgm(sAudioSndContWork[sAudioSndContSel]);  // was func_800F5ACC [LLM:HIGH]
+         }
+     }
+ }
+@@ -3947,13 +3963,16 @@ void Audio_Update(void) {
+     }
+ }
+ 
+-void func_800F3138(UNK_TYPE arg0) {
++// LLM generated name (GUESS), was func_800F3138: empty one-argument function; nothing in the tree records what it was for
++void Audio_Noop1(UNK_TYPE arg0) {
+ }
+ 
+-void func_800F3140(UNK_TYPE arg0, UNK_TYPE arg1) {
++// LLM generated name (GUESS), was func_800F3140: empty two-argument function; nothing in the tree records what it was for
++void Audio_Noop2(UNK_TYPE arg0, UNK_TYPE arg1) {
+ }
+ 
+-void func_800F314C(s8 arg0) {
++// LLM generated name (GUESS), was func_800F314C: queues an 0x82 command on the main BGM player with the argument in the port byte and a value of 1; the port's meaning is not established
++void Audio_SetMainBgmIoPort(s8 arg0) {
+     Audio_QueueCmdS32(0x82 << 24 | SEQ_PLAYER_BGM_MAIN << 16 | (((u8)arg0 & 0xFF) << 8), 1);
+ }
+ 
+@@ -4131,7 +4150,8 @@ f32 Audio_ComputeSoundFreqScale(u8 bankId, u8 entryIdx) {
+     return freq;
+ }
+ 
+-u8 func_800F37B8(f32 behindScreenZ, SoundBankEntry* arg1, s8 arg2) {
++// LLM generated name (HIGH), was func_800F37B8: returns the low-pass filter index for a surround-mode sound from its Z depth and pan, in the style of the neighbouring Audio_ComputeSound* helpers
++u8 Audio_ComputeSoundFilter(f32 behindScreenZ, SoundBankEntry* arg1, s8 arg2) {
+     s8 phi_v0;
+     u8 phi_v1;
+     f32 phi_f0;
+@@ -4178,7 +4198,8 @@ u8 func_800F37B8(f32 behindScreenZ, SoundBankEntry* arg1, s8 arg2) {
+     return (phi_v1 * 0x10) + (u8)((phi_f0 * phi_f12) / (10000.0f / 5.2f));
+ }
+ 
+-s8 func_800F3990(f32 arg0, u16 sfxParams) {
++// LLM generated name (GUESS), was func_800F3990: maps a sound's Y position onto 0-127 with the low bit forced, and the result goes out as a per-channel parameter in surround mode; what the receiving channel does with it is not established
++s8 Audio_ComputeSoundHeightParam(f32 arg0, u16 sfxParams) {
+     s8 ret = 0;
+ 
+     if (arg0 >= 0.0f) {
+@@ -4211,7 +4232,7 @@ void Audio_SetSfxProperties(u8 bankId, u8 entryIdx, u8 channelIdx) {
+         case BANK_ENEMY:
+         case BANK_VOICE:
+             if (sSoundOutputMode == 2) {
+-                sp38 = func_800F3990(*entry->posY, entry->sfxParams);
++                sp38 = Audio_ComputeSoundHeightParam(*entry->posY, entry->sfxParams);  // was func_800F3990 [LLM:GUESS]
+             }
+             // fallthrough
+         case BANK_OCARINA:
+@@ -4247,7 +4268,7 @@ void Audio_SetSfxProperties(u8 bankId, u8 entryIdx, u8 channelIdx) {
+             if ((baseFilter | sAudioExtraFilter) != 0) {
+                 filter = (baseFilter | sAudioExtraFilter);
+             } else if (sSoundOutputMode == 2 && (entry->sfxParams & 0x2000) == 0) {
+-                filter = func_800F37B8(behindScreenZ, entry, pan);
++                filter = Audio_ComputeSoundFilter(behindScreenZ, entry, pan);  // was func_800F37B8 [LLM:HIGH]
+             }
+             break;
+         case BANK_SYSTEM:
+@@ -4374,29 +4395,31 @@ void Audio_PlayCutsceneEffectsSequence(u8 arg0) {
+     }
+ }
+ 
+-f32 func_800F3F84(f32 arg0) {
++// LLM generated name (HIGH), was func_800F3F84: turns a speed into the shared frequency and volume scales, saturating above 6
++f32 Audio_SetSfxScalesFromSpeed(f32 arg0) {
+     f32 ret = 1.0f;
+ 
+     if (arg0 > 6.0f) {
+-        D_8016B7A8 = 1.0f;
+-        D_8016B7B0 = 1.1f;
++        sSpeedVolScale = 1.0f;  // was D_8016B7A8 [LLM:HIGH]
++        sSpeedFreqScale = 1.1f;  // was D_8016B7B0 [LLM:HIGH]
+     } else {
+         ret = arg0 / 6.0f;
+-        D_8016B7A8 = (ret * 0.22500002f) + 0.775f;
+-        D_8016B7B0 = (ret * 0.2f) + 0.9f;
++        sSpeedVolScale = (ret * 0.22500002f) + 0.775f;  // was D_8016B7A8 [LLM:HIGH]
++        sSpeedFreqScale = (ret * 0.2f) + 0.9f;  // was D_8016B7B0 [LLM:HIGH]
+     }
+     return ret;
+ }
+ 
+-void func_800F4010(Vec3f* pos, u16 sfxId, f32 arg2) {
++// LLM generated name (GUESS), was func_800F4010: scales the sfx by the speed and may add a second randomised sound; its only caller passes the player's floorSfxOffset from the camera, so the walking reading comes from that caller rather than from the body
++void Audio_PlayWalkSfx(Vec3f* pos, u16 sfxId, f32 arg2) {
+     f32 sp24;
+     f32 phi_f0;
+     u8 phi_v0;
+     u16 sfxId2;
+ 
+     D_80131C8C = arg2;
+-    sp24 = func_800F3F84(arg2);
+-    Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7B0, &D_8016B7A8, &gSfxDefaultReverb);
++    sp24 = Audio_SetSfxScalesFromSpeed(arg2);  // was func_800F3F84 [LLM:HIGH]
++    Audio_PlaySfxGeneral(sfxId, pos, 4, &sSpeedFreqScale, &sSpeedVolScale, &gSfxDefaultReverb);  // was D_8016B7A8 [LLM:HIGH]
+ 
+     if ((sfxId & 0xF0) == 0xB0) {
+         phi_f0 = 0.3f;
+@@ -4413,18 +4436,20 @@ void func_800F4010(Vec3f* pos, u16 sfxId, f32 arg2) {
+         } else {
+             sfxId2 = NA_SE_PL_METALEFFECT_KID;
+         }
+-        D_8016B7AC = (sp24 * 0.7) + 0.3;
+-        Audio_PlaySfxGeneral(sfxId2, pos, 4, &D_8016B7B0, &D_8016B7AC, &gSfxDefaultReverb);
++        sSecondSfxVolScale = (sp24 * 0.7) + 0.3;  // was D_8016B7AC [LLM:HIGH]
++        Audio_PlaySfxGeneral(sfxId2, pos, 4, &sSpeedFreqScale, &sSecondSfxVolScale, &gSfxDefaultReverb);  // was D_8016B7AC [LLM:HIGH]
+     }
+ }
+ 
+-void func_800F4138(Vec3f* pos, u16 sfxId, f32 arg2) {
+-    func_800F3F84(arg2);
+-    Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7B0, &D_8016B7A8, &gSfxDefaultReverb);
++// LLM generated name (HIGH), was func_800F4138: plays a sound with the frequency and volume scales derived from the caller's speed
++void Audio_PlaySfxWithSpeedScales(Vec3f* pos, u16 sfxId, f32 arg2) {
++    Audio_SetSfxScalesFromSpeed(arg2);  // was func_800F3F84 [LLM:HIGH]
++    Audio_PlaySfxGeneral(sfxId, pos, 4, &sSpeedFreqScale, &sSpeedVolScale, &gSfxDefaultReverb);  // was D_8016B7A8 [LLM:HIGH]
+ }
+ 
+-void func_800F4190(Vec3f* pos, u16 sfxId) {
+-    Audio_PlaySfxGeneral(sfxId, pos, 4, &D_801305B0, &gSfxDefaultFreqAndVolScale, &D_801305B4);
++// LLM generated name (HIGH), was func_800F4190: plays a sound with the file's constant frequency scale and reverb
++void Audio_PlaySfxWithFixedScales(Vec3f* pos, u16 sfxId) {
++    Audio_PlaySfxGeneral(sfxId, pos, 4, &sFixedFreqScale, &gSfxDefaultFreqAndVolScale, &sFixedReverb);  // was D_801305B0 [LLM:HIGH]
+ }
+ void Audio_PlaySoundRandom(Vec3f* pos, u16 baseSfxId, u8 randLim) {
+     u8 offset = Audio_NextRandom() % randLim;
+@@ -4458,49 +4483,55 @@ void Audio_PlaySwordChargeSfx(Vec3f* pos, u8 level) {
+     }
+ }
+ 
+-void func_800F436C(Vec3f* pos, u16 sfxId, f32 arg2) {
++// LLM generated name (HIGH), was func_800F436C: scales the volume by a machine's motion rate, compressing it below 0.75 and skipping the sound entirely below 0.5
++void Audio_PlaySfxScaledByRate(Vec3f* pos, u16 sfxId, f32 arg2) {
+     if (arg2 < 0.75f) {
+-        D_8016B7D8 = ((arg2 / 0.75f) * 0.25f) + 0.5f;
++        sRateVolScale = ((arg2 / 0.75f) * 0.25f) + 0.5f;  // was D_8016B7D8 [LLM:HIGH]
+     } else {
+-        D_8016B7D8 = arg2;
++        sRateVolScale = arg2;  // was D_8016B7D8 [LLM:HIGH]
+     }
+ 
+-    if (D_8016B7D8 > 0.5f) {
+-        Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7D8, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
++    if (sRateVolScale > 0.5f) {  // was D_8016B7D8 [LLM:HIGH]
++        Audio_PlaySfxGeneral(sfxId, pos, 4, &sRateVolScale, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);  // was D_8016B7D8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_800F4414(Vec3f* pos, u16 sfxId, f32 arg2) {
+-    D_801305B8--;
+-    if (D_801305B8 == 0) {
+-        Audio_PlaySfxGeneral(sfxId, pos, 4, &D_8016B7D8, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
++// LLM generated name (HIGH), was func_800F4414: fires the sound on a countdown whose period shortens as the caller's rate rises
++void Audio_PlaySfxAtInterval(Vec3f* pos, u16 sfxId, f32 arg2) {
++    sSfxIntervalCounter--;  // was D_801305B8 [LLM:HIGH]
++    if (sSfxIntervalCounter == 0) {  // was D_801305B8 [LLM:HIGH]
++        Audio_PlaySfxGeneral(sfxId, pos, 4, &sRateVolScale, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);  // was D_8016B7D8 [LLM:HIGH]
+ 
+         if (arg2 > 2.0f) {
+             arg2 = 2.0f;
+         }
+-        D_801305B8 = (s8)((D_801305C0 - D_801305BC) * (1.0f - arg2)) + D_801305C0;
++        sSfxIntervalCounter = (s8)((sSfxIntervalBase - sSfxIntervalLimit) * (1.0f - arg2)) + sSfxIntervalBase;  // was D_801305B8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_800F44EC(s8 arg0, s8 arg1) {
+-    D_801305B8 = 1;
+-    D_801305BC = arg1;
+-    D_801305C0 = arg0;
++// LLM generated name (HIGH), was func_800F44EC: arms that countdown and stores the two bounds its period is computed from
++void Audio_SetSfxIntervalRange(s8 arg0, s8 arg1) {
++    sSfxIntervalCounter = 1;  // was D_801305B8 [LLM:HIGH]
++    sSfxIntervalLimit = arg1;  // was D_801305BC [LLM:HIGH]
++    sSfxIntervalBase = arg0;  // was D_801305C0 [LLM:HIGH]
+ }
+ 
+-void func_800F4524(Vec3f* pos, u16 sfxId, s8 arg2) {
+-    D_8016B7DC = arg2;
+-    Audio_PlaySfxGeneral(sfxId, pos, 4, &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale, &D_8016B7DC);
++// LLM generated name (HIGH), was func_800F4524: plays a sound with a caller-supplied reverb and default scales
++void Audio_PlaySfxWithReverb(Vec3f* pos, u16 sfxId, s8 arg2) {
++    sSfxReverbArg = arg2;  // was D_8016B7DC [LLM:HIGH]
++    Audio_PlaySfxGeneral(sfxId, pos, 4, &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale, &sSfxReverbArg);  // was D_8016B7DC [LLM:HIGH]
+ }
+ 
+-void func_800F4578(Vec3f* pos, u16 sfxId, f32 arg2) {
+-    D_8016B7E0 = arg2;
+-    Audio_PlaySfxGeneral(sfxId, pos, 4, &gSfxDefaultFreqAndVolScale, &D_8016B7E0, &gSfxDefaultReverb);
++// LLM generated name (HIGH), was func_800F4578: plays a sound with a caller-supplied volume scale and default frequency and reverb
++void Audio_PlaySfxWithVolume(Vec3f* pos, u16 sfxId, f32 arg2) {
++    sSfxVolArg = arg2;  // was D_8016B7E0 [LLM:HIGH]
++    Audio_PlaySfxGeneral(sfxId, pos, 4, &gSfxDefaultFreqAndVolScale, &sSfxVolArg, &gSfxDefaultReverb);  // was D_8016B7E0 [LLM:HIGH]
+ }
+ 
+-void func_800F45D0(f32 arg0) {
+-    func_800F4414(&gSfxDefaultPos, NA_SE_IT_FISHING_REEL_SLOW - SFX_FLAG, arg0);
+-    func_800F436C(&gSfxDefaultPos, 0, (0.15f * arg0) + 1.4f);
++// LLM generated name (HIGH), was func_800F45D0: drives NA_SE_IT_FISHING_REEL_SLOW on the interval timer with a rate-scaled companion sound
++void Audio_PlayFishingReelSfx(f32 arg0) {
++    Audio_PlaySfxAtInterval(&gSfxDefaultPos, NA_SE_IT_FISHING_REEL_SLOW - SFX_FLAG, arg0);  // was func_800F4414 [LLM:HIGH]
++    Audio_PlaySfxScaledByRate(&gSfxDefaultPos, 0, (0.15f * arg0) + 1.4f);  // was func_800F436C [LLM:HIGH]
+ }
+ 
+ void Audio_PlaySoundRiver(Vec3f* pos, f32 freqScale) {
+@@ -4628,7 +4659,7 @@ void Audio_UpdateRiverSoundVolumes(void) {
+             sRiverSoundMainBgmRestore = 1;
+         }
+         sRiverSoundMainBgmLower = 0;
+-    } else if (sRiverSoundMainBgmRestore == 1 && D_80130608 == 0) {
++    } else if (sRiverSoundMainBgmRestore == 1 && sAudioPaused == 0) {  // was D_80130608 [LLM:HIGH]
+         Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 0, 0x7F, 0xA);
+         sRiverSoundMainBgmCurrentVol = 0x7F;
+         sRiverSoundMainBgmRestore = 0;
+@@ -4660,7 +4691,8 @@ void Audio_PlaySoundTransposed(Vec3f* pos, u16 sfxId, s8 semitone) {
+                          &gSfxDefaultReverb);
+ }
+ 
+-void func_800F4C58(Vec3f* pos, u16 sfxId, u8 arg2) {
++// LLM generated name (HIGH), was func_800F4C58: sends channel io value 6 to every SFX channel currently playing the given sfx id
++void Audio_SetSfxIoForActiveSfxId(Vec3f* pos, u16 sfxId, u8 arg2) {
+     u8 phi_s1 = 0;
+     u8 i;
+     u8 bankId;
+@@ -4681,21 +4713,22 @@ void func_800F4C58(Vec3f* pos, u16 sfxId, u8 arg2) {
+     Audio_PlaySfxGeneral(sfxId, pos, 4, &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ }
+ 
+-void func_800F4E30(Vec3f* pos, f32 arg1) {
++// LLM generated name (HIGH), was func_800F4E30: keeps the nearest positional BGM source and pans and attenuates every main BGM channel by its X and distance
++void Audio_PanBgmToNearestSource(Vec3f* pos, f32 arg1) {
+     f32 phi_f22;
+     s8 phi_s4;
+     u8 i;
+ 
+     if (sSariaBgmPtr == NULL) {
+         sSariaBgmPtr = pos;
+-        D_80130650 = arg1;
++        sNearestBgmSourceDist = arg1;  // was D_80130650 [LLM:HIGH]
+     } else if (pos != sSariaBgmPtr) {
+-        if (arg1 < D_80130650) {
++        if (arg1 < sNearestBgmSourceDist) {  // was D_80130650 [LLM:HIGH]
+             sSariaBgmPtr = pos;
+-            D_80130650 = arg1;
++            sNearestBgmSourceDist = arg1;  // was D_80130650 [LLM:HIGH]
+         }
+     } else {
+-        D_80130650 = arg1;
++        sNearestBgmSourceDist = arg1;  // was D_80130650 [LLM:HIGH]
+     }
+ 
+     if (sSariaBgmPtr->x > 100.0f) {
+@@ -4706,12 +4739,12 @@ void func_800F4E30(Vec3f* pos, f32 arg1) {
+         phi_s4 = ((sSariaBgmPtr->x / 100.0f) * 64.0f) + 64.0f;
+     }
+ 
+-    if (D_80130650 > 400.0f) {
++    if (sNearestBgmSourceDist > 400.0f) {  // was D_80130650 [LLM:HIGH]
+         phi_f22 = 0.1f;
+-    } else if (D_80130650 < 120.0f) {
++    } else if (sNearestBgmSourceDist < 120.0f) {  // was D_80130650 [LLM:HIGH]
+         phi_f22 = 1.0f;
+     } else {
+-        phi_f22 = ((1.0f - ((D_80130650 - 120.0f) / 280.0f)) * 0.9f) + 0.1f;
++        phi_f22 = ((1.0f - ((sNearestBgmSourceDist - 120.0f) / 280.0f)) * 0.9f) + 0.1f;  // was D_80130650 [LLM:HIGH]
+     }
+ 
+     for (i = 0; i < 0x10; i++) {
+@@ -4786,8 +4819,8 @@ void Audio_PlaySariaBgm(Vec3f* pos, u16 seqId, u16 distMax) {
+     u8 vol;
+     f32 prevDist;
+ 
+-    if (D_8016B9F3 != 0) {
+-        D_8016B9F3--;
++    if (sSariaBgmSkipFrames != 0) {  // was D_8016B9F3 [LLM:HIGH]
++        sSariaBgmSkipFrames--;  // was D_8016B9F3 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -4947,7 +4980,8 @@ s32 Audio_IsSequencePlaying(u8 arg0) {
+  * Plays a sequence on the main bgm player, but stores the previous sequence to return to later
+  * Designed for the mini-boss sequence, but also used by mini-game 2 sequence
+  */
+-void func_800F5ACC(u16 seqId) {
++// LLM generated name (HIGH), was func_800F5ACC: stacks the current main BGM and starts the caller's sequence; its own printf calls this the middle boss BGM
++void Audio_PlayMiniBossBgm(u16 seqId) {
+     u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if ((curSeqId & 0xFF) != NA_BGM_GANON_TOWER && (curSeqId & 0xFF) != NA_BGM_ESCAPE && curSeqId != seqId) {
+@@ -4962,7 +4996,7 @@ void func_800F5ACC(u16 seqId) {
+     }
+ }
+ 
+-// based on func_800F5ACC
++// based on Audio_PlayMiniBossBgm, was func_800F5ACC [LLM:HIGH]
+ void PreviewSequence(u16 seqId) {
+     u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+@@ -4979,7 +5013,7 @@ void PreviewSequence(u16 seqId) {
+ }
+ 
+ /**
+- * Restores the previous sequence to the main bgm player before func_800F5ACC was called
++ * Restores the previous sequence to the main bgm player before Audio_PlayMiniBossBgm was called
+  */
+ // LLM generated name (HIGH), was func_800F5B58: restarts sPrevMainBgmSeqId on the main BGM player
+ void Audio_RestorePrevBgm(void) {
+@@ -4998,7 +5032,8 @@ void Audio_RestorePrevBgm(void) {
+ /**
+  * Plays the nature ambience sequence on the main bgm player, but stores the previous sequence to return to later
+  */
+-void func_800F5BF0(u8 natureAmbienceId) {
++// LLM generated name (HIGH), was func_800F5BF0: stacks the current main BGM before starting a nature ambience sequence
++void Audio_PlayNatureAmbienceWithRestore(u8 natureAmbienceId) {
+     u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if (curSeqId != NA_BGM_NATURE_AMBIENCE) {
+@@ -5009,9 +5044,10 @@ void func_800F5BF0(u8 natureAmbienceId) {
+ }
+ 
+ /**
+- * Restores the previous sequence to the main bgm player before func_800F5BF0 was called
++ * Restores the previous sequence to the main bgm player before Audio_PlayNatureAmbienceWithRestore was called
+  */
+-void func_800F5C2C(void) {
++// LLM generated name (HIGH), was func_800F5C2C: restarts the stacked main BGM and clears the stack; named RestoreStacked because Audio_RestorePrevBgm is already taken
++void Audio_RestoreStackedBgm(void) {
+     if (sPrevMainBgmSeqId != NA_BGM_DISABLED) {
+         Audio_StartSeq(SEQ_PLAYER_BGM_MAIN, 0, sPrevMainBgmSeqId);
+     }
+@@ -5236,8 +5272,9 @@ void Audio_UpdateMalonSinging(f32 dist, u16 arg1) {
+     }
+ }
+ 
+-void func_800F64E0(u8 arg0) {
+-    D_80130608 = arg0;
++// LLM generated name (HIGH), was func_800F64E0: records the pause flag and plays the window open or close sound; kaleido passes 1 on opening and 0 on closing
++void Audio_SetPauseState(u8 arg0) {
++    sAudioPaused = arg0;  // was D_80130608 [LLM:HIGH]
+     if (arg0 != 0) {
+         Audio_PlaySfxGeneral(NA_SE_SY_WIN_OPEN, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+@@ -5368,7 +5405,8 @@ void Audio_PlaySfxIfNotInCutscene(u16 sfxId) {
+                                         &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ }
+ 
+-void func_800F6964(u16 arg0) {
++// LLM generated name (HIGH), was func_800F6964: fades the main BGM, the fanfare player and every channel over the caller's duration
++void Audio_FadeOutAllPlayers(u16 arg0) {
+     s32 skip;
+     u8 i;
+ 
+@@ -5404,7 +5442,8 @@ void Audio_StopBgmAndFanfare(u16 arg0) {
+     Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 1, 0x7F, 0);
+ }
+ 
+-void func_800F6B3C(void) {
++// LLM generated name (HIGH), was func_800F6B3C: starts sequence 0 on the SFX player
++void Audio_StartSfxSequence(void) {
+     Audio_StartSequence(SEQ_PLAYER_SFX, 0, 0xFF, 5);
+ }
+ 
+@@ -5416,15 +5455,17 @@ void Audio_DisableAllSeq(void) {
+     Audio_ScheduleProcessCmds();
+ }
+ 
+-s8 func_800F6BB8(void) {
++// LLM generated name (HIGH), was func_800F6BB8: forwards AudioThread_GetActiveNoteCount
++s8 Audio_GetActiveNoteCount(void) {
+     return AudioThread_GetActiveNoteCount();
+ }
+ 
+-void func_800F6BDC(void) {
++// LLM generated name (HIGH), was func_800F6BDC: disables every sequence and spins until no notes are left playing
++void Audio_StopAllSeqAndWait(void) {
+     Audio_DisableAllSeq();
+     Audio_ScheduleProcessCmds();
+     while (true) {
+-        if (!func_800F6BB8()) {
++        if (!Audio_GetActiveNoteCount()) {  // was func_800F6BB8 [LLM:HIGH]
+             return;
+         }
+     }
+@@ -5437,8 +5478,8 @@ void Audio_PreNMI(void) {
+ // LLM generated name (HIGH), was func_800F6C34: resets audio filter/seq-mode/lerp state; called during audio reset
+ void Audio_ResetData(void) {
+     sPrevSeqMode = 0;
+-    D_8016B7A8 = 1.0f;
+-    D_8016B7B0 = 1.0f;
++    sSpeedVolScale = 1.0f;  // was D_8016B7A8 [LLM:HIGH]
++    sSpeedFreqScale = 1.0f;  // was D_8016B7B0 [LLM:HIGH]
+     sAudioBaseFilter = 0;
+     sAudioExtraFilter = 0;
+     sAudioBaseFilter2 = 0;
+@@ -5448,7 +5489,7 @@ void Audio_ResetData(void) {
+     sWaterfallFreqScaleLerp.remainingFrames = 0;
+     sRiverFreqScaleLerp.value = 1.0f;
+     sWaterfallFreqScaleLerp.value = 1.0f;
+-    D_8016B7D8 = 1.0f;
++    sRateVolScale = 1.0f;  // was D_8016B7D8 [LLM:HIGH]
+     sRiverSoundMainBgmVol = 0x7F;
+     sRiverSoundMainBgmCurrentVol = 0x7F;
+     sRiverSoundMainBgmLower = 0;
+@@ -5456,12 +5497,12 @@ void Audio_ResetData(void) {
+     sGanonsTowerVol = 0xFF;
+     sMalonSingingTimer = 0;
+     sSpecReverb = sSpecReverbs[gAudioSpecId];
+-    D_80130608 = 0;
++    sAudioPaused = 0;  // was D_80130608 [LLM:HIGH]
+     sPrevMainBgmSeqId = NA_BGM_DISABLED;
+     Audio_QueueCmdS8(0x46 << 24 | SEQ_PLAYER_BGM_MAIN << 16, -1);
+     sSariaBgmPtr = NULL;
+     sFanfareStartTimer = 0;
+-    D_8016B9F3 = 1;
++    sSariaBgmSkipFrames = 1;  // was D_8016B9F3 [LLM:HIGH]
+     sMalonSingingDisabled = 0;
+ }
+ 
+@@ -5563,14 +5604,16 @@ void Audio_InitSound(void) {
+     Audio_StartSequence(SEQ_PLAYER_SFX, 0, 0x70, 10);
+ }
+ 
+-void func_800F7170(void) {
++// LLM generated name (GUESS), was func_800F7170: restarts the SFX sequence and pushes the mute and reset commands through; whether this belongs to a spec change or another reset path is not established
++void Audio_RestartAudio(void) {
+     Audio_StartSequence(SEQ_PLAYER_SFX, 0, 0x70, 1);
+     Audio_QueueCmdS32(0xF2000000, 1);
+     Audio_ScheduleProcessCmds();
+     Audio_QueueCmdS32(0xF8000000, 0);
+ }
+ 
+-void func_800F71BC(s32 arg0) {
++// LLM generated name (HIGH), was func_800F71BC: the reset audio_seq.c runs when the audio spec changes: resets the data, ocarina staffs, channel state, sequences and sounds
++void Audio_ResetForSpecChange(s32 arg0) {
+     sAudioResetState = 1;
+     Audio_ResetData();
+     AudioOcarina_ResetStaffs();
+@@ -5579,7 +5622,8 @@ void func_800F71BC(s32 arg0) {
+     Audio_ResetSounds();
+ }
+ 
+-void func_800F7208(void) {
++// LLM generated name (HIGH), was func_800F7208: resets the active sequences and channel state and restarts the SFX player
++void Audio_ResetSequencesAndSfx(void) {
+     Audio_ResetActiveSequences();
+     Audio_QueueCmdS32(0xF2000000, 1);
+     Audio_ResetData();
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index ea82bd04d..f4f42bf21 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -382,7 +382,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+             oldSpec = gAudioSpecId;
+             gAudioSpecId = spec;
+             AudioThread_ResetAudioHeap(spec);
+-            func_800F71BC(oldSpec);
++            Audio_ResetForSpecChange(oldSpec);  // was func_800F71BC [LLM:HIGH]
+             Audio_QueueCmdS32(0xF8000000, 0);
+             break;
+     }
+@@ -700,13 +700,13 @@ u8 Audio_UpdateResetState(void) {
+             if (AudioThread_ResetComplete() == 1) {
+                 sAudioResetState = 0;
+                 Audio_QueueCmdS8(0x46020000, gSfxChannelLayout);
+-                func_800F7170();
++                Audio_RestartAudio();  // was func_800F7170 [LLM:GUESS]
+             }
+         } else if (sAudioResetState == 2) {
+             while (AudioThread_ResetComplete() != 1) {}
+             sAudioResetState = 0;
+             Audio_QueueCmdS8(0x46020000, gSfxChannelLayout);
+-            func_800F7170();
++            Audio_RestartAudio();  // was func_800F7170 [LLM:GUESS]
+         }
+     }
+ 
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index ef759db77..7ab63a1a1 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -2831,7 +2831,7 @@ void Actor_UpdateFlaggedAudio(Actor* actor) {
+     } else if (actor->flags & ACTOR_AUDIO_FLAG_SFX_CENTERED_2) {
+         Sfx_PlaySfxCentered2(actor->sfx);
+     } else if (actor->flags & ACTOR_FLAG_SFX_TIMER) {
+-        func_800F4C58(&gSfxDefaultPos, NA_SE_SY_TIMER - SFX_FLAG, (s8)(actor->sfx - 1));
++        Audio_SetSfxIoForActiveSfxId(&gSfxDefaultPos, NA_SE_SY_TIMER - SFX_FLAG, (s8)(actor->sfx - 1));  // was func_800F4C58 [LLM:HIGH]
+     } else {
+         Sfx_PlaySfxAtPos(&actor->projectedPos, actor->sfx);
+     }
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index e37340c0f..b7783e531 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -4566,7 +4566,7 @@ s32 Camera_Subj4(Camera* camera) {
+     if ((anim->unk_28 < temp_f16) && !anim->unk_2E) {
+         player = camera->player;
+         anim->unk_2E = true;
+-        func_800F4010(&player->actor.projectedPos, player->floorSfxOffset + 0x8B0, 4.0f);
++        Audio_PlayWalkSfx(&player->actor.projectedPos, player->floorSfxOffset + 0x8B0, 4.0f);  // was func_800F4010 [LLM:GUESS]
+     } else if (anim->unk_28 > temp_f16) {
+         anim->unk_2E = false;
+     }
+diff --git a/soh/src/code/z_kaleido_setup.c b/soh/src/code/z_kaleido_setup.c
+index 9beda9e5a..a0242cd68 100644
+--- a/soh/src/code/z_kaleido_setup.c
++++ b/soh/src/code/z_kaleido_setup.c
+@@ -63,7 +63,7 @@ void KaleidoSetup_Update(PlayState* play) {
+                 Letterbox_SetSizeTarget(0);
+             }
+ 
+-            func_800F64E0(1);
++            Audio_SetPauseState(1);  // was func_800F64E0 [LLM:HIGH]
+         }
+     }
+ }
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 77617d8cf..298adfad6 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -2840,7 +2840,7 @@ void Interface_SetNaviCall(PlayState* play, u16 naviCallState) {
+             // clang-format on
+ 
+             if (naviCallState == 0x1D) {
+-                func_800F4524(&gSfxDefaultPos, NA_SE_VO_NA_HELLO_2, 32);
++                Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_VO_NA_HELLO_2, 32);  // was func_800F4524 [LLM:HIGH]
+             }
+         }
+ 
+@@ -6930,7 +6930,7 @@ void Interface_Update(PlayState* play) {
+ 
+             play->transitionTrigger = TRANS_TRIGGER_START;
+             gSaveContext.sunsSongState = SUNSSONG_INACTIVE;
+-            func_800F6964(30);
++            Audio_FadeOutAllPlayers(30);  // was func_800F6964 [LLM:HIGH]
+             gSaveContext.seqId = (u8)NA_BGM_DISABLED;
+             gSaveContext.natureAmbienceId = NATURE_ID_DISABLED;
+         } else {
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index e171c5675..b29644cce 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -794,7 +794,7 @@ void Play_Update(PlayState* play) {
+                             if ((play->transitionType < TRANS_TYPE_MAX) && !Environment_IsForcedSequenceDisabled()) {
+                                 // "Sound initalized. 222"
+                                 osSyncPrintf("\n\n\nサウンドイニシャル来ました。222");
+-                                func_800F6964(0x14);
++                                Audio_FadeOutAllPlayers(0x14);  // was func_800F6964 [LLM:HIGH]
+                                 gSaveContext.seqId = (u8)NA_BGM_DISABLED;
+                                 gSaveContext.natureAmbienceId = NATURE_ID_DISABLED;
+                             }
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c b/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
+index 136746757..34e59ed1c 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
+@@ -311,7 +311,7 @@ void BgBdanObjects_OctoPlatform_BattleInProgress(BgBdanObjects* this, PlayState*
+         this->actionFunc = BgBdanObjects_SinkToFloorHeight;
+     } else {
+         this->dyna.actor.shape.rot.y += this->dyna.actor.world.rot.y;
+-        func_800F436C(&this->dyna.actor.projectedPos, 0x2063, ABS(this->dyna.actor.world.rot.y) / 512.0f);
++        Audio_PlaySfxScaledByRate(&this->dyna.actor.projectedPos, 0x2063, ABS(this->dyna.actor.world.rot.y) / 512.0f);  // was func_800F436C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c b/soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c
+index 5e2137a2d..85c20285d 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c
++++ b/soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c
+@@ -126,7 +126,7 @@ void BgHaka_Pull(BgHaka* this, PlayState* play) {
+         // un tss un tss
+         if (play->sceneNum == SCENE_GRAVEYARD && allPulled) {
+             Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+-            func_800F5ACC(NA_BGM_STAFF_2);
++            Audio_PlayMiniBossBgm(NA_BGM_STAFF_2);  // was func_800F5ACC [LLM:HIGH]
+             Actor* actor2 = play->actorCtx.actorLists[ACTORCAT_BG].head;
+ 
+             while (actor2 != NULL) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c b/soh/src/overlays/actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c
+index bb44282cd..fc3885dbe 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c
+@@ -82,7 +82,7 @@ void BgMoriElevator_PlayMoveSfx(BgMoriElevator* this, f32 distTo) {
+     f32 temp;
+ 
+     temp = fabsf(distTo) * 0.09f;
+-    func_800F436C(&this->dyna.actor.projectedPos, NA_SE_EV_ELEVATOR_MOVE2 - SFX_FLAG, CLAMP(temp, 0.0f, 1.0f));
++    Audio_PlaySfxScaledByRate(&this->dyna.actor.projectedPos, NA_SE_EV_ELEVATOR_MOVE2 - SFX_FLAG, CLAMP(temp, 0.0f, 1.0f));  // was func_800F436C [LLM:HIGH]
+ }
+ 
+ void BgMoriElevator_Init(Actor* thisx, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c b/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
+index c176dee6a..2bd31faf7 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
+@@ -202,7 +202,7 @@ void BgRelayObjects_RotateWindmill(BgRelayObjects* this, PlayState* play) {
+         Math_ScaledStepToS(&this->dyna.actor.world.rot.y, 0x80, 8);
+     }
+     this->dyna.actor.shape.rot.y += this->dyna.actor.world.rot.y;
+-    func_800F436C(&this->dyna.actor.projectedPos, NA_SE_EV_WOOD_GEAR - SFX_FLAG,
++    Audio_PlaySfxScaledByRate(&this->dyna.actor.projectedPos, NA_SE_EV_WOOD_GEAR - SFX_FLAG,  // was func_800F436C [LLM:HIGH]
+                   ((this->dyna.actor.world.rot.y - 0x80) * (1.0f / 0x380)) + 1.0f);
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot01_Fusya/z_bg_spot01_fusya.c b/soh/src/overlays/actors/ovl_Bg_Spot01_Fusya/z_bg_spot01_fusya.c
+index e210f9b2c..ec0412118 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot01_Fusya/z_bg_spot01_fusya.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot01_Fusya/z_bg_spot01_fusya.c
+@@ -72,7 +72,7 @@ void BgSpot01Fusya_Rotate(BgSpot01Fusya* this, PlayState* play) {
+     }
+     thisx->shape.rot.z += this->unk_154;
+     temp = ((this->unk_154 - 100.0f) / 1700.0f) + 1.0f;
+-    func_800F436C(&thisx->projectedPos, 0x2085, temp);
++    Audio_PlaySfxScaledByRate(&thisx->projectedPos, 0x2085, temp);  // was func_800F436C [LLM:HIGH]
+     Math_ApproachF(&this->unk_154, this->unk_158, this->unk_15C, 100.0f);
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c b/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
+index 6036786e8..9084c4617 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
+@@ -299,7 +299,7 @@ void BgSpot18Basket_ExplosionCs(BgSpot18Basket* this, PlayState* play) {
+ 
+     tempValue = CLAMP(tempValue2, 0.0f, 1.5f);
+ 
+-    func_800F436C(&this->dyna.actor.projectedPos, NA_SE_EV_WALL_MOVE_SP - SFX_FLAG, tempValue);
++    Audio_PlaySfxScaledByRate(&this->dyna.actor.projectedPos, NA_SE_EV_WALL_MOVE_SP - SFX_FLAG, tempValue);  // was func_800F436C [LLM:HIGH]
+ }
+ 
+ void BgSpot18Basket_SetupStopping(BgSpot18Basket* this) {
+@@ -361,7 +361,7 @@ void BgSpot18Basket_Stopping(BgSpot18Basket* this, PlayState* play) {
+ 
+     clampedTempUnk210 = CLAMP(tempUnk210, 0.0f, 1.5f);
+ 
+-    func_800F436C(&this->dyna.actor.projectedPos, NA_SE_EV_WALL_MOVE_SP - SFX_FLAG, clampedTempUnk210);
++    Audio_PlaySfxScaledByRate(&this->dyna.actor.projectedPos, NA_SE_EV_WALL_MOVE_SP - SFX_FLAG, clampedTempUnk210);  // was func_800F436C [LLM:HIGH]
+ }
+ 
+ void BgSpot18Basket_SetupGivingPrize(BgSpot18Basket* this) {
+diff --git a/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c b/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
+index 00a1bc803..287d28975 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
++++ b/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
+@@ -1066,7 +1066,7 @@ void BossVa_BodyIntro(BossVa* this, PlayState* play) {
+     }
+ 
+     if (sCsState >= INTRO_BODY_SOUND) {
+-        func_800F436C(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG, 1.0f);
++        Audio_PlaySfxScaledByRate(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG, 1.0f);  // was func_800F436C [LLM:HIGH]
+         if ((sCsState >= INTRO_CALL_BARI) && ((play->gameplayFrames % 4) == 0)) {
+             BossVa_Spark(play, this, 1, 100, 50.0f, 10.0f, SPARK_BODY, 10.0f, false);
+         }
+@@ -1141,7 +1141,7 @@ void BossVa_BodyPhase1(BossVa* this, PlayState* play) {
+     Collider_UpdateCylinder(&this->actor, &this->colliderBody);
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->colliderBody.base);
+     CollisionCheck_SetAT(play, &play->colChkCtx, &this->colliderBody.base);
+-    func_800F436C(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG, 1.0f);
++    Audio_PlaySfxScaledByRate(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG, 1.0f);  // was func_800F436C [LLM:HIGH]
+ }
+ 
+ void BossVa_SetupBodyPhase2(BossVa* this, PlayState* play) {
+@@ -1254,7 +1254,7 @@ void BossVa_BodyPhase2(BossVa* this, PlayState* play) {
+         CollisionCheck_SetAC(play, &play->colChkCtx, &this->colliderBody.base);
+     }
+ 
+-    func_800F436C(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG,
++    Audio_PlaySfxScaledByRate(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG,  // was func_800F436C [LLM:HIGH]
+                   (this->vaBodySpinRate * 0.00025f) + 1.0f);
+ }
+ 
+@@ -1368,7 +1368,7 @@ void BossVa_BodyPhase3(BossVa* this, PlayState* play) {
+         CollisionCheck_SetAC(play, &play->colChkCtx, &this->colliderBody.base);
+     }
+ 
+-    func_800F436C(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG,
++    Audio_PlaySfxScaledByRate(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG,  // was func_800F436C [LLM:HIGH]
+                   (this->vaBodySpinRate * 0.00025f) + 1.0f);
+ }
+ 
+@@ -1542,7 +1542,7 @@ void BossVa_BodyPhase4(BossVa* this, PlayState* play) {
+     if ((this->vaBodySpinRate > 0x3E8) || (this->actor.shape.yOffset < -1200.0f)) {
+         CollisionCheck_SetAT(play, &play->colChkCtx, &this->colliderBody.base);
+     }
+-    func_800F436C(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG,
++    Audio_PlaySfxScaledByRate(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG,  // was func_800F436C [LLM:HIGH]
+                   (this->vaBodySpinRate * 0.00025f) + 1.0f);
+     if (this->invincibilityTimer != 0) {
+         this->invincibilityTimer--;
+@@ -1553,7 +1553,7 @@ void BossVa_BodyPhase4(BossVa* this, PlayState* play) {
+ }
+ 
+ void BossVa_SetupBodyDeath(BossVa* this, PlayState* play) {
+-    func_800F436C(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG, 1.0f);
++    Audio_PlaySfxScaledByRate(&this->actor.projectedPos, NA_SE_EN_BALINADE_LEVEL - SFX_FLAG, 1.0f);  // was func_800F436C [LLM:HIGH]
+     this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE);
+     Audio_QueueSeqCmd(0x1 << 28 | SEQ_PLAYER_BGM_MAIN << 24 | 0x100FF);
+     this->vaCamRotMod = 0xC31;
+diff --git a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+index 857addd1e..7c58c1b55 100644
+--- a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
++++ b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+@@ -440,7 +440,7 @@ void EnBigokuta_IntroWait(EnBigokuta* this, PlayState* play) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_DAIOCTA_VOICE);
+     }
+     if (this->unk_196 == 1) {
+-        func_800F5ACC(NA_BGM_MINI_BOSS);
++        Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+     }
+     if (this->actor.params == 1) {
+         EnBigokuta_SetupJumpIn(this);  // was func_809BD370 [LLM:HIGH]
+@@ -503,7 +503,7 @@ void EnBigokuta_WaitBeforeCircle(EnBigokuta* this, PlayState* play) {
+     }
+     if (this->unk_196 == 0) {
+         if (this->actor.params == 3) {
+-            func_800F5ACC(NA_BGM_MINI_BOSS);
++            Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+         }
+         EnBigokuta_SetupCircle(this);  // was func_809BD3F8 [LLM:HIGH]
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Dh/z_en_dh.c b/soh/src/overlays/actors/ovl_En_Dh/z_en_dh.c
+index 15190a279..cdfd25ea2 100644
+--- a/soh/src/overlays/actors/ovl_En_Dh/z_en_dh.c
++++ b/soh/src/overlays/actors/ovl_En_Dh/z_en_dh.c
+@@ -203,7 +203,7 @@ void EnDh_SetupWait(EnDh* this) {
+ 
+ void EnDh_Wait(EnDh* this, PlayState* play) {
+     if ((s32)this->skelAnime.curFrame == 5) {
+-        func_800F5ACC(NA_BGM_MINI_BOSS);
++        Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+     }
+     if (Actor_GetCollidedExplosive(play, &this->collider1.base)) {
+         this->actor.params = ENDH_START_ATTACK_BOMB;
+diff --git a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+index 871d55937..e02abfa22 100644
+--- a/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
++++ b/soh/src/overlays/actors/ovl_En_Diving_Game/z_en_diving_game.c
+@@ -438,7 +438,7 @@ void EnDivingGame_StartMinigame(EnDivingGame* this, PlayState* play) {
+                 Interface_SetTimer(BREG(2) + 50);
+             }
+         }
+-        func_800F5ACC(NA_BGM_TIMED_MINI_GAME);
++        Audio_PlayMiniBossBgm(NA_BGM_TIMED_MINI_GAME);  // was func_800F5ACC [LLM:HIGH]
+         Player_SetCsActionWithHaltedActors(play, NULL, 7);
+         this->actor.textId = 0x405B;
+         this->unk_292 = TEXT_STATE_EVENT;
+diff --git a/soh/src/overlays/actors/ovl_En_Dnt_Demo/z_en_dnt_demo.c b/soh/src/overlays/actors/ovl_En_Dnt_Demo/z_en_dnt_demo.c
+index e60471162..c87eb2c41 100644
+--- a/soh/src/overlays/actors/ovl_En_Dnt_Demo/z_en_dnt_demo.c
++++ b/soh/src/overlays/actors/ovl_En_Dnt_Demo/z_en_dnt_demo.c
+@@ -148,7 +148,7 @@ void EnDntDemo_Judge(EnDntDemo* this, PlayState* play) {
+         if (this->judgeTimer > 40) {
+             // "gera gera" [onomatopoeia for loud giggling]
+             osSyncPrintf(VT_FGCOL(RED) "☆☆☆☆☆ げらげら ☆☆☆☆☆ \n" VT_RST);
+-            func_800F436C(&this->actor.projectedPos, NA_SE_EV_CROWD - SFX_FLAG, 2.0f);
++            Audio_PlaySfxScaledByRate(&this->actor.projectedPos, NA_SE_EV_CROWD - SFX_FLAG, 2.0f);  // was func_800F436C [LLM:HIGH]
+         }
+         if (this->judgeTimer < 120) {
+             this->judgeTimer++;
+diff --git a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+index 4fb1aaad9..d9c176ac9 100644
+--- a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
++++ b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+@@ -1426,7 +1426,7 @@ void EnElf_UpdateNaviIdle(Actor* thisx, PlayState* play) {
+     }
+ 
+     if (Actor_ProcessTalkRequest(thisx, play)) {
+-        func_800F4524(&gSfxDefaultPos, NA_SE_VO_SK_LAUGH, 0x20);
++        Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_VO_SK_LAUGH, 0x20);  // was func_800F4524 [LLM:HIGH]
+         thisx->focus.pos = thisx->world.pos;
+ 
+         if (thisx->textId == ElfMessage_GetCUpText(play)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Fd/z_en_fd.c b/soh/src/overlays/actors/ovl_En_Fd/z_en_fd.c
+index 3c87137ce..c9a3335ba 100644
+--- a/soh/src/overlays/actors/ovl_En_Fd/z_en_fd.c
++++ b/soh/src/overlays/actors/ovl_En_Fd/z_en_fd.c
+@@ -658,7 +658,7 @@ void EnFd_Update(Actor* thisx, PlayState* play) {
+     s32 pad;
+ 
+     if (this->firstUpdateFlag) {
+-        func_800F5ACC(NA_BGM_MINI_BOSS);
++        Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+         this->firstUpdateFlag = false;
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c b/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
+index 927d4a166..060c0284a 100644
+--- a/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
++++ b/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
+@@ -366,7 +366,7 @@ void EnGeldB_Wait(EnGeldB* this, PlayState* play) {
+         this->invisible = false;
+         this->actor.shape.shadowScale = 90.0f;
+         if (GameInteractor_Should(VB_GERUDO_FIGHTER_PLAY_MINIBOSS_MUSIC, true, this)) {
+-            func_800F5ACC(NA_BGM_MINI_BOSS);
++            Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+         }
+     }
+     if (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND_TOUCH) {
+diff --git a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+index 09fb43fb5..585fa2f17 100644
+--- a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
++++ b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+@@ -621,7 +621,7 @@ s16 EnGo2_UpdateTalkStateGoronDmtBiggoron(PlayState* play, EnGo2* this) {
+                     }
+                 case 0x3059:
+                     if (dialogState == TEXT_STATE_NONE) {
+-                        func_800F4524(&gSfxDefaultPos, NA_SE_EN_GOLON_WAKE_UP, 60);
++                        Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_EN_GOLON_WAKE_UP, 60);  // was func_800F4524 [LLM:HIGH]
+                     }
+                 case 0x3054:
+                     if (dialogState == TEXT_STATE_NONE) {
+@@ -1295,7 +1295,7 @@ void EnGo2_SitDownAnimation(EnGo2* this) {
+             if ((this->actor.params & 0x1F) != GORON_DMT_BIGGORON) {
+                 Audio_PlayActorSound2(&this->actor, NA_SE_EN_GOLON_SIT_DOWN);
+             } else {
+-                func_800F4524(&gSfxDefaultPos, NA_SE_EN_GOLON_SIT_DOWN, 60);
++                Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_EN_GOLON_SIT_DOWN, 60);  // was func_800F4524 [LLM:HIGH]
+             }
+         }
+         if (this->skelAnime.playSpeed < 0.0f) {
+@@ -1343,7 +1343,7 @@ void EnGo2_WakeUp(EnGo2* this, PlayState* play) {
+         if ((this->actor.params & 0x1F) != GORON_DMT_BIGGORON) {
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_GOLON_WAKE_UP);
+         } else {
+-            func_800F4524(&gSfxDefaultPos, NA_SE_EN_GOLON_WAKE_UP, 60);
++            Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_EN_GOLON_WAKE_UP, 60);  // was func_800F4524 [LLM:HIGH]
+         }
+     }
+     if ((this->actor.params & 0x1F) == GORON_DMT_BIGGORON) {
+@@ -1528,7 +1528,7 @@ void EnGo2_BiggoronAnimation(EnGo2* this) {
+         (this->actor.params & 0x1F) == GORON_DMT_BIGGORON && this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         if (DECR(this->animTimer) == 0) {
+             this->animTimer = Rand_S16Offset(30, 30);
+-            func_800F4524(&gSfxDefaultPos, NA_SE_EN_GOLON_EYE_BIG, 60);
++            Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_EN_GOLON_EYE_BIG, 60);  // was func_800F4524 [LLM:HIGH]
+         }
+     }
+ }
+@@ -1873,10 +1873,10 @@ void EnGo2_BiggoronEyedrops(EnGo2* this, PlayState* play) {
+             if (DECR(this->animTimer)) {
+                 if (this->animTimer == 60 || this->animTimer == 120) {
+                     Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+-                    func_800F4524(&gSfxDefaultPos, NA_SE_EV_GORON_WATER_DROP, 60);
++                    Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_EV_GORON_WATER_DROP, 60);  // was func_800F4524 [LLM:HIGH]
+                 }
+             } else {
+-                func_800F4524(&gSfxDefaultPos, NA_SE_EN_GOLON_GOOD_BIG, 60);
++                Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_EN_GOLON_GOOD_BIG, 60);  // was func_800F4524 [LLM:HIGH]
+                 Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENGO2_ANIM_6);
+                 Message_ContinueTextbox(play, 0x305A);
+                 this->eyeMouthTexState = 3;
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index 7f1f0c932..c7eab8036 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -340,7 +340,7 @@ void EnIk_StandUp(EnIk* this, PlayState* play) {
+         // Disable miniboss music with Enemy Randomizer because the music would keep
+         // playing if the enemy was never defeated, which is common with Enemy Randomizer.
+         if (!CVarGetInteger(CVAR_ENHANCEMENT("RandomizedEnemies"), 0)) {
+-            func_800F5ACC(NA_BGM_MINI_BOSS);
++            Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+         }
+     }
+     if (this->skelAnime.curFrame == 5.0f) {
+@@ -1024,7 +1024,7 @@ void EnIk_DrawEnemy(Actor* thisx, PlayState* play) {
+ }
+ 
+ void EnIk_StartMusic(void) {
+-    func_800F5ACC(NA_BGM_MINI_BOSS);
++    Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+ }
+ 
+ // LLM generated name (HIGH), was func_80A76C14: fires the Iron Knuckle's wake-up, footstep, armour, finger and axe-wave sounds on their fixed frames of the introduction animation.
+diff --git a/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c b/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
+index 59bdd84c6..545126448 100644
+--- a/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
++++ b/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
+@@ -748,22 +748,22 @@ void func_80ACB748(EnOwl* this, PlayState* play) {
+ 
+     switch (owlType) {
+         case 7:
+-            func_800F436C(&D_80ACD62C, NA_SE_EV_FLYING_AIR - SFX_FLAG, weight * 2.0f);
++            Audio_PlaySfxScaledByRate(&D_80ACD62C, NA_SE_EV_FLYING_AIR - SFX_FLAG, weight * 2.0f);  // was func_800F436C [LLM:HIGH]
+             if ((play->csCtx.frames > 324) || ((play->csCtx.frames >= 142 && (play->csCtx.frames <= 266)))) {
+-                func_800F4414(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);
++                Audio_PlaySfxAtInterval(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);  // was func_800F4414 [LLM:HIGH]
+             }
+             if (play->csCtx.frames == 85) {
+-                func_800F436C(&D_80ACD62C, NA_SE_EV_PASS_AIR, weight * 2.0f);
++                Audio_PlaySfxScaledByRate(&D_80ACD62C, NA_SE_EV_PASS_AIR, weight * 2.0f);  // was func_800F436C [LLM:HIGH]
+             }
+             break;
+         case 8:
+         case 9:
+-            func_800F436C(&D_80ACD62C, NA_SE_EV_FLYING_AIR - SFX_FLAG, weight * 2.0f);
++            Audio_PlaySfxScaledByRate(&D_80ACD62C, NA_SE_EV_FLYING_AIR - SFX_FLAG, weight * 2.0f);  // was func_800F436C [LLM:HIGH]
+             if ((play->csCtx.frames >= 420) || ((0xC1 < play->csCtx.frames && (play->csCtx.frames <= 280)))) {
+-                func_800F4414(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);
++                Audio_PlaySfxAtInterval(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);  // was func_800F4414 [LLM:HIGH]
+             }
+             if (play->csCtx.frames == 217) {
+-                func_800F436C(&D_80ACD62C, NA_SE_EV_PASS_AIR, weight * 2.0f);
++                Audio_PlaySfxScaledByRate(&D_80ACD62C, NA_SE_EV_PASS_AIR, weight * 2.0f);  // was func_800F436C [LLM:HIGH]
+             }
+             break;
+     }
+@@ -958,7 +958,7 @@ void func_80ACC00C(EnOwl* this, PlayState* play) {
+ 
+             Sfx_PlaySfxCentered(NA_SE_SY_TRE_BOX_APPEAR);
+             gSaveContext.cutsceneTrigger = 1;
+-            func_800F44EC(0x14, 0xA);
++            Audio_SetSfxIntervalRange(0x14, 0xA);  // was func_800F44EC [LLM:HIGH]
+             this->actionFunc = EnOwl_WaitDefault;
+             this->unk_40A = 0;
+             this->actionFlags |= 0x80;
+diff --git a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+index 49d1f587a..bfb8eecd8 100644
+--- a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
++++ b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+@@ -903,7 +903,7 @@ void func_80ADB51C(EnPoSisters* this, PlayState* play) {
+     if (this->unk_19A == 0) {
+         this->actor.world.rot.y = this->actor.shape.rot.y += 0x4000 * (s32)(Rand_ZeroOne() * 4.0f);
+         if (this->unk_195 == 0) {
+-            func_800F5ACC(NA_BGM_MINI_BOSS);
++            Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+         }
+         func_80AD9F1C(this);
+     } else {
+@@ -1423,4 +1423,4 @@ void EnPoSisters_Draw(Actor* thisx, PlayState* play) {
+ 
+ void EnPoSisters_Reset(void) {
+     D_80ADD784 = 0;
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c b/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
+index e1056822c..3d2680abc 100644
+--- a/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
++++ b/soh/src/overlays/actors/ovl_En_River_Sound/z_en_river_sound.c
+@@ -240,7 +240,7 @@ void EnRiverSound_Draw(Actor* thisx, PlayState* play) {
+     } else if (this->actor.params == RS_UNK_11) {
+         Audio_LowerMainBgmVolume(90);
+     } else if (this->actor.params == RS_SARIAS_SONG) {
+-        func_800F4E30(&this->actor.projectedPos, this->actor.xzDistToPlayer);
++        Audio_PanBgmToNearestSource(&this->actor.projectedPos, this->actor.xzDistToPlayer);  // was func_800F4E30 [LLM:HIGH]
+     } else if (this->actor.params == RS_UNK_13) {
+         Audio_PlaySariaBgm(&this->actor.home.pos, NA_BGM_SARIA_THEME, 1000);
+     } else if (this->actor.params == RS_UNK_19) {
+diff --git a/soh/src/overlays/actors/ovl_En_Siofuki/z_en_siofuki.c b/soh/src/overlays/actors/ovl_En_Siofuki/z_en_siofuki.c
+index 940b4738b..fb15a9c5a 100644
+--- a/soh/src/overlays/actors/ovl_En_Siofuki/z_en_siofuki.c
++++ b/soh/src/overlays/actors/ovl_En_Siofuki/z_en_siofuki.c
+@@ -311,12 +311,12 @@ void EnSiofuki_Draw(Actor* thisx, PlayState* play) {
+         switch (((u16)thisx->params >> 0xC) & 0xF) {
+             case EN_SIOFUKI_RAISING:
+                 heightRatio = (this->currentHeight - 10.0f) / (400.0f - 10.0f);
+-                func_800F436C(&thisx->projectedPos, NA_SE_EV_FOUNTAIN - SFX_FLAG, 1.0f + heightRatio);
++                Audio_PlaySfxScaledByRate(&thisx->projectedPos, NA_SE_EV_FOUNTAIN - SFX_FLAG, 1.0f + heightRatio);  // was func_800F436C [LLM:HIGH]
+                 break;
+             case EN_SIOFUKI_LOWERING:
+                 if (this->currentHeight > -35.0f) {
+                     heightRatio = (this->currentHeight - -35.0f) / (this->maxHeight - -35.0f);
+-                    func_800F436C(&thisx->projectedPos, NA_SE_EV_FOUNTAIN - SFX_FLAG, 1.0f + heightRatio);
++                    Audio_PlaySfxScaledByRate(&thisx->projectedPos, NA_SE_EV_FOUNTAIN - SFX_FLAG, 1.0f + heightRatio);  // was func_800F436C [LLM:HIGH]
+                 }
+                 break;
+         }
+diff --git a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+index 1e1edd3c1..c5300f8d9 100644
+--- a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
++++ b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+@@ -1387,7 +1387,7 @@ void EnSkj_SetupWaitForOcarina(EnSkj* this, PlayState* play) {
+ 
+         if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+             player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+-            func_800F5BF0(NATURE_ID_KOKIRI_REGION);
++            Audio_PlayNatureAmbienceWithRestore(NATURE_ID_KOKIRI_REGION);  // was func_800F5BF0 [LLM:HIGH]
+             EnSkj_TurnPlayer(this, player);
+             player->unk_6A8 = &this->actor;
+             Message_StartTextbox(play, 0x10BE, &this->actor);
+@@ -1403,7 +1403,7 @@ void EnSkj_WaitForOcarina(EnSkj* this, PlayState* play) {
+ 
+     if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+         player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+-        func_800F5BF0(NATURE_ID_KOKIRI_REGION);
++        Audio_PlayNatureAmbienceWithRestore(NATURE_ID_KOKIRI_REGION);  // was func_800F5BF0 [LLM:HIGH]
+         EnSkj_TurnPlayer(this, player);
+         player->unk_6A8 = &this->actor;
+         Message_StartTextbox(play, 0x10BE, &this->actor);
+@@ -1595,7 +1595,7 @@ void EnSkj_CleanupOcarinaGame(EnSkj* this, PlayState* play) {
+ 
+     if ((sOcarinaMinigameSkullKids[SKULL_KID_LEFT].unk_0 == 2) &&
+         (sOcarinaMinigameSkullKids[SKULL_KID_RIGHT].unk_0 == 2)) {
+-        func_800F5C2C();
++        Audio_RestoreStackedBgm();  // was func_800F5C2C [LLM:HIGH]
+         Actor_Kill(&this->actor);
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c b/soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c
+index 9b321296b..481feaf61 100644
+--- a/soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c
++++ b/soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c
+@@ -812,7 +812,7 @@ void EnTa_StartingCuccoGame3(EnTa* this, PlayState* play) {
+                          Animation_GetLastFrame(&gTalonSitHandsUpAnim), ANIMMODE_ONCE, 0.0f);
+         this->timer = 50;
+         Interface_SetTimer(0x1E);
+-        func_800F5ACC(NA_BGM_TIMED_MINI_GAME);
++        Audio_PlayMiniBossBgm(NA_BGM_TIMED_MINI_GAME);  // was func_800F5ACC [LLM:HIGH]
+         this->stateFlags |= 0x200;
+         Message_CloseTextbox(play);
+         Player_SetCsActionWithHaltedActors(play, &this->actor, 1);
+diff --git a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+index 7295aad7e..c918905ee 100644
+--- a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
++++ b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+@@ -458,7 +458,7 @@ void EnTest_WaitGround(EnTest* this, PlayState* play) {
+         this->actor.shape.rot.y = this->actor.yawTowardsPlayer;
+ 
+         if (this->actor.params != STALFOS_TYPE_2) {
+-            func_800F5ACC(NA_BGM_MINI_BOSS);
++            Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+         }
+     } else {
+         if (this->timer != 0) {
+diff --git a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+index 6555458cb..6b4f3a7b0 100644
+--- a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
++++ b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+@@ -282,7 +282,7 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+                 // Disable miniboss music with Enemy Randomizer because the music would keep
+                 // playing if the enemy was never defeated, which is common with Enemy Randomizer.
+                 if (!CVarGetInteger(CVAR_ENHANCEMENT("RandomizedEnemies"), 0)) {
+-                    func_800F5ACC(NA_BGM_MINI_BOSS);
++                    Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+                 }
+                 sActionState = ENTORCH2_ATTACK;
+             }
+@@ -384,7 +384,7 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+                             EnTorch2_SwingSword(play, input, this);
+                             sSwordJumpState++;
+                         } else if (sSwordJumpTimer == 19) {
+-                            func_800F4190(&this->actor.projectedPos, NA_SE_VO_LI_AUTO_JUMP);
++                            Audio_PlaySfxWithFixedScales(&this->actor.projectedPos, NA_SE_VO_LI_AUTO_JUMP);  // was func_800F4190 [LLM:HIGH]
+                         }
+                     }
+                 } else {
+@@ -633,7 +633,7 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+             Item_DropCollectibleRandom(play, &this->actor, &thisx->world.pos, 0xC0);
+             this->stateFlags3 &= ~PLAYER_STATE3_PAUSE_ACTION_FUNC;
+         } else {
+-            func_800F5ACC(NA_BGM_MINI_BOSS);
++            Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+             if (this->actor.colChkInfo.damageEffect == 1) {
+                 if (sAlpha == 255) {
+                     Actor_SetColorFilter(&this->actor, 0, 0xFF, 0, 0x50);
+@@ -701,7 +701,7 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+         }
+         if (staggerThreshold < sStaggerCount) {
+             this->skelAnime.playSpeed *= 0.6f;
+-            func_800F4190(&this->actor.projectedPos, NA_SE_PL_DAMAGE);
++            Audio_PlaySfxWithFixedScales(&this->actor.projectedPos, NA_SE_PL_DAMAGE);  // was func_800F4190 [LLM:HIGH]
+             sStaggerTimer = 0;
+             sStaggerCount = 0;
+         }
+diff --git a/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c b/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
+index dd02af9ee..73942cff9 100644
+--- a/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
++++ b/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
+@@ -392,7 +392,7 @@ void EnWf_WaitToAppear(EnWf* this, PlayState* play) {
+             // playing if the enemy was never defeated, which is common with Enemy Randomizer.
+             if ((this->actor.params != WOLFOS_NORMAL) && (this->switchFlag != 0xFF) &&
+                 !CVarGetInteger(CVAR_ENHANCEMENT("RandomizedEnemies"), 0)) {
+-                func_800F5ACC(NA_BGM_MINI_BOSS);
++                Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+             }
+         }
+     } else if (this->actionTimer != 0) {
+diff --git a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+index bd91506e6..96b73dc0c 100644
+--- a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
++++ b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+@@ -514,7 +514,7 @@ void EnXc_SetColossusWindSFX(PlayState* play) {
+                     osSyncPrintf("MAX speed = %f\n", sMaxSpeed);
+ 
+                     speed = CLAMP_MAX(speed, 2.0f);
+-                    func_800F436C(&sPos, NA_SE_EV_FLYING_AIR - SFX_FLAG, 0.6f + (0.4f * speed));
++                    Audio_PlaySfxScaledByRate(&sPos, NA_SE_EV_FLYING_AIR - SFX_FLAG, 0.6f + (0.4f * speed));  // was func_800F436C [LLM:HIGH]
+                 }
+ 
+                 D_80B42DB0.x = eye->x;
+diff --git a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+index df4c97825..90ed84e30 100644
+--- a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
++++ b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+@@ -665,7 +665,7 @@ void EnZf_DropIn(EnZf* this, PlayState* play) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+ 
+         if (this->actor.params == ENZF_TYPE_LIZALFOS_MINIBOSS_A) {
+-            func_800F5ACC(NA_BGM_MINI_BOSS);
++            Audio_PlayMiniBossBgm(NA_BGM_MINI_BOSS);  // was func_800F5ACC [LLM:HIGH]
+         }
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index 74d682e2a..aa5223a78 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -2499,7 +2499,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                         sLureRotXTarget = 0.5f;
+                         sRodLineSpooled += (fabsf(wiggle) * (7.5f + (KREG(25) * 0.1f)));
+ 
+-                        func_800F436C(&sSoundPos, NA_SE_EV_LURE_MOVE_W, (wiggle * 1.999f * 0.25f) + 0.75f);
++                        Audio_PlaySfxScaledByRate(&sSoundPos, NA_SE_EV_LURE_MOVE_W, (wiggle * 1.999f * 0.25f) + 0.75f);  // was func_800F436C [LLM:HIGH]
+ 
+                         if (sLureEquipped == FS_LURE_SINKING) {
+                             sLureLineSegPosDelta.y = 5.0f * wiggle;
+@@ -5760,7 +5760,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+     Math_ApproachF(&sFishingStormSfxPos.z, target, 1.0f, 5.0f);
+ 
+     if (sFishingStormSfxPos.z < 1500.0f) {
+-        func_800F436C(&sFishingStormSfxPos, NA_SE_EV_RAIN - SFX_FLAG, sStormSfxFreqScale);
++        Audio_PlaySfxScaledByRate(&sFishingStormSfxPos, NA_SE_EV_RAIN - SFX_FLAG, sStormSfxFreqScale);  // was func_800F436C [LLM:HIGH]
+     }
+ 
+     if (sStormStrengthTarget != 0) {
+diff --git a/soh/src/overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c b/soh/src/overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c
+index 828374e46..3034c4ed9 100644
+--- a/soh/src/overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c
++++ b/soh/src/overlays/actors/ovl_Object_Kankyo/z_object_kankyo.c
+@@ -213,14 +213,14 @@ void ObjectKankyo_Fairies(ObjectKankyo* this, PlayState* play) {
+             dist = 1.0f;
+         }
+ 
+-        func_800F436C(&sSoundPos, NA_SE_EV_NAVY_FLY - SFX_FLAG, (0.4f * dist) + 0.6f);
++        Audio_PlaySfxScaledByRate(&sSoundPos, NA_SE_EV_NAVY_FLY - SFX_FLAG, (0.4f * dist) + 0.6f);  // was func_800F436C [LLM:HIGH]
+         switch (play->csCtx.frames) {
+             case 473:
+                 Sfx_PlaySfxCentered2(NA_SE_VO_NA_HELLO_3);
+                 break;
+ 
+             case 583:
+-                func_800F4524(&gSfxDefaultPos, NA_SE_VO_NA_HELLO_2, 32);
++                Audio_PlaySfxWithReverb(&gSfxDefaultPos, NA_SE_VO_NA_HELLO_2, 32);  // was func_800F4524 [LLM:HIGH]
+                 break;
+ 
+             case 763:
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index e464e4ed0..e4da37a37 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -1725,7 +1725,7 @@ void Player_PlayVoiceSfx(Player* this, u16 sfxId) {
+     if (this->actor.category == ACTORCAT_PLAYER) {
+         Player_PlaySfx(this, sfxId + this->ageProperties->unk_92);
+     } else {
+-        func_800F4190(&this->actor.projectedPos, sfxId);
++        Audio_PlaySfxWithFixedScales(&this->actor.projectedPos, sfxId);  // was func_800F4190 [LLM:HIGH]
+     }
+ }
+ 
+@@ -1764,7 +1764,7 @@ void Player_PlaySteppingSfx(Player* this, f32 pitchAdjustment) {
+         sfxId = Player_ApplyFloorAndAgeSfxOffsets(this, NA_SE_PL_WALK_GROUND);
+     }
+ 
+-    func_800F4010(&this->actor.projectedPos, sfxId, pitchAdjustment);
++    Audio_PlayWalkSfx(&this->actor.projectedPos, sfxId, pitchAdjustment);  // was func_800F4010 [LLM:GUESS]
+     // Gameplay stats: Count footsteps
+     // Only count while game isn't complete and don't count Link's idle animations or crawling in crawlspaces
+     if (!gSaveContext.ship.stats.gameComplete && !(this->stateFlags2 & PLAYER_STATE2_IDLE_FIDGET) &&
+@@ -1840,7 +1840,7 @@ void Player_ProcessAnimSfxList(Player* this, AnimSfxEntry* entry) {
+             } else if (type == ANIMSFX_SHIFT_TYPE(ANIMSFX_TYPE_WALKING)) {
+                 Player_PlaySteppingSfx(this, 0.0f);
+             } else if (type == ANIMSFX_SHIFT_TYPE(ANIMSFX_TYPE_UNKNOWN)) {
+-                func_800F4010(&this->actor.projectedPos, NA_SE_PL_WALK_LADDER + this->ageProperties->unk_94, 0.0f);
++                Audio_PlayWalkSfx(&this->actor.projectedPos, NA_SE_PL_WALK_LADDER + this->ageProperties->unk_94, 0.0f);  // was func_800F4010 [LLM:GUESS]
+             }
+         }
+ 
+@@ -5181,7 +5181,7 @@ s32 Player_HandleExitsAndVoids(PlayState* play, Player* this, CollisionPoly* pol
+ 
+                 if (temp == 11) {
+                     Sfx_PlaySfxCentered2(NA_SE_OC_SECRET_HOLE_OUT);
+-                    func_800F6964(5);
++                    Audio_FadeOutAllPlayers(5);  // was func_800F6964 [LLM:HIGH]
+                     gSaveContext.seqId = (u8)NA_BGM_DISABLED;
+                     gSaveContext.natureAmbienceId = NATURE_ID_DISABLED;
+                 } else {
+@@ -11926,7 +11926,7 @@ void Player_UpdateCommon(Player* this, PlayState* play, Input* input) {
+                 }
+ 
+                 if ((this->linearVelocity == 0.0f) && (this->actor.speedXZ != 0.0f)) {
+-                    func_800F4138(&this->actor.projectedPos, 0xD0, this->actor.speedXZ);
++                    Audio_PlaySfxWithSpeedScales(&this->actor.projectedPos, 0xD0, this->actor.speedXZ);  // was func_800F4138 [LLM:HIGH]
+                 }
+             } else {
+                 this->actor.speedXZ = this->linearVelocity;
+@@ -14677,7 +14677,7 @@ void Player_Action_SlideOnSlope(Player* this, PlayState* play) {
+     this->stateFlags2 |= PLAYER_STATE2_DISABLE_ROTATION_Z_TARGET | PLAYER_STATE2_DISABLE_ROTATION_ALWAYS;
+     LinkAnimation_Update(play, &this->skelAnime);
+     func_8084269C(play, this);
+-    func_800F4138(&this->actor.projectedPos, NA_SE_PL_SLIP_LEVEL - SFX_FLAG, this->actor.speedXZ);
++    Audio_PlaySfxWithSpeedScales(&this->actor.projectedPos, NA_SE_PL_SLIP_LEVEL - SFX_FLAG, this->actor.speedXZ);  // was func_800F4138 [LLM:HIGH]
+ 
+     if (Player_ActionHandler_13(this, play) == 0) {
+         CollisionPoly* floorPoly = this->actor.floorPoly;
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+index 56971ec51..51548ab05 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+@@ -2430,7 +2430,7 @@ void FileChoose_ConfirmFile(GameState* thisx) {
+             Audio_PlaySfxGeneral(NA_SE_SY_FSEL_DECIDE_L, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             this->selectMode = SM_FADE_OUT;
+-            func_800F6964(0xF);
++            Audio_FadeOutAllPlayers(0xF);  // was func_800F6964 [LLM:HIGH]
+         } else {
+             Audio_PlaySfxGeneral(NA_SE_SY_FSEL_CLOSE, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index e310ba845..dc2ab3319 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -4266,7 +4266,7 @@ void KaleidoScope_Update(PlayState* play) {
+                         Interface_SetDoAction(play, DO_ACTION_NONE);
+                         pauseCtx->state = 0x12;
+                         WREG(2) = -6240;
+-                        func_800F64E0(0);
++                        Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                     } else if (CHECK_BTN_ALL(input->press.button, BTN_B)) {
+                         pauseCtx->mode = 0;
+                         pauseCtx->promptChoice = 0;
+@@ -4316,7 +4316,7 @@ void KaleidoScope_Update(PlayState* play) {
+                         Interface_SetDoAction(play, DO_ACTION_NONE);
+                         pauseCtx->state = 0x12;
+                         WREG(2) = -6240;
+-                        func_800F64E0(0);
++                        Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                         pauseCtx->unk_1E4 = 0;
+                         break;
+                     } else if (CHECK_BTN_ALL(input->press.button, BTN_B)) {
+@@ -4369,7 +4369,7 @@ void KaleidoScope_Update(PlayState* play) {
+                         Interface_SetDoAction(play, DO_ACTION_NONE);
+                         pauseCtx->state = 0x12;
+                         WREG(2) = -6240;
+-                        func_800F64E0(0);
++                        Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                         pauseCtx->unk_1E4 = 0;
+                     } else if (CHECK_BTN_ALL(input->press.button, BTN_B)) {
+                         AudioOcarina_SetInstrument(OCARINA_INSTRUMENT_OFF);
+@@ -4425,7 +4425,7 @@ void KaleidoScope_Update(PlayState* play) {
+                                 pauseCtx->unk_1EC = 2;
+                                 WREG(2) = -6240;
+                                 YREG(8) = pauseCtx->unk_204;
+-                                func_800F64E0(0);
++                                Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                             } else {
+                                 Audio_PlaySfxGeneral(NA_SE_SY_PIECE_OF_HEART, &gSfxDefaultPos, 4,
+                                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale,
+@@ -4442,7 +4442,7 @@ void KaleidoScope_Update(PlayState* play) {
+                             pauseCtx->unk_1EC = 2;
+                             WREG(2) = -6240;
+                             YREG(8) = pauseCtx->unk_204;
+-                            func_800F64E0(0);
++                            Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                             gSaveContext.buttonStatus[0] = gSaveContext.buttonStatus[1] = gSaveContext.buttonStatus[2] =
+                                 gSaveContext.buttonStatus[3] = BTN_ENABLED;
+                             gSaveContext.buttonStatus[5] = gSaveContext.buttonStatus[6] = gSaveContext.buttonStatus[7] =
+@@ -4465,7 +4465,7 @@ void KaleidoScope_Update(PlayState* play) {
+                             pauseCtx->unk_1EC = 5;
+                             WREG(2) = -6240;
+                             YREG(8) = pauseCtx->unk_204;
+-                            func_800F64E0(0);
++                            Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+                         }
+                         break;
+ 
+@@ -4701,7 +4701,7 @@ void KaleidoScope_Update(PlayState* play) {
+                        (CHECK_BTN_ALL(input->press.button, BTN_A) || CHECK_BTN_ALL(input->press.button, BTN_START))) {
+                 pauseCtx->state = 0x10;
+                 gameOverCtx->state++;
+-                func_800F64E0(0);
++                Audio_SetPauseState(0);  // was func_800F64E0 [LLM:HIGH]
+             }
+             break;
+ 
+-- 
+2.55.0
+

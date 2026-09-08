@@ -1,0 +1,113 @@
+From 511ad56136c78133215df95cb5626038f2a74fa0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:59 +0000
+Subject: [PATCH 021/488] soh: name the 2 address-named symbols defined in
+ z_fcurve_data.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_fcurve_data.c; updating their references touches 3 files in total.
+
+  * func_8006C510 -> Curve_CubicHermiteSpline
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_8006C5A8 -> Curve_Interpolate
+    zeldaret/oot (same decomp, same ROM address)
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                | 2 +-
+ soh/src/code/z_fcurve_data.c           | 8 +++++---
+ soh/src/code/z_fcurve_data_skelanime.c | 2 +-
+ 3 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index c3f7fff4f..3146a2eca 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -882,7 +882,7 @@ void Flags_UnsetAllEnv(PlayState* play);
+ void Flags_SetEnv(PlayState* play, s16 flag);
+ void Flags_UnsetEnv(PlayState* play, s16 flag);
+ s32 Flags_GetEnv(PlayState* play, s16 flag);
+-f32 func_8006C5A8(f32 target, TransformData* transData, s32 refIdx);
++f32 Curve_Interpolate(f32 target, TransformData* transData, s32 refIdx);  // was func_8006C5A8 [oot]
+ void SkelCurve_Clear(SkelAnimeCurve* skelCurve);
+ s32 SkelCurve_Init(PlayState* play, SkelAnimeCurve* skelCurve, SkelCurveLimbList* limbListSeg,
+                    TransformUpdateIndex* transUpdIdx);
+diff --git a/soh/src/code/z_fcurve_data.c b/soh/src/code/z_fcurve_data.c
+index 833009e81..039bfc633 100644
+--- a/soh/src/code/z_fcurve_data.c
++++ b/soh/src/code/z_fcurve_data.c
+@@ -1,6 +1,7 @@
+ #include "global.h"
+ 
+-f32 func_8006C510(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5) {
++// Name from zeldaret/oot, was func_8006C510: evaluates cubic Hermite basis (2t^3-3t^2+1, etc.) over endpoints and tangents [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_fcurve_data.c]
++f32 Curve_CubicHermiteSpline(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5) {
+     char pad[0x1C];
+     f32 sq = SQ(arg0);
+     f32 cube = sq * arg0;
+@@ -9,7 +10,8 @@ f32 func_8006C510(f32 arg0, f32 arg1, f32 arg2, f32 arg3, f32 arg4, f32 arg5) {
+            ((cube - (sq + sq)) + arg0) * arg4 * arg1 + (cube - sq) * arg5 * arg1;
+ }
+ 
+-f32 func_8006C5A8(f32 target, TransformData* transData, s32 refIdx) {
++// Name from zeldaret/oot, was func_8006C5A8: interpolates a value between keyframes (step/linear/Hermite modes) at target time [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_fcurve_data.c]
++f32 Curve_Interpolate(f32 target, TransformData* transData, s32 refIdx) {
+     s32 i;
+     s32 j;
+ 
+@@ -31,7 +33,7 @@ f32 func_8006C5A8(f32 target, TransformData* transData, s32 refIdx) {
+                            (transData[j].unk_08 - transData[i].unk_08);
+             } else {
+                 f32 diff = (f32)transData[j].unk_02 - (f32)transData[i].unk_02;
+-                return func_8006C510((target - transData[i].unk_02) / ((f32)transData[j].unk_02 - transData[i].unk_02),
++                return Curve_CubicHermiteSpline((target - transData[i].unk_02) / ((f32)transData[j].unk_02 - transData[i].unk_02),
+                                      diff * (1.0f / 30.0f), transData[i].unk_08, transData[j].unk_08,
+                                      transData[i].unk_06, transData[j].unk_04);
+             }
+diff --git a/soh/src/code/z_fcurve_data_skelanime.c b/soh/src/code/z_fcurve_data_skelanime.c
+index b80bd87bd..3a321ed67 100644
+--- a/soh/src/code/z_fcurve_data_skelanime.c
++++ b/soh/src/code/z_fcurve_data_skelanime.c
+@@ -84,7 +84,7 @@ s32 SkelCurve_Update(PlayState* play, SkelAnimeCurve* skelCurve) {
+                     *transforms = transformValue;
+                     transformCopyValues++;
+                 } else {
+-                    transformValue = func_8006C5A8(skelCurve->animCurFrame, transData, *transformRefIdx);
++                    transformValue = Curve_Interpolate(skelCurve->animCurFrame, transData, *transformRefIdx);
+                     transData += *transformRefIdx;
+                     if (j == 0) {
+                         *transforms = transformValue * 1024.0f;
+-- 
+2.55.0
+

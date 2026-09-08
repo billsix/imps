@@ -1,0 +1,689 @@
+From 182cc798463f86e37e881e8722c57a212ee3032a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 373/488] soh: name the 30 address-named symbols defined in
+ z_demo_gj.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 30 are defined in soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c.
+
+  * func_809797E4 -> DemoGj_IsGanonState
+    deduced, confidence HIGH: true when the tracked BossGanon2 unk_314
+    equals the caller argument; the two named wrappers pass 1 and 2
+
+  * func_8097A000 -> DemoGj_TumbleRubblePile1
+    deduced, confidence HIGH: moves rubble pile 1 under gravity and spins it
+    by its own kREG-tunable rates
+
+  * func_8097A0E4 -> DemoGj_CheckRisingPile1
+    deduced, confidence HIGH: once Ganondorf starts rising, launches rubble
+    pile 1 and switches it to update mode 8
+
+  * func_8097A130 -> DemoGj_CheckFloatingPile1
+    deduced, confidence HIGH: kills rubble pile 1 once Ganondorf is floating
+    in the air
+
+  * func_8097A238 -> DemoGj_TumbleRubblePile2
+    deduced, confidence HIGH: moves rubble pile 2 under gravity and spins it
+    by its own kREG-tunable rates
+
+  * func_8097A320 -> DemoGj_CheckRisingPile2
+    deduced, confidence HIGH: once Ganondorf starts rising, launches rubble
+    pile 2 and switches it to update mode 9
+
+  * func_8097A36C -> DemoGj_CheckFloatingPile2
+    deduced, confidence HIGH: kills rubble pile 2 once Ganondorf is floating
+    in the air
+
+  * func_8097A474 -> DemoGj_TumbleRubblePile3
+    deduced, confidence HIGH: moves rubble pile 3 under gravity and spins it
+    by its own kREG-tunable rates
+
+  * func_8097A4F0 -> DemoGj_CheckRisingPile3
+    deduced, confidence HIGH: once Ganondorf starts rising, launches rubble
+    pile 3 and switches it to update mode 10
+
+  * func_8097A53C -> DemoGj_CheckFloatingPile3
+    deduced, confidence HIGH: kills rubble pile 3 once Ganondorf is floating
+    in the air
+
+  * func_8097A644 -> DemoGj_TumbleRubblePile4
+    deduced, confidence HIGH: moves rubble pile 4 under gravity and spins it
+    by its own kREG-tunable rates
+
+  * func_8097A6C0 -> DemoGj_CheckRisingPile4
+    deduced, confidence HIGH: once Ganondorf starts rising, launches rubble
+    pile 4 and switches it to update mode 11
+
+  * func_8097A70C -> DemoGj_CheckFloatingPile4
+    deduced, confidence HIGH: kills rubble pile 4 once Ganondorf is floating
+    in the air
+
+  * func_8097A814 -> DemoGj_TumbleRubblePile5
+    deduced, confidence HIGH: moves rubble pile 5 under gravity and spins it
+    by its own kREG-tunable rates
+
+  * func_8097A890 -> DemoGj_CheckRisingPile5
+    deduced, confidence HIGH: once Ganondorf starts rising, launches rubble
+    pile 5 and switches it to update mode 12
+
+  * func_8097A8DC -> DemoGj_CheckFloatingPile5
+    deduced, confidence HIGH: kills rubble pile 5 once Ganondorf is floating
+    in the air
+
+  * func_8097A9E4 -> DemoGj_TumbleRubblePile6
+    deduced, confidence HIGH: moves rubble pile 6 under gravity and spins it
+    by its own kREG-tunable rates
+
+  * func_8097AA60 -> DemoGj_CheckRisingPile6
+    deduced, confidence HIGH: once Ganondorf starts rising, launches rubble
+    pile 6 and switches it to update mode 13
+
+  * func_8097AAAC -> DemoGj_CheckFloatingPile6
+    deduced, confidence HIGH: kills rubble pile 6 once Ganondorf is floating
+    in the air
+
+  * func_8097ABB4 -> DemoGj_TumbleRubblePile7
+    deduced, confidence HIGH: moves rubble pile 7 under gravity and spins it
+    by its own kREG-tunable rates
+
+  * func_8097AC9C -> DemoGj_CheckRisingPile7
+    deduced, confidence HIGH: once Ganondorf starts rising, launches rubble
+    pile 7 and switches it to update mode 14
+
+  * func_8097ACE8 -> DemoGj_CheckFloatingPile7
+    deduced, confidence HIGH: kills rubble pile 7 once Ganondorf is floating
+    in the air
+
+  * func_8097AEE8 -> DemoGj_PlaceCylinders1
+    deduced, confidence HIGH: places the three cylinders of destructable
+    rubble 1 around the actor, rotated by its yaw
+
+  * func_8097B128 -> DemoGj_ActivateDestructableRubble1
+    deduced, confidence HIGH: once Ganondorf floats, rebuilds destructable
+    rubble 1 at 0.8 scale and switches to update mode 18
+
+  * func_8097B22C -> DemoGj_UpdateDestructableRubble1
+    deduced, confidence HIGH: kills the pile on the fourth Ganondorf state,
+    and on an explosion drops its collectible and bursts
+
+  * func_8097B450 -> DemoGj_PlaceCylinders2
+    deduced, confidence HIGH: places the three cylinders of destructable
+    rubble 2 in a line along the actor yaw
+
+  * func_8097B6C4 -> DemoGj_ActivateDestructableRubble2
+    deduced, confidence HIGH: once Ganondorf floats, rebuilds destructable
+    rubble 2 at 0.8 scale and switches to update mode 19
+
+  * func_8097B750 -> DemoGj_UpdateDestructableRubble2
+    deduced, confidence HIGH: the destructable rubble 2 twin of
+    DemoGj_UpdateDestructableRubble1, using its own explosion helpers
+
+  * func_8097B9BC -> DemoGj_ActivateDestructableRubbleTall
+    deduced, confidence HIGH: once Ganondorf floats, rebuilds the tall
+    rubble at 0.8 scale and switches to update mode 20
+
+  * func_8097BA48 -> DemoGj_UpdateDestructableRubbleTall
+    deduced, confidence HIGH: the single-cylinder tall rubble: dies on the
+    fourth Ganondorf state or on an explosion, dropping its collectible
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Demo_Gj/z_demo_gj.c   | 160 +++++++++++-------
+ 1 file changed, 95 insertions(+), 65 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c b/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
+index c0ffbeacc..a6bd99e81 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
++++ b/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
+@@ -436,7 +436,8 @@ void DemoGj_SetupRotation(DemoGj* this, PlayState* play) {
+  * Those values should probably be defined as macros or enums in `ovl_Boss_Ganon2/z_boss_ganon2.h`.
+  * Proposed name for the function: `s32 DemoGj_CheckGanonMode(DemoGj* this, u8 mode)`
+  */
+-s32 func_809797E4(DemoGj* this, u8 arg1) {
++// LLM generated name (HIGH), was func_809797E4: true when the tracked BossGanon2 unk_314 equals the caller argument; the two named wrappers pass 1 and 2
++s32 DemoGj_IsGanonState(DemoGj* this, u8 arg1) {
+     BossGanon2* ganon = this->ganon;
+ 
+     if ((ganon != NULL) && (ganon->unk_314 == arg1)) {
+@@ -446,12 +447,12 @@ s32 func_809797E4(DemoGj* this, u8 arg1) {
+ }
+ 
+ s32 DemoGj_IsGanondorfRisingFromRubble(DemoGj* this, PlayState* play) {
+-    return func_809797E4(this, 1);
++    return DemoGj_IsGanonState(this, 1);  // was func_809797E4 [LLM:HIGH]
+ }
+ 
+ // Ganondorf has stopped rising into the air and is just floating. Just before he transforms.
+ s32 DemoGj_IsGanondorfFloatingInAir(DemoGj* this, PlayState* play) {
+-    return func_809797E4(this, 2);
++    return DemoGj_IsGanonState(this, 2);  // was func_809797E4 [LLM:HIGH]
+ }
+ 
+ void DemoGj_SetupMovement(DemoGj* this, PlayState* play) {
+@@ -560,7 +561,7 @@ void DemoGj_SetupMovement(DemoGj* this, PlayState* play) {
+ }
+ 
+ void DemoGj_CheckIfTransformedIntoGanon(DemoGj* this) {
+-    if (func_809797E4(this, 3)) {
++    if (DemoGj_IsGanonState(this, 3)) {  // was func_809797E4 [LLM:HIGH]
+         this->isTransformedIntoGanon = true;
+     }
+ }
+@@ -569,7 +570,8 @@ void DemoGj_InitRubblePile1(DemoGj* this, PlayState* play) {
+     DemoGj_InitSetIndexes(this, play, 1, 2, &gGanonsCastleRubble2Col);
+ }
+ 
+-void func_8097A000(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A000: moves rubble pile 1 under gravity and spins it by its own kREG-tunable rates
++void DemoGj_TumbleRubblePile1(DemoGj* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->dyna.actor);
+ 
+     this->rotationVec.x += (s16)(kREG(18));
+@@ -595,7 +597,8 @@ void DemoGj_SpawnSmokePreBattle1(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097A0E4(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A0E4: once Ganondorf starts rising, launches rubble pile 1 and switches it to update mode 8
++void DemoGj_CheckRisingPile1(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfRisingFromRubble(this, play)) {
+         DemoGj_SetupMovement(this, play);
+         this->updateMode = 8;
+@@ -603,7 +606,8 @@ void func_8097A0E4(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097A130(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A130: kills rubble pile 1 once Ganondorf is floating in the air
++void DemoGj_CheckFloatingPile1(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Actor_Kill(&this->dyna.actor);
+     }
+@@ -612,13 +616,13 @@ void func_8097A130(DemoGj* this, PlayState* play) {
+ // func_8097A160
+ void DemoGj_Update01(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097A0E4(this, play);
++    DemoGj_CheckRisingPile1(this, play);  // was func_8097A0E4 [LLM:HIGH]
+ }
+ 
+ // func_8097A190
+ void DemoGj_Update08(DemoGj* this, PlayState* play) {
+-    func_8097A000(this, play);
+-    func_8097A130(this, play);
++    DemoGj_TumbleRubblePile1(this, play);  // was func_8097A000 [LLM:HIGH]
++    DemoGj_CheckFloatingPile1(this, play);  // was func_8097A130 [LLM:HIGH]
+ }
+ 
+ void DemoGj_DrawRubble2(DemoGj* this, PlayState* play) {
+@@ -633,7 +637,8 @@ void DemoGj_InitRubblePile2(DemoGj* this, PlayState* play) {
+     DemoGj_InitSetIndexes(this, play, 2, 3, &gGanonsCastleRubble3Col);
+ }
+ 
+-void func_8097A238(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A238: moves rubble pile 2 under gravity and spins it by its own kREG-tunable rates
++void DemoGj_TumbleRubblePile2(DemoGj* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->dyna.actor);
+ 
+     this->rotationVec.x += (s16)(kREG(31));
+@@ -659,7 +664,8 @@ void DemoGj_SpawnSmokePreBattle2(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097A320(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A320: once Ganondorf starts rising, launches rubble pile 2 and switches it to update mode 9
++void DemoGj_CheckRisingPile2(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfRisingFromRubble(this, play)) {
+         DemoGj_SetupMovement(this, play);
+         this->updateMode = 9;
+@@ -667,7 +673,8 @@ void func_8097A320(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097A36C(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A36C: kills rubble pile 2 once Ganondorf is floating in the air
++void DemoGj_CheckFloatingPile2(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Actor_Kill(&this->dyna.actor);
+     }
+@@ -676,13 +683,13 @@ void func_8097A36C(DemoGj* this, PlayState* play) {
+ // func_8097A39C
+ void DemoGj_Update02(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097A320(this, play);
++    DemoGj_CheckRisingPile2(this, play);  // was func_8097A320 [LLM:HIGH]
+ }
+ 
+ // func_8097A3CC
+ void DemoGj_Update09(DemoGj* this, PlayState* play) {
+-    func_8097A238(this, play);
+-    func_8097A36C(this, play);
++    DemoGj_TumbleRubblePile2(this, play);  // was func_8097A238 [LLM:HIGH]
++    DemoGj_CheckFloatingPile2(this, play);  // was func_8097A36C [LLM:HIGH]
+ }
+ 
+ void DemoGj_DrawRubble3(DemoGj* this, PlayState* play) {
+@@ -697,7 +704,8 @@ void DemoGj_InitRubblePile3(DemoGj* this, PlayState* play) {
+     DemoGj_InitSetIndexes(this, play, 3, 4, &gGanonsCastleRubble4Col);
+ }
+ 
+-void func_8097A474(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A474: moves rubble pile 3 under gravity and spins it by its own kREG-tunable rates
++void DemoGj_TumbleRubblePile3(DemoGj* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->dyna.actor);
+ 
+     this->rotationVec.x += (s16)(kREG(44));
+@@ -707,7 +715,8 @@ void func_8097A474(DemoGj* this, PlayState* play) {
+     DemoGj_SetupRotation(this, play);
+ }
+ 
+-void func_8097A4F0(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A4F0: once Ganondorf starts rising, launches rubble pile 3 and switches it to update mode 10
++void DemoGj_CheckRisingPile3(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfRisingFromRubble(this, play)) {
+         DemoGj_SetupMovement(this, play);
+         this->updateMode = 10;
+@@ -715,7 +724,8 @@ void func_8097A4F0(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097A53C(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A53C: kills rubble pile 3 once Ganondorf is floating in the air
++void DemoGj_CheckFloatingPile3(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Actor_Kill(&this->dyna.actor);
+     }
+@@ -724,13 +734,13 @@ void func_8097A53C(DemoGj* this, PlayState* play) {
+ // func_8097A56C
+ void DemoGj_Update03(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097A4F0(this, play);
++    DemoGj_CheckRisingPile3(this, play);  // was func_8097A4F0 [LLM:HIGH]
+ }
+ 
+ // func_8097A59C
+ void DemoGj_Update10(DemoGj* this, PlayState* play) {
+-    func_8097A474(this, play);
+-    func_8097A53C(this, play);
++    DemoGj_TumbleRubblePile3(this, play);  // was func_8097A474 [LLM:HIGH]
++    DemoGj_CheckFloatingPile3(this, play);  // was func_8097A53C [LLM:HIGH]
+ }
+ 
+ void DemoGj_DrawRubble4(DemoGj* this, PlayState* play) {
+@@ -745,7 +755,8 @@ void DemoGj_InitRubblePile4(DemoGj* this, PlayState* play) {
+     DemoGj_InitSetIndexes(this, play, 4, 5, &gGanonsCastleRubble5Col);
+ }
+ 
+-void func_8097A644(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A644: moves rubble pile 4 under gravity and spins it by its own kREG-tunable rates
++void DemoGj_TumbleRubblePile4(DemoGj* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->dyna.actor);
+ 
+     this->rotationVec.x += (s16)(kREG(57));
+@@ -755,7 +766,8 @@ void func_8097A644(DemoGj* this, PlayState* play) {
+     DemoGj_SetupRotation(this, play);
+ }
+ 
+-void func_8097A6C0(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A6C0: once Ganondorf starts rising, launches rubble pile 4 and switches it to update mode 11
++void DemoGj_CheckRisingPile4(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfRisingFromRubble(this, play)) {
+         DemoGj_SetupMovement(this, play);
+         this->updateMode = 11;
+@@ -763,7 +775,8 @@ void func_8097A6C0(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097A70C(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A70C: kills rubble pile 4 once Ganondorf is floating in the air
++void DemoGj_CheckFloatingPile4(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Actor_Kill(&this->dyna.actor);
+     }
+@@ -772,13 +785,13 @@ void func_8097A70C(DemoGj* this, PlayState* play) {
+ // func_8097A73C
+ void DemoGj_Update04(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097A6C0(this, play);
++    DemoGj_CheckRisingPile4(this, play);  // was func_8097A6C0 [LLM:HIGH]
+ }
+ 
+ // func_8097A76C
+ void DemoGj_Update11(DemoGj* this, PlayState* play) {
+-    func_8097A644(this, play);
+-    func_8097A70C(this, play);
++    DemoGj_TumbleRubblePile4(this, play);  // was func_8097A644 [LLM:HIGH]
++    DemoGj_CheckFloatingPile4(this, play);  // was func_8097A70C [LLM:HIGH]
+ }
+ 
+ void DemoGj_DrawRubble5(DemoGj* this, PlayState* play) {
+@@ -793,7 +806,8 @@ void DemoGj_InitRubblePile5(DemoGj* this, PlayState* play) {
+     DemoGj_InitSetIndexes(this, play, 5, 6, &gGanonsCastleRubble6Col);
+ }
+ 
+-void func_8097A814(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A814: moves rubble pile 5 under gravity and spins it by its own kREG-tunable rates
++void DemoGj_TumbleRubblePile5(DemoGj* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->dyna.actor);
+ 
+     this->rotationVec.x += (s16)(kREG(70));
+@@ -803,7 +817,8 @@ void func_8097A814(DemoGj* this, PlayState* play) {
+     DemoGj_SetupRotation(this, play);
+ }
+ 
+-void func_8097A890(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A890: once Ganondorf starts rising, launches rubble pile 5 and switches it to update mode 12
++void DemoGj_CheckRisingPile5(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfRisingFromRubble(this, play)) {
+         DemoGj_SetupMovement(this, play);
+         this->updateMode = 12;
+@@ -811,7 +826,8 @@ void func_8097A890(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097A8DC(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A8DC: kills rubble pile 5 once Ganondorf is floating in the air
++void DemoGj_CheckFloatingPile5(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Actor_Kill(&this->dyna.actor);
+     }
+@@ -820,13 +836,13 @@ void func_8097A8DC(DemoGj* this, PlayState* play) {
+ // func_8097A90C
+ void DemoGj_Update05(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097A890(this, play);
++    DemoGj_CheckRisingPile5(this, play);  // was func_8097A890 [LLM:HIGH]
+ }
+ 
+ // func_8097A93C
+ void DemoGj_Update12(DemoGj* this, PlayState* play) {
+-    func_8097A814(this, play);
+-    func_8097A8DC(this, play);
++    DemoGj_TumbleRubblePile5(this, play);  // was func_8097A814 [LLM:HIGH]
++    DemoGj_CheckFloatingPile5(this, play);  // was func_8097A8DC [LLM:HIGH]
+ }
+ 
+ void DemoGj_DrawRubble6(DemoGj* this, PlayState* play) {
+@@ -841,7 +857,8 @@ void DemoGj_InitRubblePile6(DemoGj* this, PlayState* play) {
+     DemoGj_InitSetIndexes(this, play, 6, 7, &gGanonsCastleRubble7Col);
+ }
+ 
+-void func_8097A9E4(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097A9E4: moves rubble pile 6 under gravity and spins it by its own kREG-tunable rates
++void DemoGj_TumbleRubblePile6(DemoGj* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->dyna.actor);
+ 
+     this->rotationVec.x += (s16)(kREG(83));
+@@ -851,7 +868,8 @@ void func_8097A9E4(DemoGj* this, PlayState* play) {
+     DemoGj_SetupRotation(this, play);
+ }
+ 
+-void func_8097AA60(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097AA60: once Ganondorf starts rising, launches rubble pile 6 and switches it to update mode 13
++void DemoGj_CheckRisingPile6(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfRisingFromRubble(this, play)) {
+         DemoGj_SetupMovement(this, play);
+         this->updateMode = 13;
+@@ -859,7 +877,8 @@ void func_8097AA60(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097AAAC(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097AAAC: kills rubble pile 6 once Ganondorf is floating in the air
++void DemoGj_CheckFloatingPile6(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Actor_Kill(&this->dyna.actor);
+     }
+@@ -868,13 +887,13 @@ void func_8097AAAC(DemoGj* this, PlayState* play) {
+ // func_8097AADC
+ void DemoGj_Update06(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097AA60(this, play);
++    DemoGj_CheckRisingPile6(this, play);  // was func_8097AA60 [LLM:HIGH]
+ }
+ 
+ // func_8097AB0C
+ void DemoGj_Update13(DemoGj* this, PlayState* play) {
+-    func_8097A9E4(this, play);
+-    func_8097AAAC(this, play);
++    DemoGj_TumbleRubblePile6(this, play);  // was func_8097A9E4 [LLM:HIGH]
++    DemoGj_CheckFloatingPile6(this, play);  // was func_8097AAAC [LLM:HIGH]
+ }
+ 
+ void DemoGj_DrawRubble7(DemoGj* this, PlayState* play) {
+@@ -889,7 +908,8 @@ void DemoGj_InitRubblePile7(DemoGj* this, PlayState* play) {
+     DemoGj_InitSetIndexes(this, play, 7, 8, &gGanonsCastleRubbleTallCol);
+ }
+ 
+-void func_8097ABB4(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097ABB4: moves rubble pile 7 under gravity and spins it by its own kREG-tunable rates
++void DemoGj_TumbleRubblePile7(DemoGj* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->dyna.actor);
+ 
+     this->rotationVec.x += (s16)(kREG(15));
+@@ -915,7 +935,8 @@ void DemoGj_SpawnSmokePreBattle3(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097AC9C(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097AC9C: once Ganondorf starts rising, launches rubble pile 7 and switches it to update mode 14
++void DemoGj_CheckRisingPile7(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfRisingFromRubble(this, play)) {
+         DemoGj_SetupMovement(this, play);
+         this->updateMode = 14;
+@@ -923,7 +944,8 @@ void func_8097AC9C(DemoGj* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097ACE8(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097ACE8: kills rubble pile 7 once Ganondorf is floating in the air
++void DemoGj_CheckFloatingPile7(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Actor_Kill(&this->dyna.actor);
+     }
+@@ -932,13 +954,13 @@ void func_8097ACE8(DemoGj* this, PlayState* play) {
+ // func_8097AD18
+ void DemoGj_Update07(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097AC9C(this, play);
++    DemoGj_CheckRisingPile7(this, play);  // was func_8097AC9C [LLM:HIGH]
+ }
+ 
+ // func_8097AD48
+ void DemoGj_Update14(DemoGj* this, PlayState* play) {
+-    func_8097ABB4(this, play);
+-    func_8097ACE8(this, play);
++    DemoGj_TumbleRubblePile7(this, play);  // was func_8097ABB4 [LLM:HIGH]
++    DemoGj_CheckFloatingPile7(this, play);  // was func_8097ACE8 [LLM:HIGH]
+ }
+ 
+ void DemoGj_DrawRubbleTall(DemoGj* this, PlayState* play) {
+@@ -980,7 +1002,8 @@ void DemoGj_DoNothing1(DemoGj* this, PlayState* play) {
+  * Moves the ColliderCylinder's relative to the actor's position.
+  * Used by DEMOGJ_TYPE_DESTRUCTABLE_RUBBLE_1
+  */
+-void func_8097AEE8(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097AEE8: places the three cylinders of destructable rubble 1 around the actor, rotated by its yaw
++void DemoGj_PlaceCylinders1(DemoGj* this, PlayState* play) {
+     ColliderCylinder* cylinder0 = &this->cylinders[0];
+     ColliderCylinder* cylinder1 = &this->cylinders[1];
+     ColliderCylinder* cylinder2 = &this->cylinders[2];
+@@ -1025,7 +1048,8 @@ void DemoGj_DirectedExplosion(DemoGj* this, PlayState* play, Vec3f* direction) {
+     DemoGj_Explode(this, play, &pos, direction);
+ }
+ 
+-void func_8097B128(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097B128: once Ganondorf floats, rebuilds destructable rubble 1 at 0.8 scale and switches to update mode 18
++void DemoGj_ActivateDestructableRubble1(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Vec3f* scale = &this->dyna.actor.scale;
+ 
+@@ -1056,10 +1080,11 @@ s32 DemoGj_HasCylinderAnyExploded(DemoGj* this, PlayState* play) {
+  * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag==true
+  * Used by DEMOGJ_TYPE_DESTRUCTABLE_RUBBLE_1
+  */
+-void func_8097B22C(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097B22C: kills the pile on the fourth Ganondorf state, and on an explosion drops its collectible and bursts
++void DemoGj_UpdateDestructableRubble1(DemoGj* this, PlayState* play) {
+     Actor* thisx = &this->dyna.actor;
+ 
+-    if (func_809797E4(this, 4)) {
++    if (DemoGj_IsGanonState(this, 4)) {  // was func_809797E4 [LLM:HIGH]
+         Actor_Kill(thisx);
+     } else if (DemoGj_HasCylinderAnyExploded(this, play)) {
+         Vec3f vec1 = { 0.0f, 0.0f, 0.0f };
+@@ -1078,19 +1103,19 @@ void func_8097B22C(DemoGj* this, PlayState* play) {
+         Actor_Kill(thisx);
+     }
+ 
+-    func_8097AEE8(this, play);
++    DemoGj_PlaceCylinders1(this, play);  // was func_8097AEE8 [LLM:HIGH]
+     DemoGj_SetCylindersAsAC(this, play);
+ }
+ 
+ // func_8097B340
+ void DemoGj_Update15(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097B128(this, play);
++    DemoGj_ActivateDestructableRubble1(this, play);  // was func_8097B128 [LLM:HIGH]
+ }
+ 
+ // func_8097B370
+ void DemoGj_Update18(DemoGj* this, PlayState* play) {
+-    func_8097B22C(this, play);
++    DemoGj_UpdateDestructableRubble1(this, play);  // was func_8097B22C [LLM:HIGH]
+     DemoGj_DoNothing1(this, play);
+ }
+ 
+@@ -1110,7 +1135,8 @@ void DemoGj_DoNothing2(DemoGj* this, PlayState* play) {
+ }
+ 
+ // Moves the ColliderCylinder's relative to the actor's position.
+-void func_8097B450(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097B450: places the three cylinders of destructable rubble 2 in a line along the actor yaw
++void DemoGj_PlaceCylinders2(DemoGj* this, PlayState* play) {
+     ColliderCylinder* cylinder0 = &this->cylinders[0];
+     ColliderCylinder* cylinder1 = &this->cylinders[1];
+     ColliderCylinder* cylinder2 = &this->cylinders[2];
+@@ -1169,7 +1195,8 @@ void DemoGj_DirectedExplosion2(DemoGj* this, PlayState* play, Vec3f* direction)
+     DemoGj_Explode(this, play, &pos, direction);
+ }
+ 
+-void func_8097B6C4(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097B6C4: once Ganondorf floats, rebuilds destructable rubble 2 at 0.8 scale and switches to update mode 19
++void DemoGj_ActivateDestructableRubble2(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Vec3f* scale = &this->dyna.actor.scale;
+ 
+@@ -1187,10 +1214,11 @@ void func_8097B6C4(DemoGj* this, PlayState* play) {
+  * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag==true
+  * Used by DEMOGJ_TYPE_DESTRUCTABLE_RUBBLE_2
+  */
+-void func_8097B750(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097B750: the destructable rubble 2 twin of DemoGj_UpdateDestructableRubble1, using its own explosion helpers
++void DemoGj_UpdateDestructableRubble2(DemoGj* this, PlayState* play) {
+     Actor* thisx = &this->dyna.actor;
+ 
+-    if (func_809797E4(this, 4)) {
++    if (DemoGj_IsGanonState(this, 4)) {  // was func_809797E4 [LLM:HIGH]
+         Actor_Kill(thisx);
+     } else if (DemoGj_HasCylinderAnyExploded2(this, play)) {
+         Vec3f vec1 = { 0.0f, 0.0f, 0.0f };
+@@ -1209,19 +1237,19 @@ void func_8097B750(DemoGj* this, PlayState* play) {
+         Actor_Kill(thisx);
+     }
+ 
+-    func_8097B450(this, play);
++    DemoGj_PlaceCylinders2(this, play);  // was func_8097B450 [LLM:HIGH]
+     DemoGj_SetCylindersAsAC2(this, play);
+ }
+ 
+ // func_8097B864
+ void DemoGj_Update16(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097B6C4(this, play);
++    DemoGj_ActivateDestructableRubble2(this, play);  // was func_8097B6C4 [LLM:HIGH]
+ }
+ 
+ // func_8097B894
+ void DemoGj_Update19(DemoGj* this, PlayState* play) {
+-    func_8097B750(this, play);
++    DemoGj_UpdateDestructableRubble2(this, play);  // was func_8097B750 [LLM:HIGH]
+     DemoGj_DoNothing2(this, play);
+ }
+ 
+@@ -1252,7 +1280,8 @@ void DemoGj_DirectedDoubleExplosion(DemoGj* this, PlayState* play, Vec3f* direct
+     DemoGj_Explode(this, play, &pos, direction);
+ }
+ 
+-void func_8097B9BC(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097B9BC: once Ganondorf floats, rebuilds the tall rubble at 0.8 scale and switches to update mode 20
++void DemoGj_ActivateDestructableRubbleTall(DemoGj* this, PlayState* play) {
+     if (DemoGj_IsGanondorfFloatingInAir(this, play)) {
+         Vec3f* scale = &this->dyna.actor.scale;
+ 
+@@ -1270,12 +1299,13 @@ void func_8097B9BC(DemoGj* this, PlayState* play) {
+  * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag==true
+  * Used by DEMOGJ_TYPE_DESTRUCTABLE_RUBBLE_TALL
+  */
+-void func_8097BA48(DemoGj* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097BA48: the single-cylinder tall rubble: dies on the fourth Ganondorf state or on an explosion, dropping its collectible
++void DemoGj_UpdateDestructableRubbleTall(DemoGj* this, PlayState* play) {
+     Actor* thisx = &this->dyna.actor;
+     ColliderCylinder* cylinder = &this->cylinders[0];
+     s32 pad[2];
+ 
+-    if (func_809797E4(this, 4)) {
++    if (DemoGj_IsGanonState(this, 4)) {  // was func_809797E4 [LLM:HIGH]
+         Actor_Kill(thisx);
+     } else if (DemoGj_HitByExplosion(this, play, cylinder)) {
+         Vec3f vec1 = { 0.0f, 0.0f, 0.0f };
+@@ -1301,12 +1331,12 @@ void func_8097BA48(DemoGj* this, PlayState* play) {
+ // func_8097BB78
+ void DemoGj_Update17(DemoGj* this, PlayState* play) {
+     DemoGj_FindGanon(this, play);
+-    func_8097B9BC(this, play);
++    DemoGj_ActivateDestructableRubbleTall(this, play);  // was func_8097B9BC [LLM:HIGH]
+ }
+ 
+ // func_8097BBA8
+ void DemoGj_Update20(DemoGj* this, PlayState* play) {
+-    func_8097BA48(this, play);
++    DemoGj_UpdateDestructableRubbleTall(this, play);  // was func_8097BA48 [LLM:HIGH]
+     DemoGj_DoNothing3(this, play);
+ }
+ 
+-- 
+2.55.0
+

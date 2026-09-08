@@ -1,0 +1,112 @@
+From d0a50ca870a0d71d4fa3d1532663954b2afdb6af Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:58 +0000
+Subject: [PATCH 017/488] soh: name the 2 address-named symbols defined in
+ z_construct.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_construct.c; updating their references touches 3 files in total.
+
+  * func_80110990 -> Interface_Destroy
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_801109B0 -> Interface_Init
+    zeldaret/oot (same decomp, same ROM address)
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h    | 4 ++--
+ soh/src/code/z_construct.c | 6 ++++--
+ soh/src/code/z_play.c      | 4 ++--
+ 3 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 212f106f8..cd46d5483 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2433,8 +2433,8 @@ void Message_SetTables(void);
+ void GameOver_Init(PlayState* play);
+ void GameOver_FadeInLights(PlayState* play);
+ void GameOver_Update(PlayState* play);
+-void func_80110990(PlayState* play);
+-void func_801109B0(PlayState* play);
++void Interface_Destroy(PlayState* play);  // was func_80110990 [oot]
++void Interface_Init(PlayState* play);  // was func_801109B0 [oot]
+ void Message_Init(PlayState* play);
+ void Regs_InitData(PlayState* play);
+ 
+diff --git a/soh/src/code/z_construct.c b/soh/src/code/z_construct.c
+index 3eb5ec428..00b1ba8f0 100644
+--- a/soh/src/code/z_construct.c
++++ b/soh/src/code/z_construct.c
+@@ -3,11 +3,13 @@
+ #include <assert.h>
+ #include "soh/ResourceManagerHelpers.h"
+ 
+-void func_80110990(PlayState* play) {
++// Name from zeldaret/oot, was func_80110990: tears down interface by destroying the map. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_construct.c]
++void Interface_Destroy(PlayState* play) {
+     Map_Destroy(play);
+ }
+ 
+-void func_801109B0(PlayState* play) {
++// Name from zeldaret/oot, was func_801109B0: initializes the InterfaceContext (view, HUD alphas, timers). [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_construct.c]
++void Interface_Init(PlayState* play) {
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+     u32 parameterSize;
+     u8 timerId;
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 37fc299da..ea9d501da 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -232,7 +232,7 @@ void Play_Destroy(GameState* thisx) {
+     }
+ 
+     func_80031C3C(&play->actorCtx, play);
+-    func_80110990(play);
++    Interface_Destroy(play);
+     KaleidoScopeCall_Destroy(play);
+     KaleidoManager_Destroy();
+     ZeldaArena_Cleanup();
+@@ -492,7 +492,7 @@ void Play_Init(GameState* thisx) {
+ 
+     Cutscene_HandleEntranceTriggers(play);
+     KaleidoScopeCall_Init(play);
+-    func_801109B0(play);
++    Interface_Init(play);
+ 
+     if (gSaveContext.nextDayTime != 0xFFFF) {
+         if (gSaveContext.nextDayTime == 0x8001) {
+-- 
+2.55.0
+

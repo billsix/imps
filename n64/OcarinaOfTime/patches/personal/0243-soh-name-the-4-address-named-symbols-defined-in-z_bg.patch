@@ -1,0 +1,152 @@
+From ce3c978573ebeace73740198e7d567f9d0217ff0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 243/488] soh: name the 4 address-named symbols defined in
+ z_bg_ice_shutter.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c.
+
+  * func_80891AC0 -> BgIceShutter_UpdatePos
+    deduced, confidence HIGH: places world.pos at distance velocity.y from
+    home.pos along the axis given by shape.rot.x and shape.rot.y; called
+    every frame by the opening action.
+
+  * func_80891CF4 -> BgIceShutter_WaitForRoomClear
+    deduced, confidence HIGH: waits for the room's temp-clear flag, then
+    sets the permanent clear flag, plays the sliding-door sfx and starts
+    opening.
+
+  * func_80891D6C -> BgIceShutter_WaitForSwitch
+    deduced, confidence HIGH: the switch-flag variant of the same wait, used
+    when the shutter is keyed to a switch rather than to clearing the room.
+
+  * func_80891DD4 -> BgIceShutter_Open
+    deduced, confidence HIGH: accelerates the shutter to speed 30 and slides
+    it 210 units along its axis, then kills the actor.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c     | 28 +++++++++++--------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c b/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
+index 5c0011b21..d90c15aa9 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ice_Shutter/z_bg_ice_shutter.c
+@@ -14,9 +14,12 @@ void BgIceShutter_Destroy(Actor* thisx, PlayState* play);
+ void BgIceShutter_Update(Actor* thisx, PlayState* play);
+ void BgIceShutter_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80891CF4(BgIceShutter* thisx, PlayState* play);
+-void func_80891D6C(BgIceShutter* thisx, PlayState* play);
+-void func_80891DD4(BgIceShutter* thisx, PlayState* play);
++// LLM generated name (HIGH), was func_80891CF4: waits for the room's temp-clear flag, then sets the permanent clear flag, plays the sliding-door sfx and starts opening.
++void BgIceShutter_WaitForRoomClear(BgIceShutter* thisx, PlayState* play);  // was func_80891CF4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80891D6C: the switch-flag variant of the same wait, used when the shutter is keyed to a switch rather than to clearing the room.
++void BgIceShutter_WaitForSwitch(BgIceShutter* thisx, PlayState* play);  // was func_80891D6C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80891DD4: accelerates the shutter to speed 30 and slides it 210 units along its axis, then kills the actor.
++void BgIceShutter_Open(BgIceShutter* thisx, PlayState* play);  // was func_80891DD4 [LLM:HIGH]
+ 
+ const ActorInit Bg_Ice_Shutter_InitVars = {
+     ACTOR_BG_ICE_SHUTTER,
+@@ -35,7 +38,8 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP),
+ };
+ 
+-void func_80891AC0(BgIceShutter* this) {
++// LLM generated name (HIGH), was func_80891AC0: places world.pos at distance velocity.y from home.pos along the axis given by shape.rot.x and shape.rot.y; called every frame by the opening action.
++void BgIceShutter_UpdatePos(BgIceShutter* this) {
+     f32 sp24;
+ 
+     sp24 = Math_SinS(this->dyna.actor.shape.rot.x) * this->dyna.actor.velocity.y;
+@@ -67,14 +71,14 @@ void BgIceShutter_Init(Actor* thisx, PlayState* play) {
+         if (Flags_GetClear(play, this->dyna.actor.room)) {
+             Actor_Kill(&this->dyna.actor);
+         } else {
+-            this->actionFunc = func_80891CF4;
++            this->actionFunc = BgIceShutter_WaitForRoomClear;  // was func_80891CF4 [LLM:HIGH]
+         }
+ 
+     } else {
+         if (Flags_GetSwitch(play, this->dyna.actor.params)) {
+             Actor_Kill(&this->dyna.actor);
+         } else {
+-            this->actionFunc = func_80891D6C;
++            this->actionFunc = BgIceShutter_WaitForSwitch;  // was func_80891D6C [LLM:HIGH]
+         }
+     }
+ 
+@@ -95,33 +99,33 @@ void BgIceShutter_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80891CF4(BgIceShutter* this, PlayState* play) {
++void BgIceShutter_WaitForRoomClear(BgIceShutter* this, PlayState* play) {
+     if (Flags_GetTempClear(play, this->dyna.actor.room)) {
+         Flags_SetClear(play, this->dyna.actor.room);
+         SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 30, NA_SE_EV_SLIDE_DOOR_OPEN);
+-        this->actionFunc = func_80891DD4;
++        this->actionFunc = BgIceShutter_Open;  // was func_80891DD4 [LLM:HIGH]
+         if (this->dyna.actor.shape.rot.x == 0) {
+             OnePointCutscene_Attention(play, &this->dyna.actor);
+         }
+     }
+ }
+ 
+-void func_80891D6C(BgIceShutter* this, PlayState* play) {
++void BgIceShutter_WaitForSwitch(BgIceShutter* this, PlayState* play) {
+     if (Flags_GetSwitch(play, this->dyna.actor.params)) {
+         SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 30, NA_SE_EV_SLIDE_DOOR_OPEN);
+-        this->actionFunc = func_80891DD4;
++        this->actionFunc = BgIceShutter_Open;  // was func_80891DD4 [LLM:HIGH]
+         OnePointCutscene_Attention(play, &this->dyna.actor);
+     }
+ }
+ 
+-void func_80891DD4(BgIceShutter* this, PlayState* play) {
++void BgIceShutter_Open(BgIceShutter* this, PlayState* play) {
+     Math_StepToF(&this->dyna.actor.speedXZ, 30.0f, 2.0f);
+     if (Math_StepToF(&this->dyna.actor.velocity.y, 210.0f, this->dyna.actor.speedXZ)) {
+         Actor_Kill(&this->dyna.actor);
+         return;
+     }
+ 
+-    func_80891AC0(this);
++    BgIceShutter_UpdatePos(this);  // was func_80891AC0 [LLM:HIGH]
+ }
+ 
+ void BgIceShutter_Update(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

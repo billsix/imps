@@ -1,0 +1,206 @@
+From 4130eadd5f3b9da137d2e87390d3a14301028b8b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 282/488] soh: name the 6 address-named symbols defined in
+ z_en_takara_man.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_En_Takara_Man/z_en_takara_man.c.
+
+  * func_80B176E0 -> EnTakaraMan_SetupIdle
+    deduced, confidence HIGH: restarts the looping idle animation and, when
+    the player has not yet paid, arms the 10-rupee offer text and its choice
+    state.
+
+  * func_80B1778C -> EnTakaraMan_Idle
+    deduced, confidence HIGH: runs the skeleton, picks the right line for
+    the current room and game state, and offers talk while the player is in
+    front of him and in his own room.
+
+  * func_80B17934 -> EnTakaraMan_HandlePlayChoice
+    deduced, confidence HIGH: resolves the yes/no prompt: on yes with 10
+    rupees it charges them and offers GI_DOOR_KEY, and otherwise switches to
+    the refusal or not-enough-rupees line.
+
+  * func_80B17A6C -> EnTakaraMan_OfferKey
+    deduced, confidence HIGH: keeps re-offering GI_DOOR_KEY until
+    Actor_HasParent reports the player took it.
+
+  * func_80B17AC4 -> EnTakaraMan_WaitForKeyMessage
+    deduced, confidence HIGH: waits out the get-item textbox after the key
+    is handed over, then returns to the idle setup.
+
+  * func_80B17B14 -> EnTakaraMan_WaitForTextDone
+    deduced, confidence HIGH: waits for whichever line is showing to reach
+    its expected state, closes the textbox and returns to the idle setup.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_En_Takara_Man/z_en_takara_man.c       | 50 +++++++++++--------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Takara_Man/z_en_takara_man.c b/soh/src/overlays/actors/ovl_En_Takara_Man/z_en_takara_man.c
+index 6cdaf3c99..f7cf15dd6 100644
+--- a/soh/src/overlays/actors/ovl_En_Takara_Man/z_en_takara_man.c
++++ b/soh/src/overlays/actors/ovl_En_Takara_Man/z_en_takara_man.c
+@@ -21,12 +21,18 @@ void EnTakaraMan_Update(Actor* thisx, PlayState* play);
+ void EnTakaraMan_Draw(Actor* thisx, PlayState* play);
+ void EnTakaraMan_Destroy(Actor* thisx, PlayState* play);
+ 
+-void func_80B176E0(EnTakaraMan* this, PlayState* play);
+-void func_80B1778C(EnTakaraMan* this, PlayState* play);
+-void func_80B17B14(EnTakaraMan* this, PlayState* play);
+-void func_80B17934(EnTakaraMan* this, PlayState* play);
+-void func_80B17A6C(EnTakaraMan* this, PlayState* play);
+-void func_80B17AC4(EnTakaraMan* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B176E0: restarts the looping idle animation and, when the player has not yet paid, arms the 10-rupee offer text and its choice state.
++void EnTakaraMan_SetupIdle(EnTakaraMan* this, PlayState* play);  // was func_80B176E0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B1778C: runs the skeleton, picks the right line for the current room and game state, and offers talk while the player is in front of him and in his own room.
++void EnTakaraMan_Idle(EnTakaraMan* this, PlayState* play);  // was func_80B1778C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B17B14: waits for whichever line is showing to reach its expected state, closes the textbox and returns to the idle setup.
++void EnTakaraMan_WaitForTextDone(EnTakaraMan* this, PlayState* play);  // was func_80B17B14 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B17934: resolves the yes/no prompt: on yes with 10 rupees it charges them and offers GI_DOOR_KEY, and otherwise switches to the refusal or not-enough-rupees line.
++void EnTakaraMan_HandlePlayChoice(EnTakaraMan* this, PlayState* play);  // was func_80B17934 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B17A6C: keeps re-offering GI_DOOR_KEY until Actor_HasParent reports the player took it.
++void EnTakaraMan_OfferKey(EnTakaraMan* this, PlayState* play);  // was func_80B17A6C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B17AC4: waits out the get-item textbox after the key is handed over, then returns to the idle setup.
++void EnTakaraMan_WaitForKeyMessage(EnTakaraMan* this, PlayState* play);  // was func_80B17AC4 [LLM:HIGH]
+ 
+ const ActorInit En_Takara_Man_InitVars = {
+     ACTOR_EN_TAKARA_MAN,
+@@ -81,13 +87,13 @@ void EnTakaraMan_Init(Actor* thisx, PlayState* play) {
+     thisx->room = -1;
+     thisx->world.rot.y = thisx->shape.rot.y = -0x4E20;
+     thisx->targetMode = 1;
+-    this->actionFunc = func_80B176E0;
++    this->actionFunc = EnTakaraMan_SetupIdle;  // was func_80B176E0 [LLM:HIGH]
+ }
+ 
+ void EnTakaraMan_Destroy(Actor* thisx, PlayState* play) {
+ }
+ 
+-void func_80B176E0(EnTakaraMan* this, PlayState* play) {
++void EnTakaraMan_SetupIdle(EnTakaraMan* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&object_ts_Anim_000498);
+ 
+     Animation_Change(&this->skelAnime, &object_ts_Anim_000498, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+@@ -95,19 +101,19 @@ void func_80B176E0(EnTakaraMan* this, PlayState* play) {
+         this->actor.textId = 0x6D;
+         this->dialogState = TEXT_STATE_CHOICE;
+     }
+-    this->actionFunc = func_80B1778C;
++    this->actionFunc = EnTakaraMan_Idle;  // was func_80B1778C [LLM:HIGH]
+ }
+ 
+-void func_80B1778C(EnTakaraMan* this, PlayState* play) {
++void EnTakaraMan_Idle(EnTakaraMan* this, PlayState* play) {
+     s16 absYawDiff;
+     s16 yawDiff;
+ 
+     SkelAnime_Update(&this->skelAnime);
+     if (Actor_ProcessTalkRequest(&this->actor, play) && this->dialogState != TEXT_STATE_DONE) {
+         if (!this->unk_214) {
+-            this->actionFunc = func_80B17934;
++            this->actionFunc = EnTakaraMan_HandlePlayChoice;  // was func_80B17934 [LLM:HIGH]
+         } else {
+-            this->actionFunc = func_80B17B14;
++            this->actionFunc = EnTakaraMan_WaitForTextDone;  // was func_80B17B14 [LLM:HIGH]
+         }
+     } else {
+         yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+@@ -146,7 +152,7 @@ void func_80B1778C(EnTakaraMan* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B17934(EnTakaraMan* this, PlayState* play) {
++void EnTakaraMan_HandlePlayChoice(EnTakaraMan* this, PlayState* play) {
+     if (this->dialogState == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         switch (play->msgCtx.choiceIndex) {
+             case 0: // Yes
+@@ -158,13 +164,13 @@ void func_80B17934(EnTakaraMan* this, PlayState* play) {
+                     if (GameInteractor_Should(VB_TAKARA_MAN_OFFER_GET_ITEM, true, this)) {
+                         Actor_OfferGetItem(&this->actor, play, GI_DOOR_KEY, 2000.0f, 1000.0f);
+                     }
+-                    this->actionFunc = func_80B17A6C;
++                    this->actionFunc = EnTakaraMan_OfferKey;  // was func_80B17A6C [LLM:HIGH]
+                 } else {
+                     Message_CloseTextbox(play);
+                     this->actor.textId = 0x85;
+                     Message_ContinueTextbox(play, this->actor.textId);
+                     this->dialogState = TEXT_STATE_EVENT;
+-                    this->actionFunc = func_80B17B14;
++                    this->actionFunc = EnTakaraMan_WaitForTextDone;  // was func_80B17B14 [LLM:HIGH]
+                 }
+                 break;
+             case 1: // No
+@@ -172,30 +178,30 @@ void func_80B17934(EnTakaraMan* this, PlayState* play) {
+                 this->actor.textId = 0x2D;
+                 Message_ContinueTextbox(play, this->actor.textId);
+                 this->dialogState = TEXT_STATE_EVENT;
+-                this->actionFunc = func_80B17B14;
++                this->actionFunc = EnTakaraMan_WaitForTextDone;  // was func_80B17B14 [LLM:HIGH]
+                 break;
+         }
+     }
+ }
+ 
+-void func_80B17A6C(EnTakaraMan* this, PlayState* play) {
++void EnTakaraMan_OfferKey(EnTakaraMan* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+-        this->actionFunc = func_80B17AC4;
++        this->actionFunc = EnTakaraMan_WaitForKeyMessage;  // was func_80B17AC4 [LLM:HIGH]
+     } else if (GameInteractor_Should(VB_TAKARA_MAN_OFFER_GET_ITEM, true, this)) {
+         Actor_OfferGetItem(&this->actor, play, GI_DOOR_KEY, 2000.0f, 1000.0f);
+     }
+ }
+ 
+-void func_80B17AC4(EnTakaraMan* this, PlayState* play) {
++void EnTakaraMan_WaitForKeyMessage(EnTakaraMan* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_DONE && Message_ShouldAdvance(play)) {
+-        this->actionFunc = func_80B176E0;
++        this->actionFunc = EnTakaraMan_SetupIdle;  // was func_80B176E0 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B17B14(EnTakaraMan* this, PlayState* play) {
++void EnTakaraMan_WaitForTextDone(EnTakaraMan* this, PlayState* play) {
+     if (this->dialogState == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+-        this->actionFunc = func_80B176E0;
++        this->actionFunc = EnTakaraMan_SetupIdle;  // was func_80B176E0 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

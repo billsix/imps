@@ -1,0 +1,154 @@
+From 20df3c829c01d85ebdadf29d06e13fb86098e0c2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:12 +0000
+Subject: [PATCH 167/488] soh: name the 5 address-named symbols defined in
+ z_bg_mizu_movebg.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c.
+
+  * D_8089EB40 -> sDragonStatueBossRoomOffsetPosY
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * D_8089EB50 -> sDLists
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8089EB70 -> sColHeaders
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8089EBA0 -> sOffsetPosition1
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * D_8089EBAC -> sOffsetPosition2
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c     | 27 +++++++++++--------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c b/soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c
+index 70a7cc0a8..c5e41bf8b 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c
+@@ -38,15 +38,18 @@ const ActorInit Bg_Mizu_Movebg_InitVars = {
+     NULL,
+ };
+ 
+-static f32 D_8089EB40[] = { -115.200005f, -115.200005f, -115.200005f, 0.0f };
++// Name from zeldaret/oot (was D_8089EB40): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c]
++static f32 sDragonStatueBossRoomOffsetPosY[] = { -115.200005f, -115.200005f, -115.200005f, 0.0f };
+ 
+-static Gfx* D_8089EB50[] = {
++// Name from zeldaret/oot (was D_8089EB50): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c]
++static Gfx* sDLists[] = {
+     gObjectMizuObjectsMovebgDL_000190, gObjectMizuObjectsMovebgDL_000680, gObjectMizuObjectsMovebgDL_000C20,
+     gObjectMizuObjectsMovebgDL_002E10, gObjectMizuObjectsMovebgDL_002E10, gObjectMizuObjectsMovebgDL_002E10,
+     gObjectMizuObjectsMovebgDL_002E10, gObjectMizuObjectsMovebgDL_0011F0,
+ };
+ 
+-static CollisionHeader* D_8089EB70[] = {
++// Name from zeldaret/oot (was D_8089EB70): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c]
++static CollisionHeader* sColHeaders[] = {
+     &gObjectMizuObjectsMovebgCol_0003F0, &gObjectMizuObjectsMovebgCol_000998, &gObjectMizuObjectsMovebgCol_000ED0,
+     &gObjectMizuObjectsMovebgCol_003590, &gObjectMizuObjectsMovebgCol_003590, &gObjectMizuObjectsMovebgCol_003590,
+     &gObjectMizuObjectsMovebgCol_003590, &gObjectMizuObjectsMovebgCol_0015F8,
+@@ -59,8 +62,10 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP),
+ };
+ 
+-static Vec3f D_8089EBA0 = { 0.0f, 80.0f, 23.0f };
+-static Vec3f D_8089EBAC = { 0.0f, 80.0f, 23.0f };
++// Name from zeldaret/oot (was D_8089EBA0): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c]
++static Vec3f sOffsetPosition1 = { 0.0f, 80.0f, 23.0f };
++// Name from zeldaret/oot (was D_8089EBAC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Mizu_Movebg/z_bg_mizu_movebg.c]
++static Vec3f sOffsetPosition2 = { 0.0f, 80.0f, 23.0f };
+ 
+ static u8 D_8089EE40;
+ 
+@@ -89,9 +94,9 @@ void BgMizuMovebg_Init(Actor* thisx, PlayState* play) {
+ 
+     Actor_ProcessInitChain(thisx, sInitChain);
+     ((BgMizuMovebg*)thisx)->homeY = thisx->world.pos.y;
+-    ((BgMizuMovebg*)thisx)->dlist = D_8089EB50[MOVEBG_TYPE(thisx->params)];
++    ((BgMizuMovebg*)thisx)->dlist = sDLists[MOVEBG_TYPE(thisx->params)];
+     DynaPolyActor_Init(&((BgMizuMovebg*)thisx)->dyna, DPM_PLAYER);
+-    CollisionHeader_GetVirtual(D_8089EB70[MOVEBG_TYPE(thisx->params)], &colHeader);
++    CollisionHeader_GetVirtual(sColHeaders[MOVEBG_TYPE(thisx->params)], &colHeader);
+     ((BgMizuMovebg*)thisx)->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, thisx, colHeader);
+ 
+     type = MOVEBG_TYPE(thisx->params);
+@@ -125,7 +130,7 @@ void BgMizuMovebg_Init(Actor* thisx, PlayState* play) {
+             break;
+         case 3:
+             thisx->world.pos.y =
+-                ((BgMizuMovebg*)thisx)->homeY + D_8089EB40[BgMizuMovebg_GetDragonStatueBossRoomOffsetIndex(play)];
++                ((BgMizuMovebg*)thisx)->homeY + sDragonStatueBossRoomOffsetPosY[BgMizuMovebg_GetDragonStatueBossRoomOffsetIndex(play)];
+             ((BgMizuMovebg*)thisx)->actionFunc = BgMizuMovebg_UpdateMain;
+             break;
+         case 4:
+@@ -158,7 +163,7 @@ void BgMizuMovebg_Init(Actor* thisx, PlayState* play) {
+         case 5:
+         case 6:
+             Matrix_RotateY(thisx->world.rot.y * (M_PI / 32768), MTXMODE_NEW);
+-            Matrix_MultVec3f(&D_8089EBA0, &sp48);
++            Matrix_MultVec3f(&sOffsetPosition1, &sp48);
+ 
+             if (Actor_SpawnAsChild(&play->actorCtx, thisx, play, ACTOR_OBJ_HSBLOCK, thisx->world.pos.x + sp48.x,
+                                    thisx->world.pos.y + sp48.y, thisx->world.pos.z + sp48.z, thisx->world.rot.x,
+@@ -265,7 +270,7 @@ void BgMizuMovebg_UpdateMain(BgMizuMovebg* this, PlayState* play) {
+             }
+             break;
+         case 3:
+-            phi_f0 = this->homeY + D_8089EB40[BgMizuMovebg_GetDragonStatueBossRoomOffsetIndex(play)];
++            phi_f0 = this->homeY + sDragonStatueBossRoomOffsetPosY[BgMizuMovebg_GetDragonStatueBossRoomOffsetIndex(play)];
+             if (!Math_StepToF(&this->dyna.actor.world.pos.y, phi_f0, 1.0f)) {
+                 if (!(D_8089EE40 & 2) && MOVEBG_SPEED(this->dyna.actor.params) != 0) {
+                     D_8089EE40 |= 2;
+@@ -308,7 +313,7 @@ void BgMizuMovebg_UpdateMain(BgMizuMovebg* this, PlayState* play) {
+         case 6:
+             if (play->roomCtx.curRoom.num == this->dyna.actor.room) {
+                 Matrix_RotateY(this->dyna.actor.world.rot.y * (M_PI / 32768), MTXMODE_NEW);
+-                Matrix_MultVec3f(&D_8089EBAC, &sp28);
++                Matrix_MultVec3f(&sOffsetPosition2, &sp28);
+                 this->dyna.actor.child->world.pos.x = this->dyna.actor.world.pos.x + sp28.x;
+                 this->dyna.actor.child->world.pos.y = this->dyna.actor.world.pos.y + sp28.y;
+                 this->dyna.actor.child->world.pos.z = this->dyna.actor.world.pos.z + sp28.z;
+-- 
+2.55.0
+

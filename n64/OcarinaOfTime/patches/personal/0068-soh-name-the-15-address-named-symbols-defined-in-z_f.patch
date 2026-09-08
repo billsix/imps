@@ -1,0 +1,652 @@
+From f80cfeda992338b2a7ed791d202338aea099ab7e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:03 +0000
+Subject: [PATCH 068/488] soh: name the 15 address-named symbols defined in
+ z_fishing.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 15 are defined in soh/src/overlays/actors/ovl_Fishing/z_fishing.c.
+
+  * D_80B7A6A4 -> sReelCatchTimer
+    deduced, confidence GUESS
+
+  * D_80B7A6AC -> sRodBendRotX
+    deduced, confidence HIGH
+
+  * D_80B7A6B0 -> sRodBendApproachRateY
+    deduced, confidence HIGH
+
+  * D_80B7A6B4 -> sRodBendApproachRateX
+    deduced, confidence HIGH
+
+  * D_80B7A6B8 -> sRodReelBend
+    deduced, confidence GUESS
+
+  * D_80B7A6BC -> sRodCamBendX
+    deduced, confidence GUESS
+
+  * D_80B7A6C0 -> sRodCamBendZoom
+    deduced, confidence GUESS
+
+  * D_80B7E0B0 -> sCatchCutsceneTimer
+    deduced, confidence HIGH
+
+  * D_80B7E0B2 -> sReelLockTimer
+    deduced, confidence HIGH
+
+  * D_80B7E114 -> sLureBiteTimer
+    deduced, confidence HIGH
+
+  * D_80B7E118 -> sFishParitySeed
+    deduced, confidence HIGH
+
+  * D_80B7E148 -> sReelLinePull
+    deduced, confidence GUESS
+
+  * D_80B7E150 -> sLureMoveSfxTimer
+    deduced, confidence HIGH
+
+  * D_80B7FED0 -> sAquariumRecordOffset
+    deduced, confidence GUESS
+
+  * func_80B70ED4 -> Fishing_CheckFishBite
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Fishing/z_fishing.c   | 187 ++++++++++--------
+ 1 file changed, 101 insertions(+), 86 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index 7808a650b..8d4f452a0 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -179,15 +179,22 @@ static s16 sRodCastState = 0;
+ 
+ static Vec3f sFishMouthOffset = { 500.0f, 500.0f, 0.0f };
+ 
+-static u8 D_80B7A6A4 = 0;
++// LLM generated name (GUESS), was D_80B7A6A4: set to 5, decremented per frame; gates fish-catch handling
++static u8 sReelCatchTimer = 0;
+ 
+ static f32 sRodBendRotY = 0.0f;
+-static f32 D_80B7A6AC = 0.0f;
+-static f32 D_80B7A6B0 = 0.0f;
+-static f32 D_80B7A6B4 = 0.0f;
+-static f32 D_80B7A6B8 = 0.0f;
+-static f32 D_80B7A6BC = 0.0f;
+-static f32 D_80B7A6C0 = 0.0f;
++// LLM generated name (HIGH), was D_80B7A6AC: X counterpart of sRodBendRotY; rod-bend angle used when drawing rod
++static f32 sRodBendRotX = 0.0f;
++// LLM generated name (HIGH), was D_80B7A6B0: Math_ApproachF step rate for sRodBendRotY; ramps toward 1.0
++static f32 sRodBendApproachRateY = 0.0f;
++// LLM generated name (HIGH), was D_80B7A6B4: Math_ApproachF step rate for sRodBendRotX; ramps toward 1.0
++static f32 sRodBendApproachRateX = 0.0f;
++// LLM generated name (GUESS), was D_80B7A6B8: extra rod-bend added while reeling; approached to 0.8 then 0
++static f32 sRodReelBend = 0.0f;
++// LLM generated name (GUESS), was D_80B7A6BC: camera X bend during rod cast; approached toward target offset
++static f32 sRodCamBendX = 0.0f;
++// LLM generated name (GUESS), was D_80B7A6C0: camera zoom/pitch for rod cam, fed to Matrix_RotateX
++static f32 sRodCamBendZoom = 0.0f;
+ 
+ static s16 sStickAdjXPrev = 0;
+ static s16 sStickAdjYPrev = 0;
+@@ -371,8 +378,10 @@ static s16 sFishingMusicDelay;
+ static Fishing* sFishingHookedFish;
+ static s16 sFishingPlayingState;
+ static s16 sLureTimer; // AND'd for various effects/checks
+-static s16 D_80B7E0B0;
+-static s16 D_80B7E0B2;
++// LLM generated name (HIGH), was D_80B7E0B0: countdown set to 5 on catch, decremented; gates catch cutscene camera
++static s16 sCatchCutsceneTimer;
++// LLM generated name (HIGH), was D_80B7E0B2: countdown set to 5, decremented; gates reel-lock states
++static s16 sReelLockTimer;
+ static s16 sRodCastTimer; // used for the inital line casting
+ static u8 sLureEquipped;
+ static Vec3f sLurePos;
+@@ -384,9 +393,11 @@ static f32 sLure1Rotate; // lure type 1 is programmed to change this.
+ static f32 sLurePosZOffset;
+ static f32 sLureRotXTarget;
+ static f32 sLureRotXStep;
+-static s8 D_80B7E114;
++// LLM generated name (HIGH), was D_80B7E114: s8 set to 10 on bite, decremented; gates bite handling
++static s8 sLureBiteTimer;
+ static s16 sRodPullback; // holding A+Down to keep the fish on line
+-static u8 D_80B7E118;
++// LLM generated name (HIGH), was D_80B7E118: random 0/1 seed added before &1 parity tests on params/pos
++static u8 sFishParitySeed;
+ static f32 sRodReelingSpeed;
+ static u8 sWiggleAttraction;
+ static s16 sLureBitTimer;
+@@ -397,9 +408,11 @@ static f32 sLureWigglePosY;
+ static s16 sLureWiggleRotY;
+ static f32 sLureWiggleSign; // +/-1.0f
+ static f32 sRodLineSpooled; // 200 represents the full spool.
+-static f32 D_80B7E148;
++// LLM generated name (GUESS), was D_80B7E148: reel line tension, set to 520 and Math_ApproachF'd while reeling
++static f32 sReelLinePull;
+ static f32 sFishingLineScale;
+-static s16 D_80B7E150;
++// LLM generated name (HIGH), was D_80B7E150: countdown set to 5, decremented; gates lure-move sfx playback
++static s16 sLureMoveSfxTimer;
+ static f32 sReelLinePosStep;
+ static Vec3f sRodTipPos;
+ static Vec3f sReelLinePos[LINE_SEG_COUNT];
+@@ -416,7 +429,8 @@ static Vec3f sCameraAt;
+ static s16 sSubCamId;
+ static f32 sCatchCamX;
+ static f32 sSubCamVelFactor;
+-static f32 D_80B7FED0;
++// LLM generated name (GUESS), was D_80B7FED0: position offset approached to 30 for aquarium record display
++static f32 sAquariumRecordOffset;
+ static Vec3f sSinkingLureBasePos;
+ static f32 sSinkingLureHeldY; // the lure going to its mark when being held up.
+ static s32 sRandSeed0;
+@@ -1472,7 +1486,7 @@ void Fishing_UpdateLine(PlayState* play, Vec3f* basePos, Vec3f* pos, Vec3f* rot,
+     f32 phi_f12;
+     f32 phi_f2;
+ 
+-    if (D_80B7A6A4 != 0) {
++    if (sReelCatchTimer != 0) {
+         tempPos = *basePos;
+         segPos = pos[LINE_SEG_COUNT - 1];
+ 
+@@ -1494,7 +1508,7 @@ void Fishing_UpdateLine(PlayState* play, Vec3f* basePos, Vec3f* pos, Vec3f* rot,
+     for (i = 0; i < LINE_SEG_COUNT; i++) {
+         if (i <= spooled) {
+             pos[i] = *basePos;
+-        } else if (D_80B7A6A4 != 0) {
++        } else if (sReelCatchTimer != 0) {
+             temp_f20 = (f32)(i - spooled) / (f32)(LINE_SEG_COUNT - spooled + 1);
+             Math_ApproachF(&pos[i].x, (sp94 * temp_f20) + tempPos.x, 1.0f, 20.0f);
+             Math_ApproachF(&pos[i].y, (sp90 * temp_f20) + tempPos.y, 1.0f, 20.0f);
+@@ -1503,7 +1517,7 @@ void Fishing_UpdateLine(PlayState* play, Vec3f* basePos, Vec3f* pos, Vec3f* rot,
+     }
+ 
+     for (i = spooled + 1, k = 0; i < LINE_SEG_COUNT; i++, k++) {
+-        temp_f18 = 2.0f * D_80B7E148;
++        temp_f18 = 2.0f * sReelLinePull;
+ 
+         dx = (pos + i)->x - (pos + i - 1)->x;
+         spD8 = (pos + i)->y;
+@@ -1857,7 +1871,7 @@ void Fishing_DrawLureAndLine(PlayState* play, Vec3f* linePos, Vec3f* lineRot) {
+         sLurePos = sReelLinePos[LINE_SEG_COUNT - 1];
+         sLureRot.x = sReelLineRot[LINE_SEG_COUNT - 2].x + M_PI;
+ 
+-        if ((player->actor.speedXZ == 0.0f) && (D_80B7E0B0 == 0)) {
++        if ((player->actor.speedXZ == 0.0f) && (sCatchCutsceneTimer == 0)) {
+             Math_ApproachF(&sLureRot.y, sReelLineRot[LINE_SEG_COUNT - 2].y, 0.1f, 0.2f);
+         } else {
+             sLureRot.y = sReelLineRot[LINE_SEG_COUNT - 2].y;
+@@ -1998,8 +2012,8 @@ void Fishing_DrawRod(PlayState* play) {
+     if (sRodHitTimer != 0) {
+         sRodHitTimer--;
+ 
+-        Math_ApproachF(&D_80B7A6C0, 35.0f, 1.0f, 100.0f);
+-        Math_ApproachF(&D_80B7A6BC, -0.8f, 1.0f, 0.4f);
++        Math_ApproachF(&sRodCamBendZoom, 35.0f, 1.0f, 100.0f);
++        Math_ApproachF(&sRodCamBendX, -0.8f, 1.0f, 0.4f);
+         Math_ApproachS(&player->actor.shape.rot.x, -4000, 2, 15000);
+     } else {
+         s16 target = 0;
+@@ -2007,8 +2021,8 @@ void Fishing_DrawRod(PlayState* play) {
+         if ((sRodCastState == 4) && sLineHooked) {
+             target = Math_SinS(sLureTimer * 25600) * 1500.0f;
+         } else {
+-            Math_ApproachZeroF(&D_80B7A6C0, 0.1f, 10.0f);
+-            Math_ApproachZeroF(&D_80B7A6BC, 1.0f, 0.05f);
++            Math_ApproachZeroF(&sRodCamBendZoom, 0.1f, 10.0f);
++            Math_ApproachZeroF(&sRodCamBendX, 1.0f, 0.05f);
+         }
+ 
+         Math_ApproachS(&player->actor.shape.rot.x, target, 5, 1000);
+@@ -2016,10 +2030,10 @@ void Fishing_DrawRod(PlayState* play) {
+ 
+     if ((sRodCastState == 3) || (sRodCastState == 4)) {
+         if ((input->rel.stick_x == 0) && (sStickAdjXPrev != 0)) {
+-            D_80B7A6B0 = 0.0f;
++            sRodBendApproachRateY = 0.0f;
+         }
+         if ((input->rel.stick_y == 0) && (sStickAdjYPrev != 0)) {
+-            D_80B7A6B4 = 0.0f;
++            sRodBendApproachRateX = 0.0f;
+         }
+ 
+         lureXZLen = player->unk_85C;
+@@ -2045,21 +2059,21 @@ void Fishing_DrawRod(PlayState* play) {
+             player->unk_85C = -1.0f;
+         }
+ 
+-        Math_ApproachF(&sRodBendRotY, spC4 * 70.0f * -0.01f, 1.0f, D_80B7A6B0);
+-        Math_ApproachF(&D_80B7A6B0, 1.0f, 1.0f, 0.1f);
+-        Math_ApproachF(&D_80B7A6AC, lureXZLen * 70.0f * 0.01f, 1.0f, D_80B7A6B4);
+-        Math_ApproachF(&D_80B7A6B4, 1.0f, 1.0f, 0.1f);
+-        Math_ApproachZeroF(&D_80B7A6B8, 1.0f, 0.05f);
++        Math_ApproachF(&sRodBendRotY, spC4 * 70.0f * -0.01f, 1.0f, sRodBendApproachRateY);
++        Math_ApproachF(&sRodBendApproachRateY, 1.0f, 1.0f, 0.1f);
++        Math_ApproachF(&sRodBendRotX, lureXZLen * 70.0f * 0.01f, 1.0f, sRodBendApproachRateX);
++        Math_ApproachF(&sRodBendApproachRateX, 1.0f, 1.0f, 0.1f);
++        Math_ApproachZeroF(&sRodReelBend, 1.0f, 0.05f);
+     } else {
+         Math_ApproachZeroF(&player->unk_85C, 1.0f, 0.1f);
+         Math_ApproachZeroF(&player->unk_858, 1.0f, 0.1f);
+-        Math_ApproachF(&D_80B7A6AC, (Math_SinS(sLureTimer * 3000) * 0.025f) + -0.03f, 1.0f, 0.05f);
++        Math_ApproachF(&sRodBendRotX, (Math_SinS(sLureTimer * 3000) * 0.025f) + -0.03f, 1.0f, 0.05f);
+         Math_ApproachZeroF(&sRodBendRotY, 1.0f, 0.05f);
+ 
+         if ((sRodCastTimer > 18) && (sRodCastTimer < 25)) {
+-            Math_ApproachF(&D_80B7A6B8, 0.8f, 1.0f, 0.2f);
++            Math_ApproachF(&sRodReelBend, 0.8f, 1.0f, 0.2f);
+         } else {
+-            Math_ApproachF(&D_80B7A6B8, 0.0f, 1.0f, 0.4f);
++            Math_ApproachF(&sRodReelBend, 0.0f, 1.0f, 0.4f);
+         }
+     }
+ 
+@@ -2085,10 +2099,10 @@ void Fishing_DrawRod(PlayState* play) {
+ 
+     Matrix_RotateX(-M_PI / 5.0000003f, MTXMODE_APPLY);
+     Matrix_RotateZ((player->unk_858 * 0.5f) + 3.0f * M_PI / 20.0f, MTXMODE_APPLY);
+-    Matrix_RotateX((D_80B7A6C0 + 20.0f) * 0.01f * M_PI, MTXMODE_APPLY);
++    Matrix_RotateX((sRodCamBendZoom + 20.0f) * 0.01f * M_PI, MTXMODE_APPLY);
+     Matrix_Scale(0.70000005f, 0.70000005f, 0.70000005f, MTXMODE_APPLY);
+ 
+-    spC0 = (D_80B7A6BC * (((player->unk_85C - 1.0f) * -0.25f) + 0.5f)) + (D_80B7A6AC + D_80B7A6B8);
++    spC0 = (sRodCamBendX * (((player->unk_85C - 1.0f) * -0.25f) + 0.5f)) + (sRodBendRotX + sRodReelBend);
+ 
+     Matrix_Translate(0.0f, 0.0f, -1300.0f, MTXMODE_APPLY);
+ 
+@@ -2155,12 +2169,12 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+ 
+     sLureTimer++;
+ 
+-    if (D_80B7E0B0 != 0) {
+-        D_80B7E0B0--;
++    if (sCatchCutsceneTimer != 0) {
++        sCatchCutsceneTimer--;
+     }
+ 
+-    if (D_80B7E0B2 != 0) {
+-        D_80B7E0B2--;
++    if (sReelLockTimer != 0) {
++        sReelLockTimer--;
+     }
+ 
+     if (sRodCastTimer != 0) {
+@@ -2171,20 +2185,20 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+         sLureBitTimer--;
+     }
+ 
+-    if (D_80B7E150 != 0) {
+-        D_80B7E150--;
++    if (sLureMoveSfxTimer != 0) {
++        sLureMoveSfxTimer--;
+     }
+ 
+-    if (D_80B7A6A4 != 0) {
+-        D_80B7A6A4--;
++    if (sReelCatchTimer != 0) {
++        sReelCatchTimer--;
+     }
+ 
+     if (sRumbleDelay != 0) {
+         sRumbleDelay--;
+     }
+ 
+-    if (D_80B7E114 != 0) {
+-        D_80B7E114--;
++    if (sLureBiteTimer != 0) {
++        sLureBiteTimer--;
+     }
+ 
+     if (sFishingPlayingState == 1) {
+@@ -2199,11 +2213,11 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             sSinkingLureLocation = (u8)Rand_ZeroFloat(3.999f) + 1;
+         }
+ 
+-        D_80B7E148 = 520.0f;
++        sReelLinePull = 520.0f;
+         sRodLineSpooled = 195.0f;
+ 
+-        sRodCastState = sLureEquipped = sLureTimer = D_80B7E0B0 = D_80B7E0B2 = sRodCastTimer = sWiggleAttraction =
+-            D_80B7E114 = D_80B7E150 = 0;
++        sRodCastState = sLureEquipped = sLureTimer = sCatchCutsceneTimer = sReelLockTimer = sRodCastTimer = sWiggleAttraction =
++            sLureBiteTimer = sLureMoveSfxTimer = 0;
+         sLure1Rotate = sReelLinePosStep = sLurePosZOffset = 0.0f;
+ 
+         sLureLineSegPosDelta = zeroVec;
+@@ -2243,7 +2257,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             }
+ 
+             if (sRodCastTimer == 0) {
+-                if ((D_80B7E0B0 == 0) && (player->unk_860 == 1)) {
++                if ((sCatchCutsceneTimer == 0) && (player->unk_860 == 1)) {
+                     sRodCastTimer = 37;
+                     Message_CloseTextbox(play);
+                 }
+@@ -2262,10 +2276,10 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                     sLurePosDelta.y = 15.0f;
+                     sLureCastDelta.x = sLureCastDelta.z = 0.0f;
+                     sLureCastDelta.y = -1.0f;
+-                    D_80B7E148 = 0.0f;
+-                    D_80B7E0B2 = 5;
++                    sReelLinePull = 0.0f;
++                    sReelLockTimer = 5;
+                     sRodReelingSpeed = 0.5f;
+-                    D_80B7E118 = Rand_ZeroFloat(1.9f);
++                    sFishParitySeed = Rand_ZeroFloat(1.9f);
+                     sFishMouthOffset.y = 500.0f;
+                     Sfx_PlaySfxAtPos(&sSoundPos, NA_SE_IT_SWORD_SWING_HARD);
+                 }
+@@ -2295,7 +2309,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             spD4 = sLurePos.y - sRodTipPos.y;
+             spD0 = sLurePos.z - sRodTipPos.z;
+ 
+-            if (D_80B7E0B2 != 0) {
++            if (sReelLockTimer != 0) {
+                 sLureRot.x = sReelLineRot[LINE_SEG_COUNT - 2].x + M_PI;
+                 sLureRot.y = sReelLineRot[LINE_SEG_COUNT - 2].y;
+             } else {
+@@ -2341,7 +2355,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                     sRodCastState = 3;
+                     sReelLinePosStep = 0.0;
+                 } else {
+-                    Math_ApproachF(&D_80B7E148, 0.0f, 1.0f, 0.05f);
++                    Math_ApproachF(&sReelLinePull, 0.0f, 1.0f, 0.05f);
+                     Sfx_PlaySfxAtPos(&sSoundPos, NA_SE_EN_FANTOM_FLOAT - SFX_FLAG);
+                 }
+             } else {
+@@ -2359,7 +2373,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                     }
+ 
+                     if ((sLurePos.y <= spE4) && (spE4 < spE0) && (spE4 == WATER_SURFACE_Y(play))) {
+-                        D_80B7E114 = 10;
++                        sLureBiteTimer = 10;
+                         Sfx_PlaySfxAtPos(&sSoundPos, NA_SE_EV_BOMB_DROP_WATER);
+                         sLureCastDelta.y = 0.0f;
+                         sLurePosDelta.y *= 0.2f;
+@@ -2385,7 +2399,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                         Fishing_SpawnRipple(NULL, play->specialEffects, &spA8, 100.0f, 800.0f, 150, 90);
+                     }
+                 } else {
+-                    Math_ApproachZeroF(&D_80B7E148, 1.0f, 0.05f);
++                    Math_ApproachZeroF(&sReelLinePull, 1.0f, 0.05f);
+                     Sfx_PlaySfxAtPos(&sSoundPos, NA_SE_EN_FANTOM_FLOAT - SFX_FLAG);
+                 }
+             }
+@@ -2409,7 +2423,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                 }
+             }
+ 
+-            Math_ApproachF(&D_80B7E148, 2.0f, 1.0f, 0.1f);
++            Math_ApproachF(&sReelLinePull, 2.0f, 1.0f, 0.1f);
+ 
+             if (sLureMoveDelay == 0) {
+                 sRodCastState = 3;
+@@ -2444,7 +2458,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                 if (sLurePos.y <= (spE4 + 4.0f)) {
+                     wiggle = 0.0f;
+ 
+-                    if (D_80B7E150 == 0) {
++                    if (sLureMoveSfxTimer == 0) {
+                         if (fabsf(input->rel.stick_x) > 30.0f) {
+                             wiggle = fabsf((input->rel.stick_x - sStickAdjXPrev) * (1.0f / 60.0f));
+                         } else if (fabsf(input->rel.stick_y) > 30.0f) {
+@@ -2466,7 +2480,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                     }
+ 
+                     if ((wiggle > 0.2f) && (sLureWigglePosY < 4.0f)) {
+-                        D_80B7E150 = 5;
++                        sLureMoveSfxTimer = 5;
+ 
+                         if (wiggle > 0.8f) {
+                             sWiggleAttraction = 2;
+@@ -2609,12 +2623,12 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+                 }
+ 
+                 if (sReelLinePos[LINE_SEG_COUNT - 1].y > (WATER_SURFACE_Y(play) + 4.0f)) {
+-                    Math_ApproachF(&D_80B7E148, 3.0f, 1.0f, 0.2f);
++                    Math_ApproachF(&sReelLinePull, 3.0f, 1.0f, 0.2f);
+                 } else {
+-                    Math_ApproachF(&D_80B7E148, 1.0f, 1.0f, 0.2f);
++                    Math_ApproachF(&sReelLinePull, 1.0f, 1.0f, 0.2f);
+                 }
+             } else {
+-                Math_ApproachF(&D_80B7E148, 2.0f, 1.0f, 0.2f);
++                Math_ApproachF(&sReelLinePull, 2.0f, 1.0f, 0.2f);
+             }
+ 
+             Math_ApproachF(&sLurePos.x, sReelLinePos[LINE_SEG_COUNT - 1].x, 1.0f, sReelLinePosStep);
+@@ -2630,7 +2644,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             if (sRodLineSpooled >= 195.0f) {
+                 sRodLineSpooled = 195.0f;
+                 sRodCastState = 0;
+-                D_80B7E148 = 520.0f;
++                sReelLinePull = 520.0f;
+                 sFishingPlayerCinematicState = 3;
+             }
+ 
+@@ -2666,11 +2680,11 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+ 
+             if ((sLureTimer & 0x1F) == 0) {
+                 if (sLineHooked || (sLureEquipped != FS_LURE_SINKING)) {
+-                    D_80B7A6A4 = 5;
++                    sReelCatchTimer = 5;
+                 }
+             }
+ 
+-            Math_ApproachF(&D_80B7E148, 0.0f, 1.0f, 0.2f);
++            Math_ApproachF(&sReelLinePull, 0.0f, 1.0f, 0.2f);
+             break;
+ 
+         case 5:
+@@ -2678,7 +2692,7 @@ void Fishing_UpdateLure(Fishing* this, PlayState* play) {
+             sReelLinePos[LINE_SEG_COUNT - 1].x = sLurePos.x;
+             sReelLinePos[LINE_SEG_COUNT - 1].y = sLurePos.y;
+             sReelLinePos[LINE_SEG_COUNT - 1].z = sLurePos.z;
+-            D_80B7E148 = 2.0f;
++            sReelLinePull = 2.0f;
+             break;
+     }
+ }
+@@ -2766,7 +2780,8 @@ void Fishing_SplashBySize2(Fishing* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B70ED4(Fishing* this, Input* input) {
++// LLM generated name (HIGH), was func_80B70ED4: computes lure/line distance to the fish to detect a bite
++void Fishing_CheckFishBite(Fishing* this, Input* input) {
+     Vec3f lineVec;
+     Vec3f sp28;
+     f32 lineLengthSQ;
+@@ -2816,7 +2831,7 @@ void func_80B70ED4(Fishing* this, Input* input) {
+         this->timerArray[1] = 50;
+     }
+ 
+-    if ((sLureEquipped != FS_LURE_SINKING) && (D_80B7E114 != 0) && (this->fishLength > 60.0f) &&
++    if ((sLureEquipped != FS_LURE_SINKING) && (sLureBiteTimer != 0) && (this->fishLength > 60.0f) &&
+         (lineLengthSQ < SQ(30.0f)) && (this->fishState >= 10)) {
+         this->fishStateNext = 0;
+         this->fishState = 1;
+@@ -2947,16 +2962,16 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+         playerSpeedMod = (player->actor.speedXZ * 0.3f) + 0.25f;
+     }
+ 
+-    if ((D_80B7E0B0 != 0) || (sSubCamId != 0) || ((player->actor.world.pos.z > 1150.0f) && (this->fishState != 100))) {
++    if ((sCatchCutsceneTimer != 0) || (sSubCamId != 0) || ((player->actor.world.pos.z > 1150.0f) && (this->fishState != 100))) {
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+     } else {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+         if (sRodCastState != 0) {
+-            if (D_80B7E0B2 == 0) {
++            if (sReelLockTimer == 0) {
+                 this->actor.focus.pos = sLurePos;
+-            } else if (D_80B7E0B2 == 1) {
++            } else if (sReelLockTimer == 1) {
+                 sFishingPlayerCinematicState = 1;
+-                D_80B7FED0 = 0.0f;
++                sAquariumRecordOffset = 0.0f;
+                 sLureCameraZoomLevel = 2;
+             }
+         }
+@@ -3099,7 +3114,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                 this->unk_194 = 500.0f;
+             }
+ 
+-            func_80B70ED4(this, input);
++            Fishing_CheckFishBite(this, input);
+ 
+             if (this->actor.xzDistToPlayer < (250.0f * playerSpeedMod)) {
+                 this->fishStateNext = this->fishState = 0;
+@@ -3120,7 +3135,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                 this->unk_190 = 1.0f;
+                 this->unk_194 = 2000.0f;
+             }
+-            func_80B70ED4(this, input);
++            Fishing_CheckFishBite(this, input);
+ 
+             if (this->actor.xzDistToPlayer < (250.0f * playerSpeedMod)) {
+                 this->fishStateNext = this->fishState = 0;
+@@ -3166,7 +3181,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+             }
+ 
+             if (sLureEquipped == FS_LURE_SINKING) {
+-                func_80B70ED4(this, input);
++                Fishing_CheckFishBite(this, input);
+             } else {
+                 this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+             }
+@@ -3203,7 +3218,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                 }
+ 
+                 if (sLureEquipped == FS_LURE_SINKING) {
+-                    func_80B70ED4(this, input);
++                    Fishing_CheckFishBite(this, input);
+                 } else {
+                     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+                 }
+@@ -3310,7 +3325,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+             break;
+ 
+         case 2:
+-            if (((this->actor.params + D_80B7E118) & 1) != 0) {
++            if (((this->actor.params + sFishParitySeed) & 1) != 0) {
+                 multiVecSrc.x = 10.0f;
+             } else {
+                 multiVecSrc.x = -10.0f;
+@@ -3441,7 +3456,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+             this->lilyTimer = 6;
+             rotXYScale = 2;
+ 
+-            if ((((s16)player->actor.world.pos.x + D_80B7E118) & 1) != 0) {
++            if ((((s16)player->actor.world.pos.x + sFishParitySeed) & 1) != 0) {
+                 multiVecSrc.x = 30.0f;
+             } else {
+                 multiVecSrc.x = -30.0f;
+@@ -3783,8 +3798,8 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                     }
+                 }
+ 
+-                Math_ApproachF(&D_80B7A6C0, 35.0f, 0.1f, 3.5f);
+-                Math_ApproachF(&D_80B7A6BC, targetPosOffset.x, 0.3f, 0.1f);
++                Math_ApproachF(&sRodCamBendZoom, 35.0f, 0.1f, 3.5f);
++                Math_ApproachF(&sRodCamBendX, targetPosOffset.x, 0.3f, 0.1f);
+             }
+ 
+             sReelLinePos[LINE_SEG_COUNT - 1] = this->fishMouthPos;
+@@ -4011,7 +4026,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                     }
+                 }
+ 
+-                D_80B7E148 = 520.0f;
++                sReelLinePull = 520.0f;
+                 sRodLineSpooled = 195.0f;
+                 Audio_QueueSeqCmd(0x1 << 28 | SEQ_PLAYER_BGM_MAIN << 24 | 0xA00FF);
+                 sFishingMusicDelay = 20;
+@@ -4050,7 +4065,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                 this->fishState = 10;
+                 this->fishStateNext = 10;
+             } else {
+-                func_80B70ED4(this, input);
++                Fishing_CheckFishBite(this, input);
+                 if (this->actor.xzDistToPlayer < (100.0f * playerSpeedMod)) {
+                     this->fishStateNext = this->fishState = 0;
+                     this->unk_1A4 = 500;
+@@ -4554,7 +4569,7 @@ void Fishing_UpdateGroupFishes(PlayState* play) {
+     f32 temp1;
+     f32 temp2;
+ 
+-    if ((D_80B7E114 != 0) || (sRodCastState == 4)) {
++    if ((sLureBiteTimer != 0) || (sRodCastState == 4)) {
+         refPos = &sLurePos;
+     } else {
+         refPos = &player->actor.world.pos;
+@@ -5383,7 +5398,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+             Math_ApproachF(&sCameraAt.y, sLurePos.y, subCamAtMaxVelFrac, 50.0f * sSubCamVelFactor);
+             Math_ApproachF(&sCameraAt.z, sLurePos.z, subCamAtMaxVelFrac, fabsf(lureDist.z) * sSubCamVelFactor);
+ 
+-            multiVecSrc.x = 0.0f - D_80B7FED0;
++            multiVecSrc.x = 0.0f - sAquariumRecordOffset;
+             if (sLinkAge != LINK_AGE_CHILD) {
+                 multiVecSrc.y = 80.0f;
+             } else {
+@@ -5396,7 +5411,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+             eyeTarget.y += player->actor.world.pos.y;
+             eyeTarget.z += player->actor.world.pos.z;
+ 
+-            Math_ApproachF(&D_80B7FED0, 30.0f, 0.1f, 0.4f);
++            Math_ApproachF(&sAquariumRecordOffset, 30.0f, 0.1f, 0.4f);
+ 
+             if (CHECK_BTN_ALL(input->press.button, BTN_Z)) { // zoom in/out from the lure
+                 if ((sLureCameraZoomLevel >= 0) && (sLureBitTimer == 0)) {
+@@ -5467,7 +5482,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+             Environment_EnableUnderwaterLights(play, 0);
+             play->envCtx.adjFogNear = 0;
+             player->unk_860 = -5;
+-            D_80B7E0B0 = 5;
++            sCatchCutsceneTimer = 5;
+             break;
+         }
+ 
+@@ -5618,7 +5633,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+                         sFishingPlayerCinematicState = 0;
+                         sSubCamId = 0;
+                         player->unk_860 = -5;
+-                        D_80B7E0B0 = 5;
++                        sCatchCutsceneTimer = 5;
+                         sSinkingLureFound = false;
+                         sFishingMusicDelay = 20;
+                         Environment_EnableUnderwaterLights(play, 0);
+-- 
+2.55.0
+

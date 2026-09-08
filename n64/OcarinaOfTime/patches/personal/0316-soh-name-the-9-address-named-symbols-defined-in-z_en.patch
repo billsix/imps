@@ -1,0 +1,289 @@
+From 6d2e44145f9389eee55e24cd4aa47e0750a31226 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:25 +0000
+Subject: [PATCH 316/488] soh: name the 9 address-named symbols defined in
+ z_en_mm.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 9 are defined in soh/src/overlays/actors/ovl_En_Mm/z_en_mm.c.
+
+  * func_80AADA70 -> EnMm_IsDay
+    deduced, confidence HIGH: returns whether gSaveContext.dayTime is inside
+    the daylight window; the Running Man only runs by day.
+
+  * func_80AADAA0 -> EnMm_UpdateTalkState
+    deduced, confidence HIGH: steps the conversation by message state,
+    resolving the yes/no choice into the matching reply text and animation,
+    and returns the new talk state for EnMm_UpdateTalking to store.
+
+  * func_80AADCD0 -> EnMm_UpdateTalking
+    deduced, confidence HIGH: the per-frame talk driver Update calls after
+    the action function: it opens the next textbox, feeds
+    EnMm_UpdateTalkState while a conversation is running, and otherwise
+    offers talk.
+
+  * func_80AADE60 -> EnMm_GetPathPoint
+    deduced, confidence HIGH: copies the requested waypoint of the requested
+    path into a Vec3f.
+
+  * func_80AADEF0 -> EnMm_UpdateWaypoint
+    deduced, confidence HIGH: recomputes the yaw and distance to the current
+    waypoint and advances along the path once the Running Man is close
+    enough to it.
+
+  * func_80AAE224 -> EnMm_SitDown
+    deduced, confidence HIGH: waits for the current animation to finish,
+    then parks the Running Man in the sitting-idle animation with his mouth
+    closed and hands off to the sitting action.
+
+  * func_80AAE294 -> EnMm_Run
+    deduced, confidence HIGH: the running action: steps the animation with
+    footstep sfx, follows the path and, once night falls, breaks off to sit
+    down.
+
+  * func_80AAE50C -> EnMm_StandUp
+    deduced, confidence HIGH: waits for the stand-up animation, then picks
+    the sprint or ordinary run animation depending on whether the player has
+    already traded him the mask, and starts running.
+
+  * func_80AAE598 -> EnMm_Sit
+    deduced, confidence HIGH: the sitting action: tracks the player with his
+    head and, once day breaks and no conversation is running, stands up.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Mm/z_en_mm.c | 65 ++++++++++++---------
+ 1 file changed, 37 insertions(+), 28 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Mm/z_en_mm.c b/soh/src/overlays/actors/ovl_En_Mm/z_en_mm.c
+index 2232acc85..07f2acfbe 100644
+--- a/soh/src/overlays/actors/ovl_En_Mm/z_en_mm.c
++++ b/soh/src/overlays/actors/ovl_En_Mm/z_en_mm.c
+@@ -30,11 +30,16 @@ void EnMm_Destroy(Actor* thisx, PlayState* play);
+ void EnMm_Update(Actor* thisx, PlayState* play);
+ void EnMm_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80AAE598(EnMm* this, PlayState* play);
+-void func_80AAE294(EnMm* this, PlayState* play);
+-void func_80AAE50C(EnMm* this, PlayState* play);
+-void func_80AAE224(EnMm* this, PlayState* play);
+-s32 func_80AADA70(void);
++// LLM generated name (HIGH), was func_80AAE598: the sitting action: tracks the player with his head and, once day breaks and no conversation is running, stands up.
++void EnMm_Sit(EnMm* this, PlayState* play);  // was func_80AAE598 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AAE294: the running action: steps the animation with footstep sfx, follows the path and, once night falls, breaks off to sit down.
++void EnMm_Run(EnMm* this, PlayState* play);  // was func_80AAE294 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AAE50C: waits for the stand-up animation, then picks the sprint or ordinary run animation depending on whether the player has already traded him the mask, and starts running.
++void EnMm_StandUp(EnMm* this, PlayState* play);  // was func_80AAE50C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AAE224: waits for the current animation to finish, then parks the Running Man in the sitting-idle animation with his mouth closed and hands off to the sitting action.
++void EnMm_SitDown(EnMm* this, PlayState* play);  // was func_80AAE224 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AADA70: returns whether gSaveContext.dayTime is inside the daylight window; the Running Man only runs by day.
++s32 EnMm_IsDay(void);  // was func_80AADA70 [LLM:HIGH]
+ 
+ s32 EnMm_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx);
+ void EnMm_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void*);
+@@ -182,14 +187,14 @@ void EnMm_Init(Actor* thisx, PlayState* play) {
+     this->speedXZ = 3.0f;
+     this->unk_204 = this->actor.objBankIndex;
+ 
+-    if (func_80AADA70() == 1) {
++    if (EnMm_IsDay() == 1) {  // was func_80AADA70 [LLM:HIGH]
+         this->mouthTexIndex = RM_MOUTH_OPEN;
+         EnMm_ChangeAnim(this, RM_ANIM_RUN, &this->curAnimIndex);
+-        this->actionFunc = func_80AAE598;
++        this->actionFunc = EnMm_Sit;  // was func_80AAE598 [LLM:HIGH]
+     } else {
+         this->mouthTexIndex = RM_MOUTH_CLOSED;
+         EnMm_ChangeAnim(this, RM_ANIM_SIT_WAIT, &this->curAnimIndex);
+-        this->actionFunc = func_80AAE294;
++        this->actionFunc = EnMm_Run;  // was func_80AAE294 [LLM:HIGH]
+     }
+ }
+ 
+@@ -200,7 +205,7 @@ void EnMm_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-s32 func_80AADA70(void) {
++s32 EnMm_IsDay(void) {
+     s32 isDay = false;
+ 
+     if ((gSaveContext.dayTime > 0x3555) && (gSaveContext.dayTime <= 0xD556)) {
+@@ -210,7 +215,8 @@ s32 func_80AADA70(void) {
+     return isDay;
+ }
+ 
+-s32 func_80AADAA0(EnMm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AADAA0: steps the conversation by message state, resolving the yes/no choice into the matching reply text and animation, and returns the new talk state for EnMm_UpdateTalking to store.
++s32 EnMm_UpdateTalkState(EnMm* this, PlayState* play) {
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+     s32 sp1C = 1;
+@@ -277,7 +283,8 @@ s32 EnMm_GetTextId(EnMm* this, PlayState* play) {
+     return textId;
+ }
+ 
+-void func_80AADCD0(EnMm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AADCD0: the per-frame talk driver Update calls after the action function: it opens the next textbox, feeds EnMm_UpdateTalkState while a conversation is running, and otherwise offers talk.
++void EnMm_UpdateTalking(EnMm* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 yawDiff;
+     s16 sp26;
+@@ -287,7 +294,7 @@ void func_80AADCD0(EnMm* this, PlayState* play) {
+         Message_ContinueTextbox(play, player->actor.textId);
+         this->unk_1E0 = 1;
+     } else if (this->unk_1E0 == 1) {
+-        this->unk_1E0 = func_80AADAA0(this, play);
++        this->unk_1E0 = EnMm_UpdateTalkState(this, play);  // was func_80AADAA0 [LLM:HIGH]
+     } else {
+         if (Actor_ProcessTalkRequest(&this->actor, play)) {
+             this->unk_1E0 = 1;
+@@ -314,7 +321,8 @@ s32 EnMm_GetPointCount(Path* pathList, s32 pathNum) {
+     return (pathList + pathNum)->count;
+ }
+ 
+-s32 func_80AADE60(Path* pathList, Vec3f* pos, s32 pathNum, s32 waypoint) {
++// LLM generated name (HIGH), was func_80AADE60: copies the requested waypoint of the requested path into a Vec3f.
++s32 EnMm_GetPathPoint(Path* pathList, Vec3f* pos, s32 pathNum, s32 waypoint) {
+     Vec3s* pointPos;
+     pointPos = &((Vec3s*)SEGMENTED_TO_VIRTUAL((pathList + pathNum)->points))[waypoint];
+ 
+@@ -325,14 +333,15 @@ s32 func_80AADE60(Path* pathList, Vec3f* pos, s32 pathNum, s32 waypoint) {
+     return 0;
+ }
+ 
+-s32 func_80AADEF0(EnMm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AADEF0: recomputes the yaw and distance to the current waypoint and advances along the path once the Running Man is close enough to it.
++s32 EnMm_UpdateWaypoint(EnMm* this, PlayState* play) {
+     f32 xDiff;
+     f32 zDiff;
+     Vec3f waypointPos;
+     s32 phi_a2;
+     s32 phi_v1;
+ 
+-    func_80AADE60(play->setupPathList, &waypointPos, this->path, this->waypoint);
++    EnMm_GetPathPoint(play->setupPathList, &waypointPos, this->path, this->waypoint);  // was func_80AADE60 [LLM:HIGH]
+ 
+     xDiff = waypointPos.x - this->actor.world.pos.x;
+     zDiff = waypointPos.z - this->actor.world.pos.z;
+@@ -377,7 +386,7 @@ s32 func_80AADEF0(EnMm* this, PlayState* play) {
+             this->waypoint = sPathInfo[this->unk_1E8].unk_08;
+         }
+ 
+-        func_80AADE60(play->setupPathList, &waypointPos, this->path, this->waypoint);
++        EnMm_GetPathPoint(play->setupPathList, &waypointPos, this->path, this->waypoint);  // was func_80AADE60 [LLM:HIGH]
+ 
+         xDiff = waypointPos.x - this->actor.world.pos.x;
+         zDiff = waypointPos.z - this->actor.world.pos.z;
+@@ -395,9 +404,9 @@ s32 func_80AADEF0(EnMm* this, PlayState* play) {
+     return 0;
+ }
+ 
+-void func_80AAE224(EnMm* this, PlayState* play) {
++void EnMm_SitDown(EnMm* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+-        this->actionFunc = func_80AAE598;
++        this->actionFunc = EnMm_Sit;  // was func_80AAE598 [LLM:HIGH]
+         this->unk_1E8 = 0;
+         this->mouthTexIndex = RM_MOUTH_CLOSED;
+         this->unk_254 |= 1;
+@@ -407,7 +416,7 @@ void func_80AAE224(EnMm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AAE294(EnMm* this, PlayState* play) {
++void EnMm_Run(EnMm* this, PlayState* play) {
+     f32 floorYNorm;
+     Vec3f dustPos;
+ 
+@@ -436,16 +445,16 @@ void func_80AAE294(EnMm* this, PlayState* play) {
+             this->skelAnime.playSpeed = 1.0f;
+         }
+ 
+-        func_80AADEF0(this, play);
++        EnMm_UpdateWaypoint(this, play);  // was func_80AADEF0 [LLM:HIGH]
+ 
+-        if (func_80AADA70() == 0) {
++        if (EnMm_IsDay() == 0) {  // was func_80AADA70 [LLM:HIGH]
+             if (this->actor.floorPoly != NULL) {
+                 floorYNorm = COLPOLY_GET_NORMAL(this->actor.floorPoly->normal.y);
+ 
+                 if ((floorYNorm > 0.9848f) || (floorYNorm < -0.9848f)) {
+                     if (this->sitTimer > 30) {
+                         EnMm_ChangeAnim(this, RM_ANIM_SIT, &this->curAnimIndex);
+-                        this->actionFunc = func_80AAE224;
++                        this->actionFunc = EnMm_SitDown;  // was func_80AAE224 [LLM:HIGH]
+                     } else {
+                         this->sitTimer++;
+                     }
+@@ -471,10 +480,10 @@ void func_80AAE294(EnMm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AAE50C(EnMm* this, PlayState* play) {
++void EnMm_StandUp(EnMm* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->sitTimer = 0;
+-        this->actionFunc = func_80AAE294;
++        this->actionFunc = EnMm_Run;  // was func_80AAE294 [LLM:HIGH]
+ 
+         if (Flags_GetItemGetInf(ITEMGETINF_3B)) {
+             EnMm_ChangeAnim(this, RM_ANIM_SPRINT, &this->curAnimIndex);
+@@ -488,13 +497,13 @@ void func_80AAE50C(EnMm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AAE598(EnMm* this, PlayState* play) {
++void EnMm_Sit(EnMm* this, PlayState* play) {
+     Actor_TrackPlayer(play, &this->actor, &this->unk_248, &this->unk_24E, this->actor.focus.pos);
+     SkelAnime_Update(&this->skelAnime);
+ 
+-    if ((func_80AADA70() != 0) && (this->unk_1E0 == 0)) {
++    if ((EnMm_IsDay() != 0) && (this->unk_1E0 == 0)) {  // was func_80AADA70 [LLM:HIGH]
+         this->unk_1E0 = 3;
+-        this->actionFunc = func_80AAE50C;
++        this->actionFunc = EnMm_StandUp;  // was func_80AAE50C [LLM:HIGH]
+         this->unk_254 &= ~1;
+         EnMm_ChangeAnim(this, RM_ANIM_STAND, &this->curAnimIndex);
+     }
+@@ -505,7 +514,7 @@ void EnMm_Update(Actor* thisx, PlayState* play) {
+     EnMm* this = (EnMm*)thisx;
+ 
+     this->actionFunc(this, play);
+-    func_80AADCD0(this, play);
++    EnMm_UpdateTalking(this, play);  // was func_80AADCD0 [LLM:HIGH]
+     Collider_UpdateCylinder(&this->actor, &this->collider);
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+ }
+-- 
+2.55.0
+

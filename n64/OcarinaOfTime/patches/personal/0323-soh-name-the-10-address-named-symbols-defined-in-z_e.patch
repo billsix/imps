@@ -1,0 +1,298 @@
+From 7c309220339d880ceba50a6e838d6329ac7c9ef5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:26 +0000
+Subject: [PATCH 323/488] soh: name the 10 address-named symbols defined in
+ z_en_tr.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 10 are defined in soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c.
+
+  * D_80B24368 -> sLookOverShoulderAnims
+    deduced, confidence HIGH: the look-over-shoulder animation for each
+    twin, chosen by params; Kotake looks left and Koume right.
+
+  * D_80B24370 -> sLookingOverShoulderAnims
+    deduced, confidence HIGH: the held pose each twin settles into after
+    that turn, installed as this->animation on the same frame.
+
+  * D_80B24378 -> sFlyAnims
+    deduced, confidence HIGH: the flying animation for each twin, played
+    when they take off and looped while they move.
+
+  * D_80B24380 -> sCastMagicAnims
+    deduced, confidence HIGH: the spell-casting animation for each twin.
+
+  * D_80B24388 -> sFlameXOffsets
+    deduced, confidence HIGH: the sideways offsets of the seven flame
+    particles, applied along the camera-facing axis so the cluster spreads
+    across the screen.
+
+  * D_80B243A4 -> sFlameYOffsets
+    deduced, confidence HIGH: the matching vertical offsets for the same
+    seven particles.
+
+  * D_80B243C0 -> sFlameColors
+    deduced, confidence HIGH: prim and env colour pairs indexed by params,
+    giving Kotake's flame its own colours and Koume's another pair; the
+    in-tree comment notes it is flattened to one dimension only to match.
+
+  * func_80B23254 -> EnTr_SpawnFlame
+    deduced, confidence HIGH: spawns one flame particle of the twin's own
+    colour, offset across the camera-facing plane by sFlameXOffsets and
+    sFlameYOffsets and thrown back toward the camera.
+
+  * func_80B23FDC -> EnTr_GetCueProgress
+    deduced, confidence HIGH: returns how far the current actor cue has
+    progressed, from 0 at its start frame to a clamped 1 at its end frame.
+
+  * func_80B24038 -> EnTr_FollowCuePath
+    deduced, confidence HIGH: interpolates between the cue's start and end
+    positions by that progress and eases the actor a tenth of the way toward
+    the result each frame.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c | 72 ++++++++++++---------
+ 1 file changed, 41 insertions(+), 31 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c b/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
+index 0c0de53c1..42af34d7b 100644
+--- a/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
++++ b/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
+@@ -21,7 +21,8 @@ void EnTr_WaitToReappear(EnTr* this, PlayState* play);
+ void EnTr_ChooseAction1(EnTr* this, PlayState* play);
+ 
+ void EnTr_UpdateRotation(EnTr* this, PlayState* play, s32 actionIndex);
+-void func_80B24038(EnTr* this, PlayState* play, s32 actionIndex);
++// LLM generated name (HIGH), was func_80B24038: interpolates between the cue's start and end positions by that progress and eases the actor a tenth of the way toward the result each frame.
++void EnTr_FollowCuePath(EnTr* this, PlayState* play, s32 actionIndex);  // was func_80B24038 [LLM:HIGH]
+ void EnTr_SetStartPosRot(EnTr* this, PlayState* play, s32 actionIndex);
+ 
+ const ActorInit En_Tr_InitVars = {
+@@ -44,32 +45,39 @@ static AnimationHeader* unused[] = {
+     &gKotakeKoumeStandingBroomOverLeftShoulderAnim,
+ };
+ 
+-static AnimationHeader* D_80B24368[] = {
++// LLM generated name (HIGH), was D_80B24368: the look-over-shoulder animation for each twin, chosen by params; Kotake looks left and Koume right.
++static AnimationHeader* sLookOverShoulderAnims[] = {  // was D_80B24368 [LLM:HIGH]
+     &gKotakeKoumeLookOverLeftShoulderAnim,
+     &gKotakeKoumeLookOverRightShoulderAnim,
+ };
+ 
+-static AnimationHeader* D_80B24370[] = {
++// LLM generated name (HIGH), was D_80B24370: the held pose each twin settles into after that turn, installed as this->animation on the same frame.
++static AnimationHeader* sLookingOverShoulderAnims[] = {  // was D_80B24370 [LLM:HIGH]
+     &gKotakeKoumeLookingOverLeftShoulderAnim,
+     &gKotakeKoumeLookingOverRightShoulderAnim,
+ };
+ 
+-static AnimationHeader* D_80B24378[] = {
++// LLM generated name (HIGH), was D_80B24378: the flying animation for each twin, played when they take off and looped while they move.
++static AnimationHeader* sFlyAnims[] = {  // was D_80B24378 [LLM:HIGH]
+     &gKotakeKoumeFlyAnim,
+     &gKotakeKoumeFlyAnim,
+ };
+ 
+-static AnimationHeader* D_80B24380[] = {
++// LLM generated name (HIGH), was D_80B24380: the spell-casting animation for each twin.
++static AnimationHeader* sCastMagicAnims[] = {  // was D_80B24380 [LLM:HIGH]
+     &gKotakeKoumeCastMagicAnim,
+     &gKotakeKoumeCastMagicAnim,
+ };
+ 
+-static f32 D_80B24388[] = { 0.0f, 20.0f, -30.0f, 20.0f, -20.0f, -20.0f, 30.0f };
++// LLM generated name (HIGH), was D_80B24388: the sideways offsets of the seven flame particles, applied along the camera-facing axis so the cluster spreads across the screen.
++static f32 sFlameXOffsets[] = { 0.0f, 20.0f, -30.0f, 20.0f, -20.0f, -20.0f, 30.0f };  // was D_80B24388 [LLM:HIGH]
+ 
+-static f32 D_80B243A4[] = { 0.0f, 30.0f, 0.0f, -30.0f, 30.0f, -30.0f, 0.0f };
++// LLM generated name (HIGH), was D_80B243A4: the matching vertical offsets for the same seven particles.
++static f32 sFlameYOffsets[] = { 0.0f, 30.0f, 0.0f, -30.0f, 30.0f, -30.0f, 0.0f };  // was D_80B243A4 [LLM:HIGH]
+ 
+ // Has to be 1-dimensional to match
+-static Color_RGBA8 D_80B243C0[4] = {
++// LLM generated name (HIGH), was D_80B243C0: prim and env colour pairs indexed by params, giving Kotake's flame its own colours and Koume's another pair; the in-tree comment notes it is flattened to one dimension only to match.
++static Color_RGBA8 sFlameColors[4] = {  // was D_80B243C0 [LLM:HIGH]
+     { 255, 200, 0, 255 },
+     { 255, 0, 0, 255 },
+     { 255, 255, 255, 255 },
+@@ -156,10 +164,10 @@ void EnTr_ChooseAction2(EnTr* this, PlayState* play) {
+                     break;
+ 
+                 case 6:
+-                    Animation_Change(&this->skelAnime, D_80B24380[this->actor.params], 1.0f, 0.0f,
+-                                     Animation_GetLastFrame(D_80B24380[this->actor.params]), ANIMMODE_ONCE, -5.0f);
++                    Animation_Change(&this->skelAnime, sCastMagicAnims[this->actor.params], 1.0f, 0.0f,  // was D_80B24380 [LLM:HIGH]
++                                     Animation_GetLastFrame(sCastMagicAnims[this->actor.params]), ANIMMODE_ONCE, -5.0f);  // was D_80B24380 [LLM:HIGH]
+                     EnTr_SetupAction(this, EnTr_CrySpellcast);
+-                    this->animation = D_80B24378[this->actor.params];
++                    this->animation = sFlyAnims[this->actor.params];  // was D_80B24378 [LLM:HIGH]
+                     this->timer = 39;
+                     Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_DEMO_6K, this->actor.world.pos.x,
+                                        this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0,
+@@ -168,7 +176,7 @@ void EnTr_ChooseAction2(EnTr* this, PlayState* play) {
+                     break;
+ 
+                 default:
+-                    func_80B24038(this, play, this->actionIndex);
++                    EnTr_FollowCuePath(this, play, this->actionIndex);  // was func_80B24038 [LLM:HIGH]
+                     EnTr_UpdateRotation(this, play, this->actionIndex);
+                     break;
+             }
+@@ -183,7 +191,7 @@ void EnTr_FlyKidnapCutscene(EnTr* this, PlayState* play) {
+     if (play->csCtx.state != CS_STATE_IDLE) {
+         if (play->csCtx.npcActions[this->actionIndex] != NULL) {
+             if (play->csCtx.npcActions[this->actionIndex]->action == 8) {
+-                func_80B24038(this, play, this->actionIndex);
++                EnTr_FollowCuePath(this, play, this->actionIndex);  // was func_80B24038 [LLM:HIGH]
+                 this->actor.world.rot.y = Math_Atan2S(this->actor.velocity.z, this->actor.velocity.x);
+                 Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.world.rot.y, 10, 0x400, 0x100);
+                 this->actor.world.rot.y = this->actor.shape.rot.y;
+@@ -208,7 +216,8 @@ void EnTr_FlyKidnapCutscene(EnTr* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B23254(EnTr* this, PlayState* play, s32 arg2, f32 arg3, f32 scale) {
++// LLM generated name (HIGH), was func_80B23254: spawns one flame particle of the twin's own colour, offset across the camera-facing plane by sFlameXOffsets and sFlameYOffsets and thrown back toward the camera.
++void EnTr_SpawnFlame(EnTr* this, PlayState* play, s32 arg2, f32 arg3, f32 scale) {
+     Vec3f pos;
+     Vec3f velocity;
+     Vec3f accel;
+@@ -228,17 +237,17 @@ void func_80B23254(EnTr* this, PlayState* play, s32 arg2, f32 arg3, f32 scale) {
+     velocity.z = Math_CosS(reversePitch) * (arg3 * sp3C);
+     accel.y = 0.5f;
+ 
+-    primColor = &D_80B243C0[2 * this->actor.params];
+-    envColor = &D_80B243C0[2 * this->actor.params + 1];
++    primColor = &sFlameColors[2 * this->actor.params];  // was D_80B243C0 [LLM:HIGH]
++    envColor = &sFlameColors[2 * this->actor.params + 1];  // was D_80B243C0 [LLM:HIGH]
+ 
+     sp58 = this->actor.world.pos;
+     sp58.x -= velocity.x * 10.0f;
+     sp58.y -= velocity.y * 10.0f;
+     sp58.z -= velocity.z * 10.0f;
+ 
+-    pos.x = sp58.x + ((D_80B24388[arg2] * scale) * Math_CosS(yaw));
+-    pos.y = sp58.y + (D_80B243A4[arg2] * scale);
+-    pos.z = sp58.z - ((D_80B24388[arg2] * scale) * Math_SinS(yaw));
++    pos.x = sp58.x + ((sFlameXOffsets[arg2] * scale) * Math_CosS(yaw));  // was D_80B24388 [LLM:HIGH]
++    pos.y = sp58.y + (sFlameYOffsets[arg2] * scale);  // was D_80B243A4 [LLM:HIGH]
++    pos.z = sp58.z - ((sFlameXOffsets[arg2] * scale) * Math_SinS(yaw));  // was D_80B24388 [LLM:HIGH]
+     func_8002829C(play, &pos, &velocity, &accel, primColor, envColor, (s32)(800.0f * scale), (s32)(80.0f * scale));
+ }
+ 
+@@ -252,8 +261,8 @@ void EnTr_ShrinkVanish(EnTr* this, PlayState* play) {
+         } else if (this->timer > 0) {
+             s32 temp_hi = (this->timer * 2) % 7;
+ 
+-            func_80B23254(this, play, temp_hi, 5.0f, 0.2f);
+-            func_80B23254(this, play, (temp_hi + 1) % 7, 5.0f, 0.2f);
++            EnTr_SpawnFlame(this, play, temp_hi, 5.0f, 0.2f);  // was func_80B23254 [LLM:HIGH]
++            EnTr_SpawnFlame(this, play, (temp_hi + 1) % 7, 5.0f, 0.2f);  // was func_80B23254 [LLM:HIGH]
+             Actor_SetScale(&this->actor, this->actor.scale.x * 0.9f);
+             this->actor.shape.rot.y = (this->actor.shape.rot.y - (this->timer * 0x28F)) + 0x3D68;
+         } else {
+@@ -275,8 +284,8 @@ void EnTr_Reappear(EnTr* this, PlayState* play) {
+     if (this->timer >= 31) {
+         s32 temp_hi = (this->timer * 2) % 7;
+ 
+-        func_80B23254(this, play, temp_hi, 5.0f, 1.0f);
+-        func_80B23254(this, play, (temp_hi + 1) % 7, 5.0f, 1.0f);
++        EnTr_SpawnFlame(this, play, temp_hi, 5.0f, 1.0f);  // was func_80B23254 [LLM:HIGH]
++        EnTr_SpawnFlame(this, play, (temp_hi + 1) % 7, 5.0f, 1.0f);  // was func_80B23254 [LLM:HIGH]
+     } else if (this->timer == 30) {
+         this->actor.draw = EnTr_Draw;
+         this->actor.shape.rot.y += this->timer * 0x1A6;
+@@ -311,12 +320,12 @@ void EnTr_WaitToReappear(EnTr* this, PlayState* play) {
+ }
+ 
+ void EnTr_TakeOff(EnTr* this, PlayState* play) {
+-    f32 lastFrame = Animation_GetLastFrame(D_80B24378[this->actor.params]);
++    f32 lastFrame = Animation_GetLastFrame(sFlyAnims[this->actor.params]);  // was D_80B24378 [LLM:HIGH]
+ 
+     if (play->csCtx.state != CS_STATE_IDLE) {
+         if ((play->csCtx.npcActions[this->actionIndex] != NULL) &&
+             (play->csCtx.npcActions[this->actionIndex]->action == 3)) {
+-            Animation_Change(&this->skelAnime, D_80B24378[this->actor.params], 1.0f, 0.0f, lastFrame, ANIMMODE_LOOP,
++            Animation_Change(&this->skelAnime, sFlyAnims[this->actor.params], 1.0f, 0.0f, lastFrame, ANIMMODE_LOOP,  // was D_80B24378 [LLM:HIGH]
+                              -10.0f);
+             this->animation = NULL;
+             EnTr_SetupAction(this, EnTr_ChooseAction2);
+@@ -325,14 +334,14 @@ void EnTr_TakeOff(EnTr* this, PlayState* play) {
+ }
+ 
+ void EnTr_TurnLookOverShoulder(EnTr* this, PlayState* play) {
+-    f32 lastFrame = Animation_GetLastFrame(D_80B24368[this->actor.params]);
++    f32 lastFrame = Animation_GetLastFrame(sLookOverShoulderAnims[this->actor.params]);  // was D_80B24368 [LLM:HIGH]
+ 
+     if (play->csCtx.state != CS_STATE_IDLE) {
+         if ((play->csCtx.npcActions[this->actionIndex] != NULL) &&
+             (play->csCtx.npcActions[this->actionIndex]->action == 2)) {
+-            Animation_Change(&this->skelAnime, D_80B24368[this->actor.params], 1.0f, 0.0f, lastFrame, ANIMMODE_ONCE,
++            Animation_Change(&this->skelAnime, sLookOverShoulderAnims[this->actor.params], 1.0f, 0.0f, lastFrame, ANIMMODE_ONCE,  // was D_80B24368 [LLM:HIGH]
+                              -4.0f);
+-            this->animation = D_80B24370[this->actor.params];
++            this->animation = sLookingOverShoulderAnims[this->actor.params];  // was D_80B24370 [LLM:HIGH]
+             EnTr_SetupAction(this, EnTr_TakeOff);
+         }
+     }
+@@ -446,14 +455,15 @@ void EnTr_Draw(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-f32 func_80B23FDC(PlayState* play, s32 actionIndex) {
++// LLM generated name (HIGH), was func_80B23FDC: returns how far the current actor cue has progressed, from 0 at its start frame to a clamped 1 at its end frame.
++f32 EnTr_GetCueProgress(PlayState* play, s32 actionIndex) {
+     f32 phi_f2 = Environment_LerpWeight(play->csCtx.npcActions[actionIndex]->endFrame,
+                                         play->csCtx.npcActions[actionIndex]->startFrame, play->csCtx.frames);
+     phi_f2 = CLAMP_MAX(phi_f2, 1.0f);
+     return phi_f2;
+ }
+ 
+-void func_80B24038(EnTr* this, PlayState* play, s32 actionIndex) {
++void EnTr_FollowCuePath(EnTr* this, PlayState* play, s32 actionIndex) {
+     Vec3f startPos;
+     Vec3f endPos;
+     f32 temp_f0;
+@@ -468,7 +478,7 @@ void func_80B24038(EnTr* this, PlayState* play, s32 actionIndex) {
+     endPos.y = play->csCtx.npcActions[actionIndex]->endPos.y;
+     endPos.z = play->csCtx.npcActions[actionIndex]->endPos.z;
+ 
+-    temp_f0 = func_80B23FDC(play, actionIndex);
++    temp_f0 = EnTr_GetCueProgress(play, actionIndex);  // was func_80B23FDC [LLM:HIGH]
+ 
+     startPos.x = ((endPos.x - startPos.x) * temp_f0) + startPos.x;
+     startPos.y = ((endPos.y - startPos.y) * temp_f0) + startPos.y;
+-- 
+2.55.0
+

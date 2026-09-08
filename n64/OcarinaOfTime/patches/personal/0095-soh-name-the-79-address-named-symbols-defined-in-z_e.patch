@@ -1,0 +1,1995 @@
+From 11b97c7ec3b845ee805195e47463c4baad07bb46 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:05 +0000
+Subject: [PATCH 095/488] soh: name the 79 address-named symbols defined in
+ z_en_ru1.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 79 are defined in soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c; updating their references touches 2 files in total.
+
+  * func_80AEAC10 -> EnRu1_UpdateStandingOC
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.93
+
+  * func_80AEAC54 -> EnRu1_UpdateSittingOC
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.94
+
+  * func_80AEACDC -> EnRu1_UpdateSittingAT
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.93
+
+  * func_80AEAD20 -> EnRu1_InitColliders
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.90
+
+  * func_80AEADD8 -> EnRu1_DisableSittingOC
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.90
+
+  * func_80AEAECC -> EnRu1_UpdateBgCheckInfo
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_80AEAF58 -> EnRu1_GetCue
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.82
+
+  * func_80AEB020 -> EnRu1_IsAssistingLink
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_80AEB174 -> EnRu1_MessageShouldAdvance
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEB1B4 -> EnRu1_IsTextboxClosing
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEB264 -> EnRu1_AnimationChange
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80AEB50C -> EnRu1_SpawnRippleTreading
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEB59C -> EnRu1_SpawnThreeRipples
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEB6E0 -> EnRu1_StartMovingInWater
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.82
+
+  * func_80AEB738 -> EnRu1_MoveInWater
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80AEBAFC -> EnRu1_PlayDivingEntrySfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEBB3C -> EnRu1_PlayResurfacingSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEBB78 -> EnRu1_PlaySwimStrokeSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEBBF4 -> EnRu1_PlaySubmergeSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEBC84 -> EnRu1_PlayGiggleSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.94
+
+  * func_80AEBCB8 -> EnRu1_StartBackSwimming
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.96
+
+  * func_80AEBEC8 -> EnRu1_StopTreading
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80AEBFD8 -> EnRu1_EndSwimBack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_80AEC40C -> EnRu1_AccelerateAway
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80AEC4CC -> EnRu1_MoveForwardConstant
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEC4F4 -> EnRu1_AccelerateDownHole
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+  * func_80AEC5FC -> EnRu1_IsPlayerInRangeForFirstEncounter
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEC650 -> EnRu1_PlayStepSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.93
+
+  * func_80AEC6B0 -> EnRu1_PlayFallingSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEC6E4 -> EnRu1_RespondToFalling
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.87
+
+  * func_80AEC8B8 -> EnRu1_CheckTurnAround
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80AEC93C -> EnRu1_StartWalkingAway
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80AEC9C4 -> EnRu1_AdvanceWalkingAway
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_80AECA18 -> EnRu1_CheckStartFalling
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_80AECC84 -> EnRu1_Meeting_End
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AECCB0 -> EnRu1_SpawnBlueWarp
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AECE04 -> EnRu1_Rise
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AECE20 -> EnRu1_RiseWithLink
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.91
+
+  * func_80AECEB4 -> EnRu1_SetPlayerMarkInBlueWarp
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AECF6C -> EnRu1_IsLinkInBlueWarp
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.91
+
+  * func_80AED084 -> EnRu1_CheckBlueWarpState
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AED0B0 -> EnRu1_SetBlueWarpState
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AED0D8 -> EnRu1_SetupRiseThroughBlueWarp
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80AED19C -> EnRu1_StartCrossingArmsAndLegs
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.87
+
+  * func_80AED218 -> EnRu1_AdvanceAngryAnimation
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.90
+
+  * func_80AED4FC -> EnRu1_PlayHittingSurfaceSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AED5B8 -> EnRu1_PlayBouncingOffWallSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AED738 -> EnRu1_FadeWhileSinking
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.80
+
+  * func_80AED83C -> EnRu1_TurnUpperBodyForward
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_80AEDAE0 -> EnRu1_ResetBgCheckFlags
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_80AEDB30 -> EnRu1_UpdateBouncing
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_80AEDEF4 -> EnRu1_UpdateSpeedXZ
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEE02C -> EnRu1_StopMoving
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.99
+
+  * func_80AEE050 -> EnRu1_UpdateWaterState
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+  * func_80AEE264 -> EnRu1_TalkOfferAccepted
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.87
+
+  * func_80AEE2F8 -> EnRu1_CheckForDoorSwitch
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_80AEE394 -> EnRu1_IsOnSapphirePlatform
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_80AEE488 -> EnRu1_UpdateSittingAction
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80AEE628 -> EnRu1_EndSeeingSapphireAnimation
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.87
+
+  * func_80AEE7C4 -> EnRu1_UpdateCarriedBehavior
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.87
+
+  * func_80AEEBB4 -> EnRu1_OfferCarry
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEEF5C -> EnRu1_Action_Unused
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEEF68 -> EnRu1_TurnUpperBodyTowardPlayer
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.91
+
+  * func_80AEEFEC -> EnRu1_TurnFullBodyTowardPlayer
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80AEF080 -> EnRu1_PlaySittingSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEF0BC -> EnRu1_BecomingCarrier
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_80AEF1F0 -> EnRu1_HoldSittingPose
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_80AEF2AC -> EnRu1_SpeakableJabu_Spawn
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80AEF40C -> EnRu1_PlayStepSoundNearSapphire
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.96
+
+  * func_80AEF4A8 -> EnRu1_PlayAbductedSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.97
+
+  * func_80AEF4E0 -> EnRu1_PlayLaughingSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEF51C -> EnRu1_PlayStartledSfx
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AEF624 -> EnRu1_SetupRetrievingSapphireAnimation
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80AEF728 -> EnRu1_HoldUpSapphire
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.80
+
+  * func_80AEF79C -> EnRu1_BringHandsDown
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.83
+
+  * func_80AEF820 -> EnRu1_KeepArmsDown
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.86
+
+  * func_80AEFDC0 -> EnRu1_ThroneRoomTalkOfferAccepted
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+  * func_80AEFE38 -> EnRu1_IsThroneRoomTextClosing
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AF0278 -> EnRu1_PreLimbDraw
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../vanilla-behavior/GIVanillaBehavior.h      |   2 +-
+ soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c | 573 ++++++++++--------
+ 2 files changed, 327 insertions(+), 248 deletions(-)
+
+diff --git a/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h b/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
+index cd0fc2255..e35850b32 100644
+--- a/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
++++ b/soh/soh/Enhancements/game-interactor/vanilla-behavior/GIVanillaBehavior.h
+@@ -1987,7 +1987,7 @@ typedef enum {
+     // #### `result`
+     // Close enough & various cutscene checks
+     // ```c
+-    // (func_80AEC5FC(this, play)) && (!Play_InCsMode(play)) &&
++    // (EnRu1_IsPlayerInRangeForFirstEncounter(this, play)) && (!Play_InCsMode(play)) &&
+     // (!(player->stateFlags1 & (PLAYER_STATE1_HANGING_OFF_LEDGE | PLAYER_STATE1_CLIMBING_LEDGE |
+     // PLAYER_STATE1_CLIMBING_LADDER))) &&
+     // (player->actor.bgCheckFlags & 1)
+diff --git a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
+index 004cdb005..07d604380 100644
+--- a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
++++ b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
+@@ -30,7 +30,8 @@ void func_80AECB18(EnRu1* this, PlayState* play);
+ void func_80AECB60(EnRu1* this, PlayState* play);
+ void func_80AECBB8(EnRu1* this, PlayState* play);
+ void func_80AECC1C(EnRu1* this, PlayState* play);
+-void func_80AECC84(EnRu1* this, PlayState* play);
++// Name from zeldaret/oot (was func_80AECC84): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_Meeting_End(EnRu1* this, PlayState* play);
+ void func_80AED304(EnRu1* this, PlayState* play);
+ void func_80AED324(EnRu1* this, PlayState* play);
+ void func_80AED344(EnRu1* this, PlayState* play);
+@@ -39,7 +40,8 @@ void func_80AED3A4(EnRu1* this, PlayState* play);
+ void func_80AED3E0(EnRu1* this, PlayState* play);
+ void func_80AED414(EnRu1* this, PlayState* play);
+ void func_80AEF29C(EnRu1* this, PlayState* play);
+-void func_80AEF2AC(EnRu1* this, PlayState* play);
++// Name from zeldaret/oot (was func_80AEF2AC): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_SpeakableJabu_Spawn(EnRu1* this, PlayState* play);
+ void func_80AEF2D0(EnRu1* this, PlayState* play);
+ void func_80AEF354(EnRu1* this, PlayState* play);
+ void func_80AEF3A8(EnRu1* this, PlayState* play);
+@@ -51,7 +53,8 @@ void func_80AEEDCC(EnRu1* this, PlayState* play);
+ void func_80AEEE34(EnRu1* this, PlayState* play);
+ void func_80AEEE9C(EnRu1* this, PlayState* play);
+ void func_80AEEF08(EnRu1* this, PlayState* play);
+-void func_80AEEF5C(EnRu1* this, PlayState* play);
++// Name from zeldaret/oot (was func_80AEEF5C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_Action_Unused(EnRu1* this, PlayState* play);
+ void func_80AEF9D8(EnRu1* this, PlayState* play);
+ void func_80AEFA2C(EnRu1* this, PlayState* play);
+ void func_80AEFAAC(EnRu1* this, PlayState* play);
+@@ -63,7 +66,8 @@ void func_80AEFC24(EnRu1* this, PlayState* play);
+ void func_80AEFECC(EnRu1* this, PlayState* play);
+ void func_80AEFF40(EnRu1* this, PlayState* play);
+ 
+-void func_80AF0278(EnRu1* this, PlayState* play, s32 limbIndex, Vec3s* rot);
++// Name from zeldaret/oot (was func_80AF0278): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PreLimbDraw(EnRu1* this, PlayState* play, s32 limbIndex, Vec3s* rot);
+ 
+ void EnRu1_DrawNothing(EnRu1* this, PlayState* play);
+ void EnRu1_DrawOpa(EnRu1* this, PlayState* play);
+@@ -113,15 +117,15 @@ static u32 D_80AF1938 = 0;
+ static EnRu1ActionFunc sActionFuncs[] = {
+     func_80AEC0B4, func_80AEC100, func_80AEC130, func_80AEC17C, func_80AEC1D4, func_80AEC244, func_80AEC2C0,
+     func_80AECA94, func_80AECAB4, func_80AECAD4, func_80AECB18, func_80AECB60, func_80AECBB8, func_80AECC1C,
+-    func_80AECC84, func_80AED304, func_80AED324, func_80AED344, func_80AED374, func_80AED3A4, func_80AED3E0,
+-    func_80AED414, func_80AEF29C, func_80AEF2AC, func_80AEF2D0, func_80AEF354, func_80AEF3A8, func_80AEEBD4,
++    EnRu1_Meeting_End, func_80AED304, func_80AED324, func_80AED344, func_80AED374, func_80AED3A4, func_80AED3E0,
++    func_80AED414, func_80AEF29C, EnRu1_SpeakableJabu_Spawn, func_80AEF2D0, func_80AEF354, func_80AEF3A8, func_80AEEBD4,
+     func_80AEEC5C, func_80AEECF0, func_80AEED58, func_80AEEDCC, func_80AEEE34, func_80AEEE9C, func_80AEEF08,
+-    func_80AEEF5C, func_80AEF9D8, func_80AEFA2C, func_80AEFAAC, func_80AEFB04, func_80AEFB68, func_80AEFCE8,
++    EnRu1_Action_Unused, func_80AEF9D8, func_80AEFA2C, func_80AEFAAC, func_80AEFB04, func_80AEFB68, func_80AEFCE8,
+     func_80AEFBC8, func_80AEFC24, func_80AEFECC, func_80AEFF40,
+ };
+ 
+ static EnRu1PreLimbDrawFunc sPreLimbDrawFuncs[] = {
+-    func_80AF0278,
++    EnRu1_PreLimbDraw,
+ };
+ 
+ static Vec3f sMultVec = { 0.0f, 10.0f, 0.0f };
+@@ -145,14 +149,16 @@ const ActorInit En_Ru1_InitVars = {
+     NULL,
+ };
+ 
+-void func_80AEAC10(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEAC10): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateStandingOC(EnRu1* this, PlayState* play) {
+     s32 pad[5];
+ 
+     Collider_UpdateCylinder(&this->actor, &this->collider);
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+ }
+ 
+-void func_80AEAC54(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEAC54): adopted upstream's name for this address; body verified to match upstream at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateSittingOC(EnRu1* this, PlayState* play) {
+     s32 pad[5];
+ 
+     Collider_UpdateCylinder(&this->actor, &this->collider2);
+@@ -163,14 +169,16 @@ void func_80AEAC54(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEACDC(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEACDC): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateSittingAT(EnRu1* this, PlayState* play) {
+     s32 pad[5];
+ 
+     Collider_UpdateCylinder(&this->actor, &this->collider2);
+     CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider2.base);
+ }
+ 
+-void func_80AEAD20(Actor* thisx, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEAD20): adopted upstream's name for this address; body verified to match upstream at 0.90. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_InitColliders(Actor* thisx, PlayState* play) {
+     EnRu1* this = (EnRu1*)thisx;
+ 
+     Collider_InitCylinder(play, &this->collider);
+@@ -185,7 +193,8 @@ void EnRu1_DestroyColliders(EnRu1* this, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider2);
+ }
+ 
+-void func_80AEADD8(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEADD8): adopted upstream's name for this address; body verified to match upstream at 0.90. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_DisableSittingOC(EnRu1* this) {
+     this->isSittingOCActive = 0;
+ }
+ 
+@@ -231,7 +240,8 @@ void EnRu1_SetMouthIndex(EnRu1* this, s16 mouthIndex) {
+     this->mouthIndex = mouthIndex;
+ }
+ 
+-void func_80AEAECC(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEAECC): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateBgCheckInfo(EnRu1* this, PlayState* play) {
+     f32* velocityY = &this->actor.velocity.y;
+     f32 velocityYHeld = *velocityY;
+ 
+@@ -247,7 +257,8 @@ s32 EnRu1_IsCsStateIdle(PlayState* play) {
+     return false;
+ }
+ 
+-CsCmdActorCue* func_80AEAF58(PlayState* play, s32 npcActionIdx) {
++// Name from zeldaret/oot (was func_80AEAF58): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++CsCmdActorCue* EnRu1_GetCue(PlayState* play, s32 npcActionIdx) {
+     s32 pad[2];
+     CsCmdActorCue* ret = NULL;
+ 
+@@ -258,7 +269,7 @@ CsCmdActorCue* func_80AEAF58(PlayState* play, s32 npcActionIdx) {
+ }
+ 
+ s32 func_80AEAFA0(PlayState* play, u16 action, s32 npcActionIdx) {
+-    CsCmdActorCue* csCmdNPCAction = func_80AEAF58(play, npcActionIdx);
++    CsCmdActorCue* csCmdNPCAction = EnRu1_GetCue(play, npcActionIdx);
+ 
+     if ((csCmdNPCAction != NULL) && (csCmdNPCAction->action == action)) {
+         return true;
+@@ -267,7 +278,7 @@ s32 func_80AEAFA0(PlayState* play, u16 action, s32 npcActionIdx) {
+ }
+ 
+ s32 func_80AEAFE0(PlayState* play, u16 action, s32 npcActionIdx) {
+-    CsCmdActorCue* csCmdNPCAction = func_80AEAF58(play, npcActionIdx);
++    CsCmdActorCue* csCmdNPCAction = EnRu1_GetCue(play, npcActionIdx);
+ 
+     if ((csCmdNPCAction != NULL) && (csCmdNPCAction->action != action)) {
+         return true;
+@@ -275,7 +286,8 @@ s32 func_80AEAFE0(PlayState* play, u16 action, s32 npcActionIdx) {
+     return false;
+ }
+ 
+-s32 func_80AEB020(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEB020): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_IsAssistingLink(EnRu1* this, PlayState* play) {
+     Actor* actorIt = play->actorCtx.actorLists[ACTORCAT_NPC].head;
+     EnRu1* someEnRu1;
+ 
+@@ -333,11 +345,13 @@ Actor* func_80AEB124(PlayState* play) {
+     return NULL;
+ }
+ 
+-s32 func_80AEB174(PlayState* play) {
++// Name from zeldaret/oot (was func_80AEB174): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_MessageShouldAdvance(PlayState* play) {
+     return (Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play);
+ }
+ 
+-s32 func_80AEB1B4(PlayState* play) {
++// Name from zeldaret/oot (was func_80AEB1B4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_IsTextboxClosing(PlayState* play) {
+     return Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING;
+ }
+ 
+@@ -359,7 +373,8 @@ void func_80AEB220(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEB264(EnRu1* this, AnimationHeader* animation, u8 arg2, f32 transitionRate, s32 arg4) {
++// Name from zeldaret/oot (was func_80AEB264): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_AnimationChange(EnRu1* this, AnimationHeader* animation, u8 arg2, f32 transitionRate, s32 arg4) {
+     s32 pad[2];
+     AnimationHeader* animHeader = SEGMENTED_TO_VIRTUAL(animation);
+     f32 frameCount = Animation_GetLastFrame(animHeader);
+@@ -404,7 +419,7 @@ void func_80AEB3CC(EnRu1* this) {
+ }
+ 
+ void func_80AEB3DC(EnRu1* this, PlayState* play) {
+-    func_80AEB264(this, &gRutoChildWaitHandsBehindBackAnim, 0, 0, 0);
++    EnRu1_AnimationChange(this, &gRutoChildWaitHandsBehindBackAnim, 0, 0, 0);
+     this->action = 0;
+     this->drawConfig = 1;
+     EnRu1_SetEyeIndex(this, 4);
+@@ -412,7 +427,7 @@ void func_80AEB3DC(EnRu1* this, PlayState* play) {
+ }
+ 
+ CsCmdActorCue* func_80AEB438(PlayState* play) {
+-    return func_80AEAF58(play, 3);
++    return EnRu1_GetCue(play, 3);
+ }
+ 
+ s32 func_80AEB458(PlayState* play, u16 action) {
+@@ -433,7 +448,8 @@ void EnRu1_SpawnRipple(EnRu1* this, PlayState* play, s16 radiusMax, s16 life) {
+     EffectSsGRipple_Spawn(play, &pos, 100, radiusMax, life);
+ }
+ 
+-void func_80AEB50C(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEB50C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_SpawnRippleTreading(EnRu1* this, PlayState* play) {
+     this->treadTimer += 1.0f;
+     if (this->treadTimer >= kREG(3) + 10.0f) {
+         EnRu1_SpawnRipple(this, play, kREG(1) + 500, 0);
+@@ -441,7 +457,8 @@ void func_80AEB50C(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEB59C(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEB59C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_SpawnThreeRipples(EnRu1* this, PlayState* play) {
+     EnRu1_SpawnRipple(this, play, kREG(2) + 500, 0);
+     EnRu1_SpawnRipple(this, play, kREG(2) + 500, kREG(3) + 10.0f);
+     EnRu1_SpawnRipple(this, play, kREG(2) + 500, (kREG(3) + 10.0f) * 2.0f);
+@@ -457,7 +474,8 @@ void EnRu1_SpawnSplash(EnRu1* this, PlayState* play) {
+     EffectSsGSplash_Spawn(play, &pos, 0, 0, 1, 0);
+ }
+ 
+-void func_80AEB6E0(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEB6E0): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_StartMovingInWater(EnRu1* this, PlayState* play) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     if (skelAnime->baseTransl.y < skelAnime->jointTable[0].y) {
+@@ -466,7 +484,8 @@ void func_80AEB6E0(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEB738(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEB738): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_MoveInWater(EnRu1* this, PlayState* play) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     skelAnime->baseTransl = skelAnime->jointTable[0];
+@@ -521,7 +540,7 @@ void func_80AEB934(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AEB954(EnRu1* this, PlayState* play) {
+-    func_80AEB6E0(this, play);
++    EnRu1_StartMovingInWater(this, play);
+ }
+ 
+ void func_80AEB974(EnRu1* this, PlayState* play) {
+@@ -540,7 +559,7 @@ void func_80AEB974(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AEBA0C(EnRu1* this, PlayState* play) {
+-    func_80AEB6E0(this, play);
++    EnRu1_StartMovingInWater(this, play);
+ }
+ 
+ void func_80AEBA2C(EnRu1* this, PlayState* play) {
+@@ -560,20 +579,23 @@ void func_80AEBA2C(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEBAFC(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEBAFC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayDivingEntrySfx(EnRu1* this) {
+     if (this->unk_298 == 0) {
+         Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_EV_DIVE_INTO_WATER);
+         this->unk_298 = 1;
+     }
+ }
+ 
+-void func_80AEBB3C(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEBB3C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayResurfacingSfx(EnRu1* this) {
+     if (Animation_OnFrame(&this->skelAnime, 5.0f)) {
+         Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_PL_FACE_UP);
+     }
+ }
+ 
+-void func_80AEBB78(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEBB78): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlaySwimStrokeSfx(EnRu1* this) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     if (Animation_OnFrame(skelAnime, 4.0f) || Animation_OnFrame(skelAnime, 13.0f) ||
+@@ -582,7 +604,8 @@ void func_80AEBB78(EnRu1* this) {
+     }
+ }
+ 
+-void func_80AEBBF4(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEBBF4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlaySubmergeSfx(EnRu1* this) {
+     if (Animation_OnFrame(&this->skelAnime, 8.0f)) {
+         Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_PL_SUBMERGE);
+     }
+@@ -598,13 +621,15 @@ void func_80AEBC30(PlayState* play) {
+     }
+ }
+ 
+-void func_80AEBC84(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEBC84): adopted upstream's name for this address; body verified to match upstream at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayGiggleSfx(EnRu1* this, PlayState* play) {
+     if (play->csCtx.frames == 0x82) {
+         Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_LAUGH_0);
+     }
+ }
+ 
+-void func_80AEBCB8(EnRu1* this, UNK_TYPE arg1) {
++// Name from zeldaret/oot (was func_80AEBCB8): adopted upstream's name for this address; body verified to match upstream at 0.96. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_StartBackSwimming(EnRu1* this, UNK_TYPE arg1) {
+     if (arg1 != 0) {
+         Animation_Change(&this->skelAnime, &gRutoChildSwimOnBackAnim, 1.0f, 0,
+                          Animation_GetLastFrame(&gRutoChildSwimOnBackAnim), ANIMMODE_LOOP, -8.0f);
+@@ -616,9 +641,9 @@ void func_80AEBD1C(EnRu1* this, PlayState* play) {
+         this->action = 1;
+         this->drawConfig = 0;
+         func_80AEB914(this, play);
+-        func_80AEAECC(this, play);
++        EnRu1_UpdateBgCheckInfo(this, play);
+         EnRu1_SpawnSplash(this, play);
+-        func_80AEB59C(this, play);
++        EnRu1_SpawnThreeRipples(this, play);
+     }
+ }
+ 
+@@ -629,7 +654,7 @@ void func_80AEBD94(EnRu1* this, PlayState* play) {
+     if (func_80AEB480(play, 3)) {
+         frameCount = Animation_GetLastFrame(&gRutoChildAnim_009060);
+         func_80AEB934(this, play);
+-        func_80AEB738(this, play);
++        EnRu1_MoveInWater(this, play);
+         Animation_Change(&this->skelAnime, &gRutoChildAnim_009060, 1.0f, 0.0f, frameCount, ANIMMODE_ONCE, 0.0f);
+         this->action = 2;
+         this->drawConfig = 1;
+@@ -650,13 +675,14 @@ void func_80AEBE3C(EnRu1* this, PlayState* play, s32 arg2) {
+     }
+ }
+ 
+-void func_80AEBEC8(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEBEC8): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_StopTreading(EnRu1* this, PlayState* play) {
+     s32 pad[2];
+     f32 frameCount;
+ 
+     if (func_80AEB458(play, 6)) {
+         frameCount = Animation_GetLastFrame(&gRutoChildTransitionToSwimOnBackAnim);
+-        func_80AEB738(this, play);
++        EnRu1_MoveInWater(this, play);
+         Animation_Change(&this->skelAnime, &gRutoChildTransitionToSwimOnBackAnim, 1.0f, 0, frameCount, ANIMMODE_ONCE,
+                          -8.0f);
+         this->action = 4;
+@@ -673,7 +699,8 @@ void func_80AEBF60(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEBFD8(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEBFD8): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_EndSwimBack(EnRu1* this, PlayState* play) {
+     CsCmdActorCue* csCmdNPCAction = func_80AEB438(play);
+     f32 frameCount;
+     u16 csCtxFrames;
+@@ -700,41 +727,41 @@ void func_80AEC070(EnRu1* this, PlayState* play, UNK_TYPE arg2) {
+ void func_80AEC0B4(EnRu1* this, PlayState* play) {
+     func_80AEB89C(this, play);
+     EnRu1_UpdateSkelAnime(this);
+-    func_80AEBC84(this, play);
++    EnRu1_PlayGiggleSfx(this, play);
+     func_80AEBC30(play);
+     func_80AEBD1C(this, play);
+ }
+ 
+ void func_80AEC100(EnRu1* this, PlayState* play) {
+-    func_80AEBAFC(this);
++    EnRu1_PlayDivingEntrySfx(this);
+     func_80AEBD94(this, play);
+ }
+ 
+ void func_80AEC130(EnRu1* this, PlayState* play) {
+     s32 something = EnRu1_UpdateSkelAnime(this);
+ 
+-    func_80AEAECC(this, play);
+-    func_80AEBB3C(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_PlayResurfacingSfx(this);
+     func_80AEBE3C(this, play, something);
+ }
+ 
+ void func_80AEC17C(EnRu1* this, PlayState* play) {
+     func_80AEB974(this, play);
+-    func_80AEAECC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateSkelAnime(this);
+-    func_80AEB50C(this, play);
+-    func_80AEBEC8(this, play);
++    EnRu1_SpawnRippleTreading(this, play);
++    EnRu1_StopTreading(this, play);
+ }
+ 
+ void func_80AEC1D4(EnRu1* this, PlayState* play) {
+     s32 something;
+ 
+     something = EnRu1_UpdateSkelAnime(this);
+-    func_80AEAECC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateEyes(this);
+-    func_80AEB50C(this, play);
+-    func_80AEBCB8(this, something);
+-    func_80AEBBF4(this);
++    EnRu1_SpawnRippleTreading(this, play);
++    EnRu1_StartBackSwimming(this, something);
++    EnRu1_PlaySubmergeSfx(this);
+     func_80AEBF60(this, play);
+ }
+ 
+@@ -743,21 +770,21 @@ void func_80AEC244(EnRu1* this, PlayState* play) {
+ 
+     something = EnRu1_UpdateSkelAnime(this);
+     func_80AEBA2C(this, play);
+-    func_80AEAECC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateEyes(this);
+-    func_80AEB50C(this, play);
+-    func_80AEBCB8(this, something);
+-    func_80AEBB78(this);
+-    func_80AEBFD8(this, play);
++    EnRu1_SpawnRippleTreading(this, play);
++    EnRu1_StartBackSwimming(this, something);
++    EnRu1_PlaySwimStrokeSfx(this);
++    EnRu1_EndSwimBack(this, play);
+ }
+ 
+ void func_80AEC2C0(EnRu1* this, PlayState* play) {
+     s32 something;
+ 
+     something = EnRu1_UpdateSkelAnime(this);
+-    func_80AEAECC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateEyes(this);
+-    func_80AEB50C(this, play);
++    EnRu1_SpawnRippleTreading(this, play);
+     func_80AEC070(this, play, something);
+ }
+ 
+@@ -765,13 +792,13 @@ void func_80AEC320(EnRu1* this, PlayState* play) {
+     s8 actorRoom;
+ 
+     if (!Flags_GetInfTable(INFTABLE_RUTO_IN_JJ_MEET_RUTO)) {
+-        func_80AEB264(this, &gRutoChildWait2Anim, 0, 0, 0);
++        EnRu1_AnimationChange(this, &gRutoChildWait2Anim, 0, 0, 0);
+         this->action = 7;
+         EnRu1_SetMouthIndex(this, 1);
+     } else if (Flags_GetInfTable(INFTABLE_147) && !Flags_GetInfTable(INFTABLE_140) &&
+                GameInteractor_Should(VB_RUTO_BE_CONSIDERED_NOT_KIDNAPPED, !Flags_GetInfTable(INFTABLE_145), this)) {
+-        if (!func_80AEB020(this, play)) {
+-            func_80AEB264(this, &gRutoChildWait2Anim, 0, 0, 0);
++        if (!EnRu1_IsAssistingLink(this, play)) {
++            EnRu1_AnimationChange(this, &gRutoChildWait2Anim, 0, 0, 0);
+             actorRoom = this->actor.room;
+             this->action = 22;
+             this->actor.room = -1;
+@@ -787,7 +814,8 @@ void func_80AEC320(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEC40C(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEC40C): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_AccelerateAway(EnRu1* this) {
+     f32 unk_26C = this->walkingFrame;
+ 
+     if (unk_26C < 8.0f) {
+@@ -799,12 +827,14 @@ void func_80AEC40C(EnRu1* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_80AEC4CC(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEC4CC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_MoveForwardConstant(EnRu1* this) {
+     this->actor.velocity.y = -1.0f;
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_80AEC4F4(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEC4F4): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_AccelerateDownHole(EnRu1* this) {
+     f32* speedXZ = &this->actor.speedXZ;
+     f32* unk_26C = &this->walkingFrame;
+ 
+@@ -819,7 +849,8 @@ void func_80AEC4F4(EnRu1* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-s32 func_80AEC5FC(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEC5FC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_IsPlayerInRangeForFirstEncounter(EnRu1* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 thisPosZ = this->actor.world.pos.z;
+     f32 playerPosZ = player->actor.world.pos.z;
+@@ -830,7 +861,8 @@ s32 func_80AEC5FC(EnRu1* this, PlayState* play) {
+     return false;
+ }
+ 
+-void func_80AEC650(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEC650): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayStepSfx(EnRu1* this) {
+     s32 pad[2];
+ 
+     if (this->isFalling == 0) {
+@@ -840,17 +872,19 @@ void func_80AEC650(EnRu1* this) {
+     }
+ }
+ 
+-void func_80AEC6B0(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEC6B0): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayFallingSfx(EnRu1* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_EV_FALL_DOWN_DIRT);
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_FALL);
+ }
+ 
+-void func_80AEC6E4(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEC6E4): adopted upstream's name for this address; body verified to match upstream at 0.87. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_RespondToFalling(EnRu1* this, PlayState* play) {
+     if ((func_80AEAFA0(play, 4, 3)) && (this->isFalling == 0)) {
+         Animation_Change(&this->skelAnime, &gRutoChildBringArmsUpAnim, 1.0f, 0,
+                          Animation_GetLastFrame(&gRutoChildBringArmsUpAnim), ANIMMODE_ONCE, -8.0f);
+         this->isFalling = 1;
+-        func_80AEC6B0(this);
++        EnRu1_PlayFallingSfx(this);
+     }
+ }
+ 
+@@ -860,7 +894,7 @@ void func_80AEC780(EnRu1* this, PlayState* play) {
+ 
+     if (GameInteractor_Should(
+             VB_PLAY_CHILD_RUTO_INTRO,
+-            (func_80AEC5FC(this, play)) && (!Play_InCsMode(play)) &&
++            (EnRu1_IsPlayerInRangeForFirstEncounter(this, play)) && (!Play_InCsMode(play)) &&
+                 (!(player->stateFlags1 &
+                    (PLAYER_STATE1_HANGING_OFF_LEDGE | PLAYER_STATE1_CLIMBING_LEDGE | PLAYER_STATE1_CLIMBING_LADDER))) &&
+                 (player->actor.bgCheckFlags & 1),
+@@ -890,7 +924,8 @@ void func_80AEC81C(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEC8B8(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEC8B8): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_CheckTurnAround(EnRu1* this, PlayState* play) {
+     if (func_80AEAFA0(play, 3, 3)) {
+         Animation_Change(&this->skelAnime, &gRutoChildTurnAroundAnim, 1.0f, 0,
+                          Animation_GetLastFrame(&gRutoChildTurnAroundAnim), ANIMMODE_ONCE, -8.0f);
+@@ -898,7 +933,8 @@ void func_80AEC8B8(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEC93C(EnRu1* this, UNK_TYPE arg1) {
++// Name from zeldaret/oot (was func_80AEC93C): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_StartWalkingAway(EnRu1* this, UNK_TYPE arg1) {
+     if (arg1 != 0) {
+         Animation_Change(&this->skelAnime, &gRutoChildWalkAnim, 1.0f, 0, Animation_GetLastFrame(&gRutoChildWalkAnim),
+                          ANIMMODE_LOOP, -8.0f);
+@@ -908,7 +944,8 @@ void func_80AEC93C(EnRu1* this, UNK_TYPE arg1) {
+     }
+ }
+ 
+-void func_80AEC9C4(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEC9C4): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_AdvanceWalkingAway(EnRu1* this) {
+     this->walkingFrame += 1.0f;
+     if (this->walkingFrame >= 8.0f) {
+         this->action = 12;
+@@ -917,7 +954,8 @@ void func_80AEC9C4(EnRu1* this) {
+     }
+ }
+ 
+-void func_80AECA18(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AECA18): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_CheckStartFalling(EnRu1* this) {
+     if (!(this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+         this->action = 13;
+         this->walkingFrame = 0.0f;
+@@ -943,8 +981,8 @@ void func_80AECAB4(EnRu1* this, PlayState* play) {
+ void func_80AECAD4(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAECC(this, play);
+-    func_80AEC8B8(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_CheckTurnAround(this, play);
+ }
+ 
+ void func_80AECB18(EnRu1* this, PlayState* play) {
+@@ -952,46 +990,47 @@ void func_80AECB18(EnRu1* this, PlayState* play) {
+ 
+     something = EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAECC(this, play);
+-    func_80AEC93C(this, something);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_StartWalkingAway(this, something);
+ }
+ 
+ void func_80AECB60(EnRu1* this, PlayState* play) {
+-    func_80AEC40C(this);
++    EnRu1_AccelerateAway(this);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAECC(this, play);
+-    func_80AEC650(this);
+-    func_80AEC9C4(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_PlayStepSfx(this);
++    EnRu1_AdvanceWalkingAway(this);
+ }
+ 
+ void func_80AECBB8(EnRu1* this, PlayState* play) {
+-    func_80AEC4CC(this);
+-    func_80AEC6E4(this, play);
++    EnRu1_MoveForwardConstant(this);
++    EnRu1_RespondToFalling(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAECC(this, play);
+-    func_80AEC650(this);
+-    func_80AECA18(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_PlayStepSfx(this);
++    EnRu1_CheckStartFalling(this);
+ }
+ 
+ void func_80AECC1C(EnRu1* this, PlayState* play) {
+-    func_80AEC4F4(this);
+-    func_80AEC6E4(this, play);
++    EnRu1_AccelerateDownHole(this);
++    EnRu1_RespondToFalling(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAECC(this, play);
+-    func_80AEC650(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_PlayStepSfx(this);
+     func_80AECA44(this, play);
+ }
+ 
+-void func_80AECC84(EnRu1* this, PlayState* play) {
++void EnRu1_Meeting_End(EnRu1* this, PlayState* play) {
+     if (play->csCtx.state == CS_STATE_IDLE) {
+         Actor_Kill(&this->actor);
+     }
+ }
+ 
+-void func_80AECCB0(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AECCB0): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_SpawnBlueWarp(EnRu1* this, PlayState* play) {
+     s32 pad;
+     Vec3f* pos;
+     s16 yawTowardsPlayer;
+@@ -1010,18 +1049,20 @@ void func_80AECCB0(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AECDA0(EnRu1* this, PlayState* play) {
+-    func_80AEB264(this, &gRutoChildWaitHandsOnHipsAnim, 0, 0, 0);
++    EnRu1_AnimationChange(this, &gRutoChildWaitHandsOnHipsAnim, 0, 0, 0);
+     this->action = 15;
+     this->actor.shape.yOffset = -10000.0f;
+     EnRu1_SetEyeIndex(this, 5);
+     EnRu1_SetMouthIndex(this, 2);
+ }
+ 
+-void func_80AECE04(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AECE04): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_Rise(EnRu1* this, PlayState* play) {
+     this->actor.shape.yOffset += (250.0f / 3.0f);
+ }
+ 
+-void func_80AECE20(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AECE20): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_RiseWithLink(EnRu1* this, PlayState* play) {
+     s32 pad2;
+     Player* player = GET_PLAYER(play);
+     Vec3f* playerPos = &player->actor.world.pos;
+@@ -1035,7 +1076,8 @@ void func_80AECE20(EnRu1* this, PlayState* play) {
+     pos->z = (Math_CosS(shapeRotY) * unk_27C) + playerPos->z;
+ }
+ 
+-void func_80AECEB4(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AECEB4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_SetPlayerMarkInBlueWarp(EnRu1* this, PlayState* play) {
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+     Vec3f* player_unk_450 = &player->unk_450;
+@@ -1046,7 +1088,8 @@ void func_80AECEB4(EnRu1* this, PlayState* play) {
+     player_unk_450->z = ((kREG(2) + 30.0f) * Math_CosS(shapeRotY)) + pos->z;
+ }
+ 
+-s32 func_80AECF6C(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AECF6C): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_IsLinkInBlueWarp(EnRu1* this, PlayState* play) {
+     s16* shapeRotY;
+     Player* player = GET_PLAYER(play);
+     Player* otherPlayer;
+@@ -1075,14 +1118,16 @@ s32 func_80AECF6C(EnRu1* this, PlayState* play) {
+     return false;
+ }
+ 
+-s32 func_80AED084(EnRu1* this, s32 state) {
++// Name from zeldaret/oot (was func_80AED084): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_CheckBlueWarpState(EnRu1* this, s32 state) {
+     if (this->blueWarp != NULL && this->blueWarp->rutoWarpState == state) {
+         return true;
+     }
+     return false;
+ }
+ 
+-void func_80AED0B0(EnRu1* this, s32 state) {
++// Name from zeldaret/oot (was func_80AED0B0): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_SetBlueWarpState(EnRu1* this, s32 state) {
+     if (this->blueWarp != NULL) {
+         this->blueWarp->rutoWarpState = state;
+     }
+@@ -1092,47 +1137,50 @@ void func_80AED0C8(EnRu1* this, PlayState* play) {
+     this->action = 16;
+ }
+ 
+-void func_80AED0D8(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AED0D8): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_SetupRiseThroughBlueWarp(EnRu1* this, PlayState* play) {
+     this->action = 17;
+     this->drawConfig = 1;
+     this->actor.world.rot.y = this->actor.yawTowardsPlayer;
+     this->actor.shape.rot.y = this->actor.yawTowardsPlayer;
+-    func_80AECCB0(this, play);
++    EnRu1_SpawnBlueWarp(this, play);
+ }
+ 
+ void func_80AED110(EnRu1* this) {
+     if (this->actor.shape.yOffset >= 0.0f) {
+         this->action = 18;
+         this->actor.shape.yOffset = 0.0f;
+-        func_80AED0B0(this, WARP_BLUE_RUTO_STATE_READY);
++        EnRu1_SetBlueWarpState(this, WARP_BLUE_RUTO_STATE_READY);
+     }
+ }
+ 
+ void func_80AED154(EnRu1* this, PlayState* play) {
+-    if (func_80AED084(this, WARP_BLUE_RUTO_STATE_ENTERED)) {
++    if (EnRu1_CheckBlueWarpState(this, WARP_BLUE_RUTO_STATE_ENTERED)) {
+         this->action = 0x13;
+         this->walkingFrame = 0.0f;
+-        func_80AECEB4(this, play);
++        EnRu1_SetPlayerMarkInBlueWarp(this, play);
+     }
+ }
+ 
+-void func_80AED19C(EnRu1* this, s32 cond) {
++// Name from zeldaret/oot (was func_80AED19C): adopted upstream's name for this address; body verified to match upstream at 0.87. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_StartCrossingArmsAndLegs(EnRu1* this, s32 cond) {
+     if (cond) {
+         Animation_Change(&this->skelAnime, &gRutoChildTransitionHandsOnHipToCrossArmsAndLegsAnim, 1.0f, 0,
+                          Animation_GetLastFrame(&gRutoChildTransitionHandsOnHipToCrossArmsAndLegsAnim), ANIMMODE_ONCE,
+                          -8.0f);
+         this->action = 20;
+-        func_80AED0B0(this, WARP_BLUE_RUTO_STATE_3);
++        EnRu1_SetBlueWarpState(this, WARP_BLUE_RUTO_STATE_3);
+     }
+ }
+ 
+-void func_80AED218(EnRu1* this, UNK_TYPE arg1) {
+-    if (func_80AED084(this, WARP_BLUE_RUTO_STATE_TALKING)) {
++// Name from zeldaret/oot (was func_80AED218): adopted upstream's name for this address; body verified to match upstream at 0.90. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_AdvanceAngryAnimation(EnRu1* this, UNK_TYPE arg1) {
++    if (EnRu1_CheckBlueWarpState(this, WARP_BLUE_RUTO_STATE_TALKING)) {
+         if (arg1 != 0) {
+             Animation_Change(&this->skelAnime, &gRutoChildWaitSittingAnim, 1.0f, 0,
+                              Animation_GetLastFrame(&gRutoChildWaitSittingAnim), ANIMMODE_LOOP, -8.0f);
+         }
+-    } else if (func_80AED084(this, WARP_BLUE_RUTO_STATE_WARPING)) {
++    } else if (EnRu1_CheckBlueWarpState(this, WARP_BLUE_RUTO_STATE_WARPING)) {
+         Animation_Change(&this->skelAnime, &gRutoChildWaitInBlueWarpAnim, 1.0f, 0,
+                          Animation_GetLastFrame(&gRutoChildWaitInBlueWarpAnim), ANIMMODE_ONCE, -8.0f);
+         this->action = 21;
+@@ -1145,11 +1193,11 @@ void func_80AED304(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AED324(EnRu1* this, PlayState* play) {
+-    func_80AED0D8(this, play);
++    EnRu1_SetupRiseThroughBlueWarp(this, play);
+ }
+ 
+ void func_80AED344(EnRu1* this, PlayState* play) {
+-    func_80AECE04(this, play);
++    EnRu1_Rise(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     func_80AED110(this);
+ }
+@@ -1161,17 +1209,17 @@ void func_80AED374(EnRu1* this, PlayState* play) {
+ 
+ void func_80AED3A4(EnRu1* this, PlayState* play) {
+     EnRu1_UpdateSkelAnime(this);
+-    func_80AED19C(this, func_80AECF6C(this, play));
++    EnRu1_StartCrossingArmsAndLegs(this, EnRu1_IsLinkInBlueWarp(this, play));
+ }
+ 
+ void func_80AED3E0(EnRu1* this, PlayState* play) {
+-    func_80AEAECC(this, play);
+-    func_80AED218(this, EnRu1_UpdateSkelAnime(this));
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_AdvanceAngryAnimation(this, EnRu1_UpdateSkelAnime(this));
+ }
+ 
+ void func_80AED414(EnRu1* this, PlayState* play) {
+-    func_80AECE20(this, play);
+-    func_80AEAECC(this, play);
++    EnRu1_RiseWithLink(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateSkelAnime(this);
+ }
+ 
+@@ -1181,8 +1229,8 @@ void func_80AED44C(EnRu1* this, PlayState* play) {
+     if (Flags_GetInfTable(INFTABLE_RUTO_IN_JJ_MEET_RUTO) &&
+         GameInteractor_Should(VB_RUTO_BE_CONSIDERED_NOT_KIDNAPPED, !Flags_GetInfTable(INFTABLE_145), this) &&
+         !Flags_GetInfTable(INFTABLE_140) && !Flags_GetInfTable(INFTABLE_147)) {
+-        if (!func_80AEB020(this, play)) {
+-            func_80AEB264(this, &gRutoChildWait2Anim, 0, 0, 0);
++        if (!EnRu1_IsAssistingLink(this, play)) {
++            EnRu1_AnimationChange(this, &gRutoChildWait2Anim, 0, 0, 0);
+             actorRoom = this->actor.room;
+             this->action = 22;
+             this->actor.room = -1;
+@@ -1197,7 +1245,8 @@ void func_80AED44C(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AED4FC(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AED4FC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayHittingSurfaceSfx(EnRu1* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_EV_LAND_DIRT);
+ }
+ 
+@@ -1215,7 +1264,8 @@ void func_80AED57C(EnRu1* this) {
+     }
+ }
+ 
+-void func_80AED5B8(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AED5B8): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayBouncingOffWallSfx(EnRu1* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_CRASH);
+ }
+ 
+@@ -1261,7 +1311,8 @@ void func_80AED6F8(PlayState* play) {
+     }
+ }
+ 
+-void func_80AED738(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AED738): adopted upstream's name for this address; body verified to match upstream at 0.80. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_FadeWhileSinking(EnRu1* this, PlayState* play) {
+     u32 temp_v0;
+ 
+     if (func_80AED624(this, play)) {
+@@ -1276,7 +1327,8 @@ void func_80AED738(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AED83C(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AED83C): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_TurnUpperBodyForward(EnRu1* this) {
+     s32 pad[2];
+     Vec3s* tempPtr;
+     Vec3s* tempPtr2;
+@@ -1321,7 +1373,8 @@ void func_80AED8DC(EnRu1* this) {
+     }
+ }
+ 
+-void func_80AEDAE0(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEDAE0): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_ResetBgCheckFlags(EnRu1* this, PlayState* play) {
+     DynaPolyActor* dynaPolyActor = DynaPoly_GetActor(&play->colCtx, this->actor.floorBgId);
+ 
+     if (dynaPolyActor == NULL || dynaPolyActor->actor.id == ACTOR_EN_BOX) {
+@@ -1329,7 +1382,8 @@ void func_80AEDAE0(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEDB30(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEDB30): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateBouncing(EnRu1* this, PlayState* play) {
+     DynaPolyActor* dynaPolyActor;
+     f32* velocityY;
+     f32* speedXZ;
+@@ -1373,7 +1427,7 @@ void func_80AEDB30(EnRu1* this, PlayState* play) {
+                     *gravity = 0.0f;
+                 }
+             }
+-            func_80AED4FC(this);
++            EnRu1_PlayHittingSurfaceSfx(this);
+         }
+     }
+     if (this->actor.bgCheckFlags & 0x10) {
+@@ -1386,7 +1440,7 @@ void func_80AEDB30(EnRu1* this, PlayState* play) {
+         }
+         if (*velocityY >= 0.0f) {
+             *velocityY *= -((kREG(20) * 0.01f) + 0.6f);
+-            func_80AED4FC(this);
++            EnRu1_PlayHittingSurfaceSfx(this);
+         }
+     }
+     if (this->actor.bgCheckFlags & BGCHECKFLAG_WALL) {
+@@ -1408,14 +1462,15 @@ void func_80AEDB30(EnRu1* this, PlayState* play) {
+                     *speedXZ = 0.0f;
+                 }
+                 this->actor.world.rot.y = temp_a1_2;
+-                func_80AED4FC(this);
+-                func_80AED5B8(this);
++                EnRu1_PlayHittingSurfaceSfx(this);
++                EnRu1_PlayBouncingOffWallSfx(this);
+             }
+         }
+     }
+ }
+ 
+-void func_80AEDEF4(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEDEF4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateSpeedXZ(EnRu1* this, PlayState* play) {
+     f32* speedXZ = &this->actor.speedXZ;
+     DynaPolyActor* dynaPolyActor = DynaPoly_GetActor(&play->colCtx, this->actor.floorBgId);
+ 
+@@ -1434,12 +1489,13 @@ void func_80AEDEF4(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AEDFF4(EnRu1* this, PlayState* play) {
+-    func_80AEDB30(this, play);
+-    func_80AEDEF4(this, play);
++    EnRu1_UpdateBouncing(this, play);
++    EnRu1_UpdateSpeedXZ(this, play);
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_80AEE02C(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEE02C): adopted upstream's name for this address; body verified to match upstream at 0.99. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_StopMoving(EnRu1* this) {
+     this->actor.velocity.x = 0.0f;
+     this->actor.velocity.y = 0.0f;
+     this->actor.velocity.z = 0.0f;
+@@ -1448,7 +1504,8 @@ void func_80AEE02C(EnRu1* this) {
+     this->actor.minVelocityY = 0.0f;
+ }
+ 
+-void func_80AEE050(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEE050): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateWaterState(EnRu1* this) {
+     s32 pad;
+     f32 sp28;
+     f32 sp24;
+@@ -1458,7 +1515,7 @@ void func_80AEE050(EnRu1* this) {
+     if (this->waterState == 0) {
+         if ((this->actor.minVelocityY == 0.0f) && (this->actor.speedXZ == 0.0f)) {
+             this->waterState = 1;
+-            func_80AEE02C(this);
++            EnRu1_StopMoving(this);
+             this->bobPhase = 0;
+             this->bobDepth = (this->actor.yDistToWater - 10.0f) * 0.5f;
+             this->sinkingStartPosY = this->actor.world.pos.y + thisx->bobDepth; // thisx only used here
+@@ -1481,7 +1538,7 @@ void func_80AEE050(EnRu1* this) {
+     } else {
+         if (this->waterState == 1) {
+             if (this->bobDepth <= 1.0f) {
+-                func_80AEE02C(this);
++                EnRu1_StopMoving(this);
+                 this->waterState = 2;
+                 this->isSinking = 0.0f;
+             } else {
+@@ -1501,7 +1558,8 @@ void func_80AEE050(EnRu1* this) {
+     }
+ }
+ 
+-s32 func_80AEE264(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEE264): adopted upstream's name for this address; body verified to match upstream at 0.87. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_TalkOfferAccepted(EnRu1* this, PlayState* play) {
+     if (!Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY;
+         if ((Flags_GetInfTable(INFTABLE_143))) {
+@@ -1519,7 +1577,8 @@ s32 func_80AEE264(EnRu1* this, PlayState* play) {
+     return true;
+ }
+ 
+-void func_80AEE2F8(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEE2F8): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_CheckForDoorSwitch(EnRu1* this, PlayState* play) {
+     DynaPolyActor* dynaPolyActor;
+     s32 floorBgId;
+ 
+@@ -1536,7 +1595,8 @@ void func_80AEE2F8(EnRu1* this, PlayState* play) {
+     Flags_UnsetInfTable(INFTABLE_140);
+ }
+ 
+-s32 func_80AEE394(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEE394): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_IsOnSapphirePlatform(EnRu1* this, PlayState* play) {
+     s32 pad[2];
+     CollisionContext* colCtx;
+     DynaPolyActor* dynaPolyActor;
+@@ -1551,7 +1611,7 @@ s32 func_80AEE394(EnRu1* this, PlayState* play) {
+                                       dynaPolyActor->actor.params == 0 && !Player_InCsMode(play) &&
+                                       play->msgCtx.msgLength == 0,
+                                   this, dynaPolyActor)) {
+-            func_80AEE02C(this);
++            EnRu1_StopMoving(this);
+             play->csCtx.segment = &D_80AF10A4;
+             gSaveContext.cutsceneTrigger = 1;
+             this->action = 36;
+@@ -1564,7 +1624,8 @@ s32 func_80AEE394(EnRu1* this, PlayState* play) {
+     return false;
+ }
+ 
+-void func_80AEE488(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEE488): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateSittingAction(EnRu1* this, PlayState* play) {
+     s8 curRoomNum;
+ 
+     if (Actor_HasParent(&this->actor, play)) {
+@@ -1572,7 +1633,7 @@ void func_80AEE488(EnRu1* this, PlayState* play) {
+         this->roomNum3 = curRoomNum;
+         this->action = 31;
+         func_80AED520(this, play);
+-    } else if ((!func_80AEE394(this, play)) && (!(this->actor.bgCheckFlags & BGCHECKFLAG_GROUND))) {
++    } else if ((!EnRu1_IsOnSapphirePlatform(this, play)) && (!(this->actor.bgCheckFlags & BGCHECKFLAG_GROUND))) {
+         this->actor.minVelocityY = -((kREG(24) * 0.01f) + 6.8f);
+         this->actor.gravity = -((kREG(23) * 0.01f) + 1.3f);
+         this->action = 28;
+@@ -1580,13 +1641,13 @@ void func_80AEE488(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AEE568(EnRu1* this, PlayState* play) {
+-    if (!func_80AEE394(this, play)) {
++    if (!EnRu1_IsOnSapphirePlatform(this, play)) {
+         if ((this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) && (this->actor.speedXZ == 0.0f) &&
+             (this->actor.minVelocityY == 0.0f)) {
+-            func_80AEE02C(this);
++            EnRu1_StopMoving(this);
+             Actor_OfferCarry(&this->actor, play);
+             this->action = 27;
+-            func_80AEADD8(this);
++            EnRu1_DisableSittingOC(this);
+         } else if (this->actor.yDistToWater > 0.0f) {
+             this->action = 29;
+             this->waterState = 0;
+@@ -1594,7 +1655,8 @@ void func_80AEE568(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEE628(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEE628): adopted upstream's name for this address; body verified to match upstream at 0.87. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_EndSeeingSapphireAnimation(EnRu1* this, PlayState* play) {
+     s32 pad[2];
+     s8 curRoomNum = play->roomCtx.curRoom.num;
+ 
+@@ -1631,7 +1693,8 @@ s32 func_80AEE6D0(EnRu1* this, PlayState* play) {
+     return false;
+ }
+ 
+-void func_80AEE7C4(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEE7C4): adopted upstream's name for this address; body verified to match upstream at 0.87. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_UpdateCarriedBehavior(EnRu1* this, PlayState* play) {
+     f32 frameCount;
+     s32 pad[13];
+     Player* player;
+@@ -1687,10 +1750,10 @@ void func_80AEE7C4(EnRu1* this, PlayState* play) {
+ 
+ s32 func_80AEEAC8(EnRu1* this, PlayState* play) {
+     if (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
+-        func_80AEE02C(this);
++        EnRu1_StopMoving(this);
+         Actor_OfferCarry(&this->actor, play);
+         this->action = 27;
+-        func_80AEADD8(this);
++        EnRu1_DisableSittingOC(this);
+         return true;
+     }
+     return false;
+@@ -1699,45 +1762,46 @@ s32 func_80AEEAC8(EnRu1* this, PlayState* play) {
+ void func_80AEEB24(EnRu1* this, PlayState* play) {
+     if ((func_80AEEAC8(this, play) == 0) && (this->waterState == 3)) {
+         this->action = 30;
+-        func_80AEE02C(this);
++        EnRu1_StopMoving(this);
+         this->actor.gravity = -0.1f;
+         this->actor.minVelocityY = -((kREG(18) * 0.1f) + 0.7f);
+     }
+ }
+ 
+-void func_80AEEBB4(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEEBB4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_OfferCarry(EnRu1* this, PlayState* play) {
+     Actor_OfferCarry(&this->actor, play);
+ }
+ 
+ void func_80AEEBD4(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
+-    func_80AEAC54(this, play);
+-    func_80AEAECC(this, play);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateSittingOC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEEBB4(this, play);
+-    func_80AEE488(this, play);
++    EnRu1_OfferCarry(this, play);
++    EnRu1_UpdateSittingAction(this, play);
+     func_80AED624(this, play);
+-    func_80AEDAE0(this, play);
++    EnRu1_ResetBgCheckFlags(this, play);
+ }
+ 
+ void func_80AEEC5C(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
+-    func_80AEACDC(this, play);
+-    func_80AEAECC(this, play);
+-    func_80AEE2F8(this, play);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateSittingAT(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_CheckForDoorSwitch(this, play);
+     func_80AEDFF4(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     func_80AEE568(this, play);
+     func_80AED624(this, play);
+-    func_80AEDAE0(this, play);
++    EnRu1_ResetBgCheckFlags(this, play);
+ }
+ 
+ void func_80AEECF0(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
+-    func_80AEAECC(this, play);
+-    func_80AEE050(this);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_UpdateWaterState(this);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     func_80AEEB24(this, play);
+@@ -1745,58 +1809,59 @@ void func_80AEECF0(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AEED58(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
+-    func_80AEAECC(this, play);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     Actor_MoveXZGravity(&this->actor);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     func_80AEEAC8(this, play);
+     func_80AED624(this, play);
+-    func_80AEDAE0(this, play);
++    EnRu1_ResetBgCheckFlags(this, play);
+ }
+ 
+ void func_80AEEDCC(EnRu1* this, PlayState* play) {
+     func_80AED8DC(this);
+     EnRu1_UpdateSkelAnime(this);
+-    func_80AEAECC(this, play);
+-    func_80AEE2F8(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_CheckForDoorSwitch(this, play);
+     EnRu1_UpdateEyes(this);
+     func_80AED6F8(play);
+-    func_80AEE7C4(this, play);
++    EnRu1_UpdateCarriedBehavior(this, play);
+ }
+ 
+ void func_80AEEE34(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
++    EnRu1_TurnUpperBodyForward(this);
+     EnRu1_UpdateSkelAnime(this);
+-    func_80AEAECC(this, play);
+-    func_80AEE2F8(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_CheckForDoorSwitch(this, play);
+     EnRu1_UpdateEyes(this);
+     func_80AED6F8(play);
+-    func_80AEE7C4(this, play);
++    EnRu1_UpdateCarriedBehavior(this, play);
+ }
+ 
+ void func_80AEEE9C(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
+-    func_80AEAECC(this, play);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     func_80AEDFF4(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AED738(this, play);
++    EnRu1_FadeWhileSinking(this, play);
+     func_80AED624(this, play);
+ }
+ 
+ void func_80AEEF08(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
++    EnRu1_TurnUpperBodyForward(this);
+     EnRu1_UpdateSkelAnime(this);
+-    func_80AEAECC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateEyes(this);
+-    func_80AEE628(this, play);
++    EnRu1_EndSeeingSapphireAnimation(this, play);
+ }
+ 
+-void func_80AEEF5C(EnRu1* this, PlayState* play) {
++void EnRu1_Action_Unused(EnRu1* this, PlayState* play) {
+ }
+ 
+-void func_80AEEF68(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEEF68): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_TurnUpperBodyTowardPlayer(EnRu1* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s16 something;
+ 
+@@ -1806,7 +1871,8 @@ void func_80AEEF68(EnRu1* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, something, NPC_TRACKING_HEAD_AND_TORSO);
+ }
+ 
+-void func_80AEEFEC(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEEFEC): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_TurnFullBodyTowardPlayer(EnRu1* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s16 something;
+ 
+@@ -1817,13 +1883,15 @@ void func_80AEEFEC(EnRu1* this, PlayState* play) {
+     this->actor.world.rot.y = this->actor.shape.rot.y;
+ }
+ 
+-void func_80AEF080(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEF080): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlaySittingSfx(EnRu1* this) {
+     if (Animation_OnFrame(&this->skelAnime, 11.0f)) {
+         Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_EV_LAND_DIRT);
+     }
+ }
+ 
+-s32 func_80AEF0BC(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEF0BC): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_BecomingCarrier(EnRu1* this, PlayState* play) {
+     s32 frameCount;
+ 
+     if (Flags_GetInfTable(INFTABLE_RUTO_IN_JJ_TALK_FIRST_TIME)) {
+@@ -1844,14 +1912,15 @@ void func_80AEF170(EnRu1* this, PlayState* play, s32 cond) {
+ }
+ 
+ void func_80AEF188(EnRu1* this, PlayState* play) {
+-    if (func_80AEB174(play) && !func_80AEF0BC(this, play)) {
++    if (EnRu1_MessageShouldAdvance(play) && !EnRu1_BecomingCarrier(this, play)) {
+         Message_CloseTextbox(play);
+         Flags_SetInfTable(INFTABLE_RUTO_IN_JJ_TALK_FIRST_TIME);
+         this->action = 24;
+     }
+ }
+ 
+-void func_80AEF1F0(EnRu1* this, PlayState* play, UNK_TYPE arg2) {
++// Name from zeldaret/oot (was func_80AEF1F0): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_HoldSittingPose(EnRu1* this, PlayState* play, UNK_TYPE arg2) {
+     if (arg2 != 0) {
+         Animation_Change(&this->skelAnime, &gRutoChildSittingAnim, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&gRutoChildSittingAnim), ANIMMODE_LOOP, 0.0f);
+@@ -1860,7 +1929,7 @@ void func_80AEF1F0(EnRu1* this, PlayState* play, UNK_TYPE arg2) {
+         func_80AED6DC(this, play);
+         Actor_OfferCarry(&this->actor, play);
+         this->action = 27;
+-        func_80AEADD8(this);
++        EnRu1_DisableSittingOC(this);
+     }
+ }
+ 
+@@ -1868,7 +1937,7 @@ void func_80AEF29C(EnRu1* this, PlayState* play) {
+     this->action = 23;
+ }
+ 
+-void func_80AEF2AC(EnRu1* this, PlayState* play) {
++void EnRu1_SpeakableJabu_Spawn(EnRu1* this, PlayState* play) {
+     this->action = 24;
+     this->drawConfig = 1;
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY;
+@@ -1877,36 +1946,37 @@ void func_80AEF2AC(EnRu1* this, PlayState* play) {
+ void func_80AEF2D0(EnRu1* this, PlayState* play) {
+     s32 cond;
+ 
+-    func_80AEEF68(this, play);
++    EnRu1_TurnUpperBodyTowardPlayer(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAC10(this, play);
+-    func_80AEAECC(this, play);
+-    cond = func_80AEE264(this, play);
++    EnRu1_UpdateStandingOC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    cond = EnRu1_TalkOfferAccepted(this, play);
+     func_80AED624(this, play);
+     func_80AEF170(this, play, cond);
+ }
+ 
+ void func_80AEF354(EnRu1* this, PlayState* play) {
+-    func_80AEEFEC(this, play);
++    EnRu1_TurnFullBodyTowardPlayer(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAECC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     func_80AEF188(this, play);
+ }
+ 
+ void func_80AEF3A8(EnRu1* this, PlayState* play) {
+     s32 something;
+ 
+-    func_80AED83C(this);
++    EnRu1_TurnUpperBodyForward(this);
+     something = EnRu1_UpdateSkelAnime(this);
+-    func_80AEF080(this);
++    EnRu1_PlaySittingSfx(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAECC(this, play);
+-    func_80AEF1F0(this, play, something);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    EnRu1_HoldSittingPose(this, play, something);
+ }
+ 
+-void func_80AEF40C(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEF40C): adopted upstream's name for this address; body verified to match upstream at 0.96. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayStepSoundNearSapphire(EnRu1* this) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     if (Animation_OnFrame(skelAnime, 2.0f) || Animation_OnFrame(skelAnime, 7.0f) ||
+@@ -1916,17 +1986,20 @@ void func_80AEF40C(EnRu1* this) {
+     }
+ }
+ 
+-void func_80AEF4A8(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEF4A8): adopted upstream's name for this address; body verified to match upstream at 0.97. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayAbductedSfx(EnRu1* this, PlayState* play) {
+     SoundSource_PlaySfxAtFixedWorldPos(play, &this->actor.projectedPos, 20, NA_SE_VO_RT_FALL);
+ }
+ 
+-void func_80AEF4E0(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEF4E0): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayLaughingSfx(EnRu1* this) {
+     if (Animation_OnFrame(&this->skelAnime, 5.0f)) {
+         Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_LAUGH_0);
+     }
+ }
+ 
+-void func_80AEF51C(EnRu1* this) {
++// Name from zeldaret/oot (was func_80AEF51C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_PlayStartledSfx(EnRu1* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_RT_THROW);
+ }
+ 
+@@ -1935,8 +2008,8 @@ void func_80AEF540(EnRu1* this) {
+         EnRu1_SetEyeIndex(this, 3);
+         EnRu1_SetMouthIndex(this, 2);
+         if (this->skelAnime.mode != 2) {
+-            func_80AEB264(this, &gRutoChildShutterAnim, 2, -8.0f, 0);
+-            func_80AEF51C(this);
++            EnRu1_AnimationChange(this, &gRutoChildShutterAnim, 2, -8.0f, 0);
++            EnRu1_PlayStartledSfx(this);
+         }
+     }
+ }
+@@ -1955,7 +2028,8 @@ void func_80AEF5B8(EnRu1* this) {
+     }
+ }
+ 
+-void func_80AEF624(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEF624): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_SetupRetrievingSapphireAnimation(EnRu1* this, PlayState* play) {
+     f32 frameCount;
+     CsCmdActorCue* csCmdNPCAction;
+     CsCmdActorCue* csCmdNPCAction2;
+@@ -1987,7 +2061,8 @@ void func_80AEF624(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEF728(EnRu1* this, UNK_TYPE arg1) {
++// Name from zeldaret/oot (was func_80AEF728): adopted upstream's name for this address; body verified to match upstream at 0.80. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_HoldUpSapphire(EnRu1* this, UNK_TYPE arg1) {
+     if (arg1 != 0) {
+         Animation_Change(&this->skelAnime, &gRutoChildHoldArmsUpAnim, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&gRutoChildHoldArmsUpAnim), ANIMMODE_LOOP, 0.0f);
+@@ -1996,7 +2071,8 @@ void func_80AEF728(EnRu1* this, UNK_TYPE arg1) {
+     }
+ }
+ 
+-void func_80AEF79C(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEF79C): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_BringHandsDown(EnRu1* this, PlayState* play) {
+     if (func_80AEAFE0(play, 2, 3)) {
+         Animation_Change(&this->skelAnime, &gRutoChildBringHandsDownAnim, 1.0f, 0,
+                          Animation_GetLastFrame(&gRutoChildBringHandsDownAnim), ANIMMODE_ONCE, -8.0f);
+@@ -2004,7 +2080,8 @@ void func_80AEF79C(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AEF820(EnRu1* this, UNK_TYPE arg1) {
++// Name from zeldaret/oot (was func_80AEF820): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++void EnRu1_KeepArmsDown(EnRu1* this, UNK_TYPE arg1) {
+     if (arg1 != 0) {
+         Animation_Change(&this->skelAnime, &gRutoChildWait2Anim, 1.0f, 0, Animation_GetLastFrame(&gRutoChildWait2Anim),
+                          ANIMMODE_LOOP, -8.0f);
+@@ -2031,63 +2108,63 @@ void func_80AEF930(EnRu1* this, PlayState* play) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY;
+         this->actor.textId = 0x4048;
+         Message_ContinueTextbox(play, this->actor.textId);
+-        func_80AEF4A8(this, play);
++        EnRu1_PlayAbductedSfx(this, play);
+         this->action = 43;
+         this->drawConfig = 0;
+     }
+ }
+ 
+ void func_80AEF99C(EnRu1* this, PlayState* play) {
+-    if (func_80AEB1B4(play) != 0) {
++    if (EnRu1_IsTextboxClosing(play) != 0) {
+         func_80AEB0EC(this, 4);
+         Actor_Kill(&this->actor);
+     }
+ }
+ 
+ void func_80AEF9D8(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
++    EnRu1_TurnUpperBodyForward(this);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEF624(this, play);
++    EnRu1_SetupRetrievingSapphireAnimation(this, play);
+     func_80AEB220(this, play);
+ }
+ 
+ void func_80AEFA2C(EnRu1* this, PlayState* play) {
+     s32 something;
+ 
+-    func_80AED83C(this);
++    EnRu1_TurnUpperBodyForward(this);
+     func_80AEB364(this, play);
+-    func_80AEAECC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     something = EnRu1_UpdateSkelAnime(this);
+-    func_80AEF4E0(this);
++    EnRu1_PlayLaughingSfx(this);
+     func_80AEF5B8(this);
+-    func_80AEF40C(this);
+-    func_80AEF728(this, something);
++    EnRu1_PlayStepSoundNearSapphire(this);
++    EnRu1_HoldUpSapphire(this, something);
+     func_80AEB220(this, play);
+ }
+ 
+ void func_80AEFAAC(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
+-    func_80AEAECC(this, play);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateSkelAnime(this);
+-    func_80AEF79C(this, play);
++    EnRu1_BringHandsDown(this, play);
+     func_80AEB220(this, play);
+ }
+ 
+ void func_80AEFB04(EnRu1* this, PlayState* play) {
+     s32 something;
+ 
+-    func_80AED83C(this);
+-    func_80AEAECC(this, play);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     something = EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEF820(this, something);
++    EnRu1_KeepArmsDown(this, something);
+     func_80AEB220(this, play);
+ }
+ 
+ void func_80AEFB68(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
+-    func_80AEAECC(this, play);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     func_80AEF890(this, play);
+@@ -2095,8 +2172,8 @@ void func_80AEFB68(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AEFBC8(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
+-    func_80AEAECC(this, play);
++    EnRu1_TurnUpperBodyForward(this);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+     func_80AEF540(this);
+@@ -2104,13 +2181,13 @@ void func_80AEFBC8(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AEFC24(EnRu1* this, PlayState* play) {
+-    func_80AED83C(this);
++    EnRu1_TurnUpperBodyForward(this);
+     func_80AEF99C(this, play);
+ }
+ 
+ void func_80AEFC54(EnRu1* this, PlayState* play) {
+     if ((Flags_GetInfTable(INFTABLE_145)) && !Flags_GetInfTable(INFTABLE_146)) {
+-        func_80AEB264(this, &gRutoChildWait2Anim, 0, 0, 0);
++        EnRu1_AnimationChange(this, &gRutoChildWait2Anim, 0, 0, 0);
+         this->action = 41;
+         this->unk_28C = EnRu1_FindSwitch(play);
+         func_80AEB0EC(this, 1);
+@@ -2131,7 +2208,7 @@ void func_80AEFCE8(EnRu1* this, PlayState* play) {
+ 
+ void func_80AEFD38(EnRu1* this, PlayState* play) {
+     if ((Flags_GetEventChkInf(EVENTCHKINF_USED_JABU_JABUS_BELLY_BLUE_WARP)) && LINK_IS_CHILD) {
+-        func_80AEB264(this, &gRutoChildWait2Anim, 0, 0, 0);
++        EnRu1_AnimationChange(this, &gRutoChildWait2Anim, 0, 0, 0);
+         this->actor.flags &= ~ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+         this->action = 44;
+         this->drawConfig = 1;
+@@ -2140,7 +2217,8 @@ void func_80AEFD38(EnRu1* this, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80AEFDC0(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEFDC0): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_ThroneRoomTalkOfferAccepted(EnRu1* this, PlayState* play) {
+     if (!Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY;
+         this->actor.textId = Text_GetFaceReaction(play, 0x1F);
+@@ -2153,7 +2231,8 @@ s32 func_80AEFDC0(EnRu1* this, PlayState* play) {
+     return true;
+ }
+ 
+-s32 func_80AEFE38(EnRu1* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AEFE38): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c]
++s32 EnRu1_IsThroneRoomTextClosing(EnRu1* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+         return true;
+@@ -2168,25 +2247,25 @@ void func_80AEFE84(EnRu1* this, PlayState* play, s32 cond) {
+ }
+ 
+ void func_80AEFE9C(EnRu1* this, PlayState* play) {
+-    if (func_80AEFE38(this, play)) {
++    if (EnRu1_IsThroneRoomTextClosing(this, play)) {
+         this->action = 44;
+     }
+ }
+ 
+ void func_80AEFECC(EnRu1* this, PlayState* play) {
+-    func_80AEEF68(this, play);
++    EnRu1_TurnUpperBodyTowardPlayer(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAC10(this, play);
+-    func_80AEAECC(this, play);
+-    func_80AEFE84(this, play, func_80AEFDC0(this, play));
++    EnRu1_UpdateStandingOC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
++    func_80AEFE84(this, play, EnRu1_ThroneRoomTalkOfferAccepted(this, play));
+ }
+ 
+ void func_80AEFF40(EnRu1* this, PlayState* play) {
+-    func_80AEEFEC(this, play);
++    EnRu1_TurnFullBodyTowardPlayer(this, play);
+     EnRu1_UpdateSkelAnime(this);
+     EnRu1_UpdateEyes(this);
+-    func_80AEAECC(this, play);
++    EnRu1_UpdateBgCheckInfo(this, play);
+     func_80AEFE9C(this, play);
+ }
+ 
+@@ -2195,8 +2274,8 @@ void func_80AEFF94(EnRu1* this, PlayState* play) {
+ 
+     if (Flags_GetInfTable(INFTABLE_RUTO_IN_JJ_MEET_RUTO) && Flags_GetInfTable(INFTABLE_140) &&
+         GameInteractor_Should(VB_RUTO_BE_CONSIDERED_NOT_KIDNAPPED, !Flags_GetInfTable(INFTABLE_145), this) &&
+-        (!(func_80AEB020(this, play)))) {
+-        func_80AEB264(this, &gRutoChildWait2Anim, 0, 0, 0);
++        (!(EnRu1_IsAssistingLink(this, play)))) {
++        EnRu1_AnimationChange(this, &gRutoChildWait2Anim, 0, 0, 0);
+         actorRoom = this->actor.room;
+         this->action = 22;
+         this->actor.room = -1;
+@@ -2214,7 +2293,7 @@ void func_80AEFF94(EnRu1* this, PlayState* play) {
+ }
+ 
+ void func_80AF0050(EnRu1* this, PlayState* play) {
+-    func_80AEB264(this, &gRutoChildWait2Anim, 0, 0, 0);
++    EnRu1_AnimationChange(this, &gRutoChildWait2Anim, 0, 0, 0);
+     this->action = 36;
+     this->roomNum1 = this->actor.room;
+     this->unk_28C = EnRu1_FindSwitch(play);
+@@ -2239,7 +2318,7 @@ void EnRu1_Init(Actor* thisx, PlayState* play) {
+ 
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     SkelAnime_InitFlex(play, &this->skelAnime, &gRutoChildSkel, NULL, this->jointTable, this->morphTable, 17);
+-    func_80AEAD20(&this->actor, play);
++    EnRu1_InitColliders(&this->actor, play);
+     switch (func_80AEADF0(this)) {
+         case 0:
+             func_80AECDA0(this, play);
+@@ -2273,7 +2352,7 @@ void EnRu1_Init(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_80AF0278(EnRu1* this, PlayState* play, s32 limbIndex, Vec3s* rot) {
++void EnRu1_PreLimbDraw(EnRu1* this, PlayState* play, s32 limbIndex, Vec3s* rot) {
+     Vec3s* vec1 = &this->interactInfo.torsoRot;
+     Vec3s* vec2 = &this->interactInfo.headRot;
+ 
+-- 
+2.55.0
+

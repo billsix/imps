@@ -1,0 +1,480 @@
+From 9ba742257aadcbf628c84f2830d9fc84b9009288 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 341/488] soh: name the 14 address-named symbols defined in
+ z_en_niw_lady.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 14 are defined in soh/src/overlays/actors/ovl_En_Niw_Lady/z_en_niw_lady.c; updating their references touches 2 files in total.
+
+  * D_80ABB3B4 -> sCuccoInfTableBits
+    deduced, confidence HIGH: the infTable[25] bit each numbered Cucco owns,
+    set while it is inside the pen and cleared while it is out.
+
+  * func_80AB9F24 -> EnNiwLady_WaitForObjects
+    deduced, confidence HIGH: waits for both of Anju's object banks, then
+    builds the skeleton, collider and shape, picks her starting animation
+    and installs the age-appropriate action.
+
+  * func_80ABA21C -> EnNiwLady_SetupCuccoCount
+    deduced, confidence HIGH: arms the missing-Cucco line and installs the
+    counting action.
+
+  * func_80ABA244 -> EnNiwLady_CountCuccos
+    deduced, confidence HIGH: walks the prop actor list each frame, counting
+    the Cuccos inside the pen and recording each one's infTable bit, and
+    picks Anju's line from the total.
+
+  * func_80ABA654 -> EnNiwLady_FinishCuccoTalk
+    deduced, confidence HIGH: once the counting line is advanced it hands
+    over the bottle the first time all the Cuccos are penned, or a purple
+    rupee afterwards, and otherwise returns to counting.
+
+  * func_80ABA778 -> EnNiwLady_SetupAdultTalk
+    deduced, confidence HIGH: picks the adult-era line from how far the
+    Pocket Egg and Cojiro trade has progressed and installs the adult talk
+    action.
+
+  * func_80ABA878 -> EnNiwLady_AdultTalk
+    deduced, confidence HIGH: offers talk in the adult era and routes the
+    accepted conversation into whichever trade prompt the current line calls
+    for.
+
+  * func_80ABA9B8 -> EnNiwLady_OfferPocketEgg
+    deduced, confidence HIGH: resolves the first trade prompt: yes hands
+    over GI_POCKET_EGG, no shows the refusal line.
+
+  * func_80ABAB08 -> EnNiwLady_OfferCojiro
+    deduced, confidence HIGH: resolves the second trade prompt: yes hands
+    over GI_COJIRO, no shows the refusal line and records it.
+
+  * func_80ABAA9C -> EnNiwLady_DeclineTrade
+    deduced, confidence HIGH: waits out the refusal line and returns to the
+    adult talk setup.
+
+  * func_80ABAC00 -> EnNiwLady_GiveItem
+    deduced, confidence HIGH: re-offers the current trade item until the
+    player takes it.
+
+  * func_80ABAC84 -> EnNiwLady_FinishGiveItem
+    deduced, confidence HIGH: waits out the get-item textbox and sets the
+    trade or bottle flag for whichever item was just handed over.
+
+  * func_80ABAD38 -> EnNiwLady_SetupIdleTalk
+    deduced, confidence HIGH: arms the ordinary greeting and installs the
+    idle talk action.
+
+  * func_80ABAD7C -> EnNiwLady_IdleTalk
+    deduced, confidence HIGH: offers talk with the ordinary greeting or the
+    mask face reaction, and records that the player has spoken to her.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../Enhancements/randomizer/hook_handlers.cpp |   6 +-
+ .../actors/ovl_En_Niw_Lady/z_en_niw_lady.c    | 122 ++++++++++--------
+ 2 files changed, 71 insertions(+), 57 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index add4baa40..5f0ec83d3 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -76,7 +76,7 @@ extern void Player_SetupActionPreserveAnimMovement(PlayState* play, Player* play
+ extern s32 Player_SetupWaitForPutAway(PlayState* play, Player* player, AfterPutAwayFunc func);
+ extern void Play_InitEnvironment(PlayState* play, s16 skyboxId);
+ extern void EnMk_Wait(EnMk* enMk, PlayState* play);
+-extern void func_80ABA778(EnNiwLady* enNiwLady, PlayState* play);
++extern void EnNiwLady_SetupAdultTalk(EnNiwLady* enNiwLady, PlayState* play);  // was func_80ABA778 [LLM:HIGH]
+ extern void EnDntJiji_GivePrize(EnDntJiji* enDntJiji, PlayState* play);
+ extern void EnGe1_Wait_Archery(EnGe1* enGe1, PlayState* play);
+ extern void EnGe1_SetAnimationIdle(EnGe1* enGe1);
+@@ -1409,7 +1409,7 @@ void RandomizerOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_l
+         case VB_GIVE_ITEM_FROM_ANJU_AS_ADULT: {
+             EnNiwLady* enNiwLady = va_arg(args, EnNiwLady*);
+             Flags_SetItemGetInf(ITEMGETINF_2C);
+-            enNiwLady->actionFunc = func_80ABA778;
++            enNiwLady->actionFunc = EnNiwLady_SetupAdultTalk;  // was func_80ABA778 [LLM:HIGH]
+             *should = false;
+             break;
+         }
+@@ -1532,7 +1532,7 @@ void RandomizerOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_l
+             Inventory_ReplaceItem(gPlayState, ITEM_POCKET_CUCCO, Randomizer_GetNextAdultTradeItem());
+             // Trigger the reward now
+             Flags_SetItemGetInf(ITEMGETINF_2E);
+-            enNiwLady->actionFunc = func_80ABA778;
++            enNiwLady->actionFunc = EnNiwLady_SetupAdultTalk;  // was func_80ABA778 [LLM:HIGH]
+ 
+             *should = false;
+             break;
+diff --git a/soh/src/overlays/actors/ovl_En_Niw_Lady/z_en_niw_lady.c b/soh/src/overlays/actors/ovl_En_Niw_Lady/z_en_niw_lady.c
+index c133c09bd..b43ccf63f 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw_Lady/z_en_niw_lady.c
++++ b/soh/src/overlays/actors/ovl_En_Niw_Lady/z_en_niw_lady.c
+@@ -11,20 +11,33 @@ void EnNiwLady_Init(Actor* thisx, PlayState* play);
+ void EnNiwLady_Destroy(Actor* thisx, PlayState* play);
+ void EnNiwLady_Update(Actor* thisx, PlayState* play);
+ 
+-void func_80AB9F24(EnNiwLady* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AB9F24: waits for both of Anju's object banks, then builds the skeleton, collider and shape, picks her starting animation and installs the age-appropriate action.
++void EnNiwLady_WaitForObjects(EnNiwLady* this, PlayState* play);  // was func_80AB9F24 [LLM:HIGH]
+ void EnNiwLady_Draw(Actor* thisx, PlayState* play);
+-void func_80ABA21C(EnNiwLady* this, PlayState* play);
+-void func_80ABAD38(EnNiwLady* this, PlayState* play);
+-void func_80ABA778(EnNiwLady* this, PlayState* play);
+-void func_80ABA878(EnNiwLady* this, PlayState* play);
+-void func_80ABA9B8(EnNiwLady* this, PlayState* play);
+-void func_80ABAB08(EnNiwLady* this, PlayState* play);
+-void func_80ABAC00(EnNiwLady* this, PlayState* play);
+-void func_80ABAA9C(EnNiwLady* this, PlayState* play);
+-void func_80ABAC84(EnNiwLady* this, PlayState* play);
+-void func_80ABA244(EnNiwLady* this, PlayState* play);
+-void func_80ABA654(EnNiwLady* this, PlayState* play);
+-void func_80ABAD7C(EnNiwLady* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ABA21C: arms the missing-Cucco line and installs the counting action.
++void EnNiwLady_SetupCuccoCount(EnNiwLady* this, PlayState* play);  // was func_80ABA21C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABAD38: arms the ordinary greeting and installs the idle talk action.
++void EnNiwLady_SetupIdleTalk(EnNiwLady* this, PlayState* play);  // was func_80ABAD38 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABA778: picks the adult-era line from how far the Pocket Egg and Cojiro trade has progressed and installs the adult talk action.
++void EnNiwLady_SetupAdultTalk(EnNiwLady* this, PlayState* play);  // was func_80ABA778 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABA878: offers talk in the adult era and routes the accepted conversation into whichever trade prompt the current line calls for.
++void EnNiwLady_AdultTalk(EnNiwLady* this, PlayState* play);  // was func_80ABA878 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABA9B8: resolves the first trade prompt: yes hands over GI_POCKET_EGG, no shows the refusal line.
++void EnNiwLady_OfferPocketEgg(EnNiwLady* this, PlayState* play);  // was func_80ABA9B8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABAB08: resolves the second trade prompt: yes hands over GI_COJIRO, no shows the refusal line and records it.
++void EnNiwLady_OfferCojiro(EnNiwLady* this, PlayState* play);  // was func_80ABAB08 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABAC00: re-offers the current trade item until the player takes it.
++void EnNiwLady_GiveItem(EnNiwLady* this, PlayState* play);  // was func_80ABAC00 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABAA9C: waits out the refusal line and returns to the adult talk setup.
++void EnNiwLady_DeclineTrade(EnNiwLady* this, PlayState* play);  // was func_80ABAA9C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABAC84: waits out the get-item textbox and sets the trade or bottle flag for whichever item was just handed over.
++void EnNiwLady_FinishGiveItem(EnNiwLady* this, PlayState* play);  // was func_80ABAC84 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABA244: walks the prop actor list each frame, counting the Cuccos inside the pen and recording each one's infTable bit, and picks Anju's line from the total.
++void EnNiwLady_CountCuccos(EnNiwLady* this, PlayState* play);  // was func_80ABA244 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABA654: once the counting line is advanced it hands over the bottle the first time all the Cuccos are penned, or a purple rupee afterwards, and otherwise returns to counting.
++void EnNiwLady_FinishCuccoTalk(EnNiwLady* this, PlayState* play);  // was func_80ABA654 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABAD7C: offers talk with the ordinary greeting or the mask face reaction, and records that the player has spoken to her.
++void EnNiwLady_IdleTalk(EnNiwLady* this, PlayState* play);  // was func_80ABAD7C [LLM:HIGH]
+ 
+ const ActorInit En_Niw_Lady_InitVars = {
+     ACTOR_EN_NIW_LADY,
+@@ -43,7 +56,8 @@ static s16 sMissingCuccoTextIds[] = {
+     0x5036, 0x5070, 0x5072, 0x5037, 0x5038, 0x5039, 0x503A, 0x503B, 0x503D, 0x503C,
+ };
+ 
+-static s16 D_80ABB3B4[] = {
++// LLM generated name (HIGH), was D_80ABB3B4: the infTable[25] bit each numbered Cucco owns, set while it is inside the pen and cleared while it is out.
++static s16 sCuccoInfTableBits[] = {  // was D_80ABB3B4 [LLM:HIGH]
+     0x0200, 0x0400, 0x0800, 0x1000, 0x2000, 0x4000, 0x8000,
+ };
+ 
+@@ -87,7 +101,7 @@ void EnNiwLady_Init(Actor* thisx, PlayState* play) {
+     }
+     osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ ねぇちゃんうっふん ☆☆☆☆☆ %d\n" VT_RST, this->unk_278);
+     osSyncPrintf("\n\n");
+-    this->actionFunc = func_80AB9F24;
++    this->actionFunc = EnNiwLady_WaitForObjects;  // was func_80AB9F24 [LLM:HIGH]
+     thisx->uncullZoneForward = 600.0f;
+     this->getItemEntry = (GetItemEntry)GET_ITEM_NONE;
+ }
+@@ -150,7 +164,7 @@ void EnNiwLady_ChoseAnimation(EnNiwLady* this, PlayState* play, s32 arg2) {
+     }
+ }
+ 
+-void func_80AB9F24(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_WaitForObjects(EnNiwLady* this, PlayState* play) {
+     f32 frames;
+     s32 pad;
+ 
+@@ -178,27 +192,27 @@ void func_80AB9F24(EnNiwLady* this, PlayState* play) {
+                     Animation_Change(&this->skelAnime, &gObjOsAnim_07D0, 1.0f, 0.0f, (s16)frames, ANIMMODE_LOOP, 0.0f);
+                 }
+                 if (LINK_IS_ADULT) {
+-                    this->actionFunc = func_80ABA778;
++                    this->actionFunc = EnNiwLady_SetupAdultTalk;  // was func_80ABA778 [LLM:HIGH]
+                 } else {
+-                    this->actionFunc = func_80ABA21C;
++                    this->actionFunc = EnNiwLady_SetupCuccoCount;  // was func_80ABA21C [LLM:HIGH]
+                 }
+                 return;
+             case 1:
+                 frames = Animation_GetLastFrame(&gObjOsAnim_07D0);
+                 Animation_Change(&this->skelAnime, &gObjOsAnim_07D0, 1.0f, 0.0f, (s16)frames, ANIMMODE_LOOP, 0.0f);
+-                this->actionFunc = func_80ABAD38;
++                this->actionFunc = EnNiwLady_SetupIdleTalk;  // was func_80ABAD38 [LLM:HIGH]
+                 return;
+         }
+     }
+ }
+ 
+-void func_80ABA21C(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_SetupCuccoCount(EnNiwLady* this, PlayState* play) {
+     this->actor.textId = sMissingCuccoTextIds[0];
+     this->unk_262 = TEXT_STATE_DONE;
+-    this->actionFunc = func_80ABA244;
++    this->actionFunc = EnNiwLady_CountCuccos;  // was func_80ABA244 [LLM:HIGH]
+ }
+ 
+-void func_80ABA244(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_CountCuccos(EnNiwLady* this, PlayState* play) {
+     EnNiw* currentCucco;
+     s32 phi_s1;
+ 
+@@ -211,16 +225,16 @@ void func_80ABA244(EnNiwLady* this, PlayState* play) {
+             if ((fabsf(currentCucco->actor.world.pos.x - 330.0f) < 90.0f) &&
+                 (fabsf(currentCucco->actor.world.pos.z - 1610.0f) < 190.0f)) {
+                 if (this->unk_26C == 0) {
+-                    gSaveContext.infTable[25] |= D_80ABB3B4[currentCucco->unk_2AA];
++                    gSaveContext.infTable[25] |= sCuccoInfTableBits[currentCucco->unk_2AA];  // was D_80ABB3B4 [LLM:HIGH]
+                     if (BREG(1) != 0) {
+                         // "GET inside the chicken fence!"
+                         osSyncPrintf(VT_FGCOL(GREEN) "☆ 鶏柵内ＧＥＴ！☆ %x\n" VT_RST,
+-                                     D_80ABB3B4[currentCucco->unk_2AA]);
++                                     sCuccoInfTableBits[currentCucco->unk_2AA]);  // was D_80ABB3B4 [LLM:HIGH]
+                     }
+                 }
+                 this->cuccosInPen++;
+             } else if (this->unk_26C == 0) {
+-                gSaveContext.infTable[25] &= ~D_80ABB3B4[currentCucco->unk_2AA];
++                gSaveContext.infTable[25] &= ~sCuccoInfTableBits[currentCucco->unk_2AA];  // was D_80ABB3B4 [LLM:HIGH]
+             }
+         }
+         currentCucco = (EnNiw*)currentCucco->actor.next;
+@@ -266,7 +280,7 @@ void func_80ABA244(EnNiwLady* this, PlayState* play) {
+                 Sfx_PlaySfxCentered(NA_SE_SY_ERROR);
+                 this->unk_26C = 2;
+                 this->unk_262 = TEXT_STATE_EVENT;
+-                this->actionFunc = func_80ABA654;
++                this->actionFunc = EnNiwLady_FinishCuccoTalk;  // was func_80ABA654 [LLM:HIGH]
+                 return;
+             }
+             this->unk_26E = phi_s1 + 1;
+@@ -279,7 +293,7 @@ void func_80ABA244(EnNiwLady* this, PlayState* play) {
+                 gSaveContext.infTable[25] &= 0x1FF;
+                 osSyncPrintf(VT_FGCOL(CYAN) "☆☆☆☆☆ 柵内BIT変更後 ☆☆ %x\n" VT_RST, gSaveContext.infTable[25]);
+                 osSyncPrintf("\n\n");
+-                this->actionFunc = func_80ABA654;
++                this->actionFunc = EnNiwLady_FinishCuccoTalk;  // was func_80ABA654 [LLM:HIGH]
+                 return;
+             }
+             if (this->unk_26A != this->cuccosInPen) {
+@@ -299,7 +313,7 @@ void func_80ABA244(EnNiwLady* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ABA654(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_FinishCuccoTalk(EnNiwLady* this, PlayState* play) {
+     if (this->unk_262 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+         osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ ハート ☆☆☆☆☆ %d\n" VT_RST, this->unk_26C);
+@@ -314,26 +328,26 @@ void func_80ABA654(EnNiwLady* this, PlayState* play) {
+                 Actor_OfferGetItem(&this->actor, play, GI_BOTTLE, 100.0f, 50.0f);
+             } else {
+                 // Circumvent the item offer action
+-                this->actionFunc = func_80ABAC84;
++                this->actionFunc = EnNiwLady_FinishGiveItem;  // was func_80ABAC84 [LLM:HIGH]
+                 return;
+             }
+ 
+-            this->actionFunc = func_80ABAC00;
++            this->actionFunc = EnNiwLady_GiveItem;  // was func_80ABAC00 [LLM:HIGH]
+             return;
+         }
+         if (this->unk_26C == 1) {
+             this->getItemId = GI_RUPEE_PURPLE;
+             Actor_OfferGetItem(&this->actor, play, GI_RUPEE_PURPLE, 100.0f, 50.0f);
+-            this->actionFunc = func_80ABAC00;
++            this->actionFunc = EnNiwLady_GiveItem;  // was func_80ABAC00 [LLM:HIGH]
+         }
+-        this->actionFunc = func_80ABA244;
++        this->actionFunc = EnNiwLady_CountCuccos;  // was func_80ABA244 [LLM:HIGH]
+     }
+ }
+ 
+ static s16 sTradeItemTextIds[] = { 0x503E, 0x503F, 0x5047, 0x5040, 0x5042, 0x5043,
+                                    0x5044, 0x00CF, 0x5045, 0x5042, 0x5027 };
+ 
+-void func_80ABA778(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_SetupAdultTalk(EnNiwLady* this, PlayState* play) {
+     // "☆☆☆☆☆ Adult message check ☆☆☆☆☆"
+     osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ アダルトメッセージチェック ☆☆☆☆☆ \n" VT_RST);
+     this->unk_262 = TEXT_STATE_DONE;
+@@ -361,10 +375,10 @@ void func_80ABA778(EnNiwLady* this, PlayState* play) {
+         }
+     }
+     this->actor.textId = sTradeItemTextIds[this->unk_27A];
+-    this->actionFunc = func_80ABA878;
++    this->actionFunc = EnNiwLady_AdultTalk;  // was func_80ABA878 [LLM:HIGH]
+ }
+ 
+-void func_80ABA878(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_AdultTalk(EnNiwLady* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s8 playerExchangeItemId;
+ 
+@@ -378,21 +392,21 @@ void func_80ABA878(EnNiwLady* this, PlayState* play) {
+             player->actor.textId = sTradeItemTextIds[5];
+             this->unk_26E = this->unk_27A + 21;
+             this->unk_262 = TEXT_STATE_CHOICE;
+-            this->actionFunc = func_80ABAB08;
++            this->actionFunc = EnNiwLady_OfferCojiro;  // was func_80ABAB08 [LLM:HIGH]
+         } else if (playerExchangeItemId != 0) {
+             player->actor.textId = sTradeItemTextIds[7];
+             this->unk_26E = this->unk_27A + 21;
+         } else {
+             this->unk_274 = 1;
+             this->unk_26E = this->unk_27A + 21;
+-            this->actionFunc = !this->unk_273 ? func_80ABA778 : func_80ABA9B8;
++            this->actionFunc = !this->unk_273 ? EnNiwLady_SetupAdultTalk : EnNiwLady_OfferPocketEgg;  // was func_80ABA778 [LLM:HIGH]
+         }
+     } else {
+         Actor_OfferTalkExchangeEquiCylinder(&this->actor, play, 50.0f, 6);
+     }
+ }
+ 
+-void func_80ABA9B8(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_OfferPocketEgg(EnNiwLady* this, PlayState* play) {
+     if ((this->unk_262 == Message_GetState(&play->msgCtx)) && Message_ShouldAdvance(play)) {
+         switch (play->msgCtx.choiceIndex) {
+             case 0:
+@@ -401,7 +415,7 @@ void func_80ABA9B8(EnNiwLady* this, PlayState* play) {
+ 
+                 if (GameInteractor_Should(VB_GIVE_ITEM_FROM_ANJU_AS_ADULT, true, this)) {
+                     Actor_OfferGetItem(&this->actor, play, GI_POCKET_EGG, 200.0f, 100.0f);
+-                    this->actionFunc = func_80ABAC00;
++                    this->actionFunc = EnNiwLady_GiveItem;  // was func_80ABAC00 [LLM:HIGH]
+                 }
+ 
+                 break;
+@@ -410,21 +424,21 @@ void func_80ABA9B8(EnNiwLady* this, PlayState* play) {
+                 this->unk_26E = this->unk_27A + 21;
+                 Message_ContinueTextbox(play, this->actor.textId);
+                 this->unk_262 = TEXT_STATE_EVENT;
+-                this->actionFunc = func_80ABAA9C;
++                this->actionFunc = EnNiwLady_DeclineTrade;  // was func_80ABAA9C [LLM:HIGH]
+                 break;
+         }
+     }
+ }
+ 
+-void func_80ABAA9C(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_DeclineTrade(EnNiwLady* this, PlayState* play) {
+     this->unk_26E = 11;
+     if ((this->unk_262 == Message_GetState(&play->msgCtx)) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+-        this->actionFunc = func_80ABA778;
++        this->actionFunc = EnNiwLady_SetupAdultTalk;  // was func_80ABA778 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80ABAB08(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_OfferCojiro(EnNiwLady* this, PlayState* play) {
+     if ((this->unk_262 == Message_GetState(&play->msgCtx)) && Message_ShouldAdvance(play)) {
+         switch (play->msgCtx.choiceIndex) {
+             case 0:
+@@ -432,7 +446,7 @@ void func_80ABAB08(EnNiwLady* this, PlayState* play) {
+                 this->actor.parent = NULL;
+                 if (GameInteractor_Should(VB_TRADE_POCKET_CUCCO, true, this)) {
+                     Actor_OfferGetItem(&this->actor, play, GI_COJIRO, 200.0f, 100.0f);
+-                    this->actionFunc = func_80ABAC00;
++                    this->actionFunc = EnNiwLady_GiveItem;  // was func_80ABAC00 [LLM:HIGH]
+                 }
+                 break;
+             case 1:
+@@ -442,17 +456,17 @@ void func_80ABAB08(EnNiwLady* this, PlayState* play) {
+                 this->unk_26E = this->unk_27A + 21;
+                 Message_ContinueTextbox(play, this->actor.textId);
+                 this->unk_262 = TEXT_STATE_EVENT;
+-                this->actionFunc = func_80ABAA9C;
++                this->actionFunc = EnNiwLady_DeclineTrade;  // was func_80ABAA9C [LLM:HIGH]
+                 break;
+         }
+     }
+ }
+ 
+-void func_80ABAC00(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_GiveItem(EnNiwLady* this, PlayState* play) {
+     s32 getItemId;
+ 
+     if (Actor_HasParent(&this->actor, play)) {
+-        this->actionFunc = func_80ABAC84;
++        this->actionFunc = EnNiwLady_FinishGiveItem;  // was func_80ABAC84 [LLM:HIGH]
+     } else {
+         getItemId = this->getItemId;
+         if (LINK_IS_ADULT) {
+@@ -462,7 +476,7 @@ void func_80ABAC00(EnNiwLady* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ABAC84(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_FinishGiveItem(EnNiwLady* this, PlayState* play) {
+     if ((Message_GetState(&play->msgCtx) != TEXT_STATE_DONE) || !Message_ShouldAdvance(play)) {
+         return;
+     }
+@@ -473,21 +487,21 @@ void func_80ABAC84(EnNiwLady* this, PlayState* play) {
+         } else {
+             Flags_SetItemGetInf(ITEMGETINF_2E);
+         }
+-        this->actionFunc = func_80ABA778;
++        this->actionFunc = EnNiwLady_SetupAdultTalk;  // was func_80ABA778 [LLM:HIGH]
+     } else {
+         Flags_SetItemGetInf(ITEMGETINF_0C);
+         this->unk_262 = TEXT_STATE_DONE;
+-        this->actionFunc = func_80ABA244;
++        this->actionFunc = EnNiwLady_CountCuccos;  // was func_80ABA244 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80ABAD38(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_SetupIdleTalk(EnNiwLady* this, PlayState* play) {
+     osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ 通常メッセージチェック ☆☆☆☆☆ \n" VT_RST);
+     this->unk_262 = TEXT_STATE_DONE;
+-    this->actionFunc = func_80ABAD7C;
++    this->actionFunc = EnNiwLady_IdleTalk;  // was func_80ABAD7C [LLM:HIGH]
+ }
+ 
+-void func_80ABAD7C(EnNiwLady* this, PlayState* play) {
++void EnNiwLady_IdleTalk(EnNiwLady* this, PlayState* play) {
+     this->actor.textId = 0x503D;
+     if (Text_GetFaceReaction(play, 8) != 0) {
+         this->actor.textId = Text_GetFaceReaction(play, 8);
+@@ -498,7 +512,7 @@ void func_80ABAD7C(EnNiwLady* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->unk_274 = 1;
+         this->unk_26E = this->unk_27A + 9;
+-        this->actionFunc = func_80ABAD38;
++        this->actionFunc = EnNiwLady_SetupIdleTalk;  // was func_80ABAD38 [LLM:HIGH]
+     } else {
+         Actor_OfferTalk(&this->actor, play, 100.0f);
+     }
+-- 
+2.55.0
+

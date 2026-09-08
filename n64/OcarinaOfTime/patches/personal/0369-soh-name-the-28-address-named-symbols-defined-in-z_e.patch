@@ -1,0 +1,810 @@
+From 9cbedd04e551218f81c2881a8e9a50ccb44ff2c3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:30 +0000
+Subject: [PATCH 369/488] soh: name the 28 address-named symbols defined in
+ z_en_heishi2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 28 are defined in soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c; updating their references touches 2 files in total.
+
+  * func_80A531E4 -> EnHeishi2_SetupBribeIdle
+    deduced, confidence HIGH: loops gEnHeishiIdleAnim and hands the type 2
+    guard to its bribe-text chooser
+
+  * func_80A53278 -> EnHeishi2_ChooseBribeText
+    deduced, confidence HIGH: picks the type 2 guard's line from the
+    spiritual stones, the time of day, the gate's open flag and whether the
+    pocket egg has been obtained
+
+  * func_80A5344C -> EnHeishi2_HandleBribeChoice
+    deduced, confidence HIGH: reads the yes/no choice, takes 10 rupees when
+    the player can pay, and otherwise refuses
+
+  * func_80A53538 -> EnHeishi2_WaitBribeAccepted
+    deduced, confidence HIGH: waits out the paid-up textbox, halts the
+    actors and starts the spear slam
+
+  * func_80A535BC -> EnHeishi2_StartSpearSlamFence
+    deduced, confidence HIGH: plays gEnHeishiSlamSpearAnim once for the type
+    2 guard's fence
+
+  * func_80A53638 -> EnHeishi2_SlamSpearFence
+    deduced, confidence HIGH: plays NA_SE_EV_SPEAR_HIT at frame 12 and, at
+    the end of the animation, tells the Bg_Spot15_Saku fence to open
+
+  * func_80A5372C -> EnHeishi2_SetupWatchFence
+    deduced, confidence HIGH: returns to the idle animation and parks a
+    sub-camera on the fence for 200 frames
+
+  * func_80A53850 -> EnHeishi2_WatchFence
+    deduced, confidence HIGH: holds the sub-camera until the timer runs out
+    or the fence finishes, then restores the main camera and marks the gate
+    open
+
+  * func_80A53908 -> EnHeishi2_SetupGateIdle
+    deduced, confidence HIGH: loops gEnHeishiIdleAnim and hands the type 5
+    guard to its text chooser
+
+  * func_80A5399C -> EnHeishi2_ChooseGateText
+    deduced, confidence HIGH: picks the castle-town guard's line from the
+    letter flag, the Keaton mask and any face reaction
+
+  * func_80A53AD4 -> EnHeishi2_WaitForZeldasLetter
+    deduced, confidence HIGH: offers the letter exchange and chimes when the
+    player hands Zelda's letter over
+
+  * func_80A53C0C -> EnHeishi2_WaitLetterTextDone
+    deduced, confidence HIGH: waits out the letter textbox, halts the actors
+    and starts the spear slam
+
+  * func_80A53C90 -> EnHeishi2_StartSpearSlamGate
+    deduced, confidence HIGH: plays gEnHeishiSlamSpearAnim once for the town
+    gate
+
+  * func_80A53D0C -> EnHeishi2_SlamSpearGate
+    deduced, confidence HIGH: plays NA_SE_EV_SPEAR_HIT at frame 12 and, at
+    the end, sets the Bg_Gate_Shutter opening
+
+  * func_80A53DF8 -> EnHeishi2_SetupWatchGate
+    deduced, confidence HIGH: returns to the idle animation and parks a
+    sub-camera on the town gate for 200 frames
+
+  * func_80A53F30 -> EnHeishi2_WatchGate
+    deduced, confidence HIGH: holds the sub-camera until the gate finishes,
+    then branches on whether this was the letter, a re-open or the mask
+    payout
+
+  * func_80A54038 -> EnHeishi2_FinishLetterText
+    deduced, confidence HIGH: sets
+    INFTABLE_SHOWED_ZELDAS_LETTER_TO_GATE_GUARD and returns to the gate idle
+
+  * func_80A540C0 -> EnHeishi2_HandleMaskChoice
+    deduced, confidence HIGH: reads the sell-the-mask choice, takes the
+    Keaton mask and marks it sold, or declines
+
+  * func_80A541FC -> EnHeishi2_WaitMaskSoldText
+    deduced, confidence HIGH: waits out the sold text and pays the player 15
+    rupees
+
+  * func_80A5427C -> EnHeishi2_WaitPaymentText
+    deduced, confidence HIGH: waits out the payment text and either returns
+    to idle or slams the spear to work the gate again
+
+  * func_80A54320 -> EnHeishi2_StartSpearSlamCloseGate
+    deduced, confidence HIGH: plays gEnHeishiSlamSpearAnim once with the sfx
+    flag cleared, for the closing pass
+
+  * func_80A543A0 -> EnHeishi2_SlamSpearCloseGate
+    deduced, confidence HIGH: at the end of the slam drives Bg_Gate_Shutter
+    to its closing or mask-payout state
+
+  * func_80A544AC -> EnHeishi2_TipOver
+    deduced, confidence HIGH: leans the guard's roll to -6100 and opens text
+    0x708F once he is down
+
+  * func_80A5455C -> EnHeishi2_DropBomb
+    deduced, confidence HIGH: on the text advancing, throws an EN_BOM out at
+    a random nearby position and heading
+
+  * func_80A546DC -> EnHeishi2_RecoverAndVanish
+    deduced, confidence GUESS: rolls the guard back upright and kills the
+    actor; whether he is meant to read as standing up or as toppling the
+    other way is not settled by the code
+
+  * func_80A5475C -> EnHeishi2_WaitForTalk
+    deduced, confidence HIGH: offers the talk and routes an accepted one to
+    the bribe or gate branch according to type and text state
+
+  * func_80A54954 -> EnHeishi2_SetupWaitTextDone
+    deduced, confidence HIGH: returns to the idle animation and waits for
+    the current textbox to finish
+
+  * func_80A549E8 -> EnHeishi2_WaitTextDone
+    deduced, confidence HIGH: closes the textbox once it advances and
+    returns the guard to its type's idle
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../Enhancements/randomizer/hook_handlers.cpp |   4 +-
+ .../actors/ovl_En_Heishi2/z_en_heishi2.c      | 244 ++++++++++--------
+ 2 files changed, 138 insertions(+), 110 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 2c23825a1..112079f67 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -938,7 +938,7 @@ void RandomizerOnDialogMessageHandler() {
+     }
+ }
+ 
+-extern "C" void func_80A5475C(EnHeishi2* CastleGuard, PlayState* play);
++extern "C" void EnHeishi2_WaitForTalk(EnHeishi2* CastleGuard, PlayState* play);  // was func_80A5475C [LLM:HIGH]
+ 
+ static ScrubIdentity IdentifyScrub(s32 sceneNum, s32 actorParams, s32 respawnData) {
+     struct ScrubIdentity scrubIdentity;
+@@ -1154,7 +1154,7 @@ void RandomizerOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_l
+             guard->actor.textId = 0x7072;
+             guard->unk_300 = TEXT_STATE_CHOICE;
+             guard->unk_30E = 1;
+-            guard->actionFunc = func_80A5475C;
++            guard->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+             *should = false;
+             break;
+         }
+diff --git a/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c b/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
+index feccdd27a..08289573a 100644
+--- a/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
++++ b/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
+@@ -24,33 +24,60 @@ void EnHeishi2_Draw(Actor* thisx, PlayState* play);
+ void EnHeishi2_DrawKingGuard(Actor* thisx, PlayState* play);
+ void EnHeishi2_DoNothing1(EnHeishi2* this, PlayState* play);
+ void EnHeishi_DoNothing2(EnHeishi2* this, PlayState* play);
+-void func_80A531E4(EnHeishi2* this, PlayState* play);
+-void func_80A53278(EnHeishi2* this, PlayState* play);
+-void func_80A5344C(EnHeishi2* this, PlayState* play);
+-void func_80A54954(EnHeishi2* this, PlayState* play);
+-void func_80A53538(EnHeishi2* this, PlayState* play);
+-void func_80A535BC(EnHeishi2* this, PlayState* play);
+-void func_80A5399C(EnHeishi2* this, PlayState* play);
+-void func_80A53638(EnHeishi2* this, PlayState* play);
+-void func_80A5372C(EnHeishi2* this, PlayState* play);
+-void func_80A5475C(EnHeishi2* this, PlayState* play);
+-void func_80A53AD4(EnHeishi2* this, PlayState* play);
+-void func_80A53C0C(EnHeishi2* this, PlayState* play);
+-void func_80A53C90(EnHeishi2* this, PlayState* play);
+-void func_80A53D0C(EnHeishi2* this, PlayState* play);
+-void func_80A544AC(EnHeishi2* this, PlayState* play);
+-void func_80A53908(EnHeishi2* this, PlayState* play);
+-void func_80A53F30(EnHeishi2* this, PlayState* play);
+-void func_80A54038(EnHeishi2* this, PlayState* play);
+-void func_80A5427C(EnHeishi2* this, PlayState* play);
+-void func_80A549E8(EnHeishi2* this, PlayState* play);
+-void func_80A53850(EnHeishi2* this, PlayState* play);
+-void func_80A54320(EnHeishi2* this, PlayState* play);
+-void func_80A543A0(EnHeishi2* this, PlayState* play);
+-void func_80A5455C(EnHeishi2* this, PlayState* play);
+-void func_80A546DC(EnHeishi2* this, PlayState* play);
+-void func_80A541FC(EnHeishi2* this, PlayState* play);
+-void func_80A53DF8(EnHeishi2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A531E4: loops gEnHeishiIdleAnim and hands the type 2 guard to its bribe-text chooser
++void EnHeishi2_SetupBribeIdle(EnHeishi2* this, PlayState* play);  // was func_80A531E4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53278: picks the type 2 guard's line from the spiritual stones, the time of day, the gate's open flag and whether the pocket egg has been obtained
++void EnHeishi2_ChooseBribeText(EnHeishi2* this, PlayState* play);  // was func_80A53278 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A5344C: reads the yes/no choice, takes 10 rupees when the player can pay, and otherwise refuses
++void EnHeishi2_HandleBribeChoice(EnHeishi2* this, PlayState* play);  // was func_80A5344C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A54954: returns to the idle animation and waits for the current textbox to finish
++void EnHeishi2_SetupWaitTextDone(EnHeishi2* this, PlayState* play);  // was func_80A54954 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53538: waits out the paid-up textbox, halts the actors and starts the spear slam
++void EnHeishi2_WaitBribeAccepted(EnHeishi2* this, PlayState* play);  // was func_80A53538 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A535BC: plays gEnHeishiSlamSpearAnim once for the type 2 guard's fence
++void EnHeishi2_StartSpearSlamFence(EnHeishi2* this, PlayState* play);  // was func_80A535BC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A5399C: picks the castle-town guard's line from the letter flag, the Keaton mask and any face reaction
++void EnHeishi2_ChooseGateText(EnHeishi2* this, PlayState* play);  // was func_80A5399C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53638: plays NA_SE_EV_SPEAR_HIT at frame 12 and, at the end of the animation, tells the Bg_Spot15_Saku fence to open
++void EnHeishi2_SlamSpearFence(EnHeishi2* this, PlayState* play);  // was func_80A53638 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A5372C: returns to the idle animation and parks a sub-camera on the fence for 200 frames
++void EnHeishi2_SetupWatchFence(EnHeishi2* this, PlayState* play);  // was func_80A5372C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A5475C: offers the talk and routes an accepted one to the bribe or gate branch according to type and text state
++void EnHeishi2_WaitForTalk(EnHeishi2* this, PlayState* play);  // was func_80A5475C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53AD4: offers the letter exchange and chimes when the player hands Zelda's letter over
++void EnHeishi2_WaitForZeldasLetter(EnHeishi2* this, PlayState* play);  // was func_80A53AD4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53C0C: waits out the letter textbox, halts the actors and starts the spear slam
++void EnHeishi2_WaitLetterTextDone(EnHeishi2* this, PlayState* play);  // was func_80A53C0C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53C90: plays gEnHeishiSlamSpearAnim once for the town gate
++void EnHeishi2_StartSpearSlamGate(EnHeishi2* this, PlayState* play);  // was func_80A53C90 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53D0C: plays NA_SE_EV_SPEAR_HIT at frame 12 and, at the end, sets the Bg_Gate_Shutter opening
++void EnHeishi2_SlamSpearGate(EnHeishi2* this, PlayState* play);  // was func_80A53D0C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A544AC: leans the guard's roll to -6100 and opens text 0x708F once he is down
++void EnHeishi2_TipOver(EnHeishi2* this, PlayState* play);  // was func_80A544AC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53908: loops gEnHeishiIdleAnim and hands the type 5 guard to its text chooser
++void EnHeishi2_SetupGateIdle(EnHeishi2* this, PlayState* play);  // was func_80A53908 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53F30: holds the sub-camera until the gate finishes, then branches on whether this was the letter, a re-open or the mask payout
++void EnHeishi2_WatchGate(EnHeishi2* this, PlayState* play);  // was func_80A53F30 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A54038: sets INFTABLE_SHOWED_ZELDAS_LETTER_TO_GATE_GUARD and returns to the gate idle
++void EnHeishi2_FinishLetterText(EnHeishi2* this, PlayState* play);  // was func_80A54038 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A5427C: waits out the payment text and either returns to idle or slams the spear to work the gate again
++void EnHeishi2_WaitPaymentText(EnHeishi2* this, PlayState* play);  // was func_80A5427C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A549E8: closes the textbox once it advances and returns the guard to its type's idle
++void EnHeishi2_WaitTextDone(EnHeishi2* this, PlayState* play);  // was func_80A549E8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53850: holds the sub-camera until the timer runs out or the fence finishes, then restores the main camera and marks the gate open
++void EnHeishi2_WatchFence(EnHeishi2* this, PlayState* play);  // was func_80A53850 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A54320: plays gEnHeishiSlamSpearAnim once with the sfx flag cleared, for the closing pass
++void EnHeishi2_StartSpearSlamCloseGate(EnHeishi2* this, PlayState* play);  // was func_80A54320 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A543A0: at the end of the slam drives Bg_Gate_Shutter to its closing or mask-payout state
++void EnHeishi2_SlamSpearCloseGate(EnHeishi2* this, PlayState* play);  // was func_80A543A0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A5455C: on the text advancing, throws an EN_BOM out at a random nearby position and heading
++void EnHeishi2_DropBomb(EnHeishi2* this, PlayState* play);  // was func_80A5455C [LLM:HIGH]
++// LLM generated name (GUESS), was func_80A546DC: rolls the guard back upright and kills the actor; whether he is meant to read as standing up or as toppling the other way is not settled by the code
++void EnHeishi2_RecoverAndVanish(EnHeishi2* this, PlayState* play);  // was func_80A546DC [LLM:GUESS]
++// LLM generated name (HIGH), was func_80A541FC: waits out the sold text and pays the player 15 rupees
++void EnHeishi2_WaitMaskSoldText(EnHeishi2* this, PlayState* play);  // was func_80A541FC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A53DF8: returns to the idle animation and parks a sub-camera on the town gate for 200 frames
++void EnHeishi2_SetupWatchGate(EnHeishi2* this, PlayState* play);  // was func_80A53DF8 [LLM:HIGH]
+ 
+ const ActorInit En_Heishi2_InitVars = {
+     ACTOR_EN_HEISHI2,
+@@ -116,7 +143,7 @@ void EnHeishi2_Init(Actor* thisx, PlayState* play) {
+             Collider_DestroyCylinder(play, &this->collider);
+             Player_SetCsActionWithHaltedActors(play, 0, 8);
+             this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+-            this->actionFunc = func_80A544AC;
++            this->actionFunc = EnHeishi2_TipOver;  // was func_80A544AC [LLM:HIGH]
+         }
+     } else {
+         this->unk_2E0 = 60.0f;
+@@ -134,11 +161,11 @@ void EnHeishi2_Init(Actor* thisx, PlayState* play) {
+         switch (this->type) {
+ 
+             case 2:
+-                this->actionFunc = func_80A531E4;
++                this->actionFunc = EnHeishi2_SetupBribeIdle;  // was func_80A531E4 [LLM:HIGH]
+                 this->actor.gravity = -1.0f;
+                 break;
+             case 5:
+-                this->actionFunc = func_80A53908;
++                this->actionFunc = EnHeishi2_SetupGateIdle;  // was func_80A53908 [LLM:HIGH]
+                 this->actor.gravity = -1.0f;
+                 break;
+             case 6:
+@@ -176,14 +203,14 @@ void EnHeishi2_DoNothing1(EnHeishi2* this, PlayState* play) {
+ void EnHeishi_DoNothing2(EnHeishi2* this, PlayState* play) {
+ }
+ 
+-void func_80A531E4(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_SetupBribeIdle(EnHeishi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiIdleAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+-    this->actionFunc = func_80A53278;
++    this->actionFunc = EnHeishi2_ChooseBribeText;  // was func_80A53278 [LLM:HIGH]
+ }
+ 
+-void func_80A53278(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_ChooseBribeText(EnHeishi2* this, PlayState* play) {
+     this->unk_30B = 0;
+     this->unk_30E = 0;
+     if (GameInteractor_Should(VB_CAN_BRIBE_HEISHI2, true, this)) {
+@@ -191,7 +218,7 @@ void func_80A53278(EnHeishi2* this, PlayState* play) {
+             this->actor.textId = Text_GetFaceReaction(play, 5);
+             this->unk_30B = 1;
+             this->unk_300 = TEXT_STATE_DONE;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+         } else if ((Flags_GetEventChkInf(EVENTCHKINF_USED_DEKU_TREE_BLUE_WARP)) &&
+                    (Flags_GetEventChkInf(EVENTCHKINF_USED_DODONGOS_CAVERN_BLUE_WARP)) &&
+                    (Flags_GetEventChkInf(EVENTCHKINF_USED_JABU_JABUS_BELLY_BLUE_WARP))) {
+@@ -199,20 +226,20 @@ void func_80A53278(EnHeishi2* this, PlayState* play) {
+             osSyncPrintf(VT_FGCOL(GREEN) " ☆☆☆☆☆ 全部の精霊石GET！ ☆☆☆☆☆ \n" VT_RST);
+             this->unk_300 = TEXT_STATE_DONE;
+             this->actor.textId = 0x7006;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+         } else if (!IS_DAY) {
+             // "Sleep early for children!"
+             osSyncPrintf(VT_FGCOL(YELLOW) " ☆☆☆☆☆ 子供ははやくネロ！ ☆☆☆☆☆ \n" VT_RST);
+             this->unk_300 = TEXT_STATE_DONE;
+             this->actor.textId = 0x7002;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+ 
+         } else if (this->unk_30C != 0) {
+             // "Anything passes"
+             osSyncPrintf(VT_FGCOL(BLUE) " ☆☆☆☆☆ なんでも通るよ ☆☆☆☆☆ \n" VT_RST);
+             this->unk_300 = TEXT_STATE_DONE;
+             this->actor.textId = 0x7099;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+         } else if (Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_POCKET_EGG)) {
+             if (this->unk_30E == 0) {
+                 // "Start under the first sleeve!"
+@@ -225,19 +252,19 @@ void func_80A53278(EnHeishi2* this, PlayState* play) {
+                 this->actor.textId = 0x7072;
+             }
+             this->unk_300 = TEXT_STATE_CHOICE;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+ 
+         } else {
+             // "That's okay"
+             osSyncPrintf(VT_FGCOL(CYAN) " ☆☆☆☆☆ それはとおらんよぉ ☆☆☆☆☆ \n" VT_RST);
+             this->unk_300 = TEXT_STATE_DONE;
+             this->actor.textId = 0x7029;
+-            this->actionFunc = func_80A5475C;
++            this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A5344C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_HandleBribeChoice(EnHeishi2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE) && Message_ShouldAdvance(play)) {
+         this->unk_300 = TEXT_STATE_EVENT;
+@@ -246,16 +273,16 @@ void func_80A5344C(EnHeishi2* this, PlayState* play) {
+                 if (gSaveContext.rupees >= 10) {
+                     Rupees_ChangeBy(-10);
+                     this->actor.textId = 0x7098;
+-                    this->actionFunc = func_80A53538;
++                    this->actionFunc = EnHeishi2_WaitBribeAccepted;  // was func_80A53538 [LLM:HIGH]
+                     break;
+                 } else {
+                     this->actor.textId = 0x7097;
+-                    this->actionFunc = func_80A54954;
++                    this->actionFunc = EnHeishi2_SetupWaitTextDone;  // was func_80A54954 [LLM:HIGH]
+                     break;
+                 }
+             case 1:
+                 this->actor.textId = 0x7096;
+-                this->actionFunc = func_80A54954;
++                this->actionFunc = EnHeishi2_SetupWaitTextDone;  // was func_80A54954 [LLM:HIGH]
+                 break;
+ 
+             default:
+@@ -265,24 +292,24 @@ void func_80A5344C(EnHeishi2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A53538(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WaitBribeAccepted(EnHeishi2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_300 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+         play->msgCtx.msgMode = MSGMODE_PAUSED;
+-        this->actionFunc = func_80A535BC;
++        this->actionFunc = EnHeishi2_StartSpearSlamFence;  // was func_80A535BC [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A535BC(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_StartSpearSlamFence(EnHeishi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiSlamSpearAnim);
+ 
+     this->unk_2EC = frameCount;
+     Animation_Change(&this->skelAnime, &gEnHeishiSlamSpearAnim, 1.0f, 0.0f, frameCount, ANIMMODE_ONCE, -10.0f);
+-    this->actionFunc = func_80A53638;
++    this->actionFunc = EnHeishi2_SlamSpearFence;  // was func_80A53638 [LLM:HIGH]
+ }
+ 
+-void func_80A53638(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_SlamSpearFence(EnHeishi2* this, PlayState* play) {
+     s32 pad;
+     f32 frameCount = this->skelAnime.curFrame;
+ 
+@@ -305,11 +332,11 @@ void func_80A53638(EnHeishi2* this, PlayState* play) {
+         }
+         // "I've come!"
+         osSyncPrintf(VT_FGCOL(PURPLE) "☆☆☆ きたきたきたぁ！ ☆☆☆ %x\n" VT_RST, actor->dyna.actor.next);
+-        this->actionFunc = func_80A5372C;
++        this->actionFunc = EnHeishi2_SetupWatchFence;  // was func_80A5372C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A5372C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_SetupWatchFence(EnHeishi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiIdleAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+@@ -328,10 +355,10 @@ void func_80A5372C(EnHeishi2* this, PlayState* play) {
+ 
+         Play_CameraSetAtEye(play, this->cameraId, &this->subCamEye, &this->subCamAt);
+     }
+-    this->actionFunc = func_80A53850;
++    this->actionFunc = EnHeishi2_WatchFence;  // was func_80A53850 [LLM:HIGH]
+ }
+ 
+-void func_80A53850(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WatchFence(EnHeishi2* this, PlayState* play) {
+     BgSpot15Saku* gate;
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -347,18 +374,18 @@ void func_80A53850(EnHeishi2* this, PlayState* play) {
+         Message_CloseTextbox(play);
+         this->unk_30C = 1;
+         Player_SetCsActionWithHaltedActors(play, NULL, 7);
+-        this->actionFunc = func_80A531E4;
++        this->actionFunc = EnHeishi2_SetupBribeIdle;  // was func_80A531E4 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A53908(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_SetupGateIdle(EnHeishi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiIdleAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+-    this->actionFunc = func_80A5399C;
++    this->actionFunc = EnHeishi2_ChooseGateText;  // was func_80A5399C [LLM:HIGH]
+ }
+ 
+-void func_80A5399C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_ChooseGateText(EnHeishi2* this, PlayState* play) {
+     s16 var;
+ 
+     this->unk_30B = 0;
+@@ -392,15 +419,15 @@ void func_80A5399C(EnHeishi2* this, PlayState* play) {
+                 this->unk_30E = 0;
+             }
+         }
+-        this->actionFunc = func_80A5475C;
++        this->actionFunc = EnHeishi2_WaitForTalk;  // was func_80A5475C [LLM:HIGH]
+     } else {
+         // "I don't know"
+         osSyncPrintf(VT_FGCOL(PURPLE) " ☆☆☆☆☆ とおしゃしねぇちゅーの ☆☆☆☆☆ \n" VT_RST);
+-        this->actionFunc = func_80A53AD4;
++        this->actionFunc = EnHeishi2_WaitForZeldasLetter;  // was func_80A53AD4 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A53AD4(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WaitForZeldasLetter(EnHeishi2* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 exchangeItemId;
+     s16 yawDiffTemp;
+@@ -420,7 +447,7 @@ void func_80A53AD4(EnHeishi2* this, PlayState* play) {
+             Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+             player->actor.textId = 0x2010;
+             this->unk_300 = TEXT_STATE_EVENT;
+-            this->actionFunc = func_80A53C0C;
++            this->actionFunc = EnHeishi2_WaitLetterTextDone;  // was func_80A53C0C [LLM:HIGH]
+         } else if (exchangeItemId != EXCH_ITEM_NONE) {
+             player->actor.textId = 0x200F;
+         }
+@@ -433,24 +460,24 @@ void func_80A53AD4(EnHeishi2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A53C0C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WaitLetterTextDone(EnHeishi2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((this->unk_300 == Message_GetState(&play->msgCtx)) && Message_ShouldAdvance(play)) {
+         Player_SetCsActionWithHaltedActors(play, 0, 8);
+         play->msgCtx.msgMode = MSGMODE_PAUSED;
+-        this->actionFunc = func_80A53C90;
++        this->actionFunc = EnHeishi2_StartSpearSlamGate;  // was func_80A53C90 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A53C90(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_StartSpearSlamGate(EnHeishi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiSlamSpearAnim);
+ 
+     this->unk_2EC = frameCount;
+     Animation_Change(&this->skelAnime, &gEnHeishiSlamSpearAnim, 1.0f, 0.0f, frameCount, ANIMMODE_ONCE, -10.0f);
+-    this->actionFunc = func_80A53D0C;
++    this->actionFunc = EnHeishi2_SlamSpearGate;  // was func_80A53D0C [LLM:HIGH]
+ }
+ 
+-void func_80A53D0C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_SlamSpearGate(EnHeishi2* this, PlayState* play) {
+     s32 pad;
+     f32 frameCount;
+     BgGateShutter* gate;
+@@ -476,11 +503,11 @@ void func_80A53D0C(EnHeishi2* this, PlayState* play) {
+         }
+         // "I've come!"
+         osSyncPrintf(VT_FGCOL(PURPLE) "☆☆☆ きたきたきたぁ！ ☆☆☆ %x\n" VT_RST, gate->dyna.actor.next);
+-        this->actionFunc = func_80A53DF8;
++        this->actionFunc = EnHeishi2_SetupWatchGate;  // was func_80A53DF8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A53DF8(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_SetupWatchGate(EnHeishi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiIdleAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+@@ -503,10 +530,10 @@ void func_80A53DF8(EnHeishi2* this, PlayState* play) {
+         this->subCamAt.z = -1079.0f;
+         Play_CameraSetAtEye(play, this->cameraId, &this->subCamEye, &this->subCamAt);
+     }
+-    this->actionFunc = func_80A53F30;
++    this->actionFunc = EnHeishi2_WatchGate;  // was func_80A53F30 [LLM:HIGH]
+ }
+ 
+-void func_80A53F30(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WatchGate(EnHeishi2* this, PlayState* play) {
+     BgGateShutter* gate;
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -523,33 +550,34 @@ void func_80A53F30(EnHeishi2* this, PlayState* play) {
+             if (this->unk_30A == 0) {
+                 this->actor.textId = 0x2015;
+                 Message_ContinueTextbox(play, this->actor.textId);
+-                this->actionFunc = func_80A54038;
++                this->actionFunc = EnHeishi2_FinishLetterText;  // was func_80A54038 [LLM:HIGH]
+             } else {
+                 Message_CloseTextbox(play);
+                 Player_SetCsActionWithHaltedActors(play, NULL, 7);
+-                this->actionFunc = func_80A53908;
++                this->actionFunc = EnHeishi2_SetupGateIdle;  // was func_80A53908 [LLM:HIGH]
+             }
+         } else {
+             this->unk_30E = 0;
+             this->actor.textId = 0x2021;
+             Rupees_ChangeBy(15);
+             Message_ContinueTextbox(play, this->actor.textId);
+-            this->actionFunc = func_80A5427C;
++            this->actionFunc = EnHeishi2_WaitPaymentText;  // was func_80A5427C [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A54038(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_FinishLetterText(EnHeishi2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         Flags_SetInfTable(INFTABLE_SHOWED_ZELDAS_LETTER_TO_GATE_GUARD);
+         Message_CloseTextbox(play);
+         Player_SetCsActionWithHaltedActors(play, 0, 7);
+-        this->actionFunc = func_80A53908;
++        this->actionFunc = EnHeishi2_SetupGateIdle;  // was func_80A53908 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A540C0(EnHeishi2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A540C0: reads the sell-the-mask choice, takes the Keaton mask and marks it sold, or declines
++void EnHeishi2_HandleMaskChoice(EnHeishi2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE) && Message_ShouldAdvance(play)) {
+         switch (play->msgCtx.choiceIndex) {
+@@ -563,10 +591,10 @@ void func_80A540C0(EnHeishi2* this, PlayState* play) {
+                 if (this->unk_30A != 0) {
+                     this->unk_30A = 2;
+                     this->unk_30E = 1;
+-                    this->actionFunc = func_80A5427C;
++                    this->actionFunc = EnHeishi2_WaitPaymentText;  // was func_80A5427C [LLM:HIGH]
+                 } else {
+                     this->unk_30E = 0;
+-                    this->actionFunc = func_80A541FC;
++                    this->actionFunc = EnHeishi2_WaitMaskSoldText;  // was func_80A541FC [LLM:HIGH]
+                 }
+                 break;
+             case 1:
+@@ -575,49 +603,49 @@ void func_80A540C0(EnHeishi2* this, PlayState* play) {
+                 Message_ContinueTextbox(play, this->actor.textId);
+                 this->unk_300 = TEXT_STATE_EVENT;
+                 if (this->unk_30A == 0) {
+-                    this->actionFunc = func_80A5427C;
++                    this->actionFunc = EnHeishi2_WaitPaymentText;  // was func_80A5427C [LLM:HIGH]
+                 } else {
+-                    this->actionFunc = func_80A54954;
++                    this->actionFunc = EnHeishi2_SetupWaitTextDone;  // was func_80A54954 [LLM:HIGH]
+                 }
+         }
+     }
+ }
+ 
+-void func_80A541FC(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WaitMaskSoldText(EnHeishi2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         this->actor.textId = 0x2021;
+         Rupees_ChangeBy(15);
+         Message_ContinueTextbox(play, this->actor.textId);
+-        this->actionFunc = func_80A5427C;
++        this->actionFunc = EnHeishi2_WaitPaymentText;  // was func_80A5427C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A5427C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WaitPaymentText(EnHeishi2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         if (this->unk_30E == 0) {
+             this->unk_30E = 0;
+             this->unk_30A = this->unk_30E;
+             Message_CloseTextbox(play);
+-            this->actionFunc = func_80A53908;
++            this->actionFunc = EnHeishi2_SetupGateIdle;  // was func_80A53908 [LLM:HIGH]
+         } else {
+             play->msgCtx.msgMode = MSGMODE_PAUSED;
+-            this->actionFunc = func_80A54320;
++            this->actionFunc = EnHeishi2_StartSpearSlamCloseGate;  // was func_80A54320 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A54320(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_StartSpearSlamCloseGate(EnHeishi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiSlamSpearAnim);
+ 
+     this->unk_2EC = frameCount;
+     Animation_Change(&this->skelAnime, &gEnHeishiSlamSpearAnim, 1.0f, 0.0f, frameCount, ANIMMODE_ONCE, -10.0f);
+     this->audioFlag = 0;
+-    this->actionFunc = func_80A543A0;
++    this->actionFunc = EnHeishi2_SlamSpearCloseGate;  // was func_80A543A0 [LLM:HIGH]
+ }
+ 
+-void func_80A543A0(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_SlamSpearCloseGate(EnHeishi2* this, PlayState* play) {
+     s32 pad;
+     f32 frameCount = this->skelAnime.curFrame;
+     BgGateShutter* gate = (BgGateShutter*)(play->actorCtx.actorLists[ACTORCAT_ITEMACTION].head);
+@@ -646,23 +674,23 @@ void func_80A543A0(EnHeishi2* this, PlayState* play) {
+         if (this->unk_30A == 0) {
+             this->unk_30A = 1;
+         }
+-        this->actionFunc = func_80A53DF8;
++        this->actionFunc = EnHeishi2_SetupWatchGate;  // was func_80A53DF8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A544AC(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_TipOver(EnHeishi2* this, PlayState* play) {
+     Math_SmoothStepToS(&this->actor.shape.rot.z, -6100, 5, this->unk_2E4, 0);
+     Math_ApproachF(&this->unk_2E4, 3000.0f, 1.0f, 500.0f);
+     this->actor.world.rot.z = this->actor.shape.rot.z;
+     if (this->actor.shape.rot.z < -6000) {
+         Message_StartTextbox(play, 0x708F, NULL);
+         this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+-        this->actionFunc = func_80A5455C;
++        this->actionFunc = EnHeishi2_DropBomb;  // was func_80A5455C [LLM:HIGH]
+         this->unk_2E4 = 0.0f;
+     }
+ }
+ 
+-void func_80A5455C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_DropBomb(EnHeishi2* this, PlayState* play) {
+     s32 pad;
+     Vec3f pos;
+     f32 rotY;
+@@ -686,11 +714,11 @@ void func_80A5455C(EnHeishi2* this, PlayState* play) {
+ 
+         // "This is down!"
+         osSyncPrintf(VT_FGCOL(YELLOW) " ☆☆☆☆☆ これでダウンだ！ ☆☆☆☆☆ \n" VT_RST);
+-        this->actionFunc = func_80A546DC;
++        this->actionFunc = EnHeishi2_RecoverAndVanish;  // was func_80A546DC [LLM:GUESS]
+     }
+ }
+ 
+-void func_80A546DC(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_RecoverAndVanish(EnHeishi2* this, PlayState* play) {
+     Math_SmoothStepToS(&this->actor.shape.rot.z, 200, 5, this->unk_2E4, 0);
+     Math_ApproachF(&this->unk_2E4, 3000.0f, 1.0f, 500.0f);
+     this->actor.world.rot.z = this->actor.shape.rot.z;
+@@ -699,7 +727,7 @@ void func_80A546DC(EnHeishi2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A5475C(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WaitForTalk(EnHeishi2* this, PlayState* play) {
+     s16 yawDiff;
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -707,21 +735,21 @@ void func_80A5475C(EnHeishi2* this, PlayState* play) {
+     if (Text_GetFaceReaction(play, 5) != 0) {
+         if (this->unk_30B == 0) {
+             if (this->type == 2) {
+-                this->actionFunc = func_80A53278;
++                this->actionFunc = EnHeishi2_ChooseBribeText;  // was func_80A53278 [LLM:HIGH]
+                 return;
+             }
+             if (this->type == 5) {
+-                this->actionFunc = func_80A5399C;
++                this->actionFunc = EnHeishi2_ChooseGateText;  // was func_80A5399C [LLM:HIGH]
+                 return;
+             }
+         }
+     } else if (this->unk_30B != 0) {
+         if (this->type == 2) {
+-            this->actionFunc = func_80A53278;
++            this->actionFunc = EnHeishi2_ChooseBribeText;  // was func_80A53278 [LLM:HIGH]
+             return;
+         }
+         if (this->type == 5) {
+-            this->actionFunc = func_80A5399C;
++            this->actionFunc = EnHeishi2_ChooseGateText;  // was func_80A5399C [LLM:HIGH]
+             return;
+         }
+     }
+@@ -729,25 +757,25 @@ void func_80A5475C(EnHeishi2* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if (this->type == 2) {
+             if (this->unk_30E == 1) {
+-                this->actionFunc = func_80A5344C;
++                this->actionFunc = EnHeishi2_HandleBribeChoice;  // was func_80A5344C [LLM:HIGH]
+                 return;
+             } else {
+-                this->actionFunc = func_80A53278;
++                this->actionFunc = EnHeishi2_ChooseBribeText;  // was func_80A53278 [LLM:HIGH]
+                 return;
+             }
+         } else if (this->type == 5) {
+             if (this->unk_300 == TEXT_STATE_DONE) {
+-                this->actionFunc = func_80A5399C;
++                this->actionFunc = EnHeishi2_ChooseGateText;  // was func_80A5399C [LLM:HIGH]
+             }
+ 
+             if (this->unk_300 == TEXT_STATE_EVENT) {
+-                this->actionFunc = func_80A54954;
++                this->actionFunc = EnHeishi2_SetupWaitTextDone;  // was func_80A54954 [LLM:HIGH]
+             }
+ 
+             if (this->unk_300 == TEXT_STATE_CHOICE) {
+                 this->unk_309 = 1;
+                 Sfx_PlaySfxCentered(NA_SE_SY_TRE_BOX_APPEAR);
+-                this->actionFunc = func_80A540C0;
++                this->actionFunc = EnHeishi2_HandleMaskChoice;  // was func_80A540C0 [LLM:HIGH]
+             }
+             return;
+         }
+@@ -761,22 +789,22 @@ void func_80A5475C(EnHeishi2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A54954(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_SetupWaitTextDone(EnHeishi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiIdleAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+-    this->actionFunc = func_80A549E8;
++    this->actionFunc = EnHeishi2_WaitTextDone;  // was func_80A549E8 [LLM:HIGH]
+ }
+ 
+-void func_80A549E8(EnHeishi2* this, PlayState* play) {
++void EnHeishi2_WaitTextDone(EnHeishi2* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->unk_300 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+         if (this->type == 2) {
+-            this->actionFunc = func_80A531E4;
++            this->actionFunc = EnHeishi2_SetupBribeIdle;  // was func_80A531E4 [LLM:HIGH]
+         }
+         if (this->type == 5) {
+-            this->actionFunc = func_80A53908;
++            this->actionFunc = EnHeishi2_SetupGateIdle;  // was func_80A53908 [LLM:HIGH]
+         }
+     }
+ }
+-- 
+2.55.0
+

@@ -1,0 +1,123 @@
+From 7ab7b903d4eecd7ec8665f573315241100437642 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:23 +0000
+Subject: [PATCH 288/488] soh: name the 7 address-named symbols defined in
+ audio_sfx.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 7 are defined in soh/src/code/audio_sfx.c.
+
+  * D_8016BAD0 -> sPlayerBank
+    deduced, confidence HIGH: gSoundBanks[0]; the doc comment above that
+    array names entry 0 "Player Bank size 9", matching this array's length.
+
+  * D_8016BC80 -> sItemBank
+    deduced, confidence HIGH: gSoundBanks[1]; the same comment names entry 1
+    "Item Bank size 12".
+
+  * D_8016BEC0 -> sEnvironmentBank
+    deduced, confidence HIGH: gSoundBanks[2]; the same comment names entry 2
+    "Environment Bank size 22".
+
+  * D_8016C2E0 -> sEnemyBank
+    deduced, confidence HIGH: gSoundBanks[3]; the same comment names entry 3
+    "Enemy Bank size 20".
+
+  * D_8016C6A0 -> sSystemBank
+    deduced, confidence HIGH: gSoundBanks[4]; the same comment names entry 4
+    "System Bank size 8".
+
+  * D_8016C820 -> sOcarinaBank
+    deduced, confidence HIGH: gSoundBanks[5]; the same comment names entry 5
+    "Ocarina Bank size 3".
+
+  * D_8016C8B0 -> sVoiceBank
+    deduced, confidence HIGH: gSoundBanks[6]; the same comment names entry 6
+    "Voice Bank size 5".
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/audio_sfx.c | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
+
+diff --git a/soh/src/code/audio_sfx.c b/soh/src/code/audio_sfx.c
+index ab66d4122..833fbeba3 100644
+--- a/soh/src/code/audio_sfx.c
++++ b/soh/src/code/audio_sfx.c
+@@ -36,13 +36,20 @@ s32 D_8013338C = 0;
+ char D_80133390[] = "SEQ H";
+ char D_80133398[] = "    L";
+ 
+-SoundBankEntry D_8016BAD0[9];
+-SoundBankEntry D_8016BC80[12];
+-SoundBankEntry D_8016BEC0[22];
+-SoundBankEntry D_8016C2E0[20];
+-SoundBankEntry D_8016C6A0[8];
+-SoundBankEntry D_8016C820[3];
+-SoundBankEntry D_8016C8B0[5];
++// LLM generated name (HIGH), was D_8016BAD0: gSoundBanks[0]; the doc comment above that array names entry 0 "Player Bank size 9", matching this array's length.
++SoundBankEntry sPlayerBank[9];  // was D_8016BAD0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016BC80: gSoundBanks[1]; the same comment names entry 1 "Item Bank size 12".
++SoundBankEntry sItemBank[12];  // was D_8016BC80 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016BEC0: gSoundBanks[2]; the same comment names entry 2 "Environment Bank size 22".
++SoundBankEntry sEnvironmentBank[22];  // was D_8016BEC0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016C2E0: gSoundBanks[3]; the same comment names entry 3 "Enemy Bank size 20".
++SoundBankEntry sEnemyBank[20];  // was D_8016C2E0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016C6A0: gSoundBanks[4]; the same comment names entry 4 "System Bank size 8".
++SoundBankEntry sSystemBank[8];  // was D_8016C6A0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016C820: gSoundBanks[5]; the same comment names entry 5 "Ocarina Bank size 3".
++SoundBankEntry sOcarinaBank[3];  // was D_8016C820 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8016C8B0: gSoundBanks[6]; the same comment names entry 6 "Voice Bank size 5".
++SoundBankEntry sVoiceBank[5];  // was D_8016C8B0 [LLM:HIGH]
+ SoundRequest sSoundRequests[0x100];
+ u8 sSoundBankListEnd[7];
+ u8 sSoundBankFreeListStart[7];
+@@ -71,12 +78,12 @@ u8 sSoundRequestReadIndex = 0;
+  * 6 : Voice Bank           size 5
+  */
+ SoundBankEntry* gSoundBanks[7] = {
+-    D_8016BAD0, D_8016BC80, D_8016BEC0, D_8016C2E0, D_8016C6A0, D_8016C820, D_8016C8B0,
++    sPlayerBank, sItemBank, sEnvironmentBank, sEnemyBank, sSystemBank, sOcarinaBank, sVoiceBank,  // was D_8016BAD0 [LLM:HIGH]
+ };
+ 
+ u8 sBankSizes[ARRAY_COUNT(gSoundBanks)] = {
+-    ARRAY_COUNT(D_8016BAD0), ARRAY_COUNT(D_8016BC80), ARRAY_COUNT(D_8016BEC0), ARRAY_COUNT(D_8016C2E0),
+-    ARRAY_COUNT(D_8016C6A0), ARRAY_COUNT(D_8016C820), ARRAY_COUNT(D_8016C8B0),
++    ARRAY_COUNT(sPlayerBank), ARRAY_COUNT(sItemBank), ARRAY_COUNT(sEnvironmentBank), ARRAY_COUNT(sEnemyBank),  // was D_8016BAD0 [LLM:HIGH]
++    ARRAY_COUNT(sSystemBank), ARRAY_COUNT(sOcarinaBank), ARRAY_COUNT(sVoiceBank),  // was D_8016C6A0 [LLM:HIGH]
+ };
+ 
+ u8 gSfxChannelLayout = 0;
+-- 
+2.55.0
+

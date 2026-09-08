@@ -1,0 +1,149 @@
+From 466bf95cb3efc7f167eb51b25f6328105e45eac5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 279/488] soh: name the 6 address-named symbols defined in
+ z_bg_jya_amishutter.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_Bg_Jya_Amishutter/z_bg_jya_amishutter.c.
+
+  * func_80893428 -> BgJyaAmishutter_SetupOpen
+    deduced, confidence HIGH: installs the opening action.
+
+  * func_80893438 -> BgJyaAmishutter_Open
+    deduced, confidence HIGH: raises the shutter 100 units above home with
+    the metal-door slide sfx, ending on the stop sfx.
+
+  * func_808934B0 -> BgJyaAmishutter_SetupWaitForPlayerLeave
+    deduced, confidence HIGH: installs the action that holds the shutter
+    open.
+
+  * func_808934C0 -> BgJyaAmishutter_WaitForPlayerLeave
+    deduced, confidence HIGH: holds the shutter open until the player is
+    more than 300 units away, then starts closing it.
+
+  * func_808934FC -> BgJyaAmishutter_SetupClose
+    deduced, confidence HIGH: installs the closing action.
+
+  * func_8089350C -> BgJyaAmishutter_Close
+    deduced, confidence HIGH: lowers the shutter back to home with the same
+    pair of sfx and returns to BgJyaAmishutter_WaitForPlayer.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_bg_jya_amishutter.c                     | 42 +++++++++++--------
+ 1 file changed, 24 insertions(+), 18 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Amishutter/z_bg_jya_amishutter.c b/soh/src/overlays/actors/ovl_Bg_Jya_Amishutter/z_bg_jya_amishutter.c
+index 0a4ed1e9c..b4a87ae73 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Amishutter/z_bg_jya_amishutter.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Amishutter/z_bg_jya_amishutter.c
+@@ -16,12 +16,18 @@ void BgJyaAmishutter_Draw(Actor* thisx, PlayState* play);
+ 
+ void BgJyaAmishutter_SetupWaitForPlayer(BgJyaAmishutter* this);
+ void BgJyaAmishutter_WaitForPlayer(BgJyaAmishutter* this);
+-void func_80893428(BgJyaAmishutter* this);
+-void func_80893438(BgJyaAmishutter* this);
+-void func_808934B0(BgJyaAmishutter* this);
+-void func_808934C0(BgJyaAmishutter* this);
+-void func_808934FC(BgJyaAmishutter* this);
+-void func_8089350C(BgJyaAmishutter* this);
++// LLM generated name (HIGH), was func_80893428: installs the opening action.
++void BgJyaAmishutter_SetupOpen(BgJyaAmishutter* this);  // was func_80893428 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80893438: raises the shutter 100 units above home with the metal-door slide sfx, ending on the stop sfx.
++void BgJyaAmishutter_Open(BgJyaAmishutter* this);  // was func_80893438 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808934B0: installs the action that holds the shutter open.
++void BgJyaAmishutter_SetupWaitForPlayerLeave(BgJyaAmishutter* this);  // was func_808934B0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808934C0: holds the shutter open until the player is more than 300 units away, then starts closing it.
++void BgJyaAmishutter_WaitForPlayerLeave(BgJyaAmishutter* this);  // was func_808934C0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808934FC: installs the closing action.
++void BgJyaAmishutter_SetupClose(BgJyaAmishutter* this);  // was func_808934FC [LLM:HIGH]
++// LLM generated name (HIGH), was func_8089350C: lowers the shutter back to home with the same pair of sfx and returns to BgJyaAmishutter_WaitForPlayer.
++void BgJyaAmishutter_Close(BgJyaAmishutter* this);  // was func_8089350C [LLM:HIGH]
+ 
+ const ActorInit Bg_Jya_Amishutter_InitVars = {
+     ACTOR_BG_JYA_AMISHUTTER,
+@@ -77,38 +83,38 @@ void BgJyaAmishutter_SetupWaitForPlayer(BgJyaAmishutter* this) {
+ 
+ void BgJyaAmishutter_WaitForPlayer(BgJyaAmishutter* this) {
+     if ((this->dyna.actor.xzDistToPlayer < 60.0f) && (fabsf(this->dyna.actor.yDistToPlayer) < 30.0f)) {
+-        func_80893428(this);
++        BgJyaAmishutter_SetupOpen(this);  // was func_80893428 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80893428(BgJyaAmishutter* this) {
+-    this->actionFunc = func_80893438;
++void BgJyaAmishutter_SetupOpen(BgJyaAmishutter* this) {
++    this->actionFunc = BgJyaAmishutter_Open;  // was func_80893438 [LLM:HIGH]
+ }
+ 
+-void func_80893438(BgJyaAmishutter* this) {
++void BgJyaAmishutter_Open(BgJyaAmishutter* this) {
+     if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y + 100.0f, 3.0f)) {
+-        func_808934B0(this);
++        BgJyaAmishutter_SetupWaitForPlayerLeave(this);  // was func_808934B0 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_METALDOOR_STOP);
+     } else {
+         Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_METALDOOR_SLIDE - SFX_FLAG);
+     }
+ }
+ 
+-void func_808934B0(BgJyaAmishutter* this) {
+-    this->actionFunc = func_808934C0;
++void BgJyaAmishutter_SetupWaitForPlayerLeave(BgJyaAmishutter* this) {
++    this->actionFunc = BgJyaAmishutter_WaitForPlayerLeave;  // was func_808934C0 [LLM:HIGH]
+ }
+ 
+-void func_808934C0(BgJyaAmishutter* this) {
++void BgJyaAmishutter_WaitForPlayerLeave(BgJyaAmishutter* this) {
+     if (this->dyna.actor.xzDistToPlayer > 300.0f) {
+-        func_808934FC(this);
++        BgJyaAmishutter_SetupClose(this);  // was func_808934FC [LLM:HIGH]
+     }
+ }
+ 
+-void func_808934FC(BgJyaAmishutter* this) {
+-    this->actionFunc = func_8089350C;
++void BgJyaAmishutter_SetupClose(BgJyaAmishutter* this) {
++    this->actionFunc = BgJyaAmishutter_Close;  // was func_8089350C [LLM:HIGH]
+ }
+ 
+-void func_8089350C(BgJyaAmishutter* this) {
++void BgJyaAmishutter_Close(BgJyaAmishutter* this) {
+     if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y, 3.0f)) {
+         BgJyaAmishutter_SetupWaitForPlayer(this);
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_METALDOOR_STOP);
+-- 
+2.55.0
+

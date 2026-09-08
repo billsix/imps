@@ -1,0 +1,104 @@
+From 1cff0e4423705d9a96e6c6f652c2d3a808225f16 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:13 +0000
+Subject: [PATCH 181/488] soh: name the 2 address-named symbols defined in
+ z_en_heishi3.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Heishi3/z_en_heishi3.c.
+
+  * func_80A55BD4 -> EnHeishi3_ChasePlayer
+    deduced, confidence HIGH: the action entered from EnHeishi3_CatchStart
+    with the walk animation and speedXZ 2.5: turns the guard toward the
+    player and plays NA_SE_EV_KNIGHT_WALK on the two footfall frames, until
+    caughtTimer expires and it hands off to EnHeishi3_ResetAnimationToIdle.
+
+  * func_80A55D00 -> EnHeishi3_ThrowPlayerOut
+    deduced, confidence HIGH: the action after the guard has caught the
+    player: on dismissing the dialogue it sets
+    EVENTCHKINF_CAUGHT_BY_CASTLE_GUARDS and starts a starburst transition to
+    ENTR_HYRULE_CASTLE_4, ejecting the player from the castle grounds.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_En_Heishi3/z_en_heishi3.c  | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Heishi3/z_en_heishi3.c b/soh/src/overlays/actors/ovl_En_Heishi3/z_en_heishi3.c
+index 121af3482..04cfc9c18 100644
+--- a/soh/src/overlays/actors/ovl_En_Heishi3/z_en_heishi3.c
++++ b/soh/src/overlays/actors/ovl_En_Heishi3/z_en_heishi3.c
+@@ -20,8 +20,10 @@ void EnHeishi3_StandSentinelInGrounds(EnHeishi3* this, PlayState* play);
+ void EnHeishi3_StandSentinelInCastle(EnHeishi3* this, PlayState* play);
+ void EnHeishi3_CatchStart(EnHeishi3* this, PlayState* play);
+ void EnHeishi3_ResetAnimationToIdle(EnHeishi3* this, PlayState* play);
+-void func_80A55D00(EnHeishi3* this, PlayState* play);
+-void func_80A55BD4(EnHeishi3* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A55D00: the action after the guard has caught the player: on dismissing the dialogue it sets EVENTCHKINF_CAUGHT_BY_CASTLE_GUARDS and starts a starburst transition to ENTR_HYRULE_CASTLE_4, ejecting the player from the castle grounds.
++void EnHeishi3_ThrowPlayerOut(EnHeishi3* this, PlayState* play);  // was func_80A55D00 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A55BD4: the action entered from EnHeishi3_CatchStart with the walk animation and speedXZ 2.5: turns the guard toward the player and plays NA_SE_EV_KNIGHT_WALK on the two footfall frames, until caughtTimer expires and it hands off to EnHeishi3_ResetAnimationToIdle.
++void EnHeishi3_ChasePlayer(EnHeishi3* this, PlayState* play);  // was func_80A55BD4 [LLM:HIGH]
+ 
+ static s16 sPlayerCaught = 0;
+ 
+@@ -172,11 +174,11 @@ void EnHeishi3_CatchStart(EnHeishi3* this, PlayState* play) {
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiWalkAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+     this->caughtTimer = 20;
+-    this->actionFunc = func_80A55BD4;
++    this->actionFunc = EnHeishi3_ChasePlayer;  // was func_80A55BD4 [LLM:HIGH]
+     this->actor.speedXZ = 2.5f;
+ }
+ 
+-void func_80A55BD4(EnHeishi3* this, PlayState* play) {
++void EnHeishi3_ChasePlayer(EnHeishi3* this, PlayState* play) {
+ 
+     SkelAnime_Update(&this->skelAnime);
+     if (Animation_OnFrame(&this->skelAnime, 1.0f) || Animation_OnFrame(&this->skelAnime, 17.0f)) {
+@@ -194,11 +196,11 @@ void EnHeishi3_ResetAnimationToIdle(EnHeishi3* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gEnHeishiIdleAnim);
+ 
+     Animation_Change(&this->skelAnime, &gEnHeishiIdleAnim, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+-    this->actionFunc = func_80A55D00;
++    this->actionFunc = EnHeishi3_ThrowPlayerOut;  // was func_80A55D00 [LLM:HIGH]
+ }
+ 
+ // This function initiates the respawn after the player gets caught.
+-void func_80A55D00(EnHeishi3* this, PlayState* play) {
++void EnHeishi3_ThrowPlayerOut(EnHeishi3* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play) &&
+         (this->respawnFlag == 0)) {
+-- 
+2.55.0
+

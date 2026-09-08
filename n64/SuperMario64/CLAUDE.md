@@ -57,7 +57,14 @@ verified against the ported branch.
   `docs/building.md` (the LUS Vulkan backend includes
   `shaderc/shaderc.hpp`; found the hard way, 2026-09-01). Doc fix to
   upstream's own file, hence a patch; upstream-submission candidate.
+**Stream order is pinned — `cheats` before `book`** (`patches/ORDER`). These two
+streams both touch `src/game/mario.c`, the one place this project's streams are
+not disjoint; the markers belong on the cheated tree, not the other way round.
+`upstream-candidates` is unlisted (docs only, disjoint) and applies last.
+
 - `patches/book/0001-doc-region-markers.patch` — comment-only
+  (**gated**: `tools/check_comment_only_streams.sh SuperMario64` proves both
+  book streams change nothing the compiler sees; see `../CLAUDE.md`)
   `// doc-region-begin/end <name>` markers so the book's
   `literalinclude` pulls spans by NAME, not line numbers. First region:
   `euler_zxy_to_matrix`. Grows per book chapter (the game-tree doc-region

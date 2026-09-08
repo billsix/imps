@@ -1,0 +1,525 @@
+From ed4c69c30f231723078f9d754c0a3253770d74e2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:30 +0000
+Subject: [PATCH 360/488] soh: name the 21 address-named symbols defined in
+ z_bg_jya_cobra.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 21 are defined in soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c.
+
+  * func_808958F0 -> BgJyaCobra_RotateVecY
+    deduced, confidence HIGH: rotates src about the Y axis by a
+    caller-supplied sine and cosine, leaving y alone
+
+  * func_80895A70 -> BgJyaCobra_UpdateLightBeam
+    deduced, confidence HIGH: points this statue's MirRay at its beam origin
+    and marks it unlit when the brightness falls to zero
+
+  * func_80895BEC -> BgJyaCobra_CarryPlayer
+    deduced, confidence HIGH: rotates the recorded player offset with the
+    statue so the player rides it while it turns
+
+  * func_80895C74 -> BgJyaCobra_UpdateBeamParams
+    deduced, confidence HIGH: sets the beam brightness from the puzzle flags
+    and the statue's alignment, and recomputes the beam origin and length
+
+  * func_80896918 -> BgJyaCobra_SetupIdle
+    deduced, confidence HIGH: snaps the statue onto its 0x2000 detent and
+    installs the idle action
+
+  * func_80896950 -> BgJyaCobra_Idle
+    deduced, confidence HIGH: counts the frames the player pushes against
+    the statue and starts a turn at 15
+
+  * func_808969F8 -> BgJyaCobra_SetupTurn
+    deduced, confidence HIGH: chooses the turn direction from the push angle
+    and records the player's offset for the ride
+
+  * func_80896ABC -> BgJyaCobra_Turn
+    deduced, confidence HIGH: sweeps 0x2000 with an accelerating step,
+    carrying the player, then returns to idle on the next detent
+
+  * func_80896CB4 -> BgJyaCobra_DrawMirrorSurface
+    deduced, confidence GUESS: draws gCobra2DL in the XLU pass with no color
+    or matrix of its own; the display list name gives no hint beyond that it
+    is the second cobra piece
+
+  * func_80896D78 -> BgJyaCobra_DrawLightBeam
+    deduced, confidence HIGH: draws gCobra3DL at the beam origin, stretched
+    by the beam length and faded by the beam brightness
+
+  * D_80897308 -> sBeamPitchOffsets
+    deduced, confidence HIGH: per-params X rotation added to the beam
+    direction and to the beam model, all zero in the shipped table
+
+  * D_80897310 -> sBeamDimsWithAngle
+    deduced, confidence HIGH: per-params flag enabling the misalignment
+    dimming in BgJyaCobra_UpdateBeamParams
+
+  * D_80897314 -> sBeamAlignedYaws
+    deduced, confidence HIGH: per-params yaw the statue is measured against
+    when dimming the beam
+
+  * D_8089731C -> sShadowBrushLarge
+    deduced, confidence HIGH: 11x11 alpha brush stamped along the statue
+    outline when building the shadow texture
+
+  * D_80897398 -> sShadowBrushSmall
+    deduced, confidence HIGH: 3x3 alpha brush stamped along the base outline
+    of the same shadow texture
+
+  * D_808973A4 -> sShadowStatueOutline
+    deduced, confidence HIGH: the 26 points of the cobra silhouette traced
+    with sShadowBrushLarge
+
+  * D_808974DC -> sShadowBaseOutline
+    deduced, confidence HIGH: the 5 points of the pedestal outline traced
+    with sShadowBrushSmall
+
+  * D_80897518 -> sShadowBaseRowAlphas
+    deduced, confidence HIGH: minimum alpha for each of the four shadow rows
+    that form the pedestal bar
+
+  * D_80897538 -> sShadowRotParams0
+    deduced, confidence HIGH: the shadow's rotation for the params 0 statue,
+    drawn 50 units west of it
+
+  * D_80897540 -> sShadowRotParams2
+    deduced, confidence HIGH: the shadow's rotation for the params 2 statue,
+    drawn 70 units east of it
+
+  * D_80897548 -> sShadowScales
+    deduced, confidence HIGH: per-params scale applied to the shadow quad
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c  | 135 ++++++++++--------
+ 1 file changed, 78 insertions(+), 57 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c b/soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c
+index e504b58e9..d2901048b 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c
+@@ -14,10 +14,14 @@ void BgJyaCobra_Destroy(Actor* thisx, PlayState* play);
+ void BgJyaCobra_Update(Actor* thisx, PlayState* play);
+ void BgJyaCobra_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80896918(BgJyaCobra* this, PlayState* play);
+-void func_80896950(BgJyaCobra* this, PlayState* play);
+-void func_808969F8(BgJyaCobra* this, PlayState* play);
+-void func_80896ABC(BgJyaCobra* this, PlayState* play);
++// LLM generated name (HIGH), was func_80896918: snaps the statue onto its 0x2000 detent and installs the idle action
++void BgJyaCobra_SetupIdle(BgJyaCobra* this, PlayState* play);  // was func_80896918 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80896950: counts the frames the player pushes against the statue and starts a turn at 15
++void BgJyaCobra_Idle(BgJyaCobra* this, PlayState* play);  // was func_80896950 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808969F8: chooses the turn direction from the push angle and records the player's offset for the ride
++void BgJyaCobra_SetupTurn(BgJyaCobra* this, PlayState* play);  // was func_808969F8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80896ABC: sweeps 0x2000 with an accelerating step, carrying the player, then returns to idle on the next detent
++void BgJyaCobra_Turn(BgJyaCobra* this, PlayState* play);  // was func_80896ABC [LLM:HIGH]
+ 
+ #include "overlays/ovl_Bg_Jya_Cobra/ovl_Bg_Jya_Cobra.h"
+ 
+@@ -34,13 +38,17 @@ const ActorInit Bg_Jya_Cobra_InitVars = {
+     NULL,
+ };
+ 
+-static s16 D_80897308[] = { 0, 0, 0, 0 };
++// LLM generated name (HIGH), was D_80897308: per-params X rotation added to the beam direction and to the beam model, all zero in the shipped table
++static s16 sBeamPitchOffsets[] = { 0, 0, 0, 0 };  // was D_80897308 [LLM:HIGH]
+ 
+-static u8 D_80897310[] = { true, false, true, false };
++// LLM generated name (HIGH), was D_80897310: per-params flag enabling the misalignment dimming in BgJyaCobra_UpdateBeamParams
++static u8 sBeamDimsWithAngle[] = { true, false, true, false };  // was D_80897310 [LLM:HIGH]
+ 
+-static s16 D_80897314[] = { -0x4000, 0000, 0x4000, 0000 };
++// LLM generated name (HIGH), was D_80897314: per-params yaw the statue is measured against when dimming the beam
++static s16 sBeamAlignedYaws[] = { -0x4000, 0000, 0x4000, 0000 };  // was D_80897314 [LLM:HIGH]
+ 
+-static u8 D_8089731C[11][11] = {
++// LLM generated name (HIGH), was D_8089731C: 11x11 alpha brush stamped along the statue outline when building the shadow texture
++static u8 sShadowBrushLarge[11][11] = {  // was D_8089731C [LLM:HIGH]
+     { 0x00, 0x00, 0x20, 0x80, 0x80, 0x80, 0x80, 0x80, 0x20, 0x00, 0x00 },
+     { 0x00, 0x20, 0x80, 0xA0, 0xA3, 0xA3, 0xA3, 0xA0, 0x80, 0x20, 0x00 },
+     { 0x20, 0x80, 0xA0, 0xA5, 0xA6, 0xA6, 0xA6, 0xA5, 0xA0, 0x80, 0x20 },
+@@ -54,13 +62,15 @@ static u8 D_8089731C[11][11] = {
+     { 0x00, 0x00, 0x20, 0x80, 0x80, 0x80, 0x80, 0x80, 0x20, 0x00, 0x00 },
+ };
+ 
+-static u8 D_80897398[3][3] = {
++// LLM generated name (HIGH), was D_80897398: 3x3 alpha brush stamped along the base outline of the same shadow texture
++static u8 sShadowBrushSmall[3][3] = {  // was D_80897398 [LLM:HIGH]
+     { 0x20, 0x80, 0x20 },
+     { 0x80, 0xA0, 0x80 },
+     { 0x20, 0x80, 0x20 },
+ };
+ 
+-static Vec3f D_808973A4[] = {
++// LLM generated name (HIGH), was D_808973A4: the 26 points of the cobra silhouette traced with sShadowBrushLarge
++static Vec3f sShadowStatueOutline[] = {  // was D_808973A4 [LLM:HIGH]
+     { -6.0f, 100.0f, 7.6f },
+     { -12.6f, 69.200005f, -10.0f },
+     { -9.0f, 43.0f, -1.0f },
+@@ -89,12 +99,14 @@ static Vec3f D_808973A4[] = {
+     { 0.0f, 101.4f, 5.0f },
+ };
+ 
+-static Vec3f D_808974DC[] = {
++// LLM generated name (HIGH), was D_808974DC: the 5 points of the pedestal outline traced with sShadowBrushSmall
++static Vec3f sShadowBaseOutline[] = {  // was D_808974DC [LLM:HIGH]
+     { 12.0f, 21.300001f, -2.5f },  { 30.0f, 21.300001f, -2.5f }, { -15.0f, 21.300001f, -2.5f },
+     { -30.0f, 21.300001f, -2.5f }, { 12.0f, 21.300001f, -2.5f },
+ };
+ 
+-static s32 D_80897518[] = { 0x80, 0xA0, 0xA0, 0x80 };
++// LLM generated name (HIGH), was D_80897518: minimum alpha for each of the four shadow rows that form the pedestal bar
++static s32 sShadowBaseRowAlphas[] = { 0x80, 0xA0, 0xA0, 0x80 };  // was D_80897518 [LLM:HIGH]
+ 
+ static InitChainEntry sInitChain[] = {
+     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_CONTINUE),
+@@ -103,17 +115,21 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(uncullZoneDownward, 1000, ICHAIN_STOP),
+ };
+ 
+-static Vec3s D_80897538 = { 0, -0x4000, 0 };
++// LLM generated name (HIGH), was D_80897538: the shadow's rotation for the params 0 statue, drawn 50 units west of it
++static Vec3s sShadowRotParams0 = { 0, -0x4000, 0 };  // was D_80897538 [LLM:HIGH]
+ 
+-static Vec3s D_80897540 = { 0, 0x4000, 0 };
++// LLM generated name (HIGH), was D_80897540: the shadow's rotation for the params 2 statue, drawn 70 units east of it
++static Vec3s sShadowRotParams2 = { 0, 0x4000, 0 };  // was D_80897540 [LLM:HIGH]
+ 
+-static Vec3f D_80897548[] = {
++// LLM generated name (HIGH), was D_80897548: per-params scale applied to the shadow quad
++static Vec3f sShadowScales[] = {  // was D_80897548 [LLM:HIGH]
+     { 0.1f, 0.1f, 0.1f },
+     { 0.072f, 0.072f, 0.072f },
+     { 0.1f, 0.1f, 0.132f },
+ };
+ 
+-void func_808958F0(Vec3f* dest, Vec3f* src, f32 arg2, f32 arg3) {
++// LLM generated name (HIGH), was func_808958F0: rotates src about the Y axis by a caller-supplied sine and cosine, leaving y alone
++void BgJyaCobra_RotateVecY(Vec3f* dest, Vec3f* src, f32 arg2, f32 arg3) {
+     dest->x = (src->z * arg2) + (src->x * arg3);
+     dest->y = src->y;
+     dest->z = (src->z * arg3) - (src->x * arg2);
+@@ -145,7 +161,8 @@ void BgJyaCobra_SpawnRay(BgJyaCobra* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80895A70(BgJyaCobra* this) {
++// LLM generated name (HIGH), was func_80895A70: points this statue's MirRay at its beam origin and marks it unlit when the brightness falls to zero
++void BgJyaCobra_UpdateLightBeam(BgJyaCobra* this) {
+     s32 pad;
+     BgJyaBigmirror* mirror = (BgJyaBigmirror*)this->dyna.actor.parent;
+     MirRay* mirRay;
+@@ -183,7 +200,7 @@ void func_80895A70(BgJyaCobra* this) {
+         mirRay->unLit = 0;
+         Math_Vec3f_Copy(&mirRay->sourcePt, &this->unk_180);
+         Matrix_RotateY(this->dyna.actor.shape.rot.y * (M_PI / 0x8000), MTXMODE_NEW);
+-        Matrix_RotateX(D_80897308[this->dyna.actor.params & 3] * (M_PI / 0x8000), MTXMODE_APPLY);
++        Matrix_RotateX(sBeamPitchOffsets[this->dyna.actor.params & 3] * (M_PI / 0x8000), MTXMODE_APPLY);  // was D_80897308 [LLM:HIGH]
+         sp28.x = 0.0f;
+         sp28.y = 0.0;
+         sp28.z = this->unk_190 * 2800.0f;
+@@ -192,18 +209,20 @@ void func_80895A70(BgJyaCobra* this) {
+     }
+ }
+ 
+-void func_80895BEC(BgJyaCobra* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80895BEC: rotates the recorded player offset with the statue so the player rides it while it turns
++void BgJyaCobra_CarryPlayer(BgJyaCobra* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 pad;
+     Vec3f sp2C;
+ 
+-    func_808958F0(&sp2C, &this->unk_174, Math_SinS(this->unk_170), Math_CosS(this->unk_170));
++    BgJyaCobra_RotateVecY(&sp2C, &this->unk_174, Math_SinS(this->unk_170), Math_CosS(this->unk_170));  // was func_808958F0 [LLM:HIGH]
+     player->actor.world.pos.x = this->dyna.actor.world.pos.x + sp2C.x;
+     player->actor.world.pos.y = this->dyna.actor.world.pos.y + sp2C.y;
+     player->actor.world.pos.z = this->dyna.actor.world.pos.z + sp2C.z;
+ }
+ 
+-void func_80895C74(BgJyaCobra* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80895C74: sets the beam brightness from the puzzle flags and the statue's alignment, and recomputes the beam origin and length
++void BgJyaCobra_UpdateBeamParams(BgJyaCobra* this, PlayState* play) {
+     s16 phi_v0;
+     s16 params = this->dyna.actor.params;
+     BgJyaBigmirror* mirror = (BgJyaBigmirror*)this->dyna.actor.parent;
+@@ -215,8 +234,8 @@ void func_80895C74(BgJyaCobra* this, PlayState* play) {
+         Math_StepToF(&this->unk_18C, 0.0f, 0.05f);
+     } else {
+         this->unk_18C = 1.0f;
+-        if (D_80897310[params & 3]) {
+-            phi_v0 = this->dyna.actor.shape.rot.y - D_80897314[params & 3];
++        if (sBeamDimsWithAngle[params & 3]) {  // was D_80897310 [LLM:HIGH]
++            phi_v0 = this->dyna.actor.shape.rot.y - sBeamAlignedYaws[params & 3];  // was D_80897314 [LLM:HIGH]
+             phi_v0 = ABS(phi_v0);
+             if (phi_v0 < 0x2000 && phi_v0 != -0x8000) {
+                 this->unk_18C += (phi_v0 - 0x2000) * (3.0f / 0x4000);
+@@ -289,14 +308,14 @@ void BgJyaCobra_UpdateShadowFromSide(BgJyaCobra* this) {
+     Matrix_Scale(0.9f, 0.9f, 0.9f, MTXMODE_APPLY);
+ 
+     for (i = 0; i < 25; i++) {
+-        Math_Vec3f_Diff(&D_808973A4[i + 1], &D_808973A4[i], &spD4);
++        Math_Vec3f_Diff(&sShadowStatueOutline[i + 1], &sShadowStatueOutline[i], &spD4);  // was D_808973A4 [LLM:HIGH]
+         spD4.x *= 1 / 2.0f;
+         spD4.y *= 1 / 2.0f;
+         spD4.z *= 1 / 2.0f;
+         for (j = 0; j < 2; j++) {
+-            spC8.x = D_808973A4[i].x + (spD4.x * j);
+-            spC8.y = D_808973A4[i].y + (spD4.y * j);
+-            spC8.z = D_808973A4[i].z + (spD4.z * j);
++            spC8.x = sShadowStatueOutline[i].x + (spD4.x * j);  // was D_808973A4 [LLM:HIGH]
++            spC8.y = sShadowStatueOutline[i].y + (spD4.y * j);  // was D_808973A4 [LLM:HIGH]
++            spC8.z = sShadowStatueOutline[i].z + (spD4.z * j);  // was D_808973A4 [LLM:HIGH]
+             Matrix_MultVec3f(&spC8, &spBC);
+             x = (spBC.x + 50.0f) * 0.64f + 0.5f;
+             z = (88.0f - spBC.z) * 0.64f + 0.5f;
+@@ -307,7 +326,7 @@ void BgJyaCobra_UpdateShadowFromSide(BgJyaCobra* this) {
+                     for (l = 0; l < 11; l++) {
+                         temp_x = x - 5 + l;
+                         if (!(temp_x & ~0x3F)) {
+-                            shadowTex[temp_z + temp_x] |= D_8089731C[k][l];
++                            shadowTex[temp_z + temp_x] |= sShadowBrushLarge[k][l];  // was D_8089731C [LLM:HIGH]
+                         }
+                     }
+                 }
+@@ -316,14 +335,14 @@ void BgJyaCobra_UpdateShadowFromSide(BgJyaCobra* this) {
+     }
+ 
+     for (i = 0; i < 4; i++) {
+-        Math_Vec3f_Diff(&D_808974DC[i + 1], &D_808974DC[i], &spD4);
++        Math_Vec3f_Diff(&sShadowBaseOutline[i + 1], &sShadowBaseOutline[i], &spD4);  // was D_808974DC [LLM:HIGH]
+         spD4.x *= 1 / 5.0f;
+         spD4.y *= 1 / 5.0f;
+         spD4.z *= 1 / 5.0f;
+         for (j = 0; j < 5; j++) {
+-            spC8.x = D_808974DC[i].x + (spD4.x * j);
+-            spC8.y = D_808974DC[i].y + (spD4.y * j);
+-            spC8.z = D_808974DC[i].z + (spD4.z * j);
++            spC8.x = sShadowBaseOutline[i].x + (spD4.x * j);  // was D_808974DC [LLM:HIGH]
++            spC8.y = sShadowBaseOutline[i].y + (spD4.y * j);  // was D_808974DC [LLM:HIGH]
++            spC8.z = sShadowBaseOutline[i].z + (spD4.z * j);  // was D_808974DC [LLM:HIGH]
+             Matrix_MultVec3f(&spC8, &spBC);
+             x = (s32)(((spBC.x + 50.0f) * 0.64f) + 0.5f);
+             z = (s32)(((88.0f - spBC.z) * 0.64f) + 0.5f);
+@@ -334,7 +353,7 @@ void BgJyaCobra_UpdateShadowFromSide(BgJyaCobra* this) {
+                     for (l = 0; l < 3; l++) {
+                         temp_x = x - 1 + l;
+                         if (!(temp_x & ~0x3F)) {
+-                            shadowTex[temp_z + temp_x] |= D_80897398[k][l];
++                            shadowTex[temp_z + temp_x] |= sShadowBrushSmall[k][l];  // was D_80897398 [LLM:HIGH]
+                         }
+                     }
+                 }
+@@ -351,7 +370,7 @@ void BgJyaCobra_UpdateShadowFromSide(BgJyaCobra* this) {
+         shadowTex[j * 0x40 + 0] = 0;
+         shadowTex[j * 0x40 + 0x3F] = 0;
+     }
+-    if (D_80897398[0][0]) {}
++    if (sShadowBrushSmall[0][0]) {}  // was D_80897398 [LLM:HIGH]
+ }
+ 
+ /*
+@@ -388,8 +407,8 @@ void BgJyaCobra_UpdateShadowFromTop(BgJyaCobra* this) {
+     for (i_copy = 0x780, counter = 0; counter < 4; counter++, i_copy += 0x40) {
+         i = i_copy;
+         for (j = 4; j < 0x3C; j++) {
+-            if (shadowTex[i_copy + j] < D_80897518[counter]) {
+-                shadowTex[i_copy + j] = D_80897518[counter];
++            if (shadowTex[i_copy + j] < sShadowBaseRowAlphas[counter]) {  // was D_80897518 [LLM:HIGH]
++                shadowTex[i_copy + j] = sShadowBaseRowAlphas[counter];  // was D_80897518 [LLM:HIGH]
+             }
+         }
+         shadowTex[i + 0x3C] = 0x20;
+@@ -410,7 +429,7 @@ void BgJyaCobra_Init(Actor* thisx, PlayState* play) {
+         BgJyaCobra_SpawnRay(this, play);
+     }
+ 
+-    func_80896918(this, play);
++    BgJyaCobra_SetupIdle(this, play);  // was func_80896918 [LLM:HIGH]
+ 
+     if ((this->dyna.actor.params & 3) == 1 || (this->dyna.actor.params & 3) == 2) {
+         this->dyna.actor.room = -1;
+@@ -431,20 +450,20 @@ void BgJyaCobra_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80896918(BgJyaCobra* this, PlayState* play) {
+-    this->actionFunc = func_80896950;
++void BgJyaCobra_SetupIdle(BgJyaCobra* this, PlayState* play) {
++    this->actionFunc = BgJyaCobra_Idle;  // was func_80896950 [LLM:HIGH]
+     this->unk_168 = 0;
+     this->dyna.actor.shape.rot.y = this->dyna.actor.world.rot.y =
+         (this->unk_16C * 0x2000) + this->dyna.actor.home.rot.y;
+ }
+ 
+-void func_80896950(BgJyaCobra* this, PlayState* play) {
++void BgJyaCobra_Idle(BgJyaCobra* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (this->dyna.unk_150 > 0.001f) {
+         this->unk_168++;
+         if (this->unk_168 >= (15 - CVarGetInteger(CVAR_ENHANCEMENT("FasterBlockPush"), 0) * 2)) {
+-            func_808969F8(this, play);
++            BgJyaCobra_SetupTurn(this, play);  // was func_808969F8 [LLM:HIGH]
+         }
+     } else {
+         this->unk_168 = 0;
+@@ -456,12 +475,12 @@ void func_80896950(BgJyaCobra* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808969F8(BgJyaCobra* this, PlayState* play) {
++void BgJyaCobra_SetupTurn(BgJyaCobra* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 phi_a3;
+     s16 temp2;
+ 
+-    this->actionFunc = func_80896ABC;
++    this->actionFunc = BgJyaCobra_Turn;  // was func_80896ABC [LLM:HIGH]
+ 
+     temp2 = this->dyna.actor.yawTowardsPlayer - this->dyna.actor.shape.rot.y;
+     phi_a3 = (s16)(this->dyna.actor.shape.rot.y - this->dyna.unk_158);
+@@ -481,7 +500,7 @@ void func_808969F8(BgJyaCobra* this, PlayState* play) {
+     this->unk_16E = CVarGetInteger(CVAR_ENHANCEMENT("FasterBlockPush"), 0) * 20;
+ }
+ 
+-void func_80896ABC(BgJyaCobra* this, PlayState* play) {
++void BgJyaCobra_Turn(BgJyaCobra* this, PlayState* play) {
+     s16 temp_v0;
+     Player* player = GET_PLAYER(play);
+ 
+@@ -496,7 +515,7 @@ void func_80896ABC(BgJyaCobra* this, PlayState* play) {
+         this->unk_16C = (this->unk_16C + this->unk_16A) & 7;
+         player->stateFlags2 &= ~PLAYER_STATE2_MOVING_DYNAPOLY;
+         this->dyna.unk_150 = 0.0f;
+-        func_80896918(this, play);
++        BgJyaCobra_SetupIdle(this, play);  // was func_80896918 [LLM:HIGH]
+     } else {
+         this->dyna.actor.shape.rot.y = this->dyna.actor.world.rot.y =
+             (this->unk_16C * 0x2000) + this->dyna.actor.home.rot.y + this->unk_170;
+@@ -504,7 +523,7 @@ void func_80896ABC(BgJyaCobra* this, PlayState* play) {
+ 
+     if (player->stateFlags2 & PLAYER_STATE2_MOVING_DYNAPOLY) {
+         if (this->unk_172) {
+-            func_80895BEC(this, play);
++            BgJyaCobra_CarryPlayer(this, play);  // was func_80895BEC [LLM:HIGH]
+         }
+     } else if (fabsf(this->dyna.unk_150) < 0.001f) {
+         this->unk_172 = false;
+@@ -520,15 +539,16 @@ void BgJyaCobra_Update(Actor* thisx, PlayState* play2) {
+ 
+     this->actionFunc(this, play);
+ 
+-    func_80895C74(this, play);
+-    func_80895A70(this);
++    BgJyaCobra_UpdateBeamParams(this, play);  // was func_80895C74 [LLM:HIGH]
++    BgJyaCobra_UpdateLightBeam(this);  // was func_80895A70 [LLM:HIGH]
+ 
+     if ((this->dyna.actor.params & 3) == 0 || (this->dyna.actor.params & 3) == 2) {
+         BgJyaCobra_UpdateShadowFromSide(this);
+     }
+ }
+ 
+-void func_80896CB4(PlayState* play) {
++// LLM generated name (GUESS), was func_80896CB4: draws gCobra2DL in the XLU pass with no color or matrix of its own; the display list name gives no hint beyond that it is the second cobra piece
++void BgJyaCobra_DrawMirrorSurface(PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+@@ -538,14 +558,15 @@ void func_80896CB4(PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80896D78(BgJyaCobra* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80896D78: draws gCobra3DL at the beam origin, stretched by the beam length and faded by the beam brightness
++void BgJyaCobra_DrawLightBeam(BgJyaCobra* this, PlayState* play) {
+     s32 pad;
+     Vec3s sp44;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+ 
+-    sp44.x = D_80897308[this->dyna.actor.params & 3] + this->dyna.actor.shape.rot.x;
++    sp44.x = sBeamPitchOffsets[this->dyna.actor.params & 3] + this->dyna.actor.shape.rot.x;  // was D_80897308 [LLM:HIGH]
+     sp44.y = this->dyna.actor.shape.rot.y;
+     sp44.z = this->dyna.actor.shape.rot.z;
+     Matrix_SetTranslateRotateYXZ(this->unk_180.x, this->unk_180.y, this->unk_180.z, &sp44);
+@@ -572,25 +593,25 @@ void BgJyaCobra_DrawShadow(BgJyaCobra* this, PlayState* play) {
+         sp64.x = this->dyna.actor.world.pos.x - 50.0f;
+         sp64.y = this->dyna.actor.world.pos.y;
+         sp64.z = this->dyna.actor.world.pos.z;
+-        phi_a3 = &D_80897538;
++        phi_a3 = &sShadowRotParams0;  // was D_80897538 [LLM:HIGH]
+     } else if (params == 2) {
+         sp64.x = this->dyna.actor.world.pos.x + 70.0f;
+         sp64.y = this->dyna.actor.world.pos.y;
+         sp64.z = this->dyna.actor.world.pos.z;
+-        phi_a3 = &D_80897540;
++        phi_a3 = &sShadowRotParams2;  // was D_80897540 [LLM:HIGH]
+     } else { // params == 1
+         phi_a3 = &this->dyna.actor.shape.rot;
+         Math_Vec3f_Copy(&sp64, &this->dyna.actor.world.pos);
+     }
+ 
+     // Fixes cobra statue shadow texture not updating when rotating it
+-    if (this->actionFunc == func_80896ABC) {
++    if (this->actionFunc == BgJyaCobra_Turn) {  // was func_80896ABC [LLM:HIGH]
+         gSPInvalidateTexCache(POLY_XLU_DISP++, COBRA_SHADOW_TEX_PTR(this));
+     }
+ 
+     Matrix_SetTranslateRotateYXZ(sp64.x, sp64.y, sp64.z, phi_a3);
+ 
+-    Matrix_Scale(D_80897548[params].x, D_80897548[params].y, D_80897548[params].z, MTXMODE_APPLY);
++    Matrix_Scale(sShadowScales[params].x, sShadowScales[params].y, sShadowScales[params].z, MTXMODE_APPLY);  // was D_80897548 [LLM:HIGH]
+     Matrix_Translate(0.0f, 0.0f, 40.0f, MTXMODE_APPLY);
+ 
+     gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 0, 0, 0, 120);
+@@ -608,11 +629,11 @@ void BgJyaCobra_DrawShadow(BgJyaCobra* this, PlayState* play) {
+ void BgJyaCobra_Draw(Actor* thisx, PlayState* play) {
+     BgJyaCobra* this = (BgJyaCobra*)thisx;
+ 
+-    func_80896CB4(play);
++    BgJyaCobra_DrawMirrorSurface(play);  // was func_80896CB4 [LLM:GUESS]
+     Gfx_DrawDListOpa(play, gCobra1DL);
+ 
+     if (this->unk_18C > 0.0f) {
+-        func_80896D78(this, play);
++        BgJyaCobra_DrawLightBeam(this, play);  // was func_80896D78 [LLM:HIGH]
+     }
+ 
+     if ((this->dyna.actor.params & 3) == 2) {
+-- 
+2.55.0
+

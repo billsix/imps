@@ -1,0 +1,754 @@
+From 219b548d77d91a055cf4c9e6de18b82b5a203d0b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:30 +0000
+Subject: [PATCH 362/488] soh: name the 23 address-named symbols defined in
+ z_en_niw.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 23 are defined in soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c; updating their references touches 3 files in total.
+
+  * func_80AB5BF8 -> EnNiw_AnimateLimbs
+    deduced, confidence HIGH: drives the unk_26C[] limb rotations from a
+    mode argument, alternating on timer1/timer2 to flap the wings and bob
+    the head
+
+  * func_80AB6100 -> EnNiw_HopTowardTarget
+    deduced, confidence HIGH: hops whenever grounded and steers world.rot.y
+    toward unk_2E4 with an alternating wobble from sYawWobbleAmounts
+
+  * func_80AB6324 -> EnNiw_WaitToFlyOff
+    deduced, confidence GUESS: the params 0xD idle: does nothing until
+    unk_308 is set, then launches upward; unk_308's setter is outside this
+    overlay, so the trigger is inferred from the launch it performs
+
+  * func_80AB63A8 -> EnNiw_Airborne
+    deduced, confidence HIGH: holds until the cucco touches ground on the
+    way down, then clears its motion state and returns to idle
+
+  * func_80AB6450 -> EnNiw_WaitToBeLifted
+    deduced, confidence HIGH: the params 4 idle: offers itself with GI_NONE
+    so the player can pick it up, and reacts to being stood on
+
+  * func_80AB6570 -> EnNiw_Idle
+    deduced, confidence HIGH: the default idle: offers itself to be carried,
+    or starts down its path for the params 0xA river cucco
+
+  * func_80AB6A38 -> EnNiw_FollowPath
+    deduced, confidence HIGH: walks the setup path waypoint by waypoint,
+    hopping toward each with EnNiw_HopTowardTarget
+
+  * func_80AB6BF8 -> EnNiw_Held
+    deduced, confidence HIGH: tumbles randomly while the player carries it
+    and picks the next action on release
+
+  * func_80AB6D08 -> EnNiw_FlutterAfterRelease
+    deduced, confidence GUESS: the post-release state: flaps back to 4
+    y-velocity whenever it lands and counts down the stay timer; whether
+    this is gliding or hovering is not settled by the code, so the name
+    records the flap-and-descend loop
+
+  * func_80AB6EB4 -> EnNiw_FlyAway
+    deduced, confidence HIGH: rises until y passes 400 and then kills the
+    actor
+
+  * func_80AB6F04 -> EnNiw_Swim
+    deduced, confidence HIGH: the water state: cancels gravity, rides the
+    surface spawning ripples, and bounces off walls
+
+  * func_80AB70A0 -> EnNiw_SetupSwarmCutscene
+    deduced, confidence HIGH: opens the one-point cutscene for the cucco
+    swarm and starts the wind-up
+
+  * func_80AB70A0_nocutscene -> EnNiw_SetupSwarmNoCutscene
+    deduced, confidence HIGH: the port's cutscene-free variant of
+    EnNiw_SetupSwarmCutscene; renamed with it so its name does not cite a
+    symbol that no longer exists
+
+  * func_80AB70F8 -> EnNiw_SwarmWindUp
+    deduced, confidence HIGH: holds for the cutscene timer, then arms the
+    crow that precedes the swarm
+
+  * func_80AB714C -> EnNiw_SwarmCall
+    deduced, confidence HIGH: throws the head and wings up with
+    NA_SE_EV_CHICKEN_CRY_M at frame 40 and then charges the player
+
+  * func_80AB7204 -> EnNiw_SwarmAttack
+    deduced, confidence HIGH: spawns the attacking cuccos and runs at the
+    player
+
+  * func_80AB7290 -> EnNiw_SetupFlee
+    deduced, confidence HIGH: restarts gCuccoAnim and installs the flee
+    action at speed 4
+
+  * func_80AB7328 -> EnNiw_Flee
+    deduced, confidence HIGH: runs directly away from the player until
+    timer6 expires, then resets its state
+
+  * func_80AB7420 -> EnNiw_WaitToLand
+    deduced, confidence HIGH: waits for ground contact, then re-arms the hit
+    counter and returns to idle
+
+  * func_80AB747C -> EnNiw_CheckHit
+    deduced, confidence HIGH: on AC_HIT decrements the hit counter, cries,
+    and sends the cucco fleeing
+
+  * D_80AB85E0 -> sCuccoSwarmActive
+    deduced, confidence HIGH: overlay-wide flag set once a cucco has been
+    hit enough times to summon the swarm, and cleared by the reset hook
+
+  * D_80AB8604 -> sSwayTargets
+    deduced, confidence GUESS: the two alternating targets, +/-5000, that
+    unk_26C[9] approaches while the cucco stands still; the limb that field
+    drives is not established
+
+  * D_80AB860C -> sYawWobbleAmounts
+    deduced, confidence HIGH: per-mode amount alternately added to and
+    subtracted from the target yaw in EnNiw_HopTowardTarget
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../GameInteractor_RawAction.cpp              |   2 +-
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c | 213 ++++++++++--------
+ soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h |   4 +-
+ 3 files changed, 121 insertions(+), 98 deletions(-)
+
+diff --git a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
+index 45c729c8e..e48ad071a 100644
+--- a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
++++ b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
+@@ -573,7 +573,7 @@ GameInteractionEffectQueryResult GameInteractor::RawAction::SpawnActor(uint32_t
+         if (nameTag != "" && CVarGetInteger(CVAR_REMOTE_CROWD_CONTROL("EnemyNameTags"), 0)) {
+             NameTag_RegisterForActor((Actor*)cucco, nameTag.c_str());
+         }
+-        cucco->actionFunc = func_80AB70A0_nocutscene;
++        cucco->actionFunc = EnNiw_SetupSwarmNoCutscene;  // was func_80AB70A0_nocutscene [LLM:HIGH]
+         return GameInteractionEffectQueryResult::Possible;
+     } else if (actorId == ACTOR_EN_BOM) {
+         // Spawn a bomb, make it explode instantly when params is set to 1 to emulate spawning an explosion
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+index 19fc7a801..963d56ff2 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.c
+@@ -20,24 +20,38 @@ void EnNiw_Draw(Actor* thisx, PlayState* play);
+ void EnNiw_Reset(void);
+ 
+ void EnNiw_ResetAction(EnNiw* this, PlayState* play);
+-void func_80AB6324(EnNiw* this, PlayState* play);
+-void func_80AB63A8(EnNiw* this, PlayState* play);
+-void func_80AB6450(EnNiw* this, PlayState* play);
+-void func_80AB6570(EnNiw* this, PlayState* play);
+-void func_80AB6A38(EnNiw* this, PlayState* play);
+-void func_80AB6BF8(EnNiw* this, PlayState* play);
+-void func_80AB6D08(EnNiw* this, PlayState* play);
+-void func_80AB6EB4(EnNiw* this, PlayState* play);
+-void func_80AB70F8(EnNiw* this, PlayState* play);
+-void func_80AB714C(EnNiw* this, PlayState* play);
+-void func_80AB7204(EnNiw* this, PlayState* play);
+-void func_80AB7290(EnNiw* this, PlayState* play);
+-void func_80AB7328(EnNiw* this, PlayState* play);
++// LLM generated name (GUESS), was func_80AB6324: the params 0xD idle: does nothing until unk_308 is set, then launches upward; unk_308's setter is outside this overlay, so the trigger is inferred from the launch it performs
++void EnNiw_WaitToFlyOff(EnNiw* this, PlayState* play);  // was func_80AB6324 [LLM:GUESS]
++// LLM generated name (HIGH), was func_80AB63A8: holds until the cucco touches ground on the way down, then clears its motion state and returns to idle
++void EnNiw_Airborne(EnNiw* this, PlayState* play);  // was func_80AB63A8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB6450: the params 4 idle: offers itself with GI_NONE so the player can pick it up, and reacts to being stood on
++void EnNiw_WaitToBeLifted(EnNiw* this, PlayState* play);  // was func_80AB6450 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB6570: the default idle: offers itself to be carried, or starts down its path for the params 0xA river cucco
++void EnNiw_Idle(EnNiw* this, PlayState* play);  // was func_80AB6570 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB6A38: walks the setup path waypoint by waypoint, hopping toward each with EnNiw_HopTowardTarget
++void EnNiw_FollowPath(EnNiw* this, PlayState* play);  // was func_80AB6A38 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB6BF8: tumbles randomly while the player carries it and picks the next action on release
++void EnNiw_Held(EnNiw* this, PlayState* play);  // was func_80AB6BF8 [LLM:HIGH]
++// LLM generated name (GUESS), was func_80AB6D08: the post-release state: flaps back to 4 y-velocity whenever it lands and counts down the stay timer; whether this is gliding or hovering is not settled by the code, so the name records the flap-and-descend loop
++void EnNiw_FlutterAfterRelease(EnNiw* this, PlayState* play);  // was func_80AB6D08 [LLM:GUESS]
++// LLM generated name (HIGH), was func_80AB6EB4: rises until y passes 400 and then kills the actor
++void EnNiw_FlyAway(EnNiw* this, PlayState* play);  // was func_80AB6EB4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB70F8: holds for the cutscene timer, then arms the crow that precedes the swarm
++void EnNiw_SwarmWindUp(EnNiw* this, PlayState* play);  // was func_80AB70F8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB714C: throws the head and wings up with NA_SE_EV_CHICKEN_CRY_M at frame 40 and then charges the player
++void EnNiw_SwarmCall(EnNiw* this, PlayState* play);  // was func_80AB714C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB7204: spawns the attacking cuccos and runs at the player
++void EnNiw_SwarmAttack(EnNiw* this, PlayState* play);  // was func_80AB7204 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB7290: restarts gCuccoAnim and installs the flee action at speed 4
++void EnNiw_SetupFlee(EnNiw* this, PlayState* play);  // was func_80AB7290 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB7328: runs directly away from the player until timer6 expires, then resets its state
++void EnNiw_Flee(EnNiw* this, PlayState* play);  // was func_80AB7328 [LLM:HIGH]
+ void EnNiw_FeatherSpawn(EnNiw* this, Vec3f* pos, Vec3f* vel, Vec3f* accel, f32 scale);
+ void EnNiw_FeatherUpdate(EnNiw* this, PlayState* play);
+ void EnNiw_FeatherDraw(EnNiw* this, PlayState* play);
+ 
+-static s16 D_80AB85E0 = 0;
++// LLM generated name (HIGH), was D_80AB85E0: overlay-wide flag set once a cucco has been hit enough times to summon the swarm, and cleared by the reset hook
++static s16 sCuccoSwarmActive = 0;  // was D_80AB85E0 [LLM:HIGH]
+ 
+ const ActorInit En_Niw_InitVars = {
+     ACTOR_EN_NIW,
+@@ -52,12 +66,14 @@ const ActorInit En_Niw_InitVars = {
+     (ActorResetFunc)EnNiw_Reset,
+ };
+ 
+-static f32 D_80AB8604[] = {
++// LLM generated name (GUESS), was D_80AB8604: the two alternating targets, +/-5000, that unk_26C[9] approaches while the cucco stands still; the limb that field drives is not established
++static f32 sSwayTargets[] = {  // was D_80AB8604 [LLM:GUESS]
+     5000.0f,
+     -5000.0f,
+ };
+ 
+-static f32 D_80AB860C[] = {
++// LLM generated name (HIGH), was D_80AB860C: per-mode amount alternately added to and subtracted from the target yaw in EnNiw_HopTowardTarget
++static f32 sYawWobbleAmounts[] = {  // was D_80AB860C [LLM:HIGH]
+     5000.0f,
+     3000.0f,
+     4000.0f,
+@@ -77,7 +93,7 @@ static u8 sLowerRiverSpawned = false;
+ static u8 sUpperRiverSpawned = false;
+ 
+ #define EN_NIW_SHIP_SAVESTATE_FIELDS(F) \
+-    F(D_80AB85E0)                       \
++    F(sCuccoSwarmActive)                       \
+     F(sLowerRiverSpawned)               \
+     F(sUpperRiverSpawned)
+ 
+@@ -256,7 +272,8 @@ void EnNiw_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80AB5BF8(EnNiw* this, PlayState* play, s16 arg2) {
++// LLM generated name (HIGH), was func_80AB5BF8: drives the unk_26C[] limb rotations from a mode argument, alternating on timer1/timer2 to flap the wings and bob the head
++void EnNiw_AnimateLimbs(EnNiw* this, PlayState* play, s16 arg2) {
+     f32 factor = 1.0f;
+ 
+     if (this->actor.params == 0xD) {
+@@ -377,7 +394,8 @@ void EnNiw_SpawnAttackCucco(EnNiw* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AB6100(EnNiw* this, PlayState* play, s32 arg2) {
++// LLM generated name (HIGH), was func_80AB6100: hops whenever grounded and steers world.rot.y toward unk_2E4 with an alternating wobble from sYawWobbleAmounts
++void EnNiw_HopTowardTarget(EnNiw* this, PlayState* play, s32 arg2) {
+     f32 factor;
+     f32 targetRotY;
+ 
+@@ -394,9 +412,9 @@ void func_80AB6100(EnNiw* this, PlayState* play, s32 arg2) {
+         this->timer3 = 5;
+     }
+     if (this->unk_2A0 == 0) {
+-        factor = D_80AB860C[arg2];
++        factor = sYawWobbleAmounts[arg2];  // was D_80AB860C [LLM:HIGH]
+     } else {
+-        factor = -D_80AB860C[arg2];
++        factor = -sYawWobbleAmounts[arg2];  // was D_80AB860C [LLM:HIGH]
+     }
+     if (arg2 == 1) {
+         if (this->timer6 == 0 || this->actor.bgCheckFlags & BGCHECKFLAG_WALL) {
+@@ -410,7 +428,7 @@ void func_80AB6100(EnNiw* this, PlayState* play, s32 arg2) {
+     targetRotY = this->unk_2E4 + factor;
+     Math_SmoothStepToS(&this->actor.world.rot.y, targetRotY, 3, this->unk_2FC, 0);
+     Math_ApproachF(&this->unk_2FC, 3000.0f, 1.0f, 500.0f);
+-    func_80AB5BF8(this, play, 5);
++    EnNiw_AnimateLimbs(this, play, 5);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+ void EnNiw_ResetAction(EnNiw* this, PlayState* play) {
+@@ -419,27 +437,27 @@ void EnNiw_ResetAction(EnNiw* this, PlayState* play) {
+ 
+     switch (this->actor.params) {
+         case 4:
+-            this->actionFunc = func_80AB6450;
++            this->actionFunc = EnNiw_WaitToBeLifted;  // was func_80AB6450 [LLM:HIGH]
+             break;
+         case 0xD:
+-            this->actionFunc = func_80AB6324;
++            this->actionFunc = EnNiw_WaitToFlyOff;  // was func_80AB6324 [LLM:GUESS]
+             break;
+         default:
+-            this->actionFunc = func_80AB6570;
++            this->actionFunc = EnNiw_Idle;  // was func_80AB6570 [LLM:HIGH]
+             break;
+     }
+ }
+ 
+-void func_80AB6324(EnNiw* this, PlayState* play) {
++void EnNiw_WaitToFlyOff(EnNiw* this, PlayState* play) {
+     if (this->unk_308 != 0) {
+         this->actor.velocity.y = Rand_ZeroFloat(2.0f) + 4.0f;
+         this->actor.speedXZ = Rand_ZeroFloat(2.0f) + 3.0f;
+-        this->actionFunc = func_80AB63A8;
++        this->actionFunc = EnNiw_Airborne;  // was func_80AB63A8 [LLM:HIGH]
+     }
+-    func_80AB5BF8(this, play, 1);
++    EnNiw_AnimateLimbs(this, play, 1);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB63A8(EnNiw* this, PlayState* play) {
++void EnNiw_Airborne(EnNiw* this, PlayState* play) {
+     if (this->actor.bgCheckFlags & 1 && this->actor.velocity.y < 0.0f) {
+         this->unk_2AC.x = this->unk_2B8.x = this->actor.world.pos.x;
+         this->unk_2AC.y = this->unk_2B8.y = this->actor.world.pos.y;
+@@ -449,19 +467,19 @@ void func_80AB63A8(EnNiw* this, PlayState* play) {
+         this->unk_26C[7] = this->unk_26C[5] = this->unk_26C[6] = this->unk_26C[8] = this->actor.speedXZ =
+             this->unk_2FC = this->unk_300 = 0.0f;
+ 
+-        this->actionFunc = func_80AB6570;
++        this->actionFunc = EnNiw_Idle;  // was func_80AB6570 [LLM:HIGH]
+     } else {
+-        func_80AB5BF8(this, play, 2);
++        EnNiw_AnimateLimbs(this, play, 2);  // was func_80AB5BF8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AB6450(EnNiw* this, PlayState* play) {
++void EnNiw_WaitToBeLifted(EnNiw* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (this->actor.xzDistToPlayer < 30.0f && fabsf(this->actor.world.pos.y - player->actor.world.pos.y) < 5.0f) {
+         this->timer6 = 100;
+         this->actor.gravity = -2.0f;
+-        this->actionFunc = func_80AB7290;
++        this->actionFunc = EnNiw_SetupFlee;  // was func_80AB7290 [LLM:HIGH]
+     } else if (Actor_HasParent(&this->actor, play)) {
+         this->actor.gravity = -2.0f;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EV_CHICKEN_CRY_M);
+@@ -470,15 +488,15 @@ void func_80AB6450(EnNiw* this, PlayState* play) {
+         this->timer4 = 30;
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+         this->actor.speedXZ = 0.0f;
+-        this->actionFunc = func_80AB6BF8;
++        this->actionFunc = EnNiw_Held;  // was func_80AB6BF8 [LLM:HIGH]
+     } else {
+         // GI_NONE in this case allows the player to lift the actor
+         Actor_OfferGetItem(&this->actor, play, GI_NONE, 25.0f, 10.0f);
+-        func_80AB5BF8(this, play, 1);
++        EnNiw_AnimateLimbs(this, play, 1);  // was func_80AB5BF8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AB6570(EnNiw* this, PlayState* play) {
++void EnNiw_Idle(EnNiw* this, PlayState* play) {
+     s32 pad[2];
+     f32 posY = Rand_CenteredFloat(100.0f);
+     f32 posZ = Rand_CenteredFloat(100.0f);
+@@ -492,7 +510,7 @@ void func_80AB6570(EnNiw* this, PlayState* play) {
+             this->timer4 = 30;
+             this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+             this->actor.speedXZ = 0.0f;
+-            this->actionFunc = func_80AB6BF8;
++            this->actionFunc = EnNiw_Held;  // was func_80AB6BF8 [LLM:HIGH]
+             return;
+         }
+         Actor_OfferCarry(&this->actor, play);
+@@ -507,7 +525,7 @@ void func_80AB6570(EnNiw* this, PlayState* play) {
+             this->actor.speedXZ = 4.0f;
+             this->unk_300 = 0.0f;
+             this->unk_2FC = 0.0f;
+-            this->actionFunc = func_80AB6A38;
++            this->actionFunc = EnNiw_FollowPath;  // was func_80AB6A38 [LLM:HIGH]
+             return;
+         }
+     }
+@@ -519,7 +537,7 @@ void func_80AB6570(EnNiw* this, PlayState* play) {
+             this->unk_2E6++;
+             this->unk_2E6 &= 1;
+         }
+-        Math_ApproachF(&this->unk_26C[9], D_80AB8604[this->unk_2E6], 0.5f, 4000.0f);
++        Math_ApproachF(&this->unk_26C[9], sSwayTargets[this->unk_2E6], 0.5f, 4000.0f);  // was D_80AB8604 [LLM:GUESS]
+     }
+ 
+     if (this->timer5 == 0 && this->timer4 == 0) {
+@@ -588,10 +606,10 @@ void func_80AB6570(EnNiw* this, PlayState* play) {
+         Math_ApproachF(&this->unk_300, 10000.0f, 1.0f, 1000.0f);
+     }
+ 
+-    func_80AB5BF8(this, play, tmp);
++    EnNiw_AnimateLimbs(this, play, tmp);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB6A38(EnNiw* this, PlayState* play) {
++void EnNiw_FollowPath(EnNiw* this, PlayState* play) {
+     Path* path;
+     Vec3s* pointPos;
+     f32 pathDiffX;
+@@ -613,7 +631,7 @@ void func_80AB6A38(EnNiw* this, PlayState* play) {
+         pathDiffX = pointPos->x - this->actor.world.pos.x;
+         pathDiffZ = pointPos->z - this->actor.world.pos.z;
+         this->unk_2E4 = Math_FAtan2F(pathDiffX, pathDiffZ) * (0x8000 / M_PI);
+-        func_80AB6100(this, play, 2);
++        EnNiw_HopTowardTarget(this, play, 2);  // was func_80AB6100 [LLM:HIGH]
+ 
+         if (fabsf(pathDiffX) < 30.0f && fabsf(pathDiffZ) < 30.0f) {
+             this->waypoint++;
+@@ -622,11 +640,11 @@ void func_80AB6A38(EnNiw* this, PlayState* play) {
+             }
+         }
+ 
+-        func_80AB5BF8(this, play, 2);
++        EnNiw_AnimateLimbs(this, play, 2);  // was func_80AB5BF8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AB6BF8(EnNiw* this, PlayState* play) {
++void EnNiw_Held(EnNiw* this, PlayState* play) {
+     if (this->timer4 == 0) {
+         this->unk_2A6 = 2;
+         this->timer4 = 10;
+@@ -640,7 +658,7 @@ void func_80AB6BF8(EnNiw* this, PlayState* play) {
+         if (this->actor.params == 0xD) {
+             this->sfxTimer1 = 0;
+             this->unk_2A6 = 1;
+-            this->actionFunc = func_80AB6EB4;
++            this->actionFunc = EnNiw_FlyAway;  // was func_80AB6EB4 [LLM:HIGH]
+             this->actor.velocity.y = 4.0f;
+             return;
+         }
+@@ -648,12 +666,12 @@ void func_80AB6BF8(EnNiw* this, PlayState* play) {
+         this->actor.shape.rot.y = this->actor.shape.rot.z;
+         this->actor.shape.rot.x = this->actor.shape.rot.z;
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+-        this->actionFunc = func_80AB6D08;
++        this->actionFunc = EnNiw_FlutterAfterRelease;  // was func_80AB6D08 [LLM:GUESS]
+     }
+-    func_80AB5BF8(this, play, 2);
++    EnNiw_AnimateLimbs(this, play, 2);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB6D08(EnNiw* this, PlayState* play) {
++void EnNiw_FlutterAfterRelease(EnNiw* this, PlayState* play) {
+     if (this->path == 0) {
+         if (!(this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+             return;
+@@ -685,7 +703,7 @@ void func_80AB6D08(EnNiw* this, PlayState* play) {
+             this->timer6 = 100;
+             this->timer4 = 0;
+             this->path = 0;
+-            this->actionFunc = func_80AB7290;
++            this->actionFunc = EnNiw_SetupFlee;  // was func_80AB7290 [LLM:HIGH]
+             return;
+         }
+     }
+@@ -697,24 +715,25 @@ void func_80AB6D08(EnNiw* this, PlayState* play) {
+         this->timer4 = 30;
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+         this->actor.speedXZ = 0.0f;
+-        this->actionFunc = func_80AB6BF8;
++        this->actionFunc = EnNiw_Held;  // was func_80AB6BF8 [LLM:HIGH]
+     } else {
+         if (this->timer5 >= 6) {
+             Actor_OfferCarry(&this->actor, play);
+         }
+-        func_80AB5BF8(this, play, 2);
++        EnNiw_AnimateLimbs(this, play, 2);  // was func_80AB5BF8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AB6EB4(EnNiw* this, PlayState* play) {
++void EnNiw_FlyAway(EnNiw* this, PlayState* play) {
+     if (this->actor.world.pos.y > 400.0f) {
+         Actor_Kill(&this->actor);
+     }
+ 
+-    func_80AB5BF8(this, play, 2);
++    EnNiw_AnimateLimbs(this, play, 2);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB6F04(EnNiw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB6F04: the water state: cancels gravity, rides the surface spawning ripples, and bounces off walls
++void EnNiw_Swim(EnNiw* this, PlayState* play) {
+     Vec3f pos;
+ 
+     if (this->unk_2A8 != 0) {
+@@ -755,43 +774,45 @@ void func_80AB6F04(EnNiw* this, PlayState* play) {
+             this->timer4 = 0;
+             this->actor.velocity.y = 0.0f;
+             if (this->unk_2A8 == 0) {
+-                this->actionFunc = func_80AB7290;
++                this->actionFunc = EnNiw_SetupFlee;  // was func_80AB7290 [LLM:HIGH]
+             } else {
+-                this->actionFunc = func_80AB7204;
++                this->actionFunc = EnNiw_SwarmAttack;  // was func_80AB7204 [LLM:HIGH]
+             }
+         }
+     }
+ 
+-    func_80AB5BF8(this, play, 2);
++    EnNiw_AnimateLimbs(this, play, 2);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB70A0(EnNiw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB70A0: opens the one-point cutscene for the cucco swarm and starts the wind-up
++void EnNiw_SetupSwarmCutscene(EnNiw* this, PlayState* play) {
+     OnePointCutscene_Init(play, 2290, -99, &this->actor, CAM_ID_MAIN);
+     this->timer5 = 100;
+     this->unk_2A2 = 1;
+-    this->actionFunc = func_80AB70F8;
++    this->actionFunc = EnNiw_SwarmWindUp;  // was func_80AB70F8 [LLM:HIGH]
+ }
+ 
+-void func_80AB70A0_nocutscene(EnNiw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB70A0_nocutscene: the port's cutscene-free variant of EnNiw_SetupSwarmCutscene; renamed with it so its name does not cite a symbol that no longer exists
++void EnNiw_SetupSwarmNoCutscene(EnNiw* this, PlayState* play) {
+     this->timer5 = 10;
+     this->unk_2A2 = 1;
+-    this->actionFunc = func_80AB70F8;
++    this->actionFunc = EnNiw_SwarmWindUp;  // was func_80AB70F8 [LLM:HIGH]
+ }
+ 
+-void func_80AB70F8(EnNiw* this, PlayState* play) {
++void EnNiw_SwarmWindUp(EnNiw* this, PlayState* play) {
+     this->sfxTimer1 = 100;
+ 
+     if (this->timer5 == 0) {
+         this->timer5 = 60;
+         this->timer1 = 10;
+         this->unk_2A2 = 4;
+-        this->actionFunc = func_80AB714C;
++        this->actionFunc = EnNiw_SwarmCall;  // was func_80AB714C [LLM:HIGH]
+     }
+ 
+-    func_80AB5BF8(this, play, this->unk_2A2);
++    EnNiw_AnimateLimbs(this, play, this->unk_2A2);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB714C(EnNiw* this, PlayState* play) {
++void EnNiw_SwarmCall(EnNiw* this, PlayState* play) {
+     this->sfxTimer1 = 100;
+ 
+     if (this->timer5 == 40) {
+@@ -809,13 +830,13 @@ void func_80AB714C(EnNiw* this, PlayState* play) {
+         this->timer7 = 10;
+         this->unk_2E4 = this->actor.yawTowardsPlayer;
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+-        this->actionFunc = func_80AB7204;
++        this->actionFunc = EnNiw_SwarmAttack;  // was func_80AB7204 [LLM:HIGH]
+     }
+ 
+-    func_80AB5BF8(this, play, this->unk_2A2);
++    EnNiw_AnimateLimbs(this, play, this->unk_2A2);  // was func_80AB5BF8 [LLM:HIGH]
+ }
+ 
+-void func_80AB7204(EnNiw* this, PlayState* play) {
++void EnNiw_SwarmAttack(EnNiw* this, PlayState* play) {
+     EnNiw_SpawnAttackCucco(this, play);
+ 
+     if (this->timer7 < 2) {
+@@ -824,20 +845,20 @@ void func_80AB7204(EnNiw* this, PlayState* play) {
+             this->unk_2A0 = Rand_ZeroFloat(1.99f);
+             this->timer1 = this->timer2 = this->timer3 = this->timer4 = 0;
+         } else {
+-            func_80AB6100(this, play, 1);
++            EnNiw_HopTowardTarget(this, play, 1);  // was func_80AB6100 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80AB7290(EnNiw* this, PlayState* play) {
++void EnNiw_SetupFlee(EnNiw* this, PlayState* play) {
+     Animation_Change(&this->skelAnime, &gCuccoAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gCuccoAnim), ANIMMODE_LOOP,
+                      -10.0f);
+     this->unk_2A0 = Rand_ZeroFloat(1.99f);
+     this->actor.speedXZ = 4.0f;
+-    this->actionFunc = func_80AB7328;
++    this->actionFunc = EnNiw_Flee;  // was func_80AB7328 [LLM:HIGH]
+ }
+ 
+-void func_80AB7328(EnNiw* this, PlayState* play) {
++void EnNiw_Flee(EnNiw* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (this->timer6 == 0) {
+@@ -855,31 +876,33 @@ void func_80AB7328(EnNiw* this, PlayState* play) {
+         this->unk_2E4 = Math_FAtan2F(this->actor.world.pos.x - player->actor.world.pos.x,
+                                      this->actor.world.pos.z - player->actor.world.pos.z) *
+                         (0x8000 / M_PI);
+-        func_80AB6100(this, play, 0);
+-        func_80AB5BF8(this, play, 2);
++        EnNiw_HopTowardTarget(this, play, 0);  // was func_80AB6100 [LLM:HIGH]
++        EnNiw_AnimateLimbs(this, play, 2);  // was func_80AB5BF8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80AB7420(EnNiw* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AB7420: waits for ground contact, then re-arms the hit counter and returns to idle
++void EnNiw_WaitToLand(EnNiw* this, PlayState* play) {
+     if (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) {
+         this->unk_2A4 = (s16)Rand_ZeroFloat(3.99f) + 5;
+         this->actionFunc = EnNiw_ResetAction;
+     }
+ }
+ 
+-void func_80AB747C(EnNiw* this, PlayState* play) {
+-    if (this->unk_2A8 == 0 && this->actor.params != 0xA && this->actionFunc != func_80AB6450 &&
++// LLM generated name (HIGH), was func_80AB747C: on AC_HIT decrements the hit counter, cries, and sends the cucco fleeing
++void EnNiw_CheckHit(EnNiw* this, PlayState* play) {
++    if (this->unk_2A8 == 0 && this->actor.params != 0xA && this->actionFunc != EnNiw_WaitToBeLifted &&  // was func_80AB6450 [LLM:HIGH]
+         this->collider.base.acFlags & AC_HIT) {
+         this->collider.base.acFlags &= ~AC_HIT;
+         this->sfxTimer1 = 30;
+-        if (this->unk_2A4 > 0 && D_80AB85E0 == 0) {
++        if (this->unk_2A4 > 0 && sCuccoSwarmActive == 0) {  // was D_80AB85E0 [LLM:HIGH]
+             this->unk_2A4--;
+         }
+         this->unk_2A6 = 1;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EV_CHICKEN_CRY_M);
+         this->timer6 = 100;
+         this->path = 0;
+-        this->actionFunc = func_80AB7290;
++        this->actionFunc = EnNiw_SetupFlee;  // was func_80AB7290 [LLM:HIGH]
+     }
+ }
+ 
+@@ -903,7 +926,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+ 
+     this->unk_294++;
+ 
+-    if (this->actionFunc != func_80AB6570) {
++    if (this->actionFunc != EnNiw_Idle) {  // was func_80AB6570 [LLM:HIGH]
+         this->unk_26C[9] = 0.0f;
+     }
+     if (this->unk_2A6) {
+@@ -981,7 +1004,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+     Actor_SetFocus(&this->actor, this->unk_304);
+     Actor_MoveXZGravity(&this->actor);
+ 
+-    if (this->actionFunc != func_80AB6EB4 && this->actionFunc != func_80AB6450 && play->sceneNum != SCENE_ZORAS_RIVER) {
++    if (this->actionFunc != EnNiw_FlyAway && this->actionFunc != EnNiw_WaitToBeLifted && play->sceneNum != SCENE_ZORAS_RIVER) {  // was func_80AB6450 [LLM:HIGH]
+         Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 20.0f, 60.0f, 31);
+     }
+     if (play->sceneNum == SCENE_ZORAS_RIVER) {
+@@ -1036,11 +1059,11 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+         }
+ 
+         this->unk_2A8 = 0;
+-        this->actionFunc = func_80AB7420;
++        this->actionFunc = EnNiw_WaitToLand;  // was func_80AB7420 [LLM:HIGH]
+         return;
+     }
+ 
+-    if (thisx->bgCheckFlags & 0x20 && thisx->yDistToWater > 15.0f && this->actionFunc != func_80AB6F04 &&
++    if (thisx->bgCheckFlags & 0x20 && thisx->yDistToWater > 15.0f && this->actionFunc != EnNiw_Swim &&  // was func_80AB6F04 [LLM:HIGH]
+         thisx->params != 0xD && thisx->params != 0xE && thisx->params != 0xA) {
+         thisx->velocity.y = 0.0f;
+         thisx->gravity = 0.0f;
+@@ -1052,15 +1075,15 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+         osSyncPrintf("\n\n");
+         osSyncPrintf(VT_FGCOL(YELLOW) "☆☆☆☆☆ ぶくぶく ☆☆☆☆☆ \n" VT_RST);
+         osSyncPrintf("\n\n");
+-        this->actionFunc = func_80AB6F04;
++        this->actionFunc = EnNiw_Swim;  // was func_80AB6F04 [LLM:HIGH]
+         return;
+     }
+ 
+-    if (D_80AB85E0 == 0 && this->unk_2A4 <= 0 && thisx->params != 0xD && thisx->params != 0xE && thisx->params != 0xA) {
++    if (sCuccoSwarmActive == 0 && this->unk_2A4 <= 0 && thisx->params != 0xD && thisx->params != 0xE && thisx->params != 0xA) {  // was D_80AB85E0 [LLM:HIGH]
+         this->timer6 = 100;
+ 
+         if (thisx->xzDistToPlayer > 10.0f) {
+-            D_80AB85E0 = 1;
++            sCuccoSwarmActive = 1;  // was D_80AB85E0 [LLM:HIGH]
+             this->timer5 = this->timer4 = this->unk_29E = 0;
+             thisx->speedXZ = 0.0f;
+             this->unk_2FC = 0.0f;
+@@ -1074,7 +1097,7 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+             this->unk_2AC.x = this->unk_2B8.x = thisx->world.pos.x;
+             this->unk_2AC.y = this->unk_2B8.y = thisx->world.pos.y;
+             this->unk_2AC.z = this->unk_2B8.z = thisx->world.pos.z;
+-            this->actionFunc = func_80AB70A0;
++            this->actionFunc = EnNiw_SetupSwarmCutscene;  // was func_80AB70A0 [LLM:HIGH]
+             return;
+         }
+     }
+@@ -1085,14 +1108,14 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+         Actor_SetPlayerKnockbackLarge(play, &this->actor, 2.0f, thisx->world.rot.y, 0.0f, 0x10);
+     }
+ 
+-    func_80AB747C(this, play);
++    EnNiw_CheckHit(this, play);  // was func_80AB747C [LLM:HIGH]
+ 
+-    if (this->sfxTimer2 == 0 && this->actionFunc == func_80AB6BF8) {
++    if (this->sfxTimer2 == 0 && this->actionFunc == EnNiw_Held) {  // was func_80AB6BF8 [LLM:HIGH]
+         this->sfxTimer2 = 7;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_DEKU_WAKEUP);
+     }
+     if (this->sfxTimer1 == 0) {
+-        if (this->actionFunc != func_80AB6570) {
++        if (this->actionFunc != EnNiw_Idle) {  // was func_80AB6570 [LLM:HIGH]
+             this->sfxTimer1 = 30;
+             Audio_PlayActorSound2(&this->actor, NA_SE_EV_CHICKEN_CRY_A);
+         } else {
+@@ -1106,9 +1129,9 @@ void EnNiw_Update(Actor* thisx, PlayState* play) {
+         if (thisx->params != 0xA && thisx->params != 0xD && thisx->params != 0xE && thisx->params != 4) {
+             CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+         }
+-        if (this->actionFunc != func_80AB6BF8 && this->actionFunc != func_80AB6D08 &&
+-            this->actionFunc != func_80AB6324 && this->actionFunc != func_80AB63A8 &&
+-            this->actionFunc != func_80AB6450) {
++        if (this->actionFunc != EnNiw_Held && this->actionFunc != EnNiw_FlutterAfterRelease &&  // was func_80AB6BF8 [LLM:HIGH]
++            this->actionFunc != EnNiw_WaitToFlyOff && this->actionFunc != EnNiw_Airborne &&  // was func_80AB6324 [LLM:GUESS]
++            this->actionFunc != EnNiw_WaitToBeLifted) {  // was func_80AB6450 [LLM:HIGH]
+             CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+         }
+     }
+@@ -1146,7 +1169,7 @@ void EnNiw_Draw(Actor* thisx, PlayState* play) {
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnNiw_OverrideLimbDraw, NULL, this);
+ 
+-    if (this->actionFunc == func_80AB6450) {
++    if (this->actionFunc == EnNiw_WaitToBeLifted) {  // was func_80AB6450 [LLM:HIGH]
+         func_80033C30(&this->actor.world.pos, &scale, 255, play);
+     }
+ 
+@@ -1237,7 +1260,7 @@ void EnNiw_FeatherDraw(EnNiw* this, PlayState* play) {
+ }
+ 
+ void EnNiw_Reset(void) {
+-    D_80AB85E0 = 0;
++    sCuccoSwarmActive = 0;  // was D_80AB85E0 [LLM:HIGH]
+     sLowerRiverSpawned = false;
+     sUpperRiverSpawned = false;
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h
+index b6a6d96bb..b759ddb1a 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h
++++ b/soh/src/overlays/actors/ovl_En_Niw/z_en_niw.h
+@@ -82,8 +82,8 @@ typedef struct EnNiw {
+ extern "C"
+ {
+ #endif
+-    void func_80AB70A0(EnNiw* this, PlayState* play);
+-    void func_80AB70A0_nocutscene(EnNiw* this, PlayState* play);
++    void EnNiw_SetupSwarmCutscene(EnNiw* this, PlayState* play);  // was func_80AB70A0 [LLM:HIGH]
++    void EnNiw_SetupSwarmNoCutscene(EnNiw* this, PlayState* play);  // was func_80AB70A0_nocutscene [LLM:HIGH]
+ #ifdef __cplusplus
+ #undef this
+ };
+-- 
+2.55.0
+

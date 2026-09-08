@@ -1,0 +1,125 @@
+From a0b168fd88b66646c1fe68cf96f68ff46062911c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:34 +0000
+Subject: [PATCH 398/488] soh: name the 5 address-named symbols defined in
+ z_en_test.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_En_Test/z_en_test.c.
+
+  * D_80864670 -> sLimbOriginOffset
+    deduced, confidence HIGH: the zero vector several limbs record their own
+    positions from
+
+  * D_8086467C -> sSwordQuad1Offset
+    deduced, confidence HIGH: the first corner of the sword collider quad
+
+  * D_80864688 -> sSwordQuad0Offset
+    deduced, confidence HIGH: the second corner of that quad
+
+  * D_80864694 -> sSwordQuad3Offset
+    deduced, confidence HIGH: the third corner of that quad
+
+  * D_808646A0 -> sSwordQuad2Offset
+    deduced, confidence HIGH: the fourth corner of that quad
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_En_Test/z_en_test.c   | 24 +++++++++----------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+index ec92a4e8b..32b2140ef 100644
+--- a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
++++ b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+@@ -1867,11 +1867,11 @@ void EnTest_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
+     static Vec3f unused1 = { 1100.0f, -700.0f, 0.0f };
+     static Vec3f D_80864658 = { 300.0f, 0.0f, 0.0f };
+     static Vec3f D_80864664 = { 3400.0f, 0.0f, 0.0f };
+-    static Vec3f D_80864670 = { 0.0f, 0.0f, 0.0f };
+-    static Vec3f D_8086467C = { 7000.0f, 1000.0f, 0.0f };
+-    static Vec3f D_80864688 = { 3000.0f, -2000.0f, -1000.0f };
+-    static Vec3f D_80864694 = { 3000.0f, -2000.0f, 1000.0f };
+-    static Vec3f D_808646A0 = { -1300.0f, 1100.0f, 0.0f };
++    static Vec3f sLimbOriginOffset = { 0.0f, 0.0f, 0.0f };  // was D_80864670 [LLM:HIGH]
++    static Vec3f sSwordQuad1Offset = { 7000.0f, 1000.0f, 0.0f };  // was D_8086467C [LLM:HIGH]
++    static Vec3f sSwordQuad0Offset = { 3000.0f, -2000.0f, -1000.0f };  // was D_80864688 [LLM:HIGH]
++    static Vec3f sSwordQuad3Offset = { 3000.0f, -2000.0f, 1000.0f };  // was D_80864694 [LLM:HIGH]
++    static Vec3f sSwordQuad2Offset = { -1300.0f, 1100.0f, 0.0f };  // was D_808646A0 [LLM:HIGH]
+     static Vec3f unused2 = { -3000.0f, 1900.0f, 800.0f };
+     static Vec3f unused3 = { -3000.0f, -1100.0f, 800.0f };
+     static Vec3f unused4 = { 1900.0f, 1900.0f, 800.0f };
+@@ -1888,17 +1888,17 @@ void EnTest_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
+     BodyBreak_SetInfo(&this->bodyBreak, limbIndex, 0, 60, 60, dList, BODYBREAK_OBJECT_DEFAULT);
+ 
+     if (limbIndex == STALFOS_LIMB_SWORD) {
+-        Matrix_MultVec3f(&D_8086467C, &this->swordCollider.dim.quad[1]);
+-        Matrix_MultVec3f(&D_80864688, &this->swordCollider.dim.quad[0]);
+-        Matrix_MultVec3f(&D_80864694, &this->swordCollider.dim.quad[3]);
+-        Matrix_MultVec3f(&D_808646A0, &this->swordCollider.dim.quad[2]);
++        Matrix_MultVec3f(&sSwordQuad1Offset, &this->swordCollider.dim.quad[1]);  // was D_8086467C [LLM:HIGH]
++        Matrix_MultVec3f(&sSwordQuad0Offset, &this->swordCollider.dim.quad[0]);  // was D_80864688 [LLM:HIGH]
++        Matrix_MultVec3f(&sSwordQuad3Offset, &this->swordCollider.dim.quad[3]);  // was D_80864694 [LLM:HIGH]
++        Matrix_MultVec3f(&sSwordQuad2Offset, &this->swordCollider.dim.quad[2]);  // was D_808646A0 [LLM:HIGH]
+ 
+         Collider_SetQuadVertices(&this->swordCollider, &this->swordCollider.dim.quad[0],
+                                  &this->swordCollider.dim.quad[1], &this->swordCollider.dim.quad[2],
+                                  &this->swordCollider.dim.quad[3]);
+ 
+         Matrix_MultVec3f(&D_80864664, &sp70);
+-        Matrix_MultVec3f(&D_80864670, &sp64);
++        Matrix_MultVec3f(&sLimbOriginOffset, &sp64);  // was D_80864670 [LLM:HIGH]
+ 
+         if ((this->meleeWeaponState >= 1) &&
+             ((this->actor.params != STALFOS_TYPE_INVISIBLE) || play->actorCtx.lensActive)) {
+@@ -1909,7 +1909,7 @@ void EnTest_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
+         }
+ 
+     } else if ((limbIndex == STALFOS_LIMB_SHIELD) && (this->unk_7DE != 0)) {
+-        Matrix_MultVec3f(&D_80864670, &sp64);
++        Matrix_MultVec3f(&sLimbOriginOffset, &sp64);  // was D_80864670 [LLM:HIGH]
+ 
+         this->shieldCollider.dim.pos.x = sp64.x;
+         this->shieldCollider.dim.pos.y = sp64.y;
+@@ -1959,7 +1959,7 @@ void EnTest_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
+         }
+ 
+         if (bodyPart >= 0) {
+-            Matrix_MultVec3f(&D_80864670, &sp50);
++            Matrix_MultVec3f(&sLimbOriginOffset, &sp50);  // was D_80864670 [LLM:HIGH]
+ 
+             this->bodyPartsPos[bodyPart].x = sp50.x;
+             this->bodyPartsPos[bodyPart].y = sp50.y;
+-- 
+2.55.0
+

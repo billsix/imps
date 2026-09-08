@@ -1,0 +1,137 @@
+From 2a7eebeb92a30566681e8b1e01a3d00c6756aaec Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:39 +0000
+Subject: [PATCH 464/488] soh: name the 2 address-named symbols defined in
+ z_player_lib.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_player_lib.c.
+
+  * D_80160000 -> sHookshotReticlePos
+    deduced, confidence GUESS: a Vec3f pointer beside the hookshot reticle
+    code; what fills it is not established
+
+  * D_801260C8 -> sHookshotReticleOffset
+    deduced, confidence HIGH: the hand-space point
+    Player_DrawHookshotReticle places the reticle from
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_player_lib.c | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index 278d8e166..05156bd26 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -445,7 +445,8 @@ Gfx gCullFrontDList[] = {
+     gsSPEndDisplayList(),
+ };
+ 
+-Vec3f* D_80160000;
++// LLM generated name (GUESS), was D_80160000: a Vec3f pointer beside the hookshot reticle code; what fills it is not established
++Vec3f* sHookshotReticlePos;  // was D_80160000 [LLM:GUESS]
+ s32 sDListsLodOffset;
+ Vec3f sGetItemRefPos;
+ s32 sLeftHandType;
+@@ -1304,7 +1305,7 @@ s32 Player_OverrideLimbDrawGameplayCommon(PlayState* play, s32 limbIndex, Gfx**
+     if (limbIndex == PLAYER_LIMB_ROOT) {
+         sLeftHandType = this->leftHandType;
+         sRightHandType = this->rightHandType;
+-        D_80160000 = &this->meleeWeaponInfo[2].base;
++        sHookshotReticlePos = &this->meleeWeaponInfo[2].base;  // was D_80160000 [LLM:GUESS]
+ 
+         if (!LINK_IS_ADULT) {
+             if (!(this->skelAnime.movementFlags & 4) || (this->skelAnime.movementFlags & 1)) {
+@@ -1328,7 +1329,7 @@ s32 Player_OverrideLimbDrawGameplayCommon(PlayState* play, s32 limbIndex, Gfx**
+         }
+     } else {
+         if (*dList != NULL) {
+-            D_80160000++;
++            sHookshotReticlePos++;  // was D_80160000 [LLM:GUESS]
+         }
+ 
+         if (limbIndex == PLAYER_LIMB_HEAD) {
+@@ -1716,7 +1717,7 @@ void Player_CalcMeleeWeaponTipPositions(Player* this, Vec3f* vecs) {
+ }
+ 
+ void Player_DrawHookshotReticle(PlayState* play, Player* this, f32 hookshotRange) {
+-    static Vec3f D_801260C8 = { -500.0f, -100.0f, 0.0f };
++    static Vec3f sHookshotReticleOffset = { -500.0f, -100.0f, 0.0f };  // was D_801260C8 [LLM:HIGH]
+     CollisionPoly* colPoly;
+     s32 bgId;
+     Vec3f hookshotStart;
+@@ -1725,10 +1726,10 @@ void Player_DrawHookshotReticle(PlayState* play, Player* this, f32 hookshotRange
+     Vec3f sp68;
+     f32 sp64;
+ 
+-    D_801260C8.z = 0.0f;
+-    Matrix_MultVec3f(&D_801260C8, &hookshotStart);
+-    D_801260C8.z = hookshotRange;
+-    Matrix_MultVec3f(&D_801260C8, &hookshotEnd);
++    sHookshotReticleOffset.z = 0.0f;  // was D_801260C8 [LLM:HIGH]
++    Matrix_MultVec3f(&sHookshotReticleOffset, &hookshotStart);  // was D_801260C8 [LLM:HIGH]
++    sHookshotReticleOffset.z = hookshotRange;  // was D_801260C8 [LLM:HIGH]
++    Matrix_MultVec3f(&sHookshotReticleOffset, &hookshotEnd);  // was D_801260C8 [LLM:HIGH]
+ 
+     if (BgCheck_AnyLineTest3(&play->colCtx, &hookshotStart, &hookshotEnd, &firstHit, &colPoly, 1, 1, 1, 1, &bgId)) {
+         OPEN_DISPS(play->state.gfxCtx);
+@@ -1810,14 +1811,14 @@ void Player_PostLimbDrawGameplay(PlayState* play, s32 limbIndex, Gfx** dList, Ve
+     Player* this = (Player*)thisx;
+ 
+     if (*dList != NULL) {
+-        Matrix_MultVec3f(&sZeroVec, D_80160000);
++        Matrix_MultVec3f(&sZeroVec, sHookshotReticlePos);  // was D_80160000 [LLM:GUESS]
+     }
+ 
+     if (limbIndex == PLAYER_LIMB_L_HAND) {
+         MtxF sp14C;
+         Actor* hookedActor;
+ 
+-        Math_Vec3f_Copy(&this->leftHandPos, D_80160000);
++        Math_Vec3f_Copy(&this->leftHandPos, sHookshotReticlePos);  // was D_80160000 [LLM:GUESS]
+ 
+         if (this->itemAction == PLAYER_IA_DEKU_STICK) {
+             Vec3f sp124[3];
+@@ -1919,7 +1920,7 @@ void Player_PostLimbDrawGameplay(PlayState* play, s32 limbIndex, Gfx** dList, Ve
+                 f32 distXYZ;
+ 
+                 Matrix_MultVec3f(&sZeroVec, &sp90);
+-                distXYZ = Math_Vec3f_DistXYZ(D_80160000, &sp90);
++                distXYZ = Math_Vec3f_DistXYZ(sHookshotReticlePos, &sp90);  // was D_80160000 [LLM:GUESS]
+ 
+                 this->unk_858 = distXYZ - 3.0f;
+                 if (distXYZ < 3.0f) {
+-- 
+2.55.0
+

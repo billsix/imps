@@ -24,18 +24,72 @@ personal branches — the patch series is the whole delta.
 
 ## Patches
 
-- `patches/0001-LLM-generated-renames.patch` — 145-file decomp rename:
-  15 address-named `soh/src/code/code_<addr>.c` files and ~206 `func_`/`D_`
-  symbols renamed to semantic names, cross-checked against zeldaret/oot.
-  Ported 2026-09-01 from a fork based at `988b53665`; one conflict resolved
-  in `z_demo_kankyo.c` (upstream's `Audio_PlaySfxGeneral` rename crossing
-  the series' `CutsceneCamera_UpdateSpline` rename), and upstream-added
-  identifiers were checked for references to renamed-away symbols (none).
-  Patched tree build- and run-verified on-host 2026-09-01 (William
-  Emerison Six <billsix@gmail.com>).
-  The renaming effort continues in
-  [`../../tasks/ocarina-decomp-rename-and-cleanup.md`](../../tasks/ocarina-decomp-rename-and-cleanup.md);
-  method and gotchas in
+**Stream order is pinned here — `personal` FIRST.** `patches/ORDER` lists it,
+and `apply.sh` honours that. The renames touch 3,781 symbols and 18 filenames, so
+**any stream added later must be written against the renamed tree**; without the
+pin, a future `book/` stream would sort alphabetically ahead of `personal/` and
+try to patch symbols that no longer exist under those names. The stream folders
+stay separate regardless — that is what keeps `upstream-candidates/` submittable
+on its own (see `../CLAUDE.md`).
+
+- `patches/personal/0001…0488-*.patch` — the decomp rename series, **one
+  file per patch**: patch 0001 renames the 18 address-named
+  `soh/src/code/code_<addr>.c` files, and each of the other 487 names every
+  address-named symbol in one definition file (156 of those files hold a single
+  symbol). **Squashed 2026-09-08 from 3,799 one-rename-per-commit patches** —
+  that grain was right for *producing* the work (a breakage localises to one
+  symbol) and wrong for *reviewing* it. The squash is content-neutral: the
+  pre- and post-squash trees have the identical SHA and the identical diff from
+  the pin. Each grouped patch keeps every folded commit's per-symbol
+  justification in its message, under a header that states the provenance rules
+  once. Method, decisions and the branches left behind (`squash-backup` is the
+  undo):
+  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md),
+  "Step 9 as executed". Provenance per symbol:
+  **665 adopted from zeldaret/oot**, **2,844 deduced at HIGH confidence**,
+  **272 deduced as GUESS**. Every renamed symbol carries a
+  provenance comment at its definition **and** a short `// was func_… [oot]`
+  / `[LLM:HIGH]` tag at each header declaration (and, for a guess, at every
+  call site), so a reader of `functions.h` can tell an upstream name from one
+  of our deductions. `git grep '\[LLM:'` lists every place the decomp leans on
+  an inference. `tools/check_renames.py series` gates the whole series on one
+  property: **no rename may happen that its commit message does not account
+  for**, and every claimed rename must be total.
+  **Every address-named symbol in the tree now has a name except four**, all in
+  declared exclusions: `func_800FBCE0` / `func_800FBFD8` (the RCP block in
+  `code_800FBCE0.c`) and `func_80837C0C` / `func_80838940` (`z_player.c`).
+  Segmented asset addresses (`D_0xxxxxxx`) and OTR asset identifiers are out of
+  scope by construction — the identifier IS the archive key.
+  **Split from a single 6,854-line commit on 2026-09-07**; the split is
+  content-neutral (only the new comments differ from the pre-split tree),
+  proven by `tools/prove_comment_only.sh` at the imps root (it has gcc strip
+  the comments and compares) and gated by `tools/check_renames.py`.
+  Originally ported 2026-09-01 from a fork based at `988b53665`; one
+  conflict resolved in `z_demo_kankyo.c` (upstream's `Audio_PlaySfxGeneral`
+  rename crossing the series' `CutsceneCamera_UpdateSpline` rename), and
+  upstream-added identifiers were checked for references to renamed-away
+  symbols (none). The **pre-split** tree was build- and run-verified
+  on-host 2026-09-01 (William Emerison Six <billsix@gmail.com>). The
+  **squashed** series is **container-build-verified 2026-09-08**: `make image`
+  + `make build` in the ubuntu-22.04 CI-mirror image compiled all 1,581 targets
+  with zero errors and linked `soh.elf`, and `make appimage` produced
+  `out/soh.appimage` (31 MB, `Ship-9.2.3-jammy`). `tools/check_renames.py all`
+  and `tools/check_patches_apply.sh` are both green. It was **built and run
+  on-host 2026-09-08 (William Emerison Six <billsix@gmail.com>)** using
+  `fetch.sh`/`apply.sh`/`build.sh`; the game launched and played.
+  One oddity was seen — illegible text on the save prompt — which is **not**
+  from this series: every one of the 484 changed files, taken at the pin with
+  the rename map applied and comments stripped, is byte-identical to its HEAD
+  form with comments stripped, so the series changes identifiers and comments
+  and nothing else. Suspect the pin (upstream `develop` tip); a pristine
+  `./fetch.sh && ./build.sh` with no `apply.sh` settles it.
+  Commit messages carry `Co-Authored-By` and deliberately **no session URL**
+  (runClaudeInContainer `tasks/suppress-claude-session-trailer.md`).
+  The deduction effort is tracked in
+  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md)
+  and its parent
+  [`../../tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md);
+  method, the comment convention, and the one-rename-per-commit rule in
   [`../../tasks/reference/ocarina/decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md).
 
 ## Version notes
@@ -75,9 +129,19 @@ details against the pinned checkout.
   GameInteractor (hooks + `VB_*` overrides), SohGui, the randomizer.
 - [`build-system.md`](../../tasks/reference/ocarina/build-system.md) —
   **stale: pre-torch CMake/submodule graph.**
+- [`oot-oracle-census.tsv`](../../tasks/reference/ocarina/oot-oracle-census.tsv)
+  — the 2,982-row record of what zeldaret/oot called each address-named symbol
+  at this pin. **Historical, not live**: its `BOTH` verdicts mean "oot had no
+  name *then*", so re-run `tools/oot_oracle.py` and treat it as superseded after
+  a pin bump. Read `decomp-renaming.md` for the full expiry note.
 - [`decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md) —
   how to rename `func_/D_` symbols safely; read before touching the
   decomp-rename task.
+- [`../../tasks/reference/imps/squashing-a-produced-series-for-review.md`](../../tasks/reference/imps/squashing-a-produced-series-for-review.md)
+  — repo-wide: how a series produced at one change per commit is regrouped into
+  reviewable units without losing the per-commit reasoning, and how to prove the
+  regrouping changed history only. The Ocarina rename series is the worked
+  example.
 
 Upstream human-facing docs live in `Shipwright/docs/` (BUILDING, MODDING,
 VERSIONING, CUSTOM_MUSIC).
@@ -122,6 +186,34 @@ full pipeline is closed.
 
 ## Tools
 
+- `tools/check_renames.py` — gate for the decomp-renaming conventions.
+  Subcommands `traceable` (every rename cited, none half-done),
+  `declarations` (every header declaration tagged), `series` (one rename per
+  commit, every rename total), `all`. Run it after any rename batch; the
+  method it enforces is
+  [`../../tasks/reference/ocarina/decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md).
+- `tools/tag_declarations.py` — adds the short `// was func_… [oot]` provenance
+  tag to header declarations of renamed symbols. Idempotent; run until
+  `check_renames.py declarations` is clean.
+- `tools/renames_common.py` — shared helpers for the two above (reads the pin
+  from `fetch.sh`, discovers renames from the tree's provenance comments).
+- `tools/remaining_address_names.py` — **is the naming finished?** Prints every
+  address-named symbol still in the decomp, read from the checkout rather than
+  from any census, so it cannot go stale. Today it prints 6 rows covering 4
+  distinct names, all in the declared exclusions (`code_800FBCE0.c`'s RCP pair
+  and two `z_player.c` functions); **anything more than that is new work**,
+  most likely introduced by a pin bump. Run it after a pin bump and after any
+  rename batch.
+- `tools/oot_oracle.py` — asks zeldaret/oot what SoH's address-named symbols are
+  really called, by aligning the two decomps' address-ordered function
+  sequences. **Re-run after a pin bump**: oot keeps naming symbols, so a newer
+  revision can turn `func_8xxxxxxx` into a name with real upstream authority.
+  Needs network; writes `oracle.tsv` and a fetch cache beside the checkout
+  (both gitignored). It yielded the 770 adopted names in this series.
+
+  Neither of the two above is wired into a gate, deliberately: they are
+  informational audits, and a pin bump legitimately changes their output.
+  `check_renames.py` remains the pass/fail gate.
 - `tools/save_generator.py` — interactive base-quest save-file generator
   (dungeons-first interview, progression-derived defaults, full stocks;
   writes locally, never installs). `--selftest <real.sav>` proves an

@@ -1,0 +1,3703 @@
+From e4620d73e46d6933185a4ca8a6cc4b5286794232 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:41 +0000
+Subject: [PATCH 488/488] soh: name the 203 address-named symbols defined in
+ z_en_zl3.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 203 are defined in soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c.
+
+  * D_80B5A468 -> sTurningToPlayer
+    deduced, confidence GUESS: set to 1 once the yaw error to the player
+    exceeds 0x1556 and cleared when EnZl3_StepYawTowardsPlayer reports the
+    turn finished; gates that turn in EnZl3_UpdateTurnToPlayer. Reset by
+    EnZl3_Reset and listed in EN_ZL3_SHIP_SAVESTATE_FIELDS
+
+  * D_80B5A46C -> sLimb13Offset
+    deduced, confidence GUESS: the {0,0,0} vector Matrix_MultVec3f-ed at
+    limb 13 in EnZl3_PostLimbDraw to fill this->unk_31C. Zero, so it just
+    samples the limb matrix origin
+
+  * D_80B5A478 -> sZl3FocusOffset
+    deduced, confidence GUESS: the {0,10,0} vector Matrix_MultVec3f-ed at
+    limb 14 (the head) in EnZl3_PostLimbDraw to place actor.focus.pos, i.e.
+    the point the camera and Z-target aim at
+
+  * D_80B5A484 -> sEyeOpenPhase
+    deduced, confidence GUESS: counter stepped 0-to-4 by
+    EnZl3_OpenEyesOnWake: eye texture 2 (shut) for the first two frames, 1
+    (half) for the next two, then normal blinking. A wake-up ramp, not a
+    timer anything else reads
+
+  * D_80B5A488 -> sCrySfxPos
+    deduced, confidence GUESS: the {0,0,0} position handed to
+    Audio_PlaySoundRandom for the NA_SE_VO_Z1_CRY_0..1 cry, i.e. play it at
+    the listener rather than at the actor
+
+  * D_80B5A494 -> sCueDelayTimer
+    deduced, confidence GUESS: counts down in EnZl3_CheckDemoModeInFinal2;
+    cue 8 arms it to 10 and when it reaches 0 the delayed
+    EnZl3_SetupAction17 fires. Reset to -1 by EnZl3_Reset and listed in
+    EN_ZL3_SHIP_SAVESTATE_FIELDS
+
+  * D_80B5A498 -> sStalfosSpawnPos0
+    deduced, confidence GUESS: first of the two positions
+    EnZl3_SpawnStalfosPair passes to EnZl3_SpawnStalfosAt for the ambush in
+    the collapsing tower
+
+  * D_80B5A4A4 -> sStalfosSpawnPos1
+    deduced, confidence GUESS: second of the two positions
+    EnZl3_SpawnStalfosPair passes to EnZl3_SpawnStalfosAt for the ambush in
+    the collapsing tower
+
+  * D_80B5A4B0 -> sStalfosSpawnPos2
+    deduced, confidence GUESS: a third ambush position of the same shape as
+    sStalfosSpawnPos0 and sStalfosSpawnPos1, sharing their y of 260.
+    Unreferenced -- a cut third Stalfos
+
+  * D_80B5A4BC -> sReactingToPlayerHurt
+    deduced, confidence GUESS: latch in EnZl3_WaitForStalfosDefeated: set
+    when the player takes damage (invincibilityTimer > 0) so Zelda swaps to
+    the cowering animation, cleared when the player recovers. Reset by
+    EnZl3_Reset and listed in EN_ZL3_SHIP_SAVESTATE_FIELDS
+
+  * func_80B533B0 -> EnZl3_InitCollider
+    deduced, confidence HIGH: Collider_InitCylinder plus
+    Collider_SetCylinderType1 with sCylinderInit; called from EnZl3_Init
+
+  * func_80B533FC -> EnZl3_UpdateCollider
+    deduced, confidence HIGH: Collider_UpdateCylinder plus
+    CollisionCheck_SetOC each frame
+
+  * func_80B53468 -> EnZl3_PlayEscapeBgm
+    deduced, confidence HIGH: queues NA_BGM_ESCAPE on SEQ_PLAYER_BGM_MAIN
+
+  * func_80B53488 -> EnZl3_FindGanon
+    deduced, confidence HIGH: walks ACTORCAT_BOSS for ACTOR_BOSS_GANON2,
+    caches it in this->ganon and returns it
+
+  * func_80B5357C -> EnZl3_DropCollectible
+    deduced, confidence HIGH: Item_DropCollectible of type 3 at a randomly
+    jittered copy of the actor position
+
+  * func_80B53614 -> EnZl3_SpawnRiverSound
+    deduced, confidence HIGH: Actor_Spawn of ACTOR_EN_RIVER_SOUND at the
+    fixed collapse-scene coordinates
+
+  * func_80B5366C -> EnZl3_UpdateBgCheckInfo
+    deduced, confidence HIGH: the actor Actor_UpdateBgCheckInfo call, run
+    from every action handler
+
+  * func_80B536B4 -> EnZl3_ClearGroundBgCheckFlags
+    deduced, confidence GUESS: clears BGCHECKFLAG_GROUND and
+    BGCHECKFLAG_GROUND_TOUCH (mask 0x9) from actor.bgCheckFlags
+
+  * func_80B536C4 -> EnZl3_ResetHeadAndTorsoRot
+    deduced, confidence HIGH: Math_SmoothStepToS-es the head and torso
+    NpcInteractInfo rotations back to zero on both axes
+
+  * func_80B53764 -> EnZl3_TrackPlayer
+    deduced, confidence HIGH: points interactInfo.trackPos at the player and
+    calls Npc_TrackPoint with NPC_TRACKING_HEAD_AND_TORSO
+
+  * func_80B537E8 -> EnZl3_StepYawTowardsPlayer
+    deduced, confidence HIGH: Math_SmoothStepToS-es world.rot.y towards
+    actor.yawTowardsPlayer with an easing step kept in unk_3D0, mirrors it
+    into shape.rot.y, and returns the remaining error
+
+  * func_80B538B0 -> EnZl3_UpdateTurnToPlayer
+    deduced, confidence GUESS: arms sTurningToPlayer once the yaw error
+    exceeds 0x1556, then drives EnZl3_StepYawTowardsPlayer until it reports
+    zero. A hysteresis wrapper so Zelda does not jitter towards small player
+    movements
+
+  * func_80B5396C -> EnZl3_GetCue
+    deduced, confidence GUESS: returns unk_3C8, the cue index the two
+    Check_DemoMode dispatchers switch on
+
+  * func_80B53974 -> EnZl3_SetCue
+    deduced, confidence GUESS: stores the cue index read back by
+    EnZl3_GetCue
+
+  * func_80B53980 -> EnZl3_StepHairYaw
+    deduced, confidence HIGH: the spring driven with sp30.y in
+    EnZl3_OverrideLimbDrawHair; integrates unk_25C/unk_28C/unk_2BC at the
+    given hair joint. Same three-spring shape as EnZl2_StepHairYaw
+
+  * func_80B53B64 -> EnZl3_StepHairRoll
+    deduced, confidence HIGH: the spring driven with sp30.z in
+    EnZl3_OverrideLimbDrawHair, with per-joint rest angles and per-action
+    animation-driven limits
+
+  * func_80B54360 -> EnZl3_StepHairPitch
+    deduced, confidence HIGH: the spring driven with sp30.x in
+    EnZl3_OverrideLimbDrawHair, coupling each joint to the one above it via
+    the unk_25C index chain
+
+  * func_80B5458C -> EnZl3_OverrideLimbDrawHair
+    deduced, confidence HIGH: sOverrideLimbDrawFuncs[0]: at limb 14 builds
+    the seven-matrix hair chain into segment 0x0C, running the three springs
+    at each joint. Named Hair because EnZl3_OverrideLimbDraw is the
+    dispatcher that calls it
+
+  * func_80B5944C -> EnZl3_OverrideLimbDrawHairStill
+    deduced, confidence GUESS: sOverrideLimbDrawFuncs[1]: the same
+    seven-matrix hair chain at limb 14 as EnZl3_OverrideLimbDrawHair but
+    with fixed offsets and no spring update, i.e. the hair frozen
+
+  * func_80B54DB4 -> EnZl3_GetSwitchFlagIndex
+    deduced, confidence HIGH: (params >> 8) & 0xFF -- the value handed to
+    Flags_SetSwitch/Flags_GetSwitch and compared against the per-scene spawn
+    table
+
+  * func_80B54DC4 -> EnZl3_GetPathIndex
+    deduced, confidence HIGH: (params >> 4) & 0xF -- the index into
+    play->setupPathList used by EnZl3_GetPathInfo
+
+  * func_80B54DD4 -> EnZl3_GetType
+    deduced, confidence HIGH: params & 0xF -- selects which of the three
+    inits (inFinal, inFinal2, collapse) EnZl3_InitByType runs
+
+  * func_80B54DE0 -> EnZl3_SetAnimObjectSegment
+    deduced, confidence HIGH: points gSegments[6] at the loaded
+    OBJECT_ZL2_ANIME2 segment; first call of every action handler
+
+  * func_80B54E14 -> EnZl3_ChangeAnim
+    deduced, confidence HIGH: Animation_Change wrapper choosing forward or
+    reverse playback from arg4, exactly the EnZl2_ChangeAnim shape
+
+  * func_80B54EA4 -> EnZl3_SpawnEnEg
+    deduced, confidence HIGH: Actor_Spawn of ACTOR_EN_EG at the actor
+    position
+
+  * func_80B54EF4 -> EnZl3_PlayPainSfx
+    deduced, confidence HIGH: Sfx_PlaySfxAtPos of NA_SE_VO_Z1_PAIN
+
+  * func_80B54F18 -> EnZl3_SpawnWarpCrystal
+    deduced, confidence HIGH: spawns ACTOR_DOOR_WARP1 as a child with
+    WARP_PURPLE_CRYSTAL, once, guarded by unk_2F8
+
+  * func_80B54FB4 -> EnZl3_InitInFinal
+    deduced, confidence HIGH: its own debug string names it:
+    En_Zl3_Actor_inFinal_Init. Sets action 1, draw config 1, and spawns the
+    warp crystal
+
+  * func_80B55054 -> EnZl3_FadeOutWarpCrystal
+    deduced, confidence GUESS: ramps the child DoorWarp1 crystalAlpha down
+    over 19 frames, then Actor_Kills it and clears actor.child
+
+  * func_80B550F0 -> EnZl3_MoveWarpCrystalToSelf
+    deduced, confidence GUESS: keeps the child warp actor pinned to the
+    actor position each frame
+
+  * func_80B55144 -> EnZl3_OpenEyesOnWake
+    deduced, confidence GUESS: steps sEyeOpenPhase 0-to-4, holding eye
+    texture 2 (shut) then 1 (half) before handing over to EnZl3_UpdateEyes
+
+  * func_80B551E0 -> EnZl3_SetupAction1
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_008AD0 and sets
+    action = 1
+
+  * func_80B55220 -> EnZl3_SetupAction2
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_0091D8, sets
+    action = 2 and mouth 0
+
+  * func_80B55268 -> EnZl3_SetupAction3
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_0091D8 and sets
+    action = 3
+
+  * func_80B552A8 -> EnZl3_ChangeAnimOnAnimDone1
+    deduced, confidence GUESS: called from EnZl3_Action3 with the
+    EnZl3_UpdateSkelAnime result: when the action-3 animation finishes,
+    switch to the gZelda2Anime2Anim_0099A0 follow-up
+
+  * func_80B552DC -> EnZl3_SetupAction4
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_00A598, plays the
+    pain cry, sets mouth 2, action = 4, and starts the escape BGM
+
+  * func_80B55334 -> EnZl3_ChangeAnimOnAnimDone2
+    deduced, confidence GUESS: called from EnZl3_Action4 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_00AACC
+
+  * func_80B55368 -> EnZl3_SetupAction5
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_00A334, sets
+    mouth 0 and action = 5
+
+  * func_80B553B4 -> EnZl3_ChangeAnimOnAnimDone3
+    deduced, confidence GUESS: called from EnZl3_Action5 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_009FBC
+
+  * func_80B553E8 -> EnZl3_StartEscape
+    deduced, confidence GUESS: the cue-7 branch of
+    EnZl3_CheckDemoModeInFinal; forwards to EnZl3_StartCollapseEscape which
+    sets the switch, the sub-timer and action 27
+
+  * func_80B55408 -> EnZl3_KillSelfAndChild
+    deduced, confidence HIGH: Actor_Kills the child warp actor if present
+    and then the actor itself
+
+  * func_80B55444 -> EnZl3_CheckDemoModeInFinal
+    deduced, confidence HIGH: its own debug string names it:
+    En_Zl3_inFinal_Check_DemoMode. Dispatches the cue index to the
+    action-1..5 setups
+
+  * func_80B55550 -> EnZl3_Action1
+    deduced, confidence HIGH: sActionFuncs[1]
+
+  * func_80B555A4 -> EnZl3_Action2
+    deduced, confidence HIGH: sActionFuncs[2]
+
+  * func_80B55604 -> EnZl3_Action3
+    deduced, confidence HIGH: sActionFuncs[3]
+
+  * func_80B5566C -> EnZl3_Action4
+    deduced, confidence HIGH: sActionFuncs[4]
+
+  * func_80B556CC -> EnZl3_Action5
+    deduced, confidence HIGH: sActionFuncs[5]
+
+  * func_80B5572C -> EnZl3_Action6
+    deduced, confidence HIGH: sActionFuncs[6]
+
+  * func_80B55780 -> EnZl3_InitInFinal2
+    deduced, confidence HIGH: its own debug string names it:
+    En_Zl3_Actor_inFinal2_Init. Sets action 7, draw config 1, mouth 1 and
+    drops ACTOR_FLAG_ATTENTION_ENABLED
+
+  * func_80B55808 -> EnZl3_PlayPainSfx2
+    deduced, confidence HIGH: a second Sfx_PlaySfxAtPos of NA_SE_VO_Z1_PAIN,
+    identical to EnZl3_PlayPainSfx but called from the inFinal2 setups
+
+  * func_80B5582C -> EnZl3_PlayCrySfx
+    deduced, confidence HIGH: Audio_PlaySoundRandom across the
+    NA_SE_VO_Z1_CRY_0..NA_SE_VO_Z1_CRY_1 range
+
+  * func_80B5585C -> EnZl3_PlayPainSfxOnFrame4
+    deduced, confidence HIGH: plays NA_SE_VO_Z1_PAIN when the once-through
+    animation reaches frame 4
+
+  * func_80B558A8 -> EnZl3_SetLungeTarget
+    deduced, confidence GUESS: records the current position in unk_32C and
+    computes the destination unk_338 a fixed short distance ahead in the
+    facing direction; the pair EnZl3_LerpToLungeTarget interpolates between
+
+  * func_80B559C4 -> EnZl3_LerpToLungeTarget
+    deduced, confidence GUESS: Environment_LerpWeightAccelDecel over the
+    gZelda2Anime2Anim_005248 length, moving x and z from unk_32C to unk_338
+
+  * func_80B55A58 -> EnZl3_StepYawTowardsPlayerIfMainCam
+    deduced, confidence GUESS: runs EnZl3_StepYawTowardsPlayer only while
+    play->activeCamera is CAM_ID_MAIN, i.e. not during a one-point cutscene
+
+  * func_80B55A84 -> EnZl3_SetupAction7
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_005A0C and sets
+    action = 7
+
+  * func_80B55AC4 -> EnZl3_SetupAction8
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_00499C and sets
+    action = 8
+
+  * func_80B55B04 -> EnZl3_ChangeAnimOnAnimDone4
+    deduced, confidence GUESS: called from EnZl3_Action8 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_004408
+
+  * func_80B55B38 -> EnZl3_SetupAction9
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_006508 and sets
+    action = 9
+
+  * func_80B55B78 -> EnZl3_ChangeAnimOnAnimDone5
+    deduced, confidence GUESS: called from EnZl3_Action9 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_0061C4
+
+  * func_80B55BAC -> EnZl3_SetupAction10
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_005248, sets the
+    lunge target, plays the pain cry, mouth 2 and action = 10
+
+  * func_80B55C0C -> EnZl3_SetupAction11
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_0054E0 and sets
+    action = 11
+
+  * func_80B55C4C -> EnZl3_SetupAction11OnAnimDone
+    deduced, confidence GUESS: called from EnZl3_Action10 with the
+    EnZl3_UpdateSkelAnime result: runs EnZl3_SetupAction11 once the
+    animation finishes
+
+  * func_80B55C70 -> EnZl3_SetupAction12
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_008684, sets
+    action = 12 and drops the attention/friendly flags
+
+  * func_80B55CCC -> EnZl3_ChangeAnimOnAnimDone6
+    deduced, confidence GUESS: called from EnZl3_Action11 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_006F04
+
+  * func_80B55D00 -> EnZl3_OfferTalkInFinal2
+    deduced, confidence GUESS: the action-12 body: Actor_ProcessTalkRequest
+    moves to action 13, otherwise it offers the 0x70D5 textbox while the
+    player is within 0x4300 of the facing direction
+
+  * func_80B55DB0 -> EnZl3_ReturnToAction12OnTextEnd
+    deduced, confidence GUESS: on TEXT_STATE_CLOSING drops the attention
+    flags and returns to action 12
+
+  * func_80B55E08 -> EnZl3_SetupAction14
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_006AB0 and sets
+    action = 14
+
+  * func_80B55E48 -> EnZl3_ChangeAnimOnAnimDone7
+    deduced, confidence GUESS: called from EnZl3_Action13 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_008050
+
+  * func_80B55E7C -> EnZl3_SetupAction15
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_007A78 and sets
+    action = 15
+
+  * func_80B55EBC -> EnZl3_ChangeAnimOnAnimDone8
+    deduced, confidence GUESS: called from EnZl3_Action14 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_007C84
+
+  * func_80B55EF0 -> EnZl3_SetupAction16
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_0082F8, sets
+    action = 16 and mouth 0
+
+  * func_80B55F38 -> EnZl3_ChangeAnimOnAnimDone9
+    deduced, confidence GUESS: called from EnZl3_Action15 and EnZl3_Action18
+    with the EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_003FF8
+
+  * func_80B55F6C -> EnZl3_OfferTalkNearGanon
+    deduced, confidence GUESS: the action-16 body: offers the 0x7059 textbox
+    only while EnZl3_FindGanon reports Ganon below a size threshold, and
+    moves to action 0x12 when the player talks
+
+  * func_80B5604C -> EnZl3_SetupAction17
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_007664, sets
+    action = 17 and plays the cry
+
+  * func_80B56090 -> EnZl3_SetupAction16OnAnimDone
+    deduced, confidence GUESS: called from EnZl3_Action17 with the
+    EnZl3_UpdateSkelAnime result: when the cue has not moved on, returns to
+    action 16 on the gZelda2Anime2Anim_003FF8 animation and forces the cue
+    to 7
+
+  * func_80B56108 -> EnZl3_ReturnToAction16OnTextEnd
+    deduced, confidence GUESS: on TEXT_STATE_CLOSING drops the attention
+    flags and returns to action 16
+
+  * func_80B56160 -> EnZl3_SetupAction19
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_0001D8 and sets
+    action = 19
+
+  * func_80B561A0 -> EnZl3_SetupAction20
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_001110 and sets
+    action = 20
+
+  * func_80B561E0 -> EnZl3_ChangeAnimOnAnimDone10
+    deduced, confidence GUESS: called from EnZl3_Action20 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_0004F4
+
+  * func_80B56214 -> EnZl3_OfferTalkNearGanon2
+    deduced, confidence GUESS: the action-20 twin of
+    EnZl3_OfferTalkNearGanon: same 0x7059 textbox and Ganon size test, but
+    moves to action 21 when the player talks
+
+  * func_80B562F4 -> EnZl3_ReturnToAction20OnTextEnd
+    deduced, confidence GUESS: on TEXT_STATE_CLOSING drops the attention
+    flags and returns to action 20
+
+  * func_80B5634C -> EnZl3_SetupAction22
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_002348 and sets
+    action = 22
+
+  * func_80B5638C -> EnZl3_ChangeAnimOnAnimDone11
+    deduced, confidence GUESS: called from EnZl3_Action22 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_00210C
+
+  * func_80B563C0 -> EnZl3_SetupAction23
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_002E54 and sets
+    action = 23
+
+  * func_80B56400 -> EnZl3_ChangeAnimOnAnimDone12
+    deduced, confidence GUESS: called from EnZl3_Action23 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_002710
+
+  * func_80B56434 -> EnZl3_SetupAction24
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_001D8C and sets
+    action = 24
+
+  * func_80B56474 -> EnZl3_ChangeAnimOnAnimDone13
+    deduced, confidence GUESS: called from EnZl3_Action24 with the
+    EnZl3_UpdateSkelAnime result: on animation end switch to
+    gZelda2Anime2Anim_0014DC
+
+  * func_80B564A8 -> EnZl3_CheckDemoModeInFinal2
+    deduced, confidence HIGH: its own debug string names it:
+    En_Zl3_inFinal2_Check_DemoMode. Dispatches the cue index to the
+    action-7..24 setups, with the sCueDelayTimer path for cue 8
+
+  * func_80B56658 -> EnZl3_Action7
+    deduced, confidence HIGH: sActionFuncs[7]
+
+  * func_80B566AC -> EnZl3_Action8
+    deduced, confidence HIGH: sActionFuncs[8]
+
+  * func_80B5670C -> EnZl3_Action9
+    deduced, confidence HIGH: sActionFuncs[9]
+
+  * func_80B5676C -> EnZl3_Action10
+    deduced, confidence HIGH: sActionFuncs[10]
+
+  * func_80B567CC -> EnZl3_Action11
+    deduced, confidence HIGH: sActionFuncs[11]
+
+  * func_80B5682C -> EnZl3_Action12
+    deduced, confidence HIGH: sActionFuncs[12]
+
+  * func_80B568B4 -> EnZl3_Action13
+    deduced, confidence HIGH: sActionFuncs[13]
+
+  * func_80B5691C -> EnZl3_Action14
+    deduced, confidence HIGH: sActionFuncs[14]
+
+  * func_80B5697C -> EnZl3_Action15
+    deduced, confidence HIGH: sActionFuncs[15]
+
+  * func_80B569E4 -> EnZl3_Action16
+    deduced, confidence HIGH: sActionFuncs[16]
+
+  * func_80B56A68 -> EnZl3_Action17
+    deduced, confidence HIGH: sActionFuncs[17]
+
+  * func_80B56AE0 -> EnZl3_Action18
+    deduced, confidence HIGH: sActionFuncs[18]
+
+  * func_80B56B54 -> EnZl3_Action19
+    deduced, confidence HIGH: sActionFuncs[19]
+
+  * func_80B56BA8 -> EnZl3_Action20
+    deduced, confidence HIGH: sActionFuncs[20]
+
+  * func_80B56C24 -> EnZl3_Action21
+    deduced, confidence HIGH: sActionFuncs[21]
+
+  * func_80B56C84 -> EnZl3_Action22
+    deduced, confidence HIGH: sActionFuncs[22]
+
+  * func_80B56CE4 -> EnZl3_Action23
+    deduced, confidence HIGH: sActionFuncs[23]
+
+  * func_80B56D44 -> EnZl3_Action24
+    deduced, confidence HIGH: sActionFuncs[24]
+
+  * func_80B56DA4 -> EnZl3_PlayZeldaPowerSfx
+    deduced, confidence HIGH: Sfx_PlaySfxCentered2 of NA_SE_EV_ZELDA_POWER
+
+  * func_80B56DC8 -> EnZl3_PlayPainSfx3
+    deduced, confidence HIGH: a third Sfx_PlaySfxAtPos of NA_SE_VO_Z1_PAIN,
+    identical to EnZl3_PlayPainSfx but called from the collapse-escape logic
+
+  * func_80B56DEC -> EnZl3_PlayOpenDoorSfxOnFrame9
+    deduced, confidence HIGH: plays NA_SE_VO_Z1_OPENDOOR when the
+    once-through animation reaches frame 9
+
+  * func_80B56E38 -> EnZl3_PlayWalkSfx
+    deduced, confidence HIGH: on animation frames 0 and 6, while grounded,
+    plays the 0x800 surface-dependent footstep from SurfaceType_GetSfx
+
+  * func_80B56EB8 -> EnZl3_SetSwitchFlag
+    deduced, confidence HIGH: Flags_SetSwitch of the flag
+    EnZl3_GetSwitchFlagIndex decodes from params
+
+  * func_80B56EE4 -> EnZl3_GetSwitchFlag
+    deduced, confidence HIGH: Flags_GetSwitch of the flag
+    EnZl3_GetSwitchFlagIndex decodes from params
+
+  * func_80B56F10 -> EnZl3_GetPathInfo
+    deduced, confidence HIGH: its own debug string names it:
+    En_Zl3_Get_path_info. Indexes play->setupPathList by EnZl3_GetPathIndex
+    and caches the path and its point count
+
+  * func_80B56F8C -> EnZl3_PathHasPoint
+    deduced, confidence GUESS: returns whether the cached path point count
+    exceeds the given index -- the bounds test every other path helper goes
+    through
+
+  * func_80B56FAC -> EnZl3_GetPathPoint
+    deduced, confidence HIGH: returns the indexed Vec3s of the cached path,
+    or NULL when the path is absent or the index is past its end
+
+  * func_80B57034 -> EnZl3_GetYawBetweenPathPoints
+    deduced, confidence HIGH: Math_FAtan2F of the xz delta between two path
+    points, in binary angle units
+
+  * func_80B57104 -> EnZl3_GetYawToPathPoint
+    deduced, confidence HIGH: Math_FAtan2F of the xz delta from the actor
+    position to the indexed path point
+
+  * func_80B571A8 -> EnZl3_GetYawAlongPathSegment
+    deduced, confidence GUESS: the heading of the segment from the current
+    waypoint to the next, falling back to the current shape.rot.y at the end
+    of the path
+
+  * func_80B571FC -> EnZl3_GetYawToCurrentPathPoint
+    deduced, confidence GUESS: the heading from the actor to the current
+    waypoint, falling back to the current shape.rot.y when that waypoint
+    does not exist
+
+  * func_80B57240 -> EnZl3_StepYawToCurrentPathPoint
+    deduced, confidence GUESS: Math_SmoothStepToS-es world.rot.y towards
+    EnZl3_GetYawToCurrentPathPoint and mirrors it into shape.rot.y
+
+  * func_80B57298 -> EnZl3_StepYawAlongPathSegment
+    deduced, confidence GUESS: Math_SmoothStepToS-es world.rot.y towards
+    EnZl3_GetYawAlongPathSegment and mirrors it into shape.rot.y
+
+  * func_80B572F0 -> EnZl3_GetTextIdForScene
+    deduced, confidence HIGH: returns 0x71A8, 0x71A9 or 0x71AB according to
+    which of the two collapse scenes is loaded
+
+  * func_80B57324 -> EnZl3_ProcessTalkRequest
+    deduced, confidence HIGH: Actor_ProcessTalkRequest normalized to 0/1
+
+  * func_80B57350 -> EnZl3_OfferTalk
+    deduced, confidence HIGH: while the player is within 0x4300 of the
+    facing direction, sets the attention/friendly flags and offers the
+    EnZl3_GetTextIdForScene textbox
+
+  * func_80B573C8 -> EnZl3_IsTextClosing
+    deduced, confidence HIGH: Message_GetState == TEXT_STATE_CLOSING,
+    normalized to 0/1
+
+  * func_80B573FC -> EnZl3_IsPlayerWithin
+    deduced, confidence HIGH: squared xz distance to the player against the
+    squared radius argument
+
+  * func_80B57458 -> EnZl3_IsPlayerAhead
+    deduced, confidence GUESS: true when the player sits within 0x1555 of
+    the current path-segment heading, or within 0x4000 of it and closer than
+    150 units -- the test for whether the player has got in front of Zelda
+
+  * func_80B57564 -> EnZl3_ShouldWaitForPlayer
+    deduced, confidence GUESS: true when the player is within 50 units or
+    EnZl3_IsPlayerAhead; the condition that stops Zelda walking on
+
+  * func_80B575B0 -> EnZl3_IsPlayerWithin150
+    deduced, confidence HIGH: EnZl3_IsPlayerWithin with a radius of 150
+
+  * func_80B575D0 -> EnZl3_IsPlayerWithin50
+    deduced, confidence HIGH: EnZl3_IsPlayerWithin with a radius of 50
+
+  * func_80B575F0 -> EnZl3_IsAtStalfosWaypoint
+    deduced, confidence GUESS: true for switch flag 0x26 in the tower
+    interior at waypoint 1 -- the one spot where the Stalfos ambush is
+    staged
+
+  * func_80B5764C -> EnZl3_PlayWaypointCutscene
+    deduced, confidence GUESS: fires OnePointCutscene 1000 when the next
+    waypoint would be 1 at the same interior/flag-0x26 spot
+    EnZl3_IsAtStalfosWaypoint tests
+
+  * func_80B576C8 -> EnZl3_ShouldStageStalfosAmbush
+    deduced, confidence GUESS: EnZl3_IsAtStalfosWaypoint and the unk_3D8
+    once-only latch still clear
+
+  * func_80B57704 -> EnZl3_SetRotZSwitchFlag
+    deduced, confidence GUESS: Flags_SetSwitch of unk_3C4, the flag stashed
+    out of the spawn rot.z at init
+
+  * func_80B5772C -> EnZl3_UnsetRotZSwitchFlag
+    deduced, confidence GUESS: Flags_UnsetSwitch of the same unk_3C4 flag
+    EnZl3_SetRotZSwitchFlag sets
+
+  * func_80B57754 -> EnZl3_SpawnMagicWipe
+    deduced, confidence GUESS: while no magic effect is running, spawns
+    ACTOR_OCEFF_WIPE4 at the actor and plays the Zelda-power cue
+
+  * func_80B577BC -> EnZl3_SpawnStalfosAt
+    deduced, confidence HIGH: spawns ACTOR_EN_TEST facing the player at the
+    given position, behind the VB_ADULT_ZELDA_SPAWN_STALFOS_IN_COLLAPSE hook
+
+  * func_80B57858 -> EnZl3_SpawnStalfosPair
+    deduced, confidence HIGH: two EnZl3_SpawnStalfosAt calls, at
+    sStalfosSpawnPos0 and sStalfosSpawnPos1
+
+  * func_80B57890 -> EnZl3_IsAtExpectedSpawn
+    deduced, confidence GUESS: the per-scene table pairing each switch-flag
+    index with the play->curSpawn entrance it belongs to; decides whether
+    this copy of Zelda should exist at all
+
+  * func_80B57A74 -> EnZl3_DisableCollapseSpawners
+    deduced, confidence HIGH: sets collapseSpawnerInactive on every
+    EnEncount2; carries the upstream bug note that the search walks
+    ACTORCAT_PROP while EnEncount2 lives in ACTORCAT_ENEMY
+
+  * func_80B57AAC -> EnZl3_ChangeToAnimOnAnimDone
+    deduced, confidence GUESS: the parameterised form of the
+    ChangeAnimOnAnimDone helpers: on animation end changes to whichever
+    animation the caller passes
+
+  * func_80B57AE0 -> EnZl3_SetupNextPathSegment
+    deduced, confidence GUESS: advances unk_314 to the next waypoint,
+    records the start position, reads the target from the path (or projects
+    200 units ahead when the path runs out) and derives the frame count from
+    the distance
+
+  * func_80B57C54 -> EnZl3_HasReachedPathTarget
+    deduced, confidence GUESS: the walk frame counter unk_344 has reached
+    the segment length unk_346 computed by EnZl3_SetupNextPathSegment
+
+  * func_80B57C7C -> EnZl3_ReturnTrue
+    deduced, confidence HIGH: returns 1 unconditionally, ignoring both
+    arguments -- a stubbed-out condition in EnZl3_StartEndingIfPlayerClose
+
+  * func_80B57C8C -> EnZl3_IsOnLastPathSegment
+    deduced, confidence GUESS: true when the path has no waypoint two ahead
+    of the current one
+
+  * func_80B57CB4 -> EnZl3_WalkAlongPathSegment
+    deduced, confidence GUESS: advances unk_344 and
+    Environment_LerpWeightAccelDecel-s the position from unk_348 to unk_354
+    over the segment
+
+  * func_80B57D60 -> EnZl3_UpdatePathYaw
+    deduced, confidence GUESS: the PlayState-taking wrapper the action
+    handlers call, forwarding to EnZl3_StepYawToCurrentPathPoint
+
+  * func_80B57D80 -> EnZl3_TrackPathPoint
+    deduced, confidence GUESS: aims the NpcInteractInfo tracking at a point
+    on the current path heading rather than at the player, snaps shape.rot.y
+    once the error drops under 0x320, and returns the remaining error
+
+  * func_80B57EAC -> EnZl3_OfferTalkOnPath
+    deduced, confidence GUESS: the action-25 body: a talk request moves to
+    action 26, otherwise it keeps offering the scene textbox
+
+  * func_80B57EEC -> EnZl3_ResumeEscapeOnTextEnd
+    deduced, confidence GUESS: the action-26 body: on TEXT_STATE_CLOSING
+    returns to the escape idle, action 27
+
+  * func_80B57F1C -> EnZl3_StartWalkWhenFacingPath
+    deduced, confidence GUESS: the action-27 body: once EnZl3_TrackPathPoint
+    reports Zelda has turned onto the path, starts the walk animation,
+    action 34, and sets up the segment
+
+  * func_80B57F84 -> EnZl3_StartEndingIfPlayerClose
+    deduced, confidence GUESS: when the player is within 50 units and not in
+    a cutscene, starts the ending animation, action 36, and disables the
+    collapse spawners
+
+  * func_80B58014 -> EnZl3_UpdateEscapeIdle
+    deduced, confidence GUESS: the action-28 body and the hub of the
+    collapse escape: routes to talking (29), the ending (36), the Stalfos
+    ambush (0x1F), walking on (34) or the hurt reaction (30)
+
+  * func_80B58214 -> EnZl3_ReturnToEscapeIdleOnTextEnd
+    deduced, confidence GUESS: the action-29 body: on TEXT_STATE_CLOSING
+    returns to the escape idle, action 28
+
+  * func_80B58268 -> EnZl3_ReturnToEscapeIdleWhenPlayerSafe
+    deduced, confidence GUESS: the action-30 body: once the player is
+    neither invincible nor falling far, returns to the escape idle, action
+    28
+
+  * func_80B582C8 -> EnZl3_RunStalfosAmbushCutscene
+    deduced, confidence GUESS: the action-0x1F body: a unk_3CC frame
+    timeline that swaps animations, sets the switch flag, spawns the Stalfos
+    pair, finishes the camera and hands over to action 32
+
+  * func_80B584B4 -> EnZl3_WaitForStalfosDefeated
+    deduced, confidence GUESS: the action-32 body: waits until
+    Actor_FindNearby reports no enemy within 8000 units, swapping the
+    cowering animation in and out via sReactingToPlayerHurt, then starts
+    cutscene 4011 and action 33
+
+  * func_80B58624 -> EnZl3_RunStalfosClearedCutscene
+    deduced, confidence GUESS: the action-33 body: a unk_3CC frame timeline
+    that clears the switch flag, shows textbox 0x71AC, drops five
+    collectibles and returns to action 28
+
+  * func_80B5884C -> EnZl3_SetupAction37
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_0038C0, sets
+    action = 37 and the unk_36C once-only latch
+
+  * func_80B58898 -> EnZl3_SetupAction38
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_0038C0 played in
+    reverse, sets action = 38 and the unk_374 once-only latch
+
+  * func_80B588E8 -> EnZl3_SetupAction39
+    deduced, confidence HIGH: changes to gZelda2Anime2Anim_009BE4, sets up
+    the next path segment and sets action = 39
+
+  * func_80B58938 -> EnZl3_ReturnToIdleAtPathTarget
+    deduced, confidence GUESS: when EnZl3_HasReachedPathTarget fires, stops
+    on the idle animation at action 28 and reports it
+
+  * func_80B5899C -> EnZl3_ReactToPlayerHurtOnGround
+    deduced, confidence GUESS: while grounded, an invincible or hard-falling
+    player swaps in the reaction animation at action 35
+
+  * func_80B58A1C -> EnZl3_UpdateWalking
+    deduced, confidence GUESS: the action-34 body:
+    EnZl3_ReturnToIdleAtPathTarget first, and only if it did not fire does
+    the hurt reaction get a chance
+
+  * func_80B58A50 -> EnZl3_ResumeWalkWhenPlayerSafe
+    deduced, confidence GUESS: the action-35 body: once the player is
+    neither invincible nor falling far, resumes the walk animation at action
+    34
+
+  * func_80B58AAC -> EnZl3_RunEndingSequence
+    deduced, confidence GUESS: the action-36..38 body: a unk_2EC frame
+    timeline that fires the magic wipe, sets the switch flag and steps
+    through actions 37, 38 and 39
+
+  * func_80B58C08 -> EnZl3_FadeOutAlongPath
+    deduced, confidence GUESS: the action-39 body: walks the last segment
+    while fading alpha out over the final kREG(11)+2 frames, switching to
+    draw config 2, then kills the actor
+
+  * func_80B58D50 -> EnZl3_Action25
+    deduced, confidence HIGH: sActionFuncs[25]
+
+  * func_80B58DB0 -> EnZl3_Action26
+    deduced, confidence HIGH: sActionFuncs[26]
+
+  * func_80B58E10 -> EnZl3_Action27
+    deduced, confidence HIGH: sActionFuncs[27]
+
+  * func_80B58E7C -> EnZl3_Action28
+    deduced, confidence HIGH: sActionFuncs[28]
+
+  * func_80B58EF4 -> EnZl3_Action29
+    deduced, confidence HIGH: sActionFuncs[29]
+
+  * func_80B58F6C -> EnZl3_Action30
+    deduced, confidence HIGH: sActionFuncs[30]
+
+  * func_80B58FDC -> EnZl3_Action31
+    deduced, confidence HIGH: sActionFuncs[31]
+
+  * func_80B5904C -> EnZl3_Action32
+    deduced, confidence HIGH: sActionFuncs[32]
+
+  * func_80B590BC -> EnZl3_Action33
+    deduced, confidence HIGH: sActionFuncs[33]
+
+  * func_80B5912C -> EnZl3_Action34
+    deduced, confidence HIGH: sActionFuncs[34]
+
+  * func_80B591BC -> EnZl3_Action35
+    deduced, confidence HIGH: sActionFuncs[35]
+
+  * func_80B5922C -> EnZl3_Action36
+    deduced, confidence HIGH: sActionFuncs[36]
+
+  * func_80B592A8 -> EnZl3_Action37
+    deduced, confidence HIGH: sActionFuncs[37]
+
+  * func_80B59340 -> EnZl3_Action38
+    deduced, confidence HIGH: sActionFuncs[38]
+
+  * func_80B593D0 -> EnZl3_Action39
+    deduced, confidence HIGH: sActionFuncs[39]
+
+  * func_80B59698 -> EnZl3_ShouldStartCollapseEscape
+    deduced, confidence GUESS: switch 0x37 set, one of the four
+    collapse/boss scenes loaded, flag index 0x20 at spawn 0, and the
+    sub-timer expired or off
+
+  * func_80B59768 -> EnZl3_ShouldPlayRevengeSfx
+    deduced, confidence GUESS: the same test as
+    EnZl3_ShouldStartCollapseEscape without the SUBTIMER_STATE_OFF
+    allowance, so it fires only when the timer actually ran out
+
+  * func_80B59828 -> EnZl3_InitInCollapse
+    deduced, confidence GUESS: the type-3 init: if this copy belongs at this
+    entrance it faces down the path at action 28, otherwise it kills itself;
+    on a genuine timer expiry it also restarts the timer, refills health and
+    magic and clears the per-waypoint switch flags
+
+  * func_80B59A80 -> EnZl3_PlayRevengeSfx
+    deduced, confidence GUESS: plays NA_SE_OC_REVENGE when
+    EnZl3_ShouldPlayRevengeSfx fires; called from EnZl3_Init for type 3
+
+  * func_80B59AD0 -> EnZl3_StartCollapseEscape
+    deduced, confidence GUESS: sets switch 0x36, starts the 180-second
+    sub-timer, spawns the EnEg and river sound, reads the path, refills
+    health and magic and enters action 27
+
+  * func_80B59B6C -> EnZl3_InitByType
+    deduced, confidence GUESS: caches the seven animation lengths the hair
+    springs need, then dispatches EnZl3_GetType to the inFinal, inFinal2 or
+    collapse init
+
+  * func_80B59DB8 -> EnZl3_Action0
+    deduced, confidence HIGH: sActionFuncs[0]: waits for OBJECT_ZL2_ANIME2
+    to load, then points the segment at it and runs EnZl3_InitByType
+
+  * func_80B59FE8 -> EnZl3_DrawNothing
+    deduced, confidence HIGH: sDrawFuncs[0]: an empty body
+
+  * func_80B59FF4 -> EnZl3_DrawOpa
+    deduced, confidence HIGH: sDrawFuncs[1]: SkelAnime_DrawFlex into
+    POLY_OPA_DISP after Gfx_SetupDL_25Opa
+
+  * func_80B5A1D0 -> EnZl3_DrawXlu
+    deduced, confidence HIGH: sDrawFuncs[2]: SkelAnime_DrawFlex into
+    POLY_XLU_DISP after Gfx_SetupDL_25Xlu, using this->alpha
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c | 1485 ++++++++++-------
+ 1 file changed, 844 insertions(+), 641 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c b/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
+index 327c7369f..37c249b4f 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
++++ b/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
+@@ -20,7 +20,8 @@ void EnZl3_Init(Actor* thisx, PlayState* play);
+ void EnZl3_Destroy(Actor* thisx, PlayState* play);
+ void EnZl3_Update(Actor* thisx, PlayState* play);
+ void EnZl3_Draw(Actor* thisx, PlayState* play);
+-void func_80B59AD0(EnZl3* this, PlayState* play);
++// LLM generated name (GUESS), was func_80B59AD0: sets switch 0x36, starts the 180-second sub-timer, spawns the EnEg and river sound, reads the path, refills health and magic and enters action 27
++void EnZl3_StartCollapseEscape(EnZl3* this, PlayState* play);  // was func_80B59AD0 [LLM:GUESS]
+ void EnZl3_Reset(void);
+ 
+ static ColliderCylinderInitType1 sCylinderInit = {
+@@ -47,41 +48,53 @@ static void* sEyeTextures[] = { gZelda2EyeOpenTex, gZelda2EyeHalfTex, gZelda2Eye
+ 
+ static void* sMouthTextures[] = { gZelda2MouthSeriousTex, gZelda2MouthHappyTex, gZelda2MouthOpenTex };
+ 
+-static s32 D_80B5A468 = 0;
++// LLM generated name (GUESS), was D_80B5A468: set to 1 once the yaw error to the player exceeds 0x1556 and cleared when EnZl3_StepYawTowardsPlayer reports the turn finished; gates that turn in EnZl3_UpdateTurnToPlayer. Reset by EnZl3_Reset and listed in EN_ZL3_SHIP_SAVESTATE_FIELDS
++static s32 sTurningToPlayer = 0;  // was D_80B5A468 [LLM:GUESS]
+ 
+-static Vec3f D_80B5A46C = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (GUESS), was D_80B5A46C: the {0,0,0} vector Matrix_MultVec3f-ed at limb 13 in EnZl3_PostLimbDraw to fill this->unk_31C. Zero, so it just samples the limb matrix origin
++static Vec3f sLimb13Offset = { 0.0f, 0.0f, 0.0f };  // was D_80B5A46C [LLM:GUESS]
+ 
+-static Vec3f D_80B5A478 = { 0.0f, 10.0f, 0.0f };
++// LLM generated name (GUESS), was D_80B5A478: the {0,10,0} vector Matrix_MultVec3f-ed at limb 14 (the head) in EnZl3_PostLimbDraw to place actor.focus.pos, i.e. the point the camera and Z-target aim at
++static Vec3f sZl3FocusOffset = { 0.0f, 10.0f, 0.0f };  // was D_80B5A478 [LLM:GUESS]
+ 
+-static f32 D_80B5A484 = 0.0f;
++// LLM generated name (GUESS), was D_80B5A484: counter stepped 0-to-4 by EnZl3_OpenEyesOnWake: eye texture 2 (shut) for the first two frames, 1 (half) for the next two, then normal blinking. A wake-up ramp, not a timer anything else reads
++static f32 sEyeOpenPhase = 0.0f;  // was D_80B5A484 [LLM:GUESS]
+ 
+-static Vec3f D_80B5A488 = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (GUESS), was D_80B5A488: the {0,0,0} position handed to Audio_PlaySoundRandom for the NA_SE_VO_Z1_CRY_0..1 cry, i.e. play it at the listener rather than at the actor
++static Vec3f sCrySfxPos = { 0.0f, 0.0f, 0.0f };  // was D_80B5A488 [LLM:GUESS]
+ 
+-static s32 D_80B5A494 = -1;
++// LLM generated name (GUESS), was D_80B5A494: counts down in EnZl3_CheckDemoModeInFinal2; cue 8 arms it to 10 and when it reaches 0 the delayed EnZl3_SetupAction17 fires. Reset to -1 by EnZl3_Reset and listed in EN_ZL3_SHIP_SAVESTATE_FIELDS
++static s32 sCueDelayTimer = -1;  // was D_80B5A494 [LLM:GUESS]
+ 
+-static Vec3f D_80B5A498 = { 148.0f, 260.0f, -87.0f };
++// LLM generated name (GUESS), was D_80B5A498: first of the two positions EnZl3_SpawnStalfosPair passes to EnZl3_SpawnStalfosAt for the ambush in the collapsing tower
++static Vec3f sStalfosSpawnPos0 = { 148.0f, 260.0f, -87.0f };  // was D_80B5A498 [LLM:GUESS]
+ 
+-static Vec3f D_80B5A4A4 = { -12.0f, 260.0f, -147.0f };
++// LLM generated name (GUESS), was D_80B5A4A4: second of the two positions EnZl3_SpawnStalfosPair passes to EnZl3_SpawnStalfosAt for the ambush in the collapsing tower
++static Vec3f sStalfosSpawnPos1 = { -12.0f, 260.0f, -147.0f };  // was D_80B5A4A4 [LLM:GUESS]
+ 
+-static Vec3f D_80B5A4B0 = { 42.0f, 260.0f, 13.0f };
++// LLM generated name (GUESS), was D_80B5A4B0: a third ambush position of the same shape as sStalfosSpawnPos0 and sStalfosSpawnPos1, sharing their y of 260. Unreferenced -- a cut third Stalfos
++static Vec3f sStalfosSpawnPos2 = { 42.0f, 260.0f, 13.0f };  // was D_80B5A4B0 [LLM:GUESS]
+ 
+-static u32 D_80B5A4BC = 0;
++// LLM generated name (GUESS), was D_80B5A4BC: latch in EnZl3_WaitForStalfosDefeated: set when the player takes damage (invincibilityTimer > 0) so Zelda swaps to the cowering animation, cleared when the player recovers. Reset by EnZl3_Reset and listed in EN_ZL3_SHIP_SAVESTATE_FIELDS
++static u32 sReactingToPlayerHurt = 0;  // was D_80B5A4BC [LLM:GUESS]
+ 
+ #define EN_ZL3_SHIP_SAVESTATE_FIELDS(F) \
+-    F(D_80B5A468)                       \
+-    F(D_80B5A494)                       \
+-    F(D_80B5A4BC)
++    F(sTurningToPlayer)                       \
++    F(sCueDelayTimer)                       \
++    F(sReactingToPlayerHurt)  // was D_80B5A4BC [LLM:GUESS]
+ 
+ SHIP_SAVESTATE_DEFINE(EnZl3, EN_ZL3_SHIP_SAVESTATE_FIELDS)
+ 
+-void func_80B533B0(Actor* thisx, PlayState* play) {
++// LLM generated name (HIGH), was func_80B533B0: Collider_InitCylinder plus Collider_SetCylinderType1 with sCylinderInit; called from EnZl3_Init
++void EnZl3_InitCollider(Actor* thisx, PlayState* play) {
+     EnZl3* this = (EnZl3*)thisx;
+ 
+     Collider_InitCylinder(play, &this->collider);
+     Collider_SetCylinderType1(play, &this->collider, &this->actor, &sCylinderInit);
+ }
+ 
+-void func_80B533FC(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B533FC: Collider_UpdateCylinder plus CollisionCheck_SetOC each frame
++void EnZl3_UpdateCollider(EnZl3* this, PlayState* play) {
+     ColliderCylinder* collider = &this->collider;
+     s32 pad[4];
+ 
+@@ -95,11 +108,13 @@ void EnZl3_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80B53468(void) {
++// LLM generated name (HIGH), was func_80B53468: queues NA_BGM_ESCAPE on SEQ_PLAYER_BGM_MAIN
++void EnZl3_PlayEscapeBgm(void) {
+     Audio_QueueSeqCmd(SEQ_PLAYER_BGM_MAIN << 24 | NA_BGM_ESCAPE);
+ }
+ 
+-BossGanon2* func_80B53488(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B53488: walks ACTORCAT_BOSS for ACTOR_BOSS_GANON2, caches it in this->ganon and returns it
++BossGanon2* EnZl3_FindGanon(EnZl3* this, PlayState* play) {
+     if (this->ganon == NULL) {
+         Actor* actorIt = play->actorCtx.actorLists[ACTORCAT_BOSS].head;
+ 
+@@ -136,7 +151,8 @@ void EnZl3_setMouthIndex(EnZl3* this, s16 index) {
+     this->mouthTexIndex = index;
+ }
+ 
+-void func_80B5357C(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B5357C: Item_DropCollectible of type 3 at a randomly jittered copy of the actor position
++void EnZl3_DropCollectible(EnZl3* this, PlayState* play) {
+     Vec3f* thisPos = &this->actor.world.pos;
+     Vec3f sp20;
+ 
+@@ -146,19 +162,23 @@ void func_80B5357C(EnZl3* this, PlayState* play) {
+     Item_DropCollectible(play, &sp20, 3);
+ }
+ 
+-void func_80B53614(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B53614: Actor_Spawn of ACTOR_EN_RIVER_SOUND at the fixed collapse-scene coordinates
++void EnZl3_SpawnRiverSound(EnZl3* this, PlayState* play) {
+     Actor_Spawn(&play->actorCtx, play, ACTOR_EN_RIVER_SOUND, -442.0f, 4102.0f, -371.0f, 0, 0, 0, 0x12);
+ }
+ 
+-void func_80B5366C(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B5366C: the actor Actor_UpdateBgCheckInfo call, run from every action handler
++void EnZl3_UpdateBgCheckInfo(EnZl3* this, PlayState* play) {
+     Actor_UpdateBgCheckInfo(play, &this->actor, 75.0f, 30.0f, 30.0f, 5);
+ }
+ 
+-void func_80B536B4(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B536B4: clears BGCHECKFLAG_GROUND and BGCHECKFLAG_GROUND_TOUCH (mask 0x9) from actor.bgCheckFlags
++void EnZl3_ClearGroundBgCheckFlags(EnZl3* this) {
+     this->actor.bgCheckFlags &= ~0x9;
+ }
+ 
+-void func_80B536C4(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B536C4: Math_SmoothStepToS-es the head and torso NpcInteractInfo rotations back to zero on both axes
++void EnZl3_ResetHeadAndTorsoRot(EnZl3* this) {
+     s32 pad[2];
+     Vec3s* vec1 = &this->interactInfo.headRot;
+     Vec3s* vec2 = &this->interactInfo.torsoRot;
+@@ -169,7 +189,8 @@ void func_80B536C4(EnZl3* this) {
+     Math_SmoothStepToS(&vec2->y, 0, 20, 6200, 100);
+ }
+ 
+-void func_80B53764(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B53764: points interactInfo.trackPos at the player and calls Npc_TrackPoint with NPC_TRACKING_HEAD_AND_TORSO
++void EnZl3_TrackPlayer(EnZl3* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -177,7 +198,8 @@ void func_80B53764(EnZl3* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, kREG(17) + 0xC, NPC_TRACKING_HEAD_AND_TORSO);
+ }
+ 
+-s32 func_80B537E8(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B537E8: Math_SmoothStepToS-es world.rot.y towards actor.yawTowardsPlayer with an easing step kept in unk_3D0, mirrors it into shape.rot.y, and returns the remaining error
++s32 EnZl3_StepYawTowardsPlayer(EnZl3* this) {
+     s16 yawTowardsPlayer = this->actor.yawTowardsPlayer;
+     s16* rotY = &this->actor.world.rot.y;
+     s16* unk_3D0 = &this->unk_3D0;
+@@ -190,17 +212,18 @@ s32 func_80B537E8(EnZl3* this) {
+     return retVal;
+ }
+ 
+-void func_80B538B0(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B538B0: arms sTurningToPlayer once the yaw error exceeds 0x1556, then drives EnZl3_StepYawTowardsPlayer until it reports zero. A hysteresis wrapper so Zelda does not jitter towards small player movements
++void EnZl3_UpdateTurnToPlayer(EnZl3* this) {
+     s16 yawTowardsPlayer = this->actor.yawTowardsPlayer;
+     s16* rotY = &this->actor.world.rot.y;
+ 
+     if (ABS((s16)(yawTowardsPlayer - *rotY)) >= 0x1556) {
+-        D_80B5A468 = 1;
++        sTurningToPlayer = 1;  // was D_80B5A468 [LLM:GUESS]
+     }
+ 
+-    if (D_80B5A468 != 0) {
+-        if (!func_80B537E8(this)) {
+-            D_80B5A468 = 0;
++    if (sTurningToPlayer != 0) {  // was D_80B5A468 [LLM:GUESS]
++        if (!EnZl3_StepYawTowardsPlayer(this)) {  // was func_80B537E8 [LLM:HIGH]
++            sTurningToPlayer = 0;  // was D_80B5A468 [LLM:GUESS]
+         }
+     } else {
+         this->unk_3D0 = 0;
+@@ -211,15 +234,18 @@ s32 EnZl3_UpdateSkelAnime(EnZl3* this) {
+     return SkelAnime_Update(&this->skelAnime);
+ }
+ 
+-s32 func_80B5396C(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B5396C: returns unk_3C8, the cue index the two Check_DemoMode dispatchers switch on
++s32 EnZl3_GetCue(EnZl3* this) {
+     return this->unk_3C8;
+ }
+ 
+-void func_80B53974(EnZl3* this, u8 arg1) {
++// LLM generated name (GUESS), was func_80B53974: stores the cue index read back by EnZl3_GetCue
++void EnZl3_SetCue(EnZl3* this, u8 arg1) {
+     this->unk_3C8 = arg1;
+ }
+ 
+-void func_80B53980(EnZl3* thisx, s16 y, s32 idx) {
++// LLM generated name (HIGH), was func_80B53980: the spring driven with sp30.y in EnZl3_OverrideLimbDrawHair; integrates unk_25C/unk_28C/unk_2BC at the given hair joint. Same three-spring shape as EnZl2_StepHairYaw
++void EnZl3_StepHairYaw(EnZl3* thisx, s16 y, s32 idx) {
+     EnZl3* this = (EnZl3*)thisx; // this function might take thisx
+     s32 action = this->action;
+     s16 y2 = y;
+@@ -285,7 +311,8 @@ void func_80B53980(EnZl3* thisx, s16 y, s32 idx) {
+     this->unk_2BC[idx] = y;
+ }
+ 
+-void func_80B53B64(EnZl3* this, s16 z, s32 idx) {
++// LLM generated name (HIGH), was func_80B53B64: the spring driven with sp30.z in EnZl3_OverrideLimbDrawHair, with per-joint rest angles and per-action animation-driven limits
++void EnZl3_StepHairRoll(EnZl3* this, s16 z, s32 idx) {
+     SkelAnime* skelAnime = &this->skelAnime;
+     s32 action = this->action;
+     s32 phi_a1;
+@@ -538,7 +565,8 @@ void func_80B53B64(EnZl3* this, s16 z, s32 idx) {
+     this->unk_2BC[idx] = z;
+ }
+ 
+-void func_80B54360(EnZl3* this, s16 arg1, s32 arg2) {
++// LLM generated name (HIGH), was func_80B54360: the spring driven with sp30.x in EnZl3_OverrideLimbDrawHair, coupling each joint to the one above it via the unk_25C index chain
++void EnZl3_StepHairPitch(EnZl3* this, s16 arg1, s32 arg2) {
+     if (this->unk_2FC != 0) {
+         s32 temp_v1 = this->unk_28C[arg2] - arg1;
+         s16 temp_t0 = temp_v1;
+@@ -604,7 +632,8 @@ void func_80B54360(EnZl3* this, s16 arg1, s32 arg2) {
+     this->unk_2BC[arg2] = arg1;
+ }
+ 
+-s32 func_80B5458C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx, Gfx** gfx) {
++// LLM generated name (HIGH), was func_80B5458C: sOverrideLimbDrawFuncs[0]: at limb 14 builds the seven-matrix hair chain into segment 0x0C, running the three springs at each joint. Named Hair because EnZl3_OverrideLimbDraw is the dispatcher that calls it
++s32 EnZl3_OverrideLimbDrawHair(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx, Gfx** gfx) {
+     s32 pad[3];
+     EnZl3* this = (EnZl3*)thisx;
+     s16* unk_28C = this->unk_28C;
+@@ -628,9 +657,9 @@ s32 func_80B5458C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+         Matrix_Get(&sp38);
+         Matrix_MtxFToYXZRotS(&sp38, &sp30, 0);
+         if (!FrameAdvance_IsEnabled(play)) {
+-            func_80B53980(this, sp30.y, 0);
+-            func_80B54360(this, sp30.x, 1);
+-            func_80B53B64(this, sp30.z, 2);
++            EnZl3_StepHairYaw(this, sp30.y, 0);  // was func_80B53980 [LLM:HIGH]
++            EnZl3_StepHairPitch(this, sp30.x, 1);  // was func_80B54360 [LLM:HIGH]
++            EnZl3_StepHairRoll(this, sp30.z, 2);  // was func_80B53B64 [LLM:HIGH]
+         }
+         Matrix_RotateZYX(unk_28C[0] + kREG(31), unk_28C[1] + kREG(32), unk_28C[2] + kREG(33), MTXMODE_APPLY);
+         Matrix_Translate(-188.0f, -184.0f, 0.0f, MTXMODE_APPLY);
+@@ -638,7 +667,7 @@ s32 func_80B5458C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+         Matrix_Get(&sp38);
+         Matrix_MtxFToYXZRotS(&sp38, &sp30, 0);
+         if (!FrameAdvance_IsEnabled(play)) {
+-            func_80B53980(this, sp30.y, 3);
++            EnZl3_StepHairYaw(this, sp30.y, 3);  // was func_80B53980 [LLM:HIGH]
+         }
+         Matrix_RotateZYX(unk_28C[3] + kREG(34), unk_28C[4] + kREG(35), unk_28C[5] + kREG(36), MTXMODE_APPLY);
+         Matrix_Translate(-410.0f, -184.0f, 0.0f, MTXMODE_APPLY);
+@@ -646,7 +675,7 @@ s32 func_80B5458C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+         Matrix_Get(&sp38);
+         Matrix_MtxFToYXZRotS(&sp38, &sp30, 0);
+         if (!FrameAdvance_IsEnabled(play)) {
+-            func_80B54360(this, sp30.x, 7);
++            EnZl3_StepHairPitch(this, sp30.x, 7);  // was func_80B54360 [LLM:HIGH]
+         }
+         Matrix_RotateZYX(unk_28C[6] + kREG(37), unk_28C[7] + kREG(38), unk_28C[8] + kREG(39), MTXMODE_APPLY);
+         Matrix_Translate(-1019.0f, -26.0f, 0.0f, MTXMODE_APPLY);
+@@ -657,9 +686,9 @@ s32 func_80B5458C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+         Matrix_Get(&sp38);
+         Matrix_MtxFToYXZRotS(&sp38, &sp30, 0);
+         if (!FrameAdvance_IsEnabled(play)) {
+-            func_80B53980(this, sp30.y, 9);
+-            func_80B54360(this, sp30.x, 10);
+-            func_80B53B64(this, sp30.z, 11);
++            EnZl3_StepHairYaw(this, sp30.y, 9);  // was func_80B53980 [LLM:HIGH]
++            EnZl3_StepHairPitch(this, sp30.x, 10);  // was func_80B54360 [LLM:HIGH]
++            EnZl3_StepHairRoll(this, sp30.z, 11);  // was func_80B53B64 [LLM:HIGH]
+         }
+         Matrix_RotateZYX(unk_28C[9] + kREG(40), unk_28C[10] + kREG(41), unk_28C[11] + kREG(42), MTXMODE_APPLY);
+         Matrix_Translate(-427.0f, -1.0f, -3.0f, MTXMODE_APPLY);
+@@ -667,9 +696,9 @@ s32 func_80B5458C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+         Matrix_Get(&sp38);
+         Matrix_MtxFToYXZRotS(&sp38, &sp30, 0);
+         if (!FrameAdvance_IsEnabled(play)) {
+-            func_80B53980(this, sp30.y, 12);
+-            func_80B54360(this, sp30.x, 13);
+-            func_80B53B64(this, sp30.z, 14);
++            EnZl3_StepHairYaw(this, sp30.y, 12);  // was func_80B53980 [LLM:HIGH]
++            EnZl3_StepHairPitch(this, sp30.x, 13);  // was func_80B54360 [LLM:HIGH]
++            EnZl3_StepHairRoll(this, sp30.z, 14);  // was func_80B53B64 [LLM:HIGH]
+         }
+         Matrix_RotateZYX(unk_28C[12] + kREG(43), unk_28C[13] + kREG(44), unk_28C[14] + kREG(45), MTXMODE_APPLY);
+         Matrix_Translate(-446.0f, -52.0f, 84.0f, MTXMODE_APPLY);
+@@ -680,9 +709,9 @@ s32 func_80B5458C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+         Matrix_Get(&sp38);
+         Matrix_MtxFToYXZRotS(&sp38, &sp30, 0);
+         if (!FrameAdvance_IsEnabled(play)) {
+-            func_80B53980(this, sp30.y, 15);
+-            func_80B54360(this, sp30.x, 16);
+-            func_80B53B64(this, sp30.z, 17);
++            EnZl3_StepHairYaw(this, sp30.y, 15);  // was func_80B53980 [LLM:HIGH]
++            EnZl3_StepHairPitch(this, sp30.x, 16);  // was func_80B54360 [LLM:HIGH]
++            EnZl3_StepHairRoll(this, sp30.z, 17);  // was func_80B53B64 [LLM:HIGH]
+         }
+         Matrix_RotateZYX(unk_28C[15] + kREG(46), unk_28C[16] + kREG(47), unk_28C[17] + kREG(48), MTXMODE_APPLY);
+         Matrix_Translate(-427.0f, -1.0f, 3.0f, MTXMODE_APPLY);
+@@ -690,9 +719,9 @@ s32 func_80B5458C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+         Matrix_Get(&sp38);
+         Matrix_MtxFToYXZRotS(&sp38, &sp30, 0);
+         if (!FrameAdvance_IsEnabled(play)) {
+-            func_80B53980(this, sp30.y, 18);
+-            func_80B54360(this, sp30.x, 19);
+-            func_80B53B64(this, sp30.z, 20);
++            EnZl3_StepHairYaw(this, sp30.y, 18);  // was func_80B53980 [LLM:HIGH]
++            EnZl3_StepHairPitch(this, sp30.x, 19);  // was func_80B54360 [LLM:HIGH]
++            EnZl3_StepHairRoll(this, sp30.z, 20);  // was func_80B53B64 [LLM:HIGH]
+         }
+         Matrix_RotateZYX(unk_28C[18] + kREG(49), unk_28C[19] + kREG(50), unk_28C[20] + kREG(51), MTXMODE_APPLY);
+         Matrix_Translate(-446.0f, -52.0f, -84.0f, MTXMODE_APPLY);
+@@ -716,10 +745,10 @@ void EnZl3_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     Vec3f sp18;
+ 
+     if (limbIndex == 13) {
+-        sp34 = D_80B5A46C;
++        sp34 = sLimb13Offset;  // was D_80B5A46C [LLM:GUESS]
+         Matrix_MultVec3f(&sp34, &this->unk_31C);
+     } else if (limbIndex == 14) {
+-        sp24 = D_80B5A478;
++        sp24 = sZl3FocusOffset;  // was D_80B5A478 [LLM:GUESS]
+         Matrix_MultVec3f(&sp24, &sp18);
+         this->actor.focus.pos.x = sp18.x;
+         this->actor.focus.pos.y = sp18.y;
+@@ -730,31 +759,36 @@ void EnZl3_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     }
+ }
+ 
+-s32 func_80B54DB4(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B54DB4: (params >> 8) & 0xFF -- the value handed to Flags_SetSwitch/Flags_GetSwitch and compared against the per-scene spawn table
++s32 EnZl3_GetSwitchFlagIndex(EnZl3* this) {
+     s32 params = this->actor.params >> 8;
+ 
+     return params & 0xFF;
+ }
+ 
+-s32 func_80B54DC4(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B54DC4: (params >> 4) & 0xF -- the index into play->setupPathList used by EnZl3_GetPathInfo
++s32 EnZl3_GetPathIndex(EnZl3* this) {
+     s32 params = this->actor.params >> 4;
+ 
+     return params & 0xF;
+ }
+ 
+-s32 func_80B54DD4(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B54DD4: params & 0xF -- selects which of the three inits (inFinal, inFinal2, collapse) EnZl3_InitByType runs
++s32 EnZl3_GetType(EnZl3* this) {
+     s32 params = this->actor.params;
+ 
+     return params & 0xF;
+ }
+ 
+-void func_80B54DE0(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B54DE0: points gSegments[6] at the loaded OBJECT_ZL2_ANIME2 segment; first call of every action handler
++void EnZl3_SetAnimObjectSegment(EnZl3* this, PlayState* play) {
+     s32 idx = this->zl2Anime2ObjectSlot;
+ 
+     gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[idx].segment);
+ }
+ 
+-void func_80B54E14(EnZl3* this, AnimationHeader* animation, u8 arg2, f32 transitionRate, s32 arg4) {
++// LLM generated name (HIGH), was func_80B54E14: Animation_Change wrapper choosing forward or reverse playback from arg4, exactly the EnZl2_ChangeAnim shape
++void EnZl3_ChangeAnim(EnZl3* this, AnimationHeader* animation, u8 arg2, f32 transitionRate, s32 arg4) {
+     f32 frameCount = Animation_GetLastFrame(animation);
+     f32 playbackSpeed;
+     f32 unk0;
+@@ -773,7 +807,8 @@ void func_80B54E14(EnZl3* this, AnimationHeader* animation, u8 arg2, f32 transit
+     Animation_Change(&this->skelAnime, animation, playbackSpeed, unk0, fc, arg2, transitionRate);
+ }
+ 
+-void func_80B54EA4(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B54EA4: Actor_Spawn of ACTOR_EN_EG at the actor position
++void EnZl3_SpawnEnEg(EnZl3* this, PlayState* play) {
+     f32 posX = this->actor.world.pos.x;
+     f32 posY = this->actor.world.pos.y;
+     f32 posZ = this->actor.world.pos.z;
+@@ -781,11 +816,13 @@ void func_80B54EA4(EnZl3* this, PlayState* play) {
+     Actor_Spawn(&play->actorCtx, play, ACTOR_EN_EG, posX, posY, posZ, 0, 0, 0, 0);
+ }
+ 
+-void func_80B54EF4(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B54EF4: Sfx_PlaySfxAtPos of NA_SE_VO_Z1_PAIN
++void EnZl3_PlayPainSfx(EnZl3* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_Z1_PAIN);
+ }
+ 
+-void func_80B54F18(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B54F18: spawns ACTOR_DOOR_WARP1 as a child with WARP_PURPLE_CRYSTAL, once, guarded by unk_2F8
++void EnZl3_SpawnWarpCrystal(EnZl3* this, PlayState* play) {
+     if (this->unk_2F8 == 0) {
+         f32 posX = this->actor.world.pos.x;
+         f32 posY = this->actor.world.pos.y + (kREG(5) + -26.0f);
+@@ -797,21 +834,23 @@ void func_80B54F18(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B54FB4(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B54FB4: its own debug string names it: En_Zl3_Actor_inFinal_Init. Sets action 1, draw config 1, and spawns the warp crystal
++void EnZl3_InitInFinal(EnZl3* this, PlayState* play) {
+     osSyncPrintf("ゼルダ姫のEn_Zl3_Actor_inFinal_Init通すよ!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+-    func_80B54E14(this, &gZelda2Anime2Anim_008AD0, 0, 0.0f, 0);
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_008AD0, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     EnZl3_setEyeIndex(this, 4);
+     EnZl3_setMouthIndex(this, 2);
+     this->action = 1;
+     this->drawConfig = 1;
+-    func_80B54F18(this, play);
++    EnZl3_SpawnWarpCrystal(this, play);  // was func_80B54F18 [LLM:HIGH]
+     this->actor.shape.rot.z = 0;
+     this->unk_3C4 = this->actor.world.rot.z;
+     this->actor.world.rot.z = this->actor.shape.rot.z;
+     osSyncPrintf("ゼルダ姫のEn_Zl3_Actor_inFinal_Initは通った!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+ }
+ 
+-void func_80B55054(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B55054: ramps the child DoorWarp1 crystalAlpha down over 19 frames, then Actor_Kills it and clears actor.child
++void EnZl3_FadeOutWarpCrystal(EnZl3* this) {
+     if (this->unk_328 != 0) {
+         Actor* child = this->actor.child;
+ 
+@@ -829,7 +868,8 @@ void func_80B55054(EnZl3* this) {
+     }
+ }
+ 
+-void func_80B550F0(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B550F0: keeps the child warp actor pinned to the actor position each frame
++void EnZl3_MoveWarpCrystalToSelf(EnZl3* this) {
+     Actor* child = this->actor.child;
+ 
+     if (child != NULL) {
+@@ -839,8 +879,9 @@ void func_80B550F0(EnZl3* this) {
+     }
+ }
+ 
+-void func_80B55144(EnZl3* this) {
+-    f32* fl = &D_80B5A484;
++// LLM generated name (GUESS), was func_80B55144: steps sEyeOpenPhase 0-to-4, holding eye texture 2 (shut) then 1 (half) before handing over to EnZl3_UpdateEyes
++void EnZl3_OpenEyesOnWake(EnZl3* this) {
++    f32* fl = &sEyeOpenPhase;  // was D_80B5A484 [LLM:GUESS]
+ 
+     if (*fl < 2.0f) {
+         *fl += 1.0f;
+@@ -853,59 +894,69 @@ void func_80B55144(EnZl3* this) {
+     }
+ }
+ 
+-void func_80B551E0(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_008AD0, 0, 0.0f, 0);
++// LLM generated name (HIGH), was func_80B551E0: changes to gZelda2Anime2Anim_008AD0 and sets action = 1
++void EnZl3_SetupAction1(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_008AD0, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 1;
+ }
+ 
+-void func_80B55220(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_0091D8, 2, 0.0f, 0);
++// LLM generated name (HIGH), was func_80B55220: changes to gZelda2Anime2Anim_0091D8, sets action = 2 and mouth 0
++void EnZl3_SetupAction2(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0091D8, 2, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 2;
+     EnZl3_setMouthIndex(this, 0);
+ }
+ 
+-void func_80B55268(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_0091D8, 2, 0.0f, 0);
++// LLM generated name (HIGH), was func_80B55268: changes to gZelda2Anime2Anim_0091D8 and sets action = 3
++void EnZl3_SetupAction3(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0091D8, 2, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 3;
+ }
+ 
+-void func_80B552A8(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B552A8: called from EnZl3_Action3 with the EnZl3_UpdateSkelAnime result: when the action-3 animation finishes, switch to the gZelda2Anime2Anim_0099A0 follow-up
++void EnZl3_ChangeAnimOnAnimDone1(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_0099A0, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0099A0, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B552DC(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_00A598, 2, -8.0f, 0);
+-    func_80B54EF4(this);
++// LLM generated name (HIGH), was func_80B552DC: changes to gZelda2Anime2Anim_00A598, plays the pain cry, sets mouth 2, action = 4, and starts the escape BGM
++void EnZl3_SetupAction4(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_00A598, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++    EnZl3_PlayPainSfx(this);  // was func_80B54EF4 [LLM:HIGH]
+     EnZl3_setMouthIndex(this, 2);
+     this->action = 4;
+-    func_80B53468();
++    EnZl3_PlayEscapeBgm();  // was func_80B53468 [LLM:HIGH]
+ }
+ 
+-void func_80B55334(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B55334: called from EnZl3_Action4 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_00AACC
++void EnZl3_ChangeAnimOnAnimDone2(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_00AACC, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_00AACC, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55368(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_00A334, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B55368: changes to gZelda2Anime2Anim_00A334, sets mouth 0 and action = 5
++void EnZl3_SetupAction5(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_00A334, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     EnZl3_setMouthIndex(this, 0);
+     this->action = 5;
+ }
+ 
+-void func_80B553B4(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B553B4: called from EnZl3_Action5 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_009FBC
++void EnZl3_ChangeAnimOnAnimDone3(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_009FBC, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009FBC, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B553E8(EnZl3* this, PlayState* play) {
+-    func_80B59AD0(this, play);
++// LLM generated name (GUESS), was func_80B553E8: the cue-7 branch of EnZl3_CheckDemoModeInFinal; forwards to EnZl3_StartCollapseEscape which sets the switch, the sub-timer and action 27
++void EnZl3_StartEscape(EnZl3* this, PlayState* play) {
++    EnZl3_StartCollapseEscape(this, play);  // was func_80B59AD0 [LLM:GUESS]
+ }
+ 
+-void func_80B55408(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B55408: Actor_Kills the child warp actor if present and then the actor itself
++void EnZl3_KillSelfAndChild(EnZl3* this) {
+     Actor* child = this->actor.child;
+ 
+     if (child != NULL) {
+@@ -914,8 +965,9 @@ void func_80B55408(EnZl3* this) {
+     Actor_Kill(&this->actor);
+ }
+ 
+-void func_80B55444(EnZl3* this, PlayState* play) {
+-    s32 temp_v0 = func_80B5396C(this);
++// LLM generated name (HIGH), was func_80B55444: its own debug string names it: En_Zl3_inFinal_Check_DemoMode. Dispatches the cue index to the action-1..5 setups
++void EnZl3_CheckDemoModeInFinal(EnZl3* this, PlayState* play) {
++    s32 temp_v0 = EnZl3_GetCue(this);  // was func_80B5396C [LLM:GUESS]
+ 
+     if (temp_v0 >= 0) {
+         s32 unk_2F0 = this->unk_2F0;
+@@ -923,29 +975,29 @@ void func_80B55444(EnZl3* this, PlayState* play) {
+         if (temp_v0 != unk_2F0) {
+             switch (temp_v0) {
+                 case 0:
+-                    func_80B551E0(this);
++                    EnZl3_SetupAction1(this);  // was func_80B551E0 [LLM:HIGH]
+                     break;
+                 case 1:
+                     EnZl3_setEyeIndex(this, 3);
+-                    func_80B54EF4(this);
++                    EnZl3_PlayPainSfx(this);  // was func_80B54EF4 [LLM:HIGH]
+                     break;
+                 case 3:
+-                    func_80B55220(this);
++                    EnZl3_SetupAction2(this);  // was func_80B55220 [LLM:HIGH]
+                     break;
+                 case 4:
+-                    func_80B55268(this);
++                    EnZl3_SetupAction3(this);  // was func_80B55268 [LLM:HIGH]
+                     break;
+                 case 5:
+-                    func_80B552DC(this);
++                    EnZl3_SetupAction4(this);  // was func_80B552DC [LLM:HIGH]
+                     break;
+                 case 6:
+-                    func_80B55368(this);
++                    EnZl3_SetupAction5(this);  // was func_80B55368 [LLM:HIGH]
+                     break;
+                 case 7:
+-                    func_80B553E8(this, play);
++                    EnZl3_StartEscape(this, play);  // was func_80B553E8 [LLM:GUESS]
+                     break;
+                 case 2:
+-                    func_80B55408(this);
++                    EnZl3_KillSelfAndChild(this);  // was func_80B55408 [LLM:HIGH]
+                     break;
+                 case 8:
+                     this->unk_328 = 1;
+@@ -957,59 +1009,66 @@ void func_80B55444(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B55550(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B55550: sActionFuncs[1]
++void EnZl3_Action1(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B550F0(this);
+-    func_80B55444(this, play);
++    EnZl3_MoveWarpCrystalToSelf(this);  // was func_80B550F0 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal(this, play);  // was func_80B55444 [LLM:HIGH]
+ }
+ 
+-void func_80B555A4(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B555A4: sActionFuncs[2]
++void EnZl3_Action2(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_setEyeIndex(this, 2);
+-    func_80B550F0(this);
+-    func_80B55054(this);
+-    func_80B55444(this, play);
++    EnZl3_MoveWarpCrystalToSelf(this);  // was func_80B550F0 [LLM:GUESS]
++    EnZl3_FadeOutWarpCrystal(this);  // was func_80B55054 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal(this, play);  // was func_80B55444 [LLM:HIGH]
+ }
+ 
+-void func_80B55604(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
+-    func_80B55144(this);
+-    func_80B552A8(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B55054(this);
+-    func_80B55444(this, play);
++// LLM generated name (HIGH), was func_80B55604: sActionFuncs[3]
++void EnZl3_Action3(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
++    EnZl3_OpenEyesOnWake(this);  // was func_80B55144 [LLM:GUESS]
++    EnZl3_ChangeAnimOnAnimDone1(this, EnZl3_UpdateSkelAnime(this));  // was func_80B552A8 [LLM:GUESS]
++    EnZl3_FadeOutWarpCrystal(this);  // was func_80B55054 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal(this, play);  // was func_80B55444 [LLM:HIGH]
+ }
+ 
+-void func_80B5566C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B5566C: sActionFuncs[4]
++void EnZl3_Action4(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B55334(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B55444(this, play);
++    EnZl3_ChangeAnimOnAnimDone2(this, EnZl3_UpdateSkelAnime(this));  // was func_80B55334 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal(this, play);  // was func_80B55444 [LLM:HIGH]
+ }
+ 
+-void func_80B556CC(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B556CC: sActionFuncs[5]
++void EnZl3_Action5(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B553B4(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B55444(this, play);
++    EnZl3_ChangeAnimOnAnimDone3(this, EnZl3_UpdateSkelAnime(this));  // was func_80B553B4 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal(this, play);  // was func_80B55444 [LLM:HIGH]
+ }
+ 
+-void func_80B5572C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B5572C: sActionFuncs[6]
++void EnZl3_Action6(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B55444(this, play);
++    EnZl3_CheckDemoModeInFinal(this, play);  // was func_80B55444 [LLM:HIGH]
+ }
+ 
+-void func_80B55780(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B55780: its own debug string names it: En_Zl3_Actor_inFinal2_Init. Sets action 7, draw config 1, mouth 1 and drops ACTOR_FLAG_ATTENTION_ENABLED
++void EnZl3_InitInFinal2(EnZl3* this, PlayState* play) {
+     osSyncPrintf("ゼルダ姫のEn_Zl3_Actor_inFinal2_Init通すよ!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+-    func_80B54E14(this, &gZelda2Anime2Anim_005A0C, 0, 0.0f, 0);
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_005A0C, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 7;
+     this->drawConfig = 1;
+     osSyncPrintf("ゼルダ姫のEn_Zl3_Actor_inFinal2_Initは通った!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+@@ -1017,15 +1076,18 @@ void func_80B55780(EnZl3* this, PlayState* play) {
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+ }
+ 
+-void func_80B55808(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B55808: a second Sfx_PlaySfxAtPos of NA_SE_VO_Z1_PAIN, identical to EnZl3_PlayPainSfx but called from the inFinal2 setups
++void EnZl3_PlayPainSfx2(EnZl3* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_Z1_PAIN);
+ }
+ 
+-void func_80B5582C(EnZl3* this) {
+-    Audio_PlaySoundRandom(&D_80B5A488, NA_SE_VO_Z1_CRY_0, NA_SE_VO_Z1_CRY_1 - NA_SE_VO_Z1_CRY_0 + 1);
++// LLM generated name (HIGH), was func_80B5582C: Audio_PlaySoundRandom across the NA_SE_VO_Z1_CRY_0..NA_SE_VO_Z1_CRY_1 range
++void EnZl3_PlayCrySfx(EnZl3* this) {
++    Audio_PlaySoundRandom(&sCrySfxPos, NA_SE_VO_Z1_CRY_0, NA_SE_VO_Z1_CRY_1 - NA_SE_VO_Z1_CRY_0 + 1);  // was D_80B5A488 [LLM:GUESS]
+ }
+ 
+-void func_80B5585C(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B5585C: plays NA_SE_VO_Z1_PAIN when the once-through animation reaches frame 4
++void EnZl3_PlayPainSfxOnFrame4(EnZl3* this) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     if ((skelAnime->mode == 2) && Animation_OnFrame(skelAnime, 4.0f)) {
+@@ -1033,7 +1095,8 @@ void func_80B5585C(EnZl3* this) {
+     }
+ }
+ 
+-void func_80B558A8(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B558A8: records the current position in unk_32C and computes the destination unk_338 a fixed short distance ahead in the facing direction; the pair EnZl3_LerpToLungeTarget interpolates between
++void EnZl3_SetLungeTarget(EnZl3* this) {
+     s32 pad[4];
+     s16 thisRotY = this->actor.world.rot.y;
+     Vec3f* unk_338 = &this->unk_338;
+@@ -1045,7 +1108,8 @@ void func_80B558A8(EnZl3* this) {
+     unk_338->y += -0.012199402f;
+ }
+ 
+-void func_80B559C4(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B559C4: Environment_LerpWeightAccelDecel over the gZelda2Anime2Anim_005248 length, moving x and z from unk_32C to unk_338
++void EnZl3_LerpToLungeTarget(EnZl3* this) {
+     Vec3f* thisPos = &this->actor.world.pos;
+     Vec3f* unk_32C = &this->unk_32C;
+     Vec3f* unk_338 = &this->unk_338;
+@@ -1056,72 +1120,84 @@ void func_80B559C4(EnZl3* this) {
+     thisPos->z = unk_32C->z + (temp_f0 * (unk_338->z - unk_32C->z));
+ }
+ 
+-void func_80B55A58(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B55A58: runs EnZl3_StepYawTowardsPlayer only while play->activeCamera is CAM_ID_MAIN, i.e. not during a one-point cutscene
++void EnZl3_StepYawTowardsPlayerIfMainCam(EnZl3* this, PlayState* play) {
+     if (play->activeCamera == CAM_ID_MAIN) {
+-        func_80B537E8(this);
++        EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55A84(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_005A0C, 0, 0.0f, 0);
++// LLM generated name (HIGH), was func_80B55A84: changes to gZelda2Anime2Anim_005A0C and sets action = 7
++void EnZl3_SetupAction7(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_005A0C, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 7;
+ }
+ 
+-void func_80B55AC4(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_00499C, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B55AC4: changes to gZelda2Anime2Anim_00499C and sets action = 8
++void EnZl3_SetupAction8(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_00499C, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 8;
+ }
+ 
+-void func_80B55B04(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B55B04: called from EnZl3_Action8 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_004408
++void EnZl3_ChangeAnimOnAnimDone4(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_004408, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_004408, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55B38(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_006508, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B55B38: changes to gZelda2Anime2Anim_006508 and sets action = 9
++void EnZl3_SetupAction9(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_006508, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 9;
+ }
+ 
+-void func_80B55B78(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B55B78: called from EnZl3_Action9 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_0061C4
++void EnZl3_ChangeAnimOnAnimDone5(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_0061C4, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0061C4, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55BAC(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_005248, 2, -8.0f, 0);
+-    func_80B558A8(this);
+-    func_80B55808(this);
++// LLM generated name (HIGH), was func_80B55BAC: changes to gZelda2Anime2Anim_005248, sets the lunge target, plays the pain cry, mouth 2 and action = 10
++void EnZl3_SetupAction10(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_005248, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++    EnZl3_SetLungeTarget(this);  // was func_80B558A8 [LLM:GUESS]
++    EnZl3_PlayPainSfx2(this);  // was func_80B55808 [LLM:HIGH]
+     EnZl3_setMouthIndex(this, 2);
+     this->action = 10;
+ }
+ 
+-void func_80B55C0C(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_0054E0, 0, 0.0f, 0);
++// LLM generated name (HIGH), was func_80B55C0C: changes to gZelda2Anime2Anim_0054E0 and sets action = 11
++void EnZl3_SetupAction11(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0054E0, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 11;
+ }
+ 
+-void func_80B55C4C(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B55C4C: called from EnZl3_Action10 with the EnZl3_UpdateSkelAnime result: runs EnZl3_SetupAction11 once the animation finishes
++void EnZl3_SetupAction11OnAnimDone(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B55C0C(this);
++        EnZl3_SetupAction11(this);  // was func_80B55C0C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55C70(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_008684, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B55C70: changes to gZelda2Anime2Anim_008684, sets action = 12 and drops the attention/friendly flags
++void EnZl3_SetupAction12(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_008684, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 12;
+     this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+ }
+ 
+-void func_80B55CCC(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B55CCC: called from EnZl3_Action11 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_006F04
++void EnZl3_ChangeAnimOnAnimDone6(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_006F04, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_006F04, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55D00(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B55D00: the action-12 body: Actor_ProcessTalkRequest moves to action 13, otherwise it offers the 0x70D5 textbox while the player is within 0x4300 of the facing direction
++void EnZl3_OfferTalkInFinal2(EnZl3* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->action = 13;
+     } else if (ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) <= 0x4300) {
+@@ -1135,7 +1211,8 @@ void func_80B55D00(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B55DB0(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B55DB0: on TEXT_STATE_CLOSING drops the attention flags and returns to action 12
++void EnZl3_ReturnToAction12OnTextEnd(EnZl3* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+@@ -1143,45 +1220,52 @@ void func_80B55DB0(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B55E08(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_006AB0, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B55E08: changes to gZelda2Anime2Anim_006AB0 and sets action = 14
++void EnZl3_SetupAction14(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_006AB0, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 14;
+ }
+ 
+-void func_80B55E48(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B55E48: called from EnZl3_Action13 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_008050
++void EnZl3_ChangeAnimOnAnimDone7(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_008050, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_008050, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55E7C(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_007A78, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B55E7C: changes to gZelda2Anime2Anim_007A78 and sets action = 15
++void EnZl3_SetupAction15(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_007A78, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 15;
+ }
+ 
+-void func_80B55EBC(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B55EBC: called from EnZl3_Action14 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_007C84
++void EnZl3_ChangeAnimOnAnimDone8(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_007C84, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_007C84, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55EF0(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_0082F8, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B55EF0: changes to gZelda2Anime2Anim_0082F8, sets action = 16 and mouth 0
++void EnZl3_SetupAction16(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0082F8, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 16;
+     EnZl3_setMouthIndex(this, 0);
+ }
+ 
+-void func_80B55F38(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B55F38: called from EnZl3_Action15 and EnZl3_Action18 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_003FF8
++void EnZl3_ChangeAnimOnAnimDone9(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_003FF8, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_003FF8, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B55F6C(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B55F6C: the action-16 body: offers the 0x7059 textbox only while EnZl3_FindGanon reports Ganon below a size threshold, and moves to action 0x12 when the player talks
++void EnZl3_OfferTalkNearGanon(EnZl3* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->action = 0x12;
+     } else if (ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) <= 0x4300) {
+-        BossGanon2* bossGanon2 = func_80B53488(this, play);
++        BossGanon2* bossGanon2 = EnZl3_FindGanon(this, play);  // was func_80B53488 [LLM:HIGH]
+ 
+         if ((bossGanon2 != NULL) && (bossGanon2->unk_324 <= (10.0f / 81.0f))) {
+             this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY;
+@@ -1195,26 +1279,29 @@ void func_80B55F6C(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B5604C(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_007664, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B5604C: changes to gZelda2Anime2Anim_007664, sets action = 17 and plays the cry
++void EnZl3_SetupAction17(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_007664, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 17;
+-    func_80B5582C(this);
++    EnZl3_PlayCrySfx(this);  // was func_80B5582C [LLM:HIGH]
+ }
+ 
+-void func_80B56090(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B56090: called from EnZl3_Action17 with the EnZl3_UpdateSkelAnime result: when the cue has not moved on, returns to action 16 on the gZelda2Anime2Anim_003FF8 animation and forces the cue to 7
++void EnZl3_SetupAction16OnAnimDone(EnZl3* this, s32 arg1) {
+     s32* unk_2F0 = &this->unk_2F0;
+ 
+-    if (func_80B5396C(this) == *unk_2F0) {
++    if (EnZl3_GetCue(this) == *unk_2F0) {  // was func_80B5396C [LLM:GUESS]
+         if (arg1 != 0) {
+-            func_80B54E14(this, &gZelda2Anime2Anim_003FF8, 0, 0.0f, 0);
++            EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_003FF8, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+             this->action = 16;
+-            func_80B53974(this, 7);
++            EnZl3_SetCue(this, 7);  // was func_80B53974 [LLM:GUESS]
+             this->unk_2F0 = 7;
+         }
+     }
+ }
+ 
+-void func_80B56108(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B56108: on TEXT_STATE_CLOSING drops the attention flags and returns to action 16
++void EnZl3_ReturnToAction16OnTextEnd(EnZl3* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+@@ -1222,27 +1309,31 @@ void func_80B56108(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B56160(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_0001D8, 0, 0.0f, 0);
++// LLM generated name (HIGH), was func_80B56160: changes to gZelda2Anime2Anim_0001D8 and sets action = 19
++void EnZl3_SetupAction19(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0001D8, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 19;
+ }
+ 
+-void func_80B561A0(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_001110, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B561A0: changes to gZelda2Anime2Anim_001110 and sets action = 20
++void EnZl3_SetupAction20(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_001110, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 20;
+ }
+ 
+-void func_80B561E0(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B561E0: called from EnZl3_Action20 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_0004F4
++void EnZl3_ChangeAnimOnAnimDone10(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_0004F4, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0004F4, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B56214(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B56214: the action-20 twin of EnZl3_OfferTalkNearGanon: same 0x7059 textbox and Ganon size test, but moves to action 21 when the player talks
++void EnZl3_OfferTalkNearGanon2(EnZl3* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->action = 21;
+     } else if (ABS((s16)(this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) <= 0x4300) {
+-        BossGanon2* bossGanon2 = func_80B53488(this, play);
++        BossGanon2* bossGanon2 = EnZl3_FindGanon(this, play);  // was func_80B53488 [LLM:HIGH]
+ 
+         if (bossGanon2 != NULL) {
+             if (bossGanon2->unk_324 <= (10.0f / 81.0f)) {
+@@ -1258,7 +1349,8 @@ void func_80B56214(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B562F4(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B562F4: on TEXT_STATE_CLOSING drops the attention flags and returns to action 20
++void EnZl3_ReturnToAction20OnTextEnd(EnZl3* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+@@ -1266,51 +1358,58 @@ void func_80B562F4(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B5634C(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_002348, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B5634C: changes to gZelda2Anime2Anim_002348 and sets action = 22
++void EnZl3_SetupAction22(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_002348, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 22;
+ }
+ 
+-void func_80B5638C(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B5638C: called from EnZl3_Action22 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_00210C
++void EnZl3_ChangeAnimOnAnimDone11(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_00210C, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_00210C, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B563C0(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_002E54, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B563C0: changes to gZelda2Anime2Anim_002E54 and sets action = 23
++void EnZl3_SetupAction23(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_002E54, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 23;
+ }
+ 
+-void func_80B56400(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B56400: called from EnZl3_Action23 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_002710
++void EnZl3_ChangeAnimOnAnimDone12(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_002710, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_002710, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B56434(EnZl3* this) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_001D8C, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B56434: changes to gZelda2Anime2Anim_001D8C and sets action = 24
++void EnZl3_SetupAction24(EnZl3* this) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_001D8C, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 24;
+ }
+ 
+-void func_80B56474(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B56474: called from EnZl3_Action24 with the EnZl3_UpdateSkelAnime result: on animation end switch to gZelda2Anime2Anim_0014DC
++void EnZl3_ChangeAnimOnAnimDone13(EnZl3* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_0014DC, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0014DC, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B564A8(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B564A8: its own debug string names it: En_Zl3_inFinal2_Check_DemoMode. Dispatches the cue index to the action-7..24 setups, with the sCueDelayTimer path for cue 8
++void EnZl3_CheckDemoModeInFinal2(EnZl3* this, PlayState* play) {
+     s32 temp_v0;
+-    s32* val = &D_80B5A494;
++    s32* val = &sCueDelayTimer;  // was D_80B5A494 [LLM:GUESS]
+ 
+-    temp_v0 = func_80B5396C(this);
++    temp_v0 = EnZl3_GetCue(this);  // was func_80B5396C [LLM:GUESS]
+ 
+     if (*val > 0) {
+         *val -= 1;
+     } else if (*val == 0) {
+         *val -= 1;
+         if (temp_v0 == 8) {
+-            func_80B5604C(this);
++            EnZl3_SetupAction17(this);  // was func_80B5604C [LLM:HIGH]
+         }
+     }
+ 
+@@ -1320,46 +1419,46 @@ void func_80B564A8(EnZl3* this, PlayState* play) {
+         if (temp_v0 != unk_2F0) {
+             switch (temp_v0) {
+                 case 0:
+-                    func_80B55A84(this);
++                    EnZl3_SetupAction7(this);  // was func_80B55A84 [LLM:HIGH]
+                     break;
+                 case 1:
+-                    func_80B55AC4(this);
++                    EnZl3_SetupAction8(this);  // was func_80B55AC4 [LLM:HIGH]
+                     break;
+                 case 2:
+-                    func_80B55B38(this);
++                    EnZl3_SetupAction9(this);  // was func_80B55B38 [LLM:HIGH]
+                     break;
+                 case 3:
+-                    func_80B55BAC(this);
++                    EnZl3_SetupAction10(this);  // was func_80B55BAC [LLM:HIGH]
+                     break;
+                 case 4:
+-                    func_80B55C70(this);
++                    EnZl3_SetupAction12(this);  // was func_80B55C70 [LLM:HIGH]
+                     break;
+                 case 5:
+-                    func_80B55E08(this);
++                    EnZl3_SetupAction14(this);  // was func_80B55E08 [LLM:HIGH]
+                     break;
+                 case 6:
+-                    func_80B55E7C(this);
++                    EnZl3_SetupAction15(this);  // was func_80B55E7C [LLM:HIGH]
+                     break;
+                 case 7:
+-                    func_80B55EF0(this);
++                    EnZl3_SetupAction16(this);  // was func_80B55EF0 [LLM:HIGH]
+                     break;
+                 case 8:
+                     *val = 10;
+                     break;
+                 case 9:
+-                    func_80B56160(this);
++                    EnZl3_SetupAction19(this);  // was func_80B56160 [LLM:HIGH]
+                     break;
+                 case 10:
+-                    func_80B561A0(this);
++                    EnZl3_SetupAction20(this);  // was func_80B561A0 [LLM:HIGH]
+                     break;
+                 case 11:
+-                    func_80B5634C(this);
++                    EnZl3_SetupAction22(this);  // was func_80B5634C [LLM:HIGH]
+                     break;
+                 case 12:
+-                    func_80B563C0(this);
++                    EnZl3_SetupAction23(this);  // was func_80B563C0 [LLM:HIGH]
+                     break;
+                 case 13:
+-                    func_80B56434(this);
++                    EnZl3_SetupAction24(this);  // was func_80B56434 [LLM:HIGH]
+                     break;
+                 case 14:
+                     Actor_Kill(&this->actor);
+@@ -1372,182 +1471,203 @@ void func_80B564A8(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B56658(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B56658: sActionFuncs[7]
++void EnZl3_Action7(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B564A8(this, play);
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B566AC(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B566AC: sActionFuncs[8]
++void EnZl3_Action8(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B55B04(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
++    EnZl3_ChangeAnimOnAnimDone4(this, EnZl3_UpdateSkelAnime(this));  // was func_80B55B04 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B5670C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B5670C: sActionFuncs[9]
++void EnZl3_Action9(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B55B78(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
++    EnZl3_ChangeAnimOnAnimDone5(this, EnZl3_UpdateSkelAnime(this));  // was func_80B55B78 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B5676C(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B5676C: sActionFuncs[10]
++void EnZl3_Action10(EnZl3* this, PlayState* play) {
+     s32 something;
+ 
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     something = EnZl3_UpdateSkelAnime(this);
+-    func_80B559C4(this);
+-    func_80B55C4C(this, something);
++    EnZl3_LerpToLungeTarget(this);  // was func_80B559C4 [LLM:GUESS]
++    EnZl3_SetupAction11OnAnimDone(this, something);  // was func_80B55C4C [LLM:GUESS]
+ }
+ 
+-void func_80B567CC(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B567CC: sActionFuncs[11]
++void EnZl3_Action11(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B564A8(this, play);
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B5682C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B55A58(this, play);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B5682C: sActionFuncs[12]
++void EnZl3_Action12(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayerIfMainCam(this, play);  // was func_80B55A58 [LLM:GUESS]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B55CCC(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
+-    func_80B55D00(this, play);
++    EnZl3_ChangeAnimOnAnimDone6(this, EnZl3_UpdateSkelAnime(this));  // was func_80B55CCC [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
++    EnZl3_OfferTalkInFinal2(this, play);  // was func_80B55D00 [LLM:GUESS]
+ }
+ 
+-void func_80B568B4(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B537E8(this);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B568B4: sActionFuncs[13]
++void EnZl3_Action13(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B55DB0(this, play);
++    EnZl3_ReturnToAction12OnTextEnd(this, play);  // was func_80B55DB0 [LLM:GUESS]
+ }
+ 
+-void func_80B5691C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B5691C: sActionFuncs[14]
++void EnZl3_Action14(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B55E48(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
++    EnZl3_ChangeAnimOnAnimDone7(this, EnZl3_UpdateSkelAnime(this));  // was func_80B55E48 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B5697C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B5697C: sActionFuncs[15]
++void EnZl3_Action15(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B55EBC(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B5585C(this);
+-    func_80B564A8(this, play);
++    EnZl3_ChangeAnimOnAnimDone8(this, EnZl3_UpdateSkelAnime(this));  // was func_80B55EBC [LLM:GUESS]
++    EnZl3_PlayPainSfxOnFrame4(this);  // was func_80B5585C [LLM:HIGH]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B569E4(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B533FC(this, play);
+-    func_80B537E8(this);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B569E4: sActionFuncs[16]
++void EnZl3_Action16(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B55F38(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
+-    func_80B55F6C(this, play);
++    EnZl3_ChangeAnimOnAnimDone9(this, EnZl3_UpdateSkelAnime(this));  // was func_80B55F38 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
++    EnZl3_OfferTalkNearGanon(this, play);  // was func_80B55F6C [LLM:GUESS]
+ }
+ 
+-void func_80B56A68(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B56A68: sActionFuncs[17]
++void EnZl3_Action17(EnZl3* this, PlayState* play) {
+     s32 something;
+ 
+-    func_80B54DE0(this, play);
+-    func_80B533FC(this, play);
+-    func_80B537E8(this);
+-    func_80B5366C(this, play);
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     something = EnZl3_UpdateSkelAnime(this);
+-    func_80B564A8(this, play);
+-    func_80B56090(this, something);
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
++    EnZl3_SetupAction16OnAnimDone(this, something);  // was func_80B56090 [LLM:GUESS]
+ }
+ 
+-void func_80B56AE0(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B533FC(this, play);
+-    func_80B537E8(this);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B56AE0: sActionFuncs[18]
++void EnZl3_Action18(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B55F38(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B56108(this, play);
++    EnZl3_ChangeAnimOnAnimDone9(this, EnZl3_UpdateSkelAnime(this));  // was func_80B55F38 [LLM:GUESS]
++    EnZl3_ReturnToAction16OnTextEnd(this, play);  // was func_80B56108 [LLM:GUESS]
+ }
+ 
+-void func_80B56B54(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B56B54: sActionFuncs[19]
++void EnZl3_Action19(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B564A8(this, play);
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B56BA8(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B56BA8: sActionFuncs[20]
++void EnZl3_Action20(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B561E0(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
+-    func_80B56214(this, play);
++    EnZl3_ChangeAnimOnAnimDone10(this, EnZl3_UpdateSkelAnime(this));  // was func_80B561E0 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
++    EnZl3_OfferTalkNearGanon2(this, play);  // was func_80B56214 [LLM:GUESS]
+ }
+ 
+-void func_80B56C24(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B56C24: sActionFuncs[21]
++void EnZl3_Action21(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B562F4(this, play);
++    EnZl3_ReturnToAction20OnTextEnd(this, play);  // was func_80B562F4 [LLM:GUESS]
+ }
+ 
+-void func_80B56C84(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B56C84: sActionFuncs[22]
++void EnZl3_Action22(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B5638C(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
++    EnZl3_ChangeAnimOnAnimDone11(this, EnZl3_UpdateSkelAnime(this));  // was func_80B5638C [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B56CE4(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B56CE4: sActionFuncs[23]
++void EnZl3_Action23(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B56400(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
++    EnZl3_ChangeAnimOnAnimDone12(this, EnZl3_UpdateSkelAnime(this));  // was func_80B56400 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B56D44(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B56D44: sActionFuncs[24]
++void EnZl3_Action24(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B56474(this, EnZl3_UpdateSkelAnime(this));
+-    func_80B564A8(this, play);
++    EnZl3_ChangeAnimOnAnimDone13(this, EnZl3_UpdateSkelAnime(this));  // was func_80B56474 [LLM:GUESS]
++    EnZl3_CheckDemoModeInFinal2(this, play);  // was func_80B564A8 [LLM:HIGH]
+ }
+ 
+-void func_80B56DA4(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B56DA4: Sfx_PlaySfxCentered2 of NA_SE_EV_ZELDA_POWER
++void EnZl3_PlayZeldaPowerSfx(EnZl3* this) {
+     Sfx_PlaySfxCentered2(NA_SE_EV_ZELDA_POWER);
+ }
+ 
+-void func_80B56DC8(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B56DC8: a third Sfx_PlaySfxAtPos of NA_SE_VO_Z1_PAIN, identical to EnZl3_PlayPainSfx but called from the collapse-escape logic
++void EnZl3_PlayPainSfx3(EnZl3* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_Z1_PAIN);
+ }
+ 
+-void func_80B56DEC(EnZl3* this) {
++// LLM generated name (HIGH), was func_80B56DEC: plays NA_SE_VO_Z1_OPENDOOR when the once-through animation reaches frame 9
++void EnZl3_PlayOpenDoorSfxOnFrame9(EnZl3* this) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     if ((skelAnime->mode == 2) && Animation_OnFrame(skelAnime, 9.0f) != 0) {
+@@ -1555,7 +1675,8 @@ void func_80B56DEC(EnZl3* this) {
+     }
+ }
+ 
+-void func_80B56E38(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B56E38: on animation frames 0 and 6, while grounded, plays the 0x800 surface-dependent footstep from SurfaceType_GetSfx
++void EnZl3_PlayWalkSfx(EnZl3* this, PlayState* play) {
+     s32 pad[2];
+     s32 sfxId;
+     SkelAnime* sp20 = &this->skelAnime;
+@@ -1568,20 +1689,23 @@ void func_80B56E38(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B56EB8(EnZl3* this, PlayState* play) {
+-    Flags_SetSwitch(play, func_80B54DB4(this));
++// LLM generated name (HIGH), was func_80B56EB8: Flags_SetSwitch of the flag EnZl3_GetSwitchFlagIndex decodes from params
++void EnZl3_SetSwitchFlag(EnZl3* this, PlayState* play) {
++    Flags_SetSwitch(play, EnZl3_GetSwitchFlagIndex(this));  // was func_80B54DB4 [LLM:HIGH]
+ }
+ 
+-s32 func_80B56EE4(EnZl3* this, PlayState* play) {
+-    return Flags_GetSwitch(play, func_80B54DB4(this));
++// LLM generated name (HIGH), was func_80B56EE4: Flags_GetSwitch of the flag EnZl3_GetSwitchFlagIndex decodes from params
++s32 EnZl3_GetSwitchFlag(EnZl3* this, PlayState* play) {
++    return Flags_GetSwitch(play, EnZl3_GetSwitchFlagIndex(this));  // was func_80B54DB4 [LLM:HIGH]
+ }
+ 
+-void func_80B56F10(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B56F10: its own debug string names it: En_Zl3_Get_path_info. Indexes play->setupPathList by EnZl3_GetPathIndex and caches the path and its point count
++void EnZl3_GetPathInfo(EnZl3* this, PlayState* play) {
+     s32 waypoint;
+     Path* pathHead = play->setupPathList;
+ 
+     if (pathHead != NULL) {
+-        waypoint = func_80B54DC4(this);
++        waypoint = EnZl3_GetPathIndex(this);  // was func_80B54DC4 [LLM:HIGH]
+         pathHead += waypoint;
+         this->unk_30C = pathHead;
+         this->unk_310 = pathHead->count;
+@@ -1591,7 +1715,8 @@ void func_80B56F10(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80B56F8C(EnZl3* this, s32 arg1) {
++// LLM generated name (GUESS), was func_80B56F8C: returns whether the cached path point count exceeds the given index -- the bounds test every other path helper goes through
++s32 EnZl3_PathHasPoint(EnZl3* this, s32 arg1) {
+     s32 unk_310 = this->unk_310;
+ 
+     if (unk_310 > arg1) {
+@@ -1600,20 +1725,22 @@ s32 func_80B56F8C(EnZl3* this, s32 arg1) {
+     return 0;
+ }
+ 
+-Vec3s* func_80B56FAC(EnZl3* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80B56FAC: returns the indexed Vec3s of the cached path, or NULL when the path is absent or the index is past its end
++Vec3s* EnZl3_GetPathPoint(EnZl3* this, s32 arg1) {
+     Vec3s* point;
+     Path* pathList = this->unk_30C;
+ 
+-    if ((pathList != NULL) && func_80B56F8C(this, arg1)) {
++    if ((pathList != NULL) && EnZl3_PathHasPoint(this, arg1)) {  // was func_80B56F8C [LLM:GUESS]
+         point = &((Vec3s*)SEGMENTED_TO_VIRTUAL(pathList->points))[arg1];
+         return point;
+     }
+     return NULL;
+ }
+ 
+-s32 func_80B57034(EnZl3* this, s32 arg1, s32 arg2) {
+-    Vec3s* vec1 = func_80B56FAC(this, arg1);
+-    Vec3s* vec2 = func_80B56FAC(this, arg2);
++// LLM generated name (HIGH), was func_80B57034: Math_FAtan2F of the xz delta between two path points, in binary angle units
++s32 EnZl3_GetYawBetweenPathPoints(EnZl3* this, s32 arg1, s32 arg2) {
++    Vec3s* vec1 = EnZl3_GetPathPoint(this, arg1);  // was func_80B56FAC [LLM:HIGH]
++    Vec3s* vec2 = EnZl3_GetPathPoint(this, arg2);  // was func_80B56FAC [LLM:HIGH]
+ 
+     if ((vec2 != NULL) && (vec1 != NULL)) {
+         f32 xDiff = vec2->x - vec1->x;
+@@ -1624,8 +1751,9 @@ s32 func_80B57034(EnZl3* this, s32 arg1, s32 arg2) {
+     return 0;
+ }
+ 
+-s16 func_80B57104(EnZl3* this, s32 arg1) {
+-    Vec3s* point = func_80B56FAC(this, arg1);
++// LLM generated name (HIGH), was func_80B57104: Math_FAtan2F of the xz delta from the actor position to the indexed path point
++s16 EnZl3_GetYawToPathPoint(EnZl3* this, s32 arg1) {
++    Vec3s* point = EnZl3_GetPathPoint(this, arg1);  // was func_80B56FAC [LLM:HIGH]
+ 
+     if (point != NULL) {
+         f32 xDiff = point->x - this->actor.world.pos.x;
+@@ -1638,46 +1766,51 @@ s16 func_80B57104(EnZl3* this, s32 arg1) {
+     return 0;
+ }
+ 
+-s32 func_80B571A8(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B571A8: the heading of the segment from the current waypoint to the next, falling back to the current shape.rot.y at the end of the path
++s32 EnZl3_GetYawAlongPathSegment(EnZl3* this) {
+     s32 pad;
+     s32 unk_314 = this->unk_314;
+     s32 pad2;
+ 
+-    if (func_80B56F8C(this, unk_314 + 1) == 0) {
++    if (EnZl3_PathHasPoint(this, unk_314 + 1) == 0) {  // was func_80B56F8C [LLM:GUESS]
+         return this->actor.shape.rot.y;
+     } else {
+-        return func_80B57034(this, unk_314, unk_314 + 1);
++        return EnZl3_GetYawBetweenPathPoints(this, unk_314, unk_314 + 1);  // was func_80B57034 [LLM:HIGH]
+     }
+ }
+ 
+-s32 func_80B571FC(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B571FC: the heading from the actor to the current waypoint, falling back to the current shape.rot.y when that waypoint does not exist
++s32 EnZl3_GetYawToCurrentPathPoint(EnZl3* this) {
+     s32 pad;
+     s32 unk_314 = this->unk_314;
+ 
+-    if (func_80B56F8C(this, unk_314) == 0) {
++    if (EnZl3_PathHasPoint(this, unk_314) == 0) {  // was func_80B56F8C [LLM:GUESS]
+         return this->actor.shape.rot.y;
+     } else {
+-        return func_80B57104(this, unk_314);
++        return EnZl3_GetYawToPathPoint(this, unk_314);  // was func_80B57104 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B57240(EnZl3* this) {
+-    s32 temp_a1 = func_80B571FC(this);
++// LLM generated name (GUESS), was func_80B57240: Math_SmoothStepToS-es world.rot.y towards EnZl3_GetYawToCurrentPathPoint and mirrors it into shape.rot.y
++void EnZl3_StepYawToCurrentPathPoint(EnZl3* this) {
++    s32 temp_a1 = EnZl3_GetYawToCurrentPathPoint(this);  // was func_80B571FC [LLM:GUESS]
+     s16* rotY = &this->actor.world.rot.y;
+ 
+     Math_SmoothStepToS(rotY, temp_a1, 2, 6400, 1000);
+     this->actor.shape.rot.y = *rotY;
+ }
+ 
+-void func_80B57298(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B57298: Math_SmoothStepToS-es world.rot.y towards EnZl3_GetYawAlongPathSegment and mirrors it into shape.rot.y
++void EnZl3_StepYawAlongPathSegment(EnZl3* this) {
+     s16* rotY = &this->actor.world.rot.y;
+-    s16 temp_a1 = func_80B571A8(this);
++    s16 temp_a1 = EnZl3_GetYawAlongPathSegment(this);  // was func_80B571A8 [LLM:GUESS]
+ 
+     Math_SmoothStepToS(rotY, temp_a1, 2, 6400, 1000);
+     this->actor.shape.rot.y = *rotY;
+ }
+ 
+-u16 func_80B572F0(PlayState* play) {
++// LLM generated name (HIGH), was func_80B572F0: returns 0x71A8, 0x71A9 or 0x71AB according to which of the two collapse scenes is loaded
++u16 EnZl3_GetTextIdForScene(PlayState* play) {
+     s16 sceneNum = play->sceneNum;
+     u16 ret;
+ 
+@@ -1691,31 +1824,35 @@ u16 func_80B572F0(PlayState* play) {
+     return ret;
+ }
+ 
+-s32 func_80B57324(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B57324: Actor_ProcessTalkRequest normalized to 0/1
++s32 EnZl3_ProcessTalkRequest(EnZl3* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         return 1;
+     }
+     return 0;
+ }
+ 
+-void func_80B57350(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B57350: while the player is within 0x4300 of the facing direction, sets the attention/friendly flags and offers the EnZl3_GetTextIdForScene textbox
++void EnZl3_OfferTalk(EnZl3* this, PlayState* play) {
+     s16 temp_v0 = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+ 
+     if (ABS(temp_v0) <= 0x4300) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY;
+-        this->actor.textId = func_80B572F0(play);
++        this->actor.textId = EnZl3_GetTextIdForScene(play);  // was func_80B572F0 [LLM:HIGH]
+         Actor_OfferTalkNearColChkInfoCylinder(&this->actor, play);
+     }
+ }
+ 
+-s32 func_80B573C8(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B573C8: Message_GetState == TEXT_STATE_CLOSING, normalized to 0/1
++s32 EnZl3_IsTextClosing(EnZl3* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         return 1;
+     }
+     return 0;
+ }
+ 
+-s32 func_80B573FC(EnZl3* this, PlayState* play, f32 arg2) {
++// LLM generated name (HIGH), was func_80B573FC: squared xz distance to the player against the squared radius argument
++s32 EnZl3_IsPlayerWithin(EnZl3* this, PlayState* play, f32 arg2) {
+     Player* player = GET_PLAYER(play);
+     f32 playerX = player->actor.world.pos.x;
+     f32 playerZ = player->actor.world.pos.z;
+@@ -1728,7 +1865,8 @@ s32 func_80B573FC(EnZl3* this, PlayState* play, f32 arg2) {
+     return 0;
+ }
+ 
+-s32 func_80B57458(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B57458: true when the player sits within 0x1555 of the current path-segment heading, or within 0x4000 of it and closer than 150 units -- the test for whether the player has got in front of Zelda
++s32 EnZl3_IsPlayerAhead(EnZl3* this, PlayState* play) {
+     Vec3f* thisPos = &this->actor.world.pos;
+     f32 thisX = thisPos->x;
+     f32 thisZ = thisPos->z;
+@@ -1740,7 +1878,7 @@ s32 func_80B57458(EnZl3* this, PlayState* play) {
+     f32 temp_f12 = playerX - thisX;
+     f32 temp_f13 = playerZ - thisZ;
+     s16 temp_v0;
+-    s16 temp_v1 = func_80B571A8(this);
++    s16 temp_v1 = EnZl3_GetYawAlongPathSegment(this);  // was func_80B571A8 [LLM:GUESS]
+ 
+     if (temp_f12 == 0.0f && temp_f13 == 0.0f) {
+         return 1;
+@@ -1750,32 +1888,36 @@ s32 func_80B57458(EnZl3* this, PlayState* play) {
+ 
+     if (temp_v0 < 0x1555) {
+         return 1;
+-    } else if ((temp_v0 < 0x4000) && func_80B573FC(this, play, 150.0f)) {
++    } else if ((temp_v0 < 0x4000) && EnZl3_IsPlayerWithin(this, play, 150.0f)) {  // was func_80B573FC [LLM:HIGH]
+         return 1;
+     } else {
+         return 0;
+     }
+ }
+ 
+-s32 func_80B57564(EnZl3* this, PlayState* play) {
+-    if (func_80B573FC(this, play, 50.0f) || func_80B57458(this, play)) {
++// LLM generated name (GUESS), was func_80B57564: true when the player is within 50 units or EnZl3_IsPlayerAhead; the condition that stops Zelda walking on
++s32 EnZl3_ShouldWaitForPlayer(EnZl3* this, PlayState* play) {
++    if (EnZl3_IsPlayerWithin(this, play, 50.0f) || EnZl3_IsPlayerAhead(this, play)) {  // was func_80B573FC [LLM:HIGH]
+         return 1;
+     }
+     return 0;
+ }
+ 
+-s32 func_80B575B0(EnZl3* this, PlayState* play) {
+-    return func_80B573FC(this, play, 150.0f);
++// LLM generated name (HIGH), was func_80B575B0: EnZl3_IsPlayerWithin with a radius of 150
++s32 EnZl3_IsPlayerWithin150(EnZl3* this, PlayState* play) {
++    return EnZl3_IsPlayerWithin(this, play, 150.0f);  // was func_80B573FC [LLM:HIGH]
+ }
+ 
+-s32 func_80B575D0(EnZl3* this, PlayState* play) {
+-    return func_80B573FC(this, play, 50.0f);
++// LLM generated name (HIGH), was func_80B575D0: EnZl3_IsPlayerWithin with a radius of 50
++s32 EnZl3_IsPlayerWithin50(EnZl3* this, PlayState* play) {
++    return EnZl3_IsPlayerWithin(this, play, 50.0f);  // was func_80B573FC [LLM:HIGH]
+ }
+ 
+-s32 func_80B575F0(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B575F0: true for switch flag 0x26 in the tower interior at waypoint 1 -- the one spot where the Stalfos ambush is staged
++s32 EnZl3_IsAtStalfosWaypoint(EnZl3* this, PlayState* play) {
+     s16 sceneNum = play->sceneNum;
+ 
+-    if ((sceneNum == SCENE_GANONS_TOWER_COLLAPSE_INTERIOR) && (func_80B54DB4(this) == 0x26)) {
++    if ((sceneNum == SCENE_GANONS_TOWER_COLLAPSE_INTERIOR) && (EnZl3_GetSwitchFlagIndex(this) == 0x26)) {  // was func_80B54DB4 [LLM:HIGH]
+         s32 unk_314 = this->unk_314;
+ 
+         if (unk_314 == 1) {
+@@ -1785,10 +1927,11 @@ s32 func_80B575F0(EnZl3* this, PlayState* play) {
+     return 0;
+ }
+ 
+-void func_80B5764C(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B5764C: fires OnePointCutscene 1000 when the next waypoint would be 1 at the same interior/flag-0x26 spot EnZl3_IsAtStalfosWaypoint tests
++void EnZl3_PlayWaypointCutscene(EnZl3* this, PlayState* play) {
+     s16 sceneNum = play->sceneNum;
+ 
+-    if ((sceneNum == SCENE_GANONS_TOWER_COLLAPSE_INTERIOR) && (func_80B54DB4(this) == 0x26)) {
++    if ((sceneNum == SCENE_GANONS_TOWER_COLLAPSE_INTERIOR) && (EnZl3_GetSwitchFlagIndex(this) == 0x26)) {  // was func_80B54DB4 [LLM:HIGH]
+         s32 unk_314 = this->unk_314 + 1;
+ 
+         if ((unk_314 == 1) && !Play_InCsMode(play)) {
+@@ -1797,34 +1940,39 @@ void func_80B5764C(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80B576C8(EnZl3* this, PlayState* play) {
+-    if (func_80B575F0(this, play) && (this->unk_3D8 == 0)) {
++// LLM generated name (GUESS), was func_80B576C8: EnZl3_IsAtStalfosWaypoint and the unk_3D8 once-only latch still clear
++s32 EnZl3_ShouldStageStalfosAmbush(EnZl3* this, PlayState* play) {
++    if (EnZl3_IsAtStalfosWaypoint(this, play) && (this->unk_3D8 == 0)) {  // was func_80B575F0 [LLM:GUESS]
+         return 1;
+     }
+     return 0;
+ }
+ 
+-void func_80B57704(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B57704: Flags_SetSwitch of unk_3C4, the flag stashed out of the spawn rot.z at init
++void EnZl3_SetRotZSwitchFlag(EnZl3* this, PlayState* play) {
+     s32 unk_3C4 = this->unk_3C4;
+ 
+     Flags_SetSwitch(play, unk_3C4);
+ }
+ 
+-void func_80B5772C(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B5772C: Flags_UnsetSwitch of the same unk_3C4 flag EnZl3_SetRotZSwitchFlag sets
++void EnZl3_UnsetRotZSwitchFlag(EnZl3* this, PlayState* play) {
+     s32 unk_3C4 = this->unk_3C4;
+ 
+     Flags_UnsetSwitch(play, unk_3C4);
+ }
+ 
+-void func_80B57754(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B57754: while no magic effect is running, spawns ACTOR_OCEFF_WIPE4 at the actor and plays the Zelda-power cue
++void EnZl3_SpawnMagicWipe(EnZl3* this, PlayState* play) {
+     if (gSaveContext.magicState == MAGIC_STATE_IDLE) {
+         Actor_Spawn(&play->actorCtx, play, ACTOR_OCEFF_WIPE4, this->actor.world.pos.x, this->actor.world.pos.y,
+                     this->actor.world.pos.z, 0, 0, 0, 1);
+-        func_80B56DA4(this);
++        EnZl3_PlayZeldaPowerSfx(this);  // was func_80B56DA4 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B577BC(PlayState* play, Vec3f* vec) {
++// LLM generated name (HIGH), was func_80B577BC: spawns ACTOR_EN_TEST facing the player at the given position, behind the VB_ADULT_ZELDA_SPAWN_STALFOS_IN_COLLAPSE hook
++void EnZl3_SpawnStalfosAt(PlayState* play, Vec3f* vec) {
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+     Vec3f* playerPos = &player->actor.world.pos;
+@@ -1838,16 +1986,18 @@ void func_80B577BC(PlayState* play, Vec3f* vec) {
+     }
+ }
+ 
+-void func_80B57858(PlayState* play) {
+-    func_80B577BC(play, &D_80B5A498);
+-    func_80B577BC(play, &D_80B5A4A4);
++// LLM generated name (HIGH), was func_80B57858: two EnZl3_SpawnStalfosAt calls, at sStalfosSpawnPos0 and sStalfosSpawnPos1
++void EnZl3_SpawnStalfosPair(PlayState* play) {
++    EnZl3_SpawnStalfosAt(play, &sStalfosSpawnPos0);  // was D_80B5A498 [LLM:GUESS]
++    EnZl3_SpawnStalfosAt(play, &sStalfosSpawnPos1);  // was D_80B5A4A4 [LLM:GUESS]
+ }
+ 
+-s32 func_80B57890(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B57890: the per-scene table pairing each switch-flag index with the play->curSpawn entrance it belongs to; decides whether this copy of Zelda should exist at all
++s32 EnZl3_IsAtExpectedSpawn(EnZl3* this, PlayState* play) {
+     s8 pad[2];
+     u8 curSpawn = play->curSpawn;
+     s16 sceneNum = play->sceneNum;
+-    s32 result = func_80B54DB4(this);
++    s32 result = EnZl3_GetSwitchFlagIndex(this);  // was func_80B54DB4 [LLM:HIGH]
+ 
+     if (play) {} // Needed to match, this if can be almost anywhere and it still matches
+ 
+@@ -1895,7 +2045,8 @@ s32 func_80B57890(EnZl3* this, PlayState* play) {
+     return 0;
+ }
+ 
+-void func_80B57A74(PlayState* play) {
++// LLM generated name (HIGH), was func_80B57A74: sets collapseSpawnerInactive on every EnEncount2; carries the upstream bug note that the search walks ACTORCAT_PROP while EnEncount2 lives in ACTORCAT_ENEMY
++void EnZl3_DisableCollapseSpawners(PlayState* play) {
+     Actor* actorIt = play->actorCtx.actorLists[ACTORCAT_PROP].head;
+     //! @bug checks for encount2 in ACTORCAT_PROP but encount2 is in ACTORCAT_ENEMY so this condition is never met
+     while (actorIt != NULL) {
+@@ -1906,13 +2057,15 @@ void func_80B57A74(PlayState* play) {
+     }
+ }
+ 
+-void func_80B57AAC(EnZl3* this, s32 arg1, AnimationHeader* arg2) {
++// LLM generated name (GUESS), was func_80B57AAC: the parameterised form of the ChangeAnimOnAnimDone helpers: on animation end changes to whichever animation the caller passes
++void EnZl3_ChangeToAnimOnAnimDone(EnZl3* this, s32 arg1, AnimationHeader* arg2) {
+     if (arg1 != 0) {
+-        func_80B54E14(this, arg2, 0, -8.0f, 0);
++        EnZl3_ChangeAnim(this, arg2, 0, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B57AE0(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B57AE0: advances unk_314 to the next waypoint, records the start position, reads the target from the path (or projects 200 units ahead when the path runs out) and derives the frame count from the distance
++void EnZl3_SetupNextPathSegment(EnZl3* this, PlayState* play) {
+     s32 pad;
+     s16 shapeRotY = this->actor.shape.rot.y;
+     s32 pad2;
+@@ -1928,7 +2081,7 @@ void func_80B57AE0(EnZl3* this, PlayState* play) {
+     this->unk_364 = 0.0f;
+     this->unk_368 = 0.0f;
+     *unk_348 = this->actor.world.pos;
+-    temp_v0 = func_80B56FAC(this, this->unk_314);
++    temp_v0 = EnZl3_GetPathPoint(this, this->unk_314);  // was func_80B56FAC [LLM:HIGH]
+ 
+     if (temp_v0 != NULL) {
+         unk_354->x = temp_v0->x;
+@@ -1945,22 +2098,26 @@ void func_80B57AE0(EnZl3* this, PlayState* play) {
+     this->unk_346 = (s32)(sqrtf(SQ(xDiff) + SQ(zDiff)) / (kREG(6) + 8.0f));
+ }
+ 
+-s32 func_80B57C54(EnZl3* this) {
++// LLM generated name (GUESS), was func_80B57C54: the walk frame counter unk_344 has reached the segment length unk_346 computed by EnZl3_SetupNextPathSegment
++s32 EnZl3_HasReachedPathTarget(EnZl3* this) {
+     if (this->unk_344 >= this->unk_346) {
+         return 1;
+     }
+     return 0;
+ }
+ 
+-s32 func_80B57C7C(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B57C7C: returns 1 unconditionally, ignoring both arguments -- a stubbed-out condition in EnZl3_StartEndingIfPlayerClose
++s32 EnZl3_ReturnTrue(EnZl3* this, PlayState* play) {
+     return 1;
+ }
+ 
+-s32 func_80B57C8C(EnZl3* this) {
+-    return !func_80B56F8C(this, this->unk_314 + 2);
++// LLM generated name (GUESS), was func_80B57C8C: true when the path has no waypoint two ahead of the current one
++s32 EnZl3_IsOnLastPathSegment(EnZl3* this) {
++    return !EnZl3_PathHasPoint(this, this->unk_314 + 2);  // was func_80B56F8C [LLM:GUESS]
+ }
+ 
+-void func_80B57CB4(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B57CB4: advances unk_344 and Environment_LerpWeightAccelDecel-s the position from unk_348 to unk_354 over the segment
++void EnZl3_WalkAlongPathSegment(EnZl3* this, PlayState* play) {
+     Vec3f* unk_348 = &this->unk_348;
+     Vec3f* unk_354 = &this->unk_354;
+     Vec3f* thisPos = &this->actor.world.pos;
+@@ -1973,17 +2130,19 @@ void func_80B57CB4(EnZl3* this, PlayState* play) {
+     thisPos->z = unk_348->z + (temp_f0 * (unk_354->z - unk_348->z));
+ }
+ 
+-void func_80B57D60(EnZl3* this, PlayState* play) {
+-    func_80B57240(this);
++// LLM generated name (GUESS), was func_80B57D60: the PlayState-taking wrapper the action handlers call, forwarding to EnZl3_StepYawToCurrentPathPoint
++void EnZl3_UpdatePathYaw(EnZl3* this, PlayState* play) {
++    EnZl3_StepYawToCurrentPathPoint(this);  // was func_80B57240 [LLM:GUESS]
+ }
+ 
+-s32 func_80B57D80(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B57D80: aims the NpcInteractInfo tracking at a point on the current path heading rather than at the player, snaps shape.rot.y once the error drops under 0x320, and returns the remaining error
++s32 EnZl3_TrackPathPoint(EnZl3* this, PlayState* play) {
+     s32 pad;
+     s16* sp32 = &this->actor.shape.rot.y;
+     NpcInteractInfo* interactInfo = &this->interactInfo;
+     Player* player = GET_PLAYER(play);
+     s32 unk_314 = this->unk_314;
+-    s16 temp_v0 = func_80B57104(this, unk_314);
++    s16 temp_v0 = EnZl3_GetYawToPathPoint(this, unk_314);  // was func_80B57104 [LLM:HIGH]
+     s32 pad2;
+     s16 phi_v1;
+ 
+@@ -2003,109 +2162,117 @@ s32 func_80B57D80(EnZl3* this, PlayState* play) {
+     return phi_v1;
+ }
+ 
+-void func_80B57EAC(EnZl3* this, PlayState* play) {
+-    if (func_80B57324(this, play)) {
++// LLM generated name (GUESS), was func_80B57EAC: the action-25 body: a talk request moves to action 26, otherwise it keeps offering the scene textbox
++void EnZl3_OfferTalkOnPath(EnZl3* this, PlayState* play) {
++    if (EnZl3_ProcessTalkRequest(this, play)) {  // was func_80B57324 [LLM:HIGH]
+         this->action = 26;
+     } else {
+-        func_80B57350(this, play);
++        EnZl3_OfferTalk(this, play);  // was func_80B57350 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B57EEC(EnZl3* this, PlayState* play) {
+-    if (func_80B573C8(this, play)) {
++// LLM generated name (GUESS), was func_80B57EEC: the action-26 body: on TEXT_STATE_CLOSING returns to the escape idle, action 27
++void EnZl3_ResumeEscapeOnTextEnd(EnZl3* this, PlayState* play) {
++    if (EnZl3_IsTextClosing(this, play)) {  // was func_80B573C8 [LLM:HIGH]
+         this->action = 27;
+     }
+ }
+ 
+-void func_80B57F1C(EnZl3* this, PlayState* play) {
+-    if (func_80B57D80(this, play) == 0) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_009BE4, 0, -8.0f, 0);
++// LLM generated name (GUESS), was func_80B57F1C: the action-27 body: once EnZl3_TrackPathPoint reports Zelda has turned onto the path, starts the walk animation, action 34, and sets up the segment
++void EnZl3_StartWalkWhenFacingPath(EnZl3* this, PlayState* play) {
++    if (EnZl3_TrackPathPoint(this, play) == 0) {  // was func_80B57D80 [LLM:GUESS]
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009BE4, 0, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->action = 34;
+         this->unk_314 -= 1;
+-        func_80B57AE0(this, play);
++        EnZl3_SetupNextPathSegment(this, play);  // was func_80B57AE0 [LLM:GUESS]
+     }
+ }
+ 
+-s32 func_80B57F84(EnZl3* this, PlayState* play) {
+-    if (func_80B575D0(this, play) && func_80B57C7C(this, play) && !Play_InCsMode(play)) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_009FBC, 0, -8.0f, 0);
++// LLM generated name (GUESS), was func_80B57F84: when the player is within 50 units and not in a cutscene, starts the ending animation, action 36, and disables the collapse spawners
++s32 EnZl3_StartEndingIfPlayerClose(EnZl3* this, PlayState* play) {
++    if (EnZl3_IsPlayerWithin50(this, play) && EnZl3_ReturnTrue(this, play) && !Play_InCsMode(play)) {  // was func_80B575D0 [LLM:HIGH]
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009FBC, 0, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->action = 36;
+         this->unk_2EC = 0.0f;
+-        func_80B57A74(play);
++        EnZl3_DisableCollapseSpawners(play);  // was func_80B57A74 [LLM:HIGH]
+         return 1;
+     }
+     return 0;
+ }
+ 
+-void func_80B58014(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B58014: the action-28 body and the hub of the collapse escape: routes to talking (29), the ending (36), the Stalfos ambush (0x1F), walking on (34) or the hurt reaction (30)
++void EnZl3_UpdateEscapeIdle(EnZl3* this, PlayState* play) {
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+     s8 invincibilityTimer = player->invincibilityTimer;
+ 
+-    if (func_80B57324(this, play)) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_003FF8, 0, -11.0f, 0);
++    if (EnZl3_ProcessTalkRequest(this, play)) {  // was func_80B57324 [LLM:HIGH]
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_003FF8, 0, -11.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->action = 29;
+-        func_80B538B0(this);
+-    } else if (func_80B57C8C(this) && func_80B57F84(this, play)) {
++        EnZl3_UpdateTurnToPlayer(this);  // was func_80B538B0 [LLM:GUESS]
++    } else if (EnZl3_IsOnLastPathSegment(this) && EnZl3_StartEndingIfPlayerClose(this, play)) {  // was func_80B57C8C [LLM:GUESS]
+         OnePointCutscene_Init(play, 4000, -99, &this->actor, CAM_ID_MAIN);
+         this->unk_3D0 = 0;
+-    } else if (func_80B576C8(this, play) && func_80B575B0(this, play) && !Play_InCsMode(play)) {
++    } else if (EnZl3_ShouldStageStalfosAmbush(this, play) && EnZl3_IsPlayerWithin150(this, play) && !Play_InCsMode(play)) {  // was func_80B575B0 [LLM:HIGH]
+         this->action = 0x1F;
+         this->unk_3CC = 0.0f;
+-        func_80B537E8(this);
++        EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
+         this->unk_3D8 = 1;
+         OnePointCutscene_Init(play, 4010, -99, &this->actor, CAM_ID_MAIN);
+-    } else if (!func_80B57C8C(this) && !func_80B576C8(this, play) && func_80B57564(this, play)) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_009BE4, 0, -8.0f, 0);
+-        func_80B5764C(this, play);
++    } else if (!EnZl3_IsOnLastPathSegment(this) && !EnZl3_ShouldStageStalfosAmbush(this, play) && EnZl3_ShouldWaitForPlayer(this, play)) {  // was func_80B57564 [LLM:GUESS]
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009BE4, 0, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++        EnZl3_PlayWaypointCutscene(this, play);  // was func_80B5764C [LLM:GUESS]
+         this->action = 34;
+         this->unk_3D0 = 0;
+-        func_80B57AE0(this, play);
++        EnZl3_SetupNextPathSegment(this, play);  // was func_80B57AE0 [LLM:GUESS]
+     } else if ((invincibilityTimer > 0) || (player->fallDistance >= 0x33)) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_007664, 0, -11.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_007664, 0, -11.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->action = 30;
+-        func_80B537E8(this);
+-        func_80B56DC8(this);
++        EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++        EnZl3_PlayPainSfx3(this);  // was func_80B56DC8 [LLM:HIGH]
+     } else {
+-        func_80B57350(this, play);
+-        func_80B538B0(this);
++        EnZl3_OfferTalk(this, play);  // was func_80B57350 [LLM:HIGH]
++        EnZl3_UpdateTurnToPlayer(this);  // was func_80B538B0 [LLM:GUESS]
+     }
+ }
+ 
+-void func_80B58214(EnZl3* this, PlayState* play) {
+-    if (func_80B573C8(this, play)) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_009FBC, 0, -11.0f, 0);
++// LLM generated name (GUESS), was func_80B58214: the action-29 body: on TEXT_STATE_CLOSING returns to the escape idle, action 28
++void EnZl3_ReturnToEscapeIdleOnTextEnd(EnZl3* this, PlayState* play) {
++    if (EnZl3_IsTextClosing(this, play)) {  // was func_80B573C8 [LLM:HIGH]
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009FBC, 0, -11.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->action = 28;
+         this->unk_3D0 = 0;
+     }
+ }
+ 
+-void func_80B58268(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B58268: the action-30 body: once the player is neither invincible nor falling far, returns to the escape idle, action 28
++void EnZl3_ReturnToEscapeIdleWhenPlayerSafe(EnZl3* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s8 invincibilityTimer = player->invincibilityTimer;
+ 
+     if ((invincibilityTimer <= 0) && (player->fallDistance <= 50)) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_009FBC, 0, -11.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009FBC, 0, -11.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->action = 28;
+         this->unk_3D0 = 0;
+     }
+ }
+ 
+-void func_80B582C8(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B582C8: the action-0x1F body: a unk_3CC frame timeline that swaps animations, sets the switch flag, spawns the Stalfos pair, finishes the camera and hands over to action 32
++void EnZl3_RunStalfosAmbushCutscene(EnZl3* this, PlayState* play) {
+     f32* unk_3CC = &this->unk_3CC;
+     s32 pad;
+ 
+     if (*unk_3CC == kREG(14) + 10.0f) {
+         *unk_3CC += 1.0f;
+-        func_80B54E14(this, &gZelda2Anime2Anim_008050, 0, -12.0f, 0);
+-        func_80B57704(this, play);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_008050, 0, -12.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++        EnZl3_SetRotZSwitchFlag(this, play);  // was func_80B57704 [LLM:GUESS]
+     } else if (*unk_3CC == kREG(15) + 20.0f) {
+         *unk_3CC += 1.0f;
+-        func_80B56DC8(this);
+-        func_80B54E14(this, &gZelda2Anime2Anim_003FF8, 0, -12.0f, 0);
++        EnZl3_PlayPainSfx3(this);  // was func_80B56DC8 [LLM:HIGH]
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_003FF8, 0, -12.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     } else if (*unk_3CC == kREG(16) + 30.0f) {
+         *unk_3CC += 1.0f;
+-        func_80B57858(play);
++        EnZl3_SpawnStalfosPair(play);  // was func_80B57858 [LLM:HIGH]
+     } else if (*unk_3CC == kREG(17) + 40.0f) {
+         Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+         *unk_3CC += 1.0f;
+@@ -2117,61 +2284,63 @@ void func_80B582C8(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B584B4(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B584B4: the action-32 body: waits until Actor_FindNearby reports no enemy within 8000 units, swapping the cowering animation in and out via sReactingToPlayerHurt, then starts cutscene 4011 and action 33
++void EnZl3_WaitForStalfosDefeated(EnZl3* this, PlayState* play) {
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+     s8 invincibilityTimer = player->invincibilityTimer;
+     Actor* nearbyEnTest = Actor_FindNearby(play, &this->actor, -1, ACTORCAT_ENEMY, 8000.0f);
+ 
+-    if (D_80B5A4BC == 0) {
++    if (sReactingToPlayerHurt == 0) {  // was D_80B5A4BC [LLM:GUESS]
+         if ((nearbyEnTest == NULL) && (!Play_InCsMode(play))) {
+             this->action = 33;
+             OnePointCutscene_Init(play, 4011, -99, &this->actor, CAM_ID_MAIN);
+         } else if (invincibilityTimer > 0) {
+-            func_80B54E14(this, &gZelda2Anime2Anim_003FF8, 0, -12.0f, 0);
+-            D_80B5A4BC = 1;
+-            func_80B56DC8(this);
++            EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_003FF8, 0, -12.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++            sReactingToPlayerHurt = 1;  // was D_80B5A4BC [LLM:GUESS]
++            EnZl3_PlayPainSfx3(this);  // was func_80B56DC8 [LLM:HIGH]
+         }
+     } else {
+         if ((nearbyEnTest == NULL) && (!Play_InCsMode(play))) {
+-            func_80B54E14(this, &gZelda2Anime2Anim_007664, 0, -12.0f, 0);
+-            D_80B5A4BC = 0;
++            EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_007664, 0, -12.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++            sReactingToPlayerHurt = 0;  // was D_80B5A4BC [LLM:GUESS]
+             this->action = 33;
+             OnePointCutscene_Init(play, 4011, -99, &this->actor, CAM_ID_MAIN);
+         } else if (invincibilityTimer <= 0) {
+-            func_80B54E14(this, &gZelda2Anime2Anim_007664, 0, -12.0f, 0);
+-            D_80B5A4BC = 0;
++            EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_007664, 0, -12.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++            sReactingToPlayerHurt = 0;  // was D_80B5A4BC [LLM:GUESS]
+         }
+     }
+ }
+ 
+-void func_80B58624(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B58624: the action-33 body: a unk_3CC frame timeline that clears the switch flag, shows textbox 0x71AC, drops five collectibles and returns to action 28
++void EnZl3_RunStalfosClearedCutscene(EnZl3* this, PlayState* play) {
+     s32 pad[4];
+     f32* unk_3CC = &this->unk_3CC;
+ 
+     if (*unk_3CC == (kREG(18) + 10.0f)) {
+         *unk_3CC += 1.0f;
+-        func_80B54E14(this, &gZelda2Anime2Anim_008050, 0, -12.0f, 0);
+-        func_80B5772C(this, play);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_008050, 0, -12.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++        EnZl3_UnsetRotZSwitchFlag(this, play);  // was func_80B5772C [LLM:GUESS]
+     } else if (*unk_3CC == kREG(19) + 20.0f) {
+         *unk_3CC += 1.0f;
+         this->actor.textId = 0x71AC;
+         Message_StartTextbox(play, this->actor.textId, NULL);
+-        func_80B54E14(this, &gZelda2Anime2Anim_003FF8, 0, -12.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_003FF8, 0, -12.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     } else if (*unk_3CC == ((kREG(19) + 20.0f) + 1.0f)) {
+         if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+             *unk_3CC += 1.0f;
+-            func_80B5357C(this, play);
+-            func_80B5357C(this, play);
+-            func_80B5357C(this, play);
+-            func_80B5357C(this, play);
+-            func_80B5357C(this, play);
++            EnZl3_DropCollectible(this, play);  // was func_80B5357C [LLM:HIGH]
++            EnZl3_DropCollectible(this, play);  // was func_80B5357C [LLM:HIGH]
++            EnZl3_DropCollectible(this, play);  // was func_80B5357C [LLM:HIGH]
++            EnZl3_DropCollectible(this, play);  // was func_80B5357C [LLM:HIGH]
++            EnZl3_DropCollectible(this, play);  // was func_80B5357C [LLM:HIGH]
+         }
+     } else {
+         if (*unk_3CC >= kREG(20) + 30.0f) {
+             this->action = 28;
+             Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+-            func_80B54E14(this, &gZelda2Anime2Anim_009FBC, 0, -12.0f, 0);
++            EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009FBC, 0, -12.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+             *unk_3CC = 0.0f;
+         } else {
+             *unk_3CC += 1.0f;
+@@ -2179,27 +2348,31 @@ void func_80B58624(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B5884C(EnZl3* this, PlayState* play) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_0038C0, 2, -8.0f, 0);
++// LLM generated name (HIGH), was func_80B5884C: changes to gZelda2Anime2Anim_0038C0, sets action = 37 and the unk_36C once-only latch
++void EnZl3_SetupAction37(EnZl3* this, PlayState* play) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0038C0, 2, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 37;
+     this->unk_36C = 1;
+ }
+ 
+-void func_80B58898(EnZl3* this, PlayState* play) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_0038C0, 2, -8.0f, 1);
++// LLM generated name (HIGH), was func_80B58898: changes to gZelda2Anime2Anim_0038C0 played in reverse, sets action = 38 and the unk_374 once-only latch
++void EnZl3_SetupAction38(EnZl3* this, PlayState* play) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_0038C0, 2, -8.0f, 1);  // was func_80B54E14 [LLM:HIGH]
+     this->action = 38;
+     this->unk_374 = 1;
+ }
+ 
+-void func_80B588E8(EnZl3* this, PlayState* play) {
+-    func_80B54E14(this, &gZelda2Anime2Anim_009BE4, 0, -8.0f, 0);
+-    func_80B57AE0(this, play);
++// LLM generated name (HIGH), was func_80B588E8: changes to gZelda2Anime2Anim_009BE4, sets up the next path segment and sets action = 39
++void EnZl3_SetupAction39(EnZl3* this, PlayState* play) {
++    EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009BE4, 0, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
++    EnZl3_SetupNextPathSegment(this, play);  // was func_80B57AE0 [LLM:GUESS]
+     this->action = 39;
+ }
+ 
+-s32 func_80B58938(EnZl3* this, PlayState* play) {
+-    if (func_80B57C54(this)) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_009FBC, 0, -8.0f, 0);
++// LLM generated name (GUESS), was func_80B58938: when EnZl3_HasReachedPathTarget fires, stops on the idle animation at action 28 and reports it
++s32 EnZl3_ReturnToIdleAtPathTarget(EnZl3* this, PlayState* play) {
++    if (EnZl3_HasReachedPathTarget(this)) {  // was func_80B57C54 [LLM:GUESS]
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009FBC, 0, -8.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->action = 28;
+         this->unk_3D0 = 0;
+         return 1;
+@@ -2207,55 +2380,60 @@ s32 func_80B58938(EnZl3* this, PlayState* play) {
+     return 0;
+ }
+ 
+-s32 func_80B5899C(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B5899C: while grounded, an invincible or hard-falling player swaps in the reaction animation at action 35
++s32 EnZl3_ReactToPlayerHurtOnGround(EnZl3* this, PlayState* play) {
+     if ((this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+         Player* player = GET_PLAYER(play);
+         s8 invincibilityTimer = player->invincibilityTimer;
+ 
+         if ((invincibilityTimer > 0) || (player->fallDistance >= 0x33)) {
+-            func_80B54E14(this, &gZelda2Anime2Anim_007664, 2, -11.0f, 0);
++            EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_007664, 2, -11.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+             this->action = 35;
+-            func_80B56DC8(this);
++            EnZl3_PlayPainSfx3(this);  // was func_80B56DC8 [LLM:HIGH]
+             return 1;
+         }
+     }
+     return 0;
+ }
+ 
+-void func_80B58A1C(EnZl3* this, PlayState* play) {
+-    if (!func_80B58938(this, play)) {
+-        func_80B5899C(this, play);
++// LLM generated name (GUESS), was func_80B58A1C: the action-34 body: EnZl3_ReturnToIdleAtPathTarget first, and only if it did not fire does the hurt reaction get a chance
++void EnZl3_UpdateWalking(EnZl3* this, PlayState* play) {
++    if (!EnZl3_ReturnToIdleAtPathTarget(this, play)) {  // was func_80B58938 [LLM:GUESS]
++        EnZl3_ReactToPlayerHurtOnGround(this, play);  // was func_80B5899C [LLM:GUESS]
+     }
+ }
+ 
+-void func_80B58A50(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B58A50: the action-35 body: once the player is neither invincible nor falling far, resumes the walk animation at action 34
++void EnZl3_ResumeWalkWhenPlayerSafe(EnZl3* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s8 invincibilityTimer = player->invincibilityTimer;
+ 
+     if ((invincibilityTimer <= 0) && (player->fallDistance <= 50)) {
+-        func_80B54E14(this, &gZelda2Anime2Anim_009BE4, 0, -11.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009BE4, 0, -11.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->action = 34;
+     }
+ }
+ 
+-void func_80B58AAC(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B58AAC: the action-36..38 body: a unk_2EC frame timeline that fires the magic wipe, sets the switch flag and steps through actions 37, 38 and 39
++void EnZl3_RunEndingSequence(EnZl3* this, PlayState* play) {
+     f32* unk_2EC = &this->unk_2EC;
+ 
+     *unk_2EC += 1.0f;
+     if ((*unk_2EC >= kREG(7) + 24.0f) && (this->unk_36C == 0)) {
+-        func_80B57754(this, play);
+-        func_80B5884C(this, play);
++        EnZl3_SpawnMagicWipe(this, play);  // was func_80B57754 [LLM:GUESS]
++        EnZl3_SetupAction37(this, play);  // was func_80B5884C [LLM:HIGH]
+     } else if ((*unk_2EC >= kREG(8) + 50.0f) && (this->unk_370 == 0)) {
+-        func_80B56EB8(this, play);
++        EnZl3_SetSwitchFlag(this, play);  // was func_80B56EB8 [LLM:HIGH]
+         this->unk_370 = 1;
+     } else if ((*unk_2EC >= kREG(9) + 56.0f) && (this->unk_374 == 0)) {
+-        func_80B58898(this, play);
++        EnZl3_SetupAction38(this, play);  // was func_80B58898 [LLM:HIGH]
+     } else if (*unk_2EC >= kREG(10) + 82.0f) {
+-        func_80B588E8(this, play);
++        EnZl3_SetupAction39(this, play);  // was func_80B588E8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B58C08(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B58C08: the action-39 body: walks the last segment while fading alpha out over the final kREG(11)+2 frames, switching to draw config 2, then kills the actor
++void EnZl3_FadeOutAlongPath(EnZl3* this, PlayState* play) {
+     s32 pad[2];
+     Vec3f* unk_348 = &this->unk_348;
+     Vec3f* unk_354 = &this->unk_354;
+@@ -2286,174 +2464,190 @@ void func_80B58C08(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B58D50(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B58D50: sActionFuncs[25]
++void EnZl3_Action25(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B57EAC(this, play);
++    EnZl3_OfferTalkOnPath(this, play);  // was func_80B57EAC [LLM:GUESS]
+ }
+ 
+-void func_80B58DB0(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B58DB0: sActionFuncs[26]
++void EnZl3_Action26(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B57EEC(this, play);
++    EnZl3_ResumeEscapeOnTextEnd(this, play);  // was func_80B57EEC [LLM:GUESS]
+ }
+ 
+-void func_80B58E10(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
++// LLM generated name (HIGH), was func_80B58E10: sActionFuncs[27]
++void EnZl3_Action27(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
+     Actor_SetFocus(&this->actor, 60.0f);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B57F1C(this, play);
++    EnZl3_StartWalkWhenFacingPath(this, play);  // was func_80B57F1C [LLM:GUESS]
+ }
+ 
+-void func_80B58E7C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B53764(this, play);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B58E7C: sActionFuncs[28]
++void EnZl3_Action28(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_TrackPlayer(this, play);  // was func_80B53764 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B58014(this, play);
+-    func_80B536B4(this);
++    EnZl3_UpdateEscapeIdle(this, play);  // was func_80B58014 [LLM:GUESS]
++    EnZl3_ClearGroundBgCheckFlags(this);  // was func_80B536B4 [LLM:GUESS]
+ }
+ 
+-void func_80B58EF4(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B538B0(this);
+-    func_80B53764(this, play);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B58EF4: sActionFuncs[29]
++void EnZl3_Action29(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_UpdateTurnToPlayer(this);  // was func_80B538B0 [LLM:GUESS]
++    EnZl3_TrackPlayer(this, play);  // was func_80B53764 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B58214(this, play);
++    EnZl3_ReturnToEscapeIdleOnTextEnd(this, play);  // was func_80B58214 [LLM:GUESS]
+ }
+ 
+-void func_80B58F6C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B537E8(this);
+-    func_80B536C4(this);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B58F6C: sActionFuncs[30]
++void EnZl3_Action30(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B58268(this, play);
++    EnZl3_ReturnToEscapeIdleWhenPlayerSafe(this, play);  // was func_80B58268 [LLM:GUESS]
+ }
+ 
+-void func_80B58FDC(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B537E8(this);
+-    func_80B536C4(this);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B58FDC: sActionFuncs[31]
++void EnZl3_Action31(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B582C8(this, play);
++    EnZl3_RunStalfosAmbushCutscene(this, play);  // was func_80B582C8 [LLM:GUESS]
+ }
+ 
+-void func_80B5904C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B537E8(this);
+-    func_80B536C4(this);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B5904C: sActionFuncs[32]
++void EnZl3_Action32(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B584B4(this, play);
++    EnZl3_WaitForStalfosDefeated(this, play);  // was func_80B584B4 [LLM:GUESS]
+ }
+ 
+-void func_80B590BC(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B537E8(this);
+-    func_80B536C4(this);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++// LLM generated name (HIGH), was func_80B590BC: sActionFuncs[33]
++void EnZl3_Action33(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_StepYawTowardsPlayer(this);  // was func_80B537E8 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B58624(this, play);
++    EnZl3_RunStalfosClearedCutscene(this, play);  // was func_80B58624 [LLM:GUESS]
+ }
+ 
+-void func_80B5912C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B536C4(this);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
+-    func_80B56E38(this, play);
++// LLM generated name (HIGH), was func_80B5912C: sActionFuncs[34]
++void EnZl3_Action34(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
++    EnZl3_PlayWalkSfx(this, play);  // was func_80B56E38 [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B57CB4(this, play);
+-    func_80B57D60(this, play);
+-    func_80B58A1C(this, play);
+-}
+-
+-void func_80B591BC(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B536C4(this);
+-    func_80B538B0(this);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++    EnZl3_WalkAlongPathSegment(this, play);  // was func_80B57CB4 [LLM:GUESS]
++    EnZl3_UpdatePathYaw(this, play);  // was func_80B57D60 [LLM:GUESS]
++    EnZl3_UpdateWalking(this, play);  // was func_80B58A1C [LLM:GUESS]
++}
++
++// LLM generated name (HIGH), was func_80B591BC: sActionFuncs[35]
++void EnZl3_Action35(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_UpdateTurnToPlayer(this);  // was func_80B538B0 [LLM:GUESS]
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B58A50(this, play);
++    EnZl3_ResumeWalkWhenPlayerSafe(this, play);  // was func_80B58A50 [LLM:GUESS]
+ }
+ 
+-void func_80B5922C(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B536C4(this);
+-    func_80B57298(this);
++// LLM generated name (HIGH), was func_80B5922C: sActionFuncs[36]
++void EnZl3_Action36(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_StepYawAlongPathSegment(this);  // was func_80B57298 [LLM:GUESS]
+     Actor_SetFocus(&this->actor, 60.0f);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B58AAC(this, play);
++    EnZl3_RunEndingSequence(this, play);  // was func_80B58AAC [LLM:GUESS]
+ }
+ 
+-void func_80B592A8(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B536C4(this);
+-    func_80B57298(this);
++// LLM generated name (HIGH), was func_80B592A8: sActionFuncs[37]
++void EnZl3_Action37(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_StepYawAlongPathSegment(this);  // was func_80B57298 [LLM:GUESS]
+     Actor_SetFocus(&this->actor, 60.0f);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B57AAC(this, EnZl3_UpdateSkelAnime(this), &gZelda2Anime2Anim_003D20);
+-    func_80B56DEC(this);
+-    func_80B58AAC(this, play);
++    EnZl3_ChangeToAnimOnAnimDone(this, EnZl3_UpdateSkelAnime(this), &gZelda2Anime2Anim_003D20);  // was func_80B57AAC [LLM:GUESS]
++    EnZl3_PlayOpenDoorSfxOnFrame9(this);  // was func_80B56DEC [LLM:HIGH]
++    EnZl3_RunEndingSequence(this, play);  // was func_80B58AAC [LLM:GUESS]
+ }
+ 
+-void func_80B59340(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B536C4(this);
+-    func_80B57298(this);
++// LLM generated name (HIGH), was func_80B59340: sActionFuncs[38]
++void EnZl3_Action38(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_StepYawAlongPathSegment(this);  // was func_80B57298 [LLM:GUESS]
+     Actor_SetFocus(&this->actor, 60.0f);
+-    func_80B533FC(this, play);
+-    func_80B5366C(this, play);
++    EnZl3_UpdateCollider(this, play);  // was func_80B533FC [LLM:HIGH]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
+     EnZl3_UpdateEyes(this);
+-    func_80B57AAC(this, EnZl3_UpdateSkelAnime(this), &gZelda2Anime2Anim_009FBC);
+-    func_80B58AAC(this, play);
++    EnZl3_ChangeToAnimOnAnimDone(this, EnZl3_UpdateSkelAnime(this), &gZelda2Anime2Anim_009FBC);  // was func_80B57AAC [LLM:GUESS]
++    EnZl3_RunEndingSequence(this, play);  // was func_80B58AAC [LLM:GUESS]
+ }
+ 
+-void func_80B593D0(EnZl3* this, PlayState* play) {
+-    func_80B54DE0(this, play);
+-    func_80B536C4(this);
+-    func_80B57298(this);
+-    func_80B5366C(this, play);
+-    func_80B56E38(this, play);
++// LLM generated name (HIGH), was func_80B593D0: sActionFuncs[39]
++void EnZl3_Action39(EnZl3* this, PlayState* play) {
++    EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++    EnZl3_ResetHeadAndTorsoRot(this);  // was func_80B536C4 [LLM:HIGH]
++    EnZl3_StepYawAlongPathSegment(this);  // was func_80B57298 [LLM:GUESS]
++    EnZl3_UpdateBgCheckInfo(this, play);  // was func_80B5366C [LLM:HIGH]
++    EnZl3_PlayWalkSfx(this, play);  // was func_80B56E38 [LLM:HIGH]
+     Actor_SetFocus(&this->actor, 60.0f);
+     EnZl3_UpdateEyes(this);
+     EnZl3_UpdateSkelAnime(this);
+-    func_80B58C08(this, play);
++    EnZl3_FadeOutAlongPath(this, play);  // was func_80B58C08 [LLM:GUESS]
+ }
+ 
+-s32 func_80B5944C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx, Gfx** gfx) {
++// LLM generated name (GUESS), was func_80B5944C: sOverrideLimbDrawFuncs[1]: the same seven-matrix hair chain at limb 14 as EnZl3_OverrideLimbDrawHair but with fixed offsets and no spring update, i.e. the hair frozen
++s32 EnZl3_OverrideLimbDrawHairStill(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx, Gfx** gfx) {
+     if (limbIndex == 14) {
+         Mtx* mtx = Graph_Alloc(play->state.gfxCtx, sizeof(Mtx) * 7);
+         EnZl3* this = (EnZl3*)thisx;
+@@ -2491,7 +2685,8 @@ s32 func_80B5944C(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s
+     return false;
+ }
+ 
+-s32 func_80B59698(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B59698: switch 0x37 set, one of the four collapse/boss scenes loaded, flag index 0x20 at spawn 0, and the sub-timer expired or off
++s32 EnZl3_ShouldStartCollapseEscape(EnZl3* this, PlayState* play) {
+     s32 cond = Flags_GetSwitch(play, 0x37) &&
+                ((play->sceneNum == SCENE_GANON_BOSS) || (play->sceneNum == SCENE_GANONS_TOWER_COLLAPSE_EXTERIOR) ||
+                 (play->sceneNum == SCENE_GANONS_TOWER_COLLAPSE_INTERIOR) ||
+@@ -2500,7 +2695,7 @@ s32 func_80B59698(EnZl3* this, PlayState* play) {
+     if (cond) {
+         u8 curSpawn = play->curSpawn;
+ 
+-        if ((func_80B54DB4(this) == 0x20) && (curSpawn == 0) &&
++        if ((EnZl3_GetSwitchFlagIndex(this) == 0x20) && (curSpawn == 0) &&  // was func_80B54DB4 [LLM:HIGH]
+             ((gSaveContext.subTimerSeconds <= 0) || (gSaveContext.subTimerState == SUBTIMER_STATE_OFF))) {
+             return 1;
+         }
+@@ -2508,7 +2703,8 @@ s32 func_80B59698(EnZl3* this, PlayState* play) {
+     return 0;
+ }
+ 
+-s32 func_80B59768(EnZl3* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B59768: the same test as EnZl3_ShouldStartCollapseEscape without the SUBTIMER_STATE_OFF allowance, so it fires only when the timer actually ran out
++s32 EnZl3_ShouldPlayRevengeSfx(EnZl3* this, PlayState* play) {
+     s32 cond = Flags_GetSwitch(play, 0x37) &&
+                ((play->sceneNum == SCENE_GANON_BOSS) || (play->sceneNum == SCENE_GANONS_TOWER_COLLAPSE_EXTERIOR) ||
+                 (play->sceneNum == SCENE_GANONS_TOWER_COLLAPSE_INTERIOR) ||
+@@ -2517,21 +2713,22 @@ s32 func_80B59768(EnZl3* this, PlayState* play) {
+     if (cond) {
+         u8 curSpawn = play->curSpawn;
+ 
+-        if ((func_80B54DB4(this) == 0x20) && (curSpawn == 0) && (gSaveContext.subTimerSeconds <= 0)) {
++        if ((EnZl3_GetSwitchFlagIndex(this) == 0x20) && (curSpawn == 0) && (gSaveContext.subTimerSeconds <= 0)) {  // was func_80B54DB4 [LLM:HIGH]
+             return 1;
+         }
+     }
+     return 0;
+ }
+ 
+-void func_80B59828(EnZl3* this, PlayState* play) {
+-    if (func_80B59698(this, play) || (!func_80B56EE4(this, play) && func_80B57890(this, play))) {
++// LLM generated name (GUESS), was func_80B59828: the type-3 init: if this copy belongs at this entrance it faces down the path at action 28, otherwise it kills itself; on a genuine timer expiry it also restarts the timer, refills health and magic and clears the per-waypoint switch flags
++void EnZl3_InitInCollapse(EnZl3* this, PlayState* play) {
++    if (EnZl3_ShouldStartCollapseEscape(this, play) || (!EnZl3_GetSwitchFlag(this, play) && EnZl3_IsAtExpectedSpawn(this, play))) {  // was func_80B56EE4 [LLM:HIGH]
+         s16 newRotY;
+ 
+-        func_80B54E14(this, &gZelda2Anime2Anim_009FBC, 0, 0.0f, 0);
++        EnZl3_ChangeAnim(this, &gZelda2Anime2Anim_009FBC, 0, 0.0f, 0);  // was func_80B54E14 [LLM:HIGH]
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY;
+-        func_80B56F10(this, play);
+-        newRotY = func_80B571A8(this);
++        EnZl3_GetPathInfo(this, play);  // was func_80B56F10 [LLM:HIGH]
++        newRotY = EnZl3_GetYawAlongPathSegment(this);  // was func_80B571A8 [LLM:GUESS]
+         this->actor.shape.rot.y = newRotY;
+         this->actor.world.rot.y = newRotY;
+         this->unk_3C4 = this->actor.world.rot.z;
+@@ -2543,9 +2740,9 @@ void func_80B59828(EnZl3* this, PlayState* play) {
+         Actor_Kill(&this->actor);
+     }
+ 
+-    if (func_80B59698(this, play) != 0) {
++    if (EnZl3_ShouldStartCollapseEscape(this, play) != 0) {  // was func_80B59698 [LLM:GUESS]
+         Interface_SetSubTimer(180);
+-        func_80B53468();
++        EnZl3_PlayEscapeBgm();  // was func_80B53468 [LLM:HIGH]
+         gSaveContext.healthAccumulator = 320;
+         Magic_Fill(play);
+         if (Flags_GetSwitch(play, 0x20)) {
+@@ -2564,45 +2761,47 @@ void func_80B59828(EnZl3* this, PlayState* play) {
+         Flags_UnsetSwitch(play, 0x2A);
+     }
+ 
+-    if (func_80B54DB4(this) == 0x20) {
++    if (EnZl3_GetSwitchFlagIndex(this) == 0x20) {  // was func_80B54DB4 [LLM:HIGH]
+         s32 cond;
+ 
+-        func_80B54EA4(this, play);
++        EnZl3_SpawnEnEg(this, play);  // was func_80B54EA4 [LLM:HIGH]
+         cond = Flags_GetSwitch(play, 0x37) &&
+                ((play->sceneNum == SCENE_GANON_BOSS) || (play->sceneNum == SCENE_GANONS_TOWER_COLLAPSE_EXTERIOR) ||
+                 (play->sceneNum == SCENE_GANONS_TOWER_COLLAPSE_INTERIOR) ||
+                 (play->sceneNum == SCENE_INSIDE_GANONS_CASTLE_COLLAPSE));
+         if (cond) {
+-            func_80B53614(this, play);
++            EnZl3_SpawnRiverSound(this, play);  // was func_80B53614 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80B59A80(EnZl3* this, PlayState* play) {
+-    if (func_80B59768(this, play)) {
++// LLM generated name (GUESS), was func_80B59A80: plays NA_SE_OC_REVENGE when EnZl3_ShouldPlayRevengeSfx fires; called from EnZl3_Init for type 3
++void EnZl3_PlayRevengeSfx(EnZl3* this, PlayState* play) {
++    if (EnZl3_ShouldPlayRevengeSfx(this, play)) {  // was func_80B59768 [LLM:GUESS]
+         Audio_PlaySfxGeneral(NA_SE_OC_REVENGE, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+     }
+ }
+ 
+-void func_80B59AD0(EnZl3* this, PlayState* play) {
++void EnZl3_StartCollapseEscape(EnZl3* this, PlayState* play) {
+     // todo look into
+     Actor* thisx = &this->actor; // unused, necessary to use 'this' first to fix regalloc
+ 
+     Flags_SetSwitch(play, 0x36);
+     Interface_SetSubTimer(180);
+-    func_80B54EA4(this, play);
+-    func_80B53614(this, play);
++    EnZl3_SpawnEnEg(this, play);  // was func_80B54EA4 [LLM:HIGH]
++    EnZl3_SpawnRiverSound(this, play);  // was func_80B53614 [LLM:HIGH]
+     Flags_UnsetEventChkInf(EVENTCHKINF_WATCHED_GANONS_CASTLE_COLLAPSE_CAUGHT_BY_GERUDO);
+-    func_80B56F10(this, play);
++    EnZl3_GetPathInfo(this, play);  // was func_80B56F10 [LLM:HIGH]
+     gSaveContext.healthAccumulator = 320;
+     Magic_Fill(play);
+     this->action = 27;
+     this->drawConfig = 1;
+ }
+ 
+-void func_80B59B6C(EnZl3* this, PlayState* play) {
+-    s32 sp2C = func_80B54DD4(this);
++// LLM generated name (GUESS), was func_80B59B6C: caches the seven animation lengths the hair springs need, then dispatches EnZl3_GetType to the inFinal, inFinal2 or collapse init
++void EnZl3_InitByType(EnZl3* this, PlayState* play) {
++    s32 sp2C = EnZl3_GetType(this);  // was func_80B54DD4 [LLM:HIGH]
+ 
+     this->unk_3DC = Animation_GetLastFrame(SEGMENTED_TO_VIRTUAL(&gZelda2Anime2Anim_0091D8));
+     this->unk_3E0 = Animation_GetLastFrame(SEGMENTED_TO_VIRTUAL(&gZelda2Anime2Anim_00A598));
+@@ -2614,13 +2813,13 @@ void func_80B59B6C(EnZl3* this, PlayState* play) {
+ 
+     switch (sp2C) {
+         case 0:
+-            func_80B54FB4(this, play);
++            EnZl3_InitInFinal(this, play);  // was func_80B54FB4 [LLM:HIGH]
+             break;
+         case 1:
+-            func_80B55780(this, play);
++            EnZl3_InitInFinal2(this, play);  // was func_80B55780 [LLM:HIGH]
+             break;
+         case 3:
+-            func_80B59828(this, play);
++            EnZl3_InitInCollapse(this, play);  // was func_80B59828 [LLM:GUESS]
+             break;
+         default:
+             osSyncPrintf(VT_FGCOL(RED) " En_Oa3 の arg_data がおかしい!!!!!!!!!!!!!!!!!!!!!!!!!\n" VT_RST);
+@@ -2628,7 +2827,8 @@ void func_80B59B6C(EnZl3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B59DB8(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B59DB8: sActionFuncs[0]: waits for OBJECT_ZL2_ANIME2 to load, then points the segment at it and runs EnZl3_InitByType
++void EnZl3_Action0(EnZl3* this, PlayState* play) {
+     s32 pad;
+     ObjectContext* objCtx = &play->objectCtx;
+     s32 objIndex = Object_GetIndex(objCtx, OBJECT_ZL2_ANIME2);
+@@ -2641,18 +2841,18 @@ void func_80B59DB8(EnZl3* this, PlayState* play) {
+ 
+     if (Object_IsLoaded(objCtx, objIndex)) {
+         this->zl2Anime2ObjectSlot = objIndex;
+-        func_80B54DE0(this, play);
+-        func_80B59B6C(this, play);
++        EnZl3_SetAnimObjectSegment(this, play);  // was func_80B54DE0 [LLM:HIGH]
++        EnZl3_InitByType(this, play);  // was func_80B59B6C [LLM:GUESS]
+     }
+ }
+ 
+ static EnZl3ActionFunc sActionFuncs[] = {
+-    func_80B59DB8, func_80B55550, func_80B555A4, func_80B55604, func_80B5566C, func_80B556CC, func_80B5572C,
+-    func_80B56658, func_80B566AC, func_80B5670C, func_80B5676C, func_80B567CC, func_80B5682C, func_80B568B4,
+-    func_80B5691C, func_80B5697C, func_80B569E4, func_80B56A68, func_80B56AE0, func_80B56B54, func_80B56BA8,
+-    func_80B56C24, func_80B56C84, func_80B56CE4, func_80B56D44, func_80B58D50, func_80B58DB0, func_80B58E10,
+-    func_80B58E7C, func_80B58EF4, func_80B58F6C, func_80B58FDC, func_80B5904C, func_80B590BC, func_80B5912C,
+-    func_80B591BC, func_80B5922C, func_80B592A8, func_80B59340, func_80B593D0,
++    EnZl3_Action0, EnZl3_Action1, EnZl3_Action2, EnZl3_Action3, EnZl3_Action4, EnZl3_Action5, EnZl3_Action6,  // was func_80B55550 [LLM:HIGH]
++    EnZl3_Action7, EnZl3_Action8, EnZl3_Action9, EnZl3_Action10, EnZl3_Action11, EnZl3_Action12, EnZl3_Action13,  // was func_80B56658 [LLM:HIGH]
++    EnZl3_Action14, EnZl3_Action15, EnZl3_Action16, EnZl3_Action17, EnZl3_Action18, EnZl3_Action19, EnZl3_Action20,  // was func_80B5691C [LLM:HIGH]
++    EnZl3_Action21, EnZl3_Action22, EnZl3_Action23, EnZl3_Action24, EnZl3_Action25, EnZl3_Action26, EnZl3_Action27,  // was func_80B56C24 [LLM:HIGH]
++    EnZl3_Action28, EnZl3_Action29, EnZl3_Action30, EnZl3_Action31, EnZl3_Action32, EnZl3_Action33, EnZl3_Action34,  // was func_80B58E7C [LLM:HIGH]
++    EnZl3_Action35, EnZl3_Action36, EnZl3_Action37, EnZl3_Action38, EnZl3_Action39,  // was func_80B591BC [LLM:HIGH]
+ };
+ 
+ void EnZl3_Update(Actor* thisx, PlayState* play) {
+@@ -2673,15 +2873,15 @@ void EnZl3_Init(Actor* thisx, PlayState* play) {
+     osSyncPrintf("ゼルダ姫のEn_Zl3_Actor_ct通すよ!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+     ActorShape_Init(shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     shape->shadowAlpha = 0;
+-    func_80B533B0(thisx, play);
++    EnZl3_InitCollider(thisx, play);  // was func_80B533B0 [LLM:HIGH]
+     SkelAnime_InitFlex(play, &this->skelAnime, &gZelda2Skel, NULL, this->jointTable, this->morphTable, 15);
+ 
+-    switch (func_80B54DD4(this)) {
++    switch (EnZl3_GetType(this)) {  // was func_80B54DD4 [LLM:HIGH]
+         case 1:
+             gSaveContext.subTimerState = SUBTIMER_STATE_OFF;
+             break;
+         case 3:
+-            func_80B59A80(this, play);
++            EnZl3_PlayRevengeSfx(this, play);  // was func_80B59A80 [LLM:GUESS]
+             break;
+     }
+ 
+@@ -2689,8 +2889,8 @@ void EnZl3_Init(Actor* thisx, PlayState* play) {
+ }
+ 
+ static OverrideLimbDraw sOverrideLimbDrawFuncs[] = {
+-    func_80B5458C,
+-    func_80B5944C,
++    EnZl3_OverrideLimbDrawHair,  // was func_80B5458C [LLM:HIGH]
++    EnZl3_OverrideLimbDrawHairStill,  // was func_80B5944C [LLM:GUESS]
+ };
+ 
+ s32 EnZl3_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx,
+@@ -2705,10 +2905,12 @@ s32 EnZl3_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
+     return sOverrideLimbDrawFuncs[this->unk_308](play, limbIndex, dList, pos, rot, thisx, gfx);
+ }
+ 
+-void func_80B59FE8(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B59FE8: sDrawFuncs[0]: an empty body
++void EnZl3_DrawNothing(EnZl3* this, PlayState* play) {
+ }
+ 
+-void func_80B59FF4(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B59FF4: sDrawFuncs[1]: SkelAnime_DrawFlex into POLY_OPA_DISP after Gfx_SetupDL_25Opa
++void EnZl3_DrawOpa(EnZl3* this, PlayState* play) {
+     s32 pad[2];
+     s16 eyeTexIndex = this->eyeTexIndex;
+     void* eyeTex = sEyeTextures[eyeTexIndex];
+@@ -2733,7 +2935,8 @@ void func_80B59FF4(EnZl3* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80B5A1D0(EnZl3* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B5A1D0: sDrawFuncs[2]: SkelAnime_DrawFlex into POLY_XLU_DISP after Gfx_SetupDL_25Xlu, using this->alpha
++void EnZl3_DrawXlu(EnZl3* this, PlayState* play) {
+     s32 pad[2];
+     s16 eyeTexIndex = this->eyeTexIndex;
+     void* eyeTex = sEyeTextures[eyeTexIndex];
+@@ -2759,9 +2962,9 @@ void func_80B5A1D0(EnZl3* this, PlayState* play) {
+ }
+ 
+ static EnZl3DrawFunc sDrawFuncs[] = {
+-    func_80B59FE8,
+-    func_80B59FF4,
+-    func_80B5A1D0,
++    EnZl3_DrawNothing,  // was func_80B59FE8 [LLM:HIGH]
++    EnZl3_DrawOpa,  // was func_80B59FF4 [LLM:HIGH]
++    EnZl3_DrawXlu,  // was func_80B5A1D0 [LLM:HIGH]
+ };
+ 
+ void EnZl3_Draw(Actor* thisx, PlayState* play) {
+@@ -2788,7 +2991,7 @@ const ActorInit En_Zl3_InitVars = {
+ };
+ 
+ void EnZl3_Reset(void) {
+-    D_80B5A468 = 0;
+-    D_80B5A494 = -1;
+-    D_80B5A4BC = 0;
++    sTurningToPlayer = 0;  // was D_80B5A468 [LLM:GUESS]
++    sCueDelayTimer = -1;  // was D_80B5A494 [LLM:GUESS]
++    sReactingToPlayerHurt = 0;  // was D_80B5A4BC [LLM:GUESS]
+ }
+-- 
+2.55.0
+

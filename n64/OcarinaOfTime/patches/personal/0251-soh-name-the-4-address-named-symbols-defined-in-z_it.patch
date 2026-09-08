@@ -1,0 +1,154 @@
+From 1f6a627ee27efd1da5691ae8221e8ffa8abf4b09 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 251/488] soh: name the 4 address-named symbols defined in
+ z_item_shield.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Item_Shield/z_item_shield.c.
+
+  * func_80B86AC8 -> ItemShield_Dropped
+    deduced, confidence HIGH: after the shield is knocked loose: falls under
+    gravity, keeps offering GI_SHIELD_DEKU, blinks for the last 60 frames of
+    its timer and then despawns.
+
+  * func_80B86BC8 -> ItemShield_OfferUntilHit
+    deduced, confidence HIGH: the params 0 action: offers GI_SHIELD_DEKU
+    from its perch and, on an AC hit, launches the shield into the dropped
+    state.
+
+  * func_80B86CA8 -> ItemShield_Burn
+    deduced, confidence HIGH: spawns eight staggered EffectSsFireTail
+    flames, tips the shield over once it lands, shrinks it away and kills
+    the actor.
+
+  * func_80B86F68 -> ItemShield_DetachFromPlayer
+    deduced, confidence HIGH: the params 1 first action: copies position and
+    orientation out of the player's shieldMf, gives the shield an upward
+    hop, and hands off to the burning state.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Item_Shield/z_item_shield.c    | 24 +++++++++++--------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Item_Shield/z_item_shield.c b/soh/src/overlays/actors/ovl_Item_Shield/z_item_shield.c
+index 4fbe8a3eb..40136f643 100644
+--- a/soh/src/overlays/actors/ovl_Item_Shield/z_item_shield.c
++++ b/soh/src/overlays/actors/ovl_Item_Shield/z_item_shield.c
+@@ -17,8 +17,10 @@ void ItemShield_Destroy(Actor* thisx, PlayState* play);
+ void ItemShield_Update(Actor* thisx, PlayState* play);
+ void ItemShield_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80B86F68(ItemShield* this, PlayState* play);
+-void func_80B86BC8(ItemShield* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B86F68: the params 1 first action: copies position and orientation out of the player's shieldMf, gives the shield an upward hop, and hands off to the burning state.
++void ItemShield_DetachFromPlayer(ItemShield* this, PlayState* play);  // was func_80B86F68 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B86BC8: the params 0 action: offers GI_SHIELD_DEKU from its perch and, on an AC hit, launches the shield into the dropped state.
++void ItemShield_OfferUntilHit(ItemShield* this, PlayState* play);  // was func_80B86BC8 [LLM:HIGH]
+ 
+ static ColliderCylinderInit sCylinderInit = {
+     {
+@@ -71,12 +73,12 @@ void ItemShield_Init(Actor* thisx, PlayState* play) {
+         case 0:
+             ActorShape_Init(&this->actor.shape, 1400.0f, NULL, 0.0f);
+             this->actor.shape.rot.x = 0x4000;
+-            ItemShield_SetupAction(this, func_80B86BC8);
++            ItemShield_SetupAction(this, ItemShield_OfferUntilHit);  // was func_80B86BC8 [LLM:HIGH]
+             break;
+ 
+         case 1:
+             ActorShape_Init(&this->actor.shape, 0.0f, NULL, 0.0f);
+-            ItemShield_SetupAction(this, func_80B86F68);
++            ItemShield_SetupAction(this, ItemShield_DetachFromPlayer);  // was func_80B86F68 [LLM:HIGH]
+             this->unk_19C |= 2;
+             for (i = 0; i < 8; i++) {
+                 this->unk_19E[i] = 1 + 2 * i;
+@@ -99,7 +101,8 @@ void ItemShield_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80B86AC8(ItemShield* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B86AC8: after the shield is knocked loose: falls under gravity, keeps offering GI_SHIELD_DEKU, blinks for the last 60 frames of its timer and then despawns.
++void ItemShield_Dropped(ItemShield* this, PlayState* play) {
+     Actor_MoveXZGravity(&this->actor);
+     if (Actor_HasParent(&this->actor, play)) {
+         Actor_Kill(&this->actor);
+@@ -122,14 +125,14 @@ void func_80B86AC8(ItemShield* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B86BC8(ItemShield* this, PlayState* play) {
++void ItemShield_OfferUntilHit(ItemShield* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         Actor_Kill(&this->actor);
+         return;
+     }
+     Actor_OfferGetItem(&this->actor, play, GI_SHIELD_DEKU, 30.0f, 50.0f);
+     if (this->collider.base.acFlags & AC_HIT) {
+-        ItemShield_SetupAction(this, func_80B86AC8);
++        ItemShield_SetupAction(this, ItemShield_Dropped);  // was func_80B86AC8 [LLM:HIGH]
+         this->actor.velocity.y = 4.0f;
+         this->actor.minVelocityY = -4.0f;
+         this->actor.gravity = -0.8f;
+@@ -141,7 +144,8 @@ void func_80B86BC8(ItemShield* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B86CA8(ItemShield* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B86CA8: spawns eight staggered EffectSsFireTail flames, tips the shield over once it lands, shrinks it away and kills the actor.
++void ItemShield_Burn(ItemShield* this, PlayState* play) {
+     static Vec3f D_80B871F4 = { 0.0f, 0.0f, 0.0f };
+     static f32 D_80B87200[] = { 0.3f, 0.6f,  0.9f, 1.0f,  1.0f, 1.0f,  1.0f, 1.0f,
+                                 1.0f, 0.85f, 0.7f, 0.55f, 0.4f, 0.25f, 0.1f, 0.0f };
+@@ -184,7 +188,7 @@ void func_80B86CA8(ItemShield* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B86F68(ItemShield* this, PlayState* play) {
++void ItemShield_DetachFromPlayer(ItemShield* this, PlayState* play) {
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+     MtxF* shield = &player->shieldMf;
+@@ -201,7 +205,7 @@ void func_80B86F68(ItemShield* this, PlayState* play) {
+         this->unk_19C |= 1;
+     }
+ 
+-    ItemShield_SetupAction(this, func_80B86CA8);
++    ItemShield_SetupAction(this, ItemShield_Burn);  // was func_80B86CA8 [LLM:HIGH]
+ 
+     this->actor.velocity.y = 4.0;
+     this->actor.minVelocityY = -4.0;
+-- 
+2.55.0
+

@@ -1,0 +1,157 @@
+From da10dae31a172f1b24b15357a2535e2a61e4fac2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:20 +0000
+Subject: [PATCH 254/488] soh: name the 4 address-named symbols defined in
+ z_demo_du.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c.
+
+  * func_80969DDC -> DemoDu_AnimationChange
+    deduced, confidence HIGH: wraps Animation_Change, choosing forward or
+    reversed playback from its last argument; the counterpart of
+    DemoSa_AnimationChange.
+
+  * func_80969F38 -> DemoDu_SpawnFireMedallion
+    deduced, confidence HIGH: spawns DEMO_EFFECT_MEDAL_FIRE above the player
+    and awards ITEM_MEDALLION_FIRE.
+
+  * func_80969FB4 -> DemoDu_Rise
+    deduced, confidence HIGH: raises shape.yOffset by a fixed step each
+    frame, lifting Darunia during the chamber cutscene.
+
+  * func_8096A630 -> DemoDu_SpawnLandingDust
+    deduced, confidence HIGH: spawns a dust cloud at Darunia's feet through
+    func_80033480 and plays the Goron landing sfx.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Demo_Du/z_demo_du.c   | 24 +++++++++++--------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c b/soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c
+index 047e150b1..67c366b8b 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c
++++ b/soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c
+@@ -147,7 +147,8 @@ void DemoDu_MoveToNpcPos(DemoDu* this, PlayState* play, s32 idx) {
+     }
+ }
+ 
+-void func_80969DDC(DemoDu* this, AnimationHeader* animation, u8 mode, f32 morphFrames, s32 arg4) {
++// LLM generated name (HIGH), was func_80969DDC: wraps Animation_Change, choosing forward or reversed playback from its last argument; the counterpart of DemoSa_AnimationChange.
++void DemoDu_AnimationChange(DemoDu* this, AnimationHeader* animation, u8 mode, f32 morphFrames, s32 arg4) {
+     f32 startFrame;
+     s16 lastFrame = Animation_GetLastFrame(animation);
+     f32 endFrame;
+@@ -182,7 +183,8 @@ void DemoDu_CsFireMedallion_SpawnDoorWarp(DemoDu* this, PlayState* play) {
+ }
+ 
+ // Gives the Fire Medallion to Link.
+-void func_80969F38(DemoDu* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80969F38: spawns DEMO_EFFECT_MEDAL_FIRE above the player and awards ITEM_MEDALLION_FIRE.
++void DemoDu_SpawnFireMedallion(DemoDu* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 posX = player->actor.world.pos.x;
+     f32 posY = player->actor.world.pos.y + 80.0f;
+@@ -195,7 +197,8 @@ void func_80969F38(DemoDu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80969FB4(DemoDu* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80969FB4: raises shape.yOffset by a fixed step each frame, lifting Darunia during the chamber cutscene.
++void DemoDu_Rise(DemoDu* this, PlayState* play) {
+     this->actor.shape.yOffset += 250.0f / 3.0f;
+ }
+ 
+@@ -262,7 +265,7 @@ void DemoDu_CsFireMedallion_AdvanceTo06(DemoDu* this, PlayState* play) {
+ 
+         if ((npcAction != NULL) && (npcAction->action == 2)) {
+             this->updateIndex = CS_FIREMEDALLION_SUBSCENE(6);
+-            func_80969F38(this, play);
++            DemoDu_SpawnFireMedallion(this, play);  // was func_80969F38 [LLM:HIGH]
+         }
+     }
+ }
+@@ -276,7 +279,7 @@ void DemoDu_UpdateCs_FM_01(DemoDu* this, PlayState* play) {
+ }
+ 
+ void DemoDu_UpdateCs_FM_02(DemoDu* this, PlayState* play) {
+-    func_80969FB4(this, play);
++    DemoDu_Rise(this, play);  // was func_80969FB4 [LLM:HIGH]
+     DemoDu_UpdateSkelAnime(this);
+     DemoDu_CsFireMedallion_AdvanceTo03(this);
+ }
+@@ -386,7 +389,8 @@ void DemoDu_CsGoronsRuby_UpdateFaceTextures(DemoDu* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8096A630(DemoDu* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096A630: spawns a dust cloud at Darunia's feet through func_80033480 and plays the Goron landing sfx.
++void DemoDu_SpawnLandingDust(DemoDu* this, PlayState* play) {
+     s32 pad;
+     Vec3f pos = this->actor.world.pos;
+ 
+@@ -498,7 +502,7 @@ void DemoDu_CsGoronsRuby_AdvanceTo03(DemoDu* this, PlayState* play) {
+ 
+         if ((npcAction != NULL) && (csCtx->frames >= npcAction->endFrame)) {
+             this->updateIndex = CS_GORONSRUBY_SUBSCENE(3);
+-            func_8096A630(this, play);
++            DemoDu_SpawnLandingDust(this, play);  // was func_8096A630 [LLM:HIGH]
+         }
+     }
+ }
+@@ -874,18 +878,18 @@ void DemoDu_CsCredits_AdvanceTo02(DemoDu* this) {
+ }
+ 
+ void DemoDu_CsCredits_AdvanceTo03(DemoDu* this) {
+-    func_80969DDC(this, &gDaruniaLookingUpToSariaAnim, ANIMMODE_ONCE, -8.0f, 0);
++    DemoDu_AnimationChange(this, &gDaruniaLookingUpToSariaAnim, ANIMMODE_ONCE, -8.0f, 0);  // was func_80969DDC [LLM:HIGH]
+     this->updateIndex = CS_CREDITS_SUBSCENE(3);
+ }
+ 
+ void DemoDu_CsCredits_AdvanceTo04(DemoDu* this) {
+-    func_80969DDC(this, &gDaruniaCreditsHitBreastAnim, ANIMMODE_ONCE, 0.0f, 0);
++    DemoDu_AnimationChange(this, &gDaruniaCreditsHitBreastAnim, ANIMMODE_ONCE, 0.0f, 0);  // was func_80969DDC [LLM:HIGH]
+     this->updateIndex = CS_CREDITS_SUBSCENE(4);
+ }
+ 
+ void DemoDu_CsCredits_BackTo02(DemoDu* this, s32 animFinished) {
+     if (animFinished) {
+-        func_80969DDC(this, &gDaruniaCreditsIdleAnim, ANIMMODE_LOOP, 0.0f, 0);
++        DemoDu_AnimationChange(this, &gDaruniaCreditsIdleAnim, ANIMMODE_LOOP, 0.0f, 0);  // was func_80969DDC [LLM:HIGH]
+         this->updateIndex = CS_CREDITS_SUBSCENE(2);
+     }
+ }
+-- 
+2.55.0
+

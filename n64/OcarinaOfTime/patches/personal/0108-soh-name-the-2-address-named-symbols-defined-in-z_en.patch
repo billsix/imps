@@ -1,0 +1,127 @@
+From 795c630051ec213d37a87846aa388519a2a7e77b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:07 +0000
+Subject: [PATCH 108/488] soh: name the 2 address-named symbols defined in
+ z_en_ik.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c.
+
+  * func_80A7545C -> EnIk_RecoverFromHorizontalAttack
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80A78160 -> EnIk_ChangeToEnemy
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index dcf65bdb1..45963c63d 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -43,7 +43,8 @@ void EnIk_SetupDoubleHorizontalAttack(EnIk* this);
+ void EnIk_DoubleHorizontalAttack(EnIk* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A753D0): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+ void EnIk_SetupRecoverFromHorizontalAttack(EnIk* this);
+-void func_80A7545C(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A7545C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_RecoverFromHorizontalAttack(EnIk* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A754A0): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+ void EnIk_SetupSingleHorizontalAttack(EnIk* this);
+ // Name from zeldaret/oot (was func_80A75530): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+@@ -73,7 +74,8 @@ void func_80A77B3C(EnIk* this, PlayState* play);
+ void EnIk_CsDrawNothing(EnIk* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A77EDC): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+ void EnIk_CsDrawIntro(EnIk* this, PlayState* play);
+-void func_80A78160(EnIk* this, PlayState* play);
++// Name from zeldaret/oot (was func_80A78160): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
++void EnIk_ChangeToEnemy(EnIk* this, PlayState* play);
+ void func_80A781CC(Actor* thisx, PlayState* play);
+ 
+ static ColliderCylinderInit sCylinderInit = {
+@@ -562,10 +564,10 @@ void EnIk_SetupRecoverFromHorizontalAttack(EnIk* this) {
+     this->unk_2F8 = 8;
+     Animation_Change(&this->skelAnime, &gIronKnuckleRecoverFromHorizontalAttackAnim, 1.5f, 0.0f, frames,
+                      ANIMMODE_ONCE_INTERP, -4.0f);
+-    EnIk_SetupAction(this, func_80A7545C);
++    EnIk_SetupAction(this, EnIk_RecoverFromHorizontalAttack);
+ }
+ 
+-void func_80A7545C(EnIk* this, PlayState* play) {
++void EnIk_RecoverFromHorizontalAttack(EnIk* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         EnIk_SetupIdle(this);
+         EnIk_HandleBlocking(this, play);
+@@ -1143,7 +1145,7 @@ void EnIk_SetupCsAction2(EnIk* this) {
+ 
+ void func_80A77264(EnIk* this, PlayState* play, s32 arg2) {
+     if ((arg2 != 0) && (EnIk_GetNpcAction(play, 4) != NULL)) {
+-        func_80A78160(this, play);
++        EnIk_ChangeToEnemy(this, play);
+     }
+ }
+ 
+@@ -1298,7 +1300,7 @@ void func_80A779DC(EnIk* this, PlayState* play) {
+                     EnIk_SetupCsAction2(this);
+                     break;
+                 case 4:
+-                    func_80A78160(this, play);
++                    EnIk_ChangeToEnemy(this, play);
+                     break;
+                 case 5:
+                     EnIk_SetupCsAction3(this, play);
+@@ -1446,14 +1448,14 @@ void func_80A780D0(EnIk* this, PlayState* play) {
+             this->actor.draw = EnIk_Draw;
+             Actor_SetScale(&this->actor, 0.01f);
+         } else {
+-            func_80A78160(this, play);
++            EnIk_ChangeToEnemy(this, play);
+             EnIk_StartMusic();
+         }
+     }
+     osSyncPrintf("En_Ik_inConfrontion_Init : %d !!!!!!!!!!!!!!!!\n", this->actor.params);
+ }
+ 
+-void func_80A78160(EnIk* this, PlayState* play) {
++void EnIk_ChangeToEnemy(EnIk* this, PlayState* play) {
+     this->actor.update = EnIk_UpdateEnemy;
+     this->actor.draw = EnIk_DrawEnemy;
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE;
+-- 
+2.55.0
+

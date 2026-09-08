@@ -1,0 +1,105 @@
+From 413763004916aa7f1b5b085eb57b298f4b8038ce Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:57 +0000
+Subject: [PATCH 008/488] soh: name the 2 address-named symbols defined in
+ audio_stop_all_sfx.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/audio_stop_all_sfx.c; updating their references touches 3 files in total.
+
+  * D_8012D200 -> sSfxBankIds
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800C3C20 -> AudioMgr_StopAllSfx
+    zeldaret/oot (same decomp, same ROM address)
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h           |  2 +-
+ soh/src/code/audio_stop_all_sfx.c | 10 ++++++----
+ soh/src/code/game.c               |  2 +-
+ 3 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index f264c70f3..af005e1aa 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1623,7 +1623,7 @@ u32 THA_IsCrash(TwoHeadArena* tha);
+ void THA_Init(TwoHeadArena* tha);
+ void THA_Ct(TwoHeadArena* tha, void* ptr, size_t size);
+ void THA_Dt(TwoHeadArena* tha);
+-void func_800C3C20(void);
++void AudioMgr_StopAllSfx(void);  // was func_800C3C20 [oot]
+ void AudioMgr_NotifyTaskDone(AudioMgr* audioMgr);  // was func_800C3C80 [oot]
+ void AudioMgr_HandleRetrace(AudioMgr* audioMgr);
+ void AudioMgr_HandlePRENMI(AudioMgr* audioMgr);
+diff --git a/soh/src/code/audio_stop_all_sfx.c b/soh/src/code/audio_stop_all_sfx.c
+index bd3b37850..68a34dd1f 100644
+--- a/soh/src/code/audio_stop_all_sfx.c
++++ b/soh/src/code/audio_stop_all_sfx.c
+@@ -1,13 +1,15 @@
+ #include "global.h"
+ 
+-u8 D_8012D200[] = {
++// Name from zeldaret/oot, was D_8012D200: table of sfx bank ids 0..6 iterated by AudioMgr_StopAllSfx [oot: https://github.com/zeldaret/oot/blob/main/src/code/audio_stop_all_sfx.c]
++u8 sSfxBankIds[] = {
+     0, 1, 2, 3, 4, 5, 6,
+ };
+ 
+-void func_800C3C20(void) {
++// Name from zeldaret/oot, was func_800C3C20: loops sSfxBankIds calling Audio_StopSfxByBank on each [oot: https://github.com/zeldaret/oot/blob/main/src/code/audio_stop_all_sfx.c]
++void AudioMgr_StopAllSfx(void) {
+     s32 i;
+ 
+-    for (i = 0; (i < ARRAY_COUNT(D_8012D200)) & 0xFFFFFFFF; i++) {
+-        Audio_StopSfxByBank(D_8012D200[i]);
++    for (i = 0; (i < ARRAY_COUNT(sSfxBankIds)) & 0xFFFFFFFF; i++) {
++        Audio_StopSfxByBank(sSfxBankIds[i]);
+     }
+ }
+diff --git a/soh/src/code/game.c b/soh/src/code/game.c
+index 89045f4d0..5237a539b 100644
+--- a/soh/src/code/game.c
++++ b/soh/src/code/game.c
+@@ -464,7 +464,7 @@ void GameState_Init(GameState* gameState, GameStateFunc init, GraphicsContext* g
+ 
+ void GameState_Destroy(GameState* gameState) {
+     osSyncPrintf("game デストラクタ開始\n"); // "game destructor start"
+-    func_800C3C20();
++    AudioMgr_StopAllSfx();
+     Audio_Update();
+     osRecvMesg(&gameState->gfxCtx->queue, NULL, OS_MESG_BLOCK);
+     LOG_CHECK_NULL_POINTER("this->cleanup", gameState->destroy);
+-- 
+2.55.0
+

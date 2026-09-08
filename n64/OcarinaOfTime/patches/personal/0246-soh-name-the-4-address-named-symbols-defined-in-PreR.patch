@@ -1,0 +1,165 @@
+From a4c2905214a191a6a9d1b3b4eac5986bbb69bf13 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 246/488] soh: name the 4 address-named symbols defined in
+ PreRender.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/code/PreRender.c; updating their references touches 2 files in total.
+
+  * func_800C170C -> PreRender_CopyImageTintedImpl
+    deduced, confidence GUESS: tiled blit from fbuf into fbufSave, differing
+    from PreRender_CopyImage in that it runs in G_CYC_1CYCLE with a combiner
+    that modulates the texel by the env colour rather than in copy mode; the
+    r/g/b/a arguments are that env colour. Only its white-passing wrapper
+    calls it, so "tinted" describes the capability, not any observed use.
+
+  * func_800C1AE8 -> PreRender_CopyImageTinted
+    deduced, confidence GUESS: the argument-shortening wrapper for the
+    above, in the same shape as PreRender_CopyImageRegion wrapping
+    PreRender_CopyImageRegionImpl; it passes opaque white, so in practice it
+    is a plain 1-cycle copy.
+
+  * func_800C213C -> PreRender_BlendWithCoverage
+    deduced, confidence GUESS: builds a 2-cycle display list that draws
+    fbufSave with cvgSave loaded as an I8 second texel and env alpha 32.
+    Nothing calls it anywhere in the tree, so the name describes what the
+    display list does rather than a known purpose.
+
+  * func_800C2FE4 -> PreRender_AntiAliasFilterImage
+    deduced, confidence HIGH: CPU-side pass over every row of fbufSave,
+    blending each pixel with its horizontal neighbours wherever cvgSave
+    reports partial coverage; PreRender_Calc runs it as the whole-image
+    alternative to the per-pixel PreRender_AntiAliasFilter.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h  |  8 ++++----
+ soh/src/code/PreRender.c | 18 +++++++++++-------
+ 2 files changed, 15 insertions(+), 11 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 75eed641e..55274d8c5 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1580,19 +1580,19 @@ void PreRender_SetValues(PreRender* this, u32 width, u32 height, void* fbuf, voi
+ void PreRender_Destroy(PreRender* this);
+ void PreRender_CopyImage(PreRender* this, Gfx** gfxp, void* buf, void* bufSave);  // was func_800C0F28 [oot]
+ void PreRender_CopyImageRegionImpl(PreRender* this, Gfx** gfxp);  // was func_800C1258 [oot]
+-void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a);
+-void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave);
++void PreRender_CopyImageTintedImpl(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a);  // was func_800C170C [LLM:GUESS]
++void PreRender_CopyImageTinted(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave);  // was func_800C1AE8 [LLM:GUESS]
+ void PreRender_CoverageRgba16ToI8(PreRender* this, Gfx** gfxp, void* fbuf, void* cvgSave);  // was func_800C1B24 [oot]
+ void PreRender_SaveZBuffer(PreRender* this, Gfx** gfxp);  // was func_800C1E9C [oot]
+ void PreRender_SaveFramebuffer(PreRender* this, Gfx** gfxp);  // was func_800C1F20 [oot]
+ void PreRender_FetchFbufCoverage(PreRender* this, Gfx** gfxp);  // was func_800C1FA4 [oot]
+ void PreRender_DrawCoverage(PreRender* this, Gfx** gfxp);  // was func_800C20B4 [oot]
+ void PreRender_RestoreZBuffer(PreRender* this, Gfx** gfxp);  // was func_800C2118 [oot]
+-void func_800C213C(PreRender* this, Gfx** gfxp);
++void PreRender_BlendWithCoverage(PreRender* this, Gfx** gfxp);  // was func_800C213C [LLM:GUESS]
+ void PreRender_RestoreFramebuffer(PreRender* this, Gfx** gfxp);  // was func_800C24BC [oot]
+ void PreRender_CopyImageRegion(PreRender* this, Gfx** gfxp);  // was func_800C24E0 [oot]
+ void PreRender_AntiAliasFilter(PreRender* this, s32 x, s32 y);  // was func_800C2500 [oot]
+-void func_800C2FE4(PreRender* this);
++void PreRender_AntiAliasFilterImage(PreRender* this);  // was func_800C2FE4 [LLM:HIGH]
+ void PreRender_Calc(PreRender* this);
+ void THGA_Ct(TwoHeadGfxArena* thga, Gfx* start, size_t size);
+ void THGA_Dt(TwoHeadGfxArena* thga);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index 6ff229509..6f701400d 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -136,7 +136,8 @@ void PreRender_CopyImageRegionImpl(PreRender* this, Gfx** gfxp) {
+     *gfxp = gfx;
+ }
+ 
+-void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a) {
++// LLM generated name (GUESS), was func_800C170C: tiled blit from fbuf into fbufSave, differing from PreRender_CopyImage in that it runs in G_CYC_1CYCLE with a combiner that modulates the texel by the env colour rather than in copy mode; the r/g/b/a arguments are that env colour. Only its white-passing wrapper calls it, so "tinted" describes the capability, not any observed use.
++void PreRender_CopyImageTintedImpl(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32 r, u32 g, u32 b, u32 a) {
+     Gfx* gfx;
+     s32 x;
+     s32 x2;
+@@ -188,8 +189,9 @@ void func_800C170C(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave, u32
+     *gfxp = gfx;
+ }
+ 
+-void func_800C1AE8(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave) {
+-    func_800C170C(this, gfxp, fbuf, fbufSave, 255, 255, 255, 255);
++// LLM generated name (GUESS), was func_800C1AE8: the argument-shortening wrapper for the above, in the same shape as PreRender_CopyImageRegion wrapping PreRender_CopyImageRegionImpl; it passes opaque white, so in practice it is a plain 1-cycle copy.
++void PreRender_CopyImageTinted(PreRender* this, Gfx** gfxp, void* fbuf, void* fbufSave) {
++    PreRender_CopyImageTintedImpl(this, gfxp, fbuf, fbufSave, 255, 255, 255, 255);  // was func_800C170C [LLM:GUESS]
+ }
+ 
+ // Name from zeldaret/oot (was func_800C1B24): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
+@@ -258,7 +260,7 @@ void PreRender_SaveFramebuffer(PreRender* this, Gfx** gfxp) {
+     LOG_CHECK_NULL_POINTER("this->fbuf", this->fbuf);
+ 
+     if ((this->fbufSave != NULL) && (this->fbuf != NULL)) {
+-        func_800C1AE8(this, gfxp, this->fbuf, this->fbufSave);
++        PreRender_CopyImageTinted(this, gfxp, this->fbuf, this->fbufSave);  // was func_800C1AE8 [LLM:GUESS]
+     }
+ }
+ 
+@@ -294,7 +296,8 @@ void PreRender_RestoreZBuffer(PreRender* this, Gfx** gfxp) {
+     PreRender_CopyImage(this, gfxp, this->zbufSave, this->zbuf);
+ }
+ 
+-void func_800C213C(PreRender* this, Gfx** gfxp) {
++// LLM generated name (GUESS), was func_800C213C: builds a 2-cycle display list that draws fbufSave with cvgSave loaded as an I8 second texel and env alpha 32. Nothing calls it anywhere in the tree, so the name describes what the display list does rather than a known purpose.
++void PreRender_BlendWithCoverage(PreRender* this, Gfx** gfxp) {
+     Gfx* gfx;
+     s32 y;
+     s32 y2;
+@@ -482,7 +485,8 @@ void PreRender_AntiAliasFilter(PreRender* this, s32 x, s32 y) {
+     this->fbufSave[x + y * this->width] = pxOut.rgba;
+ }
+ 
+-void func_800C2FE4(PreRender* this) {
++// LLM generated name (HIGH), was func_800C2FE4: CPU-side pass over every row of fbufSave, blending each pixel with its horizontal neighbours wherever cvgSave reports partial coverage; PreRender_Calc runs it as the whole-image alternative to the per-pixel PreRender_AntiAliasFilter.
++void PreRender_AntiAliasFilterImage(PreRender* this) {
+     s32 x;
+     s32 y;
+     s32 phi_v0;
+@@ -577,7 +581,7 @@ void PreRender_Calc(PreRender* this) {
+         }
+ 
+         if (HREG(80) == 0xF ? HREG(81) : 0) {
+-            func_800C2FE4(this);
++            PreRender_AntiAliasFilterImage(this);  // was func_800C2FE4 [LLM:HIGH]
+         }
+     }
+ }
+-- 
+2.55.0
+

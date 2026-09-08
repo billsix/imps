@@ -1,0 +1,109 @@
+From 95d001f0c030d6ee499fd3c15d1c53d408d5011a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:04 +0000
+Subject: [PATCH 083/488] soh: name the 3 address-named symbols defined in
+ z_view.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/code/z_view.c; updating their references touches 2 files in total.
+
+  * func_800AA48C -> View_GetPerspective
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.94
+
+  * func_800AA4A8 -> View_SetOrtho
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+  * func_800AA4E0 -> View_GetOrtho
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.94
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h | 6 +++---
+ soh/src/code/z_view.c   | 9 ++++++---
+ 2 files changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 8eea03fd4..232ecd00a 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1399,9 +1399,9 @@ void func_800AA3F0(View* view, Vec3f* eye, Vec3f* lookAt, Vec3f* up);
+ void View_SetScale(View* view, f32 scale);
+ void View_GetScale(View* view, f32* scale);
+ void func_800AA460(View* view, f32 fovy, f32 near, f32 far);
+-void func_800AA48C(View* view, f32* fovy, f32* near, f32* far);
+-void func_800AA4A8(View* view, f32 fovy, f32 near, f32 far);
+-void func_800AA4E0(View* view, f32* fovy, f32* near, f32* far);
++void View_GetPerspective(View* view, f32* fovy, f32* near, f32* far);  // was func_800AA48C [oot]
++void View_SetOrtho(View* view, f32 fovy, f32 near, f32 far);  // was func_800AA4A8 [oot]
++void View_GetOrtho(View* view, f32* fovy, f32* near, f32* far);  // was func_800AA4E0 [oot]
+ void View_SetViewport(View* view, Viewport* viewport);
+ void View_GetViewport(View* view, Viewport* viewport);
+ void View_SetDistortionOrientation(View* view, f32 rotX, f32 rotY, f32 rotZ);
+diff --git a/soh/src/code/z_view.c b/soh/src/code/z_view.c
+index 2dd05af72..0dbb02f4f 100644
+--- a/soh/src/code/z_view.c
++++ b/soh/src/code/z_view.c
+@@ -113,13 +113,15 @@ void func_800AA460(View* view, f32 fovy, f32 near, f32 far) {
+     view->flags |= 4;
+ }
+ 
+-void func_800AA48C(View* view, f32* fovy, f32* near, f32* far) {
++// Name from zeldaret/oot (was func_800AA48C): adopted upstream's name for this address; body verified to match upstream at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_view.c]
++void View_GetPerspective(View* view, f32* fovy, f32* near, f32* far) {
+     *fovy = view->fovy;
+     *near = view->zNear;
+     *far = view->zFar;
+ }
+ 
+-void func_800AA4A8(View* view, f32 fovy, f32 near, f32 far) {
++// Name from zeldaret/oot (was func_800AA4A8): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_view.c]
++void View_SetOrtho(View* view, f32 fovy, f32 near, f32 far) {
+     view->fovy = fovy;
+     view->zNear = near;
+     // view->zNear = -30;
+@@ -128,7 +130,8 @@ void func_800AA4A8(View* view, f32 fovy, f32 near, f32 far) {
+     view->scale = 1.0f;
+ }
+ 
+-void func_800AA4E0(View* view, f32* fovy, f32* near, f32* far) {
++// Name from zeldaret/oot (was func_800AA4E0): adopted upstream's name for this address; body verified to match upstream at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_view.c]
++void View_GetOrtho(View* view, f32* fovy, f32* near, f32* far) {
+     *fovy = view->fovy;
+     *near = view->zNear;
+     *far = view->zFar;
+-- 
+2.55.0
+

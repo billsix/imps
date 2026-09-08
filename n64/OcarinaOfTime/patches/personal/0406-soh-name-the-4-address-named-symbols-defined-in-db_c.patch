@@ -1,0 +1,372 @@
+From 3e3abe4a20665fe5398224102c3fc66bdcbd7d2a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:34 +0000
+Subject: [PATCH 406/488] soh: name the 4 address-named symbols defined in
+ db_camera.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/code/db_camera.c.
+
+  * D_8012D10C -> sDbCameraHoldTimer
+    deduced, confidence GUESS: an s32 starting at 100 that DbCamera_Update
+    counts against; what it gates is not established
+
+  * D_8012D110 -> sDbCameraHoldState
+    deduced, confidence GUESS: the s32 that goes with it
+
+  * D_80161140 -> sDbCameraFlagA
+    deduced, confidence GUESS: a bool already commented as such in
+    DbCamera_Update
+
+  * D_80161144 -> sDbCameraFlagB
+    deduced, confidence GUESS: the second such bool
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/db_camera.c | 96 ++++++++++++++++++++--------------------
+ 1 file changed, 48 insertions(+), 48 deletions(-)
+
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index 627b9917f..56c92421c 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -498,10 +498,10 @@ void DbgCamera_Enable(DbCamera* dbCamera, Camera* cam) {
+ }
+ 
+ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+-    static s32 D_8012D10C = 100;
+-    static s32 D_8012D110 = 0;
+-    static s32 D_80161140; // bool
+-    static s32 D_80161144; // bool
++    static s32 sDbCameraHoldTimer = 100;  // was D_8012D10C [LLM:GUESS]
++    static s32 sDbCameraHoldState = 0;  // was D_8012D110 [LLM:GUESS]
++    static s32 sDbCameraFlagA; // bool, was D_80161140 [LLM:GUESS]
++    static s32 sDbCameraFlagB; // bool, was D_80161144 [LLM:GUESS]
+     Vec3f* sp124;
+     f32 temp_f0_5;
+     s16 yaw;
+@@ -559,44 +559,44 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+             switch (dbCamera->unk_78) {
+                 case 0:
+                     sp124 = &dbCamera->unk_60;
+-                    D_80161144 = false;
+-                    D_80161140 = false;
++                    sDbCameraFlagB = false;  // was D_80161144 [LLM:GUESS]
++                    sDbCameraFlagA = false;  // was D_80161140 [LLM:GUESS]
+                     break;
+                 case 1:
+                     sp124 = &dbCamera->unk_6C;
+-                    D_80161144 = false;
+-                    D_80161140 = false;
++                    sDbCameraFlagB = false;  // was D_80161144 [LLM:GUESS]
++                    sDbCameraFlagA = false;  // was D_80161140 [LLM:GUESS]
+                     break;
+                 case 2:
+                     sp124 = &dbCamera->unk_54;
+-                    D_80161144 = false;
+-                    D_80161140 = true;
++                    sDbCameraFlagB = false;  // was D_80161144 [LLM:GUESS]
++                    sDbCameraFlagA = true;  // was D_80161140 [LLM:GUESS]
+                     break;
+             }
+             break;
+         case 1:
+             switch (dbCamera->sub.unk_08) {
+                 case 0:
+-                    D_80161144 = dbCamera->sub.unk_0C;
+-                    if (D_80161144) {
++                    sDbCameraFlagB = dbCamera->sub.unk_0C;  // was D_80161144 [LLM:GUESS]
++                    if (sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+                         sp124 = sp80;
+                     } else {
+                         sp124 = sp7C;
+                     }
+-                    D_80161140 = false;
++                    sDbCameraFlagA = false;  // was D_80161140 [LLM:GUESS]
+                     break;
+                 case 1:
+-                    D_80161144 = dbCamera->sub.unk_0C;
+-                    if (D_80161144) {
++                    sDbCameraFlagB = dbCamera->sub.unk_0C;  // was D_80161144 [LLM:GUESS]
++                    if (sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+                         sp124 = sp80;
+                     } else {
+                         sp124 = sp7C;
+                     }
+-                    D_80161140 = false;
++                    sDbCameraFlagA = false;  // was D_80161140 [LLM:GUESS]
+                     break;
+                 case 2:
+-                    D_80161144 = false;
+-                    D_80161140 = true;
++                    sDbCameraFlagB = false;  // was D_80161144 [LLM:GUESS]
++                    sDbCameraFlagA = true;  // was D_80161140 [LLM:GUESS]
+                     sp124 = sp7C;
+                     break;
+             }
+@@ -609,7 +609,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+     }
+     phi_s0 = sp124;
+ 
+-    if (!D_80161144) {
++    if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+         OLib_Vec3fDiffToVecSphGeo(&sp104, sp7C, sp80);
+     } else {
+         OLib_Vec3fDiffToVecSphGeo(&sp104, sp80, sp7C);
+@@ -622,13 +622,13 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+     new_var2 = ((dbCamera->unk_44 * 0.15f) + 0.2f);
+     temp_f2 = new_var2 * (sp104.r / 100.0f);
+     if ((dbCamera->unk_38 != 0) || dbCamera->unk_3C) {
+-        if (D_80161144) {
++        if (sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             *sp80 = *phi_s0;
+         } else {
+             *sp7C = *phi_s0;
+         }
+ 
+-        dbCamera->unk_3C = D_80161140;
++        dbCamera->unk_3C = sDbCameraFlagA;  // was D_80161140 [LLM:GUESS]
+         if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_B | BTN_L)) {
+             sp104.r += temp_f2;
+ 
+@@ -646,7 +646,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         } else if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_B)) {
+             spFC = sp104;
+             spFC.r = temp_f2;
+-            if (!D_80161144) {
++            if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+                 spFC.yaw = sp104.yaw;
+                 DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+             } else {
+@@ -674,7 +674,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         } else if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_A)) {
+             spFC = sp104;
+             spFC.r = -temp_f2;
+-            if (!D_80161144) {
++            if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+                 spFC.yaw = sp104.yaw;
+                 DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+             } else {
+@@ -697,7 +697,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         spFC = sp104;
+         spFC.r = temp_f2;
+         spFC.pitch = 0;
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             spFC.yaw = sp104.yaw;
+             DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+         } else {
+@@ -715,7 +715,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         spFC = sp104;
+         spFC.r = -temp_f2;
+         spFC.pitch = 0;
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             spFC.yaw = sp104.yaw;
+             DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+         } else {
+@@ -733,7 +733,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         spFC.r = temp_f2;
+         spFC.pitch = 0x3FFF;
+         spFC.yaw = sp104.yaw;
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+         } else {
+             DbCamera_AddVecSph(sp80, sp80, &spFC);
+@@ -749,7 +749,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         spFC.r = temp_f2;
+         spFC.pitch = -0x3FFF;
+         spFC.yaw = sp104.yaw;
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+         } else {
+             DbCamera_AddVecSph(sp80, sp80, &spFC);
+@@ -765,7 +765,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         spFC = sp104;
+         spFC.r = temp_f2;
+         spFC.pitch = 0;
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             spFC.yaw = sp104.yaw + 0x3FFF;
+             DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+         } else {
+@@ -783,7 +783,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         spFC = sp104;
+         spFC.r = temp_f2;
+         spFC.pitch = 0;
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             spFC.yaw = sp104.yaw - 0x3FFF;
+             DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+         } else {
+@@ -810,7 +810,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+     } else if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_B)) {
+         spFC = sp104;
+         spFC.r = temp_f2;
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             spFC.yaw = sp104.yaw;
+             DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+         } else {
+@@ -839,7 +839,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+     } else if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_A)) {
+         spFC = sp104;
+         spFC.r = -temp_f2;
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             spFC.yaw = sp104.yaw;
+             DbCamera_AddVecSph(sp7C, sp7C, &spFC);
+         } else {
+@@ -900,7 +900,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         temp_f2_2 = sPlayState->state.input[2].rel.stick_x;
+         pitch = DEGF_TO_BINANG((SQ(temp_f0_5) / 600.0f) * 0.8f);
+         yaw = DEGF_TO_BINANG((SQ(temp_f2_2) / 600.0f) * 0.8f);
+-        if (!D_80161144) {
++        if (!sDbCameraFlagB) {  // was D_80161144 [LLM:GUESS]
+             sp104.pitch += (s16)((temp_f0_5 >= 0.0f) ? pitch : -pitch);
+             sp104.yaw += (s16)((temp_f2_2 >= 0.0f) ? yaw : -yaw);
+             DbCamera_AddVecSph(sp80, sp7C, &sp104);
+@@ -1040,7 +1040,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                 case 0:
+                     dbCamera->unk_3C = false;
+                     if (dbCamera->sub.mode != 1) {
+-                        DebugCamera_CopyText(0xD, 0x18, 3, !D_80161144 ? cameraStrings[9] : cameraStrings[10]);  // was func_8006376C [LLM:HIGH]
++                        DebugCamera_CopyText(0xD, 0x18, 3, !sDbCameraFlagB ? cameraStrings[9] : cameraStrings[10]);  // was func_8006376C [LLM:HIGH]
+                         DbCamera_SetTextValue(sp104.pitch * 0.00549325f, &cameraStrings[69][6], 4);
+                         DebugCamera_CopyText(0xF, 0x17, 3, cameraStrings[69]);  // was func_8006376C [LLM:HIGH]
+                         DbCamera_SetTextValue(sp104.yaw * 0.00549325f, &cameraStrings[70][6], 4);
+@@ -1131,7 +1131,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                     }
+ 
+                     if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_DLEFT)) {
+-                        if ((D_8012D10C++ % 5) == 0) {
++                        if ((sDbCameraHoldTimer++ % 5) == 0) {  // was D_8012D10C [LLM:GUESS]
+                             Audio_PlaySfxGeneral(NA_SE_SY_ATTENTION_ON, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                         }
+@@ -1218,7 +1218,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                         }
+                     }
+                     if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_DRIGHT)) {
+-                        if ((D_8012D10C++ % 5) == 0) {
++                        if ((sDbCameraHoldTimer++ % 5) == 0) {  // was D_8012D10C [LLM:GUESS]
+                             Audio_PlaySfxGeneral(NA_SE_SY_ATTENTION_ON, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                         }
+@@ -1281,8 +1281,8 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+ 
+             if (dbCamera->sub.mode != 1) {
+                 DebugCamera_CopyText(3, 0x16,  // was func_8006376C [LLM:HIGH]
+-                              ((dbCamera->sub.unk_08 == 1) && (dbCamera->sub.unk_0A == 4) && !D_80161144) ? 7
+-                              : !D_80161144                                                               ? 4
++                              ((dbCamera->sub.unk_08 == 1) && (dbCamera->sub.unk_0A == 4) && !sDbCameraFlagB) ? 7  // was D_80161144 [LLM:GUESS]
++                              : !sDbCameraFlagB                                                               ? 4  // was D_80161144 [LLM:GUESS]
+                                                                                                           : 3,
+                               cameraStrings[20]);
+                 sp110 = 'X';
+@@ -1295,8 +1295,8 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                 DbCamera_SetTextValue(dbCamera->at.z, &sp111, 6);
+                 DebugCamera_CopyText(3, 0x19, 2, &sp110);  // was func_8006376C [LLM:HIGH]
+                 DebugCamera_CopyText(0x1E, 0x16,  // was func_8006376C [LLM:HIGH]
+-                              ((dbCamera->sub.unk_08 == 1) && (dbCamera->sub.unk_0A == 4) && D_80161144) ? 7
+-                              : D_80161144                                                               ? 4
++                              ((dbCamera->sub.unk_08 == 1) && (dbCamera->sub.unk_0A == 4) && sDbCameraFlagB) ? 7  // was D_80161144 [LLM:GUESS]
++                              : sDbCameraFlagB                                                               ? 4  // was D_80161144 [LLM:GUESS]
+                                                                                                          : 3,
+                               cameraStrings[21]);
+                 sp110 = 'X';
+@@ -1312,8 +1312,8 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                 OLib_Vec3fDiffToVecSphGeo(&spFC, sp90, sp7C);
+                 spFC.yaw -= cam->playerPosRot.rot.y;
+                 DebugCamera_CopyText(3, 0x16,  // was func_8006376C [LLM:HIGH]
+-                              ((dbCamera->sub.unk_08 == 1) && (dbCamera->sub.unk_0A == 4) && !D_80161144) ? 7
+-                              : !D_80161144                                                               ? 4
++                              ((dbCamera->sub.unk_08 == 1) && (dbCamera->sub.unk_0A == 4) && !sDbCameraFlagB) ? 7  // was D_80161144 [LLM:GUESS]
++                              : !sDbCameraFlagB                                                               ? 4  // was D_80161144 [LLM:GUESS]
+                                                                                                           : 3,
+                               cameraStrings[20]);
+                 DbCamera_SetTextValue(spFC.pitch * 0.00549325f, &cameraStrings[69][5], 4);
+@@ -1325,8 +1325,8 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                 OLib_Vec3fDiffToVecSphGeo(&spFC, sp90, sp80);
+                 spFC.yaw -= cam->playerPosRot.rot.y;
+                 DebugCamera_CopyText(0x1E, 0x16,  // was func_8006376C [LLM:HIGH]
+-                              ((dbCamera->sub.unk_08 == 1) && (dbCamera->sub.unk_0A == 4) && D_80161144) ? 7
+-                              : D_80161144                                                               ? 4
++                              ((dbCamera->sub.unk_08 == 1) && (dbCamera->sub.unk_0A == 4) && sDbCameraFlagB) ? 7  // was D_80161144 [LLM:GUESS]
++                              : sDbCameraFlagB                                                               ? 4  // was D_80161144 [LLM:GUESS]
+                                                                                                          : 3,
+                               cameraStrings[21]);
+                 DbCamera_SetTextValue(spFC.pitch * 0.00549325f, &cameraStrings[69][5], 4);
+@@ -1384,7 +1384,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         DebugCamera_CopyText(9, 6, (dbCamera->unk_78 == 0) ? 7 : 4, cameraStrings[55]);  // was func_8006376C [LLM:HIGH]
+         DebugCamera_CopyText(0x11, 6, (dbCamera->unk_78 == 1) ? 7 : 4, cameraStrings[56]);  // was func_8006376C [LLM:HIGH]
+         DebugCamera_CopyText(0x18, 6, (dbCamera->unk_78 == 2) ? 7 : 4, cameraStrings[57]);  // was func_8006376C [LLM:HIGH]
+-        DebugCamera_CopyText(3, 0x16, D_80161144 ? 3 : 4, cameraStrings[20]);  // was func_8006376C [LLM:HIGH]
++        DebugCamera_CopyText(3, 0x16, sDbCameraFlagB ? 3 : 4, cameraStrings[20]);  // was func_8006376C [LLM:HIGH]
+         sp110 = 'X';
+         DbCamera_SetTextValue(dbCamera->at.x, &sp111, 6);
+         DebugCamera_CopyText(3, 0x17, 2, &sp110);  // was func_8006376C [LLM:HIGH]
+@@ -1394,7 +1394,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         sp110 = 'Z';
+         DbCamera_SetTextValue(dbCamera->at.z, &sp111, 6);
+         DebugCamera_CopyText(3, 0x19, 2, &sp110);  // was func_8006376C [LLM:HIGH]
+-        DebugCamera_CopyText(0x1E, 0x16, D_80161144 ? 4 : 3, cameraStrings[21]);  // was func_8006376C [LLM:HIGH]
++        DebugCamera_CopyText(0x1E, 0x16, sDbCameraFlagB ? 4 : 3, cameraStrings[21]);  // was func_8006376C [LLM:HIGH]
+         sp110 = 'X';
+         DbCamera_SetTextValue(dbCamera->eye.x, &sp111, 6);
+         DebugCamera_CopyText(0x1E, 0x17, 2, &sp110);  // was func_8006376C [LLM:HIGH]
+@@ -1404,7 +1404,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         sp110 = 'Z';
+         DbCamera_SetTextValue(dbCamera->eye.z, &sp111, 6);
+         DebugCamera_CopyText(0x1E, 0x19, 2, &sp110);  // was func_8006376C [LLM:HIGH]
+-        DebugCamera_CopyText(0xD, 0x18, 3, !D_80161144 ? cameraStrings[9] : cameraStrings[10]);  // was func_8006376C [LLM:HIGH]
++        DebugCamera_CopyText(0xD, 0x18, 3, !sDbCameraFlagB ? cameraStrings[9] : cameraStrings[10]);  // was func_8006376C [LLM:HIGH]
+         DbCamera_SetTextValue(sp104.pitch * 0.00549325f, &cameraStrings[69][6], 4);
+         DebugCamera_CopyText(0xF, 0x17, 3, cameraStrings[69]);  // was func_8006376C [LLM:HIGH]
+         DbCamera_SetTextValue(sp104.yaw * 0.00549325f, &cameraStrings[70][6], 4);
+@@ -1417,8 +1417,8 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+             DebugCamera_CopyText(0x0F, 0x1A, 1, cameraStrings[24]);  // was func_8006376C [LLM:HIGH]
+         }
+ 
+-        D_8012D110++;
+-        D_8012D110 %= 50;
++        sDbCameraHoldState++;  // was D_8012D110 [LLM:GUESS]
++        sDbCameraHoldState %= 50;  // was D_8012D110 [LLM:GUESS]
+ 
+         OLib_Vec3fDiffToVecSphGeo(&spA0, &cam->eye, &cam->at);
+         DebugDisplay_AddObject(dbCamera->at.x, dbCamera->at.y + 1.0f, dbCamera->at.z, 0, 0, 0, 0.02f, 2.0f, 0.02f, 0xFF,
+-- 
+2.55.0
+

@@ -1,0 +1,143 @@
+From 64df360ac3a58dcfd4d0b511e7dfe70408e8c4a5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:41 +0000
+Subject: [PATCH 478/488] soh: name the 3 address-named symbols defined in
+ z_file_copy_erase.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/gamestates/ovl_file_choose/z_file_copy_erase.c.
+
+  * D_808124A4 -> sCopyConfirmOffsets
+    deduced, confidence HIGH: the vertical positions the copy confirmation
+    window slides through
+
+  * D_808124AC -> sEraseConfirmOffsets
+    deduced, confidence HIGH: the same for the erase confirmation window
+
+  * D_80813800 -> sEraseAnimTimer
+    deduced, confidence HIGH: counts the erase animation
+    FileChoose_EraseAnim1 plays
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_file_choose/z_file_copy_erase.c       | 24 +++++++++----------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_copy_erase.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_copy_erase.c
+index eb2da0f39..af0a6f978 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_copy_erase.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_copy_erase.c
+@@ -316,7 +316,7 @@ void FileChoose_ExitToCopySource2(GameState* thisx) {
+  * Update function for `CM_SETUP_COPY_CONFIRM_1`
+  */
+ void FileChoose_SetupCopyConfirm1(GameState* thisx) {
+-    static s16 D_808124A4[] = { -56, -40, -24, 0 };
++    static s16 sCopyConfirmOffsets[] = { -56, -40, -24, 0 };  // was D_808124A4 [LLM:HIGH]
+     FileChooseContext* this = (FileChooseContext*)thisx;
+     s16 i;
+     s16 yStep;
+@@ -334,11 +334,11 @@ void FileChoose_SetupCopyConfirm1(GameState* thisx) {
+             }
+         } else {
+             if (this->copyDestFileIndex == i) {
+-                yStep = ABS(this->buttonYOffsets[i] - D_808124A4[i]) / this->actionTimer;
++                yStep = ABS(this->buttonYOffsets[i] - sCopyConfirmOffsets[i]) / this->actionTimer;  // was D_808124A4 [LLM:HIGH]
+                 this->buttonYOffsets[i] += yStep;
+ 
+-                if (this->buttonYOffsets[i] >= D_808124A4[i]) {
+-                    this->buttonYOffsets[i] = D_808124A4[i];
++                if (this->buttonYOffsets[i] >= sCopyConfirmOffsets[i]) {  // was D_808124A4 [LLM:HIGH]
++                    this->buttonYOffsets[i] = sCopyConfirmOffsets[i];  // was D_808124A4 [LLM:HIGH]
+                 }
+             }
+         }
+@@ -775,7 +775,7 @@ void FileChoose_EraseSelect(GameState* thisx) {
+  * Update function for `CM_SETUP_ERASE_CONFIRM_1`
+  */
+ void FileChoose_SetupEraseConfirm1(GameState* thisx) {
+-    static s16 D_808124AC[] = { 0, 16, 32 };
++    static s16 sEraseConfirmOffsets[] = { 0, 16, 32 };  // was D_808124AC [LLM:HIGH]
+     FileChooseContext* this = (FileChooseContext*)thisx;
+     s16 i;
+     s16 yStep;
+@@ -795,9 +795,9 @@ void FileChoose_SetupEraseConfirm1(GameState* thisx) {
+     this->titleAlpha[0] -= 15;
+     this->titleAlpha[1] += 15;
+ 
+-    yStep = ABS(this->buttonYOffsets[this->buttonIndex] - D_808124AC[this->buttonIndex]) / this->actionTimer;
++    yStep = ABS(this->buttonYOffsets[this->buttonIndex] - sEraseConfirmOffsets[this->buttonIndex]) / this->actionTimer;  // was D_808124AC [LLM:HIGH]
+ 
+-    if (this->buttonYOffsets[this->buttonIndex] >= D_808124AC[this->buttonIndex]) {
++    if (this->buttonYOffsets[this->buttonIndex] >= sEraseConfirmOffsets[this->buttonIndex]) {  // was D_808124AC [LLM:HIGH]
+         this->buttonYOffsets[this->buttonIndex] -= yStep;
+     } else {
+         this->buttonYOffsets[this->buttonIndex] += yStep;
+@@ -819,7 +819,7 @@ void FileChoose_SetupEraseConfirm1(GameState* thisx) {
+             }
+         }
+ 
+-        this->buttonYOffsets[this->buttonIndex] = D_808124AC[this->buttonIndex];
++        this->buttonYOffsets[this->buttonIndex] = sEraseConfirmOffsets[this->buttonIndex];  // was D_808124AC [LLM:HIGH]
+         this->actionTimer = 8;
+         this->configMode++;
+     }
+@@ -955,12 +955,12 @@ void FileChoose_ExitToEraseSelect2(GameState* thisx) {
+  * Update function for `CM_ERASE_ANIM_1`
+  */
+ void FileChoose_EraseAnim1(GameState* thisx) {
+-    static s16 D_80813800;
++    static s16 sEraseAnimTimer;  // was D_80813800 [LLM:HIGH]
+     FileChooseContext* this = (FileChooseContext*)thisx;
+ 
+     if (sEraseDelayTimer == 0) {
+         if (this->actionTimer == 8) {
+-            D_80813800 = 1;
++            sEraseAnimTimer = 1;  // was D_80813800 [LLM:HIGH]
+         }
+ 
+         if (this->actionTimer != 0) {
+@@ -971,9 +971,9 @@ void FileChoose_EraseAnim1(GameState* thisx) {
+             this->confirmButtonAlpha[FS_BTN_CONFIRM_QUIT] -= 25;
+         }
+ 
+-        this->fileNamesY[this->selectedFileIndex] -= D_80813800;
++        this->fileNamesY[this->selectedFileIndex] -= sEraseAnimTimer;  // was D_80813800 [LLM:HIGH]
+         this->actionTimer--;
+-        D_80813800 += 2;
++        sEraseAnimTimer += 2;  // was D_80813800 [LLM:HIGH]
+ 
+         if (this->actionTimer == 0) {
+             Save_DeleteFile(this->selectedFileIndex);
+-- 
+2.55.0
+

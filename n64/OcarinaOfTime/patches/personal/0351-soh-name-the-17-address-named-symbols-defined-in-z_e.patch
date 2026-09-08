@@ -1,0 +1,492 @@
+From 3fe9578384ab2479577391032ff90c75593cbad5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 351/488] soh: name the 17 address-named symbols defined in
+ z_en_horse_link_child.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 17 are defined in soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c.
+
+  * D_80A6AF64 -> sAnimPlaySpeeds
+    deduced, confidence HIGH: the base playback rate for each of the foal's
+    animations, scaled by its own speed for the three moving gaits.
+
+  * func_80A693D0 -> EnHorseLinkChild_PlayWalkSfx
+    deduced, confidence HIGH: fires the foal's hoofstep sfx as the walk
+    animation passes each of its two step frames.
+
+  * func_80A6948C -> EnHorseLinkChild_PlayAnimSfx
+    deduced, confidence HIGH: plays the hoofsteps for the walk animation,
+    the running sfx at the start of each gallop cycle, and a random groan or
+    neigh for the idle.
+
+  * func_80A695A4 -> EnHorseLinkChild_GetAnimPlaySpeed
+    deduced, confidence HIGH: returns the playback rate for the current
+    animation, scaling the three moving gaits by the foal's speed.
+
+  * func_80A6988C -> EnHorseLinkChild_SetupCycleAnim
+    deduced, confidence HIGH: enters action 0 and steps to the next
+    animation in the list, wrapping round.
+
+  * func_80A698F4 -> EnHorseLinkChild_CycleAnim
+    deduced, confidence HIGH: holds the foal still and cycles to the next
+    animation each time the current one finishes.
+
+  * func_80A6993C -> EnHorseLinkChild_SetupIdleAnim
+    deduced, confidence HIGH: enters action 2 with one of the two standing
+    animations, stopping the foal.
+
+  * func_80A699FC -> EnHorseLinkChild_Idle
+    deduced, confidence HIGH: alternates the two standing animations and
+    starts approaching once the player is between 70 and 1000 units away.
+
+  * func_80A69B7C -> EnHorseLinkChild_SetupApproach
+    deduced, confidence HIGH: enters action 1 with the first animation,
+    stopping the foal.
+
+  * func_80A69C18 -> EnHorseLinkChild_Approach
+    deduced, confidence HIGH: turns the foal toward the player at a capped
+    rate while it is in one of the moving gaits, and picks the gait from the
+    distance.
+
+  * func_80A69EC0 -> EnHorseLinkChild_SetupFollow
+    deduced, confidence HIGH: enters action 3 with the first animation,
+    stopping the foal.
+
+  * func_80A69F5C -> EnHorseLinkChild_TurnWhileFollowing
+    deduced, confidence HIGH: steers the foal: toward a point beside the
+    player while both are near its home, and back toward home otherwise.
+
+  * func_80A6A068 -> EnHorseLinkChild_Follow
+    deduced, confidence HIGH: the following action: it steers, picks the
+    gait from the distances to the player and to home, and breaks into the
+    escape run when the ranch entrance is used.
+
+  * func_80A6A4DC -> EnHorseLinkChild_SetupWaitNearPlayer
+    deduced, confidence HIGH: enters action 5 with a randomly chosen
+    standing animation and clears the debug trigger register.
+
+  * func_80A6A5A4 -> EnHorseLinkChild_WaitNearPlayer
+    deduced, confidence HIGH: keeps the foal facing the player while it
+    stands next to them, and breaks into the escape run when the debug
+    register fires.
+
+  * func_80A6A724 -> EnHorseLinkChild_SetupRunAway
+    deduced, confidence HIGH: enters action 4 at speed 2 with the walking
+    gait and arms the run-away timer.
+
+  * func_80A6A7D0 -> EnHorseLinkChild_RunAway
+    deduced, confidence HIGH: runs the foal toward the player for the first
+    300 frames and back toward its home afterwards.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_en_horse_link_child.c                   | 129 ++++++++++--------
+ 1 file changed, 73 insertions(+), 56 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c b/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
+index 165e93d43..d5713b6f4 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
+@@ -14,10 +14,14 @@ void EnHorseLinkChild_Destroy(Actor* thisx, PlayState* play);
+ void EnHorseLinkChild_Update(Actor* thisx, PlayState* play);
+ void EnHorseLinkChild_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A69B7C(EnHorseLinkChild* this);
+-void func_80A69EC0(EnHorseLinkChild* this);
+-void func_80A6A4DC(EnHorseLinkChild* this);
+-void func_80A6A724(EnHorseLinkChild* this);
++// LLM generated name (HIGH), was func_80A69B7C: enters action 1 with the first animation, stopping the foal.
++void EnHorseLinkChild_SetupApproach(EnHorseLinkChild* this);  // was func_80A69B7C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A69EC0: enters action 3 with the first animation, stopping the foal.
++void EnHorseLinkChild_SetupFollow(EnHorseLinkChild* this);  // was func_80A69EC0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A6A4DC: enters action 5 with a randomly chosen standing animation and clears the debug trigger register.
++void EnHorseLinkChild_SetupWaitNearPlayer(EnHorseLinkChild* this);  // was func_80A6A4DC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A6A724: enters action 4 at speed 2 with the walking gait and arms the run-away timer.
++void EnHorseLinkChild_SetupRunAway(EnHorseLinkChild* this);  // was func_80A6A724 [LLM:HIGH]
+ 
+ const ActorInit En_Horse_Link_Child_InitVars = {
+     ACTOR_EN_HORSE_LINK_CHILD,
+@@ -85,7 +89,8 @@ static ColliderJntSphInit sJntSphInit = {
+ 
+ static CollisionCheckInfoInit sColCheckInfoInit = { 10, 35, 100, MASS_HEAVY };
+ 
+-void func_80A693D0(EnHorseLinkChild* this) {
++// LLM generated name (HIGH), was func_80A693D0: fires the foal's hoofstep sfx as the walk animation passes each of its two step frames.
++void EnHorseLinkChild_PlayWalkSfx(EnHorseLinkChild* this) {
+     static s32 D_80A6AF5C[] = { 1, 19 };
+ 
+     if ((this->skin.skelAnime.curFrame > D_80A6AF5C[this->unk_1F0]) &&
+@@ -99,9 +104,10 @@ void func_80A693D0(EnHorseLinkChild* this) {
+     }
+ }
+ 
+-void func_80A6948C(EnHorseLinkChild* this) {
++// LLM generated name (HIGH), was func_80A6948C: plays the hoofsteps for the walk animation, the running sfx at the start of each gallop cycle, and a random groan or neigh for the idle.
++void EnHorseLinkChild_PlayAnimSfx(EnHorseLinkChild* this) {
+     if (this->animationIdx == 2) {
+-        func_80A693D0(this);
++        EnHorseLinkChild_PlayWalkSfx(this);  // was func_80A693D0 [LLM:HIGH]
+     } else if (this->skin.skelAnime.curFrame == 0.0f) {
+         if ((this->animationIdx == 3) || (this->animationIdx == 4)) {
+             Audio_PlaySfxGeneral(NA_SE_EV_KID_HORSE_RUN, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -118,19 +124,21 @@ void func_80A6948C(EnHorseLinkChild* this) {
+     }
+ }
+ 
+-static f32 D_80A6AF64[] = { 1.0f, 1.0f, 1.5f, 1.5f, 1.5f };
++// LLM generated name (HIGH), was D_80A6AF64: the base playback rate for each of the foal's animations, scaled by its own speed for the three moving gaits.
++static f32 sAnimPlaySpeeds[] = { 1.0f, 1.0f, 1.5f, 1.5f, 1.5f };  // was D_80A6AF64 [LLM:HIGH]
+ 
+-f32 func_80A695A4(EnHorseLinkChild* this) {
++// LLM generated name (HIGH), was func_80A695A4: returns the playback rate for the current animation, scaling the three moving gaits by the foal's speed.
++f32 EnHorseLinkChild_GetAnimPlaySpeed(EnHorseLinkChild* this) {
+     f32 result;
+ 
+     if (this->animationIdx == 2) {
+-        result = D_80A6AF64[this->animationIdx] * this->actor.speedXZ * (1.0f / 2.0f);
++        result = sAnimPlaySpeeds[this->animationIdx] * this->actor.speedXZ * (1.0f / 2.0f);  // was D_80A6AF64 [LLM:HIGH]
+     } else if (this->animationIdx == 3) {
+-        result = D_80A6AF64[this->animationIdx] * this->actor.speedXZ * (1.0f / 3.0f);
++        result = sAnimPlaySpeeds[this->animationIdx] * this->actor.speedXZ * (1.0f / 3.0f);  // was D_80A6AF64 [LLM:HIGH]
+     } else if (this->animationIdx == 4) {
+-        result = D_80A6AF64[this->animationIdx] * this->actor.speedXZ * (1.0f / 5.0f);
++        result = sAnimPlaySpeeds[this->animationIdx] * this->actor.speedXZ * (1.0f / 5.0f);  // was D_80A6AF64 [LLM:HIGH]
+     } else {
+-        result = D_80A6AF64[this->animationIdx];
++        result = sAnimPlaySpeeds[this->animationIdx];  // was D_80A6AF64 [LLM:HIGH]
+     }
+ 
+     return result;
+@@ -164,16 +172,16 @@ void EnHorseLinkChild_Init(Actor* thisx, PlayState* play) {
+     this->eyeTexIndex = 0;
+ 
+     if (gSaveContext.sceneLayer > 3) {
+-        func_80A69EC0(this);
++        EnHorseLinkChild_SetupFollow(this);  // was func_80A69EC0 [LLM:HIGH]
+     } else if (play->sceneNum == SCENE_LON_LON_RANCH) {
+         if (!Flags_GetEventChkInf(EVENTCHKINF_TALON_RETURNED_FROM_CASTLE)) {
+             Actor_Kill(&this->actor);
+             return;
+         }
+         this->unk_2A0 = Flags_GetEventChkInf(EVENTCHKINF_INVITED_TO_SING_WITH_CHILD_MALON);
+-        func_80A69EC0(this);
++        EnHorseLinkChild_SetupFollow(this);  // was func_80A69EC0 [LLM:HIGH]
+     } else {
+-        func_80A69EC0(this);
++        EnHorseLinkChild_SetupFollow(this);  // was func_80A69EC0 [LLM:HIGH]
+     }
+ 
+     this->actor.home.rot.z = this->actor.world.rot.z = this->actor.shape.rot.z = 0;
+@@ -187,7 +195,8 @@ void EnHorseLinkChild_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyJntSph(play, &this->headCollider);
+ }
+ 
+-void func_80A6988C(EnHorseLinkChild* this) {
++// LLM generated name (HIGH), was func_80A6988C: enters action 0 and steps to the next animation in the list, wrapping round.
++void EnHorseLinkChild_SetupCycleAnim(EnHorseLinkChild* this) {
+     this->action = 0;
+     this->animationIdx++;
+     if (this->animationIdx >= ARRAY_COUNT(sAnimations)) {
+@@ -195,17 +204,19 @@ void func_80A6988C(EnHorseLinkChild* this) {
+     }
+ 
+     Animation_PlayOnce(&this->skin.skelAnime, sAnimations[this->animationIdx]);
+-    this->skin.skelAnime.playSpeed = func_80A695A4(this);
++    this->skin.skelAnime.playSpeed = EnHorseLinkChild_GetAnimPlaySpeed(this);  // was func_80A695A4 [LLM:HIGH]
+ }
+ 
+-void func_80A698F4(EnHorseLinkChild* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A698F4: holds the foal still and cycles to the next animation each time the current one finishes.
++void EnHorseLinkChild_CycleAnim(EnHorseLinkChild* this, PlayState* play) {
+     this->actor.speedXZ = 0.0f;
+     if (SkelAnime_Update(&this->skin.skelAnime)) {
+-        func_80A6988C(this);
++        EnHorseLinkChild_SetupCycleAnim(this);  // was func_80A6988C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A6993C(EnHorseLinkChild* this, s32 newAnimationIdx) {
++// LLM generated name (HIGH), was func_80A6993C: enters action 2 with one of the two standing animations, stopping the foal.
++void EnHorseLinkChild_SetupIdleAnim(EnHorseLinkChild* this, s32 newAnimationIdx) {
+     this->action = 2;
+     this->actor.speedXZ = 0.0f;
+ 
+@@ -215,12 +226,13 @@ void func_80A6993C(EnHorseLinkChild* this, s32 newAnimationIdx) {
+ 
+     if (this->animationIdx != newAnimationIdx) {
+         this->animationIdx = newAnimationIdx;
+-        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                          Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+     }
+ }
+ 
+-void func_80A699FC(EnHorseLinkChild* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A699FC: alternates the two standing animations and starts approaching once the player is between 70 and 1000 units away.
++void EnHorseLinkChild_Idle(EnHorseLinkChild* this, PlayState* play) {
+     f32 distFromLink;
+     s32 newAnimationIdx;
+ 
+@@ -228,30 +240,31 @@ void func_80A699FC(EnHorseLinkChild* this, PlayState* play) {
+ 
+     if (SkelAnime_Update(&this->skin.skelAnime)) {
+         if ((distFromLink < 1000.0f) && (distFromLink > 70.0f)) {
+-            func_80A69B7C(this);
++            EnHorseLinkChild_SetupApproach(this);  // was func_80A69B7C [LLM:HIGH]
+         } else {
+             newAnimationIdx = this->animationIdx == 1 ? 0 : 1;
+             if (this->animationIdx != newAnimationIdx) {
+                 this->animationIdx = newAnimationIdx;
+-                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                                  Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+             } else {
+-                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                                  Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0);
+             }
+         }
+     }
+ }
+ 
+-void func_80A69B7C(EnHorseLinkChild* this) {
++void EnHorseLinkChild_SetupApproach(EnHorseLinkChild* this) {
+     this->action = 1;
+     this->animationIdx = 0;
+     this->actor.speedXZ = 0.0f;
+-    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                      Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+ }
+ 
+-void func_80A69C18(EnHorseLinkChild* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A69C18: turns the foal toward the player at a capped rate while it is in one of the moving gaits, and picks the gait from the distance.
++void EnHorseLinkChild_Approach(EnHorseLinkChild* this, PlayState* play) {
+     s16 yawDiff;
+     f32 distFromLink;
+     s32 newAnimationIdx;
+@@ -274,7 +287,7 @@ void func_80A69C18(EnHorseLinkChild* this, PlayState* play) {
+         distFromLink = Actor_WorldDistXZToActor(&this->actor, &GET_PLAYER(play)->actor);
+ 
+         if (distFromLink > 1000.0f) {
+-            func_80A6993C(this, 0);
++            EnHorseLinkChild_SetupIdleAnim(this, 0);  // was func_80A6993C [LLM:HIGH]
+             return;
+         } else if ((distFromLink < 1000.0f) && (distFromLink >= 300.0f)) {
+             newAnimationIdx = 4;
+@@ -287,30 +300,31 @@ void func_80A69C18(EnHorseLinkChild* this, PlayState* play) {
+             this->actor.speedXZ = 2.0f;
+             this->unk_1F0 = 0;
+         } else {
+-            func_80A6993C(this, 1);
++            EnHorseLinkChild_SetupIdleAnim(this, 1);  // was func_80A6993C [LLM:HIGH]
+             return;
+         }
+ 
+         if (this->animationIdx != newAnimationIdx) {
+             this->animationIdx = newAnimationIdx;
+-            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                              Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+         } else {
+-            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                              Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+         }
+     }
+ }
+ 
+-void func_80A69EC0(EnHorseLinkChild* this) {
++void EnHorseLinkChild_SetupFollow(EnHorseLinkChild* this) {
+     this->action = 3;
+     this->animationIdx = 0;
+     this->actor.speedXZ = 0.0f;
+-    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                      Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+ }
+ 
+-void func_80A69F5C(EnHorseLinkChild* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A69F5C: steers the foal: toward a point beside the player while both are near its home, and back toward home otherwise.
++void EnHorseLinkChild_TurnWhileFollowing(EnHorseLinkChild* this, PlayState* play) {
+     Player* player;
+     s16 yawDiff;
+     s32 yawSign;
+@@ -340,7 +354,8 @@ void func_80A69F5C(EnHorseLinkChild* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A6A068(EnHorseLinkChild* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A6A068: the following action: it steers, picks the gait from the distances to the player and to home, and breaks into the escape run when the ranch entrance is used.
++void EnHorseLinkChild_Follow(EnHorseLinkChild* this, PlayState* play) {
+     Player* player;
+     f32 distFromLink;
+     s32 animationEnded;
+@@ -348,20 +363,20 @@ void func_80A6A068(EnHorseLinkChild* this, PlayState* play) {
+     f32 distFromHome;
+     f32 distLinkFromHome;
+ 
+-    func_80A69F5C(this, play);
++    EnHorseLinkChild_TurnWhileFollowing(this, play);  // was func_80A69F5C [LLM:HIGH]
+     player = GET_PLAYER(play);
+     distFromLink = Actor_WorldDistXZToActor(&this->actor, &player->actor);
+ 
+     if (gSaveContext.entranceIndex == ENTR_LON_LON_RANCH_1) {
+         Audio_PlaySfxGeneral(NA_SE_EV_KID_HORSE_NEIGH, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-        func_80A6A724(this);
++        EnHorseLinkChild_SetupRunAway(this);  // was func_80A6A724 [LLM:HIGH]
+         return;
+     }
+ 
+     if (((Flags_GetEventChkInf(EVENTCHKINF_INVITED_TO_SING_WITH_CHILD_MALON)) && (DREG(53) != 0)) ||
+         ((play->sceneNum == SCENE_LON_LON_RANCH) && (gSaveContext.cutsceneIndex == 0xFFF1))) {
+-        func_80A6A4DC(this);
++        EnHorseLinkChild_SetupWaitNearPlayer(this);  // was func_80A6A4DC [LLM:HIGH]
+     } else {
+         this->unk_2A0 = Flags_GetEventChkInf(EVENTCHKINF_INVITED_TO_SING_WITH_CHILD_MALON);
+     }
+@@ -423,31 +438,32 @@ void func_80A6A068(EnHorseLinkChild* this, PlayState* play) {
+ 
+     if ((this->animationIdx != newAnimationIdx) || (animationEnded == true)) {
+         this->animationIdx = newAnimationIdx;
+-        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                          Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+     } else {
+-        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this),
++        Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this),  // was func_80A695A4 [LLM:HIGH]
+                          this->skin.skelAnime.curFrame, Animation_GetLastFrame(sAnimations[this->animationIdx]), 2,
+                          0.0f);
+     }
+ }
+ 
+-void func_80A6A4DC(EnHorseLinkChild* this) {
++void EnHorseLinkChild_SetupWaitNearPlayer(EnHorseLinkChild* this) {
+     this->action = 5;
+     this->animationIdx = Rand_ZeroOne() > 0.5f ? 0 : 1;
+     DREG(53) = 0;
+-    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                      Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+ }
+ 
+-void func_80A6A5A4(EnHorseLinkChild* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A6A5A4: keeps the foal facing the player while it stands next to them, and breaks into the escape run when the debug register fires.
++void EnHorseLinkChild_WaitNearPlayer(EnHorseLinkChild* this, PlayState* play) {
+     s16 yawDiff;
+ 
+     if (DREG(53) != 0) {
+         DREG(53) = 0;
+         Audio_PlaySfxGeneral(NA_SE_EV_KID_HORSE_NEIGH, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-        func_80A6A724(this);
++        EnHorseLinkChild_SetupRunAway(this);  // was func_80A6A724 [LLM:HIGH]
+     } else {
+         this->actor.speedXZ = 0.0f;
+         yawDiff = Actor_WorldYawTowardActor(&this->actor, &GET_PLAYER(play)->actor) - this->actor.world.rot.y;
+@@ -459,26 +475,27 @@ void func_80A6A5A4(EnHorseLinkChild* this, PlayState* play) {
+         if (SkelAnime_Update(&this->skin.skelAnime)) {
+             if (Math_CosS(yawDiff) < 0.0f) {
+                 this->animationIdx = 2;
+-                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], D_80A6AF64[this->animationIdx],
++                Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], sAnimPlaySpeeds[this->animationIdx],  // was D_80A6AF64 [LLM:HIGH]
+                                  0.0f, Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+             } else {
+-                func_80A6A4DC(this);
++                EnHorseLinkChild_SetupWaitNearPlayer(this);  // was func_80A6A4DC [LLM:HIGH]
+             }
+         }
+     }
+ }
+ 
+-void func_80A6A724(EnHorseLinkChild* this) {
++void EnHorseLinkChild_SetupRunAway(EnHorseLinkChild* this) {
+     this->timer = 0;
+     this->action = 4;
+     this->animationIdx = 2;
+     this->unk_1E8 = false;
+     this->actor.speedXZ = 2.0f;
+-    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++    Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                      Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+ }
+ 
+-void func_80A6A7D0(EnHorseLinkChild* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A6A7D0: runs the foal toward the player for the first 300 frames and back toward its home afterwards.
++void EnHorseLinkChild_RunAway(EnHorseLinkChild* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 dist;
+     s32 newAnimationIdx;
+@@ -527,24 +544,24 @@ void func_80A6A7D0(EnHorseLinkChild* this, PlayState* play) {
+                 this->actor.speedXZ = 2.0f;
+                 this->unk_1F0 = 0;
+             } else {
+-                func_80A6A4DC(this);
++                EnHorseLinkChild_SetupWaitNearPlayer(this);  // was func_80A6A4DC [LLM:HIGH]
+                 return;
+             }
+         }
+ 
+         if (this->animationIdx != newAnimationIdx) {
+             this->animationIdx = newAnimationIdx;
+-            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                              Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, -5.0f);
+         } else {
+-            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], func_80A695A4(this), 0.0f,
++            Animation_Change(&this->skin.skelAnime, sAnimations[this->animationIdx], EnHorseLinkChild_GetAnimPlaySpeed(this), 0.0f,  // was func_80A695A4 [LLM:HIGH]
+                              Animation_GetLastFrame(sAnimations[this->animationIdx]), ANIMMODE_ONCE, 0.0f);
+         }
+     }
+ }
+ 
+ static EnHorseLinkChildActionFunc sActionFuncs[] = {
+-    func_80A698F4, func_80A69C18, func_80A699FC, func_80A6A068, func_80A6A7D0, func_80A6A5A4,
++    EnHorseLinkChild_CycleAnim, EnHorseLinkChild_Approach, EnHorseLinkChild_Idle, EnHorseLinkChild_Follow, EnHorseLinkChild_RunAway, EnHorseLinkChild_WaitNearPlayer,  // was func_80A698F4 [LLM:HIGH]
+ };
+ 
+ static void* sEyeTextures[] = { gChildEponaEyeOpenTex, gChildEponaEyeHalfTex, gChildEponaEyeCloseTex };
+@@ -576,7 +593,7 @@ void EnHorseLinkChild_Update(Actor* thisx, PlayState* play) {
+ 
+     Collider_UpdateCylinder(&this->actor, &this->bodyCollider);
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->bodyCollider.base);
+-    func_80A6948C(this);
++    EnHorseLinkChild_PlayAnimSfx(this);  // was func_80A6948C [LLM:HIGH]
+ }
+ 
+ void EnHorseLinkChild_PostDraw(Actor* thisx, PlayState* play, Skin* skin) {
+-- 
+2.55.0
+

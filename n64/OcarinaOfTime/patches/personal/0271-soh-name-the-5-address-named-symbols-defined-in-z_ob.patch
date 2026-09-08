@@ -1,0 +1,159 @@
+From 665f0fd16028adbd08cc5832dee55cc6bee978b9 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:21 +0000
+Subject: [PATCH 271/488] soh: name the 5 address-named symbols defined in
+ z_obj_elevator.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_Obj_Elevator/z_obj_elevator.c.
+
+  * func_80B92B08 -> ObjElevator_InitDynaPoly
+    deduced, confidence HIGH: registers the elevator as a dyna-poly bg actor
+    with the given collision header, warning when the bg actor table is
+    full.
+
+  * func_80B92C5C -> ObjElevator_SetupWaitForPlayer
+    deduced, confidence HIGH: installs ObjElevator_WaitForPlayer through
+    ObjElevator_SetupAction.
+
+  * func_80B92C80 -> ObjElevator_WaitForPlayer
+    deduced, confidence HIGH: on the frame the player steps on, picks the
+    opposite end of the run (home, or home plus the params height) as the
+    target and starts moving.
+
+  * func_80B92D20 -> ObjElevator_SetupMove
+    deduced, confidence HIGH: installs ObjElevator_Move through
+    ObjElevator_SetupAction.
+
+  * func_80B92D44 -> ObjElevator_Move
+    deduced, confidence HIGH: eases world.pos.y toward the target with the
+    stone-statue sfx, and plays the foot-switch sfx and returns to waiting
+    once it arrives.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Obj_Elevator/z_obj_elevator.c  | 35 +++++++++++--------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Elevator/z_obj_elevator.c b/soh/src/overlays/actors/ovl_Obj_Elevator/z_obj_elevator.c
+index b2ca1527b..2a605ab3a 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Elevator/z_obj_elevator.c
++++ b/soh/src/overlays/actors/ovl_Obj_Elevator/z_obj_elevator.c
+@@ -14,10 +14,14 @@ void ObjElevator_Destroy(Actor* thisx, PlayState* play);
+ void ObjElevator_Update(Actor* thisx, PlayState* play);
+ void ObjElevator_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80B92C5C(ObjElevator* this);
+-void func_80B92C80(ObjElevator* this, PlayState* play);
+-void func_80B92D20(ObjElevator* this);
+-void func_80B92D44(ObjElevator* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B92C5C: installs ObjElevator_WaitForPlayer through ObjElevator_SetupAction.
++void ObjElevator_SetupWaitForPlayer(ObjElevator* this);  // was func_80B92C5C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B92C80: on the frame the player steps on, picks the opposite end of the run (home, or home plus the params height) as the target and starts moving.
++void ObjElevator_WaitForPlayer(ObjElevator* this, PlayState* play);  // was func_80B92C80 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B92D20: installs ObjElevator_Move through ObjElevator_SetupAction.
++void ObjElevator_SetupMove(ObjElevator* this);  // was func_80B92D20 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B92D44: eases world.pos.y toward the target with the stone-statue sfx, and plays the foot-switch sfx and returns to waiting once it arrives.
++void ObjElevator_Move(ObjElevator* this, PlayState* play);  // was func_80B92D44 [LLM:HIGH]
+ 
+ const ActorInit Obj_Elevator_InitVars = {
+     ACTOR_OBJ_ELEVATOR,
+@@ -44,7 +48,8 @@ void ObjElevator_SetupAction(ObjElevator* this, ObjElevatorActionFunc actionFunc
+     this->actionFunc = actionFunc;
+ }
+ 
+-void func_80B92B08(ObjElevator* this, PlayState* play, CollisionHeader* collision, s32 flag) {
++// LLM generated name (HIGH), was func_80B92B08: registers the elevator as a dyna-poly bg actor with the given collision header, warning when the bg actor table is full.
++void ObjElevator_InitDynaPoly(ObjElevator* this, PlayState* play, CollisionHeader* collision, s32 flag) {
+     s16 pad1;
+     CollisionHeader* colHeader = NULL;
+     s16 pad2;
+@@ -63,12 +68,12 @@ void ObjElevator_Init(Actor* thisx, PlayState* play) {
+     ObjElevator* this = (ObjElevator*)thisx;
+     f32 temp_f0;
+ 
+-    func_80B92B08(this, play, &object_d_elevator_Col_000360, DPM_PLAYER);
++    ObjElevator_InitDynaPoly(this, play, &object_d_elevator_Col_000360, DPM_PLAYER);  // was func_80B92B08 [LLM:HIGH]
+     Actor_SetScale(thisx, sScales[thisx->params & 1]);
+     Actor_ProcessInitChain(thisx, sInitChain);
+     temp_f0 = (thisx->params >> 8) & 0xF;
+     this->unk_16C = temp_f0 + temp_f0;
+-    func_80B92C5C(this);
++    ObjElevator_SetupWaitForPlayer(this);  // was func_80B92C5C [LLM:HIGH]
+     osSyncPrintf("(Dungeon Elevator)(arg_data 0x%04x)\n", thisx->params);
+ }
+ 
+@@ -78,11 +83,11 @@ void ObjElevator_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80B92C5C(ObjElevator* this) {
+-    ObjElevator_SetupAction(this, func_80B92C80);
++void ObjElevator_SetupWaitForPlayer(ObjElevator* this) {
++    ObjElevator_SetupAction(this, ObjElevator_WaitForPlayer);  // was func_80B92C80 [LLM:HIGH]
+ }
+ 
+-void func_80B92C80(ObjElevator* this, PlayState* play) {
++void ObjElevator_WaitForPlayer(ObjElevator* this, PlayState* play) {
+     f32 sub;
+     Actor* thisx = &this->dyna.actor;
+ 
+@@ -93,20 +98,20 @@ void func_80B92C80(ObjElevator* this, PlayState* play) {
+         } else {
+             this->unk_168 = thisx->home.pos.y;
+         }
+-        func_80B92D20(this);
++        ObjElevator_SetupMove(this);  // was func_80B92D20 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B92D20(ObjElevator* this) {
+-    ObjElevator_SetupAction(this, func_80B92D44);
++void ObjElevator_SetupMove(ObjElevator* this) {
++    ObjElevator_SetupAction(this, ObjElevator_Move);  // was func_80B92D44 [LLM:HIGH]
+ }
+ 
+-void func_80B92D44(ObjElevator* this, PlayState* play) {
++void ObjElevator_Move(ObjElevator* this, PlayState* play) {
+     Actor* thisx = &this->dyna.actor;
+ 
+     if (fabsf(Math_SmoothStepToF(&thisx->world.pos.y, this->unk_168, 1.0f, this->unk_16C, 0.0f)) < 0.001f) {
+         Audio_PlayActorSound2(thisx, NA_SE_EV_FOOT_SWITCH);
+-        func_80B92C5C(this);
++        ObjElevator_SetupWaitForPlayer(this);  // was func_80B92C5C [LLM:HIGH]
+     } else {
+         Audio_PlayActorSound2(thisx, NA_SE_EV_STONE_STATUE_OPEN - SFX_FLAG);
+     }
+-- 
+2.55.0
+

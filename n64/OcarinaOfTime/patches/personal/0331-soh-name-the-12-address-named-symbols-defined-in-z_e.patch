@@ -1,0 +1,381 @@
+From 5397a3f078c8a1aef18b59d554e7dd6e574e336f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 331/488] soh: name the 12 address-named symbols defined in
+ z_en_gb.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 12 are defined in soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c; updating their references touches 3 files in total.
+
+  * func_80A2F180 -> EnGb_UpdateTextId
+    deduced, confidence HIGH: picks the Poe collector's greeting depending
+    on whether the player has spoken to him before.
+
+  * func_80A2F608 -> EnGb_UpdateColliders
+    deduced, confidence HIGH: places the body collider 25 units in front of
+    the actor and each bottle collider at its own offset, all rotated into
+    the actor's frame.
+
+  * func_80A2F760 -> EnGb_AreSoulsStirring
+    deduced, confidence HIGH: returns whether any of the caged souls is
+    currently in its stirred-up state, which suppresses the idle timer.
+
+  * func_80A2F7C0 -> EnGb_SetupSwingStick
+    deduced, confidence HIGH: starts the stick-swinging animation with its
+    magic sfx and installs the swinging action.
+
+  * func_80A2F83C -> EnGb_Idle
+    deduced, confidence HIGH: the resting action: counts down to the next
+    stick swing, offers the Poe exchange within 100 units, and routes an
+    accepted trade to the ordinary, small-Poe or big-Poe reply.
+
+  * func_80A2F94C -> EnGb_Talk
+    deduced, confidence HIGH: waits out the plain greeting, records that the
+    player has spoken to him and returns to the idle.
+
+  * func_80A2F9C0 -> EnGb_BuyPoe
+    deduced, confidence HIGH: the small-Poe purchase reply; it records the
+    conversation and returns to the idle.
+
+  * func_80A2FA50 -> EnGb_BuyBigPoe
+    deduced, confidence HIGH: the big-Poe purchase: empties the bottle, pays
+    50 rupees, adds 100 Poe points and, at exactly 1000, moves on to the
+    bottle reward instead of returning to the idle.
+
+  * func_80A2FB40 -> EnGb_OfferBottle
+    deduced, confidence HIGH: once the reward line is advanced it offers
+    GI_BOTTLE.
+
+  * func_80A2FBB0 -> EnGb_GiveBottle
+    deduced, confidence HIGH: re-offers the bottle until the player takes
+    it.
+
+  * func_80A2FC0C -> EnGb_FinishGiveBottle
+    deduced, confidence HIGH: waits out the get-item textbox, refreshes the
+    greeting and returns to the idle.
+
+  * func_80A2FC70 -> EnGb_SwingStick
+    deduced, confidence HIGH: runs the stick swing: on frame 18 it stirs all
+    four caged souls, plays the wood-hit sfx and rearms the idle timer, and
+    at the end returns to the looping idle animation.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/soh/Enhancements/randomizer/BigPoes.cpp |  6 +-
+ soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c | 96 ++++++++++++---------
+ soh/src/overlays/actors/ovl_En_Gb/z_en_gb.h |  4 +-
+ 3 files changed, 59 insertions(+), 47 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/BigPoes.cpp b/soh/soh/Enhancements/randomizer/BigPoes.cpp
+index b117914dc..149b65a55 100644
+--- a/soh/soh/Enhancements/randomizer/BigPoes.cpp
++++ b/soh/soh/Enhancements/randomizer/BigPoes.cpp
+@@ -34,7 +34,7 @@ void RegisterBigPoeHooks() {
+             EnGb* enGb = va_arg(args, EnGb*);
+             enGb->textId = 0x70F8;
+             Message_ContinueTextbox(gPlayState, enGb->textId);
+-            enGb->actionFunc = func_80A2FB40;
++            enGb->actionFunc = EnGb_OfferBottle;  // was func_80A2FB40 [LLM:HIGH]
+             *should = false;
+         }
+     });
+@@ -45,11 +45,11 @@ void RegisterBigPoeHooks() {
+             Flags_SetRandomizerInf(RAND_INF_10_BIG_POES);
+             enGb->textId = 0x70F5;
+             enGb->dyna.actor.parent = NULL;
+-            enGb->actionFunc = func_80A2F83C;
++            enGb->actionFunc = EnGb_Idle;  // was func_80A2F83C [LLM:HIGH]
+             *should = false;
+         }
+     });
+     COND_ID_HOOK(OnOpenText, TEXT_BIG_POE_COLLECTED_RANDO, IS_RANDO, BuildBigPoeCollectedMessage);
+ }
+ 
+-static RegisterShipInitFunc initFunc(RegisterBigPoeHooks, { "IS_RANDO" });
+\ No newline at end of file
++static RegisterShipInitFunc initFunc(RegisterBigPoeHooks, { "IS_RANDO" });
+diff --git a/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c b/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
+index c8d499ab0..4b1fc1b42 100644
+--- a/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
++++ b/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
+@@ -16,14 +16,22 @@ void EnGb_Destroy(Actor* thisx, PlayState* play);
+ void EnGb_Update(Actor* thisx, PlayState* play);
+ void EnGb_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A2F83C(EnGb* this, PlayState* play);
+-void func_80A2FC70(EnGb* this, PlayState* play);
+-void func_80A2FA50(EnGb* this, PlayState* play);
+-void func_80A2F9C0(EnGb* this, PlayState* play);
+-void func_80A2F94C(EnGb* this, PlayState* play);
+-void func_80A2FB40(EnGb* this, PlayState* play);
+-void func_80A2FBB0(EnGb* this, PlayState* play);
+-void func_80A2FC0C(EnGb* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A2F83C: the resting action: counts down to the next stick swing, offers the Poe exchange within 100 units, and routes an accepted trade to the ordinary, small-Poe or big-Poe reply.
++void EnGb_Idle(EnGb* this, PlayState* play);  // was func_80A2F83C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A2FC70: runs the stick swing: on frame 18 it stirs all four caged souls, plays the wood-hit sfx and rearms the idle timer, and at the end returns to the looping idle animation.
++void EnGb_SwingStick(EnGb* this, PlayState* play);  // was func_80A2FC70 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A2FA50: the big-Poe purchase: empties the bottle, pays 50 rupees, adds 100 Poe points and, at exactly 1000, moves on to the bottle reward instead of returning to the idle.
++void EnGb_BuyBigPoe(EnGb* this, PlayState* play);  // was func_80A2FA50 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A2F9C0: the small-Poe purchase reply; it records the conversation and returns to the idle.
++void EnGb_BuyPoe(EnGb* this, PlayState* play);  // was func_80A2F9C0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A2F94C: waits out the plain greeting, records that the player has spoken to him and returns to the idle.
++void EnGb_Talk(EnGb* this, PlayState* play);  // was func_80A2F94C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A2FB40: once the reward line is advanced it offers GI_BOTTLE.
++void EnGb_OfferBottle(EnGb* this, PlayState* play);  // was func_80A2FB40 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A2FBB0: re-offers the bottle until the player takes it.
++void EnGb_GiveBottle(EnGb* this, PlayState* play);  // was func_80A2FBB0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A2FC0C: waits out the get-item textbox, refreshes the greeting and returns to the idle.
++void EnGb_FinishGiveBottle(EnGb* this, PlayState* play);  // was func_80A2FC0C [LLM:HIGH]
+ 
+ void EnGb_DrawCagedSouls(EnGb* this, PlayState* play);
+ void EnGb_UpdateCagedSouls(EnGb* this, PlayState* play);
+@@ -143,7 +151,8 @@ static Vec3f sBottlesPositions[] = {
+     { -48.0f, 0.0f, 60.0f },
+ };
+ 
+-void func_80A2F180(EnGb* this) {
++// LLM generated name (HIGH), was func_80A2F180: picks the Poe collector's greeting depending on whether the player has spoken to him before.
++void EnGb_UpdateTextId(EnGb* this) {
+     if (Flags_GetInfTable(INFTABLE_SPOKE_TO_POE_COLLECTOR_IN_RUINED_MARKET)) {
+         this->textId = 0x70F5;
+     } else {
+@@ -215,8 +224,8 @@ void EnGb_Init(Actor* thisx, PlayState* play) {
+     focusOffset.z = 44.0f;
+     Matrix_MultVec3f(&focusOffset, &this->dyna.actor.focus.pos);
+     this->dyna.actor.focus.pos.y += 62.5f;
+-    func_80A2F180(this);
+-    this->actionFunc = func_80A2F83C;
++    EnGb_UpdateTextId(this);  // was func_80A2F180 [LLM:HIGH]
++    this->actionFunc = EnGb_Idle;  // was func_80A2F83C [LLM:HIGH]
+ }
+ 
+ void EnGb_Destroy(Actor* thisx, PlayState* play) {
+@@ -227,7 +236,8 @@ void EnGb_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80A2F608(EnGb* this) {
++// LLM generated name (HIGH), was func_80A2F608: places the body collider 25 units in front of the actor and each bottle collider at its own offset, all rotated into the actor's frame.
++void EnGb_UpdateColliders(EnGb* this) {
+     s32 i;
+     Vec3f sp48;
+     Vec3f sp3C;
+@@ -255,7 +265,8 @@ void func_80A2F608(EnGb* this) {
+     }
+ }
+ 
+-s32 func_80A2F760(EnGb* this) {
++// LLM generated name (HIGH), was func_80A2F760: returns whether any of the caged souls is currently in its stirred-up state, which suppresses the idle timer.
++s32 EnGb_AreSoulsStirring(EnGb* this) {
+     s32 i;
+     for (i = 0; i < ARRAY_COUNT(this->cagedSouls); i++) {
+         if (this->cagedSouls[i].unk_3) {
+@@ -265,21 +276,22 @@ s32 func_80A2F760(EnGb* this) {
+     return 0;
+ }
+ 
+-void func_80A2F7C0(EnGb* this) {
++// LLM generated name (HIGH), was func_80A2F7C0: starts the stick-swinging animation with its magic sfx and installs the swinging action.
++void EnGb_SetupSwingStick(EnGb* this) {
+     Animation_Change(&this->skelAnime, &gPoeSellerSwingStickAnim, 1.0f, 0.0f,
+                      Animation_GetLastFrame(&gPoeSellerSwingStickAnim), ANIMMODE_ONCE, 0.0f);
+     Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_NALE_MAGIC);
+-    this->actionFunc = func_80A2FC70;
++    this->actionFunc = EnGb_SwingStick;  // was func_80A2FC70 [LLM:HIGH]
+ }
+ 
+-void func_80A2F83C(EnGb* this, PlayState* play) {
++void EnGb_Idle(EnGb* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+-    if (!func_80A2F760(this)) {
++    if (!EnGb_AreSoulsStirring(this)) {  // was func_80A2F760 [LLM:HIGH]
+         if (this->actionTimer != 0) {
+             this->actionTimer--;
+         } else {
+-            func_80A2F7C0(this);
++            EnGb_SetupSwingStick(this);  // was func_80A2F7C0 [LLM:HIGH]
+             return;
+         }
+     }
+@@ -287,16 +299,16 @@ void func_80A2F83C(EnGb* this, PlayState* play) {
+         if (GameInteractor_Should(VB_SELL_POES_TO_POE_COLLECTOR, true, this)) {
+             switch (Actor_GetPlayerExchangeItemId(play)) {
+                 case EXCH_ITEM_NONE:
+-                    func_80A2F180(this);
+-                    this->actionFunc = func_80A2F94C;
++                    EnGb_UpdateTextId(this);  // was func_80A2F180 [LLM:HIGH]
++                    this->actionFunc = EnGb_Talk;  // was func_80A2F94C [LLM:HIGH]
+                     break;
+                 case EXCH_ITEM_POE:
+                     player->actor.textId = 0x70F6;
+-                    this->actionFunc = func_80A2F9C0;
++                    this->actionFunc = EnGb_BuyPoe;  // was func_80A2F9C0 [LLM:HIGH]
+                     break;
+                 case EXCH_ITEM_BIG_POE:
+                     player->actor.textId = 0x70F7;
+-                    this->actionFunc = func_80A2FA50;
++                    this->actionFunc = EnGb_BuyBigPoe;  // was func_80A2FA50 [LLM:HIGH]
+                     break;
+             }
+         }
+@@ -307,34 +319,34 @@ void func_80A2F83C(EnGb* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A2F94C(EnGb* this, PlayState* play) {
++void EnGb_Talk(EnGb* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_DONE && Message_ShouldAdvance(play)) {
+         if (!Flags_GetInfTable(INFTABLE_SPOKE_TO_POE_COLLECTOR_IN_RUINED_MARKET)) {
+             Flags_SetInfTable(INFTABLE_SPOKE_TO_POE_COLLECTOR_IN_RUINED_MARKET);
+         }
+-        func_80A2F180(this);
+-        this->actionFunc = func_80A2F83C;
++        EnGb_UpdateTextId(this);  // was func_80A2F180 [LLM:HIGH]
++        this->actionFunc = EnGb_Idle;  // was func_80A2F83C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A2F9C0(EnGb* this, PlayState* play) {
++void EnGb_BuyPoe(EnGb* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_DONE && Message_ShouldAdvance(play)) {
+         if (!Flags_GetInfTable(INFTABLE_SPOKE_TO_POE_COLLECTOR_IN_RUINED_MARKET)) {
+             Flags_SetInfTable(INFTABLE_SPOKE_TO_POE_COLLECTOR_IN_RUINED_MARKET);
+         }
+-        func_80A2F180(this);
++        EnGb_UpdateTextId(this);  // was func_80A2F180 [LLM:HIGH]
+         Player_UpdateBottleHeld(play, GET_PLAYER(play), ITEM_BOTTLE, PLAYER_IA_BOTTLE);
+         Rupees_ChangeBy(10);
+-        this->actionFunc = func_80A2F83C;
++        this->actionFunc = EnGb_Idle;  // was func_80A2F83C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A2FA50(EnGb* this, PlayState* play) {
++void EnGb_BuyBigPoe(EnGb* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_DONE && Message_ShouldAdvance(play)) {
+         if (!Flags_GetInfTable(INFTABLE_SPOKE_TO_POE_COLLECTOR_IN_RUINED_MARKET)) {
+             Flags_SetInfTable(INFTABLE_SPOKE_TO_POE_COLLECTOR_IN_RUINED_MARKET);
+         }
+-        func_80A2F180(this);
++        EnGb_UpdateTextId(this);  // was func_80A2F180 [LLM:HIGH]
+         Player_UpdateBottleHeld(play, GET_PLAYER(play), ITEM_BOTTLE, PLAYER_IA_BOTTLE);
+         Rupees_ChangeBy(50);
+         HIGH_SCORE(HS_POE_POINTS) += 100;
+@@ -342,49 +354,49 @@ void func_80A2FA50(EnGb* this, PlayState* play) {
+             if (HIGH_SCORE(HS_POE_POINTS) > 1100) {
+                 HIGH_SCORE(HS_POE_POINTS) = 1100;
+             }
+-            this->actionFunc = func_80A2F83C;
++            this->actionFunc = EnGb_Idle;  // was func_80A2F83C [LLM:HIGH]
+         } else {
+             Player* player = GET_PLAYER(play);
+ 
+             player->exchangeItemId = EXCH_ITEM_NONE;
+             this->textId = 0x70F8;
+             Message_ContinueTextbox(play, this->textId);
+-            this->actionFunc = func_80A2FB40;
++            this->actionFunc = EnGb_OfferBottle;  // was func_80A2FB40 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A2FB40(EnGb* this, PlayState* play) {
++void EnGb_OfferBottle(EnGb* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_DONE && Message_ShouldAdvance(play)) {
+         if (GameInteractor_Should(VB_GIVE_ITEM_FROM_POE_COLLECTOR, true, this)) {
+             Actor_OfferGetItem(&this->dyna.actor, play, GI_BOTTLE, 100.0f, 10.0f);
+-            this->actionFunc = func_80A2FBB0;
++            this->actionFunc = EnGb_GiveBottle;  // was func_80A2FBB0 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A2FBB0(EnGb* this, PlayState* play) {
++void EnGb_GiveBottle(EnGb* this, PlayState* play) {
+     if (Actor_HasParent(&this->dyna.actor, play)) {
+         this->dyna.actor.parent = NULL;
+-        this->actionFunc = func_80A2FC0C;
++        this->actionFunc = EnGb_FinishGiveBottle;  // was func_80A2FC0C [LLM:HIGH]
+     } else {
+         Actor_OfferGetItem(&this->dyna.actor, play, GI_BOTTLE, 100.0f, 10.0f);
+     }
+ }
+ 
+-void func_80A2FC0C(EnGb* this, PlayState* play) {
++void EnGb_FinishGiveBottle(EnGb* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_DONE && Message_ShouldAdvance(play)) {
+         Actor_ProcessTalkRequest(&this->dyna.actor, play);
+-        func_80A2F180(this);
+-        this->actionFunc = func_80A2F83C;
++        EnGb_UpdateTextId(this);  // was func_80A2F180 [LLM:HIGH]
++        this->actionFunc = EnGb_Idle;  // was func_80A2F83C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A2FC70(EnGb* this, PlayState* play) {
++void EnGb_SwingStick(EnGb* this, PlayState* play) {
+     if (this->skelAnime.curFrame == Animation_GetLastFrame(&gPoeSellerSwingStickAnim)) {
+         Animation_Change(&this->skelAnime, &gPoeSellerIdleAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gPoeSellerIdleAnim),
+                          ANIMMODE_LOOP, 0.0f);
+-        this->actionFunc = func_80A2F83C;
++        this->actionFunc = EnGb_Idle;  // was func_80A2F83C [LLM:HIGH]
+     } else if (this->skelAnime.curFrame == 18.0f) {
+         this->cagedSouls[1].unk_1 = 3;
+         this->cagedSouls[1].unk_3 = 1;
+@@ -411,7 +423,7 @@ void EnGb_Update(Actor* thisx, PlayState* play2) {
+     SkelAnime_Update(&this->skelAnime);
+     this->actionFunc(this, play);
+     this->dyna.actor.textId = this->textId;
+-    func_80A2F608(this);
++    EnGb_UpdateColliders(this);  // was func_80A2F608 [LLM:HIGH]
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+ 
+     for (i = 0; i < ARRAY_COUNT(this->bottlesColliders); i++) {
+diff --git a/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.h b/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.h
+index 2ff4f64ff..636ff033d 100644
+--- a/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.h
++++ b/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.h
+@@ -47,7 +47,7 @@ typedef struct EnGb {
+     /* 0x0388 */ EnGbCagedSoul cagedSouls[4];
+ } EnGb; // size = 0x0438
+ 
+-void func_80A2FB40(EnGb* actor, PlayState* play);
+-void func_80A2F83C(EnGb* actor, PlayState* play);
++void EnGb_OfferBottle(EnGb* actor, PlayState* play);  // was func_80A2FB40 [LLM:HIGH]
++void EnGb_Idle(EnGb* actor, PlayState* play);  // was func_80A2F83C [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

@@ -1,0 +1,224 @@
+From c2f670acb392700db77ebb861d96e133a863ba56 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 247/488] soh: name the 4 address-named symbols defined in
+ z_en_item00.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/code/z_en_item00.c; updating their references touches 2 files in total.
+
+  * func_8001DFC8 -> EnItem00_Grounded
+    deduced, confidence HIGH: the resting action: spins rupees, flips the
+    shield drops, counts the despawn timers down and hands off to the
+    falling action whenever the drop leaves the ground.
+
+  * func_8001E1C8 -> EnItem00_Falling
+    deduced, confidence HIGH: falling action: trails small KiraKira
+    sparkles, bounces at 0.8 restitution on contact and returns to the
+    grounded action once the impact is soft enough.
+
+  * func_8001E304 -> EnItem00_Dropped
+    deduced, confidence HIGH: the action installed on freshly spawned drops:
+    tumbles the item on shape.rot.z, curves hearts toward the player, trails
+    sparkles, and switches to the grounded action on landing.
+
+  * func_8001F404 -> EnItem00_ConvertDropId
+    deduced, confidence HIGH: its in-tree docstring reads "Converts a given
+    drop type ID based on link's current age, health and owned items.
+    Returns a new drop type ID or -1 to cancel the drop."
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/soh/Enhancements/Fixes/FixFlexDrops.cpp |  4 +--
+ soh/src/code/z_en_item00.c                  | 36 ++++++++++++---------
+ 2 files changed, 22 insertions(+), 18 deletions(-)
+
+diff --git a/soh/soh/Enhancements/Fixes/FixFlexDrops.cpp b/soh/soh/Enhancements/Fixes/FixFlexDrops.cpp
+index eb088e234..c34d04f3e 100644
+--- a/soh/soh/Enhancements/Fixes/FixFlexDrops.cpp
++++ b/soh/soh/Enhancements/Fixes/FixFlexDrops.cpp
+@@ -4,7 +4,7 @@
+ 
+ extern "C" {
+ // Converts a drop id based on age, health and owned items. Returns -1 when the drop can't be given.
+-s16 func_8001F404(s16 dropId);
++s16 EnItem00_ConvertDropId(s16 dropId);  // was func_8001F404 [LLM:HIGH]
+ }
+ 
+ static void RegisterFixFlexDrops() {
+@@ -12,7 +12,7 @@ static void RegisterFixFlexDrops() {
+     // so the drop is thrown away instead of falling through to the next candidate.
+     COND_VB_SHOULD(VB_FLEX_DROP_AMMO, CVarGetInteger(CVAR_ENHANCEMENT("FixFlexDrops"), 0), {
+         s16 dropId = va_arg(args, s32);
+-        if (*should && func_8001F404(dropId) == -1) {
++        if (*should && EnItem00_ConvertDropId(dropId) == -1) {  // was func_8001F404 [LLM:HIGH]
+             *should = false;
+         }
+     });
+diff --git a/soh/src/code/z_en_item00.c b/soh/src/code/z_en_item00.c
+index e4f7966d9..1df286fd3 100644
+--- a/soh/src/code/z_en_item00.c
++++ b/soh/src/code/z_en_item00.c
+@@ -13,9 +13,12 @@ void EnItem00_Destroy(Actor* thisx, PlayState* play);
+ void EnItem00_Update(Actor* thisx, PlayState* play);
+ void EnItem00_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8001DFC8(EnItem00* this, PlayState* play);
+-void func_8001E1C8(EnItem00* this, PlayState* play);
+-void func_8001E304(EnItem00* this, PlayState* play);
++// LLM generated name (HIGH), was func_8001DFC8: the resting action: spins rupees, flips the shield drops, counts the despawn timers down and hands off to the falling action whenever the drop leaves the ground.
++void EnItem00_Grounded(EnItem00* this, PlayState* play);  // was func_8001DFC8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8001E1C8: falling action: trails small KiraKira sparkles, bounces at 0.8 restitution on contact and returns to the grounded action once the impact is soft enough.
++void EnItem00_Falling(EnItem00* this, PlayState* play);  // was func_8001E1C8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8001E304: the action installed on freshly spawned drops: tumbles the item on shape.rot.z, curves hearts toward the player, trails sparkles, and switches to the grounded action on landing.
++void EnItem00_Dropped(EnItem00* this, PlayState* play);  // was func_8001E304 [LLM:HIGH]
+ // Name from zeldaret/oot (was func_8001E5C8): adopted upstream's name for this address; body verified to match upstream at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_en_item00.c]
+ void EnItem00_Collected(EnItem00* this, PlayState* play);
+ 
+@@ -495,7 +498,7 @@ void EnItem00_Init(Actor* thisx, PlayState* play) {
+     this->getItemId = GI_NONE;
+ 
+     if (!spawnParam8000) {
+-        EnItem00_SetupAction(this, func_8001DFC8);
++        EnItem00_SetupAction(this, EnItem00_Grounded);  // was func_8001DFC8 [LLM:HIGH]
+         this->unk_15A = -1;
+         return;
+     }
+@@ -594,7 +597,7 @@ void EnItem00_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_8001DFC8(EnItem00* this, PlayState* play) {
++void EnItem00_Grounded(EnItem00* this, PlayState* play) {
+     if ((this->actor.params <= ITEM00_RUPEE_RED) || ((this->actor.params == ITEM00_HEART) && (this->unk_15A < 0)) ||
+         (this->actor.params == ITEM00_HEART_PIECE)) {
+         this->actor.shape.rot.y += 960;
+@@ -636,11 +639,11 @@ void func_8001DFC8(EnItem00* this, PlayState* play) {
+     }
+ 
+     if ((this->actor.gravity != 0.0f) && !(this->actor.bgCheckFlags & 0x0001)) {
+-        EnItem00_SetupAction(this, func_8001E1C8);
++        EnItem00_SetupAction(this, EnItem00_Falling);  // was func_8001E1C8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8001E1C8(EnItem00* this, PlayState* play) {
++void EnItem00_Falling(EnItem00* this, PlayState* play) {
+     f32 originalVelocity;
+     Vec3f effectPos;
+ 
+@@ -659,7 +662,7 @@ void func_8001E1C8(EnItem00* this, PlayState* play) {
+     if (this->actor.bgCheckFlags & 0x0003) {
+         originalVelocity = this->actor.velocity.y;
+         if (originalVelocity > -2.0f) {
+-            EnItem00_SetupAction(this, func_8001DFC8);
++            EnItem00_SetupAction(this, EnItem00_Grounded);  // was func_8001DFC8 [LLM:HIGH]
+             this->actor.velocity.y = 0.0f;
+         } else {
+             this->actor.velocity.y = originalVelocity * -0.8f;
+@@ -668,7 +671,7 @@ void func_8001E1C8(EnItem00* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8001E304(EnItem00* this, PlayState* play) {
++void EnItem00_Dropped(EnItem00* this, PlayState* play) {
+     s32 pad;
+     Vec3f pos;
+     s32 rotOffset;
+@@ -715,7 +718,7 @@ void func_8001E304(EnItem00* this, PlayState* play) {
+     }
+ 
+     if (this->actor.bgCheckFlags & 0x0003) {
+-        EnItem00_SetupAction(this, func_8001DFC8);
++        EnItem00_SetupAction(this, EnItem00_Grounded);  // was func_8001DFC8 [LLM:HIGH]
+         this->actor.shape.rot.z = 0;
+         this->actor.velocity.y = 0.0f;
+         this->actor.speedXZ = 0.0f;
+@@ -1529,7 +1532,8 @@ s16 EnItem00_ConvertBombDropToBombchu(s16 dropId) {
+  * Converts a given drop type ID based on link's current age, health and owned items.
+  * Returns a new drop type ID or -1 to cancel the drop.
+  */
+-s16 func_8001F404(s16 dropId) {
++// LLM generated name (HIGH), was func_8001F404: its in-tree docstring reads "Converts a given drop type ID based on link's current age, health and owned items. Returns a new drop type ID or -1 to cancel the drop."
++s16 EnItem00_ConvertDropId(s16 dropId) {
+     if (LINK_IS_ADULT) {
+         if (dropId == ITEM00_SEEDS) {
+             dropId = ITEM00_ARROWS_SMALL;
+@@ -1591,7 +1595,7 @@ EnItem00* Item_DropCollectible(PlayState* play, Vec3f* spawnPos, s16 params) {
+                                           40);
+     } else {
+         if (!param8000) {
+-            params = func_8001F404(params & 0x00FF);
++            params = EnItem00_ConvertDropId(params & 0x00FF);  // was func_8001F404 [LLM:HIGH]
+         }
+ 
+         if (params != -1) {
+@@ -1603,7 +1607,7 @@ EnItem00* Item_DropCollectible(PlayState* play, Vec3f* spawnPos, s16 params) {
+                 spawnedActor->actor.gravity = -0.9f;
+                 spawnedActor->actor.world.rot.y = Rand_CenteredFloat(65536.0f);
+                 Actor_SetScale(&spawnedActor->actor, 0.0f);
+-                EnItem00_SetupAction(spawnedActor, func_8001E304);
++                EnItem00_SetupAction(spawnedActor, EnItem00_Dropped);  // was func_8001E304 [LLM:HIGH]
+                 spawnedActor->unk_15A = 220;
+                 if ((spawnedActor->actor.params != ITEM00_SMALL_KEY) &&
+                     (spawnedActor->actor.params != ITEM00_HEART_PIECE) &&
+@@ -1637,7 +1641,7 @@ EnItem00* Item_DropCollectible2(PlayState* play, Vec3f* spawnPos, s16 params) {
+         EffectSsDeadSound_SpawnStationary(play, spawnPos, NA_SE_EV_BUTTERFRY_TO_FAIRY, true, DEADSOUND_REPEAT_MODE_OFF,
+                                           40);
+     } else {
+-        params = func_8001F404(params & 0x00FF);
++        params = EnItem00_ConvertDropId(params & 0x00FF);  // was func_8001F404 [LLM:HIGH]
+         if (params != -1) {
+             spawnedActor = (EnItem00*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ITEM00, spawnPos->x, spawnPos->y,
+                                                   spawnPos->z, 0, 0, 0, params | param8000 | param3F00);
+@@ -1755,7 +1759,7 @@ void Item_DropCollectibleRandom(PlayState* play, Actor* fromActor, Vec3f* spawnP
+         dropQuantity = sDropQuantities[params + dropTableIndex];
+         while (dropQuantity > 0) {
+             if (!param8000) {
+-                dropId = func_8001F404(dropId);
++                dropId = EnItem00_ConvertDropId(dropId);  // was func_8001F404 [LLM:HIGH]
+                 if (dropId != 0xFF) {
+                     spawnedActor = (EnItem00*)Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ITEM00, spawnPos->x,
+                                                           spawnPos->y, spawnPos->z, 0, 0, 0, dropId);
+@@ -1765,7 +1769,7 @@ void Item_DropCollectibleRandom(PlayState* play, Actor* fromActor, Vec3f* spawnP
+                         spawnedActor->actor.gravity = -0.9f;
+                         spawnedActor->actor.world.rot.y = Rand_ZeroOne() * 40000.0f;
+                         Actor_SetScale(&spawnedActor->actor, 0.0f);
+-                        EnItem00_SetupAction(spawnedActor, func_8001E304);
++                        EnItem00_SetupAction(spawnedActor, EnItem00_Dropped);  // was func_8001E304 [LLM:HIGH]
+                         spawnedActor->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+                         if ((spawnedActor->actor.params != ITEM00_SMALL_KEY) &&
+                             (spawnedActor->actor.params != ITEM00_HEART_PIECE) &&
+-- 
+2.55.0
+

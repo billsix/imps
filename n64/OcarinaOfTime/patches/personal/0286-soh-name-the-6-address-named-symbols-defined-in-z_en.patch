@@ -1,0 +1,181 @@
+From 20861bae4e4248e1a830b70b6f2c91ff3b41b96e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:23 +0000
+Subject: [PATCH 286/488] soh: name the 6 address-named symbols defined in
+ z_en_bubble.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c.
+
+  * func_809CBCBC -> EnBubble_SetupPop
+    deduced, confidence HIGH: arms the popping collider (damage 4, toucher
+    on), zeroes the vertical velocity and returns the six-frame countdown
+    the pop action runs on.
+
+  * func_809CBCEC -> EnBubble_SetupDisappear
+    deduced, confidence HIGH: shrinks the bubble's dimensions away and
+    returns the twelve-frame countdown; the in-tree comment notes it is only
+    reached from the unused EnBubble_Disappear action.
+
+  * func_809CBFD4 -> EnBubble_UpdateDisappear
+    deduced, confidence HIGH: the unused EnBubble_Disappear action's helper:
+    returns -1 while the countdown runs and, on expiry, hands back
+    EnBubble_SetupDisappear's regrow countdown.
+
+  * func_809CC020 -> EnBubble_UpdateRegrow
+    deduced, confidence HIGH: the unused EnBubble_Regrow action's helper:
+    expands the bubble a twelfth of a unit per frame and returns true once
+    the countdown expires.
+
+  * func_809CC648 -> EnBubble_CheckAcHit
+    deduced, confidence HIGH: consumes an AC hit: a hit on the outer sphere
+    only bounces the bubble away from the attacker, while any other hit arms
+    the pop delay and returns true.
+
+  * func_809CC774 -> EnBubble_UpdateCollider
+    deduced, confidence HIGH: transforms the collider's model-space sphere
+    into world space and scales its radius by the current expansion, then
+    copies it to the second element.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Bubble/z_en_bubble.c        | 30 +++++++++++--------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c b/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
+index c0d167ab5..da1a0f05e 100644
+--- a/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
++++ b/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
+@@ -98,7 +98,8 @@ void EnBubble_SetDimensions(EnBubble* this, f32 dim) {
+     this->unk_1FC.z = c / d;
+ }
+ 
+-u32 func_809CBCBC(EnBubble* this) {
++// LLM generated name (HIGH), was func_809CBCBC: arms the popping collider (damage 4, toucher on), zeroes the vertical velocity and returns the six-frame countdown the pop action runs on.
++u32 EnBubble_SetupPop(EnBubble* this) {
+     ColliderInfo* info = &this->colliderSphere.elements[0].info;
+ 
+     info->toucher.dmgFlags = 0x8;
+@@ -110,7 +111,8 @@ u32 func_809CBCBC(EnBubble* this) {
+ }
+ 
+ // only called in an unused actionFunc
+-u32 func_809CBCEC(EnBubble* this) {
++// LLM generated name (HIGH), was func_809CBCEC: shrinks the bubble's dimensions away and returns the twelve-frame countdown; the in-tree comment notes it is only reached from the unused EnBubble_Disappear action.
++u32 EnBubble_SetupDisappear(EnBubble* this) {
+     EnBubble_SetDimensions(this, -1.0f);
+     return 12;
+ }
+@@ -154,15 +156,17 @@ s32 EnBubble_Explosion(EnBubble* this, PlayState* play) {
+ }
+ 
+ // only called in an unused actionFunc
+-u32 func_809CBFD4(EnBubble* this) {
++// LLM generated name (HIGH), was func_809CBFD4: the unused EnBubble_Disappear action's helper: returns -1 while the countdown runs and, on expiry, hands back EnBubble_SetupDisappear's regrow countdown.
++u32 EnBubble_UpdateDisappear(EnBubble* this) {
+     if (DECR(this->explosionCountdown) != 0) {
+         return -1;
+     }
+-    return func_809CBCEC(this);
++    return EnBubble_SetupDisappear(this);  // was func_809CBCEC [LLM:HIGH]
+ }
+ 
+ // only called in an unused actionFunc
+-s32 func_809CC020(EnBubble* this) {
++// LLM generated name (HIGH), was func_809CC020: the unused EnBubble_Regrow action's helper: expands the bubble a twelfth of a unit per frame and returns true once the countdown expires.
++s32 EnBubble_UpdateRegrow(EnBubble* this) {
+     this->expansionWidth += 1.0f / 12.0f;
+     this->expansionHeight += 1.0f / 12.0f;
+ 
+@@ -283,7 +287,8 @@ void EnBubble_Fly(EnBubble* this, PlayState* play) {
+     Math_ApproachF(&this->velocityFromBump.z, 0.0f, 0.3f, 0.1f);
+ }
+ 
+-u32 func_809CC648(EnBubble* this) {
++// LLM generated name (HIGH), was func_809CC648: consumes an AC hit: a hit on the outer sphere only bounces the bubble away from the attacker, while any other hit arms the pop delay and returns true.
++u32 EnBubble_CheckAcHit(EnBubble* this) {
+     if (((this->colliderSphere.base.acFlags & AC_HIT) != 0) == false) {
+         return false;
+     }
+@@ -310,10 +315,11 @@ u32 EnBubble_DetectPop(EnBubble* this, PlayState* play) {
+         this->unk_208 = 8;
+         return true;
+     }
+-    return func_809CC648(this);
++    return EnBubble_CheckAcHit(this);  // was func_809CC648 [LLM:HIGH]
+ }
+ 
+-void func_809CC774(EnBubble* this) {
++// LLM generated name (HIGH), was func_809CC774: transforms the collider's model-space sphere into world space and scales its radius by the current expansion, then copies it to the second element.
++void EnBubble_UpdateCollider(EnBubble* this) {
+     ColliderJntSphElementDim* dim;
+     Vec3f src;
+     Vec3f dest;
+@@ -359,7 +365,7 @@ void EnBubble_Destroy(Actor* thisx, PlayState* play) {
+ 
+ void EnBubble_Wait(EnBubble* this, PlayState* play) {
+     if (EnBubble_DetectPop(this, play)) {
+-        this->explosionCountdown = func_809CBCBC(this);
++        this->explosionCountdown = EnBubble_SetupPop(this);  // was func_809CBCBC [LLM:HIGH]
+         this->actionFunc = EnBubble_Pop;
+     } else {
+         EnBubble_Fly(this, play);
+@@ -381,7 +387,7 @@ void EnBubble_Pop(EnBubble* this, PlayState* play) {
+ void EnBubble_Disappear(EnBubble* this, PlayState* play) {
+     s32 temp_v0;
+ 
+-    temp_v0 = func_809CBFD4(this);
++    temp_v0 = EnBubble_UpdateDisappear(this);  // was func_809CBFD4 [LLM:HIGH]
+     if (temp_v0 >= 0) {
+         this->actor.shape.shadowDraw = ActorShadow_DrawCircle;
+         this->explosionCountdown = temp_v0;
+@@ -391,7 +397,7 @@ void EnBubble_Disappear(EnBubble* this, PlayState* play) {
+ 
+ // unused
+ void EnBubble_Regrow(EnBubble* this, PlayState* play) {
+-    if (func_809CC020(this)) {
++    if (EnBubble_UpdateRegrow(this)) {  // was func_809CC020 [LLM:HIGH]
+         this->actionFunc = EnBubble_Wait;
+     }
+     CollisionCheck_SetAC(play, &play->colChkCtx, &this->colliderSphere.base);
+@@ -432,6 +438,6 @@ void EnBubble_Draw(Actor* thisx, PlayState* play) {
+ 
+     if (this->actionFunc != EnBubble_Disappear) {
+         this->actor.shape.shadowScale = (f32)((this->expansionWidth + 1.0f) * 0.2f);
+-        func_809CC774(this);
++        EnBubble_UpdateCollider(this);  // was func_809CC774 [LLM:HIGH]
+     }
+ }
+-- 
+2.55.0
+

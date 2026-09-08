@@ -1,0 +1,690 @@
+From bc399f10b73ea64dad1d651816703f2d453ae7ea Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 347/488] soh: name the 15 address-named symbols defined in
+ db_camera.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 15 are defined in soh/src/code/db_camera.c; updating their references touches 2 files in total.
+
+  * D_8016110C -> sCurCutIndex
+    deduced, confidence HIGH: which entry of sDbCameraCuts the debug camera
+    is currently playing back; the playback routine skips unused slots by
+    advancing it and the on-screen list marks it with a caret.
+
+  * D_80161250 -> sCutLetterMarks
+    deduced, confidence HIGH: a 0x80-byte table indexed by a cut's letter,
+    holding 'O' when that letter has a recorded cut and 'X' when it does
+    not, for the on-screen list.
+
+  * D_801612EA -> sSelectedCutLetter
+    deduced, confidence HIGH: the letter of the cut the user has selected,
+    or '*' when none is.
+
+  * func_800B3F94 -> DbCamera_WorldToPlayerRelS
+    deduced, confidence HIGH: converts a world point into a position
+    relative to the player's frame and stores it as a Vec3s.
+
+  * func_800B3FF4 -> DbCamera_PlayerRelToWorld
+    deduced, confidence HIGH: the inverse: rotates a player-relative Vec3f
+    back by the player's yaw and adds their position.
+
+  * func_800B404C -> DbCamera_PlayerRelSToWorld
+    deduced, confidence HIGH: the Vec3s-taking wrapper for
+    DbCamera_PlayerRelToWorld.
+
+  * func_800B4088 -> DbCamera_EndCut
+    deduced, confidence HIGH: marks the current spline point as the last
+    one, giving it the terminating continue flag and copying the roll and
+    fov into both its position and look-at points.
+
+  * func_800B41DC -> DbCamera_LoadPoint
+    deduced, confidence HIGH: loads the eye, at, roll and fov of one
+    recorded spline point back into the debug camera, converting out of
+    player-relative coordinates for the relative mode.
+
+  * func_800B42C0 -> DbCamera_StorePoint
+    deduced, confidence HIGH: the inverse: writes the debug camera's current
+    eye and at into the selected spline point, in player-relative
+    coordinates for the relative mode.
+
+  * func_800B4370 -> DbCamera_LookAtPoint
+    deduced, confidence HIGH: points the debug camera at one recorded spline
+    point, choosing the position or look-at half according to the editor's
+    toggle.
+
+  * func_800B44E0 -> DbCamera_HandlePlaybackInput
+    deduced, confidence HIGH: reads the debug controller and starts playback
+    from the first keyframe, closing the recorded spline by terminating its
+    last point.
+
+  * func_800B91B0 -> DbCamera_PlayCut
+    deduced, confidence HIGH: advances the current cut's splines by one
+    frame, skipping empty slots and rolling on to the next cut when this
+    one's frame count runs out.
+
+  * func_800BB03C -> DbCamera_PlayCurrentCut
+    deduced, confidence HIGH: the one-argument entry point that plays the
+    current cut on the global debug camera.
+
+  * func_800BB060 -> DbCamera_StopPlayback
+    deduced, confidence HIGH: clears the playback-active flag.
+
+  * func_800BB06C -> DbCamera_IsPlaying
+    deduced, confidence HIGH: returns whether the debug camera is in
+    playback mode and the playback flag is set.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h  |  18 ++--
+ soh/src/code/db_camera.c | 181 +++++++++++++++++++++------------------
+ 2 files changed, 107 insertions(+), 92 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 196edfa2b..589624565 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1487,14 +1487,14 @@ void ShrinkWindow_Update(s32 updateRate);
+ // ? DbCamera_Vec3FToS(?);
+ // ? DbCamera_CopyVec3f(?);
+ // ? DbCamera_Vec3SToF2(?);
+-// ? func_800B3F94(?);
+-// ? func_800B3FF4(?);
+-// ? func_800B404C(?);
+-// ? func_800B4088(?);
+-// ? func_800B41DC(?);
+-// ? func_800B42C0(?);
+-// ? func_800B4370(?);
+-// ? func_800B44E0(?);
++// ? DbCamera_WorldToPlayerRelS(?);, was func_800B3F94 [LLM:HIGH]
++// ? DbCamera_PlayerRelToWorld(?);, was func_800B3FF4 [LLM:HIGH]
++// ? DbCamera_PlayerRelSToWorld(?);, was func_800B404C [LLM:HIGH]
++// ? DbCamera_EndCut(?);, was func_800B4088 [LLM:HIGH]
++// ? DbCamera_LoadPoint(?);, was func_800B41DC [LLM:HIGH]
++// ? DbCamera_StorePoint(?);, was func_800B42C0 [LLM:HIGH]
++// ? DbCamera_LookAtPoint(?);, was func_800B4370 [LLM:HIGH]
++// ? DbCamera_HandlePlaybackInput(?);, was func_800B44E0 [LLM:HIGH]
+ // ? DbCamera_PrintPoints(?);
+ // ? DbCamera_PrintF32Bytes(?);
+ // ? DbCamera_PrintU16Bytes(?);
+@@ -1510,7 +1510,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam);
+ // ? DbCamera_GetMempakAllocSize(?);
+ // ? DbCamera_DrawSlotLetters(?);
+ // ? DbCamera_PrintAllCuts(?);
+-// ? func_800B91B0(?);
++// ? DbCamera_PlayCut(?);, was func_800B91B0 [LLM:HIGH]
+ void DbCamera_Reset(Camera* cam, DbCamera* dbCam);
+ // ? DbCamera_UpdateDemoControl(?);
+ void CutsceneCamera_CalcSpline(f32 u, Vec3f* pos, f32* roll, f32* viewAngle, f32* point0, f32* point1, f32* point2, f32* point3);  // was func_800BB0A0 [LLM:HIGH]
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index c90ec8d9c..627b9917f 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -23,7 +23,8 @@ s32 DbCamera_ClearCallback(char* c);
+ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam);
+ 
+ static DbCamera* sDbCamPtr;
+-static s16 D_8016110C;
++// LLM generated name (HIGH), was D_8016110C: which entry of sDbCameraCuts the debug camera is currently playing back; the playback routine skips unused slots by advancing it and the on-screen list marks it with a caret.
++static s16 sCurCutIndex;  // was D_8016110C [LLM:HIGH]
+ static DbCameraAnim sDbCamAnim;
+ 
+ Vec3f* DbCamera_AddVecSph(Vec3f* out, Vec3f* in, VecSph* sph) {
+@@ -153,7 +154,8 @@ void DbCamera_Vec3SToF2(Vec3s* in, Vec3f* out) {
+     out->z = in->z;
+ }
+ 
+-void func_800B3F94(PosRot* posRot, Vec3f* vec, Vec3s* out) {
++// LLM generated name (HIGH), was func_800B3F94: converts a world point into a position relative to the player's frame and stores it as a Vec3s.
++void DbCamera_WorldToPlayerRelS(PosRot* posRot, Vec3f* vec, Vec3s* out) {
+     VecSph sph;
+     Vec3f tempVec;
+     OLib_Vec3fDiffToVecSphGeo(&sph, &posRot->pos, vec);
+@@ -162,7 +164,8 @@ void func_800B3F94(PosRot* posRot, Vec3f* vec, Vec3s* out) {
+     DbCamera_Vec3FToS(&tempVec, out);
+ }
+ 
+-void func_800B3FF4(PosRot* posRot, Vec3f* vec, Vec3f* out) {
++// LLM generated name (HIGH), was func_800B3FF4: the inverse: rotates a player-relative Vec3f back by the player's yaw and adds their position.
++void DbCamera_PlayerRelToWorld(PosRot* posRot, Vec3f* vec, Vec3f* out) {
+     VecSph sph;
+     Vec3f tempVec;
+     DbCamera_CopyVec3f(vec, &tempVec);
+@@ -171,13 +174,15 @@ void func_800B3FF4(PosRot* posRot, Vec3f* vec, Vec3f* out) {
+     DbCamera_AddVecSph(out, &posRot->pos, &sph);
+ }
+ 
+-void func_800B404C(PosRot* posRot, Vec3s* vec, Vec3f* out) {
++// LLM generated name (HIGH), was func_800B404C: the Vec3s-taking wrapper for DbCamera_PlayerRelToWorld.
++void DbCamera_PlayerRelSToWorld(PosRot* posRot, Vec3s* vec, Vec3f* out) {
+     Vec3f tempVec;
+     DbCamera_Vec3SToF(vec, &tempVec);
+-    func_800B3FF4(posRot, &tempVec, out);
++    DbCamera_PlayerRelToWorld(posRot, &tempVec, out);  // was func_800B3FF4 [LLM:HIGH]
+ }
+ 
+-s32 func_800B4088(DbCamera* dbCamera, Camera* cam) {
++// LLM generated name (HIGH), was func_800B4088: marks the current spline point as the last one, giving it the terminating continue flag and copying the roll and fov into both its position and look-at points.
++s32 DbCamera_EndCut(DbCamera* dbCamera, Camera* cam) {
+     CutsceneCameraPoint* position;
+     CutsceneCameraPoint* lookAt;
+     s32 i;
+@@ -196,8 +201,8 @@ s32 func_800B4088(DbCamera* dbCamera, Camera* cam) {
+         DbCamera_Vec3FToS(&dbCamera->eye, &position->pos);
+         DbCamera_Vec3FToS(&dbCamera->at, &lookAt->pos);
+     } else {
+-        func_800B3F94(&cam->playerPosRot, &dbCamera->at, &lookAt->pos);
+-        func_800B3F94(&cam->playerPosRot, &dbCamera->eye, &position->pos);
++        DbCamera_WorldToPlayerRelS(&cam->playerPosRot, &dbCamera->at, &lookAt->pos);  // was func_800B3F94 [LLM:HIGH]
++        DbCamera_WorldToPlayerRelS(&cam->playerPosRot, &dbCamera->eye, &position->pos);  // was func_800B3F94 [LLM:HIGH]
+     }
+ 
+     for (i = 0; i < (dbCamera->sub.nPoints - 2); i++) {
+@@ -209,7 +214,8 @@ s32 func_800B4088(DbCamera* dbCamera, Camera* cam) {
+     return dbCamera->sub.unkIdx;
+ }
+ 
+-s16 func_800B41DC(DbCamera* dbCamera, s16 idx, Camera* cameraPtr) {
++// LLM generated name (HIGH), was func_800B41DC: loads the eye, at, roll and fov of one recorded spline point back into the debug camera, converting out of player-relative coordinates for the relative mode.
++s16 DbCamera_LoadPoint(DbCamera* dbCamera, s16 idx, Camera* cameraPtr) {
+     CutsceneCameraPoint* position = &dbCamera->sub.position[idx];
+     CutsceneCameraPoint* lookAt = &dbCamera->sub.lookAt[idx];
+ 
+@@ -217,8 +223,8 @@ s16 func_800B41DC(DbCamera* dbCamera, s16 idx, Camera* cameraPtr) {
+         DbCamera_Vec3SToF2(&position->pos, &dbCamera->eye);
+         DbCamera_Vec3SToF2(&lookAt->pos, &dbCamera->at);
+     } else {
+-        func_800B404C(&cameraPtr->playerPosRot, &lookAt->pos, &dbCamera->at);
+-        func_800B404C(&cameraPtr->playerPosRot, &position->pos, &dbCamera->eye);
++        DbCamera_PlayerRelSToWorld(&cameraPtr->playerPosRot, &lookAt->pos, &dbCamera->at);  // was func_800B404C [LLM:HIGH]
++        DbCamera_PlayerRelSToWorld(&cameraPtr->playerPosRot, &position->pos, &dbCamera->eye);  // was func_800B404C [LLM:HIGH]
+     }
+ 
+     dbCamera->roll = lookAt->cameraRoll;
+@@ -227,7 +233,8 @@ s16 func_800B41DC(DbCamera* dbCamera, s16 idx, Camera* cameraPtr) {
+     return idx;
+ }
+ 
+-s32 func_800B42C0(DbCamera* dbCamera, Camera* cameraPtr) {
++// LLM generated name (HIGH), was func_800B42C0: the inverse: writes the debug camera's current eye and at into the selected spline point, in player-relative coordinates for the relative mode.
++s32 DbCamera_StorePoint(DbCamera* dbCamera, Camera* cameraPtr) {
+ 
+     CutsceneCameraPoint* position = &dbCamera->sub.position[dbCamera->sub.unkIdx];
+     CutsceneCameraPoint* lookAt = &dbCamera->sub.lookAt[dbCamera->sub.unkIdx];
+@@ -238,14 +245,15 @@ s32 func_800B42C0(DbCamera* dbCamera, Camera* cameraPtr) {
+         DbCamera_Vec3FToS(&dbCamera->eye, &position->pos);
+         DbCamera_Vec3FToS(&dbCamera->at, &lookAt->pos);
+     } else {
+-        func_800B3F94(&cameraPtr->playerPosRot, &dbCamera->at, &lookAt->pos);
+-        func_800B3F94(&cameraPtr->playerPosRot, &dbCamera->eye, &position->pos);
++        DbCamera_WorldToPlayerRelS(&cameraPtr->playerPosRot, &dbCamera->at, &lookAt->pos);  // was func_800B3F94 [LLM:HIGH]
++        DbCamera_WorldToPlayerRelS(&cameraPtr->playerPosRot, &dbCamera->eye, &position->pos);  // was func_800B3F94 [LLM:HIGH]
+     }
+ 
+     return dbCamera->sub.unkIdx;
+ }
+ 
+-s32 func_800B4370(DbCamera* dbCamera, s16 idx, Camera* cam) {
++// LLM generated name (HIGH), was func_800B4370: points the debug camera at one recorded spline point, choosing the position or look-at half according to the editor's toggle.
++s32 DbCamera_LookAtPoint(DbCamera* dbCamera, s16 idx, Camera* cam) {
+     CutsceneCameraPoint* lookAt = &dbCamera->sub.lookAt[idx];
+     CutsceneCameraPoint* position = &dbCamera->sub.position[idx];
+     VecSph sph;
+@@ -259,9 +267,9 @@ s32 func_800B4370(DbCamera* dbCamera, s16 idx, Camera* cam) {
+         }
+     } else {
+         if (dbCamera->sub.unk_0C) {
+-            func_800B404C(&cam->playerPosRot, &position->pos, &at);
++            DbCamera_PlayerRelSToWorld(&cam->playerPosRot, &position->pos, &at);  // was func_800B404C [LLM:HIGH]
+         } else {
+-            func_800B404C(&cam->playerPosRot, &lookAt->pos, &at);
++            DbCamera_PlayerRelSToWorld(&cam->playerPosRot, &lookAt->pos, &at);  // was func_800B404C [LLM:HIGH]
+         }
+         dbCamera->at = at;
+     }
+@@ -275,7 +283,8 @@ s32 func_800B4370(DbCamera* dbCamera, s16 idx, Camera* cam) {
+     return idx;
+ }
+ 
+-void func_800B44E0(DbCamera* dbCamera, Camera* cam) {
++// LLM generated name (HIGH), was func_800B44E0: reads the debug controller and starts playback from the first keyframe, closing the recorded spline by terminating its last point.
++void DbCamera_HandlePlaybackInput(DbCamera* dbCamera, Camera* cam) {
+     s32 i;
+ 
+     if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_CRIGHT)) {
+@@ -321,8 +330,8 @@ void func_800B44E0(DbCamera* dbCamera, Camera* cam) {
+             DbCamera_CopyVec3f(&sDbCamAnim.positionPos, &dbCamera->eye);
+             DbCamera_CopyVec3f(&sDbCamAnim.lookAtPos, &dbCamera->at);
+         } else {
+-            func_800B3FF4(&cam->playerPosRot, &sDbCamAnim.lookAtPos, &dbCamera->at);
+-            func_800B3FF4(&cam->playerPosRot, &sDbCamAnim.positionPos, &dbCamera->eye);
++            DbCamera_PlayerRelToWorld(&cam->playerPosRot, &sDbCamAnim.lookAtPos, &dbCamera->at);  // was func_800B3FF4 [LLM:HIGH]
++            DbCamera_PlayerRelToWorld(&cam->playerPosRot, &sDbCamAnim.positionPos, &dbCamera->eye);  // was func_800B3FF4 [LLM:HIGH]
+         }
+ 
+         dbCamera->fov = sDbCamAnim.fov;
+@@ -485,7 +494,7 @@ void DbgCamera_Enable(DbCamera* dbCamera, Camera* cam) {
+     dbCamera->unk_78 = 0;
+     dbCamera->unk_7A = 0;
+     dbCamera->rollDegrees = 0.0f;
+-    func_800B4088(dbCamera, cam);
++    DbCamera_EndCut(dbCamera, cam);  // was func_800B4088 [LLM:HIGH]
+ }
+ 
+ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+@@ -861,7 +870,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+             Audio_PlaySfxGeneral(NA_SE_SY_CURSOR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                  &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             dbCamera->sub.unk_08 = 0;
+-            func_800B41DC(dbCamera, dbCamera->sub.unkIdx, cam);
++            DbCamera_LoadPoint(dbCamera, dbCamera->sub.unkIdx, cam);  // was func_800B41DC [LLM:HIGH]
+         } else {
+ 
+             if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_R) &&
+@@ -869,7 +878,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                 Audio_PlaySfxGeneral(NA_SE_SY_CANCEL, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                 dbCamera->sub.nPoints = dbCamera->sub.unkIdx + 1;
+-                func_800B4088(dbCamera, cam);
++                DbCamera_EndCut(dbCamera, cam);  // was func_800B4088 [LLM:HIGH]
+             } else if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_R)) {
+                 if (dbCamera->sub.unkIdx == 0x80) {
+                     Audio_PlaySfxGeneral(NA_SE_SY_ERROR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -877,11 +886,11 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                 } else {
+                     Audio_PlaySfxGeneral(NA_SE_IT_SWORD_PUTAWAY, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-                    func_800B42C0(dbCamera, cam);
++                    DbCamera_StorePoint(dbCamera, cam);  // was func_800B42C0 [LLM:HIGH]
+                     if (dbCamera->sub.unkIdx == (dbCamera->sub.nPoints - 1)) {
+                         dbCamera->sub.unkIdx++;
+                         dbCamera->sub.nPoints++;
+-                        func_800B4088(dbCamera, cam);
++                        DbCamera_EndCut(dbCamera, cam);  // was func_800B4088 [LLM:HIGH]
+                     }
+                 }
+             }
+@@ -924,7 +933,7 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+         DebugCamera_CopyText(0xC, 5, 0, cameraStrings[5]);  // was func_8006376C [LLM:HIGH]
+         if (CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_CRIGHT) &&
+             !CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_L)) {
+-            func_800B44E0(dbCamera, cam);
++            DbCamera_HandlePlaybackInput(dbCamera, cam);  // was func_800B44E0 [LLM:HIGH]
+         } else {
+             if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_CRIGHT) &&
+                 CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_L)) {
+@@ -962,12 +971,12 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                         dbCamera->sub.unkIdx = dbCamera->sub.nPoints - 1;
+                     }
+                     if ((dbCamera->sub.unk_08 == 2) && (dbCamera->sub.unkIdx != (dbCamera->sub.nPoints - 1))) {
+-                        func_800B4370(dbCamera, dbCamera->sub.unkIdx, cam);
++                        DbCamera_LookAtPoint(dbCamera, dbCamera->sub.unkIdx, cam);  // was func_800B4370 [LLM:HIGH]
+                         dbCamera->roll = 0;
+                         dbCamera->fov = 60.0f;
+                         dbCamera->rollDegrees = 0;
+                     } else {
+-                        func_800B41DC(dbCamera, dbCamera->sub.unkIdx, cam);
++                        DbCamera_LoadPoint(dbCamera, dbCamera->sub.unkIdx, cam);  // was func_800B41DC [LLM:HIGH]
+                         dbCamera->fov = dbCamera->sub.lookAt[dbCamera->sub.unkIdx].viewAngle;
+                         dbCamera->roll = dbCamera->sub.lookAt[dbCamera->sub.unkIdx].cameraRoll;
+                         dbCamera->rollDegrees = dbCamera->roll * 1.40625f;
+@@ -994,12 +1003,12 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                     }
+ 
+                     if ((dbCamera->sub.unk_08 == 2) && (dbCamera->sub.unkIdx != (dbCamera->sub.nPoints - 1))) {
+-                        func_800B4370(dbCamera, dbCamera->sub.unkIdx, cam);
++                        DbCamera_LookAtPoint(dbCamera, dbCamera->sub.unkIdx, cam);  // was func_800B4370 [LLM:HIGH]
+                         dbCamera->roll = 0;
+                         dbCamera->fov = 60.0f;
+                         dbCamera->rollDegrees = 0;
+                     } else {
+-                        func_800B41DC(dbCamera, dbCamera->sub.unkIdx, cam);
++                        DbCamera_LoadPoint(dbCamera, dbCamera->sub.unkIdx, cam);  // was func_800B41DC [LLM:HIGH]
+                         dbCamera->fov = dbCamera->sub.lookAt[dbCamera->sub.unkIdx].viewAngle;
+                         dbCamera->roll = dbCamera->sub.lookAt[dbCamera->sub.unkIdx].cameraRoll;
+                         dbCamera->rollDegrees = dbCamera->roll * 1.40625f;
+@@ -1092,15 +1101,15 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                                     dbCamera->unk_78 = 2;
+                                     for (i = 0; i < dbCamera->sub.nPoints; i++) {
+                                         DbCamera_Vec3SToF2(&dbCamera->sub.lookAt[i].pos, &spD8);
+-                                        func_800B3F94(temp_s6, &spD8, &dbCamera->sub.lookAt[i].pos);
++                                        DbCamera_WorldToPlayerRelS(temp_s6, &spD8, &dbCamera->sub.lookAt[i].pos);  // was func_800B3F94 [LLM:HIGH]
+                                         DbCamera_Vec3SToF2(&dbCamera->sub.position[i].pos, &spD8);
+-                                        func_800B3F94(temp_s6, &spD8, &dbCamera->sub.position[i].pos);
++                                        DbCamera_WorldToPlayerRelS(temp_s6, &spD8, &dbCamera->sub.position[i].pos);  // was func_800B3F94 [LLM:HIGH]
+                                     }
+                                 } else {
+                                     for (i = 0; i < dbCamera->sub.nPoints; i++) {
+-                                        func_800B404C(temp_s6, &dbCamera->sub.lookAt[i].pos, &spD8);
++                                        DbCamera_PlayerRelSToWorld(temp_s6, &dbCamera->sub.lookAt[i].pos, &spD8);  // was func_800B404C [LLM:HIGH]
+                                         DbCamera_Vec3FToS(&spD8, &dbCamera->sub.lookAt[i].pos);
+-                                        func_800B404C(temp_s6, &dbCamera->sub.position[i].pos, &spD8);
++                                        DbCamera_PlayerRelSToWorld(temp_s6, &dbCamera->sub.position[i].pos, &spD8);  // was func_800B404C [LLM:HIGH]
+                                         DbCamera_Vec3FToS(&spD8, &dbCamera->sub.position[i].pos);
+                                     }
+                                 }
+@@ -1181,15 +1190,15 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                                     dbCamera->unk_78 = 2;
+                                     for (i = 0; i < dbCamera->sub.nPoints; i++) {
+                                         DbCamera_Vec3SToF2(&dbCamera->sub.lookAt[i].pos, &spD8);
+-                                        func_800B3F94(temp_s6, &spD8, &dbCamera->sub.lookAt[i].pos);
++                                        DbCamera_WorldToPlayerRelS(temp_s6, &spD8, &dbCamera->sub.lookAt[i].pos);  // was func_800B3F94 [LLM:HIGH]
+                                         DbCamera_Vec3SToF2(&dbCamera->sub.position[i].pos, &spD8);
+-                                        func_800B3F94(temp_s6, &spD8, &dbCamera->sub.position[i].pos);
++                                        DbCamera_WorldToPlayerRelS(temp_s6, &spD8, &dbCamera->sub.position[i].pos);  // was func_800B3F94 [LLM:HIGH]
+                                     }
+                                 } else {
+                                     for (i = 0; i < dbCamera->sub.nPoints; i++) {
+-                                        func_800B404C(temp_s6, &dbCamera->sub.lookAt[i].pos, &spD8);
++                                        DbCamera_PlayerRelSToWorld(temp_s6, &dbCamera->sub.lookAt[i].pos, &spD8);  // was func_800B404C [LLM:HIGH]
+                                         DbCamera_Vec3FToS(&spD8, &dbCamera->sub.lookAt[i].pos);
+-                                        func_800B404C(temp_s6, &dbCamera->sub.position[i].pos, &spD8);
++                                        DbCamera_PlayerRelSToWorld(temp_s6, &dbCamera->sub.position[i].pos, &spD8);  // was func_800B404C [LLM:HIGH]
+                                         DbCamera_Vec3FToS(&spD8, &dbCamera->sub.position[i].pos);
+                                     }
+                                 }
+@@ -1340,8 +1349,8 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                         DbCamera_Vec3SToF2(&(dbCamera->sub.position + i)->pos, &spAC);
+                         DbCamera_Vec3SToF2(&(dbCamera->sub.lookAt + i)->pos, &spB8);
+                     } else {
+-                        func_800B404C(temp_s6, &(dbCamera->sub.lookAt + i)->pos, &spB8);
+-                        func_800B404C(temp_s6, &(dbCamera->sub.position + i)->pos, &spAC);
++                        DbCamera_PlayerRelSToWorld(temp_s6, &(dbCamera->sub.lookAt + i)->pos, &spB8);  // was func_800B404C [LLM:HIGH]
++                        DbCamera_PlayerRelSToWorld(temp_s6, &(dbCamera->sub.position + i)->pos, &spAC);  // was func_800B404C [LLM:HIGH]
+                     }
+                     OLib_Vec3fDiffToVecSphGeo(&spFC, &spAC, &spB8);
+                     spAA = dbCamera->sub.lookAt[i].cameraRoll * 0xB6;
+@@ -1432,9 +1441,11 @@ static s16 sCurFileIdx;
+ static s16 sLastFileIdx; // holds the file index of the slot to move
+ // is the size correct? todo: add ALIGN32 for sizeof in Mempak functions, replace 0xF with sizeof()
+ static DbCameraCut sDbCameraCuts[16];
+-static char D_80161250[0x80];
++// LLM generated name (HIGH), was D_80161250: a 0x80-byte table indexed by a cut's letter, holding 'O' when that letter has a recorded cut and 'X' when it does not, for the on-screen list.
++static char sCutLetterMarks[0x80];  // was D_80161250 [LLM:HIGH]
+ static char sLetters[26];
+-static char D_801612EA;
++// LLM generated name (HIGH), was D_801612EA: the letter of the cut the user has selected, or '*' when none is.
++static char sSelectedCutLetter;  // was D_801612EA [LLM:HIGH]
+ static s32 sAllocSize;
+ 
+ s32 DbCamera_GetFirstAvailableLetter(void) {
+@@ -1456,7 +1467,7 @@ char DbCamera_InitCut(s32 idx, DbCameraSub* sub) {
+ 
+     sDbCameraCuts[idx].unk_01 = 0x61;
+     sDbCameraCuts[idx].letter = DbCamera_GetFirstAvailableLetter();
+-    D_80161250[0x3F + sDbCameraCuts[idx].letter] = 'O';
++    sCutLetterMarks[0x3F + sDbCameraCuts[idx].letter] = 'O';  // was D_80161250 [LLM:HIGH]
+ 
+     i = sub->nPoints * sizeof(CutsceneCameraPoint);
+     sDbCameraCuts[idx].lookAt = DEBUG_ARENA_MALLOC_DEBUG(i);
+@@ -1489,7 +1500,7 @@ char DbCamera_InitCut(s32 idx, DbCameraSub* sub) {
+ 
+ void DbCamera_ResetCut(s32 idx, s32 shouldFree) {
+     if (sDbCameraCuts[idx].letter != '?') {
+-        D_80161250[0x3F + sDbCameraCuts[idx].letter] = 'X';
++        sCutLetterMarks[0x3F + sDbCameraCuts[idx].letter] = 'X';  // was D_80161250 [LLM:HIGH]
+     }
+ 
+     if (shouldFree) {
+@@ -1566,7 +1577,7 @@ s32 DbCamera_LoadCallback(char* c) {
+             }
+             off += ALIGN32(size);
+ 
+-            D_80161250[0x3F + sDbCameraCuts[i].letter] = 'O';
++            sCutLetterMarks[0x3F + sDbCameraCuts[i].letter] = 'O';  // was D_80161250 [LLM:HIGH]
+         }
+     }
+ 
+@@ -1669,31 +1680,32 @@ void DbCamera_PrintAllCuts(Camera* cam) {
+     osSyncPrintf("@@@\n@@@\n@@@/* ****** spline point data ** finish! ***** */\n@@@\n");
+ }
+ 
+-s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
++// LLM generated name (HIGH), was func_800B91B0: advances the current cut's splines by one frame, skipping empty slots and rolling on to the next cut when this one's frame count runs out.
++s32 DbCamera_PlayCut(Camera* cam, DbCamera* dbCamera) {
+     s32 pointCount;
+     s32 curPoint;
+ 
+-    while (sDbCameraCuts[D_8016110C].letter == '?') {
+-        D_8016110C++;
+-        if (D_8016110C >= ARRAY_COUNT(sDbCameraCuts) - 1) {
++    while (sDbCameraCuts[sCurCutIndex].letter == '?') {  // was D_8016110C [LLM:HIGH]
++        sCurCutIndex++;  // was D_8016110C [LLM:HIGH]
++        if (sCurCutIndex >= ARRAY_COUNT(sDbCameraCuts) - 1) {  // was D_8016110C [LLM:HIGH]
+             sDbCamAnim.curFrame = 0.0f;
+             sDbCamAnim.unk_04 = 0;
+             sDbCamAnim.keyframe = 0;
+             sDbCamAnim.unk_0A = 0;
+-            D_8016110C = 0;
++            sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+             return 0;
+         }
+     }
+ 
+-    if (!CutsceneCamera_UpdateSpline(&sDbCamAnim.positionPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[D_8016110C].position,
++    if (!CutsceneCamera_UpdateSpline(&sDbCamAnim.positionPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[sCurCutIndex].position,  // was D_8016110C [LLM:HIGH]
+                        &sDbCamAnim.keyframe, &sDbCamAnim.curFrame) &&
+-        !CutsceneCamera_UpdateSpline(&sDbCamAnim.lookAtPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[D_8016110C].lookAt,
++        !CutsceneCamera_UpdateSpline(&sDbCamAnim.lookAtPos, &sDbCamAnim.roll, &sDbCamAnim.fov, sDbCameraCuts[sCurCutIndex].lookAt,  // was D_8016110C [LLM:HIGH]
+                        &sDbCamAnim.keyframe, &sDbCamAnim.curFrame)) {
+ 
+         cameraStrings[73][7] = ((sDbCamAnim.keyframe + 1) / 10) + '0';
+         cameraStrings[73][8] = ((sDbCamAnim.keyframe + 1) % 10) + '0';
+-        cameraStrings[73][10] = ((sDbCameraCuts[D_8016110C].nPoints - 5) / 10) + '0';
+-        cameraStrings[73][11] = ((sDbCameraCuts[D_8016110C].nPoints - 5) % 10) + '0';
++        cameraStrings[73][10] = ((sDbCameraCuts[sCurCutIndex].nPoints - 5) / 10) + '0';  // was D_8016110C [LLM:HIGH]
++        cameraStrings[73][11] = ((sDbCameraCuts[sCurCutIndex].nPoints - 5) % 10) + '0';  // was D_8016110C [LLM:HIGH]
+         DbCamera_SetTextValue(sDbCamAnim.unk_04, &cameraStrings[71][10], 4);
+         DebugCamera_CopyText(0xF, 0x16, 3, cameraStrings[71]);  // was func_8006376C [LLM:HIGH]
+         DbCamera_SetTextValue(sDbCamAnim.unk_0C, &cameraStrings[72][10], 4);
+@@ -1704,20 +1716,20 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+         sDbCamAnim.unk_04++;
+         sDbCamAnim.unk_0C++;
+ 
+-        if (sDbCameraCuts[D_8016110C].nFrames > 0 && sDbCameraCuts[D_8016110C].nFrames < sDbCamAnim.unk_04) {
+-            D_8016110C++;
++        if (sDbCameraCuts[sCurCutIndex].nFrames > 0 && sDbCameraCuts[sCurCutIndex].nFrames < sDbCamAnim.unk_04) {  // was D_8016110C [LLM:HIGH]
++            sCurCutIndex++;  // was D_8016110C [LLM:HIGH]
+             sDbCamAnim.curFrame = 0.0f;
+             sDbCamAnim.unk_04 = 0;
+             sDbCamAnim.keyframe = 0;
+-            return D_8016110C | 0x8000;
++            return sCurCutIndex | 0x8000;  // was D_8016110C [LLM:HIGH]
+         }
+ 
+-        if (sDbCameraCuts[D_8016110C].mode != 1) {
++        if (sDbCameraCuts[sCurCutIndex].mode != 1) {  // was D_8016110C [LLM:HIGH]
+             DbCamera_CopyVec3f(&sDbCamAnim.positionPos, &dbCamera->eye);
+             DbCamera_CopyVec3f(&sDbCamAnim.lookAtPos, &dbCamera->at);
+         } else {
+-            func_800B3FF4(&cam->playerPosRot, &sDbCamAnim.lookAtPos, &dbCamera->at);
+-            func_800B3FF4(&cam->playerPosRot, &sDbCamAnim.positionPos, &dbCamera->eye);
++            DbCamera_PlayerRelToWorld(&cam->playerPosRot, &sDbCamAnim.lookAtPos, &dbCamera->at);  // was func_800B3FF4 [LLM:HIGH]
++            DbCamera_PlayerRelToWorld(&cam->playerPosRot, &sDbCamAnim.positionPos, &dbCamera->eye);  // was func_800B3FF4 [LLM:HIGH]
+         }
+ 
+         dbCamera->fov = sDbCamAnim.fov;
+@@ -1725,12 +1737,12 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+         dbCamera->rollDegrees = sDbCamAnim.roll * (360.0f / 256.0f);
+ 
+     } else {
+-        D_8016110C++;
++        sCurCutIndex++;  // was D_8016110C [LLM:HIGH]
+         sDbCamAnim.keyframe = 0;
+         sDbCamAnim.curFrame = 0.0f;
+         sDbCamAnim.unk_04 = 0;
+-        if (D_8016110C == ARRAY_COUNT(sDbCameraCuts) - 1) {
+-            D_8016110C = 0;
++        if (sCurCutIndex == ARRAY_COUNT(sDbCameraCuts) - 1) {  // was D_8016110C [LLM:HIGH]
++            sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+             sDbCamAnim.curFrame = 0.0f;
+             sDbCamAnim.keyframe = 0;
+             sDbCamAnim.unk_0A = 0;
+@@ -1738,13 +1750,13 @@ s32 func_800B91B0(Camera* cam, DbCamera* dbCamera) {
+         }
+     }
+ 
+-    return D_8016110C | 0x8000;
++    return sCurCutIndex | 0x8000;  // was D_8016110C [LLM:HIGH]
+ }
+ 
+ void DbCamera_Reset(Camera* cam, DbCamera* dbCam) {
+     s32 i;
+ 
+-    D_801612EA = '*';
++    sSelectedCutLetter = '*';  // was D_801612EA [LLM:HIGH]
+     for (i = 0; i < ARRAY_COUNT(sLetters); i++) {
+         sLetters[i] = 'X';
+     }
+@@ -1753,7 +1765,7 @@ void DbCamera_Reset(Camera* cam, DbCamera* dbCam) {
+         DbCamera_ResetCut(i, false);
+     }
+     sDbCamPtr = dbCam;
+-    D_8016110C = 0;
++    sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+     sCurFileIdx = 0;
+     sLastFileIdx = -1;
+     sDbCamAnim.unk_0A = 0;
+@@ -2043,19 +2055,19 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+ 
+             if (sDbCamAnim.unk_0A != 0) {
+                 DebugCamera_CopyText(4, 7, 5, cameraStrings[27]);  // was func_8006376C [LLM:HIGH]
+-                DebugCamera_CopyText(D_8016110C * 2 + 6, 7, 7, ">");  // was func_8006376C [LLM:HIGH]
++                DebugCamera_CopyText(sCurCutIndex * 2 + 6, 7, 7, ">");  // was func_8006376C [LLM:HIGH]
+ 
+                 if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_CUP)) {
+-                    if (D_8016110C > 0) {
+-                        D_8016110C--;
++                    if (sCurCutIndex > 0) {  // was D_8016110C [LLM:HIGH]
++                        sCurCutIndex--;  // was D_8016110C [LLM:HIGH]
+                     }
+ 
+                     sDbCamAnim.curFrame = 0.0f;
+                     sDbCamAnim.keyframe = 0;
+                     sDbCamAnim.unk_04 = 0;
+                 } else if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_CDOWN)) {
+-                    if (D_8016110C < 14) {
+-                        D_8016110C++;
++                    if (sCurCutIndex < 14) {  // was D_8016110C [LLM:HIGH]
++                        sCurCutIndex++;  // was D_8016110C [LLM:HIGH]
+                     }
+ 
+                     sDbCamAnim.curFrame = 0.0f;
+@@ -2065,11 +2077,11 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+                     sDbCamAnim.unk_0A = 0;
+                     Interface_ChangeHudVisibilityMode(HUD_VISIBILITY_NOTHING_ALT);
+                     Letterbox_SetSizeTarget(0);
+-                    D_8016110C = 0;
++                    sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+                     return 2;
+                 }
+ 
+-                if (func_800B91B0(cam, dbCamera) == 0) {
++                if (DbCamera_PlayCut(cam, dbCamera) == 0) {  // was func_800B91B0 [LLM:HIGH]
+                     Interface_ChangeHudVisibilityMode(HUD_VISIBILITY_NOTHING_ALT);
+                     Letterbox_SetSizeTarget(0);
+                     Audio_PlaySfxGeneral(NA_SE_SY_GET_RUPY, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+@@ -2090,7 +2102,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+                 sDbCamAnim.unk_04 = 0;
+                 sDbCamAnim.unk_0A = 1;
+                 sDbCamAnim.unk_0C = 0;
+-                D_8016110C = 0;
++                sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+                 Audio_PlaySfxGeneral(NA_SE_SY_HP_RECOVER, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             }
+@@ -2098,10 +2110,10 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+             if (CHECK_BTN_ALL(sPlayState->state.input[2].press.button, BTN_L)) {
+                 if (sp74[sCurFileIdx] == '?') {
+                     sLastFileIdx = -1;
+-                    D_801612EA = '*';
++                    sSelectedCutLetter = '*';  // was D_801612EA [LLM:HIGH]
+                 } else {
+                     sLastFileIdx = sCurFileIdx;
+-                    D_801612EA = sDbCameraCuts[idx1].letter;
++                    sSelectedCutLetter = sDbCameraCuts[idx1].letter;  // was D_801612EA [LLM:HIGH]
+                 }
+             } else if (!CHECK_BTN_ALL(sPlayState->state.input[2].cur.button, BTN_L)) {
+                 if (sLastFileIdx != -1) {
+@@ -2182,7 +2194,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+                     dbCamera->sub.nFrames = sDbCameraCuts[idx1].nFrames;
+                     dbCamera->sub.nPoints = sDbCameraCuts[idx1].nPoints;
+                     dbCamera->sub.unkIdx = 0;
+-                    func_800B41DC(dbCamera, dbCamera->sub.unkIdx, cam);
++                    DbCamera_LoadPoint(dbCamera, dbCamera->sub.unkIdx, cam);  // was func_800B41DC [LLM:HIGH]
+                     sp74[sCurFileIdx] = '?';
+                     DbCamera_ResetCut(idx1, true);
+                     dbCamera->unk_00 = 1;
+@@ -2230,7 +2242,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+                 sDbCamAnim.unk_0C = 0;
+                 Interface_ChangeHudVisibilityMode(50);
+                 Letterbox_SetSizeTarget(0x20);
+-                D_8016110C = 0;
++                sCurCutIndex = 0;  // was D_8016110C [LLM:HIGH]
+                 Audio_PlaySfxGeneral(NA_SE_SY_HP_RECOVER, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                      &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+             }
+@@ -2238,7 +2250,7 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+             DebugCamera_CopyText(4, 7, 5, cameraStrings[28]);  // was func_8006376C [LLM:HIGH]
+             sp74[1] = 0;
+             if (sLastFileIdx != -1) {
+-                sp74[0] = D_801612EA;
++                sp74[0] = sSelectedCutLetter;  // was D_801612EA [LLM:HIGH]
+                 DebugCamera_CopyText(sLastFileIdx + 5, 7, 2, sp74);  // was func_8006376C [LLM:HIGH]
+             } else {
+                 sp74[0] = '_';
+@@ -2252,14 +2264,17 @@ s32 DbCamera_UpdateDemoControl(DbCamera* dbCamera, Camera* cam) {
+     return 1;
+ }
+ 
+-void func_800BB03C(Camera* cam) {
+-    func_800B91B0(cam, sDbCamPtr);
++// LLM generated name (HIGH), was func_800BB03C: the one-argument entry point that plays the current cut on the global debug camera.
++void DbCamera_PlayCurrentCut(Camera* cam) {
++    DbCamera_PlayCut(cam, sDbCamPtr);  // was func_800B91B0 [LLM:HIGH]
+ }
+ 
+-void func_800BB060(void) {
++// LLM generated name (HIGH), was func_800BB060: clears the playback-active flag.
++void DbCamera_StopPlayback(void) {
+     sDbCamAnim.unk_0A = 0;
+ }
+ 
+-s32 func_800BB06C(void) {
++// LLM generated name (HIGH), was func_800BB06C: returns whether the debug camera is in playback mode and the playback flag is set.
++s32 DbCamera_IsPlaying(void) {
+     return sDbCamPtr->unk_00 == 2 && sDbCamAnim.unk_0A != 0;
+ }
+-- 
+2.55.0
+

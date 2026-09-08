@@ -1,0 +1,67 @@
+From cbbddf905f1c5c36aa765d38390cd3e9bca47eed Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:01 +0000
+Subject: [PATCH 045/488] soh: rename func_808B6BC0 ->
+ BgSpot17Bakudankabe_SpawnFragments
+
+Name source: deduced from the code (confidence HIGH).
+Defined in soh/src/overlays/actors/ovl_Bg_Spot17_Bakudankabe/z_bg_spot17_bakudankabe.c.
+
+Provenance comments accompany the definition and every header declaration,
+so the name can be re-derived or overturned later. See
+tasks/reference/ocarina/decomp-renaming.md.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/soh/Network/Anchor/HookHandlers.cpp                      | 4 ++--
+ .../ovl_Bg_Spot17_Bakudankabe/z_bg_spot17_bakudankabe.c      | 5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/soh/soh/Network/Anchor/HookHandlers.cpp b/soh/soh/Network/Anchor/HookHandlers.cpp
+index a2084e816..103016a41 100644
+--- a/soh/soh/Network/Anchor/HookHandlers.cpp
++++ b/soh/soh/Network/Anchor/HookHandlers.cpp
+@@ -43,7 +43,7 @@ void ObjBombiwa_Break(ObjBombiwa* objBombiwa, PlayState* play);
+ void ObjHamishi_Break(ObjHamishi* objHamishi, PlayState* play);
+ void BgJyaBombchuiwa_WaitForExplosion(BgJyaBombchuiwa* bgJyaBombchuiwa, PlayState* play);
+ void BgMizuBwall_Idle(BgMizuBwall* bgMizuBwall, PlayState* play);
+-void func_808B6BC0(BgSpot17Bakudankabe* bgSpot17Bakudankabe, PlayState* play);
++void BgSpot17Bakudankabe_SpawnFragments(BgSpot17Bakudankabe* bgSpot17Bakudankabe, PlayState* play);
+ void func_808BF078(BgYdanMaruta* bgYdanMaruta, PlayState* play);
+ void BgYdanSp_FloorWebIdle(BgYdanSp* bgYdanSp, PlayState* play);
+ void BgYdanSp_WallWebIdle(BgYdanSp* bgYdanSp, PlayState* play);
+@@ -307,7 +307,7 @@ void Anchor::RegisterHooks() {
+         BgSpot17Bakudankabe* actor = static_cast<BgSpot17Bakudankabe*>(refActor);
+ 
+         if (Flags_GetSwitch(gPlayState, (actor->dyna.actor.params & 0x3F))) {
+-            func_808B6BC0(actor, gPlayState);
++            BgSpot17Bakudankabe_SpawnFragments(actor, gPlayState);
+             SoundSource_PlaySfxAtFixedWorldPos(gPlayState, &actor->dyna.actor.world.pos, 40, NA_SE_EV_WALL_BROKEN);
+             Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+             Actor_Kill(&actor->dyna.actor);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot17_Bakudankabe/z_bg_spot17_bakudankabe.c b/soh/src/overlays/actors/ovl_Bg_Spot17_Bakudankabe/z_bg_spot17_bakudankabe.c
+index da7c908c2..de27f47a9 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot17_Bakudankabe/z_bg_spot17_bakudankabe.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot17_Bakudankabe/z_bg_spot17_bakudankabe.c
+@@ -36,7 +36,8 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(uncullZoneDownward, 1000, ICHAIN_STOP),
+ };
+ 
+-void func_808B6BC0(BgSpot17Bakudankabe* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B6BC0: spawns 20 wall-fragment effects with burst positions on break.
++void BgSpot17Bakudankabe_SpawnFragments(BgSpot17Bakudankabe* this, PlayState* play) {
+     s32 pad[2];
+     s32 i;
+     Vec3f burstDepthY;
+@@ -115,7 +116,7 @@ void BgSpot17Bakudankabe_Destroy(Actor* thisx, PlayState* play) {
+ void BgSpot17Bakudankabe_Update(Actor* thisx, PlayState* play) {
+     BgSpot17Bakudankabe* this = (BgSpot17Bakudankabe*)thisx;
+     if (this->dyna.actor.xzDistToPlayer < 650.0f && func_80033684(play, &this->dyna.actor) != NULL) {
+-        func_808B6BC0(this, play);
++        BgSpot17Bakudankabe_SpawnFragments(this, play);
+         Flags_SetSwitch(play, (this->dyna.actor.params & 0x3F));
+         SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 40, NA_SE_EV_WALL_BROKEN);
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+-- 
+2.55.0
+

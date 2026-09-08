@@ -1,0 +1,139 @@
+From d7739d1d549eab4b22c8b2232728007994c69d74 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:01 +0000
+Subject: [PATCH 048/488] soh: name the 4 address-named symbols defined in
+ z_door_shutter.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c.
+
+  * D_80998224 -> sTypeStyles
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_80998288 -> sBossDoorInfo
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_809982D4 -> sBossDoorTextures
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_80997838 -> DoorShutter_DrawJabuJabuDoor
+    zeldaret/oot (same decomp, same ROM address)
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Door_Shutter/z_door_shutter.c  | 20 +++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c b/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
+index 9f6ffbd19..120fa3c7d 100644
+--- a/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
++++ b/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
+@@ -119,7 +119,8 @@ static ShutterInfo sShutterInfo[] = {
+     { object_ouke_haka_DL_0000C0, gDoorMetalBarsDL, 130, 12, 20, 15 },
+ };
+ 
+-static s8 D_80998224[] = {
++// Name from zeldaret/oot, was D_80998224: table indexed by doorType yielding the shutter style index (-1 = none) [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c]
++static s8 sTypeStyles[] = {
+     -1, -1, -1, -1, 0, 6, 1, -1, 0, -1, -1, -1,
+ };
+ 
+@@ -162,7 +163,8 @@ typedef struct {
+     u8 index;
+ } BossDoorInfo;
+ 
+-static BossDoorInfo D_80998288[] = {
++// Name from zeldaret/oot, was D_80998288: maps each dungeon/boss scene pair to its boss-door texture/style index [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c]
++static BossDoorInfo sBossDoorInfo[] = {
+     { SCENE_FIRE_TEMPLE, SCENE_FIRE_TEMPLE_BOSS, 0x01 },
+     { SCENE_WATER_TEMPLE, SCENE_WATER_TEMPLE_BOSS, 0x02 },
+     { SCENE_SHADOW_TEMPLE, SCENE_SHADOW_TEMPLE_BOSS, 0x03 },
+@@ -177,7 +179,8 @@ static Gfx* sJabuDoorDLists[] = {
+     gJabuDoorSection5DL, gJabuDoorSection4DL, gJabuDoorSection3DL, gJabuDoorSection2DL,
+ };
+ 
+-static void* D_809982D4[] = {
++// Name from zeldaret/oot, was D_809982D4: array of boss-door textures indexed by bossDoorTexIndex during draw [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c]
++static void* sBossDoorTextures[] = {
+     gBossDoorDefaultTex,      gBossDoorFireTex,   gBossDoorWaterTex,  gBossDoorShadowTex,
+     gBossDoorGanonsCastleTex, gBossDoorForestTex, gBossDoorSpiritTex,
+ };
+@@ -243,7 +246,7 @@ void DoorShutter_Init(Actor* thisx, PlayState* play2) {
+     this->dyna.actor.home.pos.z = this->dyna.actor.shape.yOffset;
+     DynaPolyActor_Init(&this->dyna, DPM_UNK);
+     this->doorType = (this->dyna.actor.params >> 6) & 0xF;
+-    phi_a3 = D_80998224[this->doorType];
++    phi_a3 = sTypeStyles[this->doorType];
+     if (phi_a3 < 0) {
+         ShutterSceneInfo* phi_v1;
+ 
+@@ -256,7 +259,7 @@ void DoorShutter_Init(Actor* thisx, PlayState* play2) {
+     } else if (phi_a3 == 6) {
+         BossDoorInfo* phi_v1_2;
+ 
+-        for (phi_v1_2 = &D_80998288[0], i = 0; i < ARRAY_COUNT(D_80998288) - 1; i++, phi_v1_2++) {
++        for (phi_v1_2 = &sBossDoorInfo[0], i = 0; i < ARRAY_COUNT(sBossDoorInfo) - 1; i++, phi_v1_2++) {
+             if (play->sceneNum == phi_v1_2->dungeonScene || play->sceneNum == phi_v1_2->bossScene) {
+                 break;
+             }
+@@ -667,7 +670,8 @@ void DoorShutter_Update(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-Gfx* func_80997838(PlayState* play, DoorShutter* this, Gfx* p) {
++// Name from zeldaret/oot, was func_80997838: builds the Jabu-Jabu door display list, scaling each section by closedAmount [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c]
++Gfx* DoorShutter_DrawJabuJabuDoor(PlayState* play, DoorShutter* this, Gfx* p) {
+     MtxF mtx;
+     f32 angle = 0.0f;
+     f32 yScale = this->jabuDoorClosedAmount * 0.01f;
+@@ -736,7 +740,7 @@ void DoorShutter_Draw(Actor* thisx, PlayState* play) {
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+ 
+         if (this->gfxType == 3) {
+-            POLY_OPA_DISP = func_80997838(play, this, POLY_OPA_DISP);
++            POLY_OPA_DISP = DoorShutter_DrawJabuJabuDoor(play, this, POLY_OPA_DISP);
+             if (this->barsClosedAmount != 0.0f) {
+                 f32 sp58 = (this->jabuDoorClosedAmount * 0.01f) * this->barsClosedAmount;
+ 
+@@ -763,7 +767,7 @@ void DoorShutter_Draw(Actor* thisx, PlayState* play) {
+                     Matrix_RotateY(M_PI, MTXMODE_APPLY);
+                 }
+             } else if (this->doorType == SHUTTER_BOSS) {
+-                gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_809982D4[this->bossDoorTexIndex]));
++                gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sBossDoorTextures[this->bossDoorTexIndex]));
+             }
+             gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+             gSPDisplayList(POLY_OPA_DISP++, sp70->a);
+-- 
+2.55.0
+

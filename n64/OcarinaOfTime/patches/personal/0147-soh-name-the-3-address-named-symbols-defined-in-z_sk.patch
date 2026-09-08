@@ -1,0 +1,217 @@
+From ae2c2d4f5b1c2cd1977e3e0790147718d21503ab Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:10 +0000
+Subject: [PATCH 147/488] soh: name the 3 address-named symbols defined in
+ z_skin.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/code/z_skin.c; updating their references touches 9 files in total.
+
+  * func_800A6330 -> Skin_Draw
+    deduced, confidence HIGH: the basic public Skin_DrawImpl wrapper,
+    exposing only postDraw and setTranslation; called by the four horse
+    actors to draw their skeletons.
+
+  * func_800A6360 -> Skin_DrawOverrideLimb
+    deduced, confidence HIGH: Skin_DrawImpl wrapper that additionally
+    exposes the overrideLimbDraw callback; callers pass
+    EnHorse_OverrideLimbDraw and friends.
+
+  * func_800A63CC -> Skin_DrawAll
+    deduced, confidence GUESS: the full-passthrough Skin_DrawImpl wrapper,
+    exposing every parameter (the in-tree comment says "allows specifying
+    all variables"). Named for the wrapper's shape rather than observed
+    behaviour, since arg6 and drawFlags remain unidentified.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                                  | 6 +++---
+ soh/src/code/z_skin.c                                    | 9 ++++++---
+ soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c        | 4 ++--
+ .../actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c         | 2 +-
+ .../ovl_En_Horse_Link_Child/z_en_horse_link_child.c      | 2 +-
+ .../actors/ovl_En_Horse_Normal/z_en_horse_normal.c       | 4 ++--
+ .../actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c         | 2 +-
+ soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c      | 2 +-
+ soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c            | 2 +-
+ 9 files changed, 18 insertions(+), 15 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 6904e8d39..ec7dd5bd9 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1353,10 +1353,10 @@ void SkelAnime_CopyFrameTable(SkelAnime* skelAnime, Vec3s* dst, Vec3s* src);
+ void Skin_UpdateVertices(MtxF* mtx, SkinVertex* skinVertices, SkinLimbModif* modifEntry, Vtx* vtxBuf, Vec3f* pos);
+ void Skin_DrawAnimatedLimb(GraphicsContext* gfxCtx, Skin* skin, s32 limbIndex, s32 arg3, s32 drawFlags);
+ void Skin_DrawLimb(GraphicsContext* gfxCtx, Skin* skin, s32 limbIndex, Gfx* dlistOverride, s32 drawFlags);
+-void func_800A6330(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation);
+-void func_800A6360(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation);
++void Skin_Draw(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation);  // was func_800A6330 [LLM:HIGH]
++void Skin_DrawOverrideLimb(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation);  // was func_800A6360 [LLM:HIGH]
+ void func_800A6394(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6);
+-void func_800A63CC(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6, s32 drawFlags);
++void Skin_DrawAll(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6, s32 drawFlags);  // was func_800A63CC [LLM:GUESS]
+ void Skin_GetLimbPos(Skin* skin, s32 limbIndex, Vec3f* arg2, Vec3f* dst);
+ void Skin_Init(PlayState* play, Skin* skin, SkeletonHeader* skeletonHeader, AnimationHeader* animationHeader);
+ void Skin_Free(PlayState* play, Skin* skin);
+diff --git a/soh/src/code/z_skin.c b/soh/src/code/z_skin.c
+index c8d0ce8df..6c36d6179 100644
+--- a/soh/src/code/z_skin.c
++++ b/soh/src/code/z_skin.c
+@@ -239,12 +239,14 @@ close_disps:
+ }
+ 
+ // allows specifying PostLimbDraw and setTranslation
+-void func_800A6330(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation) {
++// LLM generated name (HIGH), was func_800A6330: the basic public Skin_DrawImpl wrapper, exposing only postDraw and setTranslation; called by the four horse actors to draw their skeletons.
++void Skin_Draw(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw, s32 setTranslation) {
+     Skin_DrawImpl(actor, play, skin, postDraw, NULL, setTranslation, false, 0);
+ }
+ 
+ // allows specifying OverrideLimbDraw, PostLimbDraw and setTranslation
+-void func_800A6360(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw,
++// LLM generated name (HIGH), was func_800A6360: Skin_DrawImpl wrapper that additionally exposes the overrideLimbDraw callback; callers pass EnHorse_OverrideLimbDraw and friends.
++void Skin_DrawOverrideLimb(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw,
+                    SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation) {
+     Skin_DrawImpl(actor, play, skin, postDraw, overrideLimbDraw, setTranslation, false, 0);
+ }
+@@ -256,7 +258,8 @@ void func_800A6394(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postD
+ }
+ 
+ // allows specifying all variables
+-void func_800A63CC(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw,
++// LLM generated name (GUESS), was func_800A63CC: the full-passthrough Skin_DrawImpl wrapper, exposing every parameter (the in-tree comment says "allows specifying all variables"). Named for the wrapper's shape rather than observed behaviour, since arg6 and drawFlags remain unidentified.
++void Skin_DrawAll(Actor* actor, PlayState* play, Skin* skin, SkinPostDraw postDraw,
+                    SkinOverrideLimbDraw overrideLimbDraw, s32 setTranslation, s32 arg6, s32 drawFlags) {
+     Skin_DrawImpl(actor, play, skin, postDraw, overrideLimbDraw, setTranslation, arg6, drawFlags);
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+index 088b5f67c..037fb0a1e 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
++++ b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+@@ -3862,9 +3862,9 @@ void EnHorse_Draw(Actor* thisx, PlayState* play) {
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+         this->stateFlags |= ENHORSE_DRAW;
+         if (this->stateFlags & ENHORSE_JUMPING) {
+-            func_800A6360(thisx, play, &this->skin, EnHorse_PostDraw, EnHorse_OverrideLimbDraw, false);
++            Skin_DrawOverrideLimb(thisx, play, &this->skin, EnHorse_PostDraw, EnHorse_OverrideLimbDraw, false);  // was func_800A6360 [LLM:HIGH]
+         } else {
+-            func_800A6360(thisx, play, &this->skin, EnHorse_PostDraw, EnHorse_OverrideLimbDraw, true);
++            Skin_DrawOverrideLimb(thisx, play, &this->skin, EnHorse_PostDraw, EnHorse_OverrideLimbDraw, true);  // was func_800A6360 [LLM:HIGH]
+         }
+         if (this->postDrawFunc != NULL) {
+             this->postDrawFunc(this, play);
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c b/soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c
+index ee7b245a8..c02363554 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Ganon/z_en_horse_ganon.c
+@@ -329,5 +329,5 @@ void EnHorseGanon_Draw(Actor* thisx, PlayState* play) {
+ 
+     func_80A68E14(this, play);
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_800A6330(&this->actor, play, &this->skin, EnHorseGanon_PostDraw, true);
++    Skin_Draw(&this->actor, play, &this->skin, EnHorseGanon_PostDraw, true);  // was func_800A6330 [LLM:HIGH]
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c b/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
+index 2c51b102a..165e93d43 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Link_Child/z_en_horse_link_child.c
+@@ -621,5 +621,5 @@ void EnHorseLinkChild_Draw(Actor* thisx, PlayState* play) {
+     EnHorseLinkChild* this = (EnHorseLinkChild*)thisx;
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_800A6360(&this->actor, play, &this->skin, EnHorseLinkChild_PostDraw, EnHorseLinkChild_OverrideLimbDraw, true);
++    Skin_DrawOverrideLimb(&this->actor, play, &this->skin, EnHorseLinkChild_PostDraw, EnHorseLinkChild_OverrideLimbDraw, true);  // was func_800A6360 [LLM:HIGH]
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c b/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
+index e3456c311..8f7b1fc55 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Normal/z_en_horse_normal.c
+@@ -657,7 +657,7 @@ void EnHorseNormal_Draw(Actor* thisx, PlayState* play) {
+         func_80A6C8E0(this, play);
+     }
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_800A6330(&this->actor, play, &this->skin, EnHorseNormal_PostDraw, true);
++    Skin_Draw(&this->actor, play, &this->skin, EnHorseNormal_PostDraw, true);  // was func_800A6330 [LLM:HIGH]
+ 
+     if (this->action == HORSE_WAIT_CLONE) {
+         MtxF skinMtx;
+@@ -707,7 +707,7 @@ void EnHorseNormal_Draw(Actor* thisx, PlayState* play) {
+         }
+         gSPMatrix(POLY_OPA_DISP++, &gMtxClear, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPMatrix(POLY_OPA_DISP++, mtx1, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+-        func_800A63CC(&this->actor, play, &this->skin, NULL, NULL, true, 0,
++        Skin_DrawAll(&this->actor, play, &this->skin, NULL, NULL, true, 0,  // was func_800A63CC [LLM:GUESS]
+                       SKIN_DRAW_FLAG_CUSTOM_TRANSFORMS | SKIN_DRAW_FLAG_CUSTOM_MATRIX);
+         this->cloneCollider.dim.pos.x = clonePos.x;
+         this->cloneCollider.dim.pos.y = clonePos.y;
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c b/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
+index a6b21ff09..c7313e249 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Zelda/z_en_horse_zelda.c
+@@ -272,5 +272,5 @@ void EnHorseZelda_Draw(Actor* thisx, PlayState* play) {
+ 
+     EnHorseZelda_SetRotate(this, play);
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    func_800A6330(&this->actor, play, &this->skin, EnHorseZelda_PostDraw, true);
++    Skin_Draw(&this->actor, play, &this->skin, EnHorseZelda_PostDraw, true);  // was func_800A6330 [LLM:HIGH]
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c b/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
+index 370593376..478fc7bf8 100644
+--- a/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
++++ b/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
+@@ -581,7 +581,7 @@ void EnViewer_DrawGanondorf(EnViewer* this, PlayState* play) {
+ }
+ 
+ void EnViewer_DrawHorse(EnViewer* this, PlayState* play) {
+-    func_800A6330(&this->actor, play, &this->skin, NULL, true);
++    Skin_Draw(&this->actor, play, &this->skin, NULL, true);  // was func_800A6330 [LLM:HIGH]
+ }
+ 
+ s32 EnViewer_ZeldaOverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx) {
+diff --git a/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c b/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
+index a5bc84dc0..2e9c64a4d 100644
+--- a/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
++++ b/soh/src/overlays/actors/ovl_En_fHG/z_en_fhg.c
+@@ -723,7 +723,7 @@ void EnfHG_Draw(Actor* thisx, PlayState* play) {
+                         : Gfx_SetFog(POLY_OPA_DISP, (u32)this->warpColorFilterR, (u32)this->warpColorFilterG,
+                                      (u32)this->warpColorFilterB, 0, (s32)this->warpColorFilterUnk1 + 995,
+                                      (s32)this->warpColorFilterUnk2 + 1000);
+-    func_800A6330(&this->actor, play, &this->skin, EnfHG_PostDraw, SKIN_TRANSFORM_IS_FHG);
++    Skin_Draw(&this->actor, play, &this->skin, EnfHG_PostDraw, SKIN_TRANSFORM_IS_FHG);  // was func_800A6330 [LLM:HIGH]
+     POLY_OPA_DISP = Play_SetFog(play, POLY_OPA_DISP);
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+-- 
+2.55.0
+

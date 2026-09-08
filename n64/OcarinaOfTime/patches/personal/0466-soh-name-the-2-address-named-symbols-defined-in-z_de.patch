@@ -1,0 +1,95 @@
+From ea1136d34477da00f9eca6f3d9f53b387d670958 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:40 +0000
+Subject: [PATCH 466/488] soh: name the 2 address-named symbols defined in
+ z_demo_6k.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c.
+
+  * D_8096932C -> sMedallionSfxFrames
+    deduced, confidence HIGH: the per-sage cutscene frame the medallion
+    light stops its gather sound at
+
+  * D_809693CC -> sGlowPulseRamp
+    deduced, confidence HIGH: the sixteen-step ramp Demo6K_DrawGlow scales
+    the glow by
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c b/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
+index e17653593..a6913e1cd 100644
+--- a/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
++++ b/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
+@@ -304,7 +304,7 @@ void Demo6K_FadeWhiteout(Demo6K* this, PlayState* play) {
+ }
+ 
+ void Demo6K_PulseMedallionLight(Demo6K* this, PlayState* play) {
+-    static u16 D_8096932C[] = { 275, 275, 275, 275, 275, 275 };
++    static u16 sMedallionSfxFrames[] = { 275, 275, 275, 275, 275, 275 };  // was D_8096932C [LLM:HIGH]
+     u32 frames = play->state.frames;
+ 
+     if (this->actor.scale.x < 0.1f) {
+@@ -326,7 +326,7 @@ void Demo6K_PulseMedallionLight(Demo6K* this, PlayState* play) {
+ 
+     this->timer2++;
+ 
+-    if ((play->sceneNum == SCENE_INSIDE_GANONS_CASTLE) && (play->csCtx.frames < D_8096932C[this->actor.params - 3])) {
++    if ((play->sceneNum == SCENE_INSIDE_GANONS_CASTLE) && (play->csCtx.frames < sMedallionSfxFrames[this->actor.params - 3])) {  // was D_8096932C [LLM:HIGH]
+         Actor_PlaySfx_Flagged(&this->actor, NA_SE_EV_LIGHT_GATHER - SFX_FLAG);
+     }
+ }
+@@ -799,7 +799,7 @@ void Demo6K_DrawGanonBlastSpawn(Actor* thisx, PlayState* play) {
+ }
+ 
+ void Demo6K_DrawGlow(Actor* thisx, PlayState* play) {
+-    static u8 D_809693CC[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1 };
++    static u8 sGlowPulseRamp[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 7, 6, 5, 4, 3, 2, 1 };  // was D_809693CC [LLM:HIGH]
+     Demo6K* this = (Demo6K*)thisx;
+     Gfx* displayList = Graph_Alloc(play->state.gfxCtx, 4 * sizeof(Gfx));
+     u16 frames = play->gameplayFrames;
+@@ -809,7 +809,7 @@ void Demo6K_DrawGlow(Actor* thisx, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+-    scaleFactor = ((s16)D_809693CC[(frames * 4) & 0xF] * 0.01f) + 1.0f;
++    scaleFactor = ((s16)sGlowPulseRamp[(frames * 4) & 0xF] * 0.01f) + 1.0f;  // was D_809693CC [LLM:HIGH]
+     Matrix_Scale(this->actor.scale.x * scaleFactor, this->actor.scale.y * scaleFactor,
+                  this->actor.scale.z * scaleFactor, MTXMODE_APPLY);
+     gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+-- 
+2.55.0
+

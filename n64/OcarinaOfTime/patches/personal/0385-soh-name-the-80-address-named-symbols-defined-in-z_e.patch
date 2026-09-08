@@ -1,0 +1,1649 @@
+From 8a561aa7469968f8a6dbbaad8508757a2f8585bf Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:32 +0000
+Subject: [PATCH 385/488] soh: name the 80 address-named symbols defined in
+ z_en_xc.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 80 are defined in soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c.
+
+  * func_80B3C588 -> EnXc_SetPosRotFromCue
+    deduced, confidence HIGH: snaps Sheik onto a cue's start position and
+    rotation
+
+  * func_80B3C620 -> EnXc_MoveAlongCue
+    deduced, confidence HIGH: lerps Sheik between a cue's start and end
+    positions
+
+  * func_80B3C7D4 -> EnXc_SetActionByHarpState
+    deduced, confidence HIGH: when the action has moved off the expected
+    one, picks the next by whether the harp is being put away
+
+  * func_80B3C820 -> EnXc_SetupIdleAction53
+    deduced, confidence HIGH: loops gSheikIdleAnim and enters action 53
+
+  * func_80B3C888 -> EnXc_IdleWhenNoCutscene
+    deduced, confidence HIGH: drops the type 4 Sheik into that idle once no
+    cutscene is running
+
+  * func_80B3C8CC -> EnXc_ApplyRootMotionAboveBase
+    deduced, confidence HIGH: queues the animation's root motion, but only
+    while the root joint is above its base height
+
+  * func_80B3C924 -> EnXc_ApplyRootMotion
+    deduced, confidence HIGH: queues the animation's root motion
+    unconditionally
+
+  * func_80B3C964 -> EnXc_ResetAndApplyRootMotion
+    deduced, confidence HIGH: rebases the root motion on the current joint
+    before queueing it
+
+  * func_80B3C9DC -> EnXc_ClearRootMotion
+    deduced, confidence HIGH: clears the root motion flags
+
+  * func_80B3C9EC -> EnXc_SetupBlockPedestal
+    deduced, confidence HIGH: loops the arms-crossed idle and enters the
+    pedestal-blocking action, which randomizer removes entirely
+
+  * func_80B3CA38 -> EnXc_KillUnlessMinuetPending
+    deduced, confidence HIGH: keeps this Sheik alive only for an adult who
+    has not learned the Minuet
+
+  * func_80B3CB58 -> EnXc_KillUnlessBoleroPending
+    deduced, confidence HIGH: the same test against the Bolero
+
+  * func_80B3D118 -> EnXc_PlaySkipSfxOutsideColossus
+    deduced, confidence HIGH: plays NA_SE_PL_SKIP everywhere except the
+    Desert Colossus cutscene layer
+
+  * func_80B3D48C -> EnXc_FacePlayerFromCue
+    deduced, confidence HIGH: turns Sheik to face the player, taking the yaw
+    from the link cue when there is one
+
+  * func_80B3D644 -> EnXc_MoveWithGravity1
+    deduced, confidence HIGH: moves the actor at its current speed
+
+  * func_80B3D6F0 -> EnXc_AccelerateStep
+    deduced, confidence HIGH: runs the XZ acceleration step
+
+  * func_80B3D710 -> EnXc_MoveWithGravity2
+    deduced, confidence HIGH: the second identical move-with-gravity wrapper
+
+  * func_80B3D730 -> EnXc_UpdateSpeedStep
+    deduced, confidence HIGH: runs the XZ speed step
+
+  * func_80B3D750 -> EnXc_WaitForMinuetOrBolero
+    deduced, confidence HIGH: holds until both teaching cutscenes report
+    done, then waits
+
+  * func_80B3D8A4 -> EnXc_StartWalkWhenAnimDone
+    deduced, confidence HIGH: on the animation ending, loops the walk and
+    enters the acceleration action
+
+  * func_80B3DAF0 -> EnXc_StartHarpPullOnCue
+    deduced, confidence HIGH: starts gSheikPullingOutHarpAnim on any of the
+    harp cue actions
+
+  * func_80B3DCA8 -> EnXc_HoldHarpOnCue
+    deduced, confidence HIGH: holds the initial harp pose while cue 4 sits
+    on action 8
+
+  * func_80B3DE00 -> EnXc_PutHarpAwayWhenAnimDone
+    deduced, confidence HIGH: plays the harp pull-out backwards to put it
+    away
+
+  * func_80B3DE78 -> EnXc_ReturnToIdleWhenAnimDone
+    deduced, confidence HIGH: returns to gSheikIdleAnim and the default draw
+    once the animation ends
+
+  * func_80B3E164 -> EnXc_ThrowNutAfterDelay
+    deduced, confidence HIGH: counts 30 frames, then spawns the deku nut and
+    deletes Sheik
+
+  * func_80B3E87C -> EnXc_SetHarpLimbDList
+    deduced, confidence HIGH: swaps in gSheikHarpDL once the animation
+    passes frame 34
+
+  * func_80B3EBF0 -> EnXc_GoToAction20
+    deduced, confidence HIGH: sets action 20
+
+  * func_80B3EC00 -> EnXc_GoToAction21
+    deduced, confidence HIGH: sets action 21
+
+  * func_80B3EC0C -> EnXc_SnapToCueUnlessAction1
+    deduced, confidence HIGH: snaps Sheik onto cue 4's start position
+    whenever that cue is on anything but action 1
+
+  * func_80B3EC90 -> EnXc_BlockPedestalUnlessAction6
+    deduced, confidence HIGH: drops into the pedestal-blocking setup
+    whenever cue 4 is on anything but action 6
+
+  * func_80B3ECD8 -> EnXc_StartWalkAfterDelay
+    deduced, confidence HIGH: after 12 frames sets the kREG-tunable walk
+    speed and enters action 24
+
+  * func_80B3EE64 -> EnXc_GoToSerenade
+    deduced, confidence HIGH: sets the Serenade action
+
+  * func_80B3EE74 -> EnXc_GoToAction30AfterSerenade
+    deduced, confidence HIGH: moves to action 30 once the Serenade cutscene
+    reports done
+
+  * func_80B3EEA4 -> EnXc_NextAfterAction30
+    deduced, confidence HIGH: when the shared step has moved the action off
+    30, forces 31 instead
+
+  * func_80B3EEC8 -> EnXc_NextAfterAction31
+    deduced, confidence HIGH: the same guard from action 31 to 32
+
+  * func_80B3EEEC -> EnXc_NextAfterAction32
+    deduced, confidence HIGH: the same guard from action 32 to 33
+
+  * func_80B3EF10 -> EnXc_NextAfterAction33
+    deduced, confidence HIGH: the same guard from action 33 to 34
+
+  * func_80B3EF34 -> EnXc_NextAfterAction34
+    deduced, confidence HIGH: the same guard from action 34 to 35
+
+  * func_80B3EF58 -> EnXc_NextAfterAction35
+    deduced, confidence HIGH: the same guard from action 35, going to 36
+    while putting the harp away and back to 34 otherwise
+
+  * func_80B3EF80 -> EnXc_NextAfterAction36
+    deduced, confidence HIGH: the same guard from action 36 to 37
+
+  * func_80B3EFA4 -> EnXc_NextAfterAction37
+    deduced, confidence HIGH: the same guard from action 37 to 38
+
+  * func_80B3EFC8 -> EnXc_NextAfterAction38
+    deduced, confidence HIGH: the same guard from action 38 to 39
+
+  * func_80B3EFEC -> EnXc_NextAfterAction39
+    deduced, confidence HIGH: the same guard from action 39 to 40
+
+  * func_80B3F010 -> EnXc_IdleWhenPlayerRetreats
+    deduced, confidence HIGH: returns to the idle animation and action 41
+    once the player is 140 units away
+
+  * func_80B3F0B8 -> EnXc_NextAfterAction41
+    deduced, confidence HIGH: the same guard from action 41 to 42
+
+  * func_80B3F0DC -> EnXc_NextAfterAction42
+    deduced, confidence HIGH: the same guard from action 42 to 43
+
+  * func_80B3F100 -> EnXc_NextAfterAction43
+    deduced, confidence HIGH: the same guard from action 43 to 44
+
+  * func_80B3F3C8 -> EnXc_GoToAction45
+    deduced, confidence HIGH: sets action 45
+
+  * func_80B3F3D8 -> EnXc_PlaySkipSfx
+    deduced, confidence HIGH: plays NA_SE_PL_SKIP
+
+  * func_80B3F534 -> EnXc_SpawnWarpAtFrame310
+    deduced, confidence HIGH: spawns the blue warp at cutscene frame 310
+
+  * func_80B3F59C -> EnXc_HandleCue0Actions
+    deduced, confidence HIGH: reacts to each new action on cue 0,
+    remembering the last one it handled
+
+  * func_80B3F620 -> EnXc_NextAfterAction45
+    deduced, confidence HIGH: the same guard from action 45 to 46
+
+  * func_80B3F644 -> EnXc_NextAfterAction46
+    deduced, confidence HIGH: the same guard from action 46 to 47
+
+  * func_80B3F668 -> EnXc_StartWalkOnCue4
+    deduced, confidence HIGH: on cue 4 action 4, loops the walk, turns Sheik
+    about and enters action 48
+
+  * func_80B3F6DC -> EnXc_NextAfterAction48
+    deduced, confidence HIGH: the same guard from action 48 to 49
+
+  * func_80B3F754 -> EnXc_StartAction51OnCue22
+    deduced, confidence HIGH: on cue 4 action 22, loops gSheikAnim_01A048
+    and snaps onto the cue
+
+  * func_80B3F7BC -> EnXc_HideOnCue9
+    deduced, confidence HIGH: on cue 4 action 9, stops drawing Sheik and
+    enters action 52
+
+  * func_80B3FA08 -> EnXc_SetupTriforceIdle
+    deduced, confidence HIGH: enters action 53 with the kREG-tunable
+    triforce angle
+
+  * func_80B3FA2C -> EnXc_PlayCutsceneSeq1
+    deduced, confidence HIGH: starts cutscene effects sequence 1
+
+  * func_80B3FAE0 -> EnXc_ShoutOnFrame38
+    deduced, confidence HIGH: plays NA_SE_VO_SK_SHOUT and that sequence at
+    animation frame 38
+
+  * func_80B3FF0C -> EnXc_UpdateFromCue4
+    deduced, confidence GUESS: reacts to cue 4 whenever it is on anything
+    but action 1; what it drives beyond the position is not established
+
+  * func_80B400AC -> EnXc_KillOnCue9
+    deduced, confidence HIGH: kills the actor once cue 4 reaches action 9
+
+  * func_80B40590 -> EnXc_SetupNocturneSquint
+    deduced, confidence HIGH: enters the Nocturne init action with the
+    squinting draw
+
+  * func_80B406F8 -> EnXc_SetupNocturneHidden
+    deduced, confidence HIGH: enters the Nocturne init action with nothing
+    drawn and no shadow
+
+  * func_80B40A78 -> EnXc_SetupHitGroundInNocturne
+    deduced, confidence HIGH: snaps onto cue 4 and plays
+    gSheikHittingGroundAnim once
+
+  * func_80B40C50 -> EnXc_NextAfterAction65
+    deduced, confidence HIGH: the same guard from action 65 to 66
+
+  * func_80B40C74 -> EnXc_NextAfterAction66
+    deduced, confidence HIGH: the same guard from action 66 to 67
+
+  * func_80B40C98 -> EnXc_NextAfterAction67
+    deduced, confidence HIGH: the same guard from action 67 to 68
+
+  * func_80B40CBC -> EnXc_NextAfterAction68
+    deduced, confidence HIGH: the same guard from action 68 to 69
+
+  * func_80B40CE0 -> EnXc_NextAfterAction69
+    deduced, confidence HIGH: the same guard from action 69, going to 70
+    while putting the harp away and back to 68 otherwise
+
+  * func_80B40D08 -> EnXc_NextAfterAction70
+    deduced, confidence HIGH: the same guard from action 70 to 71
+
+  * func_80B40D2C -> EnXc_NextAfterAction71
+    deduced, confidence HIGH: the same guard from action 71 to 72
+
+  * func_80B40D50 -> EnXc_NextAfterAction72
+    deduced, confidence HIGH: the same guard from action 72 into the
+    Nocturne reverse walk-off
+
+  * func_80B40D74 -> EnXc_NextAfterNocturneReverseAccel
+    deduced, confidence HIGH: the same guard from the Nocturne reverse
+    acceleration into the reverse walk
+
+  * func_80B40E40 -> EnXc_NextAfterNocturneReverseHalt
+    deduced, confidence HIGH: the same guard from the Nocturne halt into the
+    nut throw
+
+  * func_80B40E64 -> EnXc_NextAfterNocturneThrowNut
+    deduced, confidence HIGH: the same guard from the Nocturne nut throw to
+    action 77
+
+  * func_80B40E88 -> EnXc_NextAfterAction77
+    deduced, confidence HIGH: the same guard from action 77 to 78
+
+  * func_80B41798 -> EnXc_BlockPedestalAfterText
+    deduced, confidence HIGH: returns to blocking the pedestal and drops
+    targeting once the textbox closes
+
+  * D_80B42DA0 -> sDiveSfxPos
+    deduced, confidence HIGH: the projected position
+    NA_SE_EV_DIVE_INTO_WATER is played at
+
+  * func_80B40BB4 -> EnXc_SetupIdleAfterNocturneFall
+    deduced, confidence HIGH: snaps onto cue 4, loops gSheikIdleAnim and
+    enters action 65; named for the beat it follows because
+    EnXc_SetupIdleInNocturne is already taken
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c | 462 ++++++++++++--------
+ 1 file changed, 271 insertions(+), 191 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+index 30f7fc610..fef3e390f 100644
+--- a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
++++ b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+@@ -147,7 +147,8 @@ s32 EnXc_CsActionsAreNotEqual(EnXc* this, PlayState* play, u16 action, s32 npcAc
+     return false;
+ }
+ 
+-void func_80B3C588(EnXc* this, PlayState* play, u32 npcActionIdx) {
++// LLM generated name (HIGH), was func_80B3C588: snaps Sheik onto a cue's start position and rotation
++void EnXc_SetPosRotFromCue(EnXc* this, PlayState* play, u32 npcActionIdx) {
+     CsCmdActorCue* csCmdNPCAction = EnXc_GetCsCmd(play, npcActionIdx);
+     Actor* thisx = &this->actor;
+ 
+@@ -161,7 +162,8 @@ void func_80B3C588(EnXc* this, PlayState* play, u32 npcActionIdx) {
+     }
+ }
+ 
+-void func_80B3C620(EnXc* this, PlayState* play, s32 npcActionIdx) {
++// LLM generated name (HIGH), was func_80B3C620: lerps Sheik between a cue's start and end positions
++void EnXc_MoveAlongCue(EnXc* this, PlayState* play, s32 npcActionIdx) {
+     CsCmdActorCue* npcAction = EnXc_GetCsCmd(play, npcActionIdx);
+     Vec3f* xcPos = &this->actor.world.pos;
+     f32 startX;
+@@ -213,7 +215,8 @@ void EnXc_CheckAndSetAction(EnXc* this, s32 check, s32 set) {
+     }
+ }
+ 
+-void func_80B3C7D4(EnXc* this, s32 action1, s32 action2, s32 action3) {
++// LLM generated name (HIGH), was func_80B3C7D4: when the action has moved off the expected one, picks the next by whether the harp is being put away
++void EnXc_SetActionByHarpState(EnXc* this, s32 action1, s32 action2, s32 action3) {
+     if (action1 != this->action) {
+         if (this->action == SHEIK_ACTION_PUT_HARP_AWAY) {
+             this->action = action2;
+@@ -230,19 +233,22 @@ s32 EnXc_NoCutscenePlaying(PlayState* play) {
+     return false;
+ }
+ 
+-void func_80B3C820(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3C820: loops gSheikIdleAnim and enters action 53
++void EnXc_SetupIdleAction53(EnXc* this) {
+     Animation_Change(&this->skelAnime, &gSheikIdleAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gSheikIdleAnim),
+                      ANIMMODE_LOOP, 0.0f);
+     this->action = SHEIK_ACTION_53;
+ }
+ 
+-void func_80B3C888(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3C888: drops the type 4 Sheik into that idle once no cutscene is running
++void EnXc_IdleWhenNoCutscene(EnXc* this, PlayState* play) {
+     if (EnXc_NoCutscenePlaying(play) && this->actor.params == SHEIK_TYPE_4) {
+-        func_80B3C820(this);
++        EnXc_SetupIdleAction53(this);  // was func_80B3C820 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B3C8CC(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3C8CC: queues the animation's root motion, but only while the root joint is above its base height
++void EnXc_ApplyRootMotionAboveBase(EnXc* this, PlayState* play) {
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     if (skelAnime->jointTable[0].y >= skelAnime->baseTransl.y) {
+@@ -251,23 +257,27 @@ void func_80B3C8CC(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3C924(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3C924: queues the animation's root motion unconditionally
++void EnXc_ApplyRootMotion(EnXc* this, PlayState* play) {
+     this->skelAnime.movementFlags |= 3;
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+ 
+-void func_80B3C964(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3C964: rebases the root motion on the current joint before queueing it
++void EnXc_ResetAndApplyRootMotion(EnXc* this, PlayState* play) {
+     this->skelAnime.baseTransl = this->skelAnime.jointTable[0];
+     this->skelAnime.prevTransl = this->skelAnime.jointTable[0];
+     this->skelAnime.movementFlags |= 3;
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+ 
+-void func_80B3C9DC(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3C9DC: clears the root motion flags
++void EnXc_ClearRootMotion(EnXc* this) {
+     this->skelAnime.movementFlags &= ~0x3;
+ }
+ 
+-void func_80B3C9EC(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3C9EC: loops the arms-crossed idle and enters the pedestal-blocking action, which randomizer removes entirely
++void EnXc_SetupBlockPedestal(EnXc* this) {
+     EnXc_ChangeAnimation(this, &gSheikArmsCrossedIdleAnim, ANIMMODE_LOOP, 0.0f, false);
+     this->action = SHEIK_ACTION_BLOCK_PEDESTAL;
+     this->drawMode = SHEIK_DRAW_DEFAULT;
+@@ -279,7 +289,8 @@ void func_80B3C9EC(EnXc* this) {
+     return;
+ }
+ 
+-void func_80B3CA38(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3CA38: keeps this Sheik alive only for an adult who has not learned the Minuet
++void EnXc_KillUnlessMinuetPending(EnXc* this, PlayState* play) {
+     // If Player is adult but hasn't learned Minuet of Forest
+     if (!Flags_GetEventChkInf(EVENTCHKINF_LEARNED_MINUET_OF_FOREST) && LINK_IS_ADULT) {
+         this->action = SHEIK_ACTION_INIT;
+@@ -313,7 +324,8 @@ s32 EnXc_MinuetCS(EnXc* this, PlayState* play) {
+     return true;
+ }
+ 
+-void func_80B3CB58(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3CB58: the same test against the Bolero
++void EnXc_KillUnlessBoleroPending(EnXc* this, PlayState* play) {
+     // If hasn't learned Bolero and Player is Adult
+     if (!Flags_GetEventChkInf(EVENTCHKINF_LEARNED_BOLERO_OF_FIRE) && LINK_IS_ADULT) {
+         this->action = SHEIK_ACTION_INIT;
+@@ -479,7 +491,8 @@ void EnXc_SetColossusAppearSFX(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3D118(PlayState* play) {
++// LLM generated name (HIGH), was func_80B3D118: plays NA_SE_PL_SKIP everywhere except the Desert Colossus cutscene layer
++void EnXc_PlaySkipSfxOutsideColossus(PlayState* play) {
+     s16 sceneNum;
+ 
+     if ((gSaveContext.sceneLayer != 4) || (sceneNum = play->sceneNum, sceneNum != SCENE_DESERT_COLOSSUS)) {
+@@ -487,7 +500,8 @@ void func_80B3D118(PlayState* play) {
+     }
+ }
+ 
+-static Vec3f D_80B42DA0;
++// LLM generated name (HIGH), was D_80B42DA0: the projected position NA_SE_EV_DIVE_INTO_WATER is played at
++static Vec3f sDiveSfxPos;  // was D_80B42DA0 [LLM:HIGH]
+ 
+ static s32 D_80B41D90 = 0;
+ void EnXc_SetColossusWindSFX(PlayState* play) {
+@@ -588,7 +602,8 @@ void EnXc_InitFlame(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3D48C(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3D48C: turns Sheik to face the player, taking the yaw from the link cue when there is one
++void EnXc_FacePlayerFromCue(EnXc* this, PlayState* play) {
+     CutsceneContext* csCtx = &play->csCtx;
+     CsCmdActorCue* linkAction = csCtx->linkAction;
+     s16 yaw;
+@@ -640,7 +655,8 @@ void EnXc_CalcXZAccel(EnXc* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_80B3D644(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3D644: moves the actor at its current speed
++void EnXc_MoveWithGravity1(EnXc* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+@@ -656,19 +672,23 @@ void EnXc_CalcXZSpeed(EnXc* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_80B3D6F0(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3D6F0: runs the XZ acceleration step
++void EnXc_AccelerateStep(EnXc* this) {
+     EnXc_CalcXZAccel(this);
+ }
+ 
+-void func_80B3D710(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3D710: the second identical move-with-gravity wrapper
++void EnXc_MoveWithGravity2(EnXc* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_80B3D730(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3D730: runs the XZ speed step
++void EnXc_UpdateSpeedStep(EnXc* this) {
+     EnXc_CalcXZSpeed(this);
+ }
+ 
+-void func_80B3D750(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3D750: holds until both teaching cutscenes report done, then waits
++void EnXc_WaitForMinuetOrBolero(EnXc* this, PlayState* play) {
+     if (EnXc_MinuetCS(this, play) && EnXc_BoleroCS(this, play)) {
+         this->action = SHEIK_ACTION_WAIT;
+     }
+@@ -694,15 +714,16 @@ void EnXc_SetupFallFromSkyAction(EnXc* this, PlayState* play) {
+             pos->y = npcAction->startPos.y;
+             pos->z = npcAction->startPos.z;
+ 
+-            func_80B3D48C(this, play);
+-            func_80B3C964(this, play);
++            EnXc_FacePlayerFromCue(this, play);  // was func_80B3D48C [LLM:HIGH]
++            EnXc_ResetAndApplyRootMotion(this, play);  // was func_80B3C964 [LLM:HIGH]
+             Animation_Change(skelAnime, &gSheikFallingFromSkyAnim, 1.0f, 0.0f, frameCount, ANIMMODE_ONCE, 0.0f);
+-            func_80B3D118(play);
++            EnXc_PlaySkipSfxOutsideColossus(play);  // was func_80B3D118 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80B3D8A4(EnXc* this, PlayState* play, s32 animFinished) {
++// LLM generated name (HIGH), was func_80B3D8A4: on the animation ending, loops the walk and enters the acceleration action
++void EnXc_StartWalkWhenAnimDone(EnXc* this, PlayState* play, s32 animFinished) {
+     if (animFinished) {
+         SkelAnime* skelAnime = &this->skelAnime;
+         f32 frameCount = Animation_GetLastFrame(&gSheikWalkingAnim);
+@@ -712,11 +733,11 @@ void func_80B3D8A4(EnXc* this, PlayState* play, s32 animFinished) {
+         this->action = SHEIK_ACTION_ACCEL;
+         this->timer = 0.0f;
+ 
+-        func_80B3C9DC(this);
++        EnXc_ClearRootMotion(this);  // was func_80B3C9DC [LLM:HIGH]
+         this->actor.gravity = -((kREG(1) * 0.01f) + 13.0f);
+         this->actor.minVelocityY = -((kREG(1) * 0.01f) + 13.0f);
+     } else {
+-        func_80B3C8CC(this, play);
++        EnXc_ApplyRootMotionAboveBase(this, play);  // was func_80B3C8CC [LLM:HIGH]
+     }
+ }
+ 
+@@ -753,7 +774,8 @@ void EnXc_SetupStoppedAction(EnXc* this) {
+     }
+ }
+ 
+-void func_80B3DAF0(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3DAF0: starts gSheikPullingOutHarpAnim on any of the harp cue actions
++void EnXc_StartHarpPullOnCue(EnXc* this, PlayState* play) {
+     CsCmdActorCue* npcAction = EnXc_GetCsCmd(play, 4);
+     u16 action;
+ 
+@@ -797,7 +819,8 @@ void EnXc_SetupPlayingHarpAction(EnXc* this, PlayState* play, s32 animFinished)
+     }
+ }
+ 
+-void func_80B3DCA8(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3DCA8: holds the initial harp pose while cue 4 sits on action 8
++void EnXc_HoldHarpOnCue(EnXc* this, PlayState* play) {
+     f32 frameCount;
+ 
+     if (play->csCtx.state != 0) {
+@@ -829,7 +852,8 @@ void EnXc_SetupHarpPutawayAction(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3DE00(EnXc* this, s32 animFinished) {
++// LLM generated name (HIGH), was func_80B3DE00: plays the harp pull-out backwards to put it away
++void EnXc_PutHarpAwayWhenAnimDone(EnXc* this, s32 animFinished) {
+     if (animFinished) {
+         Animation_Change(&this->skelAnime, &gSheikPullingOutHarpAnim, -1.0f,
+                          Animation_GetLastFrame(&gSheikPullingOutHarpAnim), 0.0f, ANIMMODE_ONCE, 0.0f);
+@@ -838,7 +862,8 @@ void func_80B3DE00(EnXc* this, s32 animFinished) {
+     }
+ }
+ 
+-void func_80B3DE78(EnXc* this, s32 animFinished) {
++// LLM generated name (HIGH), was func_80B3DE78: returns to gSheikIdleAnim and the default draw once the animation ends
++void EnXc_ReturnToIdleWhenAnimDone(EnXc* this, s32 animFinished) {
+     if (animFinished) {
+         Animation_Change(&this->skelAnime, &gSheikIdleAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gSheikIdleAnim),
+                          ANIMMODE_LOOP, 0.0f);
+@@ -892,7 +917,8 @@ void EnXc_SetupNutThrow(EnXc* this) {
+     }
+ }
+ 
+-void func_80B3E164(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3E164: counts 30 frames, then spawns the deku nut and deletes Sheik
++void EnXc_ThrowNutAfterDelay(EnXc* this, PlayState* play) {
+     this->timer++;
+     if (this->timer >= 30.0f) {
+         this->action = SHEIK_ACTION_DELETE;
+@@ -922,7 +948,7 @@ void EnXc_SetupDisappear(EnXc* this, PlayState* play) {
+ void EnXc_ActionFunc0(EnXc* this, PlayState* play) {
+     EnXc_SetColossusAppearSFX(this, play);
+     EnXc_SetColossusWindSFX(play);
+-    func_80B3D750(this, play);
++    EnXc_WaitForMinuetOrBolero(this, play);  // was func_80B3D750 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc1(EnXc* this, PlayState* play) {
+@@ -939,7 +965,7 @@ void EnXc_GracefulFall(EnXc* this, PlayState* play) {
+     EnXc_SetLandingSFX(this, play);
+     EnXc_SetColossusAppearSFX(this, play);
+     EnXc_SetColossusWindSFX(play);
+-    func_80B3D8A4(this, play, animFinished);
++    EnXc_StartWalkWhenAnimDone(this, play, animFinished);  // was func_80B3D8A4 [LLM:HIGH]
+ }
+ 
+ void EnXc_Accelerate(EnXc* this, PlayState* play) {
+@@ -952,7 +978,7 @@ void EnXc_Accelerate(EnXc* this, PlayState* play) {
+ }
+ 
+ void EnXc_Walk(EnXc* this, PlayState* play) {
+-    func_80B3D644(this);
++    EnXc_MoveWithGravity1(this);  // was func_80B3D644 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+@@ -973,7 +999,7 @@ void EnXc_ActionFunc6(EnXc* this, PlayState* play) {
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+-    func_80B3DAF0(this, play);
++    EnXc_StartHarpPullOnCue(this, play);  // was func_80B3DAF0 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc7(EnXc* this, PlayState* play) {
+@@ -996,7 +1022,7 @@ void EnXc_ActionFunc9(EnXc* this, PlayState* play) {
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+-    func_80B3DCA8(this, play);
++    EnXc_HoldHarpOnCue(this, play);  // was func_80B3DCA8 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc10(EnXc* this, PlayState* play) {
+@@ -1011,7 +1037,7 @@ void EnXc_ActionFunc11(EnXc* this, PlayState* play) {
+ 
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+-    func_80B3DE00(this, animFinished);
++    EnXc_PutHarpAwayWhenAnimDone(this, animFinished);  // was func_80B3DE00 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc12(EnXc* this, PlayState* play) {
+@@ -1019,7 +1045,7 @@ void EnXc_ActionFunc12(EnXc* this, PlayState* play) {
+ 
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+-    func_80B3DE78(this, animFinished);
++    EnXc_ReturnToIdleWhenAnimDone(this, animFinished);  // was func_80B3DE78 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc13(EnXc* this, PlayState* play) {
+@@ -1031,7 +1057,7 @@ void EnXc_ActionFunc13(EnXc* this, PlayState* play) {
+ }
+ 
+ void EnXc_ReverseAccelerate(EnXc* this, PlayState* play) {
+-    func_80B3D6F0(this);
++    EnXc_AccelerateStep(this);  // was func_80B3D6F0 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+@@ -1041,7 +1067,7 @@ void EnXc_ReverseAccelerate(EnXc* this, PlayState* play) {
+ }
+ 
+ void EnXc_ActionFunc15(EnXc* this, PlayState* play) {
+-    func_80B3D710(this);
++    EnXc_MoveWithGravity2(this);  // was func_80B3D710 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+@@ -1051,7 +1077,7 @@ void EnXc_ActionFunc15(EnXc* this, PlayState* play) {
+ }
+ 
+ void EnXc_HaltAndWaitToThrowNut(EnXc* this, PlayState* play) {
+-    func_80B3D730(this);
++    EnXc_UpdateSpeedStep(this);  // was func_80B3D730 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+@@ -1066,7 +1092,7 @@ void EnXc_ThrowNut(EnXc* this, PlayState* play) {
+     EnXc_SetEyePattern(this);
+     EnXc_SetNutThrowSFX(this, play);
+     EnXc_InitFlame(this, play);
+-    func_80B3E164(this, play);
++    EnXc_ThrowNutAfterDelay(this, play);  // was func_80B3E164 [LLM:HIGH]
+ }
+ 
+ void EnXc_Delete(EnXc* this, PlayState* play) {
+@@ -1081,7 +1107,8 @@ void EnXc_Fade(EnXc* this, PlayState* play) {
+     EnXc_InitFlame(this, play);
+ }
+ 
+-void func_80B3E87C(Gfx** dList, EnXc* this) {
++// LLM generated name (HIGH), was func_80B3E87C: swaps in gSheikHarpDL once the animation passes frame 34
++void EnXc_SetHarpLimbDList(Gfx** dList, EnXc* this) {
+     f32 currentFrame = this->skelAnime.curFrame;
+ 
+     if (currentFrame >= 34.0f) {
+@@ -1094,7 +1121,7 @@ s32 EnXc_PullingOutHarpOverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dL
+     EnXc* this = (EnXc*)thisx;
+ 
+     if (limbIndex == 12) {
+-        func_80B3E87C(dList, this);
++        EnXc_SetHarpLimbDList(dList, this);  // was func_80B3E87C [LLM:HIGH]
+     }
+ 
+     return 0;
+@@ -1153,15 +1180,18 @@ void EnXc_DrawHarp(Actor* thisx, PlayState* play) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_80B3EBF0(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3EBF0: sets action 20
++void EnXc_GoToAction20(EnXc* this, PlayState* play) {
+     this->action = SHEIK_ACTION_20;
+ }
+ 
+-void func_80B3EC00(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EC00: sets action 21
++void EnXc_GoToAction21(EnXc* this) {
+     this->action = SHEIK_ACTION_21;
+ }
+ 
+-void func_80B3EC0C(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3EC0C: snaps Sheik onto cue 4's start position whenever that cue is on anything but action 1
++void EnXc_SnapToCueUnlessAction1(EnXc* this, PlayState* play) {
+     CutsceneContext* csCtx = &play->csCtx;
+ 
+     if (csCtx->state != 0) {
+@@ -1184,19 +1214,21 @@ void func_80B3EC0C(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3EC90(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3EC90: drops into the pedestal-blocking setup whenever cue 4 is on anything but action 6
++void EnXc_BlockPedestalUnlessAction6(EnXc* this, PlayState* play) {
+     CutsceneContext* csCtx = &play->csCtx;
+ 
+     if (csCtx->state != 0) {
+         CsCmdActorCue* npcAction = csCtx->npcActions[4];
+ 
+         if (npcAction != NULL && npcAction->action != 6) {
+-            func_80B3C9EC(this);
++            EnXc_SetupBlockPedestal(this);  // was func_80B3C9EC [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80B3ECD8(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3ECD8: after 12 frames sets the kREG-tunable walk speed and enters action 24
++void EnXc_StartWalkAfterDelay(EnXc* this) {
+     this->timer++;
+     if (this->timer >= 12.0f) {
+         this->actor.speedXZ = kREG(2) * 0.01f + 1.2f;
+@@ -1205,27 +1237,27 @@ void func_80B3ECD8(EnXc* this) {
+ }
+ 
+ void EnXc_ActionFunc20(EnXc* this, PlayState* play) {
+-    func_80B3EC00(this);
++    EnXc_GoToAction21(this);  // was func_80B3EC00 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc21(EnXc* this, PlayState* play) {
+-    func_80B3EC0C(this, play);
++    EnXc_SnapToCueUnlessAction1(this, play);  // was func_80B3EC0C [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc22(EnXc* this, PlayState* play) {
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+-    func_80B3EC90(this, play);
++    EnXc_BlockPedestalUnlessAction6(this, play);  // was func_80B3EC90 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc23(EnXc* this, PlayState* play) {
+-    func_80B3D6F0(this);
++    EnXc_AccelerateStep(this);  // was func_80B3D6F0 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+     EnXc_SetWalkingSFX(this, play);
+-    func_80B3ECD8(this);
++    EnXc_StartWalkAfterDelay(this);  // was func_80B3ECD8 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc24(EnXc* this, PlayState* play) {
+@@ -1243,57 +1275,70 @@ void EnXc_ActionFunc27(EnXc* this, PlayState* play) {
+ void EnXc_ActionFunc28(EnXc* this, PlayState* play) {
+ }
+ 
+-void func_80B3EE64(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3EE64: sets the Serenade action
++void EnXc_GoToSerenade(EnXc* this, PlayState* play) {
+     this->action = SHEIK_ACTION_SERENADE;
+ }
+ 
+-void func_80B3EE74(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3EE74: moves to action 30 once the Serenade cutscene reports done
++void EnXc_GoToAction30AfterSerenade(EnXc* this, PlayState* play) {
+     if (EnXc_SerenadeCS(this, play)) {
+         this->action = SHEIK_ACTION_30;
+     }
+ }
+ 
+-void func_80B3EEA4(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EEA4: when the shared step has moved the action off 30, forces 31 instead
++void EnXc_NextAfterAction30(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_30, SHEIK_ACTION_31);
+ }
+ 
+-void func_80B3EEC8(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EEC8: the same guard from action 31 to 32
++void EnXc_NextAfterAction31(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_31, SHEIK_ACTION_32);
+ }
+ 
+-void func_80B3EEEC(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EEEC: the same guard from action 32 to 33
++void EnXc_NextAfterAction32(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_32, SHEIK_ACTION_33);
+ }
+ 
+-void func_80B3EF10(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EF10: the same guard from action 33 to 34
++void EnXc_NextAfterAction33(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_33, SHEIK_ACTION_34);
+ }
+ 
+-void func_80B3EF34(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EF34: the same guard from action 34 to 35
++void EnXc_NextAfterAction34(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_34, SHEIK_ACTION_35);
+ }
+ 
+-void func_80B3EF58(EnXc* this) {
+-    func_80B3C7D4(this, SHEIK_ACTION_35, SHEIK_ACTION_36, SHEIK_ACTION_34);
++// LLM generated name (HIGH), was func_80B3EF58: the same guard from action 35, going to 36 while putting the harp away and back to 34 otherwise
++void EnXc_NextAfterAction35(EnXc* this) {
++    EnXc_SetActionByHarpState(this, SHEIK_ACTION_35, SHEIK_ACTION_36, SHEIK_ACTION_34);  // was func_80B3C7D4 [LLM:HIGH]
+ }
+ 
+-void func_80B3EF80(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EF80: the same guard from action 36 to 37
++void EnXc_NextAfterAction36(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_36, SHEIK_ACTION_37);
+ }
+ 
+-void func_80B3EFA4(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EFA4: the same guard from action 37 to 38
++void EnXc_NextAfterAction37(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_37, SHEIK_ACTION_38);
+ }
+ 
+-void func_80B3EFC8(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EFC8: the same guard from action 38 to 39
++void EnXc_NextAfterAction38(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_38, SHEIK_ACTION_39);
+ }
+ 
+-void func_80B3EFEC(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3EFEC: the same guard from action 39 to 40
++void EnXc_NextAfterAction39(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_39, SHEIK_ACTION_40);
+ }
+ 
+-void func_80B3F010(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3F010: returns to the idle animation and action 41 once the player is 140 units away
++void EnXc_IdleWhenPlayerRetreats(EnXc* this) {
+     f32 xzDistToPlayer = this->actor.xzDistToPlayer;
+ 
+     if (kREG(5) + 140.0f <= xzDistToPlayer) {
+@@ -1304,113 +1349,118 @@ void func_80B3F010(EnXc* this) {
+     }
+ }
+ 
+-void func_80B3F0B8(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3F0B8: the same guard from action 41 to 42
++void EnXc_NextAfterAction41(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_41, SHEIK_ACTION_42);
+ }
+ 
+-void func_80B3F0DC(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3F0DC: the same guard from action 42 to 43
++void EnXc_NextAfterAction42(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_42, SHEIK_ACTION_43);
+ }
+ 
+-void func_80B3F100(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3F100: the same guard from action 43 to 44
++void EnXc_NextAfterAction43(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_43, SHEIK_ACTION_44);
+ }
+ 
+ void EnXc_Serenade(EnXc* this, PlayState* play) {
+-    func_80B3EE74(this, play);
++    EnXc_GoToAction30AfterSerenade(this, play);  // was func_80B3EE74 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc30(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc21(this, play);
+-    func_80B3EEA4(this);
++    EnXc_NextAfterAction30(this);  // was func_80B3EEA4 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc31(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc6(this, play);
+-    func_80B3C588(this, play, 4);
+-    func_80B3EEC8(this);
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
++    EnXc_NextAfterAction31(this);  // was func_80B3EEC8 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc32(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc7(this, play);
+-    func_80B3EEEC(this);
++    EnXc_NextAfterAction32(this);  // was func_80B3EEEC [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc33(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc8(this, play);
+-    func_80B3EF10(this);
++    EnXc_NextAfterAction33(this);  // was func_80B3EF10 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc34(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc9(this, play);
+-    func_80B3EF34(this);
++    EnXc_NextAfterAction34(this);  // was func_80B3EF34 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc35(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc10(this, play);
+-    func_80B3EF58(this);
++    EnXc_NextAfterAction35(this);  // was func_80B3EF58 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc36(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc11(this, play);
+-    func_80B3EF80(this);
++    EnXc_NextAfterAction36(this);  // was func_80B3EF80 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc37(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc12(this, play);
+-    func_80B3EFA4(this);
++    EnXc_NextAfterAction37(this);  // was func_80B3EFA4 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc38(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc13(this, play);
+-    func_80B3EFC8(this);
++    EnXc_NextAfterAction38(this);  // was func_80B3EFC8 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc39(EnXc* this, PlayState* play) {
+     EnXc_ReverseAccelerate(this, play);
+-    func_80B3EFEC(this);
++    EnXc_NextAfterAction39(this);  // was func_80B3EFEC [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc40(EnXc* this, PlayState* play) {
+-    func_80B3D710(this);
++    EnXc_MoveWithGravity2(this);  // was func_80B3D710 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+     EnXc_SetWalkingSFX(this, play);
+-    func_80B3F010(this);
++    EnXc_IdleWhenPlayerRetreats(this);  // was func_80B3F010 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc41(EnXc* this, PlayState* play) {
+     EnXc_HaltAndWaitToThrowNut(this, play);
+-    func_80B3F0B8(this);
++    EnXc_NextAfterAction41(this);  // was func_80B3F0B8 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc42(EnXc* this, PlayState* play) {
+     EnXc_ThrowNut(this, play);
+-    func_80B3F0DC(this);
++    EnXc_NextAfterAction42(this);  // was func_80B3F0DC [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc43(EnXc* this, PlayState* play) {
+     EnXc_Delete(this, play);
+-    func_80B3F100(this);
++    EnXc_NextAfterAction43(this);  // was func_80B3F100 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc44(EnXc* this, PlayState* play) {
+ }
+ 
+-void func_80B3F3C8(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3F3C8: sets action 45
++void EnXc_GoToAction45(EnXc* this, PlayState* play) {
+     this->action = SHEIK_ACTION_45;
+ }
+ 
+-void func_80B3F3D8() {
++// LLM generated name (HIGH), was func_80B3F3D8: plays NA_SE_PL_SKIP
++void EnXc_PlaySkipSfx() {
+     Sfx_PlaySfxCentered2(NA_SE_PL_SKIP);
+ }
+ 
+ void EnXc_PlayDiveSFX(Vec3f* src, PlayState* play) {
+     f32 wDest[2];
+ 
+-    SkinMatrix_Vec3fMtxFMultXYZW(&play->viewProjectionMtxF, src, &D_80B42DA0, wDest);
+-    Sfx_PlaySfxAtPos(&D_80B42DA0, NA_SE_EV_DIVE_INTO_WATER);
++    SkinMatrix_Vec3fMtxFMultXYZW(&play->viewProjectionMtxF, src, &sDiveSfxPos, wDest);  // was D_80B42DA0 [LLM:HIGH]
++    Sfx_PlaySfxAtPos(&sDiveSfxPos, NA_SE_EV_DIVE_INTO_WATER);  // was D_80B42DA0 [LLM:HIGH]
+ }
+ 
+ void EnXc_LakeHyliaDive(PlayState* play) {
+@@ -1431,7 +1481,8 @@ void EnXc_LakeHyliaDive(PlayState* play) {
+     }
+ }
+ 
+-void func_80B3F534(PlayState* play) {
++// LLM generated name (HIGH), was func_80B3F534: spawns the blue warp at cutscene frame 310
++void EnXc_SpawnWarpAtFrame310(PlayState* play) {
+     CutsceneContext* csCtx = &play->csCtx;
+     u16 frameCount = csCtx->frames;
+ 
+@@ -1450,7 +1501,8 @@ static s32 D_80B41DAC = 1;
+ 
+ SHIP_SAVESTATE_DEFINE(EnXc, EN_XC_SHIP_SAVESTATE_FIELDS)
+ 
+-void func_80B3F59C(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3F59C: reacts to each new action on cue 0, remembering the last one it handled
++void EnXc_HandleCue0Actions(EnXc* this, PlayState* play) {
+     CsCmdActorCue* npcAction = EnXc_GetCsCmd(play, 0);
+ 
+     if (npcAction != NULL) {
+@@ -1459,7 +1511,7 @@ void func_80B3F59C(EnXc* this, PlayState* play) {
+         if (action != D_80B41DAC) {
+             switch (action) {
+                 case 2:
+-                    func_80B3F3D8();
++                    EnXc_PlaySkipSfx();  // was func_80B3F3D8 [LLM:HIGH]
+                     break;
+                 case 3:
+                     EnXc_LakeHyliaDive(play);
+@@ -1472,15 +1524,18 @@ void func_80B3F59C(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3F620(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3F620: the same guard from action 45 to 46
++void EnXc_NextAfterAction45(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_45, SHEIK_ACTION_46);
+ }
+ 
+-void func_80B3F644(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3F644: the same guard from action 46 to 47
++void EnXc_NextAfterAction46(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_46, SHEIK_ACTION_47);
+ }
+ 
+-void func_80B3F668(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3F668: on cue 4 action 4, loops the walk, turns Sheik about and enters action 48
++void EnXc_StartWalkOnCue4(EnXc* this, PlayState* play) {
+     if (EnXc_CompareCsAction(this, play, 4, 4)) {
+         EnXc_ChangeAnimation(this, &gSheikWalkingAnim, ANIMMODE_LOOP, -12.0f, true);
+         this->action = SHEIK_ACTION_48;
+@@ -1489,7 +1544,8 @@ void func_80B3F668(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3F6DC(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3F6DC: the same guard from action 48 to 49
++void EnXc_NextAfterAction48(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_48, SHEIK_ACTION_49);
+ }
+ 
+@@ -1500,15 +1556,17 @@ void EnXc_SetupKneelAction(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3F754(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3F754: on cue 4 action 22, loops gSheikAnim_01A048 and snaps onto the cue
++void EnXc_StartAction51OnCue22(EnXc* this, PlayState* play) {
+     if (EnXc_CompareCsAction(this, play, 22, 4)) {
+         EnXc_ChangeAnimation(this, &gSheikAnim_01A048, ANIMMODE_LOOP, 0.0f, false);
+         this->action = SHEIK_ACTION_51;
+-        func_80B3C588(this, play, 4);
++        EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B3F7BC(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3F7BC: on cue 4 action 9, stops drawing Sheik and enters action 52
++void EnXc_HideOnCue9(EnXc* this, PlayState* play) {
+     if (EnXc_CompareCsAction(this, play, 9, 4)) {
+         this->action = SHEIK_ACTION_52;
+         this->drawMode = SHEIK_DRAW_NOTHING;
+@@ -1517,29 +1575,29 @@ void func_80B3F7BC(EnXc* this, PlayState* play) {
+ 
+ void EnXc_ActionFunc45(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc20(this, play);
+-    func_80B3F620(this);
++    EnXc_NextAfterAction45(this);  // was func_80B3F620 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc46(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc21(this, play);
+-    func_80B3F644(this);
++    EnXc_NextAfterAction46(this);  // was func_80B3F644 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc47(EnXc* this, PlayState* play) {
+-    func_80B3F534(play);
++    EnXc_SpawnWarpAtFrame310(play);  // was func_80B3F534 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+-    func_80B3C588(this, play, 4);
+-    func_80B3F668(this, play);
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
++    EnXc_StartWalkOnCue4(this, play);  // was func_80B3F668 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc48(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc23(this, play);
+-    func_80B3F6DC(this);
++    EnXc_NextAfterAction48(this);  // was func_80B3F6DC [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc49(EnXc* this, PlayState* play) {
+-    func_80B3D710(this);
++    EnXc_MoveWithGravity2(this);  // was func_80B3D710 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+@@ -1550,29 +1608,31 @@ void EnXc_ActionFunc49(EnXc* this, PlayState* play) {
+ void EnXc_Kneel(EnXc* this, PlayState* play) {
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+-    func_80B3F59C(this, play);
+-    func_80B3C588(this, play, 4);
+-    func_80B3F754(this, play);
++    EnXc_HandleCue0Actions(this, play);  // was func_80B3F59C [LLM:HIGH]
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
++    EnXc_StartAction51OnCue22(this, play);  // was func_80B3F754 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc51(EnXc* this, PlayState* play) {
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+-    func_80B3F59C(this, play);
+-    func_80B3C620(this, play, 4);
+-    func_80B3F7BC(this, play);
++    EnXc_HandleCue0Actions(this, play);  // was func_80B3F59C [LLM:HIGH]
++    EnXc_MoveAlongCue(this, play, 4);  // was func_80B3C620 [LLM:HIGH]
++    EnXc_HideOnCue9(this, play);  // was func_80B3F7BC [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc52(EnXc* this, PlayState* play) {
+-    func_80B3F59C(this, play);
++    EnXc_HandleCue0Actions(this, play);  // was func_80B3F59C [LLM:HIGH]
+ }
+ 
+-void func_80B3FA08(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B3FA08: enters action 53 with the kREG-tunable triforce angle
++void EnXc_SetupTriforceIdle(EnXc* this, PlayState* play) {
+     this->action = SHEIK_ACTION_53;
+     this->triforceAngle = kREG(24) + 0x53FC;
+ }
+ 
+-void func_80B3FA2C(void) {
++// LLM generated name (HIGH), was func_80B3FA2C: starts cutscene effects sequence 1
++void EnXc_PlayCutsceneSeq1(void) {
+     Audio_PlayCutsceneEffectsSequence(1);
+ }
+ 
+@@ -1593,10 +1653,11 @@ void EnXc_PlayTriforceSFX(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3FAE0(EnXc* this) {
++// LLM generated name (HIGH), was func_80B3FAE0: plays NA_SE_VO_SK_SHOUT and that sequence at animation frame 38
++void EnXc_ShoutOnFrame38(EnXc* this) {
+     if (Animation_OnFrame(&this->skelAnime, 38.0f)) {
+         Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_VO_SK_SHOUT);
+-        func_80B3FA2C();
++        EnXc_PlayCutsceneSeq1();  // was func_80B3FA2C [LLM:HIGH]
+     }
+ }
+ 
+@@ -1653,7 +1714,8 @@ void EnXc_CalcTriforce(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3FF0C(EnXc* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80B3FF0C: reacts to cue 4 whenever it is on anything but action 1; what it drives beyond the position is not established
++void EnXc_UpdateFromCue4(EnXc* this, PlayState* play) {
+     if (EnXc_CsActionsAreNotEqual(this, play, 1, 4)) {
+         CutsceneContext* csCtx = &play->csCtx;
+ 
+@@ -1694,14 +1756,15 @@ void EnXc_SetupShowTriforceIdleAction(EnXc* this, s32 animFinished) {
+         this->action = SHEIK_ACTION_SHOW_TRIFORCE_IDLE;
+     }
+ }
+-void func_80B400AC(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B400AC: kills the actor once cue 4 reaches action 9
++void EnXc_KillOnCue9(EnXc* this, PlayState* play) {
+     if (EnXc_CompareCsAction(this, play, 9, 4)) {
+         Actor_Kill(&this->actor);
+     }
+ }
+ 
+ void EnXc_ActionFunc53(EnXc* this, PlayState* play) {
+-    func_80B3FF0C(this, play);
++    EnXc_UpdateFromCue4(this, play);  // was func_80B3FF0C [LLM:GUESS]
+ }
+ 
+ void EnXc_ActionFunc54(EnXc* this, PlayState* play) {
+@@ -1709,7 +1772,7 @@ void EnXc_ActionFunc54(EnXc* this, PlayState* play) {
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+     EnXc_SetupShowTriforceAction(this, play);
+-    func_80B3C888(this, play);
++    EnXc_IdleWhenNoCutscene(this, play);  // was func_80B3C888 [LLM:HIGH]
+ }
+ 
+ void EnXc_ShowTriforce(EnXc* this, PlayState* play) {
+@@ -1718,9 +1781,9 @@ void EnXc_ShowTriforce(EnXc* this, PlayState* play) {
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+     EnXc_CalcTriforce(&this->actor, play);
+-    func_80B3FAE0(this);
++    EnXc_ShoutOnFrame38(this);  // was func_80B3FAE0 [LLM:HIGH]
+     EnXc_SetupShowTriforceIdleAction(this, animFinished);
+-    func_80B3C888(this, play);
++    EnXc_IdleWhenNoCutscene(this, play);  // was func_80B3C888 [LLM:HIGH]
+ }
+ 
+ void EnXc_ShowTriforceIdle(EnXc* this, PlayState* play) {
+@@ -1728,7 +1791,7 @@ void EnXc_ShowTriforceIdle(EnXc* this, PlayState* play) {
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+     EnXc_CalcTriforce(&this->actor, play);
+-    func_80B400AC(this, play);
++    EnXc_KillOnCue9(this, play);  // was func_80B400AC [LLM:HIGH]
+ }
+ 
+ s32 EnXc_TriforceOverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx) {
+@@ -1787,7 +1850,8 @@ void EnXc_DrawTriforce(Actor* thisx, PlayState* play) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_80B40590(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B40590: enters the Nocturne init action with the squinting draw
++void EnXc_SetupNocturneSquint(EnXc* this, PlayState* play) {
+     this->action = SHEIK_ACTION_NOCTURNE_INIT;
+     this->drawMode = SHEIK_DRAW_SQUINT;
+ }
+@@ -1823,7 +1887,8 @@ void EnXc_SetCrySFX(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B406F8(Actor* thisx) {
++// LLM generated name (HIGH), was func_80B406F8: enters the Nocturne init action with nothing drawn and no shadow
++void EnXc_SetupNocturneHidden(Actor* thisx) {
+     EnXc* this = (EnXc*)thisx;
+ 
+     this->action = SHEIK_ACTION_NOCTURNE_INIT;
+@@ -1837,8 +1902,8 @@ void EnXc_SetupIdleInNocturne(EnXc* this, PlayState* play) {
+     SkelAnime* skelAnime = &this->skelAnime;
+     f32 frameCount = Animation_GetLastFrame(&gSheikIdleAnim);
+ 
+-    func_80B3C9DC(this);
+-    func_80B3C588(this, play, 4);
++    EnXc_ClearRootMotion(this);  // was func_80B3C9DC [LLM:HIGH]
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
+     Animation_Change(skelAnime, &gSheikIdleAnim, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, 0.0f);
+     this->action = SHEIK_ACTION_NOCTURNE_IDLE;
+     this->drawMode = SHEIK_DRAW_SQUINT;
+@@ -1861,8 +1926,8 @@ void EnXc_SetupContortions(EnXc* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gSheikIdleAnim);
+ 
+     Animation_Change(skelAnime, &gSheikIdleAnim, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, 0.0f);
+-    func_80B3C588(this, play, 4);
+-    func_80B3C964(this, play);
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
++    EnXc_ResetAndApplyRootMotion(this, play);  // was func_80B3C964 [LLM:HIGH]
+     Animation_Change(skelAnime, &gSheikContortionsAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gSheikContortionsAnim),
+                      ANIMMODE_ONCE, 0.0f);
+     this->action = SHEIK_ACTION_CONTORT;
+@@ -1876,8 +1941,8 @@ void EnXc_SetupFallInNocturne(EnXc* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gSheikIdleAnim);
+ 
+     Animation_Change(skelAnime, &gSheikIdleAnim, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, 0.0f);
+-    func_80B3C588(this, play, 4);
+-    func_80B3C964(this, play);
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
++    EnXc_ResetAndApplyRootMotion(this, play);  // was func_80B3C964 [LLM:HIGH]
+     Animation_Change(skelAnime, &gSheikFallingFromContortionsAnim, 1.0f, 0.0f,
+                      Animation_GetLastFrame(&gSheikFallingFromContortionsAnim), ANIMMODE_ONCE, 0.0f);
+     this->action = SHEIK_ACTION_NOCTURNE_FALL;
+@@ -1889,20 +1954,21 @@ void EnXc_SetupHittingGroundInNocturne(EnXc* this, PlayState* play) {
+     s32 pad[3];
+     f32 frameCount = Animation_GetLastFrame(&gSheikHittingGroundAnim);
+ 
+-    func_80B3C9DC(this);
+-    func_80B3C588(this, play, 4);
++    EnXc_ClearRootMotion(this);  // was func_80B3C9DC [LLM:HIGH]
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
+     Animation_Change(&this->skelAnime, &gSheikHittingGroundAnim, 1.0f, 0.0f, frameCount, ANIMMODE_ONCE, 0.0f);
+     this->action = SHEIK_ACTION_NOCTURNE_HIT_GROUND;
+     this->drawMode = SHEIK_DRAW_DEFAULT;
+     this->actor.shape.shadowAlpha = 255;
+ }
+ 
+-void func_80B40A78(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B40A78: snaps onto cue 4 and plays gSheikHittingGroundAnim once
++void EnXc_SetupHitGroundInNocturne(EnXc* this, PlayState* play) {
+     s32 pad[3];
+     f32 frameCount = Animation_GetLastFrame(&gSheikHittingGroundAnim);
+ 
+-    func_80B3C9DC(this);
+-    func_80B3C588(this, play, 4);
++    EnXc_ClearRootMotion(this);  // was func_80B3C9DC [LLM:HIGH]
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
+     Animation_Change(&this->skelAnime, &gSheikHittingGroundAnim, 1.0f, 0.0f, frameCount, ANIMMODE_ONCE, 0.0f);
+     this->action = SHEIK_ACTION_63;
+     this->drawMode = SHEIK_DRAW_DEFAULT;
+@@ -1913,58 +1979,68 @@ void EnXc_SetupKneelInNocturne(EnXc* this, PlayState* play) {
+     s32 pad[3];
+     f32 frameCount = Animation_GetLastFrame(&gSheikKneelingAnim);
+ 
+-    func_80B3C9DC(this);
+-    func_80B3C588(this, play, 4);
++    EnXc_ClearRootMotion(this);  // was func_80B3C9DC [LLM:HIGH]
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
+     Animation_Change(&this->skelAnime, &gSheikKneelingAnim, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, 0.0f);
+     this->action = SHEIK_ACTION_NOCTURNE_KNEEL;
+     this->drawMode = SHEIK_DRAW_DEFAULT;
+     this->actor.shape.shadowAlpha = 255;
+ }
+ 
+-void func_80B40BB4(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B40BB4: snaps onto cue 4, loops gSheikIdleAnim and enters action 65; named for the beat it follows because EnXc_SetupIdleInNocturne is already taken
++void EnXc_SetupIdleAfterNocturneFall(EnXc* this, PlayState* play) {
+     s32 pad[3];
+     f32 frameCount = Animation_GetLastFrame(&gSheikIdleAnim);
+-    func_80B3C9DC(this);
+-    func_80B3C588(this, play, 4);
++    EnXc_ClearRootMotion(this);  // was func_80B3C9DC [LLM:HIGH]
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
+     Animation_Change(&this->skelAnime, &gSheikIdleAnim, 1.0f, 0.0f, frameCount, ANIMMODE_LOOP, 0.0f);
+     this->action = SHEIK_ACTION_65;
+     this->drawMode = SHEIK_DRAW_DEFAULT;
+     this->actor.shape.shadowAlpha = 255;
+ }
+ 
+-void func_80B40C50(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40C50: the same guard from action 65 to 66
++void EnXc_NextAfterAction65(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_65, SHEIK_ACTION_66);
+ }
+ 
+-void func_80B40C74(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40C74: the same guard from action 66 to 67
++void EnXc_NextAfterAction66(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_66, SHEIK_ACTION_67);
+ }
+ 
+-void func_80B40C98(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40C98: the same guard from action 67 to 68
++void EnXc_NextAfterAction67(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_67, SHEIK_ACTION_68);
+ }
+ 
+-void func_80B40CBC(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40CBC: the same guard from action 68 to 69
++void EnXc_NextAfterAction68(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_68, SHEIK_ACTION_69);
+ }
+ 
+-void func_80B40CE0(EnXc* this) {
+-    func_80B3C7D4(this, SHEIK_ACTION_69, SHEIK_ACTION_70, SHEIK_ACTION_68);
++// LLM generated name (HIGH), was func_80B40CE0: the same guard from action 69, going to 70 while putting the harp away and back to 68 otherwise
++void EnXc_NextAfterAction69(EnXc* this) {
++    EnXc_SetActionByHarpState(this, SHEIK_ACTION_69, SHEIK_ACTION_70, SHEIK_ACTION_68);  // was func_80B3C7D4 [LLM:HIGH]
+ }
+ 
+-void func_80B40D08(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40D08: the same guard from action 70 to 71
++void EnXc_NextAfterAction70(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_70, SHEIK_ACTION_71);
+ }
+ 
+-void func_80B40D2C(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40D2C: the same guard from action 71 to 72
++void EnXc_NextAfterAction71(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_71, SHEIK_ACTION_72);
+ }
+ 
+-void func_80B40D50(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40D50: the same guard from action 72 into the Nocturne reverse walk-off
++void EnXc_NextAfterAction72(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_72, SHEIK_ACTION_NOCTURNE_REVERSE_ACCEL);
+ }
+ 
+-void func_80B40D74(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40D74: the same guard from the Nocturne reverse acceleration into the reverse walk
++void EnXc_NextAfterNocturneReverseAccel(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_NOCTURNE_REVERSE_ACCEL, SHEIK_ACTION_NOCTURNE_REVERSE_WALK);
+ }
+ 
+@@ -1979,15 +2055,18 @@ void EnXc_SetupReverseHaltInNocturneCS(EnXc* this) {
+     }
+ }
+ 
+-void func_80B40E40(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40E40: the same guard from the Nocturne halt into the nut throw
++void EnXc_NextAfterNocturneReverseHalt(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_NOCTURNE_REVERSE_HALT, SHEIK_ACTION_NOCTURNE_THROW_NUT);
+ }
+ 
+-void func_80B40E64(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40E64: the same guard from the Nocturne nut throw to action 77
++void EnXc_NextAfterNocturneThrowNut(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_NOCTURNE_THROW_NUT, SHEIK_ACTION_77);
+ }
+ 
+-void func_80B40E88(EnXc* this) {
++// LLM generated name (HIGH), was func_80B40E88: the same guard from action 77 to 78
++void EnXc_NextAfterAction77(EnXc* this) {
+     EnXc_CheckAndSetAction(this, SHEIK_ACTION_77, SHEIK_ACTION_78);
+ }
+ 
+@@ -2002,7 +2081,7 @@ s32 EnXc_SetupNocturneState(Actor* thisx, PlayState* play) {
+         if (action != prevAction) {
+             switch (action) {
+                 case 1:
+-                    func_80B406F8(thisx);
++                    EnXc_SetupNocturneHidden(thisx);  // was func_80B406F8 [LLM:HIGH]
+                     break;
+                 case 6:
+                     EnXc_SetupIdleInNocturne(this, play);
+@@ -2020,13 +2099,13 @@ s32 EnXc_SetupNocturneState(Actor* thisx, PlayState* play) {
+                     EnXc_SetupHittingGroundInNocturne(this, play);
+                     break;
+                 case 15:
+-                    func_80B40A78(this, play);
++                    EnXc_SetupHitGroundInNocturne(this, play);  // was func_80B40A78 [LLM:HIGH]
+                     break;
+                 case 16:
+                     EnXc_SetupKneelInNocturne(this, play);
+                     break;
+                 case 17:
+-                    func_80B40BB4(this, play);
++                    EnXc_SetupIdleAfterNocturneFall(this, play);  // was func_80B40BB4 [LLM:HIGH]
+                     break;
+                 case 9:
+                     Actor_Kill(thisx);
+@@ -2048,7 +2127,7 @@ void EnXc_InitialNocturneAction(EnXc* this, PlayState* play) {
+ }
+ 
+ void EnXc_IdleInNocturne(EnXc* this, PlayState* play) {
+-    func_80B3C588(this, play, 4);
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetupNocturneState(&this->actor, play);
+@@ -2066,7 +2145,7 @@ void EnXc_Contort(EnXc* this, PlayState* play) {
+     EnXc_AnimIsFinished(this);
+     EnXc_SetEyePattern(this);
+     if (!EnXc_SetupNocturneState(&this->actor, play)) {
+-        func_80B3C924(this, play);
++        EnXc_ApplyRootMotion(this, play);  // was func_80B3C924 [LLM:HIGH]
+         EnXc_BgCheck(this, play);
+     }
+ }
+@@ -2076,7 +2155,7 @@ void EnXc_FallInNocturne(EnXc* this, PlayState* play) {
+     EnXc_SetEyePattern(this);
+     EnXc_SetThrownAroundSFX(this);
+     if (!EnXc_SetupNocturneState(&this->actor, play)) {
+-        func_80B3C8CC(this, play);
++        EnXc_ApplyRootMotionAboveBase(this, play);  // was func_80B3C8CC [LLM:HIGH]
+         EnXc_BgCheck(this, play);
+     }
+ }
+@@ -2104,52 +2183,52 @@ void EnXc_KneelInNocturneCS(EnXc* this, PlayState* play) {
+ 
+ void EnXc_ActionFunc65(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc6(this, play);
+-    func_80B3C588(this, play, 4);
+-    func_80B40C50(this);
++    EnXc_SetPosRotFromCue(this, play, 4);  // was func_80B3C588 [LLM:HIGH]
++    EnXc_NextAfterAction65(this);  // was func_80B40C50 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc66(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc7(this, play);
+-    func_80B40C74(this);
++    EnXc_NextAfterAction66(this);  // was func_80B40C74 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc67(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc8(this, play);
+-    func_80B40C98(this);
++    EnXc_NextAfterAction67(this);  // was func_80B40C98 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc68(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc9(this, play);
+-    func_80B40CBC(this);
++    EnXc_NextAfterAction68(this);  // was func_80B40CBC [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc69(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc10(this, play);
+-    func_80B40CE0(this);
++    EnXc_NextAfterAction69(this);  // was func_80B40CE0 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc70(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc11(this, play);
+-    func_80B40D08(this);
++    EnXc_NextAfterAction70(this);  // was func_80B40D08 [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc71(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc12(this, play);
+-    func_80B40D2C(this);
++    EnXc_NextAfterAction71(this);  // was func_80B40D2C [LLM:HIGH]
+ }
+ 
+ void EnXc_ActionFunc72(EnXc* this, PlayState* play) {
+     EnXc_ActionFunc13(this, play);
+-    func_80B40D50(this);
++    EnXc_NextAfterAction72(this);  // was func_80B40D50 [LLM:HIGH]
+ }
+ 
+ void EnXc_ReverseAccelInNocturneCS(EnXc* this, PlayState* play) {
+     EnXc_ReverseAccelerate(this, play);
+-    func_80B40D74(this);
++    EnXc_NextAfterNocturneReverseAccel(this);  // was func_80B40D74 [LLM:HIGH]
+ }
+ 
+ void EnXc_ReverseWalkInNocturneCS(EnXc* this, PlayState* play) {
+-    func_80B3D710(this);
++    EnXc_MoveWithGravity2(this);  // was func_80B3D710 [LLM:HIGH]
+     EnXc_AnimIsFinished(this);
+     EnXc_BgCheck(this, play);
+     EnXc_SetEyePattern(this);
+@@ -2158,17 +2237,17 @@ void EnXc_ReverseWalkInNocturneCS(EnXc* this, PlayState* play) {
+ 
+ void EnXc_ReverseHaltInNocturneCS(EnXc* this, PlayState* play) {
+     EnXc_HaltAndWaitToThrowNut(this, play);
+-    func_80B40E40(this);
++    EnXc_NextAfterNocturneReverseHalt(this);  // was func_80B40E40 [LLM:HIGH]
+ }
+ 
+ void EnXc_ThrowNutInNocturneCS(EnXc* this, PlayState* play) {
+     EnXc_ThrowNut(this, play);
+-    func_80B40E64(this);
++    EnXc_NextAfterNocturneThrowNut(this);  // was func_80B40E64 [LLM:HIGH]
+ }
+ 
+ void EnXc_DeleteInNocturneCS(EnXc* this, PlayState* play) {
+     EnXc_Delete(this, play);
+-    func_80B40E88(this);
++    EnXc_NextAfterAction77(this);  // was func_80B40E88 [LLM:HIGH]
+ }
+ 
+ void EnXc_KillInNocturneCS(EnXc* this, PlayState* play) {
+@@ -2196,7 +2275,7 @@ void EnXc_InitTempleOfTime(EnXc* this, PlayState* play) {
+                 play->csCtx.segment = SEGMENTED_TO_VIRTUAL(gTempleOfTimeFirstAdultCs);
+                 gSaveContext.cutsceneTrigger = 1;
+             }
+-            func_80B3EBF0(this, play);
++            EnXc_GoToAction20(this, play);  // was func_80B3EBF0 [LLM:HIGH]
+         } else if (GameInteractor_Should(VB_BE_ELIGIBLE_FOR_PRELUDE_OF_LIGHT,
+                                          !Flags_GetEventChkInf(EVENTCHKINF_LEARNED_PRELUDE_OF_LIGHT) &&
+                                              Flags_GetEventChkInf(EVENTCHKINF_USED_FOREST_TEMPLE_BLUE_WARP))) {
+@@ -2210,7 +2289,7 @@ void EnXc_InitTempleOfTime(EnXc* this, PlayState* play) {
+             }
+             this->action = SHEIK_ACTION_30; // Not sure what this does exactly
+         } else if (!Flags_GetEventChkInf(EVENTCHKINF_LEARNED_PRELUDE_OF_LIGHT)) {
+-            func_80B3C9EC(this);
++            EnXc_SetupBlockPedestal(this);  // was func_80B3C9EC [LLM:HIGH]
+         } else {
+             Actor_Kill(&this->actor);
+         }
+@@ -2235,7 +2314,8 @@ void EnXc_SetupDialogueAction(EnXc* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B41798(EnXc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B41798: returns to blocking the pedestal and drops targeting once the textbox closes
++void EnXc_BlockPedestalAfterText(EnXc* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         this->action = SHEIK_ACTION_BLOCK_PEDESTAL;
+         this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+@@ -2257,7 +2337,7 @@ void EnXc_ActionFunc80(EnXc* this, PlayState* play) {
+     EnXc_CalculateHeadTurn(this, play);
+     EnXc_AnimIsFinished(this);
+     EnXc_SetEyePattern(this);
+-    func_80B41798(this, play);
++    EnXc_BlockPedestalAfterText(this, play);  // was func_80B41798 [LLM:HIGH]
+ }
+ 
+ static EnXcActionFunc sActionFuncs[] = {
+@@ -2365,25 +2445,25 @@ void EnXc_Init(Actor* thisx, PlayState* play) {
+ 
+     switch (this->actor.params) {
+         case SHEIK_TYPE_1:
+-            func_80B3EBF0(this, play);
++            EnXc_GoToAction20(this, play);  // was func_80B3EBF0 [LLM:HIGH]
+             break;
+         case SHEIK_TYPE_2: // Beta Serenade Cutscene or Learning Prelude
+-            func_80B3EE64(this, play);
++            EnXc_GoToSerenade(this, play);  // was func_80B3EE64 [LLM:HIGH]
+             break;
+         case SHEIK_TYPE_3:
+-            func_80B3F3C8(this, play);
++            EnXc_GoToAction45(this, play);  // was func_80B3F3C8 [LLM:HIGH]
+             break;
+         case SHEIK_TYPE_4:
+-            func_80B3FA08(this, play);
++            EnXc_SetupTriforceIdle(this, play);  // was func_80B3FA08 [LLM:HIGH]
+             break;
+         case SHEIK_TYPE_5:
+-            func_80B40590(this, play);
++            EnXc_SetupNocturneSquint(this, play);  // was func_80B40590 [LLM:HIGH]
+             break;
+         case SHEIK_TYPE_MINUET:
+-            func_80B3CA38(this, play);
++            EnXc_KillUnlessMinuetPending(this, play);  // was func_80B3CA38 [LLM:HIGH]
+             break;
+         case SHEIK_TYPE_BOLERO:
+-            func_80B3CB58(this, play);
++            EnXc_KillUnlessBoleroPending(this, play);  // was func_80B3CB58 [LLM:HIGH]
+             break;
+         case SHEIK_TYPE_SERENADE:
+             EnXc_SetupSerenadeAction(this, play);
+-- 
+2.55.0
+

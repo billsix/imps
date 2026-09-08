@@ -1,0 +1,152 @@
+From 5741642a9228fde92566e507c402ade9995b6cfd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:59 +0000
+Subject: [PATCH 026/488] soh: name the 2 address-named symbols defined in
+ z_scene.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_scene.c; updating their references touches 5 files in total.
+
+  * func_800981B8 -> Object_LoadAll
+    deduced, confidence HIGH
+
+  * func_800982FC -> Object_LoadEntry
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                                  | 2 +-
+ soh/soh/Enhancements/QoL/BetterSaveMenu.cpp              | 2 +-
+ soh/soh/z_scene_otr.cpp                                  | 2 +-
+ soh/src/code/z_scene.c                                   | 9 ++++++---
+ .../misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c         | 4 ++--
+ 5 files changed, 11 insertions(+), 8 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index d894182dd..07e57847b 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1256,7 +1256,7 @@ void Object_InitBank(PlayState* play, ObjectContext* objectCtx);
+ void Object_UpdateBank(ObjectContext* objectCtx);
+ s32 Object_GetIndex(ObjectContext* objectCtx, s16 objectId);
+ s32 Object_IsLoaded(ObjectContext* objectCtx, s32 bankIndex);
+-void func_800981B8(ObjectContext* objectCtx);
++void Object_LoadAll(ObjectContext* objectCtx);  // was func_800981B8 [LLM:HIGH]
+ s32 Scene_ExecuteCommands(PlayState* play, SceneCmd* sceneCmd);
+ void TransitionActor_InitContext(GameState* state, TransitionActorContext* transiActorCtx);
+ void Scene_SetTransitionForNextEntrance(PlayState* play);
+diff --git a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+index 8db4e3d9d..ee7f06c6e 100644
+--- a/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
++++ b/soh/soh/Enhancements/QoL/BetterSaveMenu.cpp
+@@ -147,7 +147,7 @@ void HandleSaveMenu(bool* should, PlayState* play) {
+                     pauseCtx->state = 0;
+                     R_UPDATE_RATE = 3;
+                     R_PAUSE_MENU_MODE = 0;
+-                    func_800981B8(&play->objectCtx);
++                    Object_LoadAll(&play->objectCtx);
+                     func_800418D0(&play->colCtx, play);
+                     // Reset frame counter to prevent autosave on respawn
+                     play->gameplayFrames = 0;
+diff --git a/soh/soh/z_scene_otr.cpp b/soh/soh/z_scene_otr.cpp
+index 72e2f063e..1ce60d86c 100644
+--- a/soh/soh/z_scene_otr.cpp
++++ b/soh/soh/z_scene_otr.cpp
+@@ -135,7 +135,7 @@ bool Scene_CommandMeshHeader(PlayState* play, SOH::ISceneCommand* cmd) {
+     return false;
+ }
+ 
+-extern "C" void* func_800982FC(ObjectContext* objectCtx, s32 bankIndex, s16 objectId);
++extern "C" void* Object_LoadEntry(ObjectContext* objectCtx, s32 bankIndex, s16 objectId);
+ 
+ bool OTRfunc_800982FC(ObjectContext* objectCtx, s32 bankIndex, s16 objectId) {
+ 
+diff --git a/soh/src/code/z_scene.c b/soh/src/code/z_scene.c
+index 6dcc51d9c..4539e103f 100644
+--- a/soh/src/code/z_scene.c
++++ b/soh/src/code/z_scene.c
+@@ -136,7 +136,8 @@ s32 Object_IsLoaded(ObjectContext* objectCtx, s32 bankIndex) {
+     }
+ }
+ 
+-void func_800981B8(ObjectContext* objectCtx) {
++// LLM generated name (HIGH), was func_800981B8: DMAs every object in the objectCtx table into its segment
++void Object_LoadAll(ObjectContext* objectCtx) {
+     s32 i;
+     s32 id;
+     size_t size;
+@@ -152,7 +153,9 @@ void func_800981B8(ObjectContext* objectCtx) {
+     }
+ }
+ 
+-void* func_800982FC(ObjectContext* objectCtx, s32 bankIndex, s16 objectId) {
++// LLM generated name (HIGH), was func_800982FC: loads one object into a bank slot and returns the next free
++// ptr
++void* Object_LoadEntry(ObjectContext* objectCtx, s32 bankIndex, s16 objectId) {
+     ObjectStatus* status = &objectCtx->status[bankIndex];
+     RomFile* objectFile = &gObjectTable[objectId];
+     size_t size;
+@@ -300,7 +303,7 @@ void Scene_CommandObjectList(PlayState* play, SceneCmd* cmd) {
+     assert(cmd->objectList.num <= OBJECT_EXCHANGE_BANK_MAX);
+ 
+     while (k < cmd->objectList.num) {
+-        nextPtr = func_800982FC(&play->objectCtx, i, *objectEntry);
++        nextPtr = Object_LoadEntry(&play->objectCtx, i, *objectEntry);
+         if (i < OBJECT_EXCHANGE_BANK_MAX - 1) {
+             firstStatus[i + 1].segment = nextPtr;
+         }
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 990d97496..e13805398 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -4772,7 +4772,7 @@ void KaleidoScope_Update(PlayState* play) {
+                     pauseCtx->state = 0;
+                     R_UPDATE_RATE = 3;
+                     R_PAUSE_MENU_MODE = 0;
+-                    func_800981B8(&play->objectCtx);
++                    Object_LoadAll(&play->objectCtx);
+                     func_800418D0(&play->colCtx, play);
+                     if (pauseCtx->promptChoice == 0 && GameInteractor_Should(VB_BE_ABLE_TO_SAVE, true)) {
+                         Play_TriggerRespawn(play);
+@@ -4840,7 +4840,7 @@ void KaleidoScope_Update(PlayState* play) {
+ 
+             CVarSetInteger(CVAR_GENERAL("PauseMenuAnimatedLinkTriforce"), 0);
+ 
+-            func_800981B8(&play->objectCtx);
++            Object_LoadAll(&play->objectCtx);
+             func_800418D0(&play->colCtx, play);
+ 
+             switch (play->sceneNum) {
+-- 
+2.55.0
+

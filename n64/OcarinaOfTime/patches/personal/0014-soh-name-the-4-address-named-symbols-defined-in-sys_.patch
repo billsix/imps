@@ -1,0 +1,163 @@
+From 3db96bde259e5702230d71f89e677a84c4cc9250 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:58 +0000
+Subject: [PATCH 014/488] soh: name the 4 address-named symbols defined in
+ sys_rumble.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/code/sys_rumble.c; updating their references touches 3 files in total.
+
+  * func_800D2E30 -> RumbleMgr_Update
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_8012DBB0 -> sWasEnabled
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800D3140 -> RumbleMgr_Init
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800D3178 -> RumbleMgr_Destroy
+    zeldaret/oot (same decomp, same ROM address)
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h   |  6 +++---
+ soh/src/code/sys_rumble.c | 18 +++++++++++-------
+ soh/src/code/z_rumble.c   |  6 +++---
+ 3 files changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 46c4424aa..97c495701 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1830,9 +1830,9 @@ uintptr_t SysUcode_GetUCodeBoot(void);
+ size_t SysUcode_GetUCodeBootSize(void);
+ uint32_t SysUcode_GetUCode(void);
+ uintptr_t SysUcode_GetUCodeData(void);
+-void func_800D2E30(RumbleMgr* arg0);
+-void func_800D3140(RumbleMgr* arg0);
+-void func_800D3178(RumbleMgr* arg0);
++void RumbleMgr_Update(RumbleMgr* arg0);  // was func_800D2E30 [oot]
++void RumbleMgr_Init(RumbleMgr* arg0);  // was func_800D3140 [oot]
++void RumbleMgr_Destroy(RumbleMgr* arg0);  // was func_800D3178 [oot]
+ void Freeze_CurrentThread(void);  // was func_800D31A0 [oot]
+ void Debug_UpdateCtrlr2Valid(void);  // was func_800D31F0 [LLM:HIGH]
+ void Debug_ClearCtrlr2Valid(void);  // was func_800D3210 [LLM:HIGH]
+diff --git a/soh/src/code/sys_rumble.c b/soh/src/code/sys_rumble.c
+index 71bb80499..99660e81f 100644
+--- a/soh/src/code/sys_rumble.c
++++ b/soh/src/code/sys_rumble.c
+@@ -1,8 +1,10 @@
+ #include "global.h"
+ #include <string.h>
+ 
+-void func_800D2E30(RumbleMgr* arg0) {
+-    static u8 D_8012DBB0 = 1;
++// Name from zeldaret/oot src/code/sys_rumble.c (was func_800D2E30): decrements rumble slot timers and sets rumbleEnable each tick. Source: https://github.com/zeldaret/oot/blob/main/src/code/sys_rumble.c
++void RumbleMgr_Update(RumbleMgr* arg0) {
++    // Name from zeldaret/oot src/code/sys_rumble.c (was D_8012DBB0): tracks prior enabled state to clear pakType on disable. Source: https://github.com/zeldaret/oot/blob/main/src/code/sys_rumble.c
++    static u8 sWasEnabled = 1;
+     s32 i;
+     s32 unk_a3;
+     s32 index = -1;
+@@ -12,16 +14,16 @@ void func_800D2E30(RumbleMgr* arg0) {
+     }
+ 
+     if (arg0->unk_105 == 0) {
+-        if (D_8012DBB0 != 0) {
++        if (sWasEnabled != 0) {
+             for (i = 0; i < 4; i++) {
+                 gPadMgr.pakType[i] = 0;
+             }
+         }
+-        D_8012DBB0 = arg0->unk_105;
++        sWasEnabled = arg0->unk_105;
+         return;
+     }
+ 
+-    D_8012DBB0 = arg0->unk_105;
++    sWasEnabled = arg0->unk_105;
+ 
+     if (arg0->unk_104 == 2) {
+         for (i = 0; i < 4; ++i) {
+@@ -109,12 +111,14 @@ void func_800D2E30(RumbleMgr* arg0) {
+     }
+ }
+ 
+-void func_800D3140(RumbleMgr* arg0) {
++// Name from zeldaret/oot src/code/sys_rumble.c (was func_800D3140): zeroes the manager then seeds unk_104=2 and unk_105=1. Source: https://github.com/zeldaret/oot/blob/main/src/code/sys_rumble.c
++void RumbleMgr_Init(RumbleMgr* arg0) {
+     memset(arg0, 0, sizeof(RumbleMgr));
+     arg0->unk_104 = 2;
+     arg0->unk_105 = 1;
+ }
+ 
+-void func_800D3178(RumbleMgr* arg0) {
++// Name from zeldaret/oot src/code/sys_rumble.c (was func_800D3178): zeroes the entire RumbleMgr struct via memset. Source: https://github.com/zeldaret/oot/blob/main/src/code/sys_rumble.c
++void RumbleMgr_Destroy(RumbleMgr* arg0) {
+     memset(arg0, 0, sizeof(RumbleMgr));
+ }
+diff --git a/soh/src/code/z_rumble.c b/soh/src/code/z_rumble.c
+index 750cea330..3708ecb29 100644
+--- a/soh/src/code/z_rumble.c
++++ b/soh/src/code/z_rumble.c
+@@ -6,7 +6,7 @@ void func_800A9F30(PadMgr* a, s32 b) {
+     // TODO: Workaround for rumble being too long. Implement os thread functions.
+     // Game logic runs at 20hz but input thread runs at 60 hertz, so we call this 3 times
+     for (int i = 0; i < 3; i++) {
+-        func_800D2E30(&D_80160FD0);
++        RumbleMgr_Update(&D_80160FD0);
+         PadMgr_RumbleSet(a, D_80160FD0.rumbleEnable);
+     }
+ }
+@@ -59,7 +59,7 @@ void Rumble_Request(f32 a, u8 b, u8 c, u8 d) {
+ }
+ 
+ void func_800AA0B4(void) {
+-    func_800D3140(&D_80160FD0);
++    RumbleMgr_Init(&D_80160FD0);
+ 
+     gPadMgr.retraceCallback = func_800A9F30;
+     gPadMgr.retraceCallbackValue = 0;
+@@ -73,7 +73,7 @@ void func_800AA0F0(void) {
+         padmgr->retraceCallbackValue = 0;
+     }
+ 
+-    func_800D3178(&D_80160FD0);
++    RumbleMgr_Destroy(&D_80160FD0);
+ }
+ 
+ u32 func_800AA148(void) {
+-- 
+2.55.0
+

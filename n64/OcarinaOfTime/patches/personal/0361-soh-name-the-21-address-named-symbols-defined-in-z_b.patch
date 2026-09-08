@@ -1,0 +1,520 @@
+From 702d44289fbb8628661cb76b5ba96191a1afd820 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:30 +0000
+Subject: [PATCH 361/488] soh: name the 21 address-named symbols defined in
+ z_bg_spot16_bombstone.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 21 are defined in soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c.
+
+  * func_808B4C30 -> BgSpot16Bombstone_SplitParams
+    deduced, confidence HIGH: pulls the switch flag out of the high byte of
+    params and leaves the type in the low byte
+
+  * func_808B4C4C -> BgSpot16Bombstone_InitJntSphCollider
+    deduced, confidence HIGH: builds the 120-unit jntsph centred 50 units
+    above the boulder
+
+  * func_808B4D04 -> BgSpot16Bombstone_InitCylinderCollider
+    deduced, confidence HIGH: builds the cylinder collider and offsets it to
+    world position
+
+  * func_808B4D9C -> BgSpot16Bombstone_InitBoulder
+    deduced, confidence HIGH: the params 0 branch of Init: returns false
+    when the switch flag is already set, otherwise sets up the boulder's
+    scale, colliders and idle action
+
+  * func_808B4E58 -> BgSpot16Bombstone_InitDebris
+    deduced, confidence HIGH: the debris branch of Init: reads this piece's
+    row out of sDebrisInits and waits on the bombiwa object
+
+  * func_808B5240 -> BgSpot16Bombstone_SpawnTimedDust
+    deduced, confidence HIGH: walks sExplosionDustScript, spawning each
+    row's dust puff once the timer reaches its frame
+
+  * func_808B561C -> BgSpot16Bombstone_SpawnDebris
+    deduced, confidence HIGH: spawns one child bombstone per entry of
+    sDebrisParams
+
+  * func_808B56BC -> BgSpot16Bombstone_PushPlayerAway
+    deduced, confidence HIGH: shoves the player back out along the boulder's
+    facing when they stand inside it
+
+  * func_808B57E0 -> BgSpot16Bombstone_WatchPlayerBomb
+    deduced, confidence HIGH: tracks the bomb flower the player carries and
+    opens the one-point cutscene when it is about to go off near the cavern
+    entrance
+
+  * func_808B5934 -> BgSpot16Bombstone_SetupIdle
+    deduced, confidence HIGH: restores the draw function and installs the
+    idle action
+
+  * func_808B5950 -> BgSpot16Bombstone_Idle
+    deduced, confidence HIGH: pushes the player out, watches their bomb, and
+    on AC_HIT spawns the debris, sets the switch and event flags and blows
+    up
+
+  * func_808B5A78 -> BgSpot16Bombstone_SetupExplode
+    deduced, confidence HIGH: clears the timers, drops the draw function and
+    installs the explosion action
+
+  * func_808B5A94 -> BgSpot16Bombstone_Explode
+    deduced, confidence HIGH: runs the dust script, chimes at frame 56 and
+    kills the actor after 60
+
+  * func_808B5AF0 -> BgSpot16Bombstone_SetupWaitForObject
+    deduced, confidence HIGH: installs the wait action and hides the piece
+    until the bombiwa object arrives
+
+  * func_808B5B04 -> BgSpot16Bombstone_WaitForObject
+    deduced, confidence HIGH: holds until the bombiwa object is loaded, then
+    starts the debris flight
+
+  * func_808B5B58 -> BgSpot16Bombstone_SetupFly
+    deduced, confidence HIGH: zeroes the flight timer and installs the
+    debris flight action
+
+  * func_808B5B6C -> BgSpot16Bombstone_Fly
+    deduced, confidence HIGH: arcs the debris under gravity, tumbling it,
+    and shatters it into kakera and dust on landing
+
+  * D_808B5DD8 -> sDebrisInits
+    deduced, confidence HIGH: one ten-value row per debris params: speed, y
+    velocity, scale, the two tumble rates, yaw, height and the three shape
+    rotations
+
+  * D_808B5EB0 -> sExplosionDustScript
+    deduced, confidence HIGH: rows of frame, x, y, z, scale, scale step and
+    life driving BgSpot16Bombstone_SpawnTimedDust
+
+  * D_808B6074 -> sFragmentScales
+    deduced, confidence HIGH: per-fragment scale factors for the
+    EffectSsKakera shards
+
+  * D_808B6088 -> sDebrisParams
+    deduced, confidence HIGH: the params values
+    BgSpot16Bombstone_SpawnDebris passes to each spawned piece
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_bg_spot16_bombstone.c                   | 157 ++++++++++--------
+ 1 file changed, 89 insertions(+), 68 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c b/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
+index 0b6f76958..1be71f09e 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
+@@ -12,20 +12,29 @@ void BgSpot16Bombstone_Update(Actor* thisx, PlayState* play);
+ void BgSpot16Bombstone_Draw(Actor* thisx, PlayState* play);
+ void BgSpot16Bombstone_Reset(void);
+ 
+-void func_808B5A94(BgSpot16Bombstone* this, PlayState* play);
+-void func_808B5B04(BgSpot16Bombstone* this, PlayState* play);
+-void func_808B5B6C(BgSpot16Bombstone* this, PlayState* play);
+-void func_808B5B58(BgSpot16Bombstone* this);
+-void func_808B5950(BgSpot16Bombstone* this, PlayState* play);
+-void func_808B5934(BgSpot16Bombstone* this);
+-void func_808B5AF0(BgSpot16Bombstone* this);
+-void func_808B5A78(BgSpot16Bombstone* this);
++// LLM generated name (HIGH), was func_808B5A94: runs the dust script, chimes at frame 56 and kills the actor after 60
++void BgSpot16Bombstone_Explode(BgSpot16Bombstone* this, PlayState* play);  // was func_808B5A94 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B5B04: holds until the bombiwa object is loaded, then starts the debris flight
++void BgSpot16Bombstone_WaitForObject(BgSpot16Bombstone* this, PlayState* play);  // was func_808B5B04 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B5B6C: arcs the debris under gravity, tumbling it, and shatters it into kakera and dust on landing
++void BgSpot16Bombstone_Fly(BgSpot16Bombstone* this, PlayState* play);  // was func_808B5B6C [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B5B58: zeroes the flight timer and installs the debris flight action
++void BgSpot16Bombstone_SetupFly(BgSpot16Bombstone* this);  // was func_808B5B58 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B5950: pushes the player out, watches their bomb, and on AC_HIT spawns the debris, sets the switch and event flags and blows up
++void BgSpot16Bombstone_Idle(BgSpot16Bombstone* this, PlayState* play);  // was func_808B5950 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B5934: restores the draw function and installs the idle action
++void BgSpot16Bombstone_SetupIdle(BgSpot16Bombstone* this);  // was func_808B5934 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B5AF0: installs the wait action and hides the piece until the bombiwa object arrives
++void BgSpot16Bombstone_SetupWaitForObject(BgSpot16Bombstone* this);  // was func_808B5AF0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B5A78: clears the timers, drops the draw function and installs the explosion action
++void BgSpot16Bombstone_SetupExplode(BgSpot16Bombstone* this);  // was func_808B5A78 [LLM:HIGH]
+ 
+ static EnBombf* sPlayerBomb = NULL;
+ 
+ static s16 sTimer = 0;
+ 
+-static s16 D_808B5DD8[][10] = {
++// LLM generated name (HIGH), was D_808B5DD8: one ten-value row per debris params: speed, y velocity, scale, the two tumble rates, yaw, height and the three shape rotations
++static s16 sDebrisInits[][10] = {  // was D_808B5DD8 [LLM:HIGH]
+     { 0x0008, 0x0004, 0x0046, 0x07D0, 0xFCE0, 0x0000, 0x0064, 0x0000, 0x0000, 0x0000 },
+     { 0x0006, 0x0003, 0x0032, 0x00C8, 0x0A28, 0xC350, 0x005A, 0x0000, 0x0000, 0x0000 },
+     { 0x0005, 0x0003, 0x0028, 0xF63C, 0x0190, 0x30B0, 0x0032, 0x0000, 0x0000, 0x0000 },
+@@ -81,7 +90,8 @@ static ColliderCylinderInit sCylinderInit = {
+     { 190, 80, 0, { 10, 0, 50 } },
+ };
+ 
+-static s16 D_808B5EB0[][7] = {
++// LLM generated name (HIGH), was D_808B5EB0: rows of frame, x, y, z, scale, scale step and life driving BgSpot16Bombstone_SpawnTimedDust
++static s16 sExplosionDustScript[][7] = {  // was D_808B5EB0 [LLM:HIGH]
+     { 0x0000, 0x000A, 0x003C, 0xFFF6, 0x0104, 0x01E0, 0x0007 },
+     { 0x0000, 0x0000, 0x0032, 0x0000, 0x0104, 0x017C, 0x000D },
+     { 0x0001, 0x001E, 0x0014, 0x0014, 0x00A0, 0x0104, 0x000A },
+@@ -139,16 +149,20 @@ static Vec3f sVelocity = { 0.0f, 0.0f, 0.0f };
+ 
+ static Vec3f sAcceleration = { 0.0f, 0.4f, 0.0f };
+ 
+-static f32 D_808B6074[] = { 66.0f, 51.0f, 48.0f, 36.0f, 21.0f };
++// LLM generated name (HIGH), was D_808B6074: per-fragment scale factors for the EffectSsKakera shards
++static f32 sFragmentScales[] = { 66.0f, 51.0f, 48.0f, 36.0f, 21.0f };  // was D_808B6074 [LLM:HIGH]
+ 
+-static s16 D_808B6088[] = { 0, 1, 2, 3, 4 };
++// LLM generated name (HIGH), was D_808B6088: the params values BgSpot16Bombstone_SpawnDebris passes to each spawned piece
++static s16 sDebrisParams[] = { 0, 1, 2, 3, 4 };  // was D_808B6088 [LLM:HIGH]
+ 
+-void func_808B4C30(BgSpot16Bombstone* this) {
++// LLM generated name (HIGH), was func_808B4C30: pulls the switch flag out of the high byte of params and leaves the type in the low byte
++void BgSpot16Bombstone_SplitParams(BgSpot16Bombstone* this) {
+     this->switchFlag = (this->actor.params >> 8) & 0x3F;
+     this->actor.params = this->actor.params & 0xFF;
+ }
+ 
+-void func_808B4C4C(BgSpot16Bombstone* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B4C4C: builds the 120-unit jntsph centred 50 units above the boulder
++void BgSpot16Bombstone_InitJntSphCollider(BgSpot16Bombstone* this, PlayState* play) {
+     s32 pad;
+ 
+     Collider_InitJntSph(play, &this->colliderJntSph);
+@@ -159,7 +173,8 @@ void func_808B4C4C(BgSpot16Bombstone* this, PlayState* play) {
+     this->colliderJntSph.elements[0].dim.worldSphere.radius = 120;
+ }
+ 
+-void func_808B4D04(BgSpot16Bombstone* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B4D04: builds the cylinder collider and offsets it to world position
++void BgSpot16Bombstone_InitCylinderCollider(BgSpot16Bombstone* this, PlayState* play) {
+     s32 pad;
+ 
+     Collider_InitCylinder(play, &this->colliderCylinder);
+@@ -169,7 +184,8 @@ void func_808B4D04(BgSpot16Bombstone* this, PlayState* play) {
+     this->colliderCylinder.dim.pos.z += (s16)this->actor.world.pos.z;
+ }
+ 
+-s32 func_808B4D9C(BgSpot16Bombstone* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B4D9C: the params 0 branch of Init: returns false when the switch flag is already set, otherwise sets up the boulder's scale, colliders and idle action
++s32 BgSpot16Bombstone_InitBoulder(BgSpot16Bombstone* this, PlayState* play) {
+     if (Flags_GetSwitch(play, this->switchFlag)) {
+         osSyncPrintf("Spot16 obj 爆弾石 破壊済み\n");
+         return false;
+@@ -177,17 +193,18 @@ s32 func_808B4D9C(BgSpot16Bombstone* this, PlayState* play) {
+     Actor_ProcessInitChain(&this->actor, sInitChainBoulder);
+     Actor_SetScale(&this->actor, 0.4f);
+     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
+-    func_808B4C4C(this, play);
+-    func_808B4D04(this, play);
++    BgSpot16Bombstone_InitJntSphCollider(this, play);  // was func_808B4C4C [LLM:HIGH]
++    BgSpot16Bombstone_InitCylinderCollider(this, play);  // was func_808B4D04 [LLM:HIGH]
+     this->sinRotation = Math_SinS(this->actor.shape.rot.y);
+     this->cosRotation = Math_CosS(this->actor.shape.rot.y);
+     this->dList = gDodongosCavernRock3DL;
+ 
+-    func_808B5934(this);
++    BgSpot16Bombstone_SetupIdle(this);  // was func_808B5934 [LLM:HIGH]
+     return true;
+ }
+ 
+-s32 func_808B4E58(BgSpot16Bombstone* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B4E58: the debris branch of Init: reads this piece's row out of sDebrisInits and waits on the bombiwa object
++s32 BgSpot16Bombstone_InitDebris(BgSpot16Bombstone* this, PlayState* play) {
+     Actor* actor = &this->actor;
+     f32 scaleFactor = 1.0f / 600.0f;
+     f32 sinCosPosFactor = 50.0f;
+@@ -196,26 +213,26 @@ s32 func_808B4E58(BgSpot16Bombstone* this, PlayState* play) {
+ 
+     Actor_ProcessInitChain(actor, sInitChainDebris);
+ 
+-    actor->speedXZ = D_808B5DD8[actor->params][0];
+-    actor->velocity.y = D_808B5DD8[actor->params][1];
++    actor->speedXZ = sDebrisInits[actor->params][0];  // was D_808B5DD8 [LLM:HIGH]
++    actor->velocity.y = sDebrisInits[actor->params][1];  // was D_808B5DD8 [LLM:HIGH]
+ 
+-    Actor_SetScale(actor, D_808B5DD8[actor->params][2] * scaleFactor);
++    Actor_SetScale(actor, sDebrisInits[actor->params][2] * scaleFactor);  // was D_808B5DD8 [LLM:HIGH]
+ 
+-    this->unk_210 = (f32)D_808B5DD8[actor->params][3];
+-    this->unk_212 = (f32)D_808B5DD8[actor->params][4];
++    this->unk_210 = (f32)sDebrisInits[actor->params][3];  // was D_808B5DD8 [LLM:HIGH]
++    this->unk_212 = (f32)sDebrisInits[actor->params][4];  // was D_808B5DD8 [LLM:HIGH]
+ 
+-    actor->world.rot.y = D_808B5DD8[actor->params][5];
++    actor->world.rot.y = sDebrisInits[actor->params][5];  // was D_808B5DD8 [LLM:HIGH]
+ 
+     sinValue = Math_SinS(this->actor.world.rot.y);
+     cosValue = Math_CosS(this->actor.world.rot.y);
+ 
+     actor->world.pos.x = (sinValue * sinCosPosFactor) + actor->home.pos.x;
+-    actor->world.pos.y = D_808B5DD8[actor->params][6] + actor->home.pos.y;
++    actor->world.pos.y = sDebrisInits[actor->params][6] + actor->home.pos.y;  // was D_808B5DD8 [LLM:HIGH]
+     actor->world.pos.z = (cosValue * sinCosPosFactor) + actor->home.pos.z;
+ 
+-    actor->shape.rot.x = D_808B5DD8[actor->params][7];
+-    actor->shape.rot.y = D_808B5DD8[actor->params][8];
+-    actor->shape.rot.z = D_808B5DD8[actor->params][9];
++    actor->shape.rot.x = sDebrisInits[actor->params][7];  // was D_808B5DD8 [LLM:HIGH]
++    actor->shape.rot.y = sDebrisInits[actor->params][8];  // was D_808B5DD8 [LLM:HIGH]
++    actor->shape.rot.z = sDebrisInits[actor->params][9];  // was D_808B5DD8 [LLM:HIGH]
+ 
+     this->dList = object_bombiwa_DL_0009E0;
+     this->bombiwaBankIndex = Object_GetIndex(&play->objectCtx, OBJECT_BOMBIWA);
+@@ -225,7 +242,7 @@ s32 func_808B4E58(BgSpot16Bombstone* this, PlayState* play) {
+         return false;
+     }
+ 
+-    func_808B5AF0(this);
++    BgSpot16Bombstone_SetupWaitForObject(this);  // was func_808B5AF0 [LLM:HIGH]
+     return true;
+ }
+ 
+@@ -233,12 +250,12 @@ void BgSpot16Bombstone_Init(Actor* thisx, PlayState* play) {
+     BgSpot16Bombstone* this = (BgSpot16Bombstone*)thisx;
+     s16 shouldLive;
+ 
+-    func_808B4C30(this);
++    BgSpot16Bombstone_SplitParams(this);  // was func_808B4C30 [LLM:HIGH]
+ 
+     switch (this->actor.params) {
+         case 0xFF:
+             // The boulder is intact
+-            shouldLive = func_808B4D9C(this, play);
++            shouldLive = BgSpot16Bombstone_InitBoulder(this, play);  // was func_808B4D9C [LLM:HIGH]
+             break;
+         case 0:
+         case 1:
+@@ -247,7 +264,7 @@ void BgSpot16Bombstone_Init(Actor* thisx, PlayState* play) {
+         case 4:
+         case 5:
+             // The boulder is debris
+-            shouldLive = func_808B4E58(this, play);
++            shouldLive = BgSpot16Bombstone_InitDebris(this, play);  // was func_808B4E58 [LLM:HIGH]
+             break;
+         default:
+             osSyncPrintf("Error : arg_data おかしいな(%s %d)(arg_data 0x%04x)\n", __FILE__, __LINE__,
+@@ -285,7 +302,8 @@ void BgSpot16Bombstone_SpawnDust(BgSpot16Bombstone* this, PlayState* play) {
+     func_80033480(play, &world, scaleX1, 2, scaleX2, 0xA0, 1);
+ }
+ 
+-void func_808B5240(BgSpot16Bombstone* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B5240: walks sExplosionDustScript, spawning each row's dust puff once the timer reaches its frame
++void BgSpot16Bombstone_SpawnTimedDust(BgSpot16Bombstone* this, PlayState* play) {
+     f32 tempUnk6;
+     f32 tempUnk2;
+     s16 index;
+@@ -293,21 +311,21 @@ void func_808B5240(BgSpot16Bombstone* this, PlayState* play) {
+     Vec3f* actorPosition = &this->actor.world.pos;
+ 
+     while (true) {
+-        if ((u32)this->unk_158 >= ARRAY_COUNTU(D_808B5EB0) || this->unk_154 < D_808B5EB0[this->unk_158][0]) {
++        if ((u32)this->unk_158 >= ARRAY_COUNTU(sExplosionDustScript) || this->unk_154 < sExplosionDustScript[this->unk_158][0]) {  // was D_808B5EB0 [LLM:HIGH]
+             break;
+         }
+ 
+         index = this->unk_158;
+ 
+-        tempUnk2 = D_808B5EB0[index][1];
+-        tempUnk6 = D_808B5EB0[index][3];
++        tempUnk2 = sExplosionDustScript[index][1];  // was D_808B5EB0 [LLM:HIGH]
++        tempUnk6 = sExplosionDustScript[index][3];  // was D_808B5EB0 [LLM:HIGH]
+ 
+         position.x = ((this->sinRotation * tempUnk6) + (tempUnk2 * this->cosRotation)) + actorPosition->x;
+-        position.y = D_808B5EB0[index][2] + actorPosition->y;
++        position.y = sExplosionDustScript[index][2] + actorPosition->y;  // was D_808B5EB0 [LLM:HIGH]
+         position.z = ((this->cosRotation * tempUnk6) - (tempUnk2 * this->sinRotation)) + actorPosition->z;
+ 
+-        EffectSsDust_SpawnBrown5ScaledLife(play, &position, &sVelocity, &sAcceleration, D_808B5EB0[index][4], D_808B5EB0[index][5],  // was func_800287AC [LLM:HIGH]
+-                      D_808B5EB0[index][6]);
++        EffectSsDust_SpawnBrown5ScaledLife(play, &position, &sVelocity, &sAcceleration, sExplosionDustScript[index][4], sExplosionDustScript[index][5],  // was func_800287AC [LLM:HIGH]
++                      sExplosionDustScript[index][6]);  // was D_808B5EB0 [LLM:HIGH]
+ 
+         this->unk_158 += 1;
+     }
+@@ -328,7 +346,7 @@ void BgSpot16Bombstone_SpawnFragments(BgSpot16Bombstone* this, PlayState* play)
+         index = 0;
+     }
+ 
+-    if (index < ARRAY_COUNT(D_808B6074)) {
++    if (index < ARRAY_COUNT(sFragmentScales)) {  // was D_808B6074 [LLM:HIGH]
+         do {
+             pos.x = ((Rand_ZeroOne() - 0.5f) * 8.0f) + this->actor.world.pos.x;
+             pos.y = ((Rand_ZeroOne() * 5.0f) + this->actor.world.pos.y) + 8.0f;
+@@ -338,29 +356,31 @@ void BgSpot16Bombstone_SpawnFragments(BgSpot16Bombstone* this, PlayState* play)
+             velocity.y = (Rand_ZeroOne() * 14.0) + (fabsf(this->actor.velocity.y) * velocityYMultiplier);
+             velocity.z = (Rand_ZeroOne() - 0.5f) * 16.0f;
+ 
+-            scale = D_808B6074[index] * this->actor.scale.x * 3;
++            scale = sFragmentScales[index] * this->actor.scale.x * 3;  // was D_808B6074 [LLM:HIGH]
+ 
+             EffectSsKakera_Spawn(play, &pos, &velocity, &this->actor.world.pos, -420, 0x31, 0xF, 0xF, 0, scale, 2, 0x40,
+                                  160, KAKERA_COLOR_NONE, OBJECT_BOMBIWA, object_bombiwa_DL_0009E0);
+             index += 1;
+-        } while (index != ARRAY_COUNT(D_808B6074));
++        } while (index != ARRAY_COUNT(sFragmentScales));  // was D_808B6074 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808B561C(BgSpot16Bombstone* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B561C: spawns one child bombstone per entry of sDebrisParams
++void BgSpot16Bombstone_SpawnDebris(BgSpot16Bombstone* this, PlayState* play) {
+     s32 index;
+     PosRot* world;
+ 
+     world = &this->actor.world;
+-    for (index = 0; index < ARRAY_COUNT(D_808B6088); index++) {
++    for (index = 0; index < ARRAY_COUNT(sDebrisParams); index++) {  // was D_808B6088 [LLM:HIGH]
+         if (Actor_Spawn(&play->actorCtx, play, ACTOR_BG_SPOT16_BOMBSTONE, world->pos.x, world->pos.y, world->pos.z, 0,
+-                        0, 0, D_808B6088[index]) == NULL) {
++                        0, 0, sDebrisParams[index]) == NULL) {  // was D_808B6088 [LLM:HIGH]
+             break;
+         }
+     }
+ }
+ 
+-void func_808B56BC(BgSpot16Bombstone* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B56BC: shoves the player back out along the boulder's facing when they stand inside it
++void BgSpot16Bombstone_PushPlayerAway(BgSpot16Bombstone* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 sinValue;
+     s16 adjustedYawDiff;
+@@ -388,7 +408,8 @@ void func_808B56BC(BgSpot16Bombstone* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808B57E0(BgSpot16Bombstone* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B57E0: tracks the bomb flower the player carries and opens the one-point cutscene when it is about to go off near the cavern entrance
++void BgSpot16Bombstone_WatchPlayerBomb(BgSpot16Bombstone* this, PlayState* play) {
+     Actor* playerHeldActor;
+     Player* player = GET_PLAYER(play);
+     EnBombf* currentBomb;
+@@ -419,30 +440,30 @@ void func_808B57E0(BgSpot16Bombstone* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808B5934(BgSpot16Bombstone* this) {
++void BgSpot16Bombstone_SetupIdle(BgSpot16Bombstone* this) {
+     this->actor.draw = BgSpot16Bombstone_Draw;
+-    this->actionFunc = func_808B5950;
++    this->actionFunc = BgSpot16Bombstone_Idle;  // was func_808B5950 [LLM:HIGH]
+ }
+ 
+-void func_808B5950(BgSpot16Bombstone* this, PlayState* play) {
++void BgSpot16Bombstone_Idle(BgSpot16Bombstone* this, PlayState* play) {
+     s32 pad;
+ 
+-    func_808B56BC(this, play);
+-    func_808B57E0(this, play);
++    BgSpot16Bombstone_PushPlayerAway(this, play);  // was func_808B56BC [LLM:HIGH]
++    BgSpot16Bombstone_WatchPlayerBomb(this, play);  // was func_808B57E0 [LLM:HIGH]
+ 
+     if (play) {}
+ 
+     if (this->colliderCylinder.base.acFlags & AC_HIT) {
+         this->colliderCylinder.base.acFlags &= ~AC_HIT;
+ 
+-        func_808B561C(this, play);
++        BgSpot16Bombstone_SpawnDebris(this, play);  // was func_808B561C [LLM:HIGH]
+ 
+         OnePointCutscene_Init(play, 4180, 50, NULL, CAM_ID_MAIN);
+ 
+         Flags_SetSwitch(play, this->switchFlag);
+         Flags_SetEventChkInf(EVENTCHKINF_BOMBED_DODONGOS_CAVERN_ENTRANCE);
+ 
+-        func_808B5A78(this);
++        BgSpot16Bombstone_SetupExplode(this);  // was func_808B5A78 [LLM:HIGH]
+     } else {
+         CollisionCheck_SetAC(play, &play->colChkCtx, &this->colliderCylinder.base);
+         CollisionCheck_SetOC(play, &play->colChkCtx, &this->colliderJntSph.base);
+@@ -450,23 +471,23 @@ void func_808B5950(BgSpot16Bombstone* this, PlayState* play) {
+     }
+ 
+     if (mREG(64) == 1) {
+-        func_808B561C(this, play);
++        BgSpot16Bombstone_SpawnDebris(this, play);  // was func_808B561C [LLM:HIGH]
+         mREG(64) = -10;
+     } else if (mREG(64) < 0) {
+         mREG(64)++;
+     }
+ }
+ 
+-void func_808B5A78(BgSpot16Bombstone* this) {
++void BgSpot16Bombstone_SetupExplode(BgSpot16Bombstone* this) {
+     this->unk_154 = 0;
+     this->unk_158 = 0;
+     this->actor.draw = NULL;
+-    this->actionFunc = func_808B5A94;
++    this->actionFunc = BgSpot16Bombstone_Explode;  // was func_808B5A94 [LLM:HIGH]
+ }
+ 
+-void func_808B5A94(BgSpot16Bombstone* this, PlayState* play) {
++void BgSpot16Bombstone_Explode(BgSpot16Bombstone* this, PlayState* play) {
+ 
+-    func_808B5240(this, play);
++    BgSpot16Bombstone_SpawnTimedDust(this, play);  // was func_808B5240 [LLM:HIGH]
+ 
+     if (this->unk_154 == 56) {
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+@@ -477,24 +498,24 @@ void func_808B5A94(BgSpot16Bombstone* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808B5AF0(BgSpot16Bombstone* this) {
+-    this->actionFunc = func_808B5B04;
++void BgSpot16Bombstone_SetupWaitForObject(BgSpot16Bombstone* this) {
++    this->actionFunc = BgSpot16Bombstone_WaitForObject;  // was func_808B5B04 [LLM:HIGH]
+     this->actor.draw = NULL;
+ }
+ 
+-void func_808B5B04(BgSpot16Bombstone* this, PlayState* play) {
++void BgSpot16Bombstone_WaitForObject(BgSpot16Bombstone* this, PlayState* play) {
+     if (Object_IsLoaded(&play->objectCtx, this->bombiwaBankIndex)) {
+-        func_808B5B58(this);
++        BgSpot16Bombstone_SetupFly(this);  // was func_808B5B58 [LLM:HIGH]
+         this->actor.draw = BgSpot16Bombstone_Draw;
+     }
+ }
+ 
+-void func_808B5B58(BgSpot16Bombstone* this) {
++void BgSpot16Bombstone_SetupFly(BgSpot16Bombstone* this) {
+     this->unk_154 = 0;
+-    this->actionFunc = func_808B5B6C;
++    this->actionFunc = BgSpot16Bombstone_Fly;  // was func_808B5B6C [LLM:HIGH]
+ }
+ 
+-void func_808B5B6C(BgSpot16Bombstone* this, PlayState* play) {
++void BgSpot16Bombstone_Fly(BgSpot16Bombstone* this, PlayState* play) {
+     Actor* actor = &this->actor;
+ 
+     Actor_MoveXZGravity(actor);
+-- 
+2.55.0
+

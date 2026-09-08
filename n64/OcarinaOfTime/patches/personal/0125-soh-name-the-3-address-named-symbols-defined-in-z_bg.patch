@@ -1,0 +1,145 @@
+From a27cd5f4aea309447d022a963400ca9ef7231836 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:08 +0000
+Subject: [PATCH 125/488] soh: name the 3 address-named symbols defined in
+ z_bg_toki_swd.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c; updating their references touches 4 files in total.
+
+  * D_808BB2F0 -> gPullMasterSwordCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_808BB7A0 -> gPlaceMasterSwordCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_808BBD90 -> gRevealMasterSwordCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c        | 15 +++++++++------
+ .../z_bg_toki_swd_cutscene_data_1.c               |  2 +-
+ .../z_bg_toki_swd_cutscene_data_2.c               |  2 +-
+ .../z_bg_toki_swd_cutscene_data_3.c               |  2 +-
+ 4 files changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
+index 28104539e..ff7f2fbad 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
++++ b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c
+@@ -20,9 +20,12 @@ void func_808BAF40(BgTokiSwd* this, PlayState* play);
+ void func_808BB0AC(BgTokiSwd* this, PlayState* play);
+ void func_808BB128(BgTokiSwd* this, PlayState* play);
+ 
+-extern CutsceneData D_808BB2F0[];
+-extern CutsceneData D_808BB7A0[];
+-extern CutsceneData D_808BBD90[];
++// Name from zeldaret/oot (was D_808BB2F0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c]
++extern CutsceneData gPullMasterSwordCs[];
++// Name from zeldaret/oot (was D_808BB7A0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c]
++extern CutsceneData gPlaceMasterSwordCs[];
++// Name from zeldaret/oot (was D_808BBD90): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd.c]
++extern CutsceneData gRevealMasterSwordCs[];
+ 
+ const ActorInit Bg_Toki_Swd_InitVars = {
+     ACTOR_BG_TOKI_SWD,
+@@ -119,7 +122,7 @@ void func_808BAF40(BgTokiSwd* this, PlayState* play) {
+         Flags_SetEventChkInf(EVENTCHKINF_ENTERED_MASTER_SWORD_CHAMBER);
+         if (GameInteractor_Should(VB_PLAY_ENTRANCE_CS, true, EVENTCHKINF_ENTERED_MASTER_SWORD_CHAMBER,
+                                   gSaveContext.entranceIndex)) {
+-            play->csCtx.segment = D_808BBD90;
++            play->csCtx.segment = gRevealMasterSwordCs;
+             gSaveContext.cutsceneTrigger = 1;
+         }
+     }
+@@ -130,12 +133,12 @@ void func_808BAF40(BgTokiSwd* this, PlayState* play) {
+                 if (GameInteractor_Should(VB_GIVE_ITEM_MASTER_SWORD, true)) {
+                     Item_Give(play, ITEM_SWORD_MASTER);
+                 }
+-                play->csCtx.segment = D_808BB2F0;
++                play->csCtx.segment = gPullMasterSwordCs;
+ 
+                 // Discover adult spawn
+                 Entrance_SetEntranceDiscovered(ENTR_HYRULE_FIELD_10, false);
+             } else {
+-                play->csCtx.segment = D_808BB7A0;
++                play->csCtx.segment = gPlaceMasterSwordCs;
+ 
+                 // Discover child spawn
+                 Entrance_SetEntranceDiscovered(ENTR_LINKS_HOUSE_CHILD_SPAWN, false);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_1.c b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_1.c
+index 16b6b2a8a..f39c8b69f 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_1.c
++++ b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_1.c
+@@ -2,7 +2,7 @@
+ #include "z64cutscene_commands.h"
+ 
+ // clang-format off
+-CutsceneData D_808BB2F0[] = {
++CutsceneData gPullMasterSwordCs[] = {
+     CS_BEGIN_CUTSCENE(9, 425),
+     CS_PLAYER_ACTION_LIST(1),
+         CS_PLAYER_ACTION(0x000C, 0, 256, 0x0000, 0x0000, 0x0000, 0, 54, 52, 0, 54, 52, 0.0f, 0.0f, 0.0f),
+diff --git a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_2.c b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_2.c
+index 71abf191d..150df233f 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_2.c
++++ b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_2.c
+@@ -2,7 +2,7 @@
+ #include "z64cutscene_commands.h"
+ 
+ // clang-format off
+-CutsceneData D_808BB7A0[] = {
++CutsceneData gPlaceMasterSwordCs[] = {
+     CS_BEGIN_CUTSCENE(9, 368),
+     CS_CAM_EYE_LIST(0, 126),
+         CS_CAM_EYE(CS_CMD_CONTINUE, 0x00, 0, 60.0f, -1, 101, -110, 0x616D),
+diff --git a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_3.c b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_3.c
+index 724dc8fe6..4b915ed84 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_3.c
++++ b/soh/src/overlays/actors/ovl_Bg_Toki_Swd/z_bg_toki_swd_cutscene_data_3.c
+@@ -2,7 +2,7 @@
+ #include "z64cutscene_commands.h"
+ 
+ // clang-format off
+-CutsceneData D_808BBD90[] = {
++CutsceneData gRevealMasterSwordCs[] = {
+     CS_BEGIN_CUTSCENE(11, 3000),
+     CS_UNK_DATA_LIST(0x00000021, 1),
+         CS_UNK_DATA(0x00010000, 0x0BB80000, 0x00000000, 0x00000000, 0xFFFFFFF8, 0xFFFFFFFF, 0x00000000, 0xFFFFFFF8, 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000),
+-- 
+2.55.0
+

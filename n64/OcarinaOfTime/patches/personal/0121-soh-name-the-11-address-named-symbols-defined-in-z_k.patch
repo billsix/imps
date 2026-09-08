@@ -1,0 +1,450 @@
+From a3a202c6df62ea0aa0a92ac89a641e85eeb88eca Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:08 +0000
+Subject: [PATCH 121/488] soh: name the 11 address-named symbols defined in
+ z_kankyo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 11 are defined in soh/src/code/z_kankyo.c; updating their references touches 7 files in total.
+
+  * func_8006FB94 -> Environment_UpdateStorm
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_80074CE8 -> Environment_ChangeLightSetting
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.99
+
+  * func_80075B44 -> Environment_PlayTimeBasedSequence
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.94
+
+  * func_800766C4 -> Environment_UpdateRain
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8011FB34 -> gLightConfigAfterUnderwater
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8011FB38 -> gInterruptSongOfStorms
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8011FDCC -> sSandstormColorIndex
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8011FDD0 -> sNextSandstormColorIndex
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8011FDD4 -> sSandstormLerpScale
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8015FD7E -> sSunDepthTestX
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8015FD80 -> sSunDepthTestY
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  2 +-
+ soh/include/variables.h                       |  4 +-
+ soh/src/code/z_kankyo.c                       | 97 +++++++++++--------
+ .../ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c       |  2 +-
+ .../z_en_okarina_effect.c                     |  2 +-
+ .../ovl_En_Weather_Tag/z_en_weather_tag.c     | 12 +--
+ .../actors/ovl_player_actor/z_player.c        |  2 +-
+ 7 files changed, 66 insertions(+), 55 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 662264272..9a8ce3faf 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -927,7 +927,7 @@ void Environment_DrawSunLensFlare(PlayState* play, EnvironmentContext* envCtx, V
+ void Environment_DrawLensFlare(PlayState* play, EnvironmentContext* envCtx, View* view,
+                                GraphicsContext* gfxCtx, Vec3f pos, s32 unused, s16 arg6, f32 arg7, s16 arg8, u8 arg9);
+ void Environment_DrawRain(PlayState* play, View* view, GraphicsContext* gfxCtx);
+-void func_80074CE8(PlayState* play, u32 arg1);
++void Environment_ChangeLightSetting(PlayState* play, u32 arg1);  // was func_80074CE8 [oot]
+ void Environment_DrawSkyboxFilters(PlayState* play);
+ void Environment_UpdateLightningStrike(PlayState* play);
+ void Environment_AddLightningBolts(PlayState* play, u8 num);
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 834f13004..5d7314831 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -74,8 +74,8 @@ extern "C"
+ 	extern s32 gDbgCamEnabled;
+ 	extern GameStateOverlay gGameStateOverlayTable[6];
+ 	extern u8 gWeatherMode;
+-	extern u8 D_8011FB34;
+-	extern u8 D_8011FB38;
++	extern u8 gLightConfigAfterUnderwater;  // was D_8011FB34 [oot]
++	extern u8 gInterruptSongOfStorms;  // was D_8011FB38 [oot]
+ 	extern u8 gSkyboxBlendingEnabled;
+ 	extern u16 gTimeSpeed;
+ 	extern struct_8011FC1C D_8011FC1C[][9];
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index b4b201b5b..dee201b8d 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -51,9 +51,11 @@ Struct_8011FAF0 D_8011FAF0[] = {
+ 
+ u8 gWeatherMode = 0; // "E_wether_flg"
+ 
+-u8 D_8011FB34 = 0;
++// Name from zeldaret/oot (was D_8011FB34): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++u8 gLightConfigAfterUnderwater = 0;
+ 
+-u8 D_8011FB38 = 0;
++// Name from zeldaret/oot (was D_8011FB38): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++u8 gInterruptSongOfStorms = 0;
+ 
+ u8 gSkyboxBlendingEnabled = false;
+ 
+@@ -199,9 +201,12 @@ SkyboxFile gSkyboxFiles[] = {
+     },
+ };
+ 
+-u8 D_8011FDCC = 0;
+-u8 D_8011FDD0 = 0;
+-f32 D_8011FDD4 = 0.0f;
++// Name from zeldaret/oot (was D_8011FDCC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++u8 sSandstormColorIndex = 0;
++// Name from zeldaret/oot (was D_8011FDD0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++u8 sNextSandstormColorIndex = 0;
++// Name from zeldaret/oot (was D_8011FDD4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++f32 sSandstormLerpScale = 0.0f;
+ 
+ u8 gCustomLensFlareOn;
+ Vec3f gCustomLensFlarePos;
+@@ -212,8 +217,10 @@ s16 gLensFlareScreenFillAlpha;
+ LightningBolt sLightningBolts[3];
+ LightningStrike gLightningStrike;
+ s16 sLightningFlashAlpha;
+-s16 D_8015FD7E;
+-s16 D_8015FD80;
++// Name from zeldaret/oot (was D_8015FD7E): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++s16 sSunDepthTestX;
++// Name from zeldaret/oot (was D_8015FD80): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++s16 sSunDepthTestY;
+ LightNode* sNGameOverLightNode;
+ LightInfo sNGameOverLightInfo;
+ LightNode* sSGameOverLightNode;
+@@ -239,10 +246,10 @@ u16 Environment_GetPixelDepth(s32 x, s32 y) {
+ void Environment_GraphCallback(GraphicsContext* gfxCtx, void* param) {
+     PlayState* play = (PlayState*)param;
+ 
+-    OTRGetPixelDepthPrepare(D_8015FD7E, D_8015FD80);
++    OTRGetPixelDepthPrepare(sSunDepthTestX, sSunDepthTestY);
+     Lights_GlowCheckPrepare(play);
+ 
+-    D_8011FB44 = Environment_GetPixelDepth(D_8015FD7E, D_8015FD80);
++    D_8011FB44 = Environment_GetPixelDepth(sSunDepthTestX, sSunDepthTestY);
+     Lights_GlowCheck(play);
+ }
+ 
+@@ -387,8 +394,8 @@ void Environment_Init(PlayState* play2, EnvironmentContext* envCtx, s32 unused)
+         gWeatherMode = 0;
+     }
+ 
+-    D_8011FB38 = 0;
+-    D_8011FB34 = 0;
++    gInterruptSongOfStorms = 0;
++    gLightConfigAfterUnderwater = 0;
+     gSkyboxBlendingEnabled = false;
+     gSaveContext.retainWeatherMode = 0;
+     R_ENV_LIGHT1_DIR(0) = 80;
+@@ -572,7 +579,8 @@ f32 Environment_LerpWeightAccelDecel(u16 endFrame, u16 startFrame, u16 curFrame,
+     return ret;
+ }
+ 
+-void func_8006FB94(EnvironmentContext* envCtx, u8 unused) {
++// Name from zeldaret/oot (was func_8006FB94): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++void Environment_UpdateStorm(EnvironmentContext* envCtx, u8 unused) {
+     if (envCtx->gloomySkyMode != 0) {
+         switch (envCtx->unk_DE) {
+             case 0:
+@@ -584,7 +592,7 @@ void func_8006FB94(EnvironmentContext* envCtx, u8 unused) {
+                     envCtx->unk_21 = 1;
+                     envCtx->unk_1F = 0;
+                     envCtx->unk_20 = 2;
+-                    D_8011FB34 = 2;
++                    gLightConfigAfterUnderwater = 2;
+                     envCtx->unk_22 = envCtx->unk_24 = 100;
+                     envCtx->unk_DE++;
+                 }
+@@ -599,7 +607,7 @@ void func_8006FB94(EnvironmentContext* envCtx, u8 unused) {
+                     envCtx->unk_21 = 1;
+                     envCtx->unk_1F = 2;
+                     envCtx->unk_20 = 0;
+-                    D_8011FB34 = 0;
++                    gLightConfigAfterUnderwater = 0;
+                     envCtx->unk_22 = envCtx->unk_24 = 100;
+                     envCtx->unk_EE[0] = 0;
+                     envCtx->gloomySkyMode = 0;
+@@ -668,7 +676,7 @@ void Environment_UpdateSkybox(PlayState* play, u8 skyboxId, EnvironmentContext*
+             }
+         }
+ 
+-        func_8006FB94(envCtx, skyboxBlend);
++        Environment_UpdateStorm(envCtx, skyboxBlend);
+ 
+         if (envCtx->unk_19 >= 3) {
+             newSkybox1Index = D_8011FC1C[envCtx->unk_17][i].skybox1Index;
+@@ -799,7 +807,7 @@ void Environment_EnableUnderwaterLights(PlayState* play, s32 waterLightsIndex) {
+     }
+ 
+     if (!play->envCtx.indoors) {
+-        D_8011FB34 = play->envCtx.unk_20;
++        gLightConfigAfterUnderwater = play->envCtx.unk_20;
+ 
+         if (play->envCtx.unk_1F != waterLightsIndex) {
+             play->envCtx.unk_1F = waterLightsIndex;
+@@ -813,8 +821,8 @@ void Environment_EnableUnderwaterLights(PlayState* play, s32 waterLightsIndex) {
+ 
+ void Environment_DisableUnderwaterLights(PlayState* play) {
+     if (!play->envCtx.indoors) {
+-        play->envCtx.unk_1F = D_8011FB34;
+-        play->envCtx.unk_20 = D_8011FB34;
++        play->envCtx.unk_1F = gLightConfigAfterUnderwater;
++        play->envCtx.unk_20 = gLightConfigAfterUnderwater;
+     } else {
+         play->envCtx.blendIndoorLights = false; // instantly switch to previous lights
+         play->envCtx.unk_BF = 0xFF;
+@@ -880,8 +888,10 @@ void Environment_PrintDebugInfo(PlayState* play, Gfx** gfx) {
+ #define TIME_ENTRY_1F (D_8011FB48[envCtx->unk_1F][i])
+ #define TIME_ENTRY_20 (D_8011FB48[envCtx->unk_20][i])
+ 
+-void func_80075B44(PlayState* play);
+-void func_800766C4(PlayState* play);
++// Name from zeldaret/oot (was func_80075B44): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++void Environment_PlayTimeBasedSequence(PlayState* play);
++// Name from zeldaret/oot (was func_800766C4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++void Environment_UpdateRain(PlayState* play);
+ 
+ void Environment_Update(PlayState* play, EnvironmentContext* envCtx, LightContext* lightCtx, PauseContext* pauseCtx,
+                         MessageContext* msgCtx, GameOverContext* gameOverCtx, GraphicsContext* gfxCtx) {
+@@ -907,8 +917,8 @@ void Environment_Update(PlayState* play, EnvironmentContext* envCtx, LightContex
+             }
+         }
+ 
+-        func_800766C4(play); // increments or decrements unk_EE[1] depending on some condition
+-        func_80075B44(play); // updates bgm/sfx and other things as the day progresses
++        Environment_UpdateRain(play); // increments or decrements unk_EE[1] depending on some condition
++        Environment_PlayTimeBasedSequence(play); // updates bgm/sfx and other things as the day progresses
+ 
+         if (((void)0, gSaveContext.nextDayTime) >= 0xFF00 && ((void)0, gSaveContext.nextDayTime) != 0xFFFF) {
+             gSaveContext.nextDayTime -= 0x10;
+@@ -986,9 +996,9 @@ void Environment_Update(PlayState* play, EnvironmentContext* envCtx, LightContex
+                         sp8C = Environment_LerpWeight(TIME_ENTRY_1F.endTime, TIME_ENTRY_1F.startTime,
+                                                       ((void)0, gSaveContext.skyboxTime));
+ 
+-                        D_8011FDCC = TIME_ENTRY_1F.unk_04 & 3;
+-                        D_8011FDD0 = TIME_ENTRY_1F.unk_05 & 3;
+-                        D_8011FDD4 = sp8C;
++                        sSandstormColorIndex = TIME_ENTRY_1F.unk_04 & 3;
++                        sNextSandstormColorIndex = TIME_ENTRY_1F.unk_05 & 3;
++                        sSandstormLerpScale = sp8C;
+ 
+                         if (envCtx->unk_21) {
+                             sp88 = ((f32)envCtx->unk_24 - envCtx->unk_22) / envCtx->unk_24;
+@@ -1515,8 +1525,8 @@ void Environment_DrawLensFlare(PlayState* play, EnvironmentContext* envCtx, View
+         if (arg9) {
+             u32 shrink = ShrinkWindow_GetCurrentVal();
+             Play_GetScreenPos(play, &pos, &screenPos);
+-            D_8015FD7E = (s16)screenPos.x;
+-            D_8015FD80 = (s16)screenPos.y - 5.0f;
++            sSunDepthTestX = (s16)screenPos.x;
++            sSunDepthTestY = (s16)screenPos.y - 5.0f;
+             if (D_8011FB44 != 0xFFFC || screenPos.x < 0.0f || screenPos.y < shrink || screenPos.x > SCREEN_WIDTH ||
+                 screenPos.y > (SCREEN_HEIGHT - shrink)) {
+                 isOffScreen = true;
+@@ -1742,7 +1752,8 @@ void Environment_DrawRain(PlayState* play, View* view, GraphicsContext* gfxCtx)
+     }
+ }
+ 
+-void func_80074CE8(PlayState* play, u32 arg1) {
++// Name from zeldaret/oot (was func_80074CE8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.99. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
++void Environment_ChangeLightSetting(PlayState* play, u32 arg1) {
+     if ((play->envCtx.unk_BD != arg1) && (play->envCtx.unk_D8 >= 1.0f) && (play->envCtx.unk_BF == 0xFF)) {
+         if (arg1 > 30) {
+             arg1 = 0;
+@@ -2046,7 +2057,7 @@ void Environment_PlaySceneSequence(PlayState* play) {
+ }
+ 
+ // updates bgm/sfx and other things as the day progresses
+-void func_80075B44(PlayState* play) {
++void Environment_PlayTimeBasedSequence(PlayState* play) {
+     switch (play->envCtx.unk_E0) {
+         case 0:
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_CRITTER_4 << 4 | NATURE_CHANNEL_CRITTER_5,
+@@ -2235,7 +2246,7 @@ void Environment_FadeOutGameOverLights(PlayState* play) {
+     }
+ }
+ 
+-void func_800766C4(PlayState* play) {
++void Environment_UpdateRain(PlayState* play) {
+     u8 max = MAX(play->envCtx.unk_EE[0], play->envCtx.unk_F2[0]);
+ 
+     if (play->envCtx.unk_EE[1] != max && ((play->state.frames % 8) == 0)) {
+@@ -2397,20 +2408,20 @@ void Environment_DrawSandstorm(PlayState* play, u8 sandstormState) {
+         envColor.r = sSandstormEnvColors[1].r;
+         envColor.g = sSandstormEnvColors[1].g;
+         envColor.b = sSandstormEnvColors[1].b;
+-    } else if (D_8011FDCC == D_8011FDD0) {
+-        primColor.r = sSandstormPrimColors[D_8011FDCC].r;
+-        primColor.g = sSandstormPrimColors[D_8011FDCC].g;
+-        primColor.b = sSandstormPrimColors[D_8011FDCC].b;
+-        envColor.r = sSandstormEnvColors[D_8011FDCC].r;
+-        envColor.g = sSandstormEnvColors[D_8011FDCC].g;
+-        envColor.b = sSandstormEnvColors[D_8011FDCC].b;
++    } else if (sSandstormColorIndex == sNextSandstormColorIndex) {
++        primColor.r = sSandstormPrimColors[sSandstormColorIndex].r;
++        primColor.g = sSandstormPrimColors[sSandstormColorIndex].g;
++        primColor.b = sSandstormPrimColors[sSandstormColorIndex].b;
++        envColor.r = sSandstormEnvColors[sSandstormColorIndex].r;
++        envColor.g = sSandstormEnvColors[sSandstormColorIndex].g;
++        envColor.b = sSandstormEnvColors[sSandstormColorIndex].b;
+     } else {
+-        primColor.r = (s32)F32_LERP(sSandstormPrimColors[D_8011FDCC].r, sSandstormPrimColors[D_8011FDD0].r, D_8011FDD4);
+-        primColor.g = (s32)F32_LERP(sSandstormPrimColors[D_8011FDCC].g, sSandstormPrimColors[D_8011FDD0].g, D_8011FDD4);
+-        primColor.b = (s32)F32_LERP(sSandstormPrimColors[D_8011FDCC].b, sSandstormPrimColors[D_8011FDD0].b, D_8011FDD4);
+-        envColor.r = (s32)F32_LERP(sSandstormEnvColors[D_8011FDCC].r, sSandstormEnvColors[D_8011FDD0].r, D_8011FDD4);
+-        envColor.g = (s32)F32_LERP(sSandstormEnvColors[D_8011FDCC].g, sSandstormEnvColors[D_8011FDD0].g, D_8011FDD4);
+-        envColor.b = (s32)F32_LERP(sSandstormEnvColors[D_8011FDCC].b, sSandstormEnvColors[D_8011FDD0].b, D_8011FDD4);
++        primColor.r = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].r, sSandstormPrimColors[sNextSandstormColorIndex].r, sSandstormLerpScale);
++        primColor.g = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].g, sSandstormPrimColors[sNextSandstormColorIndex].g, sSandstormLerpScale);
++        primColor.b = (s32)F32_LERP(sSandstormPrimColors[sSandstormColorIndex].b, sSandstormPrimColors[sNextSandstormColorIndex].b, sSandstormLerpScale);
++        envColor.r = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].r, sSandstormEnvColors[sNextSandstormColorIndex].r, sSandstormLerpScale);
++        envColor.g = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].g, sSandstormEnvColors[sNextSandstormColorIndex].g, sSandstormLerpScale);
++        envColor.b = (s32)F32_LERP(sSandstormEnvColors[sSandstormColorIndex].b, sSandstormEnvColors[sNextSandstormColorIndex].b, sSandstormLerpScale);
+     }
+ 
+     envColor.r = ((envColor.r * sp98) + ((6.0f - sp98) * primColor.r)) * (1.0f / 6.0f);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c b/soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c
+index e8553f978..fbbae3c80 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mori_Bigst/z_bg_mori_bigst.c
+@@ -246,7 +246,7 @@ void BgMoriBigst_Update(Actor* thisx, PlayState* play) {
+         this->waitTimer--;
+     }
+     if (DynaPolyActor_IsPlayerAbove(&this->dyna)) {
+-        func_80074CE8(play, 6);
++        Environment_ChangeLightSetting(play, 6);
+     }
+     if (this->actionFunc != NULL) {
+         this->actionFunc(this, play);
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c b/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
+index bcca98270..f768c4a79 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
+@@ -85,7 +85,7 @@ void EnOkarinaEffect_ManageStorm(EnOkarinaEffect* this, PlayState* play) {
+         }
+     }
+ 
+-    if (D_8011FB38 != 0) {
++    if (gInterruptSongOfStorms != 0) {
+         this->timer = 0;
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c b/soh/src/overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c
+index d2700c09e..32106ff2f 100644
+--- a/soh/src/overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Weather_Tag/z_en_weather_tag.c
+@@ -139,10 +139,10 @@ u8 WeatherTag_CheckEnableWeatherEffect(EnWeatherTag* this, PlayState* play, u8 a
+     if (Actor_WorldDistXZToActor(&player->actor, &this->actor) < WEATHER_TAG_RANGE100(this->actor.params)) {
+         if ((play->envCtx.indoors != 0) || !gSkyboxBlendingEnabled ||
+             (play->skyboxId != SKYBOX_NORMAL_SKY && play->envCtx.unk_1F == play->envCtx.unk_20)) {
+-            D_8011FB38 = 1;
++            gInterruptSongOfStorms = 1;
+             if (play->envCtx.gloomySkyMode == 0 &&
+                 (play->envCtx.indoors != 0 || (play->envCtx.unk_1F != 1 && play->envCtx.unk_21 == 0))) {
+-                D_8011FB38 = 0;
++                gInterruptSongOfStorms = 0;
+                 if (gWeatherMode != weatherMode) {
+                     gWeatherMode = weatherMode;
+                     if (play->envCtx.gloomySkyMode == 0) {
+@@ -153,7 +153,7 @@ u8 WeatherTag_CheckEnableWeatherEffect(EnWeatherTag* this, PlayState* play, u8 a
+                         play->envCtx.unk_21 = 1;
+                         play->envCtx.unk_1F = arg4;
+                         play->envCtx.unk_20 = arg5;
+-                        D_8011FB34 = arg5;
++                        gLightConfigAfterUnderwater = arg5;
+                         play->envCtx.unk_24 = arg6;
+                         play->envCtx.unk_22 = play->envCtx.unk_24;
+                     }
+@@ -178,10 +178,10 @@ u8 WeatherTag_CheckRestoreWeather(EnWeatherTag* this, PlayState* play, u8 arg2,
+     if ((WEATHER_TAG_RANGE100(this->actor.params) + 100.0f) < Actor_WorldDistXZToActor(&player->actor, &this->actor)) {
+         if (play->envCtx.indoors != 0 || !gSkyboxBlendingEnabled ||
+             (play->skyboxId != SKYBOX_NORMAL_SKY && play->envCtx.unk_1F == play->envCtx.unk_20)) {
+-            D_8011FB38 = 1;
++            gInterruptSongOfStorms = 1;
+             if ((play->envCtx.gloomySkyMode == 0) &&
+                 (play->envCtx.indoors != 0 || (play->envCtx.unk_1F != 1 && play->envCtx.unk_21 == 0))) {
+-                D_8011FB38 = 0;
++                gInterruptSongOfStorms = 0;
+                 gWeatherMode = 0;
+                 play->envCtx.unk_19 = 1;
+                 play->envCtx.unk_17 = arg2;
+@@ -190,7 +190,7 @@ u8 WeatherTag_CheckRestoreWeather(EnWeatherTag* this, PlayState* play, u8 arg2,
+                 play->envCtx.unk_21 = 1;
+                 play->envCtx.unk_1F = arg4;
+                 play->envCtx.unk_20 = arg5;
+-                D_8011FB34 = arg5;
++                gLightConfigAfterUnderwater = arg5;
+                 play->envCtx.unk_24 = arg6;
+                 play->envCtx.unk_22 = play->envCtx.unk_24;
+ 
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 49614abde..e6b021bb4 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -11246,7 +11246,7 @@ void Player_ProcessSceneCollision(PlayState* play, Player* this) {
+             Audio_SetCodeReverb(SurfaceType_GetEcho(&play->colCtx, floorPoly, this->actor.floorBgId));
+ 
+             if (this->actor.floorBgId == BGCHECK_SCENE) {
+-                func_80074CE8(play, SurfaceType_GetLightSettingIndex(&play->colCtx, floorPoly, this->actor.floorBgId));
++                Environment_ChangeLightSetting(play, SurfaceType_GetLightSettingIndex(&play->colCtx, floorPoly, this->actor.floorBgId));
+             } else {
+                 DynaPoly_SetPlayerAbove(&play->colCtx, this->actor.floorBgId);
+             }
+-- 
+2.55.0
+

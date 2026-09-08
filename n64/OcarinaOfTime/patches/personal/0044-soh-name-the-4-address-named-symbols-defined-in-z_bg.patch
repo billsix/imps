@@ -1,0 +1,129 @@
+From 1a35662839f439b960b767986ceb9362b12efd80 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:01 +0000
+Subject: [PATCH 044/488] soh: name the 4 address-named symbols defined in
+ z_bg_spot11_bakudankabe.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Bg_Spot11_Bakudankabe/z_bg_spot11_bakudankabe.c.
+
+  * D_808B272C -> sEffectSpawnOffset
+    deduced, confidence HIGH
+
+  * D_808B2738 -> sBreakSfxPos
+    deduced, confidence HIGH
+
+  * func_808B2180 -> BgSpot11Bakudankabe_InitCollider
+    deduced, confidence HIGH
+
+  * func_808B2218 -> BgSpot11Bakudankabe_SpawnFragments
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_bg_spot11_bakudankabe.c                 | 22 +++++++++++--------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot11_Bakudankabe/z_bg_spot11_bakudankabe.c b/soh/src/overlays/actors/ovl_Bg_Spot11_Bakudankabe/z_bg_spot11_bakudankabe.c
+index be1e6edb4..3acf2e7c2 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot11_Bakudankabe/z_bg_spot11_bakudankabe.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot11_Bakudankabe/z_bg_spot11_bakudankabe.c
+@@ -49,10 +49,13 @@ static ColliderCylinderInit sCylinderInit = {
+     { 40, 80, 0, { 2259, 108, -1580 } },
+ };
+ 
+-static Vec3f D_808B272C = { 2259.0f, 108.0f, -1550.0f };
+-static Vec3f D_808B2738 = { 2259.0f, 108.0f, -1550.0f };
++// LLM generated name (HIGH), was D_808B272C: offset summed with world.pos to place fragment/dust effect spawns.
++static Vec3f sEffectSpawnOffset = { 2259.0f, 108.0f, -1550.0f };
++// LLM generated name (HIGH), was D_808B2738: fixed world position for the NA_SE_EV_WALL_BROKEN break sfx.
++static Vec3f sBreakSfxPos = { 2259.0f, 108.0f, -1550.0f };
+ 
+-void func_808B2180(BgSpot11Bakudankabe* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B2180: initializes and positions the cylinder collider.
++void BgSpot11Bakudankabe_InitCollider(BgSpot11Bakudankabe* this, PlayState* play) {
+     s32 pad;
+ 
+     Collider_InitCylinder(play, &this->collider);
+@@ -62,7 +65,8 @@ void func_808B2180(BgSpot11Bakudankabe* this, PlayState* play) {
+     this->collider.dim.pos.z += (s16)this->dyna.actor.world.pos.z;
+ }
+ 
+-void func_808B2218(BgSpot11Bakudankabe* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B2218: spawns ~20 kakera debris fragments via EffectSsKakera_Spawn.
++void BgSpot11Bakudankabe_SpawnFragments(BgSpot11Bakudankabe* this, PlayState* play) {
+     Actor* thisx = &this->dyna.actor;
+     Vec3f burstDepthY;
+     Vec3f burstDepthX;
+@@ -76,7 +80,7 @@ void func_808B2218(BgSpot11Bakudankabe* this, PlayState* play) {
+         s32 gravityInfluence;
+         s32 rotationSpeed;
+ 
+-        Math_Vec3f_Sum(&thisx->world.pos, &D_808B272C, &burstDepthY);
++        Math_Vec3f_Sum(&thisx->world.pos, &sEffectSpawnOffset, &burstDepthY);
+ 
+         burstDepthY.x += (Rand_ZeroOne() - 0.5f) * 120.0f;
+         burstDepthY.y += (30.0f + (i * 6.5f));
+@@ -100,7 +104,7 @@ void func_808B2218(BgSpot11Bakudankabe* this, PlayState* play) {
+         EffectSsKakera_Spawn(play, &burstDepthY, &burstDepthX, &burstDepthY, gravityInfluence, rotationSpeed, 0x1E, 4,
+                              0, scale, 1, 3, 80, KAKERA_COLOR_NONE, OBJECT_GAMEPLAY_FIELD_KEEP, gFieldKakeraDL);
+     }
+-    Math_Vec3f_Sum(&thisx->world.pos, &D_808B272C, &burstDepthY);
++    Math_Vec3f_Sum(&thisx->world.pos, &sEffectSpawnOffset, &burstDepthY);
+     func_80033480(play, &burstDepthY, 70, 4, 110, 160, 1);
+     burstDepthY.y += 40;
+     func_80033480(play, &burstDepthY, 70, 5, 110, 160, 1);
+@@ -118,7 +122,7 @@ void BgSpot11Bakudankabe_Init(Actor* thisx, PlayState* play) {
+         Actor_Kill(&this->dyna.actor);
+         return;
+     }
+-    func_808B2180(this, play);
++    BgSpot11Bakudankabe_InitCollider(this, play);
+     CollisionHeader_GetVirtual(&gDesertColossusBombableWallCol, &colHeader);
+     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &this->dyna.actor, colHeader);
+     Actor_SetScale(&this->dyna.actor, 1.0f);
+@@ -136,9 +140,9 @@ void BgSpot11Bakudankabe_Update(Actor* thisx, PlayState* play) {
+     BgSpot11Bakudankabe* this = (BgSpot11Bakudankabe*)thisx;
+ 
+     if (this->collider.base.acFlags & AC_HIT) {
+-        func_808B2218(this, play);
++        BgSpot11Bakudankabe_SpawnFragments(this, play);
+         Flags_SetSwitch(play, (this->dyna.actor.params & 0x3F));
+-        SoundSource_PlaySfxAtFixedWorldPos(play, &D_808B2738, 40, NA_SE_EV_WALL_BROKEN);
++        SoundSource_PlaySfxAtFixedWorldPos(play, &sBreakSfxPos, 40, NA_SE_EV_WALL_BROKEN);
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+         Actor_Kill(&this->dyna.actor);
+         return;
+-- 
+2.55.0
+

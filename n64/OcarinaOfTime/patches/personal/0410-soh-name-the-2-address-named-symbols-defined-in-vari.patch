@@ -1,0 +1,69 @@
+From e26c7c87521112290a70fcdb25411d43a9292d53 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:35 +0000
+Subject: [PATCH 410/488] soh: name the 2 address-named symbols defined in
+ variables.h
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/include/variables.h.
+
+  * D_80157580 -> gUnusedUCodeData1
+    deduced, confidence GUESS: a byte array declared between the microcode
+    segments that nothing in the tree references
+
+  * D_801579A0 -> gUnusedUCodeData2
+    deduced, confidence GUESS: the second such unreferenced array
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/variables.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 7283f898c..fe67a048b 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -183,8 +183,8 @@ extern "C"
+ 	extern const AudioContextInitSizes gAudioHeapInitSizes;  // was D_8014A6C4 [LLM:HIGH]
+ 	extern s16 gOcarinaSongItemMap[];
+ 	extern u8 gF3DZExUCodeText[];  // was D_80155F50 [LLM:HIGH]
+-	extern u8 D_80157580[];
+-	extern u8 D_801579A0[];
++	extern u8 gUnusedUCodeData1[];  // was D_80157580 [LLM:GUESS]
++	extern u8 gUnusedUCodeData2[];  // was D_801579A0 [LLM:GUESS]
+ 	extern u64 gJpegUCodeData[];
+ 
+ 	extern SaveContext gSaveContext;
+-- 
+2.55.0
+

@@ -56,7 +56,11 @@ from renames_common import (ADDR_RE, CITED_RE, CHECKOUT, INLINE_TAG_RE,
                             rename_range, renamed_symbols)
 
 SUBJECT_RE = re.compile(r"^soh: rename (\S+) -> (\S+)$")
-GROUP_RE = re.compile(r"^soh: name the (\d+) address-named symbols in (\S+)$")
+# "defined in" -- the file NAMES the unit, it does not bound it; a unit's
+# renames reach every caller. The older "in <file>" spelling is still
+# accepted so this check works against pre-2026-09-08 patch sets.
+GROUP_RE = re.compile(r"^soh: name the (\d+) address-named symbols "
+                      r"(?:defined )?in (\S+)$")
 FILE_GROUP_RE = re.compile(r"^soh: rename (\d+) address-named source files\b")
 ENTRY_RE = re.compile(r"^  \* (\S+) -> (\S+)$", re.M)
 

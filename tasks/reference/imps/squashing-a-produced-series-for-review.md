@@ -32,11 +32,29 @@ commit's provenance comment landed in). A reviewer takes one file at a time, and
 "all thirty array entries" falls out for free because they share a file.
 
 **2. Group CONSECUTIVE runs sharing that key, and accept the duplicates.** A file
-touched in three different batches becomes three commits. Resist the urge to
-merge them: that means reordering commits, and any shared file — a header every
-unit touches — then has to be partitioned hunk by hunk. In the worked example
-that trade was 488 units versus ~342 for a large jump in risk, with the residue
-dominated by single-change files either way.
+touched in three different batches becomes three commits, and that looks untidy:
+in the worked example, 65 of 392 files are split, so gathering each file into
+exactly one commit would cut 488 units to 392. **Do not do it** — and the reason
+is measured, not assumed:
+
+- **It is a near-total reshuffle, not a nudge.** 3,474 of the 3,799 commits
+  change position under file-grouping, and the runs of one file sit 11 to 380
+  units apart.
+- **It conflicts almost immediately.** Replaying the file-grouped order broke
+  after **38 of 3,799** commits: renaming `func_800F4524` in `audio_general.c`
+  also rewrites its call sites in `z_en_go2.c`, and the reorder had already
+  moved a `z_en_go2.c` commit across it. A unit's changes are not confined to
+  its key file — the median unit touches 1 file but the largest touches 138 —
+  so "group by file" and "replay safely" are in direct tension.
+- **It would destroy a property worth more than the tidiness.** With the
+  original order preserved, every squashed commit's tree is a state the
+  unsquashed history *actually passed through*, so the series stays bisectable
+  and every commit compiles. Reordering can also strand an intermediate state
+  with two symbols sharing a name, where a later collision-driven rename was
+  moved ahead of the commit that caused the collision.
+
+Run this experiment before accepting the tidier grouping; it is cheap and
+decisive, and asserting either answer without it is guessing.
 
 **3. SET each unit's tree; do not replay its patches.**
 
@@ -70,6 +88,26 @@ only what varies:
 **A unit of ONE keeps its original message verbatim.** Wrapping a single item in
 a page of preamble makes it worse.
 
+**Say in the SUBJECT that the key file names the unit rather than bounding it.**
+This is the one wording mistake that actively misleads. "name the 203 symbols
+**in** z_en_zl3.c" reads as "this commit touches only that file", and a reader
+who believes it concludes the commits are not independently checkout-able. They
+are: a rename reaches the declaration, the definition and every call site, so
+these units touch a mean of 2.4 files and one of them touches **138**. Write
+"defined in <file>", and state the reach in the body —
+
+```
+All 63 are defined in soh/src/code/z_actor.c; updating their references
+touches 138 files in total.
+```
+
+— so the message cannot be read the wrong way. (The maintainer caught this on
+the first pass and was right to; the body said "defined in" but nobody reads
+past the subject.) The property that makes the units genuinely independent is
+worth checking directly: for every commit, grep THAT commit's tree for the old
+names its own message retires. Zero hits outside comments means no commit leaves
+a dangling reference.
+
 **5. Enforce losslessness with an assertion, not an intention.** Before
 committing anything, check that every free-text justification in an original
 message appears in the composed message. This is not ceremony: it caught 12 real
@@ -91,6 +129,13 @@ git diff <base> <backup> | sha256sum          # must equal the same for <work>
 Make the backup branch **before any rewrite command runs** and never write to
 it; it is the undo (`git reset --hard <backup>`).
 
+**Read the unsquashed series from the BACKUP branch, never from `HEAD`.** After
+one successful run `HEAD` *is* the squashed output, so a re-run — to fix wording,
+say — silently re-squashes the squash into N units of one and destroys the
+per-symbol reasoning. It fails quietly, because every check still passes on the
+degenerate input. Guard it: refuse to rewrite when the grouping produces fewer
+than two multi-item units.
+
 ## A regrouping BREAKS the gate that policed the old grain — and may break it silently
 
 Any check written as "exactly one X per commit" is invalidated by the squash.
@@ -99,7 +144,12 @@ checked nothing** — the Ocarina gate's subject regex simply would not match a
 grouped subject, so it would have skipped all 488 commits and reported OK.
 
 Relax such a gate rather than retiring it, by separating the property from the
-grain. The property worth keeping was never "one per commit"; it was **"no
+grain. And note the trap has a second edge: **changing the commit SUBJECT later
+re-breaks the gate the same silent way.** Editing "symbols in" to "symbols
+defined in" stopped the gate's regex matching, so all 331 grouped commits would
+have been skipped with a green result. Accept both spellings, and after any
+subject change assert that the gate still matches every grouped subject before
+trusting its verdict. The property worth keeping was never "one per commit"; it was **"no
 change may happen that its commit message does not account for."** A grouped
 commit satisfies that by stating its count in the subject and listing its items
 in the body, with the count and the list required to agree. A good cross-check

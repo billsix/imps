@@ -344,6 +344,75 @@ name. Recorded in
 because a false failure of this shape is indistinguishable at a glance from a
 dropped rename.
 
+### Should MORE have been collapsed? Measured, 2026-09-08
+
+488 commits cover 392 distinct files, so 65 files appear as more than one
+commit — `z_en_ik.c` as six (36, 2, 2, 10, 11 and 2 symbols), `z_en_ru1.c` as
+five. Gathering each file into one commit would give **392**. Tempting, and the
+right instinct: a reviewer who wants to check `z_en_ik.c` should not have to
+visit six places.
+
+**Tested rather than assumed, and the answer is no.** Replaying all 3,799
+commits in file-grouped order (3,474 of them change position — a near-total
+reshuffle) conflicts after **38 commits**: renaming `func_800F4524` in
+`audio_general.c` also rewrites call sites in `z_en_go2.c`, and the reorder had
+already moved a `z_en_go2.c` commit across it. That is structural, not bad luck:
+a unit's changes are not confined to its key file. The median unit touches one
+file; the largest touches 138.
+
+Beyond the conflicts, the reorder would cost a property worth more than the
+tidiness: with the original order kept, **every one of the 488 commits is a tree
+the unsquashed history actually passed through**, so the series stays bisectable
+and each commit compiles. Reordering can also strand an intermediate state with
+two symbols sharing a name, wherever a collision-driven rename gets moved ahead
+of the commit that caused the collision.
+
+Nor is a coarser axis better. The size profile is healthy — 10 commits carry 914
+renames, 22 more carry 767, while the 157 single-symbol commits are simply files
+with one address-named symbol (100 of them actor overlays). Grouping by
+directory would fuse unrelated actors into thousand-symbol commits; there is no
+unit between "file" and "everything".
+
+The experiment script is not kept: it answered one question, its finding is
+recorded here and in
+[`../../../../../reference/imps/squashing-a-produced-series-for-review.md`](../../../../../reference/imps/squashing-a-produced-series-for-review.md).
+
+### The commit wording was wrong on the first pass, and was fixed
+
+The maintainer read `soh: name the 203 address-named symbols **in**
+z_en_zl3.c` and asked the right question: does that mean the commit touches only
+that file, in which case you could not check one out and build it?
+
+The premise was wrong but the reading was fair. The definition file **names** a
+unit; it does not **bound** it. Every commit carries the whole rename —
+declaration, definition and every call site — so the units touch a mean of 2.4
+files, and `z_actor.c`'s 63 symbols reach **138** files including
+`functions.h`, `variables.h` and a dozen `soh/soh/Enhancements/*.cpp`. 363 units
+do touch exactly one file, but those are file-statics with no header declaration
+and no external caller, so one file is the complete rename.
+
+Verified directly rather than argued: for each of the 487 symbol-rename commits,
+grep **that commit's tree** for the old names its own message retires —
+**0 commits leave a dangling reference**. Every commit is a checkout-and-build
+point.
+
+The patches were regenerated 2026-09-08 with the subject reading `symbols
+**defined in** <file>`, the preamble saying outright that the file names the
+unit rather than bounding it, and a per-unit reach line in the body
+(`All 63 are defined in soh/src/code/z_actor.c; updating their references
+touches 138 files in total.`). 98 units advertise cross-file reach, 233 state
+they are self-contained, 157 are single-symbol commits keeping their original
+message.
+
+Two bugs in the squash script surfaced during that re-run, both recorded in the
+reference doc: it read `HEAD` rather than `squash-backup`, so re-running it
+re-squashed its own output into 488 units of one (it now refuses when the
+grouping yields fewer than two multi-item units); and changing the subject broke
+`check_renames.py`'s `GROUP_RE`, which would have **skipped all 331 grouped
+commits and reported green** — the same silent-skip trap the original
+generalisation was written to avoid, re-entered from a different direction. The
+gate now accepts both spellings.
+
 ### Verification
 
 | check | result |
@@ -356,6 +425,12 @@ dropped rename.
 | `tools/check_patches_apply.sh OcarinaOfTime` | 488 patches apply cleanly onto the pin |
 | `check_renames.py all` (on the `git am`-ed patches) | ALL CHECKS PASSED — 488 commits, 3,781 renames claimed |
 | `runDir/` | untouched — it is a sibling of the checkout |
+| `make image` + `make build` (ubuntu-22.04 CI mirror, nested podman) | 1,581/1,581 targets, 0 errors, `soh.elf` linked |
+| `make appimage` | `out/soh.appimage`, 31 MB, `Ship-9.2.3-jammy` |
+
+The game has **not been run**: launching it writes config, logs and saves into
+`runDir/`, which the project `CLAUDE.md` declares sacred, so the run stays the
+maintainer's.
 
 **imps' own history was not rewritten.** All of the above happens inside the
 gitignored `Shipwright/` checkout; imps sees one ordinary commit that replaces

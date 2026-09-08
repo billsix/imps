@@ -205,9 +205,13 @@ table's fork-topology caveat).
 - `n64/OcarinaOfTime/` — Ship of Harkinian
   (https://github.com/HarbourMasters/Shipwright), pinned at `acdbc651d`
   (tip of `develop`, 2026-09-01; submodules libultraship + torch). Details:
-  `n64/OcarinaOfTime/CLAUDE.md`. Status: one code patch (a 145-file decomp
-  rename), ported from the maintainer's old fork; patched tree
-  **build-verified on-host 2026-09-01 (William Emerison Six
+  `n64/OcarinaOfTime/CLAUDE.md`. Status: a **488-patch decomp-rename series**
+  (3,781 symbols + 18 file renames, one patch per definition file), originally
+  ported from the maintainer's old fork as a single 145-file commit, then split
+  one-rename-per-commit and finally regrouped for review on 2026-09-08 — the
+  regroup is content-neutral (identical tree SHA). Patched tree
+  **build-verified on-host 2026-09-01**, container-build- and AppImage-verified
+  2026-09-08, and **run on-host 2026-09-08 (William Emerison Six
   <billsix@gmail.com>)**. The old fork's
   docs-only commits were migrated into
   `n64/OcarinaOfTime/CLAUDE.md` + `tasks/reference/ocarina/` per the

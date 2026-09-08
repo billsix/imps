@@ -69,9 +69,22 @@ on its own (see `../CLAUDE.md`).
   rename crossing the series' `CutsceneCamera_UpdateSpline` rename), and
   upstream-added identifiers were checked for references to renamed-away
   symbols (none). The **pre-split** tree was build- and run-verified
-  on-host 2026-09-01 (William Emerison Six <billsix@gmail.com>); the split
-  series has **not** been rebuilt or re-run on-host yet — it builds clean
-  in-sandbox (`soh.elf` links) and `tools/check_renames.py all` is green.
+  on-host 2026-09-01 (William Emerison Six <billsix@gmail.com>). The
+  **squashed** series is **container-build-verified 2026-09-08**: `make image`
+  + `make build` in the ubuntu-22.04 CI-mirror image compiled all 1,581 targets
+  with zero errors and linked `soh.elf`, and `make appimage` produced
+  `out/soh.appimage` (31 MB, `Ship-9.2.3-jammy`). `tools/check_renames.py all`
+  and `tools/check_patches_apply.sh` are both green. It was **built and run
+  on-host 2026-09-08 (William Emerison Six <billsix@gmail.com>)** using
+  `fetch.sh`/`apply.sh`/`build.sh`; the game launched and played.
+  One oddity was seen — illegible text on the save prompt — which is **not**
+  from this series: every one of the 484 changed files, taken at the pin with
+  the rename map applied and comments stripped, is byte-identical to its HEAD
+  form with comments stripped, so the series changes identifiers and comments
+  and nothing else. Suspect the pin (upstream `develop` tip); a pristine
+  `./fetch.sh && ./build.sh` with no `apply.sh` settles it.
+  Commit messages carry `Co-Authored-By` and deliberately **no session URL**
+  (runClaudeInContainer `tasks/suppress-claude-session-trailer.md`).
   The deduction effort is tracked in
   [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md)
   and its parent

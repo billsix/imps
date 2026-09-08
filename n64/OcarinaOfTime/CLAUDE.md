@@ -88,7 +88,7 @@ on its own (see `../CLAUDE.md`).
   The deduction effort is tracked in
   [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md)
   and its parent
-  [`../../tasks/ocarina-decomp-rename-and-cleanup.md`](../../tasks/ocarina-decomp-rename-and-cleanup.md);
+  [`../../tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md);
   method, the comment convention, and the one-rename-per-commit rule in
   [`../../tasks/reference/ocarina/decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md).
 

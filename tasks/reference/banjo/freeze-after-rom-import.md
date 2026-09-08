@@ -39,7 +39,7 @@ the union, so no other consumer can be bitten by the garbage high bytes.
 
 **Repo:** github.com/HarbourMasters/Lighthouse (the maintainer's `bill` fork). Reference set:
 [`tasks/reference/`](./) — start with
-[`os-emulation-threading.md`](reference/os-emulation-threading.md).
+[`os-emulation-threading.md`](os-emulation-threading.md).
 
 ## Symptom
 

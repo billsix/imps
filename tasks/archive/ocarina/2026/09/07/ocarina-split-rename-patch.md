@@ -32,7 +32,7 @@ comments — so the two build the same program.
   the method, the zeldaret/oot oracle, the provenance-comment convention, and
   every gotcha that has bitten. **This is the governing doc**; the work below
   must not contradict it, and any convention change (see Q1) belongs there.
-- **[`tasks/ocarina-decomp-rename-and-cleanup.md`](../../../../../ocarina-decomp-rename-and-cleanup.md)** —
+- **[`tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md`](../08/ocarina-decomp-rename-and-cleanup.md)** —
   the parent, still-open renaming effort. The patch this task splits is that
   task's output as of its 2026-07-31 stopping point. **This task does not add
   renames**; it re-shapes what already exists.

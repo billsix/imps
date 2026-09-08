@@ -6,7 +6,7 @@
 
 Durable knowledge from the address-name→meaningful-name effort on the OoT decomp under `soh/src`.
 Read this before doing more renaming. The live work record + progress log is
-[`tasks/ocarina-decomp-rename-and-cleanup.md`](../../ocarina-decomp-rename-and-cleanup.md); this doc is the *how* and *why*
+[`tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md`](../../archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md); this doc is the *how* and *why*
 that outlives any one batch.
 
 ## The single biggest lever: zeldaret/oot is the oracle
@@ -263,6 +263,39 @@ Actor funcs are referenced from SoH's C++ enhancement layer (`soh/soh/**.cpp`): 
 cutscene files, `z_scene_otr.cpp` (`extern "C"` + `OTRfunc_*` wrappers — leave the wrapper name intact). The
 rename scope covering `soh/soh` catches these automatically; always keep it in scope.
 
+## Guardrails — OoT has more name-based indirection than SM64
+
+Harvested from the rename task at archive time (2026-09-08). These held for
+3,781 renames and still apply to any future work in this decomp; the first
+two are the ones that actually catch mistakes.
+- **Behavior-preserving is the hard rule.** Renames must be total; readability rewrites must not
+  change behavior. When unsure, leave it. Verify by the maintainer's build + in-game check.
+- **Check for externally-fixed references before renaming.** OoT wires functions through tables and
+  the DMA/overlay system: gamestate `init/destroy` pointers, actor overlay `ActorInit`/`ActorDB`
+  entries, function-pointer tables, and possibly `spec`/dmadata/`.s` references. `git grep` the symbol
+  across `.c/.h/.s/.inc/.spec` first; if it's referenced from a table or non-C file, update that too
+  (or don't rename). Note: SoH replaced the actor overlay table with `ActorDB` (see
+  `tasks/reference/ocarina/decomp-map.md`) — actor funcs are referenced from C there.
+- **Temporary logging is scaffolding** — track what you add (here + a code comment) and remove it
+  before the batch is done.
+- **Batch small and reviewable** — one `code_*` file (or a related cluster) per batch. Shipwright's
+  build is slow; make each the maintainer-verify count. Log progress below so a later session resumes cold.
+- **This is stock SoH** (`bill` == upstream `develop`) — clean renames here are the kind of thing SoH
+  upstream accepts, so keep changes tidy/upstreamable, and don't tangle a rename batch with unrelated
+  edits.
+
+## Renaming a `code_*.c` FILE — what "update the build system" means
+Shipwright compiles the decomp via a **`GLOB_RECURSE src/*.{c,h}`** (`soh/CMakeLists.txt:188`, see
+`tasks/reference/ocarina/build-system.md`), so a source file has **no explicit entry in CMake** — a
+`git mv soh/src/code/code_XXXX.c soh/src/code/<newname>.c` is picked up automatically **on the next
+CMake re-configure** (the glob isn't `CONFIGURE_DEPENDS`, so a bare `--build` won't notice; the maintainer
+re-runs cmake). "Update the build system appropriately" therefore means: **`git mv` the file, then
+verify nothing references the old name** — `git grep code_XXXX` across `.c/.h/.spec/.inc/.txt` and
+CMake (a matching header, an `#include`, a dmadata/spec/linker reference, a per-file property). If a
+reference exists, update it in the same change. Most `code_*.c` are standalone TUs with no such
+references, so it's usually just the `git mv` + a re-configure.
+
+
 ## The tools that survive the effort
 
 Promoted out of `tasks/adhoc/` on 2026-09-08, when the deduction task archived —
@@ -288,6 +321,37 @@ than no tool. `next_symbols.py` was driven by that same start-of-task census and
 is strictly superseded by reading the checkout. Both stay recoverable from git
 history; neither is worth maintaining.
 
+## The kept census: `oot-oracle-census.tsv`
+
+`tasks/reference/ocarina/oot-oracle-census.tsv` is the output of
+`tools/oot_oracle.py` as it stood when the rename effort finished — 2,982 rows,
+one per address-named symbol, recording what zeldaret/oot calls it and how
+confident the alignment was:
+
+| verdict | rows | meaning |
+| --- | --- | --- |
+| `BOTH` | 2,914 | oot leaves it address-named too — no upstream name to adopt |
+| `UNSAFE` | 44 | the two function sequences disagreed; position cannot be trusted |
+| `MISMATCH` | 13 | aligned, but the bodies differ enough to doubt it |
+| `NOFILE` | 10 | oot has no counterpart file at either revision |
+| `ADOPT` | 1 | a free upstream name still on the table |
+
+**It is kept as a historical record, not as live input.** Nothing reads it: the
+work-list tool it once fed (`next_symbols.py`) was retired in favour of reading
+the checkout directly, and `tools/oot_oracle.py` writes a fresh copy beside the
+checkout (gitignored) whenever it is re-run.
+
+**When it stops being relevant — the one thing to know:** it is pinned to SoH
+commit `acdbc651d4b11e29518442d6875a3ec181414cfc` and to oot revisions `main`
+and `fa1ea37d5428c66bf783039117568bc3c5f4b645` (2022-05-31) **as they were on
+2026-09-08**. Its `BOTH` verdicts are the perishable part: oot keeps naming
+symbols, so a `BOTH` row means "oot had no name *then*", never "oot has no
+name". **At the next pin bump, re-run `tools/oot_oracle.py` and treat this file
+as superseded** — either replace it with the new output or delete it, but do not
+consult it after the pin has moved. The `UNSAFE`/`MISMATCH` rows are the durable
+half: they record where positional alignment could not be trusted between the
+two decomps, which is a property of the files rather than of a moment.
+
 ## Method for a batch (repeatable)
 1. Survey: per-file count of un-named `func_` defs; start with files that have the FEWEST (richest context,
    lowest risk). The "1–2 straggler" tier is done; the remaining **~175 files have 3+ un-named funcs each**.
@@ -312,4 +376,4 @@ tree is unchanged apart from those comments, proven by `verify_series.py`. **Do 
 from the start** — one symbol per commit, comment at the definition *and* the declaration.
 
 Not archived — this is a live, multi-session task; resume from the survey in
-[`tasks/ocarina-decomp-rename-and-cleanup.md`](../../ocarina-decomp-rename-and-cleanup.md).
+[`tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md`](../../archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md).

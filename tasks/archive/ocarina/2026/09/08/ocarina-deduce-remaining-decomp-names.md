@@ -35,7 +35,7 @@ maintainer calls it.
   — the governing conventions: the provenance-comment forms, the declaration
   tag, one rename per commit, the safe-rename mechanic, and the gotchas that
   have actually bitten. **Do not deviate from it.**
-- **[`tasks/ocarina-decomp-rename-and-cleanup.md`](../../../../../ocarina-decomp-rename-and-cleanup.md)**
+- **[`tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md`](ocarina-decomp-rename-and-cleanup.md)**
   — the parent effort, including the 2026-09-07 oracle batches and how to
   rebuild in-sandbox. This task is its remainder.
 - **`tasks/adhoc/ocarina-decomp-rename-and-cleanup/oracle.tsv`** — the work-list.

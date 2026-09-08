@@ -30,7 +30,7 @@ Only **2 NOFILE** remain, both genuinely absent upstream: `code_800FBCE0.c`
 **The remaining 3,465 need names DEDUCED, not adopted** — 2,719 of them are
 address-named in oot too, so upstream has nothing to give. That is a different
 kind of work with a different risk profile, and it lives in its own task:
-[`tasks/ocarina-deduce-remaining-decomp-names.md`](archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md).
+[`tasks/ocarina-deduce-remaining-decomp-names.md`](../../../../../archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md).
 It inherits just **38** rows (23 UNSAFE, 13 MISMATCH, 2 NOFILE) that still fail
 for mechanical reasons — down from 146 once a second oot revision was queried.
 Those are worth one more look before any guessing, but the oracle is otherwise
@@ -70,7 +70,7 @@ source path anyway.
 oot decomp at the same ROM addresses, so oot's name for the function at an
 address is authoritative. oot renamed its symbols, so the addresses are gone
 from its source; instead
-[`tasks/adhoc/ocarina-decomp-rename-and-cleanup/oot_oracle.py`](adhoc/ocarina-decomp-rename-and-cleanup/oot_oracle.py)
+[`tasks/adhoc/ocarina-decomp-rename-and-cleanup/oot_oracle.py`](../../../../../../n64/OcarinaOfTime/tools/oot_oracle.py)
 fetches oot's counterpart file and aligns the two function sequences.
 
 Three things made this trustworthy, and each changed the answer materially:
@@ -138,7 +138,7 @@ a single 6,854-line commit.
 
 Both of those were fixed later: the commit was split one-rename-per-commit
 (archived at
-[`tasks/archive/ocarina/2026/09/07/ocarina-split-rename-patch.md`](archive/ocarina/2026/09/07/ocarina-split-rename-patch.md)),
+[`tasks/archive/ocarina/2026/09/07/ocarina-split-rename-patch.md`](../../../../../archive/ocarina/2026/09/07/ocarina-split-rename-patch.md)),
 and the tree now compiles. Its two discretion-flags still stand and are
 unresolved: `Math_FMod` was not renamed to oot's `fmodf` (it would clash with
 libc in a PC port), and `TransitionUnk_Start` was left alone (oot's

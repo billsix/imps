@@ -24,7 +24,7 @@ whatever the maintainer calls it, with every change behaviour-verified.
   — the governing conventions from the rename effort. **The Guardrails section
   applies here unchanged**, and matters more: a rename is checked by the
   compiler, a rewrite is not.
-- **[`tasks/ocarina-decomp-rename-and-cleanup.md`](ocarina-decomp-rename-and-cleanup.md)**
+- **[`tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md`](archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md)**
   — the parent task this was split out of, including its per-file survey of
   where the ugly code is.
 - **[`tasks/reference/ocarina/decomp-map.md`](reference/ocarina/decomp-map.md)**

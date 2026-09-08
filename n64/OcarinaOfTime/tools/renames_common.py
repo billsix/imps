@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Shared helpers for the OoT decomp-renaming tools.
 
-The renaming effort (tasks/ocarina-decomp-rename-and-cleanup.md, method in
+The renaming effort (tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md, method in
 tasks/reference/ocarina/decomp-renaming.md) gives every renamed symbol a
 provenance comment. These helpers read that convention back out of the tree, so
 the tools need no external table and keep working as more renames land.

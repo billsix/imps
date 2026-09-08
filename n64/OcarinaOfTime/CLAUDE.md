@@ -192,6 +192,23 @@ full pipeline is closed.
   `check_renames.py declarations` is clean.
 - `tools/renames_common.py` — shared helpers for the two above (reads the pin
   from `fetch.sh`, discovers renames from the tree's provenance comments).
+- `tools/remaining_address_names.py` — **is the naming finished?** Prints every
+  address-named symbol still in the decomp, read from the checkout rather than
+  from any census, so it cannot go stale. Today it prints 6 rows covering 4
+  distinct names, all in the declared exclusions (`code_800FBCE0.c`'s RCP pair
+  and two `z_player.c` functions); **anything more than that is new work**,
+  most likely introduced by a pin bump. Run it after a pin bump and after any
+  rename batch.
+- `tools/oot_oracle.py` — asks zeldaret/oot what SoH's address-named symbols are
+  really called, by aligning the two decomps' address-ordered function
+  sequences. **Re-run after a pin bump**: oot keeps naming symbols, so a newer
+  revision can turn `func_8xxxxxxx` into a name with real upstream authority.
+  Needs network; writes `oracle.tsv` and a fetch cache beside the checkout
+  (both gitignored). It yielded the 770 adopted names in this series.
+
+  Neither of the two above is wired into a gate, deliberately: they are
+  informational audits, and a pin bump legitimately changes their output.
+  `check_renames.py` remains the pass/fail gate.
 - `tools/save_generator.py` — interactive base-quest save-file generator
   (dungeons-first interview, progression-derived defaults, full stocks;
   writes locally, never installs). `--selftest <real.sav>` proves an

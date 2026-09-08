@@ -263,6 +263,31 @@ Actor funcs are referenced from SoH's C++ enhancement layer (`soh/soh/**.cpp`): 
 cutscene files, `z_scene_otr.cpp` (`extern "C"` + `OTRfunc_*` wrappers — leave the wrapper name intact). The
 rename scope covering `soh/soh` catches these automatically; always keep it in scope.
 
+## The tools that survive the effort
+
+Promoted out of `tasks/adhoc/` on 2026-09-08, when the deduction task archived —
+these are the two worth re-running, and the reason each exists:
+
+| tool | answers | when |
+| --- | --- | --- |
+| `n64/OcarinaOfTime/tools/oot_oracle.py` | "what does upstream call this?" | after a **pin bump** — oot keeps naming symbols, so a newer revision yields free, authoritative names (it produced 770 here) |
+| `n64/OcarinaOfTime/tools/remaining_address_names.py` | "is the naming finished?" | after a pin bump, and after any rename batch |
+| `n64/OcarinaOfTime/tools/check_renames.py` | "are the conventions held?" | the **gate** — after every batch, before handing the patches over |
+
+**`remaining_address_names.py` reads the CHECKOUT, never a census**, which is
+why it replaced the census-driven work-list it grew out of: a census taken at
+the start of a task goes stale the moment the tree moves, while the checkout is
+the truth. Its output today is 6 rows covering 4 distinct names, all in declared
+exclusions — treat that as the baseline, and anything above it as new work.
+
+Two scripts from the same set were deliberately NOT promoted, and the reasons
+generalise. `progress.py` measured renames as a fraction of a planned
+denominator; after the series was regrouped it counts *commits* instead of
+renames and reports 487/13.9% for work that is done — a tool that lies is worse
+than no tool. `next_symbols.py` was driven by that same start-of-task census and
+is strictly superseded by reading the checkout. Both stay recoverable from git
+history; neither is worth maintaining.
+
 ## Method for a batch (repeatable)
 1. Survey: per-file count of un-named `func_` defs; start with files that have the FEWEST (richest context,
    lowest risk). The "1–2 straggler" tier is done; the remaining **~175 files have 3+ un-named funcs each**.

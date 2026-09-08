@@ -129,6 +129,11 @@ details against the pinned checkout.
   GameInteractor (hooks + `VB_*` overrides), SohGui, the randomizer.
 - [`build-system.md`](../../tasks/reference/ocarina/build-system.md) —
   **stale: pre-torch CMake/submodule graph.**
+- [`oot-oracle-census.tsv`](../../tasks/reference/ocarina/oot-oracle-census.tsv)
+  — the 2,982-row record of what zeldaret/oot called each address-named symbol
+  at this pin. **Historical, not live**: its `BOTH` verdicts mean "oot had no
+  name *then*", so re-run `tools/oot_oracle.py` and treat it as superseded after
+  a pin bump. Read `decomp-renaming.md` for the full expiry note.
 - [`decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md) —
   how to rename `func_/D_` symbols safely; read before touching the
   decomp-rename task.

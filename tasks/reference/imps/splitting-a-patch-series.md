@@ -8,6 +8,12 @@
 > (`git log --diff-filter=A -- tasks/adhoc/ocarina-split-rename-patch/`) if a
 > second split ever needs it.
 
+> **Read with its inverse:**
+> [`squashing-a-produced-series-for-review.md`](squashing-a-produced-series-for-review.md).
+> Splitting is how a series is PRODUCED (one change per commit, so a
+> breakage localises); squashing is how it is made REVIEWABLE afterwards.
+> Ocarina's rename did both: 1 commit -> 3,799 -> 488.
+
 ## When this applies
 
 A patch stream has grown one commit too large to review — a bulk rename, a

@@ -8,6 +8,12 @@ full play-by-play is in that task's archived record,
 [`../../archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md`](../../archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md),
 "Step 9 as executed".
 
+**The inverse operation** -- taking one monolithic commit apart into a
+fine-grained series -- is
+[`splitting-a-patch-series.md`](splitting-a-patch-series.md). The two are
+halves of one story: split to PRODUCE the work, regroup to REVIEW it. The
+Ocarina rename went through both, in that order.
+
 **Why it will be needed again:** imps carries more than one mechanical-rename
 effort ([`../../mario64-decomp-rename-and-cleanup.md`](../../mario64-decomp-rename-and-cleanup.md)
 is the live one), and they all hit the same tension.

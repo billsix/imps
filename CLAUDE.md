@@ -165,6 +165,12 @@ tools/check_patches_apply.sh                 # every project
 tools/check_patches_apply.sh OcarinaOfTime   # just one
 ```
 
+A companion at the same level, **not** a gate: `tools/squash_series.py` regroups
+a series that was produced one-change-per-commit into the units a human would
+review, without losing the per-commit reasoning. Run deliberately, once, when a
+series is finished; the method (and its traps) is
+`tasks/reference/imps/squashing-a-produced-series-for-review.md`.
+
 Run it after a pin bump, after reshaping a series, and when picking the repo up
 after a gap. A failure IS the pin-bump conflict surfacing early, which is the
 point. It leaves each checkout on the fully-applied series — the documented

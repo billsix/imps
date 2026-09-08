@@ -1,0 +1,709 @@
+From f4af7d1ca0311dd95982acd73c3f6a859f9a1a71 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 342/488] soh: name the 10 address-named symbols defined in
+ z_camera.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 10 are defined in soh/src/code/z_camera.c; updating their references touches 10 files in total.
+
+  * func_80043ABC -> Camera_SetDefaultUpdateRates
+    deduced, confidence HIGH: loads the camera's yaw, pitch, radius, offset
+    and fov update rates from their default REG values.
+
+  * func_80043B60 -> Camera_SetSnapUpdateRates
+    deduced, confidence HIGH: sets every update rate to the same REG value
+    and the three offset rates to 0.001, so the camera snaps rather than
+    easing.
+
+  * func_80044340 -> Camera_BGCheckPos
+    deduced, confidence HIGH: the thin wrapper: runs the same background
+    check between two points and writes the corrected position back into the
+    second.
+
+  * func_80045508 -> Camera_CheckEyeAtCorner
+    deduced, confidence HIGH: runs the background check both ways between
+    the at and eye points and classifies the result, reporting whether the
+    two surfaces meet at a corner the swing logic has to peek around.
+
+  * func_800458D4 -> Camera_CalcAtForNormal
+    deduced, confidence GUESS: computes the at point for the normal camera
+    settings, offsetting it by the player's height, adjusting for the floor
+    slope and easing it toward the player as they climb or fall. Named for
+    the family of Camera_CalcAt* helpers around it; the file does not name
+    it.
+
+  * func_80045B08 -> Camera_CalcAtForTurn
+    deduced, confidence GUESS: the same at-point calculation with the offset
+    swung to the player's side according to the caller's angle, used while
+    the camera turns around them. Named to pair with Camera_CalcAtForNormal.
+
+  * func_80046E20 -> Camera_SwingAroundCollision
+    deduced, confidence HIGH: the swing update: it runs the corner check
+    and, depending on the result, peeks the eye around the corner, pulls it
+    in to the minimum distance or lets it settle back out.
+
+  * func_80057FC4 -> Camera_SetSettingForRoom
+    deduced, confidence HIGH: picks the camera setting from the room's
+    behaviour type, forcing CAM_SET_FREE0 for sub-cameras.
+
+  * func_8005B198 -> Camera_GetTargetCategory
+    deduced, confidence HIGH: returns the actor category the camera last
+    locked onto; Bg_Bdan_Switch compares it against its own category to tell
+    whether the camera is watching it.
+
+  * func_80043F94 -> Camera_BGCheckLine
+    deduced, confidence GUESS: line-tests from a point toward a CamColChk
+    target, extending the ray slightly, and fills the check's surface
+    normal, polygon and bg id -- the normal is faked from the ray direction
+    when nothing is hit. Named BGCheckLine rather than BGCheckInfo because
+    the latter already exists in this file as its caller.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  2 +-
+ .../TimeSavers/timesaver_hook_handlers.cpp    |  4 +-
+ soh/src/code/z_camera.c                       | 96 ++++++++++---------
+ .../ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c     |  8 +-
+ .../ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c     |  2 +-
+ .../actors/ovl_Door_Shutter/z_door_shutter.c  |  2 +-
+ soh/src/overlays/actors/ovl_En_Box/z_en_box.c |  2 +-
+ .../ovl_Obj_Lightswitch/z_obj_lightswitch.c   |  6 +-
+ .../actors/ovl_Obj_Switch/z_obj_switch.c      | 12 +--
+ .../overlays/actors/ovl_Shot_Sun/z_shot_sun.c |  2 +-
+ 10 files changed, 73 insertions(+), 63 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 2f42e1dab..196edfa2b 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -756,7 +756,7 @@ s32 Camera_Copy(Camera* dstCamera, Camera* srcCamera);
+ Vec3f* Camera_GetSkyboxOffset(Vec3f* dst, Camera* camera);
+ void Camera_SetCameraData(Camera* camera, s16 setDataFlags, void* data0, void* data1, s16 data2, s16 data3,
+                           UNK_TYPE arg6);
+-s32 func_8005B198(void);
++s32 Camera_GetTargetCategory(void);  // was func_8005B198 [LLM:HIGH]
+ s16 Camera_SetFinishedFlag(Camera* camera);  // was func_8005B1A4 [oot]
+ DamageTable* DamageTable_Get(s32 index);
+ void DamageTable_Clear(DamageTable* table);
+diff --git a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+index 160ac9166..932dc984d 100644
+--- a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
++++ b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+@@ -267,8 +267,8 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_li
+                 Actor* actor = va_arg(args, Actor*);
+ 
+                 // there are a few checks throughout the game (such as chest spawns) that rely on this
+-                // the checks are for func_8005B198() == this->dyna.actor.category
+-                // func_8005B198 just returns D_8011D3AC
++                // the checks are for Camera_GetTargetCategory() == this->dyna.actor.category, was func_8005B198 [LLM:HIGH]
++                // Camera_GetTargetCategory just returns D_8011D3AC, was func_8005B198 [LLM:HIGH]
+                 // D_8011D3AC is set to camera->target->category in Camera_Demo5
+                 D_8011D3AC = actor->category;
+ 
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 99d51cac8..e37340c0f 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -157,7 +157,8 @@ void Camera_LERPCeilVec3f(Vec3f* target, Vec3f* cur, f32 yStepScale, f32 xzStepS
+     cur->z = Camera_LERPCeilF(target->z, cur->z, xzStepScale, minDiff);
+ }
+ 
+-void func_80043ABC(Camera* camera) {
++// LLM generated name (HIGH), was func_80043ABC: loads the camera's yaw, pitch, radius, offset and fov update rates from their default REG values.
++void Camera_SetDefaultUpdateRates(Camera* camera) {
+     camera->yawUpdateRateInv = 100.0f;
+     camera->pitchUpdateRateInv = R_CAM_DEFA_PHI_UPDRATE;
+     camera->rUpdateRateInv = OREG(6);
+@@ -166,7 +167,8 @@ void func_80043ABC(Camera* camera) {
+     camera->fovUpdateRate = PCT(OREG(4));
+ }
+ 
+-void func_80043B60(Camera* camera) {
++// LLM generated name (HIGH), was func_80043B60: sets every update rate to the same REG value and the three offset rates to 0.001, so the camera snaps rather than easing.
++void Camera_SetSnapUpdateRates(Camera* camera) {
+     camera->rUpdateRateInv = OREG(27);
+     camera->yawUpdateRateInv = OREG(27);
+     camera->pitchUpdateRateInv = OREG(27);
+@@ -276,7 +278,8 @@ s32 Camera_BGCheck(Camera* camera, Vec3f* from, Vec3f* to) {
+     return bgId;
+ }
+ 
+-s32 func_80043F94(Camera* camera, Vec3f* from, CamColChk* to) {
++// LLM generated name (GUESS), was func_80043F94: line-tests from a point toward a CamColChk target, extending the ray slightly, and fills the check's surface normal, polygon and bg id -- the normal is faked from the ray direction when nothing is hit. Named BGCheckLine rather than BGCheckInfo because the latter already exists in this file as its caller.
++s32 Camera_BGCheckLine(Camera* camera, Vec3f* from, CamColChk* to) {
+     CollisionContext* colCtx = &camera->play->colCtx;
+     Vec3f toNewPos;
+     Vec3f toPos;
+@@ -344,12 +347,13 @@ s32 func_80043F94(Camera* camera, Vec3f* from, CamColChk* to) {
+     return 1;
+ }
+ 
+-void func_80044340(Camera* camera, Vec3f* arg1, Vec3f* arg2) {
++// LLM generated name (HIGH), was func_80044340: the thin wrapper: runs the same background check between two points and writes the corrected position back into the second.
++void Camera_BGCheckPos(Camera* camera, Vec3f* arg1, Vec3f* arg2) {
+     CamColChk sp20;
+     Vec3s unused;
+ 
+     sp20.pos = *arg2;
+-    func_80043F94(camera, arg1, &sp20);
++    Camera_BGCheckLine(camera, arg1, &sp20);  // was func_80043F94 [LLM:GUESS]
+     *arg2 = sp20.pos;
+ }
+ 
+@@ -817,7 +821,8 @@ Vec3f* Camera_BGCheckCorner(Vec3f* dst, Vec3f* linePointA, Vec3f* linePointB, Ca
+  * 3 ?
+  * 6 if the angle between the polys is greater than 120 degrees
+  */
+-s32 func_80045508(Camera* camera, VecSph* diffSph, CamColChk* eyeChk, CamColChk* atChk, s16 checkEye) {
++// LLM generated name (HIGH), was func_80045508: runs the background check both ways between the at and eye points and classifies the result, reporting whether the two surfaces meet at a corner the swing logic has to peek around.
++s32 Camera_CheckEyeAtCorner(Camera* camera, VecSph* diffSph, CamColChk* eyeChk, CamColChk* atChk, s16 checkEye) {
+     Vec3f* at = &camera->at;
+     Vec3f* eye = &camera->eye;
+     Vec3f* eyeNext = &camera->eyeNext;
+@@ -936,7 +941,8 @@ s32 Camera_CalcAtDefault(Camera* camera, VecSph* eyeAtDir, f32 extraYOffset, s16
+     return true;
+ }
+ 
+-s32 func_800458D4(Camera* camera, VecSph* eyeAtDir, f32 arg2, f32* arg3, s16 arg4) {
++// LLM generated name (GUESS), was func_800458D4: computes the at point for the normal camera settings, offsetting it by the player's height, adjusting for the floor slope and easing it toward the player as they climb or fall. Named for the family of Camera_CalcAt* helpers around it; the file does not name it.
++s32 Camera_CalcAtForNormal(Camera* camera, VecSph* eyeAtDir, f32 arg2, f32* arg3, s16 arg4) {
+     f32 phi_f2;
+     Vec3f posOffsetTarget;
+     Vec3f atTarget;
+@@ -976,7 +982,8 @@ s32 func_800458D4(Camera* camera, VecSph* eyeAtDir, f32 arg2, f32* arg3, s16 arg
+     return 1;
+ }
+ 
+-s32 func_80045B08(Camera* camera, VecSph* eyeAtDir, f32 yExtra, s16 arg3) {
++// LLM generated name (GUESS), was func_80045B08: the same at-point calculation with the offset swung to the player's side according to the caller's angle, used while the camera turns around them. Named to pair with Camera_CalcAtForNormal.
++s32 Camera_CalcAtForTurn(Camera* camera, VecSph* eyeAtDir, f32 yExtra, s16 arg3) {
+     f32 phi_f2;
+     Vec3f posOffsetTarget;
+     Vec3f atTarget;
+@@ -1319,7 +1326,8 @@ s16 Camera_CalcDefaultYaw(Camera* camera, s16 cur, s16 target, f32 arg3, f32 acc
+ }
+ 
+ // Follow player with collision
+-void func_80046E20(Camera* camera, VecSph* eyeAdjustment, f32 minDist, f32 arg3, f32* arg4, SwingAnimation* anim) {
++// LLM generated name (HIGH), was func_80046E20: the swing update: it runs the corner check and, depending on the result, peeks the eye around the corner, pulls it in to the minimum distance or lets it settle back out.
++void Camera_SwingAroundCollision(Camera* camera, VecSph* eyeAdjustment, f32 minDist, f32 arg3, f32* arg4, SwingAnimation* anim) {
+     static CamColChk atEyeColChk;
+     static CamColChk eyeAtColChk;
+     static CamColChk newEyeColChk;
+@@ -1332,7 +1340,7 @@ void func_80046E20(Camera* camera, VecSph* eyeAdjustment, f32 minDist, f32 arg3,
+     VecSph newEyeAdjustment;
+     VecSph sp40;
+ 
+-    temp_v0 = func_80045508(camera, eyeAdjustment, &atEyeColChk, &eyeAtColChk, !anim->unk_18);
++    temp_v0 = Camera_CheckEyeAtCorner(camera, eyeAdjustment, &atEyeColChk, &eyeAtColChk, !anim->unk_18);  // was func_80045508 [LLM:HIGH]
+ 
+     switch (temp_v0) {
+         case 1:
+@@ -1700,9 +1708,9 @@ s32 Camera_Normal1(Camera* camera) {
+                : norm1->yOffset;
+ 
+     if (norm1->interfaceFlags & 0x80) {
+-        func_800458D4(camera, &atEyeNextGeo, spA0, &anim->yOffset, norm1->interfaceFlags & 1);
++        Camera_CalcAtForNormal(camera, &atEyeNextGeo, spA0, &anim->yOffset, norm1->interfaceFlags & 1);  // was func_800458D4 [LLM:GUESS]
+     } else if (norm1->interfaceFlags & 0x20) {
+-        func_80045B08(camera, &atEyeNextGeo, spA0, anim->slopePitchAdj);
++        Camera_CalcAtForTurn(camera, &atEyeNextGeo, spA0, anim->slopePitchAdj);  // was func_80045B08 [LLM:GUESS]
+     } else {
+         Camera_CalcAtDefault(camera, &atEyeNextGeo, spA0, norm1->interfaceFlags & 1);
+     }
+@@ -1747,7 +1755,7 @@ s32 Camera_Normal1(Camera* camera) {
+         anim->swingYawTarget = BINANG_ROT180(camera->playerPosRot.rot.y);
+         if (!CVarGetInteger(CVAR_ENHANCEMENT("FixCameraSwing"), 0)) {
+             if (anim->startSwingTimer > 0) {
+-                func_80046E20(camera, &eyeAdjustment, norm1->distMin, norm1->unk_0C, &sp98, &anim->swing);
++                Camera_SwingAroundCollision(camera, &eyeAdjustment, norm1->distMin, norm1->unk_0C, &sp98, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+             } else {
+                 sp88 = *eyeNext;
+                 anim->swing.swingUpdateRate = camera->yawUpdateRateInv = norm1->unk_0C * 2.0f;
+@@ -1764,7 +1772,7 @@ s32 Camera_Normal1(Camera* camera) {
+                 anim->swing.swingUpdateRate = camera->yawUpdateRateInv = norm1->unk_0C * 2.0f;
+                 anim->swing.unk_18 = 0;
+             }
+-            func_80046E20(camera, &eyeAdjustment, norm1->distMin, norm1->unk_0C, &sp98, &anim->swing);
++            Camera_SwingAroundCollision(camera, &eyeAdjustment, norm1->distMin, norm1->unk_0C, &sp98, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+         }
+         if (anim->swing.unk_18 != 0) {
+             camera->inputDir.y =
+@@ -1909,7 +1917,7 @@ s32 Camera_Normal2(Camera* camera) {
+     if (!(norm2->interfaceFlags & 0x80)) {
+         Camera_CalcAtDefault(camera, &atToEyeNextDir, norm2->unk_00, norm2->interfaceFlags & 1);
+     } else {
+-        func_800458D4(camera, &atToEyeNextDir, norm2->unk_00, &anim->unk_24, norm2->interfaceFlags & 1);
++        Camera_CalcAtForNormal(camera, &atToEyeNextDir, norm2->unk_00, &anim->unk_24, norm2->interfaceFlags & 1);  // was func_800458D4 [LLM:GUESS]
+     }
+ 
+     if (norm2->interfaceFlags & 4) {
+@@ -1959,7 +1967,7 @@ s32 Camera_Normal2(Camera* camera) {
+             Camera_BGCheckInfo(camera, at, &bgChk);
+             *eye = bgChk.pos;
+         } else {
+-            func_80043F94(camera, at, &bgChk);
++            Camera_BGCheckLine(camera, at, &bgChk);  // was func_80043F94 [LLM:GUESS]
+             *eye = bgChk.pos;
+             OLib_Vec3fDiffToVecSphGeo(&adjSph, eye, at);
+             camera->inputDir.x = adjSph.pitch;
+@@ -2111,7 +2119,7 @@ s32 Camera_Normal3(Camera* camera) {
+     Camera_Vec3fVecSphGeoAdd(eyeNext, at, &sp84);
+ 
+     if (camera->status == CAM_STAT_ACTIVE) {
+-        func_80046E20(camera, &sp84, norm3->distMin, norm3->yawUpdateSpeed, &sp8C, &anim->swing);
++        Camera_SwingAroundCollision(camera, &sp84, norm3->distMin, norm3->yawUpdateSpeed, &sp8C, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+     } else {
+         *eye = *eyeNext;
+     }
+@@ -2250,7 +2258,7 @@ s32 Camera_Parallel1(Camera* camera) {
+     if (!(para1->interfaceFlags & 0x80) && !sp6A) {
+         Camera_CalcAtForParallel(camera, &atToEyeNextDir, para1->yOffset, &anim->yTarget, para1->interfaceFlags & 1);
+     } else {
+-        func_800458D4(camera, &atToEyeNextDir, para1->unk_18, &anim->yTarget, para1->interfaceFlags & 1);
++        Camera_CalcAtForNormal(camera, &atToEyeNextDir, para1->unk_18, &anim->yTarget, para1->interfaceFlags & 1);  // was func_800458D4 [LLM:GUESS]
+     }
+ 
+     if (anim->animTimer != 0) {
+@@ -2295,7 +2303,7 @@ s32 Camera_Parallel1(Camera* camera) {
+             Camera_BGCheckInfo(camera, at, &sp6C);
+             *eye = sp6C.pos;
+         } else {
+-            func_80043F94(camera, at, &sp6C);
++            Camera_BGCheckLine(camera, at, &sp6C);  // was func_80043F94 [LLM:GUESS]
+             *eye = sp6C.pos;
+             OLib_Vec3fDiffToVecSphGeo(&spA8, eye, at);
+             camera->inputDir.x = spA8.pitch;
+@@ -2421,7 +2429,7 @@ s32 Camera_Jump1(Camera* camera) {
+     camera->yOffsetUpdateRate = Camera_LERPCeilF(PCT(OREG(3)), camera->yOffsetUpdateRate, PCT(OREG(26)), 0.1f);
+     camera->fovUpdateRate = Camera_LERPCeilF(PCT(OREG(4)), camera->yOffsetUpdateRate, 0.05f, 0.1f);
+ 
+-    func_800458D4(camera, &eyeNextAtOffset, jump1->atYOffset, &anim->unk_1C, 0);
++    Camera_CalcAtForNormal(camera, &eyeNextAtOffset, jump1->atYOffset, &anim->unk_1C, 0);  // was func_800458D4 [LLM:GUESS]
+ 
+     eyeDiffSph = eyeAtOffset;
+ 
+@@ -2459,7 +2467,7 @@ s32 Camera_Jump1(Camera* camera) {
+     eyeNext->z = newEye.z;
+     eyeNext->y += (newEye.y - eyeNext->y) * PCT(OREG(31));
+     if ((camera->status == CAM_STAT_ACTIVE) && !(jump1->interfaceFlags & 0x10)) {
+-        func_80046E20(camera, &eyeDiffSph, jump1->distMin, jump1->yawUpateRateTarget, &spA4, &anim->swing);
++        Camera_SwingAroundCollision(camera, &eyeDiffSph, jump1->distMin, jump1->yawUpateRateTarget, &spA4, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+         if (jump1->interfaceFlags & 4) {
+             camera->inputDir.x = -eyeAtOffset.pitch;
+             camera->inputDir.y = BINANG_ROT180(eyeAtOffset.yaw);
+@@ -2836,7 +2844,7 @@ s32 Camera_Jump3(Camera* camera) {
+ 
+     Camera_Vec3fVecSphGeoAdd(eyeNext, at, &eyeDiffSph);
+     if ((camera->status == CAM_STAT_ACTIVE) && !(jump3->interfaceFlags & 0x10)) {
+-        func_80046E20(camera, &eyeDiffSph, jump3->distMin, jump3->swingUpdateRate, &spBC, &anim->swing);
++        Camera_SwingAroundCollision(camera, &eyeDiffSph, jump3->distMin, jump3->swingUpdateRate, &spBC, &anim->swing);  // was func_80046E20 [LLM:HIGH]
+         if (jump3->interfaceFlags & 4) {
+             camera->inputDir.x = -eyeAtOffset.pitch;
+             camera->inputDir.y = BINANG_ROT180(eyeAtOffset.yaw);
+@@ -3104,7 +3112,7 @@ s32 Camera_Battle1(Camera* camera) {
+             if (!camera->play->envCtx.skyboxDisabled || batt1->flags & 1) {
+                 Camera_BGCheckInfo(camera, at, &spBC);
+             } else if (batt1->flags & 2) {
+-                func_80043F94(camera, at, &spBC);
++                Camera_BGCheckLine(camera, at, &spBC);  // was func_80043F94 [LLM:GUESS]
+             } else {
+                 OLib_Vec3fDistNormalize(&sp128, at, &spBC.pos);
+                 spBC.pos.x -= sp128.x;
+@@ -3435,7 +3443,7 @@ s32 Camera_KeepOn1(Camera* camera) {
+             if (!camera->play->envCtx.skyboxDisabled || keep1->interfaceFlags & 1) {
+                 Camera_BGCheckInfo(camera, at, &sp8C);
+             } else if (keep1->interfaceFlags & 2) {
+-                func_80043F94(camera, at, &sp8C);
++                Camera_BGCheckLine(camera, at, &sp8C);  // was func_80043F94 [LLM:GUESS]
+             } else {
+                 OLib_Vec3fDistNormalize(&sp120, at, &sp8C.pos);
+                 sp8C.pos.x -= sp120.x;
+@@ -3630,7 +3638,7 @@ s32 Camera_KeepOn3(Camera* camera) {
+ 
+     if (camera->unk_14C & 8) {
+         sCameraInterfaceFlags = 0;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         camera->atLERPStepScale = 0.0f;
+ 
+         if (camera->xzSpeed > 0.001f || CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+@@ -3824,7 +3832,7 @@ s32 Camera_KeepOn4(Camera* camera) {
+         case 0x14:
+             spCC[sp9C] = &camera->player->actor;
+             sp9C++;
+-            func_80043ABC(camera);
++            Camera_SetDefaultUpdateRates(camera);  // was func_80043ABC [LLM:HIGH]
+             camera->unk_14C &= ~(0x4 | 0x2);
+             unk20->unk_10 = keep4->unk_1E;
+             unk20->unk_08 = playerPosRot->pos.y - camera->playerPosDelta.y;
+@@ -4059,7 +4067,7 @@ s32 Camera_Fixed1(Camera* camera) {
+ 
+     if (camera->animState == 0) {
+         camera->animState++;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         if (anim->fov != -1) {
+             fixd1->fov = PCT(anim->fov);
+         }
+@@ -4145,7 +4153,7 @@ s32 Camera_Fixed2(Camera* camera) {
+     atTarget.z = playerPosRot->pos.z + camera->posOffset.z;
+     if (camera->animState == 0) {
+         camera->animState++;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         if (!(fixd2->interfaceFlags & 1)) {
+             *eye = *eyeNext = initParams->eye;
+             camera->at = atTarget;
+@@ -4280,7 +4288,7 @@ s32 Camera_Fixed4(Camera* camera) {
+     if (camera->animState == 0) {
+         camera->animState++;
+         if (!(fixed4->interfaceFlags & 4)) {
+-            func_80043B60(camera);
++            Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         }
+         anim->followSpeed = fixed4->followSpeed;
+     }
+@@ -4358,7 +4366,7 @@ s32 Camera_Subj3(Camera* camera) {
+         return true;
+     }
+ 
+-    func_80043ABC(camera);
++    Camera_SetDefaultUpdateRates(camera);  // was func_80043ABC [LLM:HIGH]
+     Camera_CopyPREGToModeValues(camera);
+     values = sCameraSettings[camera->setting].cameraModes[camera->mode].values;
+     subj3->eyeNextYOffset = NEXTPCT * playerHeight;
+@@ -4417,7 +4425,7 @@ s32 Camera_Subj3(Camera* camera) {
+         if (!camera->play->envCtx.skyboxDisabled) {
+             Camera_BGCheck(camera, at, eye);
+         } else {
+-            func_80044340(camera, at, eye);
++            Camera_BGCheckPos(camera, at, eye);  // was func_80044340 [LLM:HIGH]
+         }
+     } else {
+         sp58 = Math_SinS(-sp60.rot.x);
+@@ -4644,7 +4652,7 @@ s32 Camera_Data4(Camera* camera) {
+ 
+     if (camera->animState == 0) {
+         camera->animState++;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+     }
+ 
+     OLib_Vec3fDiffToVecSphGeo(&eyeNextAtOffset, at, eyeNext);
+@@ -4811,7 +4819,7 @@ s32 Camera_Unique2(Camera* camera) {
+ 
+     if (camera->animState == 0) {
+         camera->animState = 1;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         unk10->unk_00 = 200.0f;
+         if (uniq2->interfaceFlags & 0x10) {
+             camera->unk_14C &= ~4;
+@@ -4878,7 +4886,7 @@ s32 Camera_Unique3(Camera* camera) {
+     sCameraInterfaceFlags = params->interfaceFlags;
+     switch (camera->animState) {
+         case 0:
+-            func_80043B60(camera);
++            Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+             camera->unk_14C &= ~(0x8 | 0x4);
+             anim->initialFov = camera->fov;
+             anim->initialDist = OLib_Vec3fDist(at, &camera->eye);
+@@ -4996,7 +5004,7 @@ s32 Camera_Unique0(Camera* camera) {
+     sCameraInterfaceFlags = params->interfaceFlags;
+ 
+     if (camera->animState == 0) {
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         camera->unk_14C &= ~4;
+         sceneCamData = Camera_GetCamBGData(camera);
+         Camera_Vec3sToVec3f(&anim->sceneCamPosPlayerLine.a, &BGCAM_POS(sceneCamData));
+@@ -5112,7 +5120,7 @@ s32 Camera_Unique6(Camera* camera) {
+ 
+     if (camera->animState == 0) {
+         camera->animState++;
+-        func_80043ABC(camera);
++        Camera_SetDefaultUpdateRates(camera);  // was func_80043ABC [LLM:HIGH]
+     }
+ 
+     if (camera->player != NULL) {
+@@ -5254,7 +5262,7 @@ s32 Camera_Unique9(Camera* camera) {
+         anim->playerPos.y = playerPosRot.pos.y;
+         anim->playerPos.z = playerPosRot.pos.z;
+         camera->atLERPStepScale = 0.0f;
+-        func_80043B60(camera);
++        Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+     }
+ 
+     if (anim->unk_38 == 0 && anim->keyFrameTimer > 0) {
+@@ -5835,7 +5843,7 @@ s32 Camera_Demo3(Camera* camera) {
+     switch (camera->animState) {
+         case 0:
+             camera->unk_14C &= ~(0x8 | 0x4);
+-            func_80043B60(camera);
++            Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+             camera->fov = demo3->fov;
+             camera->roll = anim->animFrame = 0;
+             anim->initialAt = camPlayerPosRot->pos;
+@@ -7065,7 +7073,8 @@ void Camera_Init(Camera* camera, View* view, CollisionContext* colCtx, PlayState
+     osSyncPrintf(VT_FGCOL(BLUE) "camera: initialize --- " VT_RST " UID %d\n", camera->uid);
+ }
+ 
+-void func_80057FC4(Camera* camera) {
++// LLM generated name (HIGH), was func_80057FC4: picks the camera setting from the room's behaviour type, forcing CAM_SET_FREE0 for sub-cameras.
++void Camera_SetSettingForRoom(Camera* camera) {
+     if (camera != &camera->play->mainCamera) {
+         camera->prevSetting = camera->setting = CAM_SET_FREE0;
+         camera->unk_14C &= ~0x4;
+@@ -7150,7 +7159,7 @@ void Camera_InitPlayerSettings(Camera* camera, Player* player) {
+         sCameraInterfaceFlags = 0;
+     }
+ 
+-    func_80057FC4(camera);
++    Camera_SetSettingForRoom(camera);  // was func_80057FC4 [LLM:HIGH]
+     camera->unk_14A = 0;
+     camera->paramFlags = 0;
+     camera->nextCamDataIdx = -1;
+@@ -7330,7 +7339,7 @@ s32 Camera_UpdateWater(Camera* camera) {
+             prevBgId = camera->bgCheckId;
+             camera->bgCheckId = BGCHECK_SCENE;
+             if (camera->waterPrevCamIdx < 0) {
+-                func_80057FC4(camera);
++                Camera_SetSettingForRoom(camera);  // was func_80057FC4 [LLM:HIGH]
+                 camera->camDataIdx = -1;
+             } else {
+                 Camera_ChangeDataIdx(camera, camera->waterPrevCamIdx);
+@@ -8265,7 +8274,7 @@ s32 Camera_Copy(Camera* dstCamera, Camera* srcCamera) {
+     dstCamera->dist = OLib_Vec3fDist(&dstCamera->at, &dstCamera->eye);
+     dstCamera->fov = srcCamera->fov;
+     dstCamera->roll = srcCamera->roll;
+-    func_80043B60(dstCamera);
++    Camera_SetSnapUpdateRates(dstCamera);  // was func_80043B60 [LLM:HIGH]
+ 
+     if (dstCamera->player != NULL) {
+         Actor_GetWorld(&dstCamera->playerPosRot, &dstCamera->player->actor);
+@@ -8346,7 +8355,8 @@ s32 Camera_QRegInit() {
+     return true;
+ }
+ 
+-s32 func_8005B198() {
++// LLM generated name (HIGH), was func_8005B198: returns the actor category the camera last locked onto; Bg_Bdan_Switch compares it against its own category to tell whether the camera is watching it.
++s32 Camera_GetTargetCategory() {
+     return D_8011D3AC;
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c b/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
+index 04fe1d7e3..f65939d39 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
+@@ -273,7 +273,7 @@ void func_8086D67C(BgBdanSwitch* this) {
+ }
+ 
+ void func_8086D694(BgBdanSwitch* this, PlayState* play) {
+-    if ((func_8005B198() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {
++    if ((Camera_GetTargetCategory() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {  // was func_8005B198 [LLM:HIGH]
+         this->unk_1C8 -= 0.2f;
+         if (this->unk_1C8 <= 0.1f) {
+             func_8086D730(this);
+@@ -351,7 +351,7 @@ void func_8086D944(BgBdanSwitch* this) {
+ }
+ 
+ void func_8086D95C(BgBdanSwitch* this, PlayState* play) {
+-    if ((func_8005B198() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {
++    if ((Camera_GetTargetCategory() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {  // was func_8005B198 [LLM:HIGH]
+         this->unk_1C8 -= 0.2f;
+         if (this->unk_1C8 <= 0.1f) {
+             func_8086DB24(this);
+@@ -438,7 +438,7 @@ void func_8086DC30(BgBdanSwitch* this) {
+ }
+ 
+ void func_8086DC48(BgBdanSwitch* this, PlayState* play) {
+-    if ((func_8005B198() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {
++    if ((Camera_GetTargetCategory() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {  // was func_8005B198 [LLM:HIGH]
+         this->unk_1C8 -= 0.3f;
+         if (this->unk_1C8 <= 1.0f) {
+             func_8086DCCC(this);
+@@ -475,7 +475,7 @@ void func_8086DDA8(BgBdanSwitch* this) {
+ }
+ 
+ void func_8086DDC0(BgBdanSwitch* this, PlayState* play) {
+-    if ((((this->dyna.actor.params & 0xFF) != YELLOW_TALL_2) || (func_8005B198() == this->dyna.actor.category)) ||
++    if ((((this->dyna.actor.params & 0xFF) != YELLOW_TALL_2) || (Camera_GetTargetCategory() == this->dyna.actor.category)) ||  // was func_8005B198 [LLM:HIGH]
+         (this->unk_1DA <= 0)) {
+         this->unk_1C8 += 0.3f;
+         if (this->unk_1C8 >= 2.0f) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+index 051c4da78..9509d3218 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+@@ -122,7 +122,7 @@ void BgHidanKousi_WaitForSwitch(BgHidanKousi* this, PlayState* play) {
+ 
+ void BgHidanKousi_Delay(BgHidanKousi* this, PlayState* play) {
+     this->unk_168 -= 1;
+-    if (this->dyna.actor.category == func_8005B198() || (this->unk_168 <= 0)) {
++    if (this->dyna.actor.category == Camera_GetTargetCategory() || (this->unk_168 <= 0)) {  // was func_8005B198 [LLM:HIGH]
+         BgHidanKousi_SetupAction(this, BgHidanKousi_Accelerate);  // was func_80889C18 [LLM:HIGH]
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c b/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
+index 120fa3c7d..596515d4b 100644
+--- a/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
++++ b/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
+@@ -541,7 +541,7 @@ void DoorShutter_Unbar(DoorShutter* this, PlayState* play) {
+             if (play->state.frames % 2 != 0) {
+                 this->actionTimer++;
+             }
+-            if (this->dyna.actor.category == func_8005B198() || this->actionTimer == 0) {
++            if (this->dyna.actor.category == Camera_GetTargetCategory() || this->actionTimer == 0) {  // was func_8005B198 [LLM:HIGH]
+                 this->actionTimer = 5;
+             }
+         } else {
+diff --git a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+index 397c96ecf..dfe7fa2cd 100644
+--- a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
++++ b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+@@ -379,7 +379,7 @@ void EnBox_AppearOnRoomClear(EnBox* this, PlayState* play) {
+  * The chest is ready to appear, possibly waiting for camera/cutscene-related stuff to happen
+  */
+ void EnBox_AppearInit(EnBox* this, PlayState* play) {
+-    if (func_8005B198() == this->dyna.actor.category || this->unk_1A8 != 0) {
++    if (Camera_GetTargetCategory() == this->dyna.actor.category || this->unk_1A8 != 0) {  // was func_8005B198 [LLM:HIGH]
+         EnBox_SetupAction(this, EnBox_AppearAnimation);
+         this->unk_1A8 = 0;
+         Actor_Spawn(&play->actorCtx, play, ACTOR_DEMO_KANKYO, this->dyna.actor.home.pos.x, this->dyna.actor.home.pos.y,
+diff --git a/soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c b/soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c
+index 24f457c6b..d706494f0 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c
++++ b/soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c
+@@ -256,7 +256,7 @@ void ObjLightswitch_SetupTurnOn(ObjLightswitch* this) {
+ }
+ 
+ void ObjLightswitch_TurnOn(ObjLightswitch* this, PlayState* play) {
+-    if (func_8005B198() == this->actor.category || this->toggleDelay <= 0) {
++    if (Camera_GetTargetCategory() == this->actor.category || this->toggleDelay <= 0) {  // was func_8005B198 [LLM:HIGH]
+         if (this->timer == 0) {
+             Audio_PlayActorSound2(&this->actor, NA_SE_EV_TRIFORCE_FLASH);
+         }
+@@ -330,7 +330,7 @@ void ObjLightswitch_SetupTurnOff(ObjLightswitch* this) {
+ }
+ 
+ void ObjLightswitch_TurnOff(ObjLightswitch* this, PlayState* play) {
+-    if ((this->actor.params >> 4 & 3) != OBJLIGHTSWITCH_TYPE_1 || func_8005B198() == this->actor.category ||
++    if ((this->actor.params >> 4 & 3) != OBJLIGHTSWITCH_TYPE_1 || Camera_GetTargetCategory() == this->actor.category ||  // was func_8005B198 [LLM:HIGH]
+         this->toggleDelay <= 0) {
+         this->timer--;
+ 
+@@ -355,7 +355,7 @@ void ObjLightswitch_SetupDisappearDelay(ObjLightswitch* this) {
+ }
+ 
+ void ObjLightswitch_DisappearDelay(ObjLightswitch* this, PlayState* play) {
+-    if (func_8005B198() == this->actor.category || this->toggleDelay <= 0) {
++    if (Camera_GetTargetCategory() == this->actor.category || this->toggleDelay <= 0) {  // was func_8005B198 [LLM:HIGH]
+         ObjLightswitch_SetupDisappear(this);
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_Obj_Switch/z_obj_switch.c b/soh/src/overlays/actors/ovl_Obj_Switch/z_obj_switch.c
+index 99b2300d3..826ef313e 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Switch/z_obj_switch.c
++++ b/soh/src/overlays/actors/ovl_Obj_Switch/z_obj_switch.c
+@@ -427,7 +427,7 @@ void ObjSwitch_FloorPressInit(ObjSwitch* this) {
+ 
+ void ObjSwitch_FloorPress(ObjSwitch* this, PlayState* play) {
+     if ((this->dyna.actor.params >> 4 & 7) == OBJSWITCH_SUBTYPE_FLOOR_3 || !this->cooldownOn ||
+-        func_8005B198() == this->dyna.actor.category || this->cooldownTimer <= 0) {
++        Camera_GetTargetCategory() == this->dyna.actor.category || this->cooldownTimer <= 0) {  // was func_8005B198 [LLM:HIGH]
+         this->dyna.actor.scale.y -= 99.0f / 2000.0f;
+         if (this->dyna.actor.scale.y <= 33.0f / 2000.0f) {
+             ObjSwitch_FloorDownInit(this);
+@@ -484,7 +484,7 @@ void ObjSwitch_FloorRelease(ObjSwitch* this, PlayState* play) {
+     s16 subType = (this->dyna.actor.params >> 4 & 7);
+ 
+     if (((subType != OBJSWITCH_SUBTYPE_FLOOR_1) && (subType != OBJSWITCH_SUBTYPE_FLOOR_3)) || !this->cooldownOn ||
+-        func_8005B198() == this->dyna.actor.category || this->cooldownTimer <= 0) {
++        Camera_GetTargetCategory() == this->dyna.actor.category || this->cooldownTimer <= 0) {  // was func_8005B198 [LLM:HIGH]
+         this->dyna.actor.scale.y += 99.0f / 2000.0f;
+         if (this->dyna.actor.scale.y >= 33.0f / 200.0f) {
+             ObjSwitch_FloorUpInit(this);
+@@ -543,7 +543,7 @@ void ObjSwitch_EyeClosingInit(ObjSwitch* this) {
+ }
+ 
+ void ObjSwitch_EyeClosing(ObjSwitch* this, PlayState* play) {
+-    if (!this->cooldownOn || func_8005B198() == this->dyna.actor.category || this->cooldownTimer <= 0) {
++    if (!this->cooldownOn || Camera_GetTargetCategory() == this->dyna.actor.category || this->cooldownTimer <= 0) {  // was func_8005B198 [LLM:HIGH]
+         this->eyeTexIndex++;
+         if (this->eyeTexIndex >= 3) {
+             ObjSwitch_EyeClosedInit(this);
+@@ -582,7 +582,7 @@ void ObjSwitch_EyeOpeningInit(ObjSwitch* this) {
+ 
+ void ObjSwitch_EyeOpening(ObjSwitch* this, PlayState* play) {
+     if ((this->dyna.actor.params >> 4 & 7) != OBJSWITCH_SUBTYPE_EYE_1 || !this->cooldownOn ||
+-        func_8005B198() == this->dyna.actor.category || this->cooldownTimer <= 0) {
++        Camera_GetTargetCategory() == this->dyna.actor.category || this->cooldownTimer <= 0) {  // was func_8005B198 [LLM:HIGH]
+         this->eyeTexIndex--;
+         if (this->eyeTexIndex <= 0) {
+             ObjSwitch_EyeOpenInit(this);
+@@ -633,7 +633,7 @@ void ObjSwitch_CrystalTurnOnInit(ObjSwitch* this) {
+ }
+ 
+ void ObjSwitch_CrystalTurnOn(ObjSwitch* this, PlayState* play) {
+-    if (!this->cooldownOn || func_8005B198() == this->dyna.actor.category || this->cooldownTimer <= 0) {
++    if (!this->cooldownOn || Camera_GetTargetCategory() == this->dyna.actor.category || this->cooldownTimer <= 0) {  // was func_8005B198 [LLM:HIGH]
+         ObjSwitch_CrystalOnInit(this);
+         if ((this->dyna.actor.params >> 4 & 7) == OBJSWITCH_SUBTYPE_CRYSTAL_1) {
+             ObjSwitch_UpdateTwoTexScrollXY(this);
+@@ -677,7 +677,7 @@ void ObjSwitch_CrystalTurnOffInit(ObjSwitch* this) {
+ 
+ void ObjSwitch_CrystalTurnOff(ObjSwitch* this, PlayState* play) {
+     if ((this->dyna.actor.params >> 4 & 7) != OBJSWITCH_SUBTYPE_CRYSTAL_1 || !this->cooldownOn ||
+-        func_8005B198() == this->dyna.actor.category || this->cooldownTimer <= 0) {
++        Camera_GetTargetCategory() == this->dyna.actor.category || this->cooldownTimer <= 0) {  // was func_8005B198 [LLM:HIGH]
+         ObjSwitch_CrystalOffInit(this);
+         ObjSwitch_UpdateTwoTexScrollXY(this);
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_DIAMOND_SWITCH);
+diff --git a/soh/src/overlays/actors/ovl_Shot_Sun/z_shot_sun.c b/soh/src/overlays/actors/ovl_Shot_Sun/z_shot_sun.c
+index d57458da1..d4ac0247e 100644
+--- a/soh/src/overlays/actors/ovl_Shot_Sun/z_shot_sun.c
++++ b/soh/src/overlays/actors/ovl_Shot_Sun/z_shot_sun.c
+@@ -111,7 +111,7 @@ void ShotSun_SpawnFairy(ShotSun* this, PlayState* play) {
+ }
+ 
+ void ShotSun_TriggerFairy(ShotSun* this, PlayState* play) {
+-    if ((func_8005B198() == this->actor.category) || (this->timer != 0)) {
++    if ((Camera_GetTargetCategory() == this->actor.category) || (this->timer != 0)) {  // was func_8005B198 [LLM:HIGH]
+         this->actionFunc = ShotSun_SpawnFairy;
+         this->timer = 50;
+ 
+-- 
+2.55.0
+

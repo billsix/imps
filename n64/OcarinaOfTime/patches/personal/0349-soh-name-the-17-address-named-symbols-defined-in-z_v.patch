@@ -1,0 +1,454 @@
+From 0d497bd3c3e1bfdc65fd76c77fd964929cc88715 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 349/488] soh: name the 17 address-named symbols defined in
+ z_vr_box.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 17 are defined in soh/src/code/z_vr_box.c.
+
+  * D_8012AC90 -> sRoomFaceTexOffsets
+    deduced, confidence HIGH: the four 0x10000-step texture offsets, one per
+    face of a room skybox.
+
+  * D_8012ACA0 -> sRoomVtxIndices
+    deduced, confidence HIGH: two 0x20-entry index lists picking which of
+    the generated vertices each room-skybox face uses.
+
+  * D_8012AD20 -> sRoomVtxU
+    deduced, confidence HIGH: the five texture U coordinates a room-skybox
+    face's vertices are laid out on.
+
+  * D_8012AD2C -> sRoomVtxV
+    deduced, confidence HIGH: the nine texture V coordinates for the same
+    grid.
+
+  * D_8012AD40 -> sRoomQuadIndices
+    deduced, confidence HIGH: the 0x40 vertex indices, four per quad, that
+    stitch a room-skybox face into sixteen quads.
+
+  * D_8012ADC0 -> sSkyFaceTexOffsets
+    deduced, confidence HIGH: the six 0x2000-step texture offsets, one per
+    face of the outdoor skybox.
+
+  * D_8012ADD8 -> sSkyVtxIndices
+    deduced, confidence HIGH: the 0x20 vertex indices used by each
+    outdoor-skybox face.
+
+  * D_8012AE18 -> sSkyVtxU
+    deduced, confidence HIGH: the five texture U coordinates for an
+    outdoor-skybox face.
+
+  * D_8012AE24 -> sSkyVtxV
+    deduced, confidence HIGH: the five texture V coordinates for the four
+    side faces.
+
+  * D_8012AE30 -> sSkyVtxVCap
+    deduced, confidence HIGH: the V coordinates for the top and bottom
+    faces, which fold back on themselves so the texture meets at the pole.
+
+  * D_8012AE3C -> sSkyQuadIndices
+    deduced, confidence HIGH: the 0x40 vertex indices, four per quad, that
+    stitch an outdoor-skybox face into sixteen quads.
+
+  * D_8012AEBC -> sRoomFaceParams
+    deduced, confidence HIGH: the four room-skybox faces, each carrying the
+    five parameters the room face builder needs.
+
+  * D_8012AF0C -> sSkyFaceParams
+    deduced, confidence HIGH: the six outdoor-skybox faces, each carrying
+    the five parameters the sky face builder needs.
+
+  * func_800ADBB0 -> Skybox_BuildRoomFace
+    deduced, confidence HIGH: generates the vertices and quads of one
+    room-skybox face into roomVtx and the display list buffer, returning the
+    next free vertex index.
+
+  * func_800AE2C0 -> Skybox_BuildSkyFace
+    deduced, confidence HIGH: the outdoor-skybox twin: it generates one
+    face's vertices and quads and returns the next free vertex index.
+
+  * func_800AEFC8 -> Skybox_BuildRoom
+    deduced, confidence HIGH: builds the whole room skybox, using two faces
+    for the shops, three for one special case and four otherwise.
+
+  * func_800AF178 -> Skybox_BuildSky
+    deduced, confidence HIGH: builds the requested number of outdoor-skybox
+    faces, five for the ordinary sky and six for the cutscene map.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_vr_box.c | 123 +++++++++++++++++++++++-----------------
+ 1 file changed, 70 insertions(+), 53 deletions(-)
+
+diff --git a/soh/src/code/z_vr_box.c b/soh/src/code/z_vr_box.c
+index 74e68bfa1..4b8ae3658 100644
+--- a/soh/src/code/z_vr_box.c
++++ b/soh/src/code/z_vr_box.c
+@@ -75,57 +75,68 @@
+ #include "soh/Enhancements/game-interactor/GameInteractor.h"
+ #include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
+ 
+-u32 D_8012AC90[4] = {
++// LLM generated name (HIGH), was D_8012AC90: the four 0x10000-step texture offsets, one per face of a room skybox.
++u32 sRoomFaceTexOffsets[4] = {  // was D_8012AC90 [LLM:HIGH]
+     0x00000000,
+     0x00010000,
+     0x00020000,
+     0x00030000,
+ };
+ 
+-u16 D_8012ACA0[2][0x20] = {
++// LLM generated name (HIGH), was D_8012ACA0: two 0x20-entry index lists picking which of the generated vertices each room-skybox face uses.
++u16 sRoomVtxIndices[2][0x20] = {  // was D_8012ACA0 [LLM:HIGH]
+     { 0x00, 0x02, 0x0A, 0x0C, 0x02, 0x04, 0x0C, 0x0E, 0x0A, 0x0C, 0x14, 0x16, 0x0C, 0x0E, 0x16, 0x18,
+       0x01, 0x03, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0B, 0x0D, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x15, 0x17 },
+     { 0x14, 0x16, 0x1E, 0x20, 0x16, 0x18, 0x20, 0x22, 0x1E, 0x20, 0x28, 0x2A, 0x20, 0x22, 0x2A, 0x2C,
+       0x15, 0x17, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1F, 0x21, 0x23, 0x24, 0x25, 0x26, 0x27, 0x29, 0x2B },
+ };
+ 
+-s16 D_8012AD20[5] = {
++// LLM generated name (HIGH), was D_8012AD20: the five texture U coordinates a room-skybox face's vertices are laid out on.
++s16 sRoomVtxU[5] = {  // was D_8012AD20 [LLM:HIGH]
+     0x0000, 0x0FC0, 0x1F80, 0x2F40, 0x3F00,
+ };
+ 
+-s16 D_8012AD2C[9] = {
++// LLM generated name (HIGH), was D_8012AD2C: the nine texture V coordinates for the same grid.
++s16 sRoomVtxV[9] = {  // was D_8012AD2C [LLM:HIGH]
+     0x0000, 0x07C0, 0x0F80, 0x1740, 0x1F00, 0x26C0, 0x2E80, 0x3640, 0x3E00,
+ };
+ 
+-s16 D_8012AD40[0x40] = {
++// LLM generated name (HIGH), was D_8012AD40: the 0x40 vertex indices, four per quad, that stitch a room-skybox face into sixteen quads.
++s16 sRoomQuadIndices[0x40] = {  // was D_8012AD40 [LLM:HIGH]
+     0x00, 0x10, 0x13, 0x12, 0x10, 0x01, 0x14, 0x13, 0x01, 0x11, 0x15, 0x14, 0x11, 0x05, 0x16, 0x15,
+     0x12, 0x13, 0x17, 0x02, 0x13, 0x14, 0x03, 0x17, 0x14, 0x15, 0x18, 0x03, 0x15, 0x16, 0x07, 0x18,
+     0x02, 0x17, 0x1A, 0x19, 0x17, 0x03, 0x1B, 0x1A, 0x03, 0x18, 0x1C, 0x1B, 0x18, 0x07, 0x1D, 0x1C,
+     0x19, 0x1A, 0x1E, 0x0A, 0x1A, 0x1B, 0x0B, 0x1E, 0x1B, 0x1C, 0x1F, 0x0B, 0x1C, 0x1D, 0x0F, 0x1F,
+ };
+ 
+-u32 D_8012ADC0[6] = {
++// LLM generated name (HIGH), was D_8012ADC0: the six 0x2000-step texture offsets, one per face of the outdoor skybox.
++u32 sSkyFaceTexOffsets[6] = {  // was D_8012ADC0 [LLM:HIGH]
+     0x00000000, 0x00002000, 0x00004000, 0x00006000, 0x00008000, 0x0000C000,
+ };
+ 
+-u16 D_8012ADD8[0x20] = {
++// LLM generated name (HIGH), was D_8012ADD8: the 0x20 vertex indices used by each outdoor-skybox face.
++u16 sSkyVtxIndices[0x20] = {  // was D_8012ADD8 [LLM:HIGH]
+     0x00, 0x02, 0x0A, 0x0C, 0x02, 0x04, 0x0C, 0x0E, 0x0A, 0x0C, 0x14, 0x16, 0x0C, 0x0E, 0x16, 0x18,
+     0x01, 0x03, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0B, 0x0D, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x15, 0x17,
+ };
+ 
+-s16 D_8012AE18[5] = {
++// LLM generated name (HIGH), was D_8012AE18: the five texture U coordinates for an outdoor-skybox face.
++s16 sSkyVtxU[5] = {  // was D_8012AE18 [LLM:HIGH]
+     0x0000, 0x07C0, 0x0F80, 0x1740, 0x1F00,
+ };
+ 
+-s16 D_8012AE24[5] = {
++// LLM generated name (HIGH), was D_8012AE24: the five texture V coordinates for the four side faces.
++s16 sSkyVtxV[5] = {  // was D_8012AE24 [LLM:HIGH]
+     0x0000, 0x07C0, 0x0F80, 0x1740, 0x1F00,
+ };
+ 
+-s16 D_8012AE30[5] = {
++// LLM generated name (HIGH), was D_8012AE30: the V coordinates for the top and bottom faces, which fold back on themselves so the texture meets at the pole.
++s16 sSkyVtxVCap[5] = {  // was D_8012AE30 [LLM:HIGH]
+     0x0000, 0x07C0, 0x0F80, 0x07C0, 0x0000,
+ };
+ 
+-s16 D_8012AE3C[0x40] = {
++// LLM generated name (HIGH), was D_8012AE3C: the 0x40 vertex indices, four per quad, that stitch an outdoor-skybox face into sixteen quads.
++s16 sSkyQuadIndices[0x40] = {  // was D_8012AE3C [LLM:HIGH]
+     0x00, 0x10, 0x13, 0x12, 0x10, 0x01, 0x14, 0x13, 0x01, 0x11, 0x15, 0x14, 0x11, 0x05, 0x16, 0x15,
+     0x12, 0x13, 0x17, 0x02, 0x13, 0x14, 0x03, 0x17, 0x14, 0x15, 0x18, 0x03, 0x15, 0x16, 0x07, 0x18,
+     0x02, 0x17, 0x1A, 0x19, 0x17, 0x03, 0x1B, 0x1A, 0x03, 0x18, 0x1C, 0x1B, 0x18, 0x07, 0x1D, 0x1C,
+@@ -140,19 +151,22 @@ typedef struct {
+     /* 0x010 */ s32 unk_10;
+ } Struct_8012AF0C; // size = 0x14
+ 
+-Struct_8012AF0C D_8012AEBC[4] = {
++// LLM generated name (HIGH), was D_8012AEBC: the four room-skybox faces, each carrying the five parameters the room face builder needs.
++Struct_8012AF0C sRoomFaceParams[4] = {  // was D_8012AEBC [LLM:HIGH]
+     { -0x7E, 0x7C, -0x7E, 0x3F, -0x1F },
+     { 0x7E, 0x7C, -0x7E, 0x3F, -0x1F },
+     { 0x7E, 0x7C, 0x7E, -0x3F, -0x1F },
+     { -0x7E, 0x7C, 0x7E, -0x3F, -0x1F },
+ };
+ 
+-Struct_8012AF0C D_8012AF0C[6] = {
++// LLM generated name (HIGH), was D_8012AF0C: the six outdoor-skybox faces, each carrying the five parameters the sky face builder needs.
++Struct_8012AF0C sSkyFaceParams[6] = {  // was D_8012AF0C [LLM:HIGH]
+     { -0x40, 0x40, -0x40, 0x20, -0x20 }, { 0x40, 0x40, 0x40, -0x20, -0x20 }, { -0x40, 0x40, 0x40, -0x20, -0x20 },
+     { 0x40, 0x40, -0x40, 0x20, -0x20 },  { -0x40, 0x40, 0x40, 0x20, -0x20 }, { -0x40, -0x40, -0x40, 0x20, 0x20 },
+ };
+ 
+-s32 func_800ADBB0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7,
++// LLM generated name (HIGH), was func_800ADBB0: generates the vertices and quads of one room-skybox face into roomVtx and the display list buffer, returning the next free vertex index.
++s32 Skybox_BuildRoomFace(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7,
+                   s32 arg8, s32 arg9) {
+     u32 pad42C;
+     s32 pad428;
+@@ -184,8 +198,8 @@ s32 func_800ADBB0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                     sp1F0[k] = arg5;
+                     sp358[k] = pad42C;
+                     sp2A4[k] = pad428;
+-                    sp13C[k] = D_8012AD20[j];
+-                    sp88[k] = D_8012AD2C[i];
++                    sp13C[k] = sRoomVtxU[j];  // was D_8012AD20 [LLM:HIGH]
++                    sp88[k] = sRoomVtxV[i];  // was D_8012AD2C [LLM:HIGH]
+                     pad42C += arg6;
+                 }
+                 pad428 += arg7;
+@@ -202,8 +216,8 @@ s32 func_800ADBB0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                     sp358[k] = arg3;
+                     sp2A4[k] = pad428;
+                     sp1F0[k] = pad42C;
+-                    sp13C[k] = D_8012AD20[j];
+-                    sp88[k] = D_8012AD2C[i];
++                    sp13C[k] = sRoomVtxU[j];  // was D_8012AD20 [LLM:HIGH]
++                    sp88[k] = sRoomVtxV[i];  // was D_8012AD2C [LLM:HIGH]
+                     pad42C += arg6;
+                 }
+                 pad428 += arg7;
+@@ -220,8 +234,8 @@ s32 func_800ADBB0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                     sp2A4[k] = arg4;
+                     sp358[k] = pad42C;
+                     sp1F0[k] = pad428;
+-                    sp13C[k] = D_8012AD20[j];
+-                    sp88[k] = D_8012AD2C[i];
++                    sp13C[k] = sRoomVtxU[j];  // was D_8012AD20 [LLM:HIGH]
++                    sp88[k] = sRoomVtxV[i];  // was D_8012AD2C [LLM:HIGH]
+                     pad42C += arg6;
+                 }
+                 pad428 += arg7;
+@@ -233,7 +247,7 @@ s32 func_800ADBB0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+         skyboxCtx->unk_138 = skyboxCtx->dListBuf[arg9 + sp424];
+ 
+         for (i = 0; i < 0x20; i++) {
+-            index = D_8012ACA0[sp424][i];
++            index = sRoomVtxIndices[sp424][i];  // was D_8012ACA0 [LLM:HIGH]
+ 
+             roomVtx[arg2 + i].v.ob[0] = sp358[index];
+             roomVtx[arg2 + i].v.ob[1] = sp2A4[index];
+@@ -255,8 +269,8 @@ s32 func_800ADBB0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                                    phi_a0_4, phi_a2_4, phi_a0_4 + 0x3F, phi_a2_4 + 0x1F, 0, G_TX_NOMIRROR | G_TX_WRAP,
+                                    G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD);
+ 
+-                gSP1Quadrangle(skyboxCtx->unk_138++, D_8012AD40[phi_t2_4 + 1], D_8012AD40[phi_t2_4 + 2],
+-                               D_8012AD40[phi_t2_4 + 3], D_8012AD40[phi_t2_4 + 0], 3);
++                gSP1Quadrangle(skyboxCtx->unk_138++, sRoomQuadIndices[phi_t2_4 + 1], sRoomQuadIndices[phi_t2_4 + 2],  // was D_8012AD40 [LLM:HIGH]
++                               sRoomQuadIndices[phi_t2_4 + 3], sRoomQuadIndices[phi_t2_4 + 0], 3);  // was D_8012AD40 [LLM:HIGH]
+             }
+         }
+         gSPEndDisplayList(skyboxCtx->unk_138++);
+@@ -264,7 +278,8 @@ s32 func_800ADBB0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+     return arg2;
+ }
+ 
+-s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7,
++// LLM generated name (HIGH), was func_800AE2C0: the outdoor-skybox twin: it generates one face's vertices and quads and returns the next free vertex index.
++s32 Skybox_BuildSkyFace(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7,
+                   s32 arg8) {
+     s32 i;
+     s32 j;
+@@ -295,8 +310,8 @@ s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                     sp1EC[k] = arg5;
+                     sp2B4[k] = temp2;
+                     sp250[k] = temp1;
+-                    sp188[k] = D_8012AE18[j];
+-                    sp124[k] = D_8012AE30[i];
++                    sp188[k] = sSkyVtxU[j];  // was D_8012AE18 [LLM:HIGH]
++                    sp124[k] = sSkyVtxVCap[i];  // was D_8012AE30 [LLM:HIGH]
+                     temp2 += arg6;
+                 }
+                 temp1 += arg7;
+@@ -313,8 +328,8 @@ s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                     sp2B4[k] = arg3;
+                     sp250[k] = temp1;
+                     sp1EC[k] = temp2;
+-                    sp188[k] = D_8012AE18[j];
+-                    sp124[k] = D_8012AE30[i];
++                    sp188[k] = sSkyVtxU[j];  // was D_8012AE18 [LLM:HIGH]
++                    sp124[k] = sSkyVtxVCap[i];  // was D_8012AE30 [LLM:HIGH]
+                     temp2 += arg6;
+                 }
+                 temp1 += arg7;
+@@ -331,8 +346,8 @@ s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                     sp250[k] = arg4;
+                     sp2B4[k] = temp2;
+                     sp1EC[k] = temp1;
+-                    sp188[k] = D_8012AE18[j];
+-                    sp124[k] = D_8012AE24[i];
++                    sp188[k] = sSkyVtxU[j];  // was D_8012AE18 [LLM:HIGH]
++                    sp124[k] = sSkyVtxV[i];  // was D_8012AE24 [LLM:HIGH]
+                     temp2 += arg6;
+                 }
+                 temp1 += arg7;
+@@ -342,7 +357,7 @@ s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+     skyboxCtx->unk_138 = &skyboxCtx->dListBuf[2 * arg8];
+ 
+     for (i = 0; i < 0x20; i++) {
+-        index = D_8012ADD8[i];
++        index = sSkyVtxIndices[i];  // was D_8012ADD8 [LLM:HIGH]
+ 
+         roomVtx[arg2 + i].v.ob[0] = sp2B4[index];
+         roomVtx[arg2 + i].v.ob[1] = sp250[index];
+@@ -373,8 +388,8 @@ s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+ 
+                 gDPNoOpString(skyboxCtx->unk_138++, "TEST2", 0);
+ 
+-                gSP1Quadrangle(skyboxCtx->unk_138++, D_8012AE3C[phi_t2_4 + 1], D_8012AE3C[phi_t2_4 + 2],
+-                               D_8012AE3C[phi_t2_4 + 3], D_8012AE3C[phi_t2_4 + 0], 3);
++                gSP1Quadrangle(skyboxCtx->unk_138++, sSkyQuadIndices[phi_t2_4 + 1], sSkyQuadIndices[phi_t2_4 + 2],  // was D_8012AE3C [LLM:HIGH]
++                               sSkyQuadIndices[phi_t2_4 + 3], sSkyQuadIndices[phi_t2_4 + 0], 3);  // was D_8012AE3C [LLM:HIGH]
+             }
+         }
+     } else {
+@@ -389,8 +404,8 @@ s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                                  128, 0, phi_a0_4, phi_a2_4, phi_a0_4 + 0x1F, phi_a2_4 + 0x1F, 0,
+                                  G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP,
+                                  G_TX_NOMASK, G_TX_NOLOD);
+-                gSP1Quadrangle(skyboxCtx->unk_138++, D_8012AE3C[phi_t2_4 + 1], D_8012AE3C[phi_t2_4 + 2],
+-                               D_8012AE3C[phi_t2_4 + 3], D_8012AE3C[phi_t2_4 + 0], 3);
++                gSP1Quadrangle(skyboxCtx->unk_138++, sSkyQuadIndices[phi_t2_4 + 1], sSkyQuadIndices[phi_t2_4 + 2],  // was D_8012AE3C [LLM:HIGH]
++                               sSkyQuadIndices[phi_t2_4 + 3], sSkyQuadIndices[phi_t2_4 + 0], 3);  // was D_8012AE3C [LLM:HIGH]
+             }
+         }
+         phi_a2_4 -= 0x1F;
+@@ -404,8 +419,8 @@ s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+                                  128, 0, phi_a0_4, phi_a2_4, phi_a0_4 + 0x1F, phi_a2_4 + 0x1F, 0,
+                                  G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOMIRROR | G_TX_WRAP,
+                                  G_TX_NOMASK, G_TX_NOLOD);
+-                gSP1Quadrangle(skyboxCtx->unk_138++, D_8012AE3C[phi_t2_4 + 1], D_8012AE3C[phi_t2_4 + 2],
+-                               D_8012AE3C[phi_t2_4 + 3], D_8012AE3C[phi_t2_4 + 0], 3);
++                gSP1Quadrangle(skyboxCtx->unk_138++, sSkyQuadIndices[phi_t2_4 + 1], sSkyQuadIndices[phi_t2_4 + 2],  // was D_8012AE3C [LLM:HIGH]
++                               sSkyQuadIndices[phi_t2_4 + 3], sSkyQuadIndices[phi_t2_4 + 0], 3);  // was D_8012AE3C [LLM:HIGH]
+             }
+         }
+     }
+@@ -413,7 +428,8 @@ s32 func_800AE2C0(SkyboxContext* skyboxCtx, Vtx* roomVtx, s32 arg2, s32 arg3, s3
+     return arg2;
+ }
+ 
+-void func_800AEFC8(SkyboxContext* skyboxCtx, s16 skyboxId) {
++// LLM generated name (HIGH), was func_800AEFC8: builds the whole room skybox, using two faces for the shops, three for one special case and four otherwise.
++void Skybox_BuildRoom(SkyboxContext* skyboxCtx, s16 skyboxId) {
+     s32 i;
+     s32 j;
+     s32 phi_s3 = 0;
+@@ -425,29 +441,30 @@ void func_800AEFC8(SkyboxContext* skyboxCtx, s16 skyboxId) {
+     if (skyboxId == SKYBOX_BAZAAR || skyboxId == SKYBOX_HAPPY_MASK_SHOP ||
+         (skyboxId >= SKYBOX_KOKIRI_SHOP && skyboxId <= SKYBOX_BOMBCHU_SHOP)) {
+         for (j = 0, i = 0; i < 2; i++, j += 2) {
+-            phi_s3 = func_800ADBB0(skyboxCtx, skyboxCtx->roomVtx, phi_s3, D_8012AEBC[i].unk_0, D_8012AEBC[i].unk_4,
+-                                   D_8012AEBC[i].unk_8, D_8012AEBC[i].unk_C, D_8012AEBC[i].unk_10, i, j);
++            phi_s3 = Skybox_BuildRoomFace(skyboxCtx, skyboxCtx->roomVtx, phi_s3, sRoomFaceParams[i].unk_0, sRoomFaceParams[i].unk_4,  // was D_8012AEBC [LLM:HIGH]
++                                   sRoomFaceParams[i].unk_8, sRoomFaceParams[i].unk_C, sRoomFaceParams[i].unk_10, i, j);  // was D_8012AEBC [LLM:HIGH]
+         }
+     } else if (skyboxCtx->unk_140 == 2) {
+         for (j = 0, i = 0; i < 3; i++, j += 2) {
+-            phi_s3 = func_800ADBB0(skyboxCtx, skyboxCtx->roomVtx, phi_s3, D_8012AEBC[i].unk_0, D_8012AEBC[i].unk_4,
+-                                   D_8012AEBC[i].unk_8, D_8012AEBC[i].unk_C, D_8012AEBC[i].unk_10, i, j);
++            phi_s3 = Skybox_BuildRoomFace(skyboxCtx, skyboxCtx->roomVtx, phi_s3, sRoomFaceParams[i].unk_0, sRoomFaceParams[i].unk_4,  // was D_8012AEBC [LLM:HIGH]
++                                   sRoomFaceParams[i].unk_8, sRoomFaceParams[i].unk_C, sRoomFaceParams[i].unk_10, i, j);  // was D_8012AEBC [LLM:HIGH]
+         }
+     } else {
+         for (j = 0, i = 0; i < 4; i++, j += 2) {
+-            phi_s3 = func_800ADBB0(skyboxCtx, skyboxCtx->roomVtx, phi_s3, D_8012AEBC[i].unk_0, D_8012AEBC[i].unk_4,
+-                                   D_8012AEBC[i].unk_8, D_8012AEBC[i].unk_C, D_8012AEBC[i].unk_10, i, j);
++            phi_s3 = Skybox_BuildRoomFace(skyboxCtx, skyboxCtx->roomVtx, phi_s3, sRoomFaceParams[i].unk_0, sRoomFaceParams[i].unk_4,  // was D_8012AEBC [LLM:HIGH]
++                                   sRoomFaceParams[i].unk_8, sRoomFaceParams[i].unk_C, sRoomFaceParams[i].unk_10, i, j);  // was D_8012AEBC [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_800AF178(SkyboxContext* skyboxCtx, s32 arg1) {
++// LLM generated name (HIGH), was func_800AF178: builds the requested number of outdoor-skybox faces, five for the ordinary sky and six for the cutscene map.
++void Skybox_BuildSky(SkyboxContext* skyboxCtx, s32 arg1) {
+     s32 phi_s2 = 0;
+     s32 i;
+ 
+     for (i = 0; i < arg1; i++) {
+-        phi_s2 = func_800AE2C0(skyboxCtx, skyboxCtx->roomVtx, phi_s2, D_8012AF0C[i].unk_0, D_8012AF0C[i].unk_4,
+-                               D_8012AF0C[i].unk_8, D_8012AF0C[i].unk_C, D_8012AF0C[i].unk_10, i);
++        phi_s2 = Skybox_BuildSkyFace(skyboxCtx, skyboxCtx->roomVtx, phi_s2, sSkyFaceParams[i].unk_0, sSkyFaceParams[i].unk_4,  // was D_8012AF0C [LLM:HIGH]
++                               sSkyFaceParams[i].unk_8, sSkyFaceParams[i].unk_C, sSkyFaceParams[i].unk_10, i);  // was D_8012AF0C [LLM:HIGH]
+     }
+ }
+ 
+@@ -927,7 +944,7 @@ void Skybox_Init(GameState* state, SkyboxContext* skyboxCtx, s16 skyboxId) {
+             skyboxCtx->roomVtx = GAMESTATE_ALLOC_MC(state, 256 * sizeof(Vtx));
+             assert(skyboxCtx->roomVtx != NULL);
+ 
+-            func_800AEFC8(skyboxCtx, skyboxId);
++            Skybox_BuildRoom(skyboxCtx, skyboxId);  // was func_800AEFC8 [LLM:HIGH]
+         } else {
+             skyboxCtx->dListBuf = GAMESTATE_ALLOC_MC(state, 12 * 150 * sizeof(Gfx));
+             assert(skyboxCtx->dListBuf != NULL);
+@@ -936,12 +953,12 @@ void Skybox_Init(GameState* state, SkyboxContext* skyboxCtx, s16 skyboxId) {
+                 skyboxCtx->roomVtx = GAMESTATE_ALLOC_MC(state, 192 * sizeof(Vtx));
+                 assert(skyboxCtx->roomVtx != NULL);
+ 
+-                func_800AF178(skyboxCtx, 6);
++                Skybox_BuildSky(skyboxCtx, 6);  // was func_800AF178 [LLM:HIGH]
+             } else {
+                 skyboxCtx->roomVtx = GAMESTATE_ALLOC_MC(state, 160 * sizeof(Vtx));
+                 assert(skyboxCtx->roomVtx != NULL);
+ 
+-                func_800AF178(skyboxCtx, 5);
++                Skybox_BuildSky(skyboxCtx, 5);  // was func_800AF178 [LLM:HIGH]
+             }
+         }
+         osSyncPrintf(VT_RST);
+@@ -953,12 +970,12 @@ void Skybox_Update(SkyboxContext* skyboxCtx) {
+         osSyncPrintf(VT_FGCOL(GREEN));
+ 
+         if (skyboxCtx->unk_140 != 0) {
+-            func_800AEFC8(skyboxCtx, skyboxCtx->skyboxId);
++            Skybox_BuildRoom(skyboxCtx, skyboxCtx->skyboxId);  // was func_800AEFC8 [LLM:HIGH]
+         } else {
+             if (skyboxCtx->skyboxId == SKYBOX_CUTSCENE_MAP) {
+-                func_800AF178(skyboxCtx, 6);
++                Skybox_BuildSky(skyboxCtx, 6);  // was func_800AF178 [LLM:HIGH]
+             } else {
+-                func_800AF178(skyboxCtx, 5);
++                Skybox_BuildSky(skyboxCtx, 5);  // was func_800AF178 [LLM:HIGH]
+             }
+         }
+         osSyncPrintf(VT_RST);
+-- 
+2.55.0
+

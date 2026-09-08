@@ -1,0 +1,763 @@
+From 0db186600abac1f3fdd4e0d577b334f8068afb6a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:09 +0000
+Subject: [PATCH 127/488] soh: name the 39 address-named symbols defined in
+ z_demo_sa.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 39 are defined in soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c.
+
+  * func_8098E5C8 -> DemoSa_UpdateBgCheckInfo
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.95
+
+  * func_8098E654 -> DemoSa_CheckForCue
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098E6A0 -> DemoSa_CheckForNoCue
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098E76C -> DemoSa_AnimationChange
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.98
+
+  * func_8098E9EC -> DemoSa_CsForestMedallion_CheckBlueWarp
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098EB6C -> DemoSa_CsForestMedallion_CheckMedallionShouldSpawn
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098EBB8 -> DemoSa_Action_SetupForestMedallionCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098EBD8 -> DemoSa_Action_AwaitBlueWarp
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098EC94 -> DemoSa_Action_AwaitMedallion
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098ECCC -> DemoSa_Action_EndMedallionCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098EEA8 -> DemoSa_SageMagic_CheckFadeIn
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098EEFC -> DemoSa_SageMagic_Fade
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F050 -> DemoSa_SageMagic_CheckFadeOut
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.98
+
+  * func_8098F3F0 -> DemoSa_Action_Unused
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F480 -> DemoSa_Credits_FadeIn
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F50C -> DemoSa_Credits_InitPosition
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F544 -> DemoSa_Credits_CheckVisibility
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F590 -> DemoSa_Credits_LookDown
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F5D0 -> DemoSa_Credits_LookUp
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F610 -> DemoSa_Credits_LookForward
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.95
+
+  * func_8098F654 -> DemoSa_Credits_NextAction
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.93
+
+  * func_8098F714 -> DemoSa_Action_CreditsInvisible
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F734 -> DemoSa_Action_CreditsFadeIn
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F77C -> DemoSa_Action_CreditsFacingForward
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F7BC -> DemoSa_Action_CreditsLookDownAtDarunia
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F7FC -> DemoSa_Action_CreditsLookBackUp
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F8F8 -> DemoSa_CsBridge_Fade
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F984 -> DemoSa_CsBridge_StillHidden
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098F998 -> DemoSa_CsBridge_LookAtLink
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098FA2C -> DemoSa_CsBridge_CheckFadeFinished
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098FA84 -> DemoSa_CsBridge_ClutchOcarina
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098FAE0 -> DemoSa_CsBridge_GiveOcarina
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098FB34 -> DemoSa_CsBridge_HoldOutOcarina
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.94
+
+  * func_8098FB68 -> DemoSa_CsBridge_CheckNextAction
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.94
+
+  * func_8098FC44 -> DemoSa_Action_BridgeInvisible
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098FC64 -> DemoSa_Action_BridgeFadeIn
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098FC9C -> DemoSa_Action_BridgeLookingSad
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098FCD4 -> DemoSa_Action_BridgeClutchOcarina
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8098FD0C -> DemoSa_Action_BridgeGiveOcarina
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Demo_Sa/z_demo_sa.c   | 253 ++++++++++--------
+ 1 file changed, 146 insertions(+), 107 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c b/soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c
+index 88733c6c2..87f33599e 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c
++++ b/soh/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c
+@@ -19,30 +19,45 @@ void DemoSa_Destroy(Actor* thisx, PlayState* play);
+ void DemoSa_Update(Actor* thisx, PlayState* play);
+ void DemoSa_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8098EBB8(DemoSa* this, PlayState* play);
+-void func_8098EBD8(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098EBB8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_SetupForestMedallionCs(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098EBD8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_AwaitBlueWarp(DemoSa* this, PlayState* play);
+ // Name from zeldaret/oot (was func_8098EBF8): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
+ void DemoSa_Action_RiseThroughBlueWarp(DemoSa* this, PlayState* play);
+ // Name from zeldaret/oot (was func_8098EC28): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
+ void DemoSa_Action_ChamberOfSagesDialog(DemoSa* this, PlayState* play);
+ // Name from zeldaret/oot (was func_8098EC60): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
+ void DemoSa_Action_RaiseArmsForMedallion(DemoSa* this, PlayState* play);
+-void func_8098EC94(DemoSa* this, PlayState* play);
+-void func_8098ECCC(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098EC94): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_AwaitMedallion(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098ECCC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_EndMedallionCs(DemoSa* this, PlayState* play);
+ void func_8098F0E8(DemoSa* this, PlayState* play);
+ void func_8098F118(DemoSa* this, PlayState* play);
+ void func_8098F16C(DemoSa* this, PlayState* play);
+-void func_8098F3F0(DemoSa* this, PlayState* play);
+-void func_8098F714(DemoSa* this, PlayState* play);
+-void func_8098F734(DemoSa* this, PlayState* play);
+-void func_8098F77C(DemoSa* this, PlayState* play);
+-void func_8098F7BC(DemoSa* this, PlayState* play);
+-void func_8098F7FC(DemoSa* this, PlayState* play);
+-void func_8098FC44(DemoSa* this, PlayState* play);
+-void func_8098FC64(DemoSa* this, PlayState* play);
+-void func_8098FC9C(DemoSa* this, PlayState* play);
+-void func_8098FCD4(DemoSa* this, PlayState* play);
+-void func_8098FD0C(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098F3F0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_Unused(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098F714): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_CreditsInvisible(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098F734): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_CreditsFadeIn(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098F77C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_CreditsFacingForward(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098F7BC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_CreditsLookDownAtDarunia(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098F7FC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_CreditsLookBackUp(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098FC44): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_BridgeInvisible(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098FC64): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_BridgeFadeIn(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098FC9C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_BridgeLookingSad(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098FCD4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_BridgeClutchOcarina(DemoSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_8098FD0C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Action_BridgeGiveOcarina(DemoSa* this, PlayState* play);
+ 
+ void DemoSa_DrawNothing(DemoSa* this, PlayState* play);
+ void DemoSa_DrawOpa(DemoSa* this, PlayState* play);
+@@ -78,9 +93,9 @@ static u32 D_80990108 = 0;
+ #include "z_demo_sa_cutscene_data.c" EARLY
+ 
+ static DemoSaActionFunc sActionFuncs[] = {
+-    func_8098EBB8, func_8098EBD8, DemoSa_Action_RiseThroughBlueWarp, DemoSa_Action_ChamberOfSagesDialog, DemoSa_Action_RaiseArmsForMedallion, func_8098EC94, func_8098ECCC,
+-    func_8098F0E8, func_8098F118, func_8098F16C, func_8098F3F0, func_8098F714, func_8098F734, func_8098F77C,
+-    func_8098F7BC, func_8098F7FC, func_8098FC44, func_8098FC64, func_8098FC9C, func_8098FCD4, func_8098FD0C,
++    DemoSa_Action_SetupForestMedallionCs, DemoSa_Action_AwaitBlueWarp, DemoSa_Action_RiseThroughBlueWarp, DemoSa_Action_ChamberOfSagesDialog, DemoSa_Action_RaiseArmsForMedallion, DemoSa_Action_AwaitMedallion, DemoSa_Action_EndMedallionCs,
++    func_8098F0E8, func_8098F118, func_8098F16C, DemoSa_Action_Unused, DemoSa_Action_CreditsInvisible, DemoSa_Action_CreditsFadeIn, DemoSa_Action_CreditsFacingForward,
++    DemoSa_Action_CreditsLookDownAtDarunia, DemoSa_Action_CreditsLookBackUp, DemoSa_Action_BridgeInvisible, DemoSa_Action_BridgeFadeIn, DemoSa_Action_BridgeLookingSad, DemoSa_Action_BridgeClutchOcarina, DemoSa_Action_BridgeGiveOcarina,
+ };
+ 
+ static DemoSaDrawFunc sDrawFuncs[] = {
+@@ -156,7 +171,8 @@ void func_8098E554(DemoSa* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8098E5C8(DemoSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_8098E5C8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_UpdateBgCheckInfo(DemoSa* this, PlayState* play) {
+     Actor_UpdateBgCheckInfo(play, &this->actor, 75.0f, 30.0f, 30.0f, 5);
+ }
+ 
+@@ -171,7 +187,8 @@ CsCmdActorCue* DemoSa_GetNpcAction(PlayState* play, s32 idx) {
+     return NULL;
+ }
+ 
+-s32 func_8098E654(DemoSa* this, PlayState* play, u16 arg2, s32 arg3) {
++// Name from zeldaret/oot (was func_8098E654): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++s32 DemoSa_CheckForCue(DemoSa* this, PlayState* play, u16 arg2, s32 arg3) {
+     CsCmdActorCue* npcAction = DemoSa_GetNpcAction(play, arg3);
+ 
+     if ((npcAction != NULL) && (npcAction->action == arg2)) {
+@@ -180,7 +197,8 @@ s32 func_8098E654(DemoSa* this, PlayState* play, u16 arg2, s32 arg3) {
+     return 0;
+ }
+ 
+-s32 func_8098E6A0(DemoSa* this, PlayState* play, u16 arg2, s32 arg3) {
++// Name from zeldaret/oot (was func_8098E6A0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++s32 DemoSa_CheckForNoCue(DemoSa* this, PlayState* play, u16 arg2, s32 arg3) {
+     CsCmdActorCue* npcAction = DemoSa_GetNpcAction(play, arg3);
+ 
+     if ((npcAction != NULL) && (npcAction->action != arg2)) {
+@@ -201,7 +219,8 @@ void DemoSa_SetStartPosRotFromCue(DemoSa* this, PlayState* play, s32 actionIdx)
+     }
+ }
+ 
+-void func_8098E76C(DemoSa* this, AnimationHeader* animHeaderSeg, u8 arg2, f32 transitionRate, s32 arg4) {
++// Name from zeldaret/oot (was func_8098E76C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.98. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_AnimationChange(DemoSa* this, AnimationHeader* animHeaderSeg, u8 arg2, f32 transitionRate, s32 arg4) {
+     s32 pad[2];
+     f32 frameCount = Animation_GetLastFrame(animHeaderSeg);
+     f32 playbackSpeed;
+@@ -273,7 +292,8 @@ void func_8098E960(DemoSa* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8098E9EC(DemoSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_8098E9EC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsForestMedallion_CheckBlueWarp(DemoSa* this, PlayState* play) {
+     CsCmdActorCue* npcAction;
+ 
+     if (play->csCtx.state != CS_STATE_IDLE) {
+@@ -317,7 +337,8 @@ void DemoSa_CsForestMedallion_HoldArmsUp(DemoSa* this, s32 arg1) {
+     }
+ }
+ 
+-void func_8098EB6C(DemoSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_8098EB6C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsForestMedallion_CheckMedallionShouldSpawn(DemoSa* this, PlayState* play) {
+     CsCmdActorCue* npcAction;
+ 
+     if (play->csCtx.state != CS_STATE_IDLE) {
+@@ -329,12 +350,12 @@ void func_8098EB6C(DemoSa* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8098EBB8(DemoSa* this, PlayState* play) {
++void DemoSa_Action_SetupForestMedallionCs(DemoSa* this, PlayState* play) {
+     func_8098E960(this, play);
+ }
+ 
+-void func_8098EBD8(DemoSa* this, PlayState* play) {
+-    func_8098E9EC(this, play);
++void DemoSa_Action_AwaitBlueWarp(DemoSa* this, PlayState* play) {
++    DemoSa_CsForestMedallion_CheckBlueWarp(this, play);
+ }
+ 
+ void DemoSa_Action_RiseThroughBlueWarp(DemoSa* this, PlayState* play) {
+@@ -344,24 +365,24 @@ void DemoSa_Action_RiseThroughBlueWarp(DemoSa* this, PlayState* play) {
+ }
+ 
+ void DemoSa_Action_ChamberOfSagesDialog(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_CsForestMedallion_CheckStartRaisingArms(this, play);
+ }
+ 
+ void DemoSa_Action_RaiseArmsForMedallion(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_CsForestMedallion_HoldArmsUp(this, DemoSa_UpdateSkelAnime(this));
+ }
+ 
+-void func_8098EC94(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_AwaitMedallion(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+-    func_8098EB6C(this, play);
++    DemoSa_CsForestMedallion_CheckMedallionShouldSpawn(this, play);
+ }
+ 
+-void func_8098ECCC(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_EndMedallionCs(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+ }
+ 
+@@ -400,8 +421,9 @@ void DemoSa_SageMagic_SpawnLightBall(DemoSa* this, PlayState* play) {
+                        (kREG(23) + 25.0f) + this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0, 4);
+ }
+ 
+-void func_8098EEA8(DemoSa* this, PlayState* play) {
+-    if (func_8098E654(this, play, 4, 4)) {
++// Name from zeldaret/oot (was func_8098EEA8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_SageMagic_CheckFadeIn(DemoSa* this, PlayState* play) {
++    if (DemoSa_CheckForCue(this, play, 4, 4)) {
+         this->action = 8;
+         this->drawConfig = 2;
+         this->alpha = 0;
+@@ -411,11 +433,12 @@ void func_8098EEA8(DemoSa* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8098EEFC(DemoSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_8098EEFC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_SageMagic_Fade(DemoSa* this, PlayState* play) {
+     s32 alpha = 255;
+     f32* unk_1A0 = &this->unk_1A0;
+ 
+-    if (func_8098E654(this, play, 4, 4)) {
++    if (DemoSa_CheckForCue(this, play, 4, 4)) {
+         *unk_1A0 += 1.0f;
+         if ((kREG(5) + 10.0f) <= *unk_1A0) {
+             this->action = 9;
+@@ -439,8 +462,9 @@ void func_8098EEFC(DemoSa* this, PlayState* play) {
+     this->actor.shape.shadowAlpha = this->alpha = (*unk_1A0 / (kREG(5) + 10.0f)) * 255.0f;
+ }
+ 
+-void func_8098F050(DemoSa* this, PlayState* play) {
+-    if (func_8098E6A0(this, play, 4, 4)) {
++// Name from zeldaret/oot (was func_8098F050): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.98. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_SageMagic_CheckFadeOut(DemoSa* this, PlayState* play) {
++    if (DemoSa_CheckForNoCue(this, play, 4, 4)) {
+         this->action = 8;
+         this->drawConfig = 2;
+         this->unk_1A0 = kREG(5) + 10.0f;
+@@ -454,23 +478,23 @@ void func_8098F050(DemoSa* this, PlayState* play) {
+ }
+ 
+ void func_8098F0E8(DemoSa* this, PlayState* play) {
+-    func_8098EEA8(this, play);
++    DemoSa_SageMagic_CheckFadeIn(this, play);
+     func_8098E554(this, play);
+ }
+ 
+ void func_8098F118(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_Blink(this);
+-    func_8098EEFC(this, play);
++    DemoSa_SageMagic_Fade(this, play);
+     func_8098E554(this, play);
+ }
+ 
+ void func_8098F16C(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_SageMagic_LowerEyes(this);
+-    func_8098F050(this, play);
++    DemoSa_SageMagic_CheckFadeOut(this, play);
+     func_8098E554(this, play);
+ }
+ 
+@@ -506,8 +530,8 @@ void DemoSa_InitUnused(DemoSa* this, PlayState* play) {
+     this->drawConfig = 1;
+ }
+ 
+-void func_8098F3F0(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_Unused(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_Blink(this);
+ }
+@@ -520,7 +544,8 @@ void DemoSa_InitCredits(DemoSa* this, PlayState* play) {
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-void func_8098F480(DemoSa* this) {
++// Name from zeldaret/oot (was func_8098F480): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Credits_FadeIn(DemoSa* this) {
+     s32 alpha = 255;
+     f32* unk_1A0 = &this->unk_1A0;
+     f32 temp_f0;
+@@ -535,37 +560,43 @@ void func_8098F480(DemoSa* this) {
+     }
+ }
+ 
+-void func_8098F50C(DemoSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_8098F50C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Credits_InitPosition(DemoSa* this, PlayState* play) {
+     DemoSa_SetStartPosRotFromCue(this, play, 4);
+     this->action = 12;
+     this->drawConfig = 2;
+ }
+ 
+-void func_8098F544(DemoSa* this) {
++// Name from zeldaret/oot (was func_8098F544): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Credits_CheckVisibility(DemoSa* this) {
+     if (this->unk_1A0 >= kREG(17) + 10.0f) {
+         this->action = 13;
+         this->drawConfig = 1;
+     }
+ }
+ 
+-void func_8098F590(DemoSa* this) {
+-    func_8098E76C(this, &gSariaSitting1Anim, 2, -8.0f, 0);
++// Name from zeldaret/oot (was func_8098F590): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Credits_LookDown(DemoSa* this) {
++    DemoSa_AnimationChange(this, &gSariaSitting1Anim, 2, -8.0f, 0);
+     this->action = 14;
+ }
+ 
+-void func_8098F5D0(DemoSa* this) {
+-    func_8098E76C(this, &gSariaSitting2Anim, 2, 0.0f, 0);
++// Name from zeldaret/oot (was func_8098F5D0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Credits_LookUp(DemoSa* this) {
++    DemoSa_AnimationChange(this, &gSariaSitting2Anim, 2, 0.0f, 0);
+     this->action = 15;
+ }
+ 
+-void func_8098F610(DemoSa* this, s32 arg1) {
++// Name from zeldaret/oot (was func_8098F610): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Credits_LookForward(DemoSa* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_8098E76C(this, &gSariaSitting3Anim, 0, 0.0f, 0);
++        DemoSa_AnimationChange(this, &gSariaSitting3Anim, 0, 0.0f, 0);
+         this->action = 13;
+     }
+ }
+ 
+-void func_8098F654(DemoSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_8098F654): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_Credits_NextAction(DemoSa* this, PlayState* play) {
+     s32 unk_1AC;
+     s32 action;
+     CsCmdActorCue* npcAction = DemoSa_GetNpcAction(play, 4);
+@@ -576,13 +607,13 @@ void func_8098F654(DemoSa* this, PlayState* play) {
+         if (action != unk_1AC) {
+             switch (action) {
+                 case 7:
+-                    func_8098F50C(this, play);
++                    DemoSa_Credits_InitPosition(this, play);
+                     break;
+                 case 8:
+-                    func_8098F590(this);
++                    DemoSa_Credits_LookDown(this);
+                     break;
+                 case 9:
+-                    func_8098F5D0(this);
++                    DemoSa_Credits_LookUp(this);
+                     break;
+                 default:
+                     osSyncPrintf("Demo_Sa_inEnding_Check_DemoMode:そんな動作は無い!!!!!!!!\n");
+@@ -592,39 +623,39 @@ void func_8098F654(DemoSa* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8098F714(DemoSa* this, PlayState* play) {
+-    func_8098F654(this, play);
++void DemoSa_Action_CreditsInvisible(DemoSa* this, PlayState* play) {
++    DemoSa_Credits_NextAction(this, play);
+ }
+ 
+-void func_8098F734(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_CreditsFadeIn(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_Blink(this);
+-    func_8098F480(this);
+-    func_8098F544(this);
++    DemoSa_Credits_FadeIn(this);
++    DemoSa_Credits_CheckVisibility(this);
+ }
+ 
+-void func_8098F77C(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_CreditsFacingForward(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_Blink(this);
+-    func_8098F654(this, play);
++    DemoSa_Credits_NextAction(this, play);
+ }
+ 
+-void func_8098F7BC(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_CreditsLookDownAtDarunia(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+     DemoSa_Blink(this);
+-    func_8098F654(this, play);
++    DemoSa_Credits_NextAction(this, play);
+ }
+ 
+-void func_8098F7FC(DemoSa* this, PlayState* play) {
++void DemoSa_Action_CreditsLookBackUp(DemoSa* this, PlayState* play) {
+     s32 sp1C;
+ 
+-    func_8098E5C8(this, play);
++    DemoSa_UpdateBgCheckInfo(this, play);
+     sp1C = DemoSa_UpdateSkelAnime(this);
+     DemoSa_Blink(this);
+-    func_8098F610(this, sp1C);
++    DemoSa_Credits_LookForward(this, sp1C);
+ }
+ 
+ // Name from zeldaret/oot (was func_8098F83C): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
+@@ -641,7 +672,8 @@ void DemoSa_InitBridge(DemoSa* this, PlayState* play) {
+     DemoSa_SetMouthIndex(this, SARIA_MOUTH_CLOSED);
+ }
+ 
+-void func_8098F8F8(DemoSa* this) {
++// Name from zeldaret/oot (was func_8098F8F8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsBridge_Fade(DemoSa* this) {
+     s32 alpha = 255;
+     f32* unk_1A0 = &this->unk_1A0;
+     f32 temp_f0;
+@@ -656,13 +688,15 @@ void func_8098F8F8(DemoSa* this) {
+     }
+ }
+ 
+-void func_8098F984(DemoSa* this) {
++// Name from zeldaret/oot (was func_8098F984): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsBridge_StillHidden(DemoSa* this) {
+     this->action = 16;
+     this->drawConfig = 0;
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-void func_8098F998(DemoSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_8098F998): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsBridge_LookAtLink(DemoSa* this, PlayState* play) {
+     if (this->cueId == 4) {
+         DemoSa_SetStartPosRotFromCue(this, play, 1);
+         this->action = 17;
+@@ -670,7 +704,7 @@ void func_8098F998(DemoSa* this, PlayState* play) {
+         this->unk_1B0 = 0;
+         this->actor.shape.shadowAlpha = 0;
+     } else {
+-        func_8098E76C(this, &gSariaWaitOnBridgeAnim, 0, 0.0f, 0);
++        DemoSa_AnimationChange(this, &gSariaWaitOnBridgeAnim, 0, 0.0f, 0);
+         this->action = 18;
+         this->drawConfig = 1;
+         this->unk_1B0 = 0;
+@@ -679,7 +713,8 @@ void func_8098F998(DemoSa* this, PlayState* play) {
+     DemoSa_SetEyeIndex(this, SARIA_EYE_SAD);
+ }
+ 
+-void func_8098FA2C(DemoSa* this) {
++// Name from zeldaret/oot (was func_8098FA2C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsBridge_CheckFadeFinished(DemoSa* this) {
+     if (this->unk_1A0 >= kREG(17) + 10.0f) {
+         this->action = 18;
+         this->drawConfig = 1;
+@@ -688,8 +723,9 @@ void func_8098FA2C(DemoSa* this) {
+     }
+ }
+ 
+-void func_8098FA84(DemoSa* this) {
+-    func_8098E76C(this, &gSariaHoldOcarinaAnim, 0, 0.0f, 0);
++// Name from zeldaret/oot (was func_8098FA84): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsBridge_ClutchOcarina(DemoSa* this) {
++    DemoSa_AnimationChange(this, &gSariaHoldOcarinaAnim, 0, 0.0f, 0);
+     this->action = 19;
+     this->drawConfig = 1;
+     this->unk_1B0 = 1;
+@@ -697,21 +733,24 @@ void func_8098FA84(DemoSa* this) {
+     DemoSa_SetEyeIndex(this, SARIA_EYE_CLOSED);
+ }
+ 
+-void func_8098FAE0(DemoSa* this) {
+-    func_8098E76C(this, &gSariaGiveLinkOcarinaAnim, 2, -8.0f, 0);
++// Name from zeldaret/oot (was func_8098FAE0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsBridge_GiveOcarina(DemoSa* this) {
++    DemoSa_AnimationChange(this, &gSariaGiveLinkOcarinaAnim, 2, -8.0f, 0);
+     this->action = 20;
+     this->drawConfig = 1;
+     this->unk_1B0 = 1;
+     this->actor.shape.shadowAlpha = 0xFF;
+ }
+ 
+-void func_8098FB34(DemoSa* this, s32 arg1) {
++// Name from zeldaret/oot (was func_8098FB34): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsBridge_HoldOutOcarina(DemoSa* this, s32 arg1) {
+     if (arg1 != 0) {
+-        func_8098E76C(this, &gSariaHoldOutOcarinaAnim, 0, 0, 0);
++        DemoSa_AnimationChange(this, &gSariaHoldOutOcarinaAnim, 0, 0, 0);
+     }
+ }
+ 
+-void func_8098FB68(DemoSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_8098FB68): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Demo_Sa/z_demo_sa.c]
++void DemoSa_CsBridge_CheckNextAction(DemoSa* this, PlayState* play) {
+     s32 unk_1AC;
+     s32 action;
+     CsCmdActorCue* npcAction = DemoSa_GetNpcAction(play, 1);
+@@ -722,16 +761,16 @@ void func_8098FB68(DemoSa* this, PlayState* play) {
+         if (action != unk_1AC) {
+             switch (action) {
+                 case 4:
+-                    func_8098F984(this);
++                    DemoSa_CsBridge_StillHidden(this);
+                     break;
+                 case 12:
+-                    func_8098F998(this, play);
++                    DemoSa_CsBridge_LookAtLink(this, play);
+                     break;
+                 case 13:
+-                    func_8098FA84(this);
++                    DemoSa_CsBridge_ClutchOcarina(this);
+                     break;
+                 case 14:
+-                    func_8098FAE0(this);
++                    DemoSa_CsBridge_GiveOcarina(this);
+                     break;
+                 default:
+                     osSyncPrintf("Demo_Sa_inPresent_Check_DemoMode:そんな動作は無い!!!!!!!!\n");
+@@ -741,33 +780,33 @@ void func_8098FB68(DemoSa* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8098FC44(DemoSa* this, PlayState* play) {
+-    func_8098FB68(this, play);
++void DemoSa_Action_BridgeInvisible(DemoSa* this, PlayState* play) {
++    DemoSa_CsBridge_CheckNextAction(this, play);
+ }
+ 
+-void func_8098FC64(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_BridgeFadeIn(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+-    func_8098F8F8(this);
+-    func_8098FA2C(this);
++    DemoSa_CsBridge_Fade(this);
++    DemoSa_CsBridge_CheckFadeFinished(this);
+ }
+ 
+-void func_8098FC9C(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_BridgeLookingSad(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+-    func_8098FB68(this, play);
++    DemoSa_CsBridge_CheckNextAction(this, play);
+ }
+ 
+-void func_8098FCD4(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
++void DemoSa_Action_BridgeClutchOcarina(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
+     DemoSa_UpdateSkelAnime(this);
+-    func_8098FB68(this, play);
++    DemoSa_CsBridge_CheckNextAction(this, play);
+ }
+ 
+-void func_8098FD0C(DemoSa* this, PlayState* play) {
+-    func_8098E5C8(this, play);
+-    func_8098FB34(this, DemoSa_UpdateSkelAnime(this));
+-    func_8098FB68(this, play);
++void DemoSa_Action_BridgeGiveOcarina(DemoSa* this, PlayState* play) {
++    DemoSa_UpdateBgCheckInfo(this, play);
++    DemoSa_CsBridge_HoldOutOcarina(this, DemoSa_UpdateSkelAnime(this));
++    DemoSa_CsBridge_CheckNextAction(this, play);
+ }
+ 
+ void DemoSa_Update(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

@@ -1,0 +1,1345 @@
+From b7a19a767e7e2e831f15b064f26668d23fb7a771 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 348/488] soh: name the 18 address-named symbols defined in
+ z_effect_soft_sprite_old_init.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 18 are defined in soh/src/code/z_effect_soft_sprite_old_init.c; updating their references touches 53 files in total.
+
+  * func_8002829C -> EffectSsDust_SpawnDrawFlags0
+    deduced, confidence HIGH: EffectSsDust_Spawn wrapper fixing drawFlags 0,
+    life 10 and updateMode 0, leaving the colours, scale and scale step to
+    the caller.
+
+  * func_80028304 -> EffectSsDust_SpawnDrawFlags1
+    deduced, confidence HIGH: the same wrapper with drawFlags 1.
+
+  * func_8002836C -> EffectSsDust_SpawnDrawFlags0Life
+    deduced, confidence HIGH: drawFlags 0 with the life left to the caller.
+
+  * func_800283D4 -> EffectSsDust_SpawnDrawFlags1Life
+    deduced, confidence HIGH: drawFlags 1 with the life left to the caller.
+
+  * func_8002843C -> EffectSsDust_SpawnDrawFlags2Life
+    deduced, confidence HIGH: drawFlags 2 with the life left to the caller.
+
+  * func_800284A4 -> EffectSsDust_SpawnDrawFlags0Mode1
+    deduced, confidence HIGH: drawFlags 0 and life 10, but updateMode 1
+    instead of 0.
+
+  * func_80028510 -> EffectSsDust_SpawnDrawFlags1Mode1
+    deduced, confidence HIGH: drawFlags 1 and life 10 with updateMode 1.
+
+  * func_8002857C -> EffectSsDust_SpawnBrown4
+    deduced, confidence HIGH: drawFlags 4 with the shared brown dust
+    colours, scale 100, scale step 5 and life 10 all fixed.
+
+  * func_800285EC -> EffectSsDust_SpawnBrown5
+    deduced, confidence HIGH: the same with drawFlags 5.
+
+  * func_8002865C -> EffectSsDust_SpawnBrown4Scaled
+    deduced, confidence HIGH: drawFlags 4 with the brown colours, scale and
+    scale step from the caller.
+
+  * func_800286CC -> EffectSsDust_SpawnBrown5Scaled
+    deduced, confidence HIGH: drawFlags 5 with the brown colours, scale and
+    scale step from the caller.
+
+  * func_8002873C -> EffectSsDust_SpawnBrown4ScaledLife
+    deduced, confidence HIGH: drawFlags 4 with the brown colours and the
+    scale, scale step and life all from the caller.
+
+  * func_800287AC -> EffectSsDust_SpawnBrown5ScaledLife
+    deduced, confidence HIGH: drawFlags 5 with the brown colours and the
+    scale, scale step and life all from the caller.
+
+  * func_8002881C -> EffectSsDust_SpawnDrawFlags0Default
+    deduced, confidence HIGH: calls EffectSsDust_SpawnDrawFlags0 with the
+    default scale 100 and scale step 5.
+
+  * func_80028858 -> EffectSsDust_SpawnDrawFlags1Default
+    deduced, confidence HIGH: calls EffectSsDust_SpawnDrawFlags1 with the
+    same defaults.
+
+  * func_80028894 -> EffectSsDust_MakeRingParams
+    deduced, confidence HIGH: picks a random point on a circle of the given
+    radius around the source, and fills in the upward velocity and
+    acceleration for one puff of a ring burst.
+
+  * func_80028990 -> EffectSsDust_SpawnRing4
+    deduced, confidence HIGH: spawns twenty brown drawFlags 4 puffs
+    scattered around the source point.
+
+  * func_80028A54 -> EffectSsDust_SpawnRing5
+    deduced, confidence HIGH: the same twenty-puff ring with drawFlags 5.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       | 56 ++++++++--------
+ soh/src/code/z_actor.c                        | 10 +--
+ soh/src/code/z_effect_soft_sprite_old_init.c  | 66 ++++++++++++-------
+ .../ovl_Bg_Ganon_Otyuka/z_bg_ganon_otyuka.c   |  2 +-
+ .../ovl_Bg_Gnd_Iceblock/z_bg_gnd_iceblock.c   |  4 +-
+ .../actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c  |  2 +-
+ .../actors/ovl_Bg_Haka_Zou/z_bg_haka_zou.c    |  8 +--
+ .../ovl_Bg_Heavy_Block/z_bg_heavy_block.c     |  2 +-
+ .../ovl_Bg_Ice_Objects/z_bg_ice_objects.c     |  4 +-
+ .../ovl_Bg_Ice_Shelter/z_bg_ice_shelter.c     |  4 +-
+ .../z_bg_spot16_bombstone.c                   |  4 +-
+ .../ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c |  2 +-
+ .../actors/ovl_Bg_Vb_Sima/z_bg_vb_sima.c      |  2 +-
+ .../actors/ovl_Bg_Ydan_Sp/z_bg_ydan_sp.c      |  2 +-
+ .../actors/ovl_Boss_Dodongo/z_boss_dodongo.c  |  4 +-
+ .../overlays/actors/ovl_Boss_Fd/z_boss_fd.c   |  4 +-
+ .../actors/ovl_Boss_Ganon/z_boss_ganon.c      |  2 +-
+ .../actors/ovl_Boss_Ganon2/z_boss_ganon2.c    |  2 +-
+ .../actors/ovl_Boss_Goma/z_boss_goma.c        |  2 +-
+ .../overlays/actors/ovl_Demo_Du/z_demo_du.c   |  2 +-
+ .../actors/ovl_Demo_Effect/z_demo_effect.c    |  2 +-
+ .../overlays/actors/ovl_Demo_Gj/z_demo_gj.c   |  2 +-
+ .../overlays/actors/ovl_Demo_Gt/z_demo_gt.c   |  2 +-
+ .../actors/ovl_Door_Killer/z_door_killer.c    |  2 +-
+ soh/src/overlays/actors/ovl_En_Am/z_en_am.c   |  2 +-
+ .../overlays/actors/ovl_En_Arrow/z_en_arrow.c |  2 +-
+ .../actors/ovl_En_Bigokuta/z_en_bigokuta.c    |  2 +-
+ soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c |  2 +-
+ .../overlays/actors/ovl_En_Bombf/z_en_bombf.c |  2 +-
+ soh/src/overlays/actors/ovl_En_Box/z_en_box.c |  2 +-
+ soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c   |  6 +-
+ .../actors/ovl_En_Dekubaba/z_en_dekubaba.c    | 10 +--
+ soh/src/overlays/actors/ovl_En_Dns/z_en_dns.c |  2 +-
+ .../actors/ovl_En_Dodojr/z_en_dodojr.c        |  4 +-
+ .../actors/ovl_En_Dodongo/z_en_dodongo.c      | 14 ++--
+ .../actors/ovl_En_Firefly/z_en_firefly.c      |  2 +-
+ .../actors/ovl_En_Floormas/z_en_floormas.c    |  4 +-
+ .../overlays/actors/ovl_En_Goma/z_en_goma.c   |  2 +-
+ .../actors/ovl_En_Goroiwa/z_en_goroiwa.c      |  4 +-
+ soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c   |  2 +-
+ .../overlays/actors/ovl_En_Horse/z_en_horse.c | 18 ++---
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c   |  2 +-
+ .../actors/ovl_En_Insect/z_en_insect.c        |  2 +-
+ .../actors/ovl_En_Kanban/z_en_kanban.c        |  2 +-
+ .../actors/ovl_En_Karebaba/z_en_karebaba.c    |  4 +-
+ .../overlays/actors/ovl_En_Okuta/z_en_okuta.c |  2 +-
+ .../actors/ovl_En_Partner/z_en_partner.c      |  2 +-
+ soh/src/overlays/actors/ovl_En_St/z_en_st.c   |  2 +-
+ soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c   |  4 +-
+ .../ovl_En_Syateki_Niw/z_en_syateki_niw.c     |  2 +-
+ soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c   |  2 +-
+ .../actors/ovl_Obj_Ice_Poly/z_obj_ice_poly.c  |  2 +-
+ .../actors/ovl_player_actor/z_player.c        |  6 +-
+ 53 files changed, 161 insertions(+), 143 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 589624565..5f179a514 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -231,34 +231,34 @@ void EffectSs_DrawGEffect(PlayState* play, EffectSs* this, void* texture);
+ void EffectSsDust_Spawn(PlayState* play, u16 drawFlags, Vec3f* pos, Vec3f* velocity, Vec3f* accel,
+                         Color_RGBA8* primColor, Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life,
+                         u8 updateMode);
+-void func_8002829C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor, s16 scale, s16 scaleStep);
+-void func_80028304(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor, s16 scale, s16 scaleStep);
+-void func_8002836C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life);
+-void func_800283D4(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life);
+-void func_8002843C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life);
+-void func_800284A4(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor, s16 scale, s16 scaleStep);
+-void func_80028510(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor, s16 scale, s16 scaleStep);
+-void func_8002857C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel);
+-void func_800285EC(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel);
+-void func_8002865C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep);
+-void func_800286CC(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep);
+-void func_8002873C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep,
+-                   s16 life);
+-void func_800287AC(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep,
+-                   s16 life);
+-void func_8002881C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor);
+-void func_80028858(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+-                   Color_RGBA8* envColor);
+-void func_80028990(PlayState* play, f32 randScale, Vec3f* srcPos);
+-void func_80028A54(PlayState* play, f32 randScale, Vec3f* srcPos);
++void EffectSsDust_SpawnDrawFlags0(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor, s16 scale, s16 scaleStep);  // was func_8002829C [LLM:HIGH]
++void EffectSsDust_SpawnDrawFlags1(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor, s16 scale, s16 scaleStep);  // was func_80028304 [LLM:HIGH]
++void EffectSsDust_SpawnDrawFlags0Life(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life);  // was func_8002836C [LLM:HIGH]
++void EffectSsDust_SpawnDrawFlags1Life(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life);  // was func_800283D4 [LLM:HIGH]
++void EffectSsDust_SpawnDrawFlags2Life(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life);  // was func_8002843C [LLM:HIGH]
++void EffectSsDust_SpawnDrawFlags0Mode1(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor, s16 scale, s16 scaleStep);  // was func_800284A4 [LLM:HIGH]
++void EffectSsDust_SpawnDrawFlags1Mode1(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor, s16 scale, s16 scaleStep);  // was func_80028510 [LLM:HIGH]
++void EffectSsDust_SpawnBrown4(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel);  // was func_8002857C [LLM:HIGH]
++void EffectSsDust_SpawnBrown5(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel);  // was func_800285EC [LLM:HIGH]
++void EffectSsDust_SpawnBrown4Scaled(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep);  // was func_8002865C [LLM:HIGH]
++void EffectSsDust_SpawnBrown5Scaled(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep);  // was func_800286CC [LLM:HIGH]
++void EffectSsDust_SpawnBrown4ScaledLife(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep,
++                   s16 life);  // was func_8002873C [LLM:HIGH]
++void EffectSsDust_SpawnBrown5ScaledLife(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep,
++                   s16 life);  // was func_800287AC [LLM:HIGH]
++void EffectSsDust_SpawnDrawFlags0Default(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor);  // was func_8002881C [LLM:HIGH]
++void EffectSsDust_SpawnDrawFlags1Default(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++                   Color_RGBA8* envColor);  // was func_80028858 [LLM:HIGH]
++void EffectSsDust_SpawnRing4(PlayState* play, f32 randScale, Vec3f* srcPos);  // was func_80028990 [LLM:HIGH]
++void EffectSsDust_SpawnRing5(PlayState* play, f32 randScale, Vec3f* srcPos);  // was func_80028A54 [LLM:HIGH]
+ void EffectSsKiraKira_SpawnSmallYellow(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel);
+ void EffectSsKiraKira_SpawnSmall(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel,
+                                  Color_RGBA8* primColor, Color_RGBA8* envColor);
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index bfb9c0ec7..ef759db77 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -3831,12 +3831,12 @@ void Actor_SpawnFloorDustRing(PlayState* play, Actor* actor, Vec3f* posXZ, f32 r
+         accel.z = (Rand_ZeroOne() - 0.5f) * randAccelWeight;
+ 
+         if (scale == 0) {
+-            func_8002857C(play, &pos, &velocity, &accel);
++            EffectSsDust_SpawnBrown4(play, &pos, &velocity, &accel);  // was func_8002857C [LLM:HIGH]
+         } else {
+             if (useLighting) {
+-                func_800286CC(play, &pos, &velocity, &accel, scale, scaleStep);
++                EffectSsDust_SpawnBrown5Scaled(play, &pos, &velocity, &accel, scale, scaleStep);  // was func_800286CC [LLM:HIGH]
+             } else {
+-                func_8002865C(play, &pos, &velocity, &accel, scale, scaleStep);
++                EffectSsDust_SpawnBrown4Scaled(play, &pos, &velocity, &accel, scale, scaleStep);  // was func_8002865C [LLM:HIGH]
+             }
+         }
+ 
+@@ -3862,9 +3862,9 @@ void func_80033480(PlayState* play, Vec3f* posBase, f32 randRangeDiameter, s32 a
+         var2 = arg6;
+ 
+         if (var2 != 0) {
+-            func_800286CC(play, &pos, &velocity, &accel, scale, scaleStep);
++            EffectSsDust_SpawnBrown5Scaled(play, &pos, &velocity, &accel, scale, scaleStep);  // was func_800286CC [LLM:HIGH]
+         } else {
+-            func_8002865C(play, &pos, &velocity, &accel, scale, scaleStep);
++            EffectSsDust_SpawnBrown4Scaled(play, &pos, &velocity, &accel, scale, scaleStep);  // was func_8002865C [LLM:HIGH]
+         }
+     }
+ }
+diff --git a/soh/src/code/z_effect_soft_sprite_old_init.c b/soh/src/code/z_effect_soft_sprite_old_init.c
+index abe9e6788..fb5621556 100644
+--- a/soh/src/code/z_effect_soft_sprite_old_init.c
++++ b/soh/src/code/z_effect_soft_sprite_old_init.c
+@@ -97,39 +97,46 @@ void EffectSsDust_Spawn(PlayState* play, u16 drawFlags, Vec3f* pos, Vec3f* veloc
+     EffectSs_Spawn(play, EFFECT_SS_DUST, 128, &initParams);
+ }
+ 
+-void func_8002829C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_8002829C: EffectSsDust_Spawn wrapper fixing drawFlags 0, life 10 and updateMode 0, leaving the colours, scale and scale step to the caller.
++void EffectSsDust_SpawnDrawFlags0(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor, s16 scale, s16 scaleStep) {
+     EffectSsDust_Spawn(play, 0, pos, velocity, accel, primColor, envColor, scale, scaleStep, 10, 0);
+ }
+ 
+-void func_80028304(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_80028304: the same wrapper with drawFlags 1.
++void EffectSsDust_SpawnDrawFlags1(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor, s16 scale, s16 scaleStep) {
+     EffectSsDust_Spawn(play, 1, pos, velocity, accel, primColor, envColor, scale, scaleStep, 10, 0);
+ }
+ 
+-void func_8002836C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_8002836C: drawFlags 0 with the life left to the caller.
++void EffectSsDust_SpawnDrawFlags0Life(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life) {
+     EffectSsDust_Spawn(play, 0, pos, velocity, accel, primColor, envColor, scale, scaleStep, life, 0);
+ }
+ 
+-void func_800283D4(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_800283D4: drawFlags 1 with the life left to the caller.
++void EffectSsDust_SpawnDrawFlags1Life(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life) {
+     EffectSsDust_Spawn(play, 1, pos, velocity, accel, primColor, envColor, scale, scaleStep, life, 0);
+ }
+ 
+-void func_8002843C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_8002843C: drawFlags 2 with the life left to the caller.
++void EffectSsDust_SpawnDrawFlags2Life(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor, s16 scale, s16 scaleStep, s16 life) {
+     EffectSsDust_Spawn(play, 2, pos, velocity, accel, primColor, envColor, scale, scaleStep, life, 0);
+ }
+ 
+ // unused
+-void func_800284A4(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_800284A4: drawFlags 0 and life 10, but updateMode 1 instead of 0.
++void EffectSsDust_SpawnDrawFlags0Mode1(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor, s16 scale, s16 scaleStep) {
+     EffectSsDust_Spawn(play, 0, pos, velocity, accel, primColor, envColor, scale, scaleStep, 10, 1);
+ }
+ 
+ // unused
+-void func_80028510(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_80028510: drawFlags 1 and life 10 with updateMode 1.
++void EffectSsDust_SpawnDrawFlags1Mode1(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor, s16 scale, s16 scaleStep) {
+     EffectSsDust_Spawn(play, 1, pos, velocity, accel, primColor, envColor, scale, scaleStep, 10, 1);
+ }
+@@ -137,44 +144,53 @@ void func_80028510(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, C
+ static Color_RGBA8 sDustBrownPrim = { 170, 130, 90, 255 };
+ static Color_RGBA8 sDustBrownEnv = { 100, 60, 20, 255 };
+ 
+-void func_8002857C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel) {
++// LLM generated name (HIGH), was func_8002857C: drawFlags 4 with the shared brown dust colours, scale 100, scale step 5 and life 10 all fixed.
++void EffectSsDust_SpawnBrown4(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel) {
+     EffectSsDust_Spawn(play, 4, pos, velocity, accel, &sDustBrownPrim, &sDustBrownEnv, 100, 5, 10, 0);
+ }
+ 
+ // unused
+-void func_800285EC(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel) {
++// LLM generated name (HIGH), was func_800285EC: the same with drawFlags 5.
++void EffectSsDust_SpawnBrown5(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel) {
+     EffectSsDust_Spawn(play, 5, pos, velocity, accel, &sDustBrownPrim, &sDustBrownEnv, 100, 5, 10, 0);
+ }
+ 
+-void func_8002865C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep) {
++// LLM generated name (HIGH), was func_8002865C: drawFlags 4 with the brown colours, scale and scale step from the caller.
++void EffectSsDust_SpawnBrown4Scaled(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep) {
+     EffectSsDust_Spawn(play, 4, pos, velocity, accel, &sDustBrownPrim, &sDustBrownEnv, scale, scaleStep, 10, 0);
+ }
+ 
+-void func_800286CC(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep) {
++// LLM generated name (HIGH), was func_800286CC: drawFlags 5 with the brown colours, scale and scale step from the caller.
++void EffectSsDust_SpawnBrown5Scaled(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep) {
+     EffectSsDust_Spawn(play, 5, pos, velocity, accel, &sDustBrownPrim, &sDustBrownEnv, scale, scaleStep, 10, 0);
+ }
+ 
+-void func_8002873C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep, s16 life) {
++// LLM generated name (HIGH), was func_8002873C: drawFlags 4 with the brown colours and the scale, scale step and life all from the caller.
++void EffectSsDust_SpawnBrown4ScaledLife(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep, s16 life) {
+     EffectSsDust_Spawn(play, 4, pos, velocity, accel, &sDustBrownPrim, &sDustBrownEnv, scale, scaleStep, life, 0);
+ }
+ 
+-void func_800287AC(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep, s16 life) {
++// LLM generated name (HIGH), was func_800287AC: drawFlags 5 with the brown colours and the scale, scale step and life all from the caller.
++void EffectSsDust_SpawnBrown5ScaledLife(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, s16 scale, s16 scaleStep, s16 life) {
+     EffectSsDust_Spawn(play, 5, pos, velocity, accel, &sDustBrownPrim, &sDustBrownEnv, scale, scaleStep, life, 0);
+ }
+ 
+ // unused
+-void func_8002881C(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_8002881C: calls EffectSsDust_SpawnDrawFlags0 with the default scale 100 and scale step 5.
++void EffectSsDust_SpawnDrawFlags0Default(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor) {
+-    func_8002829C(play, pos, velocity, accel, primColor, envColor, 100, 5);
++    EffectSsDust_SpawnDrawFlags0(play, pos, velocity, accel, primColor, envColor, 100, 5);  // was func_8002829C [LLM:HIGH]
+ }
+ 
+ // unused
+-void func_80028858(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
++// LLM generated name (HIGH), was func_80028858: calls EffectSsDust_SpawnDrawFlags1 with the same defaults.
++void EffectSsDust_SpawnDrawFlags1Default(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel, Color_RGBA8* primColor,
+                    Color_RGBA8* envColor) {
+-    func_80028304(play, pos, velocity, accel, primColor, envColor, 100, 5);
++    EffectSsDust_SpawnDrawFlags1(play, pos, velocity, accel, primColor, envColor, 100, 5);  // was func_80028304 [LLM:HIGH]
+ }
+ 
+-void func_80028894(Vec3f* srcPos, f32 randScale, Vec3f* newPos, Vec3f* velocity, Vec3f* accel) {
++// LLM generated name (HIGH), was func_80028894: picks a random point on a circle of the given radius around the source, and fills in the upward velocity and acceleration for one puff of a ring burst.
++void EffectSsDust_MakeRingParams(Vec3f* srcPos, f32 randScale, Vec3f* newPos, Vec3f* velocity, Vec3f* accel) {
+     s16 randAngle;
+     f32 rand = Rand_ZeroOne() * randScale;
+ 
+@@ -194,27 +210,29 @@ void func_80028894(Vec3f* srcPos, f32 randScale, Vec3f* newPos, Vec3f* velocity,
+     accel->z = 0.0f;
+ }
+ 
+-void func_80028990(PlayState* play, f32 randScale, Vec3f* srcPos) {
++// LLM generated name (HIGH), was func_80028990: spawns twenty brown drawFlags 4 puffs scattered around the source point.
++void EffectSsDust_SpawnRing4(PlayState* play, f32 randScale, Vec3f* srcPos) {
+     s32 i;
+     Vec3f pos;
+     Vec3f velocity;
+     Vec3f accel;
+ 
+     for (i = 0; i < 20; i++) {
+-        func_80028894(srcPos, randScale, &pos, &velocity, &accel);
+-        func_8002873C(play, &pos, &velocity, &accel, 100, 30, 7);
++        EffectSsDust_MakeRingParams(srcPos, randScale, &pos, &velocity, &accel);  // was func_80028894 [LLM:HIGH]
++        EffectSsDust_SpawnBrown4ScaledLife(play, &pos, &velocity, &accel, 100, 30, 7);  // was func_8002873C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80028A54(PlayState* play, f32 randScale, Vec3f* srcPos) {
++// LLM generated name (HIGH), was func_80028A54: the same twenty-puff ring with drawFlags 5.
++void EffectSsDust_SpawnRing5(PlayState* play, f32 randScale, Vec3f* srcPos) {
+     s32 i;
+     Vec3f pos;
+     Vec3f velocity;
+     Vec3f accel;
+ 
+     for (i = 0; i < 20; i++) {
+-        func_80028894(srcPos, randScale, &pos, &velocity, &accel);
+-        func_800287AC(play, &pos, &velocity, &accel, 100, 30, 7);
++        EffectSsDust_MakeRingParams(srcPos, randScale, &pos, &velocity, &accel);  // was func_80028894 [LLM:HIGH]
++        EffectSsDust_SpawnBrown5ScaledLife(play, &pos, &velocity, &accel, 100, 30, 7);  // was func_800287AC [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ganon_Otyuka/z_bg_ganon_otyuka.c b/soh/src/overlays/actors/ovl_Bg_Ganon_Otyuka/z_bg_ganon_otyuka.c
+index cf03bec37..b58cb992e 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ganon_Otyuka/z_bg_ganon_otyuka.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ganon_Otyuka/z_bg_ganon_otyuka.c
+@@ -211,7 +211,7 @@ void BgGanonOtyuka_Fall(BgGanonOtyuka* this, PlayState* play) {
+                     pos.x = Rand_CenteredFloat(150.0f) + this->dyna.actor.world.pos.x;
+                     pos.y = Rand_ZeroFloat(60.0f) + -750.0f;
+                     pos.z = Rand_CenteredFloat(150.0f) + this->dyna.actor.world.pos.z;
+-                    func_8002836C(play, &pos, &velocity, &accel, &sDustPrimColor, &sDustEnvColor,
++                    EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &sDustPrimColor, &sDustEnvColor,  // was func_8002836C [LLM:HIGH]
+                                   (s16)Rand_ZeroFloat(100.0f) + 250, 5, (s16)Rand_ZeroFloat(5.0f) + 15);
+                 }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Gnd_Iceblock/z_bg_gnd_iceblock.c b/soh/src/overlays/actors/ovl_Bg_Gnd_Iceblock/z_bg_gnd_iceblock.c
+index f0889cab3..572ae5fc4 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Gnd_Iceblock/z_bg_gnd_iceblock.c
++++ b/soh/src/overlays/actors/ovl_Bg_Gnd_Iceblock/z_bg_gnd_iceblock.c
+@@ -336,11 +336,11 @@ void BgGndIceblock_Slide(BgGndIceblock* this, PlayState* play) {
+         pos.x = thisx->world.pos.x - (60.0f * Math_SinS(this->dyna.unk_158)) - (Math_CosS(this->dyna.unk_158) * spread);
+         pos.z = thisx->world.pos.z - (60.0f * Math_CosS(this->dyna.unk_158)) + (Math_SinS(this->dyna.unk_158) * spread);
+         pos.y = thisx->world.pos.y;
+-        func_8002829C(play, &pos, &velocity, &sZeroVec, &sWhite, &sGray, 250, Rand_S16Offset(40, 15));
++        EffectSsDust_SpawnDrawFlags0(play, &pos, &velocity, &sZeroVec, &sWhite, &sGray, 250, Rand_S16Offset(40, 15));  // was func_8002829C [LLM:HIGH]
+         spread = Rand_CenteredFloat(120.0f);
+         pos.x = thisx->world.pos.x - (60.0f * Math_SinS(this->dyna.unk_158)) + (Math_CosS(this->dyna.unk_158) * spread);
+         pos.z = thisx->world.pos.z - (60.0f * Math_CosS(this->dyna.unk_158)) - (Math_SinS(this->dyna.unk_158) * spread);
+-        func_8002829C(play, &pos, &velocity, &sZeroVec, &sWhite, &sGray, 250, Rand_S16Offset(40, 15));
++        EffectSsDust_SpawnDrawFlags0(play, &pos, &velocity, &sZeroVec, &sWhite, &sGray, 250, Rand_S16Offset(40, 15));  // was func_8002829C [LLM:HIGH]
+         Actor_PlaySfx_Flagged(thisx, NA_SE_PL_SLIP_ICE_LEVEL - SFX_FLAG);
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c b/soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c
+index 4eac2d948..247033f3f 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c
++++ b/soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c
+@@ -91,7 +91,7 @@ void BgHakaHuta_SpawnDust(BgHakaHuta* this, PlayState* play) {
+         }
+         effectPos.x = this->dyna.actor.home.pos.x - (Rand_ZeroOne() * xPosOffset);
+         scale = ((Rand_ZeroOne() * 10.0f) + 50.0f);
+-        func_8002829C(play, &effectPos, &effectVel, sEffectAccel, &primColor, &envColor, scale, 0xA);
++        EffectSsDust_SpawnDrawFlags0(play, &effectPos, &effectVel, sEffectAccel, &primColor, &envColor, scale, 0xA);  // was func_8002829C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Haka_Zou/z_bg_haka_zou.c b/soh/src/overlays/actors/ovl_Bg_Haka_Zou/z_bg_haka_zou.c
+index 8e9c8d292..eae349bb4 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Haka_Zou/z_bg_haka_zou.c
++++ b/soh/src/overlays/actors/ovl_Bg_Haka_Zou/z_bg_haka_zou.c
+@@ -153,7 +153,7 @@ void BgHakaZou_SpawnDust(BgHakaZou* this, PlayState* play) {
+         effectPos.y = this->dyna.actor.world.pos.y + (60.0f * rand);
+         effectPos.z = this->dyna.actor.world.pos.z + (112.0f * rand);
+ 
+-        func_800286CC(play, &effectPos, &effectVelocity, &sZeroVec, (Rand_ZeroOne() * 200.0f) + 1000.0f, 100);
++        EffectSsDust_SpawnBrown5Scaled(play, &effectPos, &effectVelocity, &sZeroVec, (Rand_ZeroOne() * 200.0f) + 1000.0f, 100);  // was func_800286CC [LLM:HIGH]
+     }
+ }
+ 
+@@ -241,7 +241,7 @@ void BgHakaZou_SpawnSkullWallRubble(BgHakaZou* this, PlayState* play) {
+ 
+             Actor_Spawn(&play->actorCtx, play, ACTOR_BG_HAKA_ZOU, actorSpawnPos.x, actorSpawnPos.y, actorSpawnPos.z, 0,
+                         this->dyna.actor.shape.rot.y, 0, this->dyna.actor.params + 2);
+-            func_800286CC(play, &actorSpawnPos, &sZeroVec, &sZeroVec, 1000, 50);
++            EffectSsDust_SpawnBrown5Scaled(play, &actorSpawnPos, &sZeroVec, &sZeroVec, 1000, 50);  // was func_800286CC [LLM:HIGH]
+         }
+     }
+ }
+@@ -263,7 +263,7 @@ void BgHakaZou_SpawnRubbleParticles(BgHakaZou* this, PlayState* play) {
+             fragmentPos.x = this->collider.dim.pos.x + (((j * 2) - 1) * num);
+             fragmentPos.z = this->collider.dim.pos.z + (((i * 2) - 1) * num);
+             EffectSsHahen_SpawnBurst(play, &fragmentPos, 10.0f, 0, 10, 10, 4, 141, 40, gBotwBombSpotDL);
+-            func_800286CC(play, &fragmentPos, &sZeroVec, &sZeroVec, 1000, 50);
++            EffectSsDust_SpawnBrown5Scaled(play, &fragmentPos, &sZeroVec, &sZeroVec, 1000, 50);  // was func_800286CC [LLM:HIGH]
+         }
+     }
+ }
+@@ -361,7 +361,7 @@ void BgHakaZou_BirdStatueAnim_Topple(BgHakaZou* this, PlayState* play) {
+ 
+             for (i = 0; i < 4; i++) {
+                 effectPos.z -= (i == 2) ? 550.0f : 50.0f;
+-                func_800286CC(play, &effectPos, &sZeroVec, &sZeroVec, (Rand_ZeroOne() * 200.0f) + 1000.0f, 200);
++                EffectSsDust_SpawnBrown5Scaled(play, &effectPos, &sZeroVec, &sZeroVec, (Rand_ZeroOne() * 200.0f) + 1000.0f, 200);  // was func_800286CC [LLM:HIGH]
+             }
+ 
+             effectPos.x -= 112.0f;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c b/soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c
+index 4c85973a5..187348fa5 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c
++++ b/soh/src/overlays/actors/ovl_Bg_Heavy_Block/z_bg_heavy_block.c
+@@ -277,7 +277,7 @@ void BgHeavyBlock_SpawnDust(PlayState* play, f32 posX, f32 posY, f32 posZ, f32 v
+             break;
+     }
+ 
+-    func_8002843C(play, &pos, &velocity, &accel, &primColor, &envColor, scale, scaleStep,
++    EffectSsDust_SpawnDrawFlags2Life(play, &pos, &velocity, &accel, &primColor, &envColor, scale, scaleStep,  // was func_8002843C [LLM:HIGH]
+                   (s32)Rand_ZeroFloat(10.0f) + 20);
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c b/soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c
+index 16d92e9b8..165d2ebd2 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c
+@@ -188,11 +188,11 @@ void BgIceObjects_Slide(BgIceObjects* this, PlayState* play) {
+         pos.x = thisx->world.pos.x - (60.0f * Math_SinS(this->dyna.unk_158)) - (Math_CosS(this->dyna.unk_158) * spread);
+         pos.z = thisx->world.pos.z - (60.0f * Math_CosS(this->dyna.unk_158)) + (Math_SinS(this->dyna.unk_158) * spread);
+         pos.y = thisx->world.pos.y;
+-        func_8002829C(play, &pos, &velocity, &sZeroVec, &sWhite, &sGray, 250, Rand_S16Offset(40, 15));
++        EffectSsDust_SpawnDrawFlags0(play, &pos, &velocity, &sZeroVec, &sWhite, &sGray, 250, Rand_S16Offset(40, 15));  // was func_8002829C [LLM:HIGH]
+         spread = Rand_CenteredFloat(120.0f);
+         pos.x = thisx->world.pos.x - (60.0f * Math_SinS(this->dyna.unk_158)) + (Math_CosS(this->dyna.unk_158) * spread);
+         pos.z = thisx->world.pos.z - (60.0f * Math_CosS(this->dyna.unk_158)) - (Math_SinS(this->dyna.unk_158) * spread);
+-        func_8002829C(play, &pos, &velocity, &sZeroVec, &sWhite, &sGray, 250, Rand_S16Offset(40, 15));
++        EffectSsDust_SpawnDrawFlags0(play, &pos, &velocity, &sZeroVec, &sWhite, &sGray, 250, Rand_S16Offset(40, 15));  // was func_8002829C [LLM:HIGH]
+         Actor_PlaySfx_Flagged(thisx, NA_SE_PL_SLIP_ICE_LEVEL - SFX_FLAG);
+     }
+     BgIceObjects_CheckPits(this, play);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ice_Shelter/z_bg_ice_shelter.c b/soh/src/overlays/actors/ovl_Bg_Ice_Shelter/z_bg_ice_shelter.c
+index 0ce95602a..eb8c837b4 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ice_Shelter/z_bg_ice_shelter.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ice_Shelter/z_bg_ice_shelter.c
+@@ -257,7 +257,7 @@ void BgIceShelter_SpawnSteamAround(BgIceShelter* this, PlayState* play, f32 part
+         steamAccel.y = 0.8f;
+         steamAccel.z = 0.07f * cos;
+ 
+-        func_8002829C(play, &steamPos, &steamVel, &steamAccel, &sSteamPrimColor, &sSteamEnvColor,
++        EffectSsDust_SpawnDrawFlags0(play, &steamPos, &steamVel, &steamAccel, &sSteamPrimColor, &sSteamEnvColor,  // was func_8002829C [LLM:HIGH]
+                       450.0f * steamEffectScale, (s16)((Rand_ZeroOne() * 40.0f) + 40.0f) * steamEffectScale);
+     }
+ }
+@@ -306,7 +306,7 @@ void BgIceShelter_SpawnSteamAlong(BgIceShelter* this, PlayState* play, f32 parti
+         steamAccel.y = 0.8f;
+         steamAccel.z = (Rand_ZeroOne() * 0.14f) - 0.07f;
+ 
+-        func_8002829C(play, &steamPos, &steamVel, &steamAccel, &sSteamPrimColor, &sSteamEnvColor, 450,
++        EffectSsDust_SpawnDrawFlags0(play, &steamPos, &steamVel, &steamAccel, &sSteamPrimColor, &sSteamEnvColor, 450,  // was func_8002829C [LLM:HIGH]
+                       (Rand_ZeroOne() * 40.0f) + 40.0f);
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c b/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
+index 5e3cc47d9..0b6f76958 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
+@@ -306,7 +306,7 @@ void func_808B5240(BgSpot16Bombstone* this, PlayState* play) {
+         position.y = D_808B5EB0[index][2] + actorPosition->y;
+         position.z = ((this->cosRotation * tempUnk6) - (tempUnk2 * this->sinRotation)) + actorPosition->z;
+ 
+-        func_800287AC(play, &position, &sVelocity, &sAcceleration, D_808B5EB0[index][4], D_808B5EB0[index][5],
++        EffectSsDust_SpawnBrown5ScaledLife(play, &position, &sVelocity, &sAcceleration, D_808B5EB0[index][4], D_808B5EB0[index][5],  // was func_800287AC [LLM:HIGH]
+                       D_808B5EB0[index][6]);
+ 
+         this->unk_158 += 1;
+@@ -551,4 +551,4 @@ void BgSpot16Bombstone_Draw(Actor* thisx, PlayState* play) {
+ void BgSpot16Bombstone_Reset(void) {
+     sPlayerBomb = NULL;
+     sTimer = 0;
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c b/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
+index 29c68542d..6036786e8 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
+@@ -125,7 +125,7 @@ void BgSpot18Basket_SpawnDustClouds(BgSpot18Basket* this, PlayState* play, f32 a
+             acceleration.y = 0.5f;
+             acceleration.z = 0.0f;
+ 
+-            func_800286CC(play, &position, &velocity, &acceleration, ((Rand_ZeroOne() * 16) + 80),
++            EffectSsDust_SpawnBrown5Scaled(play, &position, &velocity, &acceleration, ((Rand_ZeroOne() * 16) + 80),  // was func_800286CC [LLM:HIGH]
+                           ((Rand_ZeroOne() * 30) + 80));
+         }
+     }
+diff --git a/soh/src/overlays/actors/ovl_Bg_Vb_Sima/z_bg_vb_sima.c b/soh/src/overlays/actors/ovl_Bg_Vb_Sima/z_bg_vb_sima.c
+index 173ba32cb..f0f3c5493 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Vb_Sima/z_bg_vb_sima.c
++++ b/soh/src/overlays/actors/ovl_Bg_Vb_Sima/z_bg_vb_sima.c
+@@ -125,7 +125,7 @@ void BgVbSima_Update(Actor* thisx, PlayState* play) {
+                 splashPos.y = -80.0f;
+                 splashPos.z = this->dyna.actor.world.pos.z + edgeZ;
+ 
+-                func_8002836C(play, &splashPos, &splashVel, &splashAcc, &colorYellow, &colorRed,
++                EffectSsDust_SpawnDrawFlags0Life(play, &splashPos, &splashVel, &splashAcc, &colorYellow, &colorRed,  // was func_8002836C [LLM:HIGH]
+                               (s16)Rand_ZeroFloat(100.0f) + 500, 10, 20);
+ 
+                 for (i2 = 0; i2 < 3; i2++) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ydan_Sp/z_bg_ydan_sp.c b/soh/src/overlays/actors/ovl_Bg_Ydan_Sp/z_bg_ydan_sp.c
+index 813a045b5..bdd2a4aaf 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ydan_Sp/z_bg_ydan_sp.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ydan_Sp/z_bg_ydan_sp.c
+@@ -264,7 +264,7 @@ void BgYdanSp_FloorWebBreaking(BgYdanSp* this, PlayState* play) {
+         for (i = 0; i < 6; i++) {
+             pos.x = Math_SinS(rot) * 60.0f + this->dyna.actor.world.pos.x;
+             pos.z = Math_CosS(rot) * 60.0f + this->dyna.actor.world.pos.z;
+-            func_8002829C(play, &pos, &zeroVec, &zeroVec, &primColor, &envColor, 1000, 10);
++            EffectSsDust_SpawnDrawFlags0(play, &pos, &zeroVec, &zeroVec, &primColor, &envColor, 1000, 10);  // was func_8002829C [LLM:HIGH]
+ 
+             rot += 0x2AAA;
+         }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index 316988570..2fd4e1043 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -731,7 +731,7 @@ void BossDodongo_Explode(BossDodongo* this, PlayState* play) {
+             dustPos.y = this->actor.world.pos.y + 90.0f + (dustVel.y * 3.0f);
+             dustPos.z = this->actor.world.pos.z + (dustVel.z * 3.0f);
+ 
+-            func_8002836C(play, &dustPos, &dustVel, &dustAcell, &dustPrimColor, &dustEnvColor, 500, 10, 10);
++            EffectSsDust_SpawnDrawFlags0Life(play, &dustPos, &dustVel, &dustAcell, &dustPrimColor, &dustEnvColor, 500, 10, 10);  // was func_8002836C [LLM:HIGH]
+         }
+ 
+         Animation_Change(&this->skelAnime, &object_kingdodongo_Anim_004E0C, 1.0f, 0.0f,
+@@ -1765,7 +1765,7 @@ void BossDodongo_DeathCutscene(BossDodongo* this, PlayState* play) {
+                         effectPos.x = Rand_CenteredFloat(120.0f) + this->actor.focus.pos.x;
+                         effectPos.y = Rand_ZeroFloat(50.0f) + this->actor.world.pos.y;
+                         effectPos.z = Rand_CenteredFloat(120.0f) + this->actor.focus.pos.z;
+-                        func_8002836C(play, &effectPos, &dustVel, &dustAcell, &dustPrimColor, &dustEnvColor, 0x1F4, 0xA,
++                        EffectSsDust_SpawnDrawFlags0Life(play, &effectPos, &dustVel, &dustAcell, &dustPrimColor, &dustEnvColor, 0x1F4, 0xA,  // was func_8002836C [LLM:HIGH]
+                                       0xA);
+                         effectPos.x = Rand_CenteredFloat(120.0f) + this->actor.focus.pos.x;
+                         effectPos.y = -1498.76f;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+index 6295b28e4..a6fa514a8 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+@@ -1184,7 +1184,7 @@ void BossFd_Effects(BossFd* this, PlayState* play) {
+                 spawnPos1.y = 100.0f;
+                 spawnPos1.z = temp_z + this->holePosition.z;
+ 
+-                func_8002836C(play, &spawnPos1, &spawnVel1, &spawnAccel1, &colorYellow, &colorRed,
++                EffectSsDust_SpawnDrawFlags0Life(play, &spawnPos1, &spawnVel1, &spawnAccel1, &colorYellow, &colorRed,  // was func_8002836C [LLM:HIGH]
+                               (s16)Rand_ZeroFloat(150.0f) + 800, 10, (s16)Rand_ZeroFloat(5.0f) + 17);
+             }
+         } else {
+@@ -1202,7 +1202,7 @@ void BossFd_Effects(BossFd* this, PlayState* play) {
+                 spawnPos1.y = 100.0f;
+                 spawnPos1.z = temp_z + this->holePosition.z;
+ 
+-                func_8002836C(play, &spawnPos1, &spawnVel1, &spawnAccel1, &colorYellow, &colorRed, 500, 10, 20);
++                EffectSsDust_SpawnDrawFlags0Life(play, &spawnPos1, &spawnVel1, &spawnAccel1, &colorYellow, &colorRed, 500, 10, 20);  // was func_8002836C [LLM:HIGH]
+             }
+         }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+index 676931ca0..984c59855 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+@@ -1399,7 +1399,7 @@ void BossGanon_DeathAndTowerCutscene(BossGanon* this, PlayState* play) {
+                         sp80.y = this->unk_208.y - 10.0f;
+                         sp80.z = this->unk_208.z;
+ 
+-                        func_8002836C(play, &sp80, &sp98, &sp8C, &bloodPrimColor, &bloodEnvColor,
++                        EffectSsDust_SpawnDrawFlags0Life(play, &sp80, &sp98, &sp8C, &bloodPrimColor, &bloodEnvColor,  // was func_8002836C [LLM:HIGH]
+                                       (s16)Rand_ZeroFloat(50.0f) + 50, 0, 17);
+                     }
+                 }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index 5e2c79b51..d06afa1a3 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -1526,7 +1526,7 @@ void func_8090109C(BossGanon2* this, PlayState* play) {
+         pos.x = this->unk_1B8.x;
+         pos.y = this->unk_1B8.y;
+         pos.z = this->unk_1B8.z;
+-        func_8002836C(play, &pos, &velocity, &accel, &sPrimColor, &sEnvColor, (s16)Rand_ZeroFloat(50.0f) + 50, 0, 17);
++        EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &sPrimColor, &sEnvColor, (s16)Rand_ZeroFloat(50.0f) + 50, 0, 17);  // was func_8002836C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c b/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
+index 5a0729069..b42573b27 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
++++ b/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
+@@ -1040,7 +1040,7 @@ void BossGoma_Defeated(BossGoma* this, PlayState* play) {
+                 pos.x = Rand_CenteredFloat(20.0f) + this->defeatedLimbPositions[j].x;
+                 pos.y = Rand_CenteredFloat(10.0f) + this->defeatedLimbPositions[j].y;
+                 pos.z = Rand_CenteredFloat(20.0f) + this->defeatedLimbPositions[j].z;
+-                func_8002836C(play, &pos, &vel1, &accel1, &color1, &color2, 500, 10, 10);
++                EffectSsDust_SpawnDrawFlags0Life(play, &pos, &vel1, &accel1, &color1, &color2, 500, 10, 10);  // was func_8002836C [LLM:HIGH]
+             }
+         }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c b/soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c
+index 67c366b8b..49efd9a75 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c
++++ b/soh/src/overlays/actors/ovl_Demo_Du/z_demo_du.c
+@@ -440,7 +440,7 @@ void DemoDu_CsGoronsRuby_SpawnDustWhenHittingLink(DemoDu* this, PlayState* play)
+             envColor.g += colorDelta;
+             envColor.b += colorDelta;
+ 
+-            func_8002829C(play, &position, &velocity, &accel, &primColor, &envColor, Rand_ZeroOne() * 40.0f + 200.0f,
++            EffectSsDust_SpawnDrawFlags0(play, &position, &velocity, &accel, &primColor, &envColor, Rand_ZeroOne() * 40.0f + 200.0f,  // was func_8002829C [LLM:HIGH]
+                           0);
+         }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c b/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
+index 5ec2762b9..9adc23c5f 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
++++ b/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
+@@ -1696,7 +1696,7 @@ void DemoEffect_UpdateDust(DemoEffect* this, PlayState* play) {
+         accel.x = 0.0f;
+         accel.y = 0.2f;
+ 
+-        func_8002873C(play, &pos, &velocity, &accel, 300, 0, 30);
++        EffectSsDust_SpawnBrown4ScaledLife(play, &pos, &velocity, &accel, 300, 0, 30);  // was func_8002873C [LLM:HIGH]
+ 
+         this->dust.timer++;
+     }
+diff --git a/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c b/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
+index 7e917f65e..c0ffbeacc 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
++++ b/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
+@@ -148,7 +148,7 @@ void DemoGj_SpawnSmoke(PlayState* play, Vec3f* pos, f32 arg2) {
+     static Color_RGBA8 envColor = { 0, 0, 0, 0 };
+     f32 temp = arg2 * 0.2f;
+ 
+-    func_800283D4(play, pos, &velocity, &accel, &primColor, &envColor, temp * Rand_ZeroOne() + arg2, 15, 90);
++    EffectSsDust_SpawnDrawFlags1Life(play, pos, &velocity, &accel, &primColor, &envColor, temp * Rand_ZeroOne() + arg2, 15, 90);  // was func_800283D4 [LLM:HIGH]
+ }
+ 
+ void DemoGj_DropCollectible(DemoGj* this, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c b/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
+index 85609fa5c..bbdb79463 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
++++ b/soh/src/overlays/actors/ovl_Demo_Gt/z_demo_gt.c
+@@ -39,7 +39,7 @@ void DemoGt_SpawnDust(PlayState* play, Vec3f* pos, Vec3f* velocity, Vec3f* accel
+     static Color_RGBA8 brownPrim = { 100, 80, 100, 0 };
+     static Color_RGBA8 redEnv = { 255, 110, 96, 0 };
+ 
+-    func_8002843C(play, pos, velocity, accel, &brownPrim, &redEnv, ((Rand_ZeroOne() * (scale * 0.2f)) + scale),
++    EffectSsDust_SpawnDrawFlags2Life(play, pos, velocity, accel, &brownPrim, &redEnv, ((Rand_ZeroOne() * (scale * 0.2f)) + scale),  // was func_8002843C [LLM:HIGH]
+                   scaleStep, life);
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Door_Killer/z_door_killer.c b/soh/src/overlays/actors/ovl_Door_Killer/z_door_killer.c
+index 210d0a409..be5996a3c 100644
+--- a/soh/src/overlays/actors/ovl_Door_Killer/z_door_killer.c
++++ b/soh/src/overlays/actors/ovl_Door_Killer/z_door_killer.c
+@@ -365,7 +365,7 @@ void DoorKiller_FallOver(DoorKiller* this, PlayState* play) {
+             pos.x += this->actor.world.pos.x;
+             pos.y += this->actor.world.pos.y;
+             pos.z += this->actor.world.pos.z;
+-            func_8002865C(play, &pos, &velocity, &accel, 300, 30);
++            EffectSsDust_SpawnBrown4Scaled(play, &pos, &velocity, &accel, 300, 30);  // was func_8002865C [LLM:HIGH]
+         }
+     }
+     if (!(this->hasHitPlayerOrGround & 1)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Am/z_en_am.c b/soh/src/overlays/actors/ovl_En_Am/z_en_am.c
+index ad8f433a7..4d0faecc6 100644
+--- a/soh/src/overlays/actors/ovl_En_Am/z_en_am.c
++++ b/soh/src/overlays/actors/ovl_En_Am/z_en_am.c
+@@ -887,7 +887,7 @@ void EnAm_Update(Actor* thisx, PlayState* play) {
+                     dustPos.y = (Rand_CenteredFloat(10.0f) * 6.0f) + (this->dyna.actor.world.pos.y + 40.0f);
+                     dustPos.z = (cosf(dustPosScale) * 7.0f) + this->dyna.actor.world.pos.z;
+ 
+-                    func_8002836C(play, &dustPos, &zeroVec, &zeroVec, &dustPrimColor, &dustEnvColor, 200, 45, 12);
++                    EffectSsDust_SpawnDrawFlags0Life(play, &dustPos, &zeroVec, &zeroVec, &dustPrimColor, &dustEnvColor, 200, 45, 12);  // was func_8002836C [LLM:HIGH]
+                     dustPosScale += 60.0f;
+                 }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c b/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
+index 580195742..7f3f73b25 100644
+--- a/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
++++ b/soh/src/overlays/actors/ovl_En_Arrow/z_en_arrow.c
+@@ -466,7 +466,7 @@ void EnArrow_Update(Actor* thisx, PlayState* play) {
+         static Color_RGBA8 primColor = { 255, 255, 100, 255 };
+         static Color_RGBA8 envColor = { 255, 50, 0, 0 };
+         // spawn dust for the flame
+-        func_8002836C(play, &this->unk_21C, &velocity, &accel, &primColor, &envColor, 100, 0, 8);
++        EffectSsDust_SpawnDrawFlags0Life(play, &this->unk_21C, &velocity, &accel, &primColor, &envColor, 100, 0, 8);  // was func_8002836C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+index ba0b98ffa..18c0c3477 100644
+--- a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
++++ b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+@@ -638,7 +638,7 @@ void func_809BE26C(EnBigokuta* this, PlayState* play) {
+             effectPos.x = this->actor.world.pos.x;
+             effectPos.y = this->actor.world.pos.y + 150.0f;
+             effectPos.z = this->actor.world.pos.z;
+-            func_8002829C(play, &effectPos, &sEffectPosAccel, &sEffectPosAccel, &sEffectPrimColor, &sEffectEnvColor,
++            EffectSsDust_SpawnDrawFlags0(play, &effectPos, &sEffectPosAccel, &sEffectPosAccel, &sEffectPrimColor, &sEffectEnvColor,  // was func_8002829C [LLM:HIGH]
+                           1200, 20);
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_OCTAROCK_DEAD2);
+         }
+diff --git a/soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c b/soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c
+index 288d09b3d..f4f4657f3 100644
+--- a/soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c
++++ b/soh/src/overlays/actors/ovl_En_Bom/z_en_bom.c
+@@ -294,7 +294,7 @@ void EnBom_Update(Actor* thisx, PlayState* play2) {
+             Audio_PlayActorSound2(thisx, NA_SE_IT_BOMB_IGNIT - SFX_FLAG);
+ 
+             effPos.y += 3.0f;
+-            func_8002829C(play, &effPos, &effVelocity, &dustAccel, &dustColor, &dustColor, 50, 5);
++            EffectSsDust_SpawnDrawFlags0(play, &effPos, &effVelocity, &dustAccel, &dustColor, &dustColor, 50, 5);  // was func_8002829C [LLM:HIGH]
+         }
+ 
+         if ((this->bombCollider.base.acFlags & AC_HIT) || ((this->bombCollider.base.ocFlags1 & OC1_HIT) &&
+diff --git a/soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c b/soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c
+index 68e58ee0f..5251abc5a 100644
+--- a/soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c
++++ b/soh/src/overlays/actors/ovl_En_Bombf/z_en_bombf.c
+@@ -386,7 +386,7 @@ void EnBombf_Update(Actor* thisx, PlayState* play) {
+                 Audio_PlayActorSound2(thisx, NA_SE_IT_BOMB_IGNIT - SFX_FLAG);
+ 
+                 effPos.y += 3.0f;
+-                func_8002829C(play, &effPos, &effVelocity, &dustAccel, &dustColor, &dustColor, 50, 5);
++                EffectSsDust_SpawnDrawFlags0(play, &effPos, &effVelocity, &dustAccel, &dustColor, &dustColor, 50, 5);  // was func_8002829C [LLM:HIGH]
+             }
+ 
+             // double bomb flash speed and adjust red color at certain times during the countdown
+diff --git a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+index dfe7fa2cd..0158fe2ee 100644
+--- a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
++++ b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+@@ -242,7 +242,7 @@ void EnBox_SpawnDust(EnBox* this, PlayState* play) {
+ 
+     for (i = 0; i < 20; i++) {
+         EnBox_RandomDustKinematic(this, &pos, &velocity, &accel);
+-        func_8002873C(play, &pos, &velocity, &accel, 100, 30, 15);
++        EffectSsDust_SpawnBrown4ScaledLife(play, &pos, &velocity, &accel, 100, 30, 15);  // was func_8002873C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c b/soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c
+index b2fe74cde..9988a5d88 100644
+--- a/soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c
++++ b/soh/src/overlays/actors/ovl_En_Bw/z_en_bw.c
+@@ -769,7 +769,7 @@ void EnBw_Update(Actor* thisx, PlayState* play2) {
+             velocity.z = Rand_CenteredFloat(this->unk_248 * 24.0f);
+             accel.x = velocity.x * -0.075f;
+             accel.z = velocity.z * -0.075f;
+-            func_8002836C(play, &thisx->world.pos, &velocity, &accel, &sp50, &sp4C, 0x3C, 0, 0x14);
++            EffectSsDust_SpawnDrawFlags0Life(play, &thisx->world.pos, &velocity, &accel, &sp50, &sp4C, 0x3C, 0, 0x14);  // was func_8002836C [LLM:HIGH]
+         }
+         if (this->unk_248 <= 0.4f) {
+             this->collider1.info.toucher.effect = 0;
+@@ -788,7 +788,7 @@ void EnBw_Update(Actor* thisx, PlayState* play2) {
+                 } else {
+                     sp44.a = 0;
+                 }
+-                func_8002836C(play, &thisx->world.pos, &velocity, &accel, &sp48, &sp44, 0xB4, 0x28,
++                EffectSsDust_SpawnDrawFlags0Life(play, &thisx->world.pos, &velocity, &accel, &sp48, &sp44, 0xB4, 0x28,  // was func_8002836C [LLM:HIGH]
+                               20.0f - (this->unk_248 * 40.0f));
+             }
+         } else {
+@@ -913,4 +913,4 @@ void EnBw_Draw(Actor* thisx, PlayState* play2) {
+ 
+ void EnBw_Reset(void) {
+     sSlugGroup = 0;
+-}
+\ No newline at end of file
++}
+diff --git a/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c b/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
+index b208840e2..e63a8ee6b 100644
+--- a/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
++++ b/soh/src/overlays/actors/ovl_En_Dekubaba/z_en_dekubaba.c
+@@ -703,7 +703,7 @@ void EnDekubaba_Lunge(EnDekubaba* this, PlayState* play) {
+             velocity.y = 0.0f;
+             velocity.z = Math_CosS(this->actor.shape.rot.y) * 5.0f;
+ 
+-            func_8002829C(play, &this->actor.world.pos, &velocity, &sZeroVec, &primColor, &envColor, 1,
++            EffectSsDust_SpawnDrawFlags0(play, &this->actor.world.pos, &velocity, &sZeroVec, &primColor, &envColor, 1,  // was func_8002829C [LLM:HIGH]
+                           this->size * 100.0f);
+             this->timer = 1;
+             this->collider.base.acFlags |= AC_ON;
+@@ -767,7 +767,7 @@ void EnDekubaba_PullBack(EnDekubaba* this, PlayState* play) {
+             dustPos = this->actor.home.pos;
+ 
+             for (i = 0; i < 3; i++) {
+-                func_800286CC(play, &dustPos, &sZeroVec, &sZeroVec, this->size * 500.0f, this->size * 50.0f);
++                EffectSsDust_SpawnBrown5Scaled(play, &dustPos, &sZeroVec, &sZeroVec, this->size * 500.0f, this->size * 50.0f);  // was func_800286CC [LLM:HIGH]
+                 dustPos.x += xIncr;
+                 dustPos.z += zIncr;
+             }
+@@ -979,13 +979,13 @@ void EnDekubaba_PrunedSomersault(EnDekubaba* this, PlayState* play) {
+         deltaZ = -20.0f * Math_CosS(this->actor.shape.rot.x) * Math_CosS(this->actor.shape.rot.y);
+ 
+         for (i = 0; i < 4; i++) {
+-            func_800286CC(play, &dustPos, &sZeroVec, &sZeroVec, 500, 50);
++            EffectSsDust_SpawnBrown5Scaled(play, &dustPos, &sZeroVec, &sZeroVec, 500, 50);  // was func_800286CC [LLM:HIGH]
+             dustPos.x += deltaX;
+             dustPos.y += deltaY;
+             dustPos.z += deltaZ;
+         }
+ 
+-        func_800286CC(play, &this->actor.home.pos, &sZeroVec, &sZeroVec, this->size * 500.0f, this->size * 100.0f);
++        EffectSsDust_SpawnBrown5Scaled(play, &this->actor.home.pos, &sZeroVec, &sZeroVec, this->size * 500.0f, this->size * 100.0f);  // was func_800286CC [LLM:HIGH]
+         EnDekubaba_SetupDeadStickDrop(this, play);
+     }
+ }
+@@ -997,7 +997,7 @@ void EnDekubaba_ShrinkDie(EnDekubaba* this, PlayState* play) {
+     Math_StepToF(&this->actor.world.pos.y, this->actor.home.pos.y, this->size * 5.0f);
+ 
+     if (Math_StepToF(&this->actor.scale.x, this->size * 0.1f * 0.01f, this->size * 0.1f * 0.01f)) {
+-        func_800286CC(play, &this->actor.home.pos, &sZeroVec, &sZeroVec, this->size * 500.0f, this->size * 100.0f);
++        EffectSsDust_SpawnBrown5Scaled(play, &this->actor.home.pos, &sZeroVec, &sZeroVec, this->size * 500.0f, this->size * 100.0f);  // was func_800286CC [LLM:HIGH]
+         if (this->actor.dropFlag == 0) {
+             Item_DropCollectible(play, &this->actor.world.pos, ITEM00_NUTS);
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Dns/z_en_dns.c b/soh/src/overlays/actors/ovl_En_Dns/z_en_dns.c
+index 597f0bc72..cd00a3cb5 100644
+--- a/soh/src/overlays/actors/ovl_En_Dns/z_en_dns.c
++++ b/soh/src/overlays/actors/ovl_En_Dns/z_en_dns.c
+@@ -449,7 +449,7 @@ void EnDns_PostBurrow(EnDns* this, PlayState* play) {
+         initPos.x = this->actor.world.pos.x;
+         initPos.y = this->yInitPos;
+         initPos.z = this->actor.world.pos.z;
+-        func_80028990(play, 20.0f, &initPos);
++        EffectSsDust_SpawnRing4(play, 20.0f, &initPos);  // was func_80028990 [LLM:HIGH]
+     }
+     this->actor.shape.rot.y += 0x2000;
+     // Drops only if you bought its item
+diff --git a/soh/src/overlays/actors/ovl_En_Dodojr/z_en_dodojr.c b/soh/src/overlays/actors/ovl_En_Dodojr/z_en_dodojr.c
+index e06a0af2c..67f81968a 100644
+--- a/soh/src/overlays/actors/ovl_En_Dodojr/z_en_dodojr.c
++++ b/soh/src/overlays/actors/ovl_En_Dodojr/z_en_dodojr.c
+@@ -114,7 +114,7 @@ void EnDodojr_SpawnLargeDust(EnDodojr* this, PlayState* play, s32 count) {
+         pos.x = (Math_SinS(angle) * 22.0f) + this->dustPos.x;
+         pos.z = (Math_CosS(angle) * 22.0f) + this->dustPos.z;
+ 
+-        func_8002836C(play, &pos, &velocity, &accel, &prim, &env, 120, 40, 10);
++        EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &prim, &env, 120, 40, 10);  // was func_8002836C [LLM:HIGH]
+     }
+ }
+ 
+@@ -134,7 +134,7 @@ void EnDodojr_SpawnSmallDust(EnDodojr* this, PlayState* play, Vec3f* arg2) {
+     pos.x = (Math_SinS(angle) * 11.0f) + arg2->x;
+     pos.z = (Math_CosS(angle) * 11.0f) + arg2->z;
+ 
+-    func_8002836C(play, &pos, &velocity, &accel, &prim, &env, 100, 60, 8);
++    EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &prim, &env, 100, 60, 8);  // was func_8002836C [LLM:HIGH]
+ }
+ 
+ s32 EnDodojr_UpdateBounces(EnDodojr* this, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c b/soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c
+index 741036ef6..a77878865 100644
+--- a/soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c
++++ b/soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c
+@@ -272,7 +272,7 @@ void EnDodongo_SpawnBombSmoke(EnDodongo* this, PlayState* play) {
+     velocity.z = randCos * 3.5f;
+     accel.x = ((Rand_ZeroOne() * 0.1f) + 0.15f) * -randSin;
+     accel.z = ((Rand_ZeroOne() * 0.1f) + 0.15f) * -randCos;
+-    func_8002836C(play, &pos, &velocity, &accel, &this->bombSmokePrimColor, &this->bombSmokeEnvColor, 100, 25, 20);
++    EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &this->bombSmokePrimColor, &this->bombSmokeEnvColor, 100, 25, 20);  // was func_8002836C [LLM:HIGH]
+ 
+     randAngle = Rand_ZeroOne() * 0x2000;
+     randCos = Math_CosS(this->actor.shape.rot.y + randAngle);
+@@ -284,7 +284,7 @@ void EnDodongo_SpawnBombSmoke(EnDodongo* this, PlayState* play) {
+     velocity.z = randSin * 3.5f;
+     accel.x = ((Rand_ZeroOne() * 0.1f) + 0.15f) * randCos;
+     accel.z = ((Rand_ZeroOne() * 0.1f) + 0.15f) * -randSin;
+-    func_8002836C(play, &pos, &velocity, &accel, &this->bombSmokePrimColor, &this->bombSmokeEnvColor, 100, 25, 20);
++    EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &this->bombSmokePrimColor, &this->bombSmokeEnvColor, 100, 25, 20);  // was func_8002836C [LLM:HIGH]
+ 
+     randAngle = Rand_ZeroOne() * 0x2000;
+     randCos = Math_CosS(this->actor.shape.rot.y + randAngle);
+@@ -297,7 +297,7 @@ void EnDodongo_SpawnBombSmoke(EnDodongo* this, PlayState* play) {
+     velocity.z = -randSin * 3.5f;
+     accel.x = ((Rand_ZeroOne() * 0.1f) + 0.15f) * -randCos;
+     accel.z = ((Rand_ZeroOne() * 0.1f) + 0.15f) * randSin;
+-    func_8002836C(play, &pos, &velocity, &accel, &this->bombSmokePrimColor, &this->bombSmokeEnvColor, 100, 25, 20);
++    EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &this->bombSmokePrimColor, &this->bombSmokeEnvColor, 100, 25, 20);  // was func_8002836C [LLM:HIGH]
+ }
+ 
+ static InitChainEntry sInitChain[] = {
+@@ -493,7 +493,7 @@ void EnDodongo_SwallowBomb(EnDodongo* this, PlayState* play) {
+                     pos.x = this->sphElements[0].dim.worldSphere.center.x + deathFireVel.x;
+                     pos.y = this->sphElements[0].dim.worldSphere.center.y + deathFireVel.y;
+                     pos.z = this->sphElements[0].dim.worldSphere.center.z + deathFireVel.z;
+-                    func_8002836C(play, &pos, &deathFireVel, &deathFireAccel, &this->bombSmokePrimColor,
++                    EffectSsDust_SpawnDrawFlags0Life(play, &pos, &deathFireVel, &deathFireAccel, &this->bombSmokePrimColor,  // was func_8002836C [LLM:HIGH]
+                                   &this->bombSmokeEnvColor, 400, 10, 10);
+                 }
+                 Audio_PlayActorSound2(&this->actor, NA_SE_IT_BOMB_EXPLOSION);
+@@ -506,13 +506,13 @@ void EnDodongo_SwallowBomb(EnDodongo* this, PlayState* play) {
+             EnDodongo_SpawnBombSmoke(this, play);
+         } else {
+             pos = this->headPos;
+-            func_8002829C(play, &pos, &smokeVel, &smokeAccel, &white, &white, 50, 5);
++            EffectSsDust_SpawnDrawFlags0(play, &pos, &smokeVel, &smokeAccel, &white, &white, 50, 5);  // was func_8002829C [LLM:HIGH]
+             pos.x -= (Math_CosS(this->actor.shape.rot.y) * 6.0f);
+             pos.z += (Math_SinS(this->actor.shape.rot.y) * 6.0f);
+-            func_8002829C(play, &pos, &smokeVel, &smokeAccel, &white, &white, 50, 5);
++            EffectSsDust_SpawnDrawFlags0(play, &pos, &smokeVel, &smokeAccel, &white, &white, 50, 5);  // was func_8002829C [LLM:HIGH]
+             pos.x = this->headPos.x + (Math_CosS(this->actor.shape.rot.y) * 6.0f);
+             pos.z = this->headPos.z - (Math_SinS(this->actor.shape.rot.y) * 6.0f);
+-            func_8002829C(play, &pos, &smokeVel, &smokeAccel, &white, &white, 50, 5);
++            EffectSsDust_SpawnDrawFlags0(play, &pos, &smokeVel, &smokeAccel, &white, &white, 50, 5);  // was func_8002829C [LLM:HIGH]
+         }
+     }
+     this->bodyScale.y = this->bodyScale.z = (Math_SinS(this->actor.colorFilterTimer * 0x1000) * 0.5f) + 1.0f;
+diff --git a/soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c b/soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c
+index 5b1ad6bda..aaf76afc7 100644
+--- a/soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c
++++ b/soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c
+@@ -807,7 +807,7 @@ void EnFirefly_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+                     }
+                 }
+ 
+-                func_8002843C(play, &effPos, &effVelocity, &effAccel, effPrimColor, effEnvColor, 250, effScaleStep,
++                EffectSsDust_SpawnDrawFlags2Life(play, &effPos, &effVelocity, &effAccel, effPrimColor, effEnvColor, 250, effScaleStep,  // was func_8002843C [LLM:HIGH]
+                               effLife);
+             }
+         }
+diff --git a/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c b/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
+index 542884376..2955ada4b 100644
+--- a/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
++++ b/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
+@@ -578,12 +578,12 @@ void EnFloormas_Slide(EnFloormas* this, PlayState* play) {
+     velocity.x = Math_SinS(this->actor.shape.rot.y + 0x6000) * 7.0f;
+     velocity.z = Math_CosS(this->actor.shape.rot.y + 0x6000) * 7.0f;
+ 
+-    func_800286CC(play, &pos, &velocity, &accel, 450, 100);
++    EffectSsDust_SpawnBrown5Scaled(play, &pos, &velocity, &accel, 450, 100);  // was func_800286CC [LLM:HIGH]
+ 
+     velocity.x = Math_SinS(this->actor.shape.rot.y - 0x6000) * 7.0f;
+     velocity.z = Math_CosS(this->actor.shape.rot.y - 0x6000) * 7.0f;
+ 
+-    func_800286CC(play, &pos, &velocity, &accel, 450, 100);
++    EffectSsDust_SpawnBrown5Scaled(play, &pos, &velocity, &accel, 450, 100);  // was func_800286CC [LLM:HIGH]
+ 
+     Actor_PlaySfx_Flagged(&this->actor, NA_SE_EN_FLOORMASTER_SLIDING);
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c b/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
+index f93ab068f..c617e7210 100644
+--- a/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
++++ b/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
+@@ -910,7 +910,7 @@ void EnGoma_BossLimb(EnGoma* this, PlayState* play) {
+         pos.x = Rand_CenteredFloat(20.0f) + this->actor.world.pos.x;
+         pos.y = Rand_CenteredFloat(10.0f) + this->actor.world.pos.y;
+         pos.z = Rand_CenteredFloat(20.0f) + this->actor.world.pos.z;
+-        func_8002836C(play, &pos, &vel, &accel, &primColor, &envColor, 500, 10, 10);
++        EffectSsDust_SpawnDrawFlags0Life(play, &pos, &vel, &accel, &primColor, &envColor, 500, 10, 10);  // was func_8002836C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Goroiwa/z_en_goroiwa.c b/soh/src/overlays/actors/ovl_En_Goroiwa/z_en_goroiwa.c
+index c93b010b4..85a30e9ab 100644
+--- a/soh/src/overlays/actors/ovl_En_Goroiwa/z_en_goroiwa.c
++++ b/soh/src/overlays/actors/ovl_En_Goroiwa/z_en_goroiwa.c
+@@ -270,8 +270,8 @@ void EnGoroiwa_SpawnDust(PlayState* play, Vec3f* pos) {
+         randPos.x = pos->x + (47.0f * (Rand_ZeroOne() * 0.5f + 0.5f)) * Math_SinS(angle);
+         randPos.y = pos->y + (Rand_ZeroOne() - 0.5f) * 40.0f;
+         randPos.z = pos->z + ((47.0f * (Rand_ZeroOne() * 0.5f + 0.5f))) * Math_CosS(angle);
+-        func_800286CC(play, &randPos, &velocity, &accel, (s16)(Rand_ZeroOne() * 30.0f) + 100, 80);
+-        func_800286CC(play, &randPos, &velocity, &accel, (s16)(Rand_ZeroOne() * 20.0f) + 80, 80);
++        EffectSsDust_SpawnBrown5Scaled(play, &randPos, &velocity, &accel, (s16)(Rand_ZeroOne() * 30.0f) + 100, 80);  // was func_800286CC [LLM:HIGH]
++        EffectSsDust_SpawnBrown5Scaled(play, &randPos, &velocity, &accel, (s16)(Rand_ZeroOne() * 20.0f) + 80, 80);  // was func_800286CC [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c b/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
+index 41212ba1e..4bb2b4f50 100644
+--- a/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
++++ b/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
+@@ -361,7 +361,7 @@ void EnGs_Explode(EnGs* this, PlayState* play) {
+             dustPos.x = this->actor.world.pos.x + (dustVelocity.x + dustVelocity.x);
+             dustPos.y = this->actor.world.pos.y + 7.0f;
+             dustPos.z = this->actor.world.pos.z + (dustVelocity.z + dustVelocity.z);
+-            func_8002836C(play, &dustPos, &dustVelocity, &dustAccel, &dustPrim, &dustEnv,
++            EffectSsDust_SpawnDrawFlags0Life(play, &dustPos, &dustVelocity, &dustAccel, &dustPrim, &dustEnv,  // was func_8002836C [LLM:HIGH]
+                           (s16)Rand_ZeroFloat(50.0f) + 200, 40, 15);
+         }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+index 037fb0a1e..a78e0d7df 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
++++ b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+@@ -1652,7 +1652,7 @@ void EnHorse_LowJump(EnHorse* this, PlayState* play) {
+         this->stateFlags &= ~ENHORSE_JUMPING;
+         this->actor.gravity = -3.5f;
+         this->actor.world.pos.y = this->actor.floorHeight;
+-        func_80028A54(play, 25.0f, &this->actor.world.pos);
++        EffectSsDust_SpawnRing5(play, 25.0f, &this->actor.world.pos);  // was func_80028A54 [LLM:HIGH]
+         EnHorse_JumpLanding(this, play);
+     }
+ }
+@@ -1728,7 +1728,7 @@ void EnHorse_HighJump(EnHorse* this, PlayState* play) {
+         this->stateFlags &= ~ENHORSE_JUMPING;
+         this->actor.gravity = -3.5f;
+         this->actor.world.pos.y = this->actor.floorHeight;
+-        func_80028A54(play, 25.0f, &this->actor.world.pos);
++        EffectSsDust_SpawnRing5(play, 25.0f, &this->actor.world.pos);  // was func_80028A54 [LLM:HIGH]
+         EnHorse_JumpLanding(this, play);
+     }
+ }
+@@ -2230,7 +2230,7 @@ void EnHorse_CsJump(EnHorse* this, PlayState* play, CsCmdActorCue* action) {
+         this->actor.gravity = -3.5f;
+         this->actor.velocity.y = 0;
+         this->actor.world.pos.y = this->actor.floorHeight;
+-        func_80028A54(play, 25.0f, &this->actor.world.pos);
++        EffectSsDust_SpawnRing5(play, 25.0f, &this->actor.world.pos);  // was func_80028A54 [LLM:HIGH]
+         this->animationIdx = ENHORSE_ANIM_GALLOP;
+         Animation_PlayOnceSetSpeed(&this->skin.skelAnime, sAnimationHeaders[this->type][this->animationIdx],
+                                    sPlaybackSpeeds[6]);
+@@ -2750,7 +2750,7 @@ void EnHorse_FleePlayer(EnHorse* this, PlayState* play) {
+ void EnHorse_BridgeJumpInit(EnHorse* this, PlayState* play) {
+     f32 y;
+ 
+-    func_80028A54(play, 25.0f, &this->actor.world.pos);
++    EffectSsDust_SpawnRing5(play, 25.0f, &this->actor.world.pos);  // was func_80028A54 [LLM:HIGH]
+     this->action = ENHORSE_ACT_BRIDGE_JUMP;
+     this->stateFlags |= ENHORSE_JUMPING;
+     this->animationIdx = ENHORSE_ANIM_HIGH_JUMP;
+@@ -2821,7 +2821,7 @@ void EnHorse_CheckBridgeJumpLanding(EnHorse* this, PlayState* play) {
+         this->stateFlags &= ~ENHORSE_JUMPING;
+         this->actor.gravity = -3.5f;
+         this->actor.world.pos.y = sBridgeJumps[this->bridgeJumpIdx].pos.y;
+-        func_80028A54(play, 25.0f, &this->actor.world.pos);
++        EffectSsDust_SpawnRing5(play, 25.0f, &this->actor.world.pos);  // was func_80028A54 [LLM:HIGH]
+         EnHorse_JumpLanding(this, play);
+         Audio_PlaySfxGeneral(NA_SE_EV_HORSE_LAND, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+@@ -3617,19 +3617,19 @@ void EnHorse_Update(Actor* thisx, PlayState* play2) {
+         if (gSaveContext.entranceIndex != ENTR_LON_LON_RANCH_ENTRANCE || gSaveContext.sceneLayer != 9) {
+             if (this->dustFlags & 1) {
+                 this->dustFlags &= ~1;
+-                func_800287AC(play, &this->frontRightHoof, &dustVel, &dustAcc, EnHorse_RandInt(100) + 200,
++                EffectSsDust_SpawnBrown5ScaledLife(play, &this->frontRightHoof, &dustVel, &dustAcc, EnHorse_RandInt(100) + 200,  // was func_800287AC [LLM:HIGH]
+                               EnHorse_RandInt(10) + 30, EnHorse_RandInt(20) + 30);
+             } else if (this->dustFlags & 2) {
+                 this->dustFlags &= ~2;
+-                func_800287AC(play, &this->frontLeftHoof, &dustVel, &dustAcc, EnHorse_RandInt(100) + 200,
++                EffectSsDust_SpawnBrown5ScaledLife(play, &this->frontLeftHoof, &dustVel, &dustAcc, EnHorse_RandInt(100) + 200,  // was func_800287AC [LLM:HIGH]
+                               EnHorse_RandInt(10) + 30, EnHorse_RandInt(20) + 30);
+             } else if (this->dustFlags & 4) {
+                 this->dustFlags &= ~4;
+-                func_800287AC(play, &this->backRightHoof, &dustVel, &dustAcc, EnHorse_RandInt(100) + 200,
++                EffectSsDust_SpawnBrown5ScaledLife(play, &this->backRightHoof, &dustVel, &dustAcc, EnHorse_RandInt(100) + 200,  // was func_800287AC [LLM:HIGH]
+                               EnHorse_RandInt(10) + 30, EnHorse_RandInt(20) + 30);
+             } else if (this->dustFlags & 8) {
+                 this->dustFlags &= ~8;
+-                func_800287AC(play, &this->backLeftHoof, &dustVel, &dustAcc, EnHorse_RandInt(100) + 200,
++                EffectSsDust_SpawnBrown5ScaledLife(play, &this->backLeftHoof, &dustVel, &dustAcc, EnHorse_RandInt(100) + 200,  // was func_800287AC [LLM:HIGH]
+                               EnHorse_RandInt(10) + 30, EnHorse_RandInt(20) + 30);
+             }
+         }
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index d88104d74..7f1f0c932 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -1088,7 +1088,7 @@ void EnIk_SpawnAxeSmoke(EnIk* this, PlayState* play, Vec3f* pos) {
+             envColor.r += temp_v0;
+             envColor.g += temp_v0;
+             envColor.b += temp_v0;
+-            func_8002829C(play, &effectPos, &effectVelocity, &effectAccel, &primColor, &envColor,
++            EffectSsDust_SpawnDrawFlags0(play, &effectPos, &effectVelocity, &effectAccel, &primColor, &envColor,  // was func_8002829C [LLM:HIGH]
+                           (Rand_ZeroOne() * 60.0f) + 300.0f, 0);
+         }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c b/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
+index 4adc9c598..cdb10bf43 100644
+--- a/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
++++ b/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
+@@ -435,7 +435,7 @@ void EnInsect_Dig(EnInsect* this, PlayState* play) {
+         velocity.x = Math_SinS(this->actor.shape.rot.y) * -0.6f;
+         velocity.y = Math_SinS(this->actor.shape.rot.x) * 0.6f;
+         velocity.z = Math_CosS(this->actor.shape.rot.y) * -0.6f;
+-        func_800286CC(play, &this->actor.world.pos, &velocity, &accel, Rand_ZeroOne() * 5.0f + 8.0f,
++        EffectSsDust_SpawnBrown5Scaled(play, &this->actor.world.pos, &velocity, &accel, Rand_ZeroOne() * 5.0f + 8.0f,  // was func_800286CC [LLM:HIGH]
+                       Rand_ZeroOne() * 5.0f + 8.0f);
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Kanban/z_en_kanban.c b/soh/src/overlays/actors/ovl_En_Kanban/z_en_kanban.c
+index 88b230021..61f5fde84 100644
+--- a/soh/src/overlays/actors/ovl_En_Kanban/z_en_kanban.c
++++ b/soh/src/overlays/actors/ovl_En_Kanban/z_en_kanban.c
+@@ -563,7 +563,7 @@ void EnKanban_Update(Actor* thisx, PlayState* play2) {
+                 for (j = 0; j < dustCount + 3; j++) {
+                     pos.x = this->actor.world.pos.x + Rand_CenteredFloat((this->partCount * 0.5f) + 20.0f);
+                     pos.z = this->actor.world.pos.z + Rand_CenteredFloat((this->partCount * 0.5f) + 20.0f);
+-                    func_800286CC(play, &pos, &velocity, &accel, 100, 5);
++                    EffectSsDust_SpawnBrown5Scaled(play, &pos, &velocity, &accel, 100, 5);  // was func_800286CC [LLM:HIGH]
+                 }
+             }
+             if (DECR(this->airTimer) == 0) {
+diff --git a/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c b/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
+index f52bb555b..1afa147ae 100644
+--- a/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
++++ b/soh/src/overlays/actors/ovl_En_Karebaba/z_en_karebaba.c
+@@ -346,13 +346,13 @@ void EnKarebaba_Dying(EnKarebaba* this, PlayState* play) {
+         rotation.y = -20.0f * Math_CosS(this->actor.shape.rot.x) * Math_CosS(this->actor.shape.rot.y);
+ 
+         for (i = 0; i < 4; i++) {
+-            func_800286CC(play, &position, &zeroVec, &zeroVec, 500, 50);
++            EffectSsDust_SpawnBrown5Scaled(play, &position, &zeroVec, &zeroVec, 500, 50);  // was func_800286CC [LLM:HIGH]
+             position.x += rotation.x;
+             position.y += rotation.z;
+             position.z += rotation.y;
+         }
+ 
+-        func_800286CC(play, &this->actor.home.pos, &zeroVec, &zeroVec, 500, 100);
++        EffectSsDust_SpawnBrown5Scaled(play, &this->actor.home.pos, &zeroVec, &zeroVec, 500, 100);  // was func_800286CC [LLM:HIGH]
+         EnKarebaba_SetupDeadItemDrop(this, play);
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Okuta/z_en_okuta.c b/soh/src/overlays/actors/ovl_En_Okuta/z_en_okuta.c
+index 21b76c8e5..9f9594ad5 100644
+--- a/soh/src/overlays/actors/ovl_En_Okuta/z_en_okuta.c
++++ b/soh/src/overlays/actors/ovl_En_Okuta/z_en_okuta.c
+@@ -179,7 +179,7 @@ void EnOkuta_SpawnDust(Vec3f* pos, Vec3f* velocity, s16 scaleStep, PlayState* pl
+     static Color_RGBA8 primColor = { 255, 255, 255, 255 };
+     static Color_RGBA8 envColor = { 150, 150, 150, 255 };
+ 
+-    func_8002829C(play, pos, velocity, &accel, &primColor, &envColor, 0x190, scaleStep);
++    EffectSsDust_SpawnDrawFlags0(play, pos, velocity, &accel, &primColor, &envColor, 0x190, scaleStep);  // was func_8002829C [LLM:HIGH]
+ }
+ 
+ void EnOkuta_SpawnSplash(EnOkuta* this, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_En_Partner/z_en_partner.c b/soh/src/overlays/actors/ovl_En_Partner/z_en_partner.c
+index 6a5e5cfd6..a8fc5f367 100644
+--- a/soh/src/overlays/actors/ovl_En_Partner/z_en_partner.c
++++ b/soh/src/overlays/actors/ovl_En_Partner/z_en_partner.c
+@@ -379,7 +379,7 @@ void UseDekuStick(Actor* thisx, PlayState* play, u8 started) {
+                 this->stickWeaponInfo.tip = this->actor.world.pos;
+                 this->stickWeaponInfo.tip.y += 7.0f;
+ 
+-                func_8002836C(play, &this->stickWeaponInfo.tip, &D_808547A4, &D_808547B0, &D_808547BC, &D_808547C0,
++                EffectSsDust_SpawnDrawFlags0Life(play, &this->stickWeaponInfo.tip, &D_808547A4, &D_808547B0, &D_808547BC, &D_808547C0,  // was func_8002836C [LLM:HIGH]
+                               200.0f, 0, 8);
+ 
+                 CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
+diff --git a/soh/src/overlays/actors/ovl_En_St/z_en_st.c b/soh/src/overlays/actors/ovl_En_St/z_en_st.c
+index 4bfe4cf30..d911aa968 100644
+--- a/soh/src/overlays/actors/ovl_En_St/z_en_st.c
++++ b/soh/src/overlays/actors/ovl_En_St/z_en_st.c
+@@ -153,7 +153,7 @@ void EnSt_SpawnDust(EnSt* this, PlayState* play, s32 dustCnt) {
+         dustAccel.z = (Rand_ZeroOne() - 0.5f) * 4.0f;
+         dustPos.x = this->actor.world.pos.x + (Math_SinS(yAngle) * 22.0f);
+         dustPos.z = this->actor.world.pos.z + (Math_CosS(yAngle) * 22.0f);
+-        func_8002836C(play, &dustPos, &dustVel, &dustAccel, &primColor, &envColor, 120, 40, 10);
++        EffectSsDust_SpawnDrawFlags0Life(play, &dustPos, &dustVel, &dustAccel, &primColor, &envColor, 120, 40, 10);  // was func_8002836C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c b/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
+index 24ab1ab8f..48cbe29ca 100644
+--- a/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
++++ b/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
+@@ -462,7 +462,7 @@ void func_80B0CF44(EnSw* this, PlayState* play, s32 cnt) {
+         pos.x = this->actor.world.pos.x + (Math_SinS(angle) * 2.0f);
+         pos.y = this->actor.world.pos.y;
+         pos.z = this->actor.world.pos.z + (Math_CosS(angle) * 2.0f);
+-        func_8002836C(play, &pos, &velocity, &accel, &primColor, &envColor, 20, 30, 12);
++        EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &primColor, &envColor, 20, 30, 12);  // was func_8002836C [LLM:HIGH]
+     }
+ }
+ 
+@@ -481,7 +481,7 @@ void func_80B0D14C(EnSw* this, PlayState* play, s32 cnt) {
+         pos.x = this->actor.world.pos.x + (Math_SinS(angle) * 14.0f);
+         pos.y = this->actor.world.pos.y;
+         pos.z = this->actor.world.pos.z + (Math_CosS(angle) * 14.0f);
+-        func_8002836C(play, &pos, &velocity, &accel, &primColor, &envColor, 20, 40, 10);
++        EffectSsDust_SpawnDrawFlags0Life(play, &pos, &velocity, &accel, &primColor, &envColor, 20, 40, 10);  // was func_8002836C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c b/soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c
+index 3d4adbfc2..a5b563dae 100644
+--- a/soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c
++++ b/soh/src/overlays/actors/ovl_En_Syateki_Niw/z_en_syateki_niw.c
+@@ -344,7 +344,7 @@ void EnSyatekiNiw_Default(EnSyatekiNiw* this, PlayState* play) {
+         dustVelocity.y = Rand_CenteredFloat(5.0f);
+         dustAccel.y = 0.2f;
+         dustPos = this->actor.world.pos;
+-        func_8002836C(play, &dustPos, &dustVelocity, &dustAccel, &dustPrimColor, &dustEnvColor, 600, 40, 30);
++        EffectSsDust_SpawnDrawFlags0Life(play, &dustPos, &dustVelocity, &dustAccel, &dustPrimColor, &dustEnvColor, 600, 40, 30);  // was func_8002836C [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c b/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
+index 42af34d7b..391a34b73 100644
+--- a/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
++++ b/soh/src/overlays/actors/ovl_En_Tr/z_en_tr.c
+@@ -248,7 +248,7 @@ void EnTr_SpawnFlame(EnTr* this, PlayState* play, s32 arg2, f32 arg3, f32 scale)
+     pos.x = sp58.x + ((sFlameXOffsets[arg2] * scale) * Math_CosS(yaw));  // was D_80B24388 [LLM:HIGH]
+     pos.y = sp58.y + (sFlameYOffsets[arg2] * scale);  // was D_80B243A4 [LLM:HIGH]
+     pos.z = sp58.z - ((sFlameXOffsets[arg2] * scale) * Math_SinS(yaw));  // was D_80B24388 [LLM:HIGH]
+-    func_8002829C(play, &pos, &velocity, &accel, primColor, envColor, (s32)(800.0f * scale), (s32)(80.0f * scale));
++    EffectSsDust_SpawnDrawFlags0(play, &pos, &velocity, &accel, primColor, envColor, (s32)(800.0f * scale), (s32)(80.0f * scale));  // was func_8002829C [LLM:HIGH]
+ }
+ 
+ void EnTr_ShrinkVanish(EnTr* this, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_Obj_Ice_Poly/z_obj_ice_poly.c b/soh/src/overlays/actors/ovl_Obj_Ice_Poly/z_obj_ice_poly.c
+index 92a002e84..101dc8a00 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Ice_Poly/z_obj_ice_poly.c
++++ b/soh/src/overlays/actors/ovl_Obj_Ice_Poly/z_obj_ice_poly.c
+@@ -158,7 +158,7 @@ void ObjIcePoly_Melt(ObjIcePoly* this, PlayState* play) {
+         pos.y = this->actor.world.pos.y + this->actor.scale.y * Rand_ZeroOne() * 50.0f;
+         pos.z =
+             this->actor.world.pos.z + this->actor.scale.x * (Rand_S16Offset(20, 20) * (Rand_ZeroOne() < 0.5f ? -1 : 1));
+-        func_8002829C(play, &pos, &vel, &accel, &sColorWhite, &sColorGray,
++        EffectSsDust_SpawnDrawFlags0(play, &pos, &vel, &accel, &sColorWhite, &sColorGray,  // was func_8002829C [LLM:HIGH]
+                       Rand_S16Offset(0x15E, 0x64) * this->actor.scale.x, this->actor.scale.x * 20.0f);
+     }
+     if (this->meltTimer < 0) {
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 3caf20c0f..65f7cd83f 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -8987,10 +8987,10 @@ s32 func_8084269C(PlayState* play, Player* this) {
+     if ((this->floorSfxOffset == 0) || (this->floorSfxOffset == 1)) {
+         func_8084260C(&this->actor.shape.feetPos[FOOT_LEFT], &sp2C,
+                       this->actor.floorHeight - this->actor.shape.feetPos[FOOT_LEFT].y, 7.0f, 5.0f);
+-        func_800286CC(play, &sp2C, &D_808545B4, &D_808545C0, 50, 30);
++        EffectSsDust_SpawnBrown5Scaled(play, &sp2C, &D_808545B4, &D_808545C0, 50, 30);  // was func_800286CC [LLM:HIGH]
+         func_8084260C(&this->actor.shape.feetPos[FOOT_RIGHT], &sp2C,
+                       this->actor.floorHeight - this->actor.shape.feetPos[FOOT_RIGHT].y, 7.0f, 5.0f);
+-        func_800286CC(play, &this->actor.shape.feetPos[FOOT_RIGHT], &D_808545B4, &D_808545C0, 50, 30);
++        EffectSsDust_SpawnBrown5Scaled(play, &this->actor.shape.feetPos[FOOT_RIGHT], &D_808545B4, &D_808545C0, 50, 30);  // was func_800286CC [LLM:HIGH]
+         return 1;
+     }
+ 
+@@ -11574,7 +11574,7 @@ void Player_UpdateBurningDekuStick(PlayState* play, Player* this) {
+         this->unk_85C = temp;
+     }
+ 
+-    func_8002836C(play, &this->meleeWeaponInfo[0].tip, &D_808547A4, &D_808547B0, &D_808547BC, &D_808547C0,
++    EffectSsDust_SpawnDrawFlags0Life(play, &this->meleeWeaponInfo[0].tip, &D_808547A4, &D_808547B0, &D_808547BC, &D_808547C0,  // was func_8002836C [LLM:HIGH]
+                   temp * 200.0f, 0, 8);
+ }
+ 
+-- 
+2.55.0
+

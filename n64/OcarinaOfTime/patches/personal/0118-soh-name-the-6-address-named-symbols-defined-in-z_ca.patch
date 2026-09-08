@@ -1,0 +1,644 @@
+From 3557dd6e6962a737dd5414d4971b6694fb996036 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:08 +0000
+Subject: [PATCH 118/488] soh: name the 6 address-named symbols defined in
+ z_camera.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/code/z_camera.c; updating their references touches 19 files in total.
+
+  * func_80044ADC -> Camera_GetPitchAdjFromFloorHeightDiffs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.94
+
+  * func_8005A02C -> Camera_SetNewModeStateFlags
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.94
+
+  * func_8005AC48 -> Camera_OverwriteStateFlags
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8005ACFC -> Camera_SetStateFlag
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8005AD1C -> Camera_UnsetStateFlag
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_8005B1A4 -> Camera_SetFinishedFlag
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  8 +++---
+ soh/src/code/z_camera.c                       | 28 +++++++++++--------
+ soh/src/code/z_demo.c                         |  2 +-
+ soh/src/code/z_play.c                         |  2 +-
+ .../ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c   |  6 ++--
+ .../ovl_Bg_Dy_Yoseizo/z_bg_dy_yoseizo.c       |  2 +-
+ .../actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c    |  2 +-
+ .../actors/ovl_En_Bigokuta/z_en_bigokuta.c    |  4 +--
+ .../ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c   |  2 +-
+ .../actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c    |  2 +-
+ .../actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c  |  2 +-
+ soh/src/overlays/actors/ovl_En_Du/z_en_du.c   |  2 +-
+ soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c |  6 ++--
+ soh/src/overlays/actors/ovl_En_Jj/z_en_jj.c   |  2 +-
+ .../actors/ovl_En_Kakasi/z_en_kakasi.c        |  6 ++--
+ .../actors/ovl_En_Kakasi3/z_en_kakasi3.c      |  4 +--
+ soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c |  4 +--
+ soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c |  4 +--
+ .../actors/ovl_player_actor/z_player.c        | 28 +++++++++----------
+ 19 files changed, 61 insertions(+), 55 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 692ca6a8c..75e174bbd 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -744,9 +744,9 @@ s16 Camera_GetCamDirPitch(Camera* camera);
+ s16 Camera_GetCamDirYaw(Camera* camera);
+ s32 Camera_AddQuake(Camera* camera, s32 arg1, s16 y, s32 countdown);
+ s32 Camera_SetParam(Camera* camera, s32 param, void* value);
+-s32 func_8005AC48(Camera* camera, s16 arg1);
+-s16 func_8005ACFC(Camera* camera, s16 arg1);
+-s16 func_8005AD1C(Camera* camera, s16 arg1);
++s32 Camera_OverwriteStateFlags(Camera* camera, s16 arg1);  // was func_8005AC48 [oot]
++s16 Camera_SetStateFlag(Camera* camera, s16 arg1);  // was func_8005ACFC [oot]
++s16 Camera_UnsetStateFlag(Camera* camera, s16 arg1);  // was func_8005AD1C [oot]
+ s32 Camera_ResetAnim(Camera* camera);
+ s32 Camera_SetCSParams(Camera* camera, CutsceneCameraPoint* atPoints, CutsceneCameraPoint* eyePoints, Player* player,
+                        s16 relativeToPlayer);
+@@ -757,7 +757,7 @@ Vec3f* Camera_GetSkyboxOffset(Vec3f* dst, Camera* camera);
+ void Camera_SetCameraData(Camera* camera, s16 setDataFlags, void* data0, void* data1, s16 data2, s16 data3,
+                           UNK_TYPE arg6);
+ s32 func_8005B198(void);
+-s16 func_8005B1A4(Camera* camera);
++s16 Camera_SetFinishedFlag(Camera* camera);  // was func_8005B1A4 [oot]
+ DamageTable* DamageTable_Get(s32 index);
+ void DamageTable_Clear(DamageTable* table);
+ void Collider_DrawRedPoly(GraphicsContext* gfxCtx, Vec3f* vA, Vec3f* vB, Vec3f* vC);
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 436b764d1..cd223b729 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -577,7 +577,8 @@ s16 Camera_XZAngle(Vec3f* to, Vec3f* from) {
+ static f32 D_8015CE50;
+ static f32 D_8015CE54;
+ static CamColChk D_8015CE58;
+-s16 func_80044ADC(Camera* camera, s16 yaw, s16 arg2) {
++// Name from zeldaret/oot (was func_80044ADC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
++s16 Camera_GetPitchAdjFromFloorHeightDiffs(Camera* camera, s16 yaw, s16 arg2) {
+     Vec3f playerPos;
+     Vec3f rotatedPos;
+     Vec3f floorNorm;
+@@ -1684,7 +1685,7 @@ s32 Camera_Normal1(Camera* camera) {
+     camera->fovUpdateRate = Camera_LERPCeilF(PCT(OREG(4)), camera->yOffsetUpdateRate, camera->speedRatio * 0.05f, rate);
+ 
+     if (norm1->interfaceFlags & 1) {
+-        t = func_80044ADC(camera, BINANG_ROT180(atEyeGeo.yaw), 0);
++        t = Camera_GetPitchAdjFromFloorHeightDiffs(camera, BINANG_ROT180(atEyeGeo.yaw), 0);
+         sp9C = ((1.0f / norm1->unk_10) * 0.5f) * (1.0f - camera->speedRatio);
+         anim->slopePitchAdj = Camera_LERPCeilS(t, anim->slopePitchAdj, ((1.0f / norm1->unk_10) * 0.5f) + sp9C, 0xF);
+     } else {
+@@ -2062,7 +2063,7 @@ s32 Camera_Normal3(Camera* camera) {
+     camera->yOffsetUpdateRate = Camera_LERPCeilF(PCT(OREG(3)), camera->yOffsetUpdateRate, sp94, 0.1f);
+     camera->fovUpdateRate = Camera_LERPCeilF(PCT(OREG(4)), camera->fovUpdateRate, sp94, 0.1f);
+ 
+-    t2 = func_80044ADC(camera, BINANG_ROT180(sp7C.yaw), 1);
++    t2 = Camera_GetPitchAdjFromFloorHeightDiffs(camera, BINANG_ROT180(sp7C.yaw), 1);
+     sp94 = ((1.0f / norm3->unk_10) * 0.5f);
+     temp_f0 = (((1.0f / norm3->unk_10) * 0.5f) * (1.0f - camera->speedRatio));
+     anim->curPitch = Camera_LERPCeilS(t2, anim->curPitch, sp94 + temp_f0, 0xF);
+@@ -2229,7 +2230,7 @@ s32 Camera_Parallel1(Camera* camera) {
+     camera->fovUpdateRate = Camera_LERPCeilF(PCT(OREG(4)), camera->fovUpdateRate, camera->speedRatio * 0.05f, 0.1f);
+ 
+     if (para1->interfaceFlags & 1) {
+-        tangle = func_80044ADC(camera, BINANG_ROT180(atToEyeDir.yaw), 1);
++        tangle = Camera_GetPitchAdjFromFloorHeightDiffs(camera, BINANG_ROT180(atToEyeDir.yaw), 1);
+ 
+         spB8 = ((1.0f / para1->unk_0C) * 0.3f);
+         pad2 = (((1.0f / para1->unk_0C) * 0.7f) * (1.0f - camera->speedRatio));
+@@ -7804,7 +7805,8 @@ void Camera_Finish(Camera* camera) {
+     }
+ }
+ 
+-s32 func_8005A02C(Camera* camera) {
++// Name from zeldaret/oot (was func_8005A02C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
++s32 Camera_SetNewModeStateFlags(Camera* camera) {
+     camera->unk_14C |= 0xC;
+     camera->unk_14C &= ~(0x1000 | 0x8);
+     return true;
+@@ -7833,7 +7835,7 @@ s32 Camera_RequestModeImpl(Camera* camera, s16 requestedMode, u8 forceModeChange
+                          sCameraSettingNames[camera->setting], sCameraModeNames[requestedMode]);
+             camera->mode = CAM_MODE_NORMAL;
+             Camera_CopyDataToRegs(camera, camera->mode);
+-            func_8005A02C(camera);
++            Camera_SetNewModeStateFlags(camera);
+             return 0xC0000000 | requestedMode;
+         } else {
+             camera->unk_14A |= 0x20;
+@@ -7939,7 +7941,7 @@ s32 Camera_RequestModeImpl(Camera* camera, s16 requestedMode, u8 forceModeChange
+             camera->play->manualCamera = false;
+         }
+ 
+-        func_8005A02C(camera);
++        Camera_SetNewModeStateFlags(camera);
+         camera->mode = requestedMode;
+         return 0x80000000 | requestedMode;
+     }
+@@ -8164,7 +8166,8 @@ s32 Camera_UnsetParam(Camera* camera, s16 param) {
+     return true;
+ }
+ 
+-s32 func_8005AC48(Camera* camera, s16 arg1) {
++// Name from zeldaret/oot (was func_8005AC48): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
++s32 Camera_OverwriteStateFlags(Camera* camera, s16 arg1) {
+     camera->unk_14C = arg1;
+     return true;
+ }
+@@ -8197,12 +8200,14 @@ s32 Camera_SetCSParams(Camera* camera, CutsceneCameraPoint* atPoints, CutsceneCa
+     return 1;
+ }
+ 
+-s16 func_8005ACFC(Camera* camera, s16 arg1) {
++// Name from zeldaret/oot (was func_8005ACFC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
++s16 Camera_SetStateFlag(Camera* camera, s16 arg1) {
+     camera->unk_14C |= arg1;
+     return camera->unk_14C;
+ }
+ 
+-s16 func_8005AD1C(Camera* camera, s16 arg1) {
++// Name from zeldaret/oot (was func_8005AD1C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
++s16 Camera_UnsetStateFlag(Camera* camera, s16 arg1) {
+     camera->unk_14C &= ~arg1;
+     return camera->unk_14C;
+ }
+@@ -8345,7 +8350,8 @@ s32 func_8005B198() {
+     return D_8011D3AC;
+ }
+ 
+-s16 func_8005B1A4(Camera* camera) {
++// Name from zeldaret/oot (was func_8005B1A4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
++s16 Camera_SetFinishedFlag(Camera* camera) {
+     camera->unk_14C |= 0x8;
+ 
+     if ((camera->thisIdx == CAM_ID_MAIN) && (camera->play->activeCamera != CAM_ID_MAIN)) {
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index c38ed8bf2..6471f1861 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -2127,7 +2127,7 @@ void func_80068DC0(PlayState* play, CutsceneContext* csCtx) {
+ 
+             Play_ChangeCameraStatus(play, D_8015FCC6, CAM_STAT_ACTIVE);
+             Play_ClearCamera(play, csCtx->unk_14);
+-            func_8005B1A4(play->cameraPtrs[D_8015FCC6]);
++            Camera_SetFinishedFlag(play->cameraPtrs[D_8015FCC6]);
+         }
+ 
+         Audio_SetCutsceneFlag(0);
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 2d4c1f9c8..d02237107 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -409,7 +409,7 @@ void Play_Init(GameState* thisx) {
+     play->cameraPtrs[CAM_ID_MAIN] = &play->mainCamera;
+     play->cameraPtrs[CAM_ID_MAIN]->uid = 0;
+     play->activeCamera = CAM_ID_MAIN;
+-    func_8005AC48(&play->mainCamera, 0xFF);
++    Camera_OverwriteStateFlags(&play->mainCamera, 0xFF);
+     // Sram_Init(this, &this->sramCtx);
+     Regs_InitData(play);
+     Message_Init(play);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c b/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
+index 939e8bfab..136746757 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
+@@ -241,7 +241,7 @@ void BgBdanObjects_OctoPlatform_WaitForRutoToAdvanceCutscene(BgBdanObjects* this
+         BgBdanObjects_SetContactRu1(this, 4);
+         this->timer = 10;
+         this->actionFunc = BgBdanObjects_OctoPlatform_PauseBeforeDescending;
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+     }
+ }
+ 
+@@ -355,7 +355,7 @@ void BgBdanObjects_ElevatorOscillate(BgBdanObjects* this, PlayState* play) {
+         if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+             this->cameraSetting = play->cameraPtrs[CAM_ID_MAIN]->setting;
+             Camera_RequestSetting(play->cameraPtrs[CAM_ID_MAIN], CAM_SET_NORMAL2);
+-            func_8005AD1C(play->cameraPtrs[CAM_ID_MAIN], 4);
++            Camera_UnsetStateFlag(play->cameraPtrs[CAM_ID_MAIN], 4);
+             this->switchFlag = 10;
+         }
+     } else {
+@@ -367,7 +367,7 @@ void BgBdanObjects_ElevatorOscillate(BgBdanObjects* this, PlayState* play) {
+         }
+         if (this->switchFlag == 0) {
+             Camera_RequestSetting(play->cameraPtrs[CAM_ID_MAIN], this->cameraSetting);
+-            func_8005ACFC(play->cameraPtrs[CAM_ID_MAIN], 4);
++            Camera_SetStateFlag(play->cameraPtrs[CAM_ID_MAIN], 4);
+         }
+     }
+     this->dyna.actor.world.pos.y =
+diff --git a/soh/src/overlays/actors/ovl_Bg_Dy_Yoseizo/z_bg_dy_yoseizo.c b/soh/src/overlays/actors/ovl_Bg_Dy_Yoseizo/z_bg_dy_yoseizo.c
+index aecc5dbb5..9bfd61aec 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Dy_Yoseizo/z_bg_dy_yoseizo.c
++++ b/soh/src/overlays/actors/ovl_Bg_Dy_Yoseizo/z_bg_dy_yoseizo.c
+@@ -510,7 +510,7 @@ void BgDyYoseizo_SayFarewell_NoReward(BgDyYoseizo* this, PlayState* play) {
+         Message_CloseTextbox(play);
+         this->mouthState = 0;
+         this->actionFunc = BgDyYoseizo_SetupSpinShrink;
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+     }
+ 
+     BgDyYoseizo_Bob(this, play);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c b/soh/src/overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c
+index be597a869..bbdc28e4e 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c
+@@ -123,7 +123,7 @@ void BgJyaLift_Move(BgJyaLift* this, PlayState* play) {
+     tempVelocity = (this->dyna.actor.velocity.y < 0.2f) ? 0.2f : this->dyna.actor.velocity.y;
+     distFromBottom = Math_SmoothStepToF(&this->dyna.actor.world.pos.y, 973.0f, 0.1f, tempVelocity, 0.2f);
+     if ((this->dyna.actor.world.pos.y < 1440.0f) && (1440.0f <= this->dyna.actor.prevPos.y)) {
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+     }
+     if (fabsf(distFromBottom) < 0.001f) {
+         BgJyaLift_SetFinalPosY(this);
+diff --git a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+index 80e3e9d58..ba0b98ffa 100644
+--- a/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
++++ b/soh/src/overlays/actors/ovl_En_Bigokuta/z_en_bigokuta.c
+@@ -645,7 +645,7 @@ void func_809BE26C(EnBigokuta* this, PlayState* play) {
+         if (this->unk_198 == 0 && Math_StepToF(&this->actor.scale.y, 0.0f, 0.001f)) {
+             Flags_SetClear(play, this->actor.room);
+             Camera_RequestSetting(play->cameraPtrs[CAM_ID_MAIN], CAM_SET_DUNGEON0);
+-            func_8005ACFC(play->cameraPtrs[CAM_ID_MAIN], 4);
++            Camera_SetStateFlag(play->cameraPtrs[CAM_ID_MAIN], 4);
+             SoundSource_PlaySfxAtFixedWorldPos(play, &this->actor.world.pos, 50, NA_SE_EN_OCTAROCK_BUBLE);
+             Item_DropCollectibleRandom(play, &this->actor, &this->actor.world.pos, 0xB0);
+             Actor_Kill(&this->actor);
+@@ -783,7 +783,7 @@ void EnBigokuta_Update(Actor* thisx, PlayState* play2) {
+     func_809BD2E4(this);
+     func_809BE568(this);
+     Camera_RequestSetting(play->cameraPtrs[CAM_ID_MAIN], CAM_SET_BIG_OCTO);
+-    func_8005AD1C(play->cameraPtrs[CAM_ID_MAIN], 4);
++    Camera_UnsetStateFlag(play->cameraPtrs[CAM_ID_MAIN], 4);
+ 
+     if (this->cylinder[0].base.atFlags & AT_ON) {
+         if (this->actionFunc != func_809BE058) {
+diff --git a/soh/src/overlays/actors/ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c b/soh/src/overlays/actors/ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c
+index d731dde8c..53c5d9936 100644
+--- a/soh/src/overlays/actors/ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c
++++ b/soh/src/overlays/actors/ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c
+@@ -468,7 +468,7 @@ void EnBomBowlMan_BeginPlayGame(EnBomBowlMan* this, PlayState* play) {
+ 
+     if ((Message_GetState(&play->msgCtx) == this->dialogState) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+         this->startedPlaying = true;
+ 
+         if (BREG(2)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c b/soh/src/overlays/actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c
+index f48a4e26e..e0bc35d39 100644
+--- a/soh/src/overlays/actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c
++++ b/soh/src/overlays/actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c
+@@ -253,7 +253,7 @@ void EnDntJiji_Talk(EnDntJiji* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 3, 0x1388, 0);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+         Message_CloseTextbox(play);
+         Player_SetCsActionWithHaltedActors(play, NULL, 7);
+         this->actor.parent = NULL;
+diff --git a/soh/src/overlays/actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c b/soh/src/overlays/actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c
+index cf403996d..6017d2839 100644
+--- a/soh/src/overlays/actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c
++++ b/soh/src/overlays/actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c
+@@ -343,7 +343,7 @@ void EnDntNomal_TargetTalk(EnDntNomal* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+         GET_ACTIVE_CAM(play)->csId = 0;
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+         this->actionFunc = EnDntNomal_SetupTargetGivePrize;
+diff --git a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+index c3c142eb2..ce17854da 100644
+--- a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
++++ b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+@@ -431,7 +431,7 @@ void func_809FE6CC(EnDu* this, PlayState* play) {
+ 
+ void func_809FE740(EnDu* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+         this->unk_1E2 = 0x5A;
+         EnDu_SetupAction(this, func_809FE798);
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+index c298520ee..89f5759bf 100644
+--- a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
++++ b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+@@ -1168,10 +1168,10 @@ s32 EnGo2_IsCameraModified(EnGo2* this, PlayState* play) {
+     if ((this->actor.params & 0x1F) == GORON_DMT_BIGGORON) {
+         if (EnGo2_IsWakingUp(this)) {
+             Camera_RequestSetting(camera, CAM_SET_DIRECTED_YAW);
+-            func_8005AD1C(camera, 4);
++            Camera_UnsetStateFlag(camera, 4);
+         } else if (!EnGo2_IsWakingUp(this) && (camera->setting == CAM_SET_DIRECTED_YAW)) {
+             Camera_RequestSetting(camera, CAM_SET_DUNGEON1);
+-            func_8005ACFC(camera, 4);
++            Camera_SetStateFlag(camera, 4);
+         }
+     }
+ 
+@@ -1863,7 +1863,7 @@ void EnGo2_BiggoronEyedrops(EnGo2* this, PlayState* play) {
+         case 1:
+             if (DECR(this->animTimer)) {
+                 if (this->animTimer == 60 || this->animTimer == 120) {
+-                    func_8005B1A4(GET_ACTIVE_CAM(play));
++                    Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+                     func_800F4524(&gSfxDefaultPos, NA_SE_EV_GORON_WATER_DROP, 60);
+                 }
+             } else {
+diff --git a/soh/src/overlays/actors/ovl_En_Jj/z_en_jj.c b/soh/src/overlays/actors/ovl_En_Jj/z_en_jj.c
+index 1d78cd9bb..1b4635927 100644
+--- a/soh/src/overlays/actors/ovl_En_Jj/z_en_jj.c
++++ b/soh/src/overlays/actors/ovl_En_Jj/z_en_jj.c
+@@ -218,7 +218,7 @@ void EnJj_BeginCutscene(EnJj* this, PlayState* play) {
+         play->csCtx.segment = &D_80A88164;
+         gSaveContext.cutsceneTrigger = 1;
+         DynaPoly_DisableCollision(play, &play->colCtx.dyna, bodyCollisionActor->bgId);
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+         Flags_SetEventChkInf(EVENTCHKINF_OFFERED_FISH_TO_JABU_JABU);
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c b/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
+index 19b8714dd..b2ea93087 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
+@@ -265,7 +265,7 @@ void func_80A8F9C8(EnKakasi* this, PlayState* play) {
+     if (this->unk_196 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+ 
+         if (this->camId != SUBCAM_NONE) {
+-            func_8005B1A4(play->cameraPtrs[this->camId]);
++            Camera_SetFinishedFlag(play->cameraPtrs[this->camId]);
+         }
+         this->camId = OnePointCutscene_Init(play, 2270, -99, &this->actor, CAM_ID_MAIN);
+         play->msgCtx.msgMode = MSGMODE_PAUSED;
+@@ -297,7 +297,7 @@ void func_80A8FAA4(EnKakasi* this, PlayState* play) {
+         OnePointCutscene_EndCutscene(play, this->camId);
+         this->camId = SUBCAM_NONE;
+         this->camId = OnePointCutscene_Init(play, 2260, -99, &this->actor, CAM_ID_MAIN);
+-        func_8005B1A4(play->cameraPtrs[this->camId]);
++        Camera_SetFinishedFlag(play->cameraPtrs[this->camId]);
+     }
+ }
+ 
+@@ -306,7 +306,7 @@ void func_80A8FBB8(EnKakasi* this, PlayState* play) {
+     SkelAnime_Update(&this->skelanime);
+ 
+     if (this->unk_196 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+-        func_8005B1A4(play->cameraPtrs[this->camId]);
++        Camera_SetFinishedFlag(play->cameraPtrs[this->camId]);
+         Message_CloseTextbox(play);
+         Player_SetCsActionWithHaltedActors(play, NULL, 7);
+         this->actionFunc = func_80A8F660;
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c b/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
+index ee84e1c44..eb4162da7 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
+@@ -287,7 +287,7 @@ void func_80A91620(EnKakasi3* this, PlayState* play) {
+             this->camId = SUBCAM_NONE;
+         }
+         if (this->camId != SUBCAM_NONE) {
+-            func_8005B1A4(play->cameraPtrs[this->camId]);
++            Camera_SetFinishedFlag(play->cameraPtrs[this->camId]);
+         }
+         this->actionFunc = func_80A911F0;
+         return;
+@@ -395,7 +395,7 @@ void func_80A91A90(EnKakasi3* this, PlayState* play) {
+             this->camId = SUBCAM_NONE;
+         }
+         if (this->camId != SUBCAM_NONE) {
+-            func_8005B1A4(play->cameraPtrs[this->camId]);
++            Camera_SetFinishedFlag(play->cameraPtrs[this->camId]);
+         }
+         Message_CloseTextbox(play);
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+diff --git a/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c b/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
+index ff7f2d1dd..65051764c 100644
+--- a/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
++++ b/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
+@@ -818,7 +818,7 @@ void EnRu2_DialogCameraHandler(EnRu2* this, PlayState* play) {
+                 player = GET_PLAYER(play);
+                 // "uorya-!" (screeming sound)
+                 osSyncPrintf("うおりゃー！ \n");
+-                func_8005B1A4(GET_ACTIVE_CAM(play));
++                Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+                 player->actor.world.pos.x = 820.0f;
+                 player->actor.world.pos.y = 0.0f;
+                 player->actor.world.pos.z = 180.0f;
+@@ -829,7 +829,7 @@ void EnRu2_DialogCameraHandler(EnRu2* this, PlayState* play) {
+     this->lastDialogState = dialogState;
+     if (Message_GetState(msgCtx) == TEXT_STATE_CLOSING) {
+         this->action = ENRU2_WATER_TEMPLE_ENCOUNTER_END;
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c b/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
+index b07f13863..d7d9a6567 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
++++ b/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
+@@ -2107,7 +2107,7 @@ void func_80B582C8(EnZl3* this, PlayState* play) {
+         *unk_3CC += 1.0f;
+         func_80B57858(play);
+     } else if (*unk_3CC == kREG(17) + 40.0f) {
+-        func_8005B1A4(GET_ACTIVE_CAM(play));
++        Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+         *unk_3CC += 1.0f;
+     } else if (*unk_3CC >= ((kREG(17) + 40.0f) + 1.0f)) {
+         this->action = 32;
+@@ -2170,7 +2170,7 @@ void func_80B58624(EnZl3* this, PlayState* play) {
+     } else {
+         if (*unk_3CC >= kREG(20) + 30.0f) {
+             this->action = 28;
+-            func_8005B1A4(GET_ACTIVE_CAM(play));
++            Camera_SetFinishedFlag(GET_ACTIVE_CAM(play));
+             func_80B54E14(this, &gZelda2Anime2Anim_009FBC, 0, -12.0f, 0);
+             *unk_3CC = 0.0f;
+         } else {
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 8264cac4e..49614abde 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -1666,7 +1666,7 @@ void func_80832440(PlayState* play, Player* this) {
+     this->unk_6AD = 0;
+ 
+     func_80832340(play, this);
+-    func_8005B1A4(Play_GetCamera(play, 0));
++    Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+ 
+     this->stateFlags1 &= ~(PLAYER_STATE1_HANGING_OFF_LEDGE | PLAYER_STATE1_CLIMBING_LEDGE | PLAYER_STATE1_FIRST_PERSON |
+                            PLAYER_STATE1_CLIMBING_LADDER);
+@@ -9006,7 +9006,7 @@ void Player_Action_8084279C(Player* this, PlayState* play) {
+         }
+ 
+         this->actor.flags &= ~ACTOR_FLAG_TALK;
+-        func_8005B1A4(Play_GetCamera(play, 0));
++        Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+     }
+ }
+ 
+@@ -10348,7 +10348,7 @@ void Player_Action_80845CA4(Player* this, PlayState* play) {
+             if ((this->av2.actionVar2 == 0) ||
+                 ((temp == 0) && (this->linearVelocity == 0.0f) && (Play_GetCamera(play, 0)->unk_14C & 0x10))) {
+ 
+-                func_8005B1A4(Play_GetCamera(play, 0));
++                Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+                 func_80845C68(play, gSaveContext.respawn[RESPAWN_MODE_DOWN].data);
+ 
+                 if (!Player_ActionHandler_Talk(this, play)) {
+@@ -10382,7 +10382,7 @@ void Player_Action_80845EF8(Player* this, PlayState* play) {
+             if (play->roomCtx.prevRoom.num >= 0) {
+                 Room_FinishRoomChange(play, &play->roomCtx);
+             }
+-            func_8005B1A4(Play_GetCamera(play, 0));
++            Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+             Play_SetupRespawnPoint(play, 0, 0xDFF);
+         }
+         return;
+@@ -12896,7 +12896,7 @@ void Player_Action_Talk(Player* this, PlayState* play) {
+             this->stateFlags2 &= ~PLAYER_STATE2_LOCK_ON_WITH_SWITCH;
+         }
+ 
+-        func_8005B1A4(Play_GetCamera(play, 0));
++        Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+ 
+         if (!func_8084B4D4(play, this) && !func_8084B3CC(play, this) && !Player_StartCsAction(play, this)) {
+             if ((this->talkActor != this->interactRangeActor) || !Player_ActionHandler_2(this, play)) {
+@@ -14001,7 +14001,7 @@ void func_8084DF6C(PlayState* play, Player* this) {
+     this->stateFlags1 &= ~(PLAYER_STATE1_GETTING_ITEM | PLAYER_STATE1_CARRYING_ACTOR);
+     this->getItemId = GI_NONE;
+     this->getItemEntry = (GetItemEntry)GET_ITEM_NONE;
+-    func_8005B1A4(Play_GetCamera(play, 0));
++    Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+ }
+ 
+ void func_8084DFAC(PlayState* play, Player* this) {
+@@ -14213,7 +14213,7 @@ void Player_Action_8084E3C4(Player* this, PlayState* play) {
+     }
+ 
+     if (play->msgCtx.ocarinaMode == OCARINA_MODE_04) {
+-        func_8005B1A4(Play_GetCamera(play, 0));
++        Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+ 
+         if ((this->talkActor != NULL) && (this->talkActor == this->unk_6A8)) {
+             Player_StartTalking(play, this->talkActor);
+@@ -14428,7 +14428,7 @@ void Player_Action_8084EAC0(Player* this, PlayState* play) {
+             this->av2.actionVar2 = 1;
+         } else {
+             func_8083C0E8(this, play);
+-            func_8005B1A4(Play_GetCamera(play, 0));
++            Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+         }
+     } else if (this->av2.actionVar2 == 1) {
+         if ((gSaveContext.healthAccumulator == 0) && (gSaveContext.magicState != MAGIC_STATE_FILL)) {
+@@ -14486,7 +14486,7 @@ void Player_Action_SwingBottle(Player* this, PlayState* play) {
+                 this->av2.startedTextbox = true;
+             } else if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+                 this->av1.bottleCatchType = BOTTLE_CATCH_NONE;
+-                func_8005B1A4(Play_GetCamera(play, 0));
++                Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+             }
+         } else {
+             func_8083C0E8(this, play);
+@@ -14546,7 +14546,7 @@ static Vec3f D_80854A1C = { 0.0f, 0.0f, 5.0f };
+ void Player_Action_8084EED8(Player* this, PlayState* play) {
+     if (LinkAnimation_Update(play, &this->skelAnime)) {
+         func_8083C0E8(this, play);
+-        func_8005B1A4(Play_GetCamera(play, 0));
++        Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+         return;
+     }
+ 
+@@ -14578,7 +14578,7 @@ void Player_Action_8084EFC0(Player* this, PlayState* play) {
+ 
+     if (LinkAnimation_Update(play, &this->skelAnime)) {
+         func_8083C0E8(this, play);
+-        func_8005B1A4(Play_GetCamera(play, 0));
++        Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+         return;
+     }
+ 
+@@ -14648,7 +14648,7 @@ void Player_Action_ExchangeItem(Player* this, PlayState* play) {
+                     func_8083C0E8(this, play);
+                 }
+ 
+-                func_8005B1A4(Play_GetCamera(play, 0));
++                Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+             }
+         }
+     } else if (this->av2.actionVar2 >= 0) {
+@@ -15170,7 +15170,7 @@ void Player_Action_8085063C(Player* this, PlayState* play) {
+         }
+ 
+         func_80853080(this, play);
+-        func_8005B1A4(Play_GetCamera(play, 0));
++        Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+     }
+ }
+ 
+@@ -15238,7 +15238,7 @@ void Player_Action_808507F4(Player* this, PlayState* play) {
+             if ((this->itemAction == PLAYER_IA_NAYRUS_LOVE) || isFastFarores ||
+                 (gSaveContext.magicState == MAGIC_STATE_IDLE)) {
+                 func_80839FFC(this, play);
+-                func_8005B1A4(Play_GetCamera(play, 0));
++                Camera_SetFinishedFlag(Play_GetCamera(play, 0));
+             }
+         } else {
+             if (this->av2.actionVar2 == 0) {
+-- 
+2.55.0
+

@@ -1,0 +1,109 @@
+From f33def13e6bd8385a2a9582e64715f9f0b929c5b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:13 +0000
+Subject: [PATCH 180/488] soh: name the 2 address-named symbols defined in
+ z_bg_spot08_bakudankabe.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_Bg_Spot08_Bakudankabe/z_bg_spot08_bakudankabe.c.
+
+  * func_808B02D0 -> BgSpot08Bakudankabe_InitCollider
+    deduced, confidence HIGH: initialises and configures the wall's
+    joint-sphere collider from sJntSphInit; called once from Init.
+
+  * func_808B0324 -> BgSpot08Bakudankabe_SpawnDebris
+    deduced, confidence HIGH: spawns the wall's destruction burst: 24
+    EffectSsKakera_Spawn shards, placed at the sDebrisOffsets positions
+    rotated into world space by the wall's yaw and given randomised
+    velocity.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_bg_spot08_bakudankabe.c                      | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot08_Bakudankabe/z_bg_spot08_bakudankabe.c b/soh/src/overlays/actors/ovl_Bg_Spot08_Bakudankabe/z_bg_spot08_bakudankabe.c
+index a2e27ca49..8104e3142 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot08_Bakudankabe/z_bg_spot08_bakudankabe.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot08_Bakudankabe/z_bg_spot08_bakudankabe.c
+@@ -16,8 +16,10 @@ void BgSpot08Bakudankabe_Destroy(Actor* thisx, PlayState* play);
+ void BgSpot08Bakudankabe_Update(Actor* thisx, PlayState* play);
+ void BgSpot08Bakudankabe_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_808B02D0(BgSpot08Bakudankabe* this, PlayState* play);
+-void func_808B0324(BgSpot08Bakudankabe* this, PlayState* play);
++// LLM generated name (HIGH), was func_808B02D0: initialises and configures the wall's joint-sphere collider from sJntSphInit; called once from Init.
++void BgSpot08Bakudankabe_InitCollider(BgSpot08Bakudankabe* this, PlayState* play);  // was func_808B02D0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B0324: spawns the wall's destruction burst: 24 EffectSsKakera_Spawn shards, placed at the sDebrisOffsets positions rotated into world space by the wall's yaw and given randomised velocity.
++void BgSpot08Bakudankabe_SpawnDebris(BgSpot08Bakudankabe* this, PlayState* play);  // was func_808B0324 [LLM:HIGH]
+ 
+ const ActorInit Bg_Spot08_Bakudankabe_InitVars = {
+     ACTOR_BG_SPOT08_BAKUDANKABE,
+@@ -94,14 +96,14 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(uncullZoneDownward, 1000, ICHAIN_STOP),
+ };
+ 
+-void func_808B02D0(BgSpot08Bakudankabe* this, PlayState* play) {
++void BgSpot08Bakudankabe_InitCollider(BgSpot08Bakudankabe* this, PlayState* play) {
+     s32 pad;
+ 
+     Collider_InitJntSph(play, &this->collider);
+     Collider_SetJntSph(play, &this->collider, &this->dyna.actor, &sJntSphInit, this->colliderItems);
+ }
+ 
+-void func_808B0324(BgSpot08Bakudankabe* this, PlayState* play) {
++void BgSpot08Bakudankabe_SpawnDebris(BgSpot08Bakudankabe* this, PlayState* play) {
+     s32 pad[2];
+     s32 i;
+     Vec3f burstDepthY;
+@@ -167,7 +169,7 @@ void BgSpot08Bakudankabe_Init(Actor* thisx, PlayState* play) {
+         Actor_Kill(&this->dyna.actor);
+         return;
+     }
+-    func_808B02D0(this, play);
++    BgSpot08Bakudankabe_InitCollider(this, play);  // was func_808B02D0 [LLM:HIGH]
+     CollisionHeader_GetVirtual(&gZorasFountainBombableWallCol, &colHeader);
+     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &this->dyna.actor, colHeader);
+     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
+@@ -184,7 +186,7 @@ void BgSpot08Bakudankabe_Update(Actor* thisx, PlayState* play) {
+     BgSpot08Bakudankabe* this = (BgSpot08Bakudankabe*)thisx;
+ 
+     if (this->collider.base.acFlags & AC_HIT) {
+-        func_808B0324(this, play);
++        BgSpot08Bakudankabe_SpawnDebris(this, play);  // was func_808B0324 [LLM:HIGH]
+         Flags_SetSwitch(play, (this->dyna.actor.params & 0x3F));
+         SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 40, NA_SE_EV_WALL_BROKEN);
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+-- 
+2.55.0
+

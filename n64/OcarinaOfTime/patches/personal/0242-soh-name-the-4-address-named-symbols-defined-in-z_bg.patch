@@ -1,0 +1,155 @@
+From 42c8c5136a949774564403ee66150484bcf6831c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 242/488] soh: name the 4 address-named symbols defined in
+ z_bg_gate_shutter.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Bg_Gate_Shutter/z_bg_gate_shutter.c.
+
+  * func_8087828C -> BgGateShutter_WaitToMove
+    deduced, confidence HIGH: idle action: watches openingState and
+    dispatches to the open or close slide, arming the shared 2-frame delay
+    first.
+
+  * func_80878300 -> BgGateShutter_Open
+    deduced, confidence HIGH: slides the gate along -x toward -89 with the
+    metal-gate sfx, then arms the 30-frame settle timer.
+
+  * func_808783AC -> BgGateShutter_Settle
+    deduced, confidence HIGH: waits out the 30-frame timer set by the two
+    slide actions, clears openingState and returns to the idle action.
+
+  * func_808783D4 -> BgGateShutter_Close
+    deduced, confidence HIGH: the mirror of the open slide: moves along +x
+    to 91 and then arms the same settle timer.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Gate_Shutter/z_bg_gate_shutter.c   | 34 +++++++++++--------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Gate_Shutter/z_bg_gate_shutter.c b/soh/src/overlays/actors/ovl_Bg_Gate_Shutter/z_bg_gate_shutter.c
+index e3e52b225..a50477f43 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Gate_Shutter/z_bg_gate_shutter.c
++++ b/soh/src/overlays/actors/ovl_Bg_Gate_Shutter/z_bg_gate_shutter.c
+@@ -16,10 +16,14 @@ void BgGateShutter_Destroy(Actor* thisx, PlayState* play);
+ void BgGateShutter_Update(Actor* thisx, PlayState* play);
+ void BgGateShutter_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8087828C(BgGateShutter* this, PlayState* play);
+-void func_80878300(BgGateShutter* this, PlayState* play);
+-void func_808783AC(BgGateShutter* this, PlayState* play);
+-void func_808783D4(BgGateShutter* this, PlayState* play);
++// LLM generated name (HIGH), was func_8087828C: idle action: watches openingState and dispatches to the open or close slide, arming the shared 2-frame delay first.
++void BgGateShutter_WaitToMove(BgGateShutter* this, PlayState* play);  // was func_8087828C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80878300: slides the gate along -x toward -89 with the metal-gate sfx, then arms the 30-frame settle timer.
++void BgGateShutter_Open(BgGateShutter* this, PlayState* play);  // was func_80878300 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808783AC: waits out the 30-frame timer set by the two slide actions, clears openingState and returns to the idle action.
++void BgGateShutter_Settle(BgGateShutter* this, PlayState* play);  // was func_808783AC [LLM:HIGH]
++// LLM generated name (HIGH), was func_808783D4: the mirror of the open slide: moves along +x to 91 and then arms the same settle timer.
++void BgGateShutter_Close(BgGateShutter* this, PlayState* play);  // was func_808783D4 [LLM:HIGH]
+ 
+ const ActorInit Bg_Gate_Shutter_InitVars = {
+     ACTOR_BG_GATE_SHUTTER,
+@@ -56,7 +60,7 @@ void BgGateShutter_Init(Actor* thisx, PlayState* play) {
+     thisx->scale.z = 1.0f;
+     osSyncPrintf("\n\n");
+     osSyncPrintf(VT_FGCOL(GREEN) " ☆☆☆☆☆ 柵でたなぁ ☆☆☆☆☆ \n" VT_RST);
+-    this->actionFunc = func_8087828C;
++    this->actionFunc = BgGateShutter_WaitToMove;  // was func_8087828C [LLM:HIGH]
+ }
+ 
+ void BgGateShutter_Destroy(Actor* thisx, PlayState* play) {
+@@ -65,20 +69,20 @@ void BgGateShutter_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_8087828C(BgGateShutter* this, PlayState* play) {
++void BgGateShutter_WaitToMove(BgGateShutter* this, PlayState* play) {
+     if (this->openingState == 1 && !Flags_GetInfTable(INFTABLE_SHOWED_ZELDAS_LETTER_TO_GATE_GUARD)) {
+         this->unk_178 = 2;
+-        this->actionFunc = func_80878300;
++        this->actionFunc = BgGateShutter_Open;  // was func_80878300 [LLM:HIGH]
+     } else if (this->openingState == 2) {
+         this->unk_178 = 2;
+-        this->actionFunc = func_80878300;
++        this->actionFunc = BgGateShutter_Open;  // was func_80878300 [LLM:HIGH]
+     } else if (this->openingState < 0) {
+         this->unk_178 = 2;
+-        this->actionFunc = func_808783D4;
++        this->actionFunc = BgGateShutter_Close;  // was func_808783D4 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80878300(BgGateShutter* this, PlayState* play) {
++void BgGateShutter_Open(BgGateShutter* this, PlayState* play) {
+     Actor* thisx = &this->dyna.actor;
+ 
+     if (this->unk_178 == 0) {
+@@ -88,19 +92,19 @@ void func_80878300(BgGateShutter* this, PlayState* play) {
+         if (thisx->world.pos.x < -89.0f) {
+             Audio_PlayActorSound2(thisx, NA_SE_EV_BRIDGE_OPEN_STOP);
+             this->unk_178 = 0x1E;
+-            this->actionFunc = func_808783AC;
++            this->actionFunc = BgGateShutter_Settle;  // was func_808783AC [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_808783AC(BgGateShutter* this, PlayState* play) {
++void BgGateShutter_Settle(BgGateShutter* this, PlayState* play) {
+     if (this->unk_178 == 0) {
+         this->openingState = 0;
+-        this->actionFunc = func_8087828C;
++        this->actionFunc = BgGateShutter_WaitToMove;  // was func_8087828C [LLM:HIGH]
+     }
+ }
+ 
+-void func_808783D4(BgGateShutter* this, PlayState* play) {
++void BgGateShutter_Close(BgGateShutter* this, PlayState* play) {
+     Actor* thisx = &this->dyna.actor;
+ 
+     if (this->unk_178 == 0) {
+@@ -111,7 +115,7 @@ void func_808783D4(BgGateShutter* this, PlayState* play) {
+             thisx->world.pos.x = 91.0f;
+             Audio_PlayActorSound2(thisx, NA_SE_EV_BRIDGE_OPEN_STOP);
+             this->unk_178 = 30;
+-            this->actionFunc = func_808783AC;
++            this->actionFunc = BgGateShutter_Settle;  // was func_808783AC [LLM:HIGH]
+         }
+     }
+ }
+-- 
+2.55.0
+

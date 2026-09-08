@@ -1,0 +1,1628 @@
+From 7e12ec185e9fd6efcfdc1e763001850df0c68137 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:32 +0000
+Subject: [PATCH 386/488] soh: name the 97 address-named symbols defined in
+ z_demo_im.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 97 are defined in soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.c; updating their references touches 3 files in total.
+
+  * func_80984BE0 -> DemoIm_UpdateEyes
+    deduced, confidence HIGH: runs the blink timer and picks the eye texture
+    index
+
+  * func_80984C68 -> DemoIm_SetupHiddenAfterCs
+    deduced, confidence HIGH: drops to action 7 with nothing drawn, no alpha
+    and no shadow
+
+  * func_80984C8C -> DemoIm_WatchCutsceneEnd
+    deduced, confidence HIGH: latches while a cutscene runs and hides the
+    params 2 Impa when it ends
+
+  * func_80984DB8 -> DemoIm_ReturnHeadToNeutral
+    deduced, confidence HIGH: eases the head and torso rotations back to
+    zero
+
+  * func_80984E58 -> DemoIm_TrackPlayerWithinAngle
+    deduced, confidence HIGH: tracks the player only while they stay inside
+    the tracking angle
+
+  * func_80984F10 -> DemoIm_TrackPlayerHead
+    deduced, confidence HIGH: head and torso tracking with a 12-unit eye
+    offset
+
+  * func_80984F94 -> DemoIm_TrackPlayerBody
+    deduced, confidence HIGH: full-body tracking with a 4-unit eye offset
+
+  * func_809850E8 -> DemoIm_IsCueAction
+    deduced, confidence HIGH: true when the given cue channel sits on the
+    caller's action id
+
+  * func_80985134 -> DemoIm_IsNotCueAction
+    deduced, confidence HIGH: true when that cue channel is on any other
+    action
+
+  * func_80985180 -> DemoIm_SetPosRotFromCue
+    deduced, confidence HIGH: snaps Impa onto a cue's start position and yaw
+
+  * func_80985200 -> DemoIm_SetPosRotFromCue2
+    deduced, confidence HIGH: an identical second copy of
+    DemoIm_SetPosRotFromCue
+
+  * func_80985310 -> DemoIm_SetupUnderground
+    deduced, confidence HIGH: loops the idle animation with the model sunk
+    10000 units below the floor
+
+  * func_80985358 -> DemoIm_SpawnSagesWarp
+    deduced, confidence HIGH: spawns the sages' blue warp as Impa's child
+
+  * func_809853B4 -> DemoIm_GiveShadowMedallion
+    deduced, confidence HIGH: spawns the medallion effect over the player
+    and grants ITEM_MEDALLION_SHADOW
+
+  * func_80985430 -> DemoIm_RiseFromGround
+    deduced, confidence HIGH: raises the sunk model back toward the floor
+
+  * func_8098544C -> DemoIm_StartChamberCs
+    deduced, confidence HIGH: triggers the shadow medallion chamber cutscene
+    on the right chamber index
+
+  * func_809854DC -> DemoIm_WaitForRiseCue
+    deduced, confidence HIGH: on cue 5 action 2, loops the idle, spawns the
+    warp and starts rising
+
+  * func_8098557C -> DemoIm_CheckRisen
+    deduced, confidence HIGH: settles the model once it reaches floor height
+
+  * func_809855A8 -> DemoIm_WaitForRaiseArmsCue
+    deduced, confidence HIGH: on cue 5 action 3, plays gImpaRaiseArmsAnim
+
+  * func_80985640 -> DemoIm_PresentMedallionWhenAnimDone
+    deduced, confidence HIGH: on the raise finishing, loops
+    gImpaPresentShadowMedallionAnim
+
+  * func_809856AC -> DemoIm_WaitForMedallionCue
+    deduced, confidence HIGH: on cue 6 action 2, hands the medallion over
+
+  * func_809856F8 -> DemoIm_Action0
+    deduced, confidence HIGH: action 0: waits for the chamber cutscene
+    trigger
+
+  * func_80985718 -> DemoIm_Action1
+    deduced, confidence HIGH: action 1: waits for the rise cue
+
+  * func_80985738 -> DemoIm_Action2
+    deduced, confidence HIGH: action 2: rises out of the floor
+
+  * func_80985770 -> DemoIm_Action3
+    deduced, confidence HIGH: action 3: idles until the raise-arms cue
+
+  * func_809857B0 -> DemoIm_Action4
+    deduced, confidence HIGH: action 4: plays the raise out and presents the
+    medallion
+
+  * func_809857F0 -> DemoIm_Action5
+    deduced, confidence HIGH: action 5: waits for the hand-over cue
+
+  * func_80985830 -> DemoIm_Action6
+    deduced, confidence HIGH: action 6: idles after the hand-over
+
+  * func_80985860 -> DemoIm_SetupHiddenIdle
+    deduced, confidence HIGH: loops the idle animation with no shadow at
+    action 7
+
+  * func_809858A8 -> DemoIm_PlayWhiteOutSfx
+    deduced, confidence HIGH: plays NA_SE_SY_WHITE_OUT_T
+
+  * func_80985948 -> DemoIm_StartSealAnimOnCue
+    deduced, confidence HIGH: on cue 5 action 4, plays
+    gImpaPrepareSealGanonAnim and starts the fade
+
+  * func_809859E0 -> DemoIm_FadeInDuringSeal
+    deduced, confidence HIGH: ramps the alpha and shadow up while that cue
+    holds
+
+  * func_80985B34 -> DemoIm_StartSealGanonAnim
+    deduced, confidence HIGH: once the cue leaves action 4, plays
+    gImpaSealGanonAnim at full alpha
+
+  * func_80985C10 -> DemoIm_Action7
+    deduced, confidence HIGH: action 7: waits for the sealing cue
+
+  * func_80985C40 -> DemoIm_Action8
+    deduced, confidence HIGH: action 8: fades in over the sealing
+    preparation
+
+  * func_80985C94 -> DemoIm_Action9
+    deduced, confidence HIGH: action 9: plays the sealing itself
+
+  * func_80985E60 -> DemoIm_SetupCourtyardIdle
+    deduced, confidence HIGH: loops the idle animation and enters action 10
+
+  * func_80985EAC -> DemoIm_TrackPlayerDuringCs
+    deduced, confidence HIGH: head-tracks the player between cutscene frames
+    80 and 243 and centres the head otherwise
+
+  * func_80985EF4 -> DemoIm_UpdateAnimUnlessLastFrame
+    deduced, confidence HIGH: advances the animation except on the whistling
+    animation's final frame, holding the pose
+
+  * func_80985F54 -> DemoIm_SetupHiddenCourtyard
+    deduced, confidence HIGH: returns to action 10 with nothing drawn
+
+  * func_80985F64 -> DemoIm_SetupIdleOnCue
+    deduced, confidence HIGH: loops the idle animation, snaps onto cue 5 and
+    enters action 11
+
+  * func_80985FE8 -> DemoIm_StartWhistleLoopWhenAnimDone
+    deduced, confidence HIGH: loops gImpaWhistlingAnim once the lead-in ends
+
+  * func_8098604C -> DemoIm_SetupStartWhistling
+    deduced, confidence HIGH: plays gImpaStartWhistlingAnim and enters
+    action 12
+
+  * func_809860C8 -> DemoIm_SetupWhistling
+    deduced, confidence HIGH: enters action 13 with the solid draw
+
+  * func_809860DC -> DemoIm_ReturnToIdleWhenAnimDone
+    deduced, confidence HIGH: loops the idle animation again once the
+    current one ends
+
+  * func_80986148 -> DemoIm_SetupStopWhistling
+    deduced, confidence HIGH: plays gImpaStartWhistlingAnim backwards and
+    enters action 14
+
+  * func_809861C4 -> DemoIm_HandleWhistleCues
+    deduced, confidence HIGH: dispatches each new cue 5 action during the
+    whistling scene
+
+  * func_8098629C -> DemoIm_ReturnToIdleWhenCsEnds
+    deduced, confidence HIGH: returns to action 21 once the cutscene
+    finishes
+
+  * func_809862E0 -> DemoIm_HandleCourtyardCues
+    deduced, confidence HIGH: dispatches each new cue 5 action during the
+    courtyard scene
+
+  * func_809863BC -> DemoIm_Action10
+    deduced, confidence HIGH: action 10: waits for the courtyard scene to
+    start
+
+  * func_809863DC -> DemoIm_Action11
+    deduced, confidence HIGH: action 11: idles until the whistling cue
+
+  * func_80986430 -> DemoIm_Action12
+    deduced, confidence HIGH: action 12: plays the whistle lead-in
+
+  * func_80986494 -> DemoIm_Action13
+    deduced, confidence HIGH: action 13: holds the whistling loop
+
+  * func_809864D4 -> DemoIm_Action14
+    deduced, confidence HIGH: action 14: plays the whistle lead-in backwards
+
+  * func_8098652C -> DemoIm_SetupIdleAction15
+    deduced, confidence HIGH: loops the idle animation and enters action 15
+
+  * func_80986570 -> DemoIm_PlayFootstepSfx
+    deduced, confidence HIGH: plays the floor's own footstep sound at
+    animation frame 7 while grounded
+
+  * func_809865F8 -> DemoIm_UpdateNutThrow
+    deduced, confidence GUESS: drives the deku nut throw off an unnamed
+    float field; named for the animation it accompanies
+
+  * func_80986700 -> DemoIm_SetupHiddenAction15
+    deduced, confidence HIGH: enters action 15 with nothing drawn
+
+  * func_80986710 -> DemoIm_SetupIdleAction16
+    deduced, confidence HIGH: loops the idle, snaps onto cue 5 and enters
+    action 16
+
+  * func_80986794 -> DemoIm_SetupThrowNut
+    deduced, confidence HIGH: plays gImpaThrowDekuNutAnim and enters action
+    17
+
+  * func_8098680C -> DemoIm_HandleEscapeCues
+    deduced, confidence HIGH: dispatches each new cue 5 action during the
+    castle escape
+
+  * func_809868E8 -> DemoIm_Action15
+    deduced, confidence HIGH: action 15: waits for the escape scene to start
+
+  * func_80986908 -> DemoIm_Action16
+    deduced, confidence HIGH: action 16: idles until the nut cue
+
+  * func_80986948 -> DemoIm_Action17
+    deduced, confidence HIGH: action 17: throws the deku nut
+
+  * func_809869B0 -> DemoIm_SetupHiddenAction18
+    deduced, confidence HIGH: loops the idle with no shadow at action 18
+
+  * func_809869F8 -> DemoIm_IsPlayerPastCourtyardEdge
+    deduced, confidence GUESS: true once the player is far enough along X
+    and Impa is off screen; the threshold is a kREG so the courtyard reading
+    comes from the scene she runs in
+
+  * func_80986A5C -> DemoIm_IsPlayerNearCourtyard
+    deduced, confidence GUESS: true once the player closes to within another
+    kREG distance along X and no cutscene is running
+
+  * func_80986AD0 -> DemoIm_OfferTalk
+    deduced, confidence HIGH: offers text 0x708E and reports when the player
+    accepts
+
+  * func_80986B2C -> DemoIm_LeaveCourtyardOnTextClose
+    deduced, confidence HIGH: sends the player out of the courtyard once the
+    textbox closes, honouring entrance randomizer
+
+  * func_80986BA0 -> DemoIm_AppearWhenPlayerPasses
+    deduced, confidence HIGH: pops Impa in at action 21 once the player is
+    past her
+
+  * func_80986BE4 -> DemoIm_GoToAction22WhenTalked
+    deduced, confidence HIGH: moves to action 22 once the talk is accepted
+
+  * func_80986BF8 -> DemoIm_AppearAfterZeldasLetter
+    deduced, confidence HIGH: pops Impa in at action 24 once Zelda's letter
+    has been obtained
+
+  * func_80986C30 -> DemoIm_StartLullabyCs
+    deduced, confidence HIGH: triggers the Zelda's Lullaby cutscene when the
+    player comes close
+
+  * func_80986CC8 -> DemoIm_AppearAfterZeldasLetter2
+    deduced, confidence HIGH: the same letter check entering action 26
+    instead
+
+  * func_80986CFC -> DemoIm_LeaveWhenPlayerNear
+    deduced, confidence HIGH: sets EVENTCHKINF_4C and moves to action 19
+    when the player comes close
+
+  * func_80986D40 -> DemoIm_Action18
+    deduced, confidence HIGH: action 18: picks the courtyard branch from the
+    scene layer and the escape flag
+
+  * func_80986DC8 -> DemoIm_Action19
+    deduced, confidence HIGH: action 19: idles untargetable while tracking
+    the player
+
+  * func_80986E20 -> DemoIm_Action20
+    deduced, confidence HIGH: action 20: waits for the player to walk past
+
+  * func_80986E40 -> DemoIm_Action21
+    deduced, confidence HIGH: action 21: offers the conversation
+
+  * func_80986EAC -> DemoIm_Action22
+    deduced, confidence HIGH: action 22: waits out that conversation
+
+  * func_80986F08 -> DemoIm_Action23
+    deduced, confidence HIGH: action 23: waits for Zelda's letter
+
+  * func_80986F28 -> DemoIm_Action24
+    deduced, confidence HIGH: action 24: waits to trigger the lullaby
+    cutscene
+
+  * func_80986F88 -> DemoIm_Action25
+    deduced, confidence HIGH: action 25: the second letter wait
+
+  * func_80986FA8 -> DemoIm_Action26
+    deduced, confidence HIGH: action 26: waits to leave once the player is
+    near
+
+  * func_80987018 -> DemoIm_SetupHiddenAction27
+    deduced, confidence HIGH: loops the idle with nothing drawn at action 27
+
+  * func_80987064 -> DemoIm_FadeIn
+    deduced, confidence HIGH: ramps the alpha and shadow up over the
+    kREG-tunable window
+
+  * func_809870F0 -> DemoIm_SetupFadeInAction28
+    deduced, confidence HIGH: snaps onto cue 5 and starts the translucent
+    fade at action 28
+
+  * func_80987128 -> DemoIm_CheckFadeInDone
+    deduced, confidence HIGH: switches to the solid draw once the fade
+    completes
+
+  * func_80987174 -> DemoIm_SetupFinalAnim
+    deduced, confidence HIGH: plays object_im_Anim_0101C8 once and enters
+    action 30
+
+  * func_809871B4 -> DemoIm_LoopFinalAnimWhenDone
+    deduced, confidence HIGH: loops object_im_Anim_00FB10 once that
+    animation ends
+
+  * func_809871E8 -> DemoIm_HandleFinalCues
+    deduced, confidence HIGH: dispatches each new cue 5 action during the
+    closing scene
+
+  * func_80987288 -> DemoIm_Action27
+    deduced, confidence HIGH: action 27: waits for the closing scene
+
+  * func_809872A8 -> DemoIm_Action28
+    deduced, confidence HIGH: action 28: fades in
+
+  * func_809872F0 -> DemoIm_Action29
+    deduced, confidence HIGH: action 29: idles at full alpha
+
+  * func_80987330 -> DemoIm_Action30
+    deduced, confidence HIGH: action 30: plays the closing animation out
+
+  * D_8098783C -> sCsRunning
+    deduced, confidence HIGH: overlay-wide latch that a cutscene was
+    running, so its end can be detected next update
+
+  * D_809887D8 -> sHeadFocusOffset
+    deduced, confidence HIGH: the head-space point Impa's focus position is
+    transformed from
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../TimeSavers/timesaver_hook_handlers.cpp    |   2 +-
+ .../overlays/actors/ovl_Demo_Im/z_demo_im.c   | 565 ++++++++++--------
+ .../overlays/actors/ovl_Demo_Im/z_demo_im.h   |   2 +-
+ 3 files changed, 333 insertions(+), 236 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+index 22f83cc2c..5d07abfeb 100644
+--- a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
++++ b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+@@ -596,7 +596,7 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_li
+                 Player* player = GET_PLAYER(gPlayState);
+                 player->stateFlags1 |= PLAYER_STATE1_IN_CUTSCENE;
+                 player->stateFlags1 |= PLAYER_STATE1_GETTING_ITEM;
+-                func_80986794(demoIm);
++                DemoIm_SetupThrowNut(demoIm);  // was func_80986794 [LLM:HIGH]
+ 
+                 static uint32_t demoImUpdateHook = 0;
+                 static uint32_t demoImKillHook = 0;
+diff --git a/soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.c b/soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.c
+index 2e7c0db02..f8699414e 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.c
++++ b/soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.c
+@@ -19,38 +19,69 @@ void DemoIm_Init(Actor* thisx, PlayState* play);
+ void DemoIm_Destroy(Actor* thisx, PlayState* play);
+ void DemoIm_Update(Actor* thisx, PlayState* play);
+ void DemoIm_Draw(Actor* thisx, PlayState* play);
+-void func_809856F8(DemoIm* this, PlayState* play);
+-void func_80985718(DemoIm* this, PlayState* play);
+-void func_80985738(DemoIm* this, PlayState* play);
+-void func_80985770(DemoIm* this, PlayState* play);
+-void func_809857B0(DemoIm* this, PlayState* play);
+-void func_809857F0(DemoIm* this, PlayState* play);
+-void func_80985830(DemoIm* this, PlayState* play);
+-void func_80985C10(DemoIm* this, PlayState* play);
+-void func_80985C40(DemoIm* this, PlayState* play);
+-void func_80985C94(DemoIm* this, PlayState* play);
++// LLM generated name (HIGH), was func_809856F8: action 0: waits for the chamber cutscene trigger
++void DemoIm_Action0(DemoIm* this, PlayState* play);  // was func_809856F8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80985718: action 1: waits for the rise cue
++void DemoIm_Action1(DemoIm* this, PlayState* play);  // was func_80985718 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80985738: action 2: rises out of the floor
++void DemoIm_Action2(DemoIm* this, PlayState* play);  // was func_80985738 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80985770: action 3: idles until the raise-arms cue
++void DemoIm_Action3(DemoIm* this, PlayState* play);  // was func_80985770 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809857B0: action 4: plays the raise out and presents the medallion
++void DemoIm_Action4(DemoIm* this, PlayState* play);  // was func_809857B0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809857F0: action 5: waits for the hand-over cue
++void DemoIm_Action5(DemoIm* this, PlayState* play);  // was func_809857F0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80985830: action 6: idles after the hand-over
++void DemoIm_Action6(DemoIm* this, PlayState* play);  // was func_80985830 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80985C10: action 7: waits for the sealing cue
++void DemoIm_Action7(DemoIm* this, PlayState* play);  // was func_80985C10 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80985C40: action 8: fades in over the sealing preparation
++void DemoIm_Action8(DemoIm* this, PlayState* play);  // was func_80985C40 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80985C94: action 9: plays the sealing itself
++void DemoIm_Action9(DemoIm* this, PlayState* play);  // was func_80985C94 [LLM:HIGH]
+ void DemoIm_DrawTranslucent(DemoIm* this, PlayState* play);
+-void func_809863BC(DemoIm* this, PlayState* play);
+-void func_809863DC(DemoIm* this, PlayState* play);
+-void func_80986430(DemoIm* this, PlayState* play);
+-void func_80986494(DemoIm* this, PlayState* play);
+-void func_809864D4(DemoIm* this, PlayState* play);
+-void func_809868E8(DemoIm* this, PlayState* play);
+-void func_80986908(DemoIm* this, PlayState* play);
+-void func_80986948(DemoIm* this, PlayState* play);
+-void func_80986D40(DemoIm* this, PlayState* play);
+-void func_80986DC8(DemoIm* this, PlayState* play);
+-void func_80986E20(DemoIm* this, PlayState* play);
+-void func_80986E40(DemoIm* this, PlayState* play);
+-void func_80986EAC(DemoIm* this, PlayState* play);
+-void func_80986F08(DemoIm* this, PlayState* play);
+-void func_80986F28(DemoIm* this, PlayState* play);
+-void func_80986F88(DemoIm* this, PlayState* play);
+-void func_80986FA8(DemoIm* this, PlayState* play);
+-void func_80987288(DemoIm* this, PlayState* play);
+-void func_809872A8(DemoIm* this, PlayState* play);
+-void func_809872F0(DemoIm* this, PlayState* play);
+-void func_80987330(DemoIm* this, PlayState* play);
++// LLM generated name (HIGH), was func_809863BC: action 10: waits for the courtyard scene to start
++void DemoIm_Action10(DemoIm* this, PlayState* play);  // was func_809863BC [LLM:HIGH]
++// LLM generated name (HIGH), was func_809863DC: action 11: idles until the whistling cue
++void DemoIm_Action11(DemoIm* this, PlayState* play);  // was func_809863DC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986430: action 12: plays the whistle lead-in
++void DemoIm_Action12(DemoIm* this, PlayState* play);  // was func_80986430 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986494: action 13: holds the whistling loop
++void DemoIm_Action13(DemoIm* this, PlayState* play);  // was func_80986494 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809864D4: action 14: plays the whistle lead-in backwards
++void DemoIm_Action14(DemoIm* this, PlayState* play);  // was func_809864D4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809868E8: action 15: waits for the escape scene to start
++void DemoIm_Action15(DemoIm* this, PlayState* play);  // was func_809868E8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986908: action 16: idles until the nut cue
++void DemoIm_Action16(DemoIm* this, PlayState* play);  // was func_80986908 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986948: action 17: throws the deku nut
++void DemoIm_Action17(DemoIm* this, PlayState* play);  // was func_80986948 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986D40: action 18: picks the courtyard branch from the scene layer and the escape flag
++void DemoIm_Action18(DemoIm* this, PlayState* play);  // was func_80986D40 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986DC8: action 19: idles untargetable while tracking the player
++void DemoIm_Action19(DemoIm* this, PlayState* play);  // was func_80986DC8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986E20: action 20: waits for the player to walk past
++void DemoIm_Action20(DemoIm* this, PlayState* play);  // was func_80986E20 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986E40: action 21: offers the conversation
++void DemoIm_Action21(DemoIm* this, PlayState* play);  // was func_80986E40 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986EAC: action 22: waits out that conversation
++void DemoIm_Action22(DemoIm* this, PlayState* play);  // was func_80986EAC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986F08: action 23: waits for Zelda's letter
++void DemoIm_Action23(DemoIm* this, PlayState* play);  // was func_80986F08 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986F28: action 24: waits to trigger the lullaby cutscene
++void DemoIm_Action24(DemoIm* this, PlayState* play);  // was func_80986F28 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986F88: action 25: the second letter wait
++void DemoIm_Action25(DemoIm* this, PlayState* play);  // was func_80986F88 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80986FA8: action 26: waits to leave once the player is near
++void DemoIm_Action26(DemoIm* this, PlayState* play);  // was func_80986FA8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80987288: action 27: waits for the closing scene
++void DemoIm_Action27(DemoIm* this, PlayState* play);  // was func_80987288 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809872A8: action 28: fades in
++void DemoIm_Action28(DemoIm* this, PlayState* play);  // was func_809872A8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809872F0: action 29: idles at full alpha
++void DemoIm_Action29(DemoIm* this, PlayState* play);  // was func_809872F0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80987330: action 30: plays the closing animation out
++void DemoIm_Action30(DemoIm* this, PlayState* play);  // was func_80987330 [LLM:HIGH]
+ void DemoIm_DrawNothing(DemoIm* this, PlayState* play);
+ void DemoIm_DrawSolid(DemoIm* this, PlayState* play);
+ 
+@@ -60,7 +91,8 @@ static void* sEyeTextures[] = {
+     gImpaEyeClosedTex,
+ };
+ 
+-static u32 D_8098783C = 0;
++// LLM generated name (HIGH), was D_8098783C: overlay-wide latch that a cutscene was running, so its end can be detected next update
++static u32 sCsRunning = 0;  // was D_8098783C [LLM:HIGH]
+ 
+ static ColliderCylinderInitType1 sCylinderInit = {
+     {
+@@ -77,14 +109,15 @@ static ColliderCylinderInitType1 sCylinderInit = {
+ #include "z_demo_im_cutscene_data.c" EARLY
+ 
+ static DemoImActionFunc sActionFuncs[] = {
+-    func_809856F8, func_80985718, func_80985738, func_80985770, func_809857B0, func_809857F0, func_80985830,
+-    func_80985C10, func_80985C40, func_80985C94, func_809863BC, func_809863DC, func_80986430, func_80986494,
+-    func_809864D4, func_809868E8, func_80986908, func_80986948, func_80986D40, func_80986DC8, func_80986E20,
+-    func_80986E40, func_80986EAC, func_80986F08, func_80986F28, func_80986F88, func_80986FA8, func_80987288,
+-    func_809872A8, func_809872F0, func_80987330,
++    DemoIm_Action0, DemoIm_Action1, DemoIm_Action2, DemoIm_Action3, DemoIm_Action4, DemoIm_Action5, DemoIm_Action6,  // was func_809856F8 [LLM:HIGH]
++    DemoIm_Action7, DemoIm_Action8, DemoIm_Action9, DemoIm_Action10, DemoIm_Action11, DemoIm_Action12, DemoIm_Action13,  // was func_80985C10 [LLM:HIGH]
++    DemoIm_Action14, DemoIm_Action15, DemoIm_Action16, DemoIm_Action17, DemoIm_Action18, DemoIm_Action19, DemoIm_Action20,  // was func_809864D4 [LLM:HIGH]
++    DemoIm_Action21, DemoIm_Action22, DemoIm_Action23, DemoIm_Action24, DemoIm_Action25, DemoIm_Action26, DemoIm_Action27,  // was func_80986E40 [LLM:HIGH]
++    DemoIm_Action28, DemoIm_Action29, DemoIm_Action30,  // was func_809872A8 [LLM:HIGH]
+ };
+ 
+-static Vec3f D_809887D8 = { 0.0f, 10.0f, 0.0f };
++// LLM generated name (HIGH), was D_809887D8: the head-space point Impa's focus position is transformed from
++static Vec3f sHeadFocusOffset = { 0.0f, 10.0f, 0.0f };  // was D_809887D8 [LLM:HIGH]
+ 
+ static DemoImDrawFunc sDrawFuncs[] = {
+     DemoIm_DrawNothing,
+@@ -105,7 +138,8 @@ const ActorInit Demo_Im_InitVars = {
+     NULL,
+ };
+ 
+-void func_80984BE0(DemoIm* this) {
++// LLM generated name (HIGH), was func_80984BE0: runs the blink timer and picks the eye texture index
++void DemoIm_UpdateEyes(DemoIm* this) {
+     s32 pad[3];
+     s16* blinkTimer = &this->blinkTimer;
+     s16* eyeIndex = &this->eyeIndex;
+@@ -120,7 +154,8 @@ void func_80984BE0(DemoIm* this) {
+     }
+ }
+ 
+-void func_80984C68(DemoIm* this) {
++// LLM generated name (HIGH), was func_80984C68: drops to action 7 with nothing drawn, no alpha and no shadow
++void DemoIm_SetupHiddenAfterCs(DemoIm* this) {
+     this->action = 7;
+     this->drawConfig = 0;
+     this->alpha = 0;
+@@ -129,13 +164,14 @@ void func_80984C68(DemoIm* this) {
+     this->unk_268 = 0.0f;
+ }
+ 
+-void func_80984C8C(DemoIm* this, PlayState* play) {
+-    u32* something = &D_8098783C;
++// LLM generated name (HIGH), was func_80984C8C: latches while a cutscene runs and hides the params 2 Impa when it ends
++void DemoIm_WatchCutsceneEnd(DemoIm* this, PlayState* play) {
++    u32* something = &sCsRunning;  // was D_8098783C [LLM:HIGH]
+ 
+     if (play->csCtx.state == CS_STATE_IDLE) {
+         if (*something != 0) {
+             if (this->actor.params == 2) {
+-                func_80984C68(this);
++                DemoIm_SetupHiddenAfterCs(this);  // was func_80984C68 [LLM:HIGH]
+             }
+             *something = 0;
+         }
+@@ -166,7 +202,8 @@ void DemoIm_UpdateCollider(DemoIm* this, PlayState* play) {
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+ }
+ 
+-void func_80984DB8(DemoIm* this) {
++// LLM generated name (HIGH), was func_80984DB8: eases the head and torso rotations back to zero
++void DemoIm_ReturnHeadToNeutral(DemoIm* this) {
+     s32 pad[2];
+     Vec3s* headRot = &this->interactInfo.headRot;
+     Vec3s* torsoRot = &this->interactInfo.torsoRot;
+@@ -178,7 +215,8 @@ void func_80984DB8(DemoIm* this) {
+     Math_SmoothStepToS(&torsoRot->y, 0, 20, 6200, 100);
+ }
+ 
+-void func_80984E58(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80984E58: tracks the player only while they stay inside the tracking angle
++void DemoIm_TrackPlayerWithinAngle(DemoIm* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s16 yawDiff;
+     s16 npcTrackingMode;
+@@ -191,7 +229,8 @@ void func_80984E58(DemoIm* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, kREG(17) + 0xC, npcTrackingMode);
+ }
+ 
+-void func_80984F10(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80984F10: head and torso tracking with a 12-unit eye offset
++void DemoIm_TrackPlayerHead(DemoIm* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -200,7 +239,8 @@ void func_80984F10(DemoIm* this, PlayState* play) {
+     Npc_TrackPoint(&this->actor, &this->interactInfo, kREG(17) + 0xC, NPC_TRACKING_HEAD_AND_TORSO);
+ }
+ 
+-void func_80984F94(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80984F94: full-body tracking with a 4-unit eye offset
++void DemoIm_TrackPlayerBody(DemoIm* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -234,7 +274,8 @@ CsCmdActorCue* DemoIm_GetNpcAction(PlayState* play, s32 actionIdx) {
+     return ret;
+ }
+ 
+-s32 func_809850E8(DemoIm* this, PlayState* play, u16 action, s32 actionIdx) {
++// LLM generated name (HIGH), was func_809850E8: true when the given cue channel sits on the caller's action id
++s32 DemoIm_IsCueAction(DemoIm* this, PlayState* play, u16 action, s32 actionIdx) {
+     CsCmdActorCue* npcAction = DemoIm_GetNpcAction(play, actionIdx);
+ 
+     if (npcAction != NULL) {
+@@ -245,7 +286,8 @@ s32 func_809850E8(DemoIm* this, PlayState* play, u16 action, s32 actionIdx) {
+     return false;
+ }
+ 
+-s32 func_80985134(DemoIm* this, PlayState* play, u16 action, s32 actionIdx) {
++// LLM generated name (HIGH), was func_80985134: true when that cue channel is on any other action
++s32 DemoIm_IsNotCueAction(DemoIm* this, PlayState* play, u16 action, s32 actionIdx) {
+     CsCmdActorCue* npcAction = DemoIm_GetNpcAction(play, actionIdx);
+ 
+     if (npcAction != NULL) {
+@@ -256,7 +298,8 @@ s32 func_80985134(DemoIm* this, PlayState* play, u16 action, s32 actionIdx) {
+     return false;
+ }
+ 
+-void func_80985180(DemoIm* this, PlayState* play, s32 actionIdx) {
++// LLM generated name (HIGH), was func_80985180: snaps Impa onto a cue's start position and yaw
++void DemoIm_SetPosRotFromCue(DemoIm* this, PlayState* play, s32 actionIdx) {
+     CsCmdActorCue* npcAction = DemoIm_GetNpcAction(play, actionIdx);
+ 
+     if (npcAction != NULL) {
+@@ -267,7 +310,8 @@ void func_80985180(DemoIm* this, PlayState* play, s32 actionIdx) {
+     }
+ }
+ 
+-void func_80985200(DemoIm* this, PlayState* play, s32 actionIdx) {
++// LLM generated name (HIGH), was func_80985200: an identical second copy of DemoIm_SetPosRotFromCue
++void DemoIm_SetPosRotFromCue2(DemoIm* this, PlayState* play, s32 actionIdx) {
+     CsCmdActorCue* npcAction = DemoIm_GetNpcAction(play, actionIdx);
+ 
+     if (npcAction != NULL) {
+@@ -298,12 +342,14 @@ void DemoIm_ChangeAnim(DemoIm* this, AnimationHeader* animHeaderSeg, u8 animMode
+     Animation_Change(&this->skelAnime, animHeaderSeg, playbackSpeed, startFrame, endFrame, animMode, transitionRate);
+ }
+ 
+-void func_80985310(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80985310: loops the idle animation with the model sunk 10000 units below the floor
++void DemoIm_SetupUnderground(DemoIm* this, PlayState* play) {
+     DemoIm_ChangeAnim(this, &gImpaIdleAnim, ANIMMODE_LOOP, 0.0f, false);
+     this->actor.shape.yOffset = -10000.0f;
+ }
+ 
+-void func_80985358(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80985358: spawns the sages' blue warp as Impa's child
++void DemoIm_SpawnSagesWarp(DemoIm* this, PlayState* play) {
+     f32 posX = this->actor.world.pos.x;
+     f32 posY = this->actor.world.pos.y;
+     f32 posZ = this->actor.world.pos.z;
+@@ -311,7 +357,8 @@ void func_80985358(DemoIm* this, PlayState* play) {
+     Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_DOOR_WARP1, posX, posY, posZ, 0, 0, 0, WARP_SAGES);
+ }
+ 
+-void func_809853B4(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809853B4: spawns the medallion effect over the player and grants ITEM_MEDALLION_SHADOW
++void DemoIm_GiveShadowMedallion(DemoIm* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 playerX = player->actor.world.pos.x;
+     f32 playerY = player->actor.world.pos.y + 80.0f;
+@@ -323,11 +370,13 @@ void func_809853B4(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80985430(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80985430: raises the sunk model back toward the floor
++void DemoIm_RiseFromGround(DemoIm* this, PlayState* play) {
+     this->actor.shape.yOffset += 250.0f / 3.0f;
+ }
+ 
+-void func_8098544C(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8098544C: triggers the shadow medallion chamber cutscene on the right chamber index
++void DemoIm_StartChamberCs(DemoIm* this, PlayState* play) {
+     s32 pad[2];
+ 
+     if ((gSaveContext.chamberCutsceneNum == 4) && (gSaveContext.sceneLayer < 4)) {
+@@ -343,25 +392,28 @@ void func_8098544C(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809854DC(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809854DC: on cue 5 action 2, loops the idle, spawns the warp and starts rising
++void DemoIm_WaitForRiseCue(DemoIm* this, PlayState* play) {
+     if ((play->csCtx.state != CS_STATE_IDLE) && (play->csCtx.npcActions[5] != NULL) &&
+         (play->csCtx.npcActions[5]->action == 2)) {
+         Animation_Change(&this->skelAnime, &gImpaIdleAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gImpaIdleAnim),
+                          ANIMMODE_LOOP, 0.0f);
+         this->action = 2;
+         this->drawConfig = 1;
+-        func_80985358(this, play);
++        DemoIm_SpawnSagesWarp(this, play);  // was func_80985358 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8098557C(DemoIm* this) {
++// LLM generated name (HIGH), was func_8098557C: settles the model once it reaches floor height
++void DemoIm_CheckRisen(DemoIm* this) {
+     if (this->actor.shape.yOffset >= 0.0f) {
+         this->action = 3;
+         this->actor.shape.yOffset = 0.0f;
+     }
+ }
+ 
+-void func_809855A8(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809855A8: on cue 5 action 3, plays gImpaRaiseArmsAnim
++void DemoIm_WaitForRaiseArmsCue(DemoIm* this, PlayState* play) {
+     if ((play->csCtx.state != CS_STATE_IDLE) && (play->csCtx.npcActions[5] != NULL) &&
+         (play->csCtx.npcActions[5]->action == 3)) {
+         Animation_Change(&this->skelAnime, &gImpaRaiseArmsAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gImpaRaiseArmsAnim),
+@@ -370,7 +422,8 @@ void func_809855A8(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80985640(DemoIm* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80985640: on the raise finishing, loops gImpaPresentShadowMedallionAnim
++void DemoIm_PresentMedallionWhenAnimDone(DemoIm* this, s32 arg1) {
+     if (arg1 != 0) {
+         Animation_Change(&this->skelAnime, &gImpaPresentShadowMedallionAnim, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&gImpaPresentShadowMedallionAnim), ANIMMODE_LOOP, 0.0f);
+@@ -378,65 +431,68 @@ void func_80985640(DemoIm* this, s32 arg1) {
+     }
+ }
+ 
+-void func_809856AC(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809856AC: on cue 6 action 2, hands the medallion over
++void DemoIm_WaitForMedallionCue(DemoIm* this, PlayState* play) {
+     if ((play->csCtx.state != CS_STATE_IDLE) && (play->csCtx.npcActions[6] != NULL) &&
+         (play->csCtx.npcActions[6]->action == 2)) {
+         this->action = 6;
+-        func_809853B4(this, play);
++        DemoIm_GiveShadowMedallion(this, play);  // was func_809853B4 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809856F8(DemoIm* this, PlayState* play) {
+-    func_8098544C(this, play);
++void DemoIm_Action0(DemoIm* this, PlayState* play) {
++    DemoIm_StartChamberCs(this, play);  // was func_8098544C [LLM:HIGH]
+ }
+ 
+-void func_80985718(DemoIm* this, PlayState* play) {
+-    func_809854DC(this, play);
++void DemoIm_Action1(DemoIm* this, PlayState* play) {
++    DemoIm_WaitForRiseCue(this, play);  // was func_809854DC [LLM:HIGH]
+ }
+ 
+-void func_80985738(DemoIm* this, PlayState* play) {
+-    func_80985430(this, play);
++void DemoIm_Action2(DemoIm* this, PlayState* play) {
++    DemoIm_RiseFromGround(this, play);  // was func_80985430 [LLM:HIGH]
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_8098557C(this);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_CheckRisen(this);  // was func_8098557C [LLM:HIGH]
+ }
+ 
+-void func_80985770(DemoIm* this, PlayState* play) {
++void DemoIm_Action3(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_809855A8(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_WaitForRaiseArmsCue(this, play);  // was func_809855A8 [LLM:HIGH]
+ }
+ 
+-void func_809857B0(DemoIm* this, PlayState* play) {
++void DemoIm_Action4(DemoIm* this, PlayState* play) {
+     s32 sp1C;
+ 
+     DemoIm_UpdateBgCheckInfo(this, play);
+     sp1C = DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_80985640(this, sp1C);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_PresentMedallionWhenAnimDone(this, sp1C);  // was func_80985640 [LLM:HIGH]
+ }
+ 
+-void func_809857F0(DemoIm* this, PlayState* play) {
++void DemoIm_Action5(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_809856AC(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_WaitForMedallionCue(this, play);  // was func_809856AC [LLM:HIGH]
+ }
+ 
+-void func_80985830(DemoIm* this, PlayState* play) {
++void DemoIm_Action6(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
+ }
+ 
+-void func_80985860(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80985860: loops the idle animation with no shadow at action 7
++void DemoIm_SetupHiddenIdle(DemoIm* this, PlayState* play) {
+     DemoIm_ChangeAnim(this, &gImpaIdleAnim, ANIMMODE_LOOP, 0.0f, false);
+     this->action = 7;
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-void func_809858A8(void) {
++// LLM generated name (HIGH), was func_809858A8: plays NA_SE_SY_WHITE_OUT_T
++void DemoIm_PlayWhiteOutSfx(void) {
+     Sfx_PlaySfxCentered2(NA_SE_SY_WHITE_OUT_T);
+ }
+ 
+@@ -445,8 +501,9 @@ void DemoIm_SpawnLightBall(DemoIm* this, PlayState* play) {
+                        (kREG(17) + 24.0f) + this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0, 6);
+ }
+ 
+-void func_80985948(DemoIm* this, PlayState* play) {
+-    if (func_809850E8(this, play, 4, 5)) {
++// LLM generated name (HIGH), was func_80985948: on cue 5 action 4, plays gImpaPrepareSealGanonAnim and starts the fade
++void DemoIm_StartSealAnimOnCue(DemoIm* this, PlayState* play) {
++    if (DemoIm_IsCueAction(this, play, 4, 5)) {  // was func_809850E8 [LLM:HIGH]
+         Animation_Change(&this->skelAnime, &gImpaPrepareSealGanonAnim, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&gImpaPrepareSealGanonAnim), ANIMMODE_ONCE, 0.0f);
+         this->action = 8;
+@@ -454,15 +511,16 @@ void func_80985948(DemoIm* this, PlayState* play) {
+         this->alpha = 0;
+         this->actor.shape.shadowAlpha = 0;
+         this->unk_268 = 0.0f;
+-        func_809858A8();
++        DemoIm_PlayWhiteOutSfx();  // was func_809858A8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809859E0(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809859E0: ramps the alpha and shadow up while that cue holds
++void DemoIm_FadeInDuringSeal(DemoIm* this, PlayState* play) {
+     f32* unk_268 = &this->unk_268;
+     s32 alpha = 255;
+ 
+-    if (func_809850E8(this, play, 4, 5)) {
++    if (DemoIm_IsCueAction(this, play, 4, 5)) {  // was func_809850E8 [LLM:HIGH]
+         *unk_268 += 1.0f;
+         if (*unk_268 >= kREG(5) + 10.0f) {
+             this->action = 9;
+@@ -485,8 +543,9 @@ void func_809859E0(DemoIm* this, PlayState* play) {
+     this->actor.shape.shadowAlpha = this->alpha = (*unk_268 / (kREG(5) + 10.0f)) * 255.0f;
+ }
+ 
+-void func_80985B34(DemoIm* this, PlayState* play) {
+-    if (func_80985134(this, play, 4, 5)) {
++// LLM generated name (HIGH), was func_80985B34: once the cue leaves action 4, plays gImpaSealGanonAnim at full alpha
++void DemoIm_StartSealGanonAnim(DemoIm* this, PlayState* play) {
++    if (DemoIm_IsNotCueAction(this, play, 4, 5)) {  // was func_80985134 [LLM:HIGH]
+         Animation_Change(&this->skelAnime, &gImpaSealGanonAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gImpaSealGanonAnim),
+                          ANIMMODE_ONCE, -8.0f);
+         this->action = 8;
+@@ -501,25 +560,25 @@ void func_80985B34(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80985C10(DemoIm* this, PlayState* play) {
+-    func_80985948(this, play);
+-    func_80984C8C(this, play);
++void DemoIm_Action7(DemoIm* this, PlayState* play) {
++    DemoIm_StartSealAnimOnCue(this, play);  // was func_80985948 [LLM:HIGH]
++    DemoIm_WatchCutsceneEnd(this, play);  // was func_80984C8C [LLM:HIGH]
+ }
+ 
+-void func_80985C40(DemoIm* this, PlayState* play) {
++void DemoIm_Action8(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_809859E0(this, play);
+-    func_80984C8C(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_FadeInDuringSeal(this, play);  // was func_809859E0 [LLM:HIGH]
++    DemoIm_WatchCutsceneEnd(this, play);  // was func_80984C8C [LLM:HIGH]
+ }
+ 
+-void func_80985C94(DemoIm* this, PlayState* play) {
++void DemoIm_Action9(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_80985B34(this, play);
+-    func_80984C8C(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_StartSealGanonAnim(this, play);  // was func_80985B34 [LLM:HIGH]
++    DemoIm_WatchCutsceneEnd(this, play);  // was func_80984C8C [LLM:HIGH]
+ }
+ 
+ void DemoIm_DrawTranslucent(DemoIm* this, PlayState* play) {
+@@ -543,47 +602,54 @@ void DemoIm_DrawTranslucent(DemoIm* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_80985E60(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80985E60: loops the idle animation and enters action 10
++void DemoIm_SetupCourtyardIdle(DemoIm* this, PlayState* play) {
+     DemoIm_ChangeAnim(this, &gImpaIdleAnim, ANIMMODE_LOOP, 0.0f, false);
+     this->action = 10;
+     this->unk_280 = 1;
+ }
+ 
+-void func_80985EAC(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80985EAC: head-tracks the player between cutscene frames 80 and 243 and centres the head otherwise
++void DemoIm_TrackPlayerDuringCs(DemoIm* this, PlayState* play) {
+     if ((play->csCtx.frames >= 80) && (play->csCtx.frames < 243)) {
+-        func_80984F10(this, play);
++        DemoIm_TrackPlayerHead(this, play);  // was func_80984F10 [LLM:HIGH]
+     } else {
+-        func_80984DB8(this);
++        DemoIm_ReturnHeadToNeutral(this);  // was func_80984DB8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80985EF4(DemoIm* this) {
++// LLM generated name (HIGH), was func_80985EF4: advances the animation except on the whistling animation's final frame, holding the pose
++void DemoIm_UpdateAnimUnlessLastFrame(DemoIm* this) {
+     if (!Animation_OnFrame(&this->skelAnime, Animation_GetLastFrame(&gImpaWhistlingAnim) - 1.0f)) {
+         DemoIm_UpdateSkelAnime(this);
+     }
+ }
+ 
+-void func_80985F54(DemoIm* this) {
++// LLM generated name (HIGH), was func_80985F54: returns to action 10 with nothing drawn
++void DemoIm_SetupHiddenCourtyard(DemoIm* this) {
+     this->action = 10;
+     this->drawConfig = 0;
+ }
+ 
+-void func_80985F64(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80985F64: loops the idle animation, snaps onto cue 5 and enters action 11
++void DemoIm_SetupIdleOnCue(DemoIm* this, PlayState* play) {
+     Animation_Change(&this->skelAnime, &gImpaIdleAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gImpaIdleAnim),
+                      ANIMMODE_LOOP, 0.0f);
+-    func_80985180(this, play, 5);
++    DemoIm_SetPosRotFromCue(this, play, 5);  // was func_80985180 [LLM:HIGH]
+     this->action = 11;
+     this->drawConfig = 1;
+ }
+ 
+-void func_80985FE8(DemoIm* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80985FE8: loops gImpaWhistlingAnim once the lead-in ends
++void DemoIm_StartWhistleLoopWhenAnimDone(DemoIm* this, s32 arg1) {
+     if (arg1 != 0) {
+         Animation_Change(&this->skelAnime, &gImpaWhistlingAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gImpaWhistlingAnim),
+                          ANIMMODE_LOOP, -8.0f);
+     }
+ }
+ 
+-void func_8098604C(DemoIm* this) {
++// LLM generated name (HIGH), was func_8098604C: plays gImpaStartWhistlingAnim and enters action 12
++void DemoIm_SetupStartWhistling(DemoIm* this) {
+     f32 frameCount = Animation_GetLastFrame(&gImpaStartWhistlingAnim);
+ 
+     Animation_Change(&this->skelAnime, &gImpaStartWhistlingAnim, 1.0f, 0.0f, frameCount, ANIMMODE_ONCE, -8.0f);
+@@ -592,12 +658,14 @@ void func_8098604C(DemoIm* this) {
+     this->unk_2D0 = 1;
+ }
+ 
+-void func_809860C8(DemoIm* this) {
++// LLM generated name (HIGH), was func_809860C8: enters action 13 with the solid draw
++void DemoIm_SetupWhistling(DemoIm* this) {
+     this->action = 13;
+     this->drawConfig = 1;
+ }
+ 
+-void func_809860DC(DemoIm* this, s32 arg1) {
++// LLM generated name (HIGH), was func_809860DC: loops the idle animation again once the current one ends
++void DemoIm_ReturnToIdleWhenAnimDone(DemoIm* this, s32 arg1) {
+     if (arg1 != 0) {
+         Animation_Change(&this->skelAnime, &gImpaIdleAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gImpaIdleAnim),
+                          ANIMMODE_LOOP, -8.0f);
+@@ -605,14 +673,16 @@ void func_809860DC(DemoIm* this, s32 arg1) {
+     }
+ }
+ 
+-void func_80986148(DemoIm* this) {
++// LLM generated name (HIGH), was func_80986148: plays gImpaStartWhistlingAnim backwards and enters action 14
++void DemoIm_SetupStopWhistling(DemoIm* this) {
+     Animation_Change(&this->skelAnime, &gImpaStartWhistlingAnim, -1.0f,
+                      Animation_GetLastFrame(&gImpaStartWhistlingAnim), 0.0f, ANIMMODE_ONCE, -8.0f);
+     this->action = 14;
+     this->drawConfig = 1;
+ }
+ 
+-void func_809861C4(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809861C4: dispatches each new cue 5 action during the whistling scene
++void DemoIm_HandleWhistleCues(DemoIm* this, PlayState* play) {
+     CsCmdActorCue* npcAction = DemoIm_GetNpcAction(play, 5);
+ 
+     if (npcAction != NULL) {
+@@ -622,7 +692,7 @@ void func_809861C4(DemoIm* this, PlayState* play) {
+         if (action != unk_274) {
+             switch (action) {
+                 case 9:
+-                    func_80986148(this);
++                    DemoIm_SetupStopWhistling(this);  // was func_80986148 [LLM:HIGH]
+                     break;
+                 case 7:
+                     Animation_Change(&this->skelAnime, &gImpaWhistlingAnim, 1.0f, 0.0f,
+@@ -637,7 +707,8 @@ void func_809861C4(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8098629C(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8098629C: returns to action 21 once the cutscene finishes
++void DemoIm_ReturnToIdleWhenCsEnds(DemoIm* this, PlayState* play) {
+     if (DemoIm_IsCsStateIdle(play)) {
+         this->action = 21;
+         this->drawConfig = 1;
+@@ -645,7 +716,8 @@ void func_8098629C(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809862E0(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809862E0: dispatches each new cue 5 action during the courtyard scene
++void DemoIm_HandleCourtyardCues(DemoIm* this, PlayState* play) {
+     CsCmdActorCue* npcAction = DemoIm_GetNpcAction(play, 5);
+ 
+     if (npcAction != NULL) {
+@@ -655,19 +727,19 @@ void func_809862E0(DemoIm* this, PlayState* play) {
+         if (action != unk_274) {
+             switch (action) {
+                 case 1:
+-                    func_80985F54(this);
++                    DemoIm_SetupHiddenCourtyard(this);  // was func_80985F54 [LLM:HIGH]
+                     break;
+                 case 2:
+-                    func_80985F64(this, play);
++                    DemoIm_SetupIdleOnCue(this, play);  // was func_80985F64 [LLM:HIGH]
+                     break;
+                 case 7:
+-                    func_8098604C(this);
++                    DemoIm_SetupStartWhistling(this);  // was func_8098604C [LLM:HIGH]
+                     break;
+                 case 8:
+-                    func_809860C8(this);
++                    DemoIm_SetupWhistling(this);  // was func_809860C8 [LLM:HIGH]
+                     break;
+                 case 9:
+-                    func_80986148(this);
++                    DemoIm_SetupStopWhistling(this);  // was func_80986148 [LLM:HIGH]
+                     break;
+                 default:
+                     osSyncPrintf("Demo_Im_Ocarina_Check_DemoMode:そんな動作は無い!!!!!!!!\n");
+@@ -677,52 +749,54 @@ void func_809862E0(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809863BC(DemoIm* this, PlayState* play) {
+-    func_809862E0(this, play);
++void DemoIm_Action10(DemoIm* this, PlayState* play) {
++    DemoIm_HandleCourtyardCues(this, play);  // was func_809862E0 [LLM:HIGH]
+ }
+ 
+-void func_809863DC(DemoIm* this, PlayState* play) {
++void DemoIm_Action11(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80985EAC(this, play);
+-    func_80984BE0(this);
+-    func_809862E0(this, play);
++    DemoIm_TrackPlayerDuringCs(this, play);  // was func_80985EAC [LLM:HIGH]
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_HandleCourtyardCues(this, play);  // was func_809862E0 [LLM:HIGH]
+ }
+ 
+-void func_80986430(DemoIm* this, PlayState* play) {
++void DemoIm_Action12(DemoIm* this, PlayState* play) {
+     s32 sp24;
+ 
+     DemoIm_UpdateBgCheckInfo(this, play);
+     sp24 = DemoIm_UpdateSkelAnime(this);
+-    func_80985EAC(this, play);
+-    func_80984BE0(this);
+-    func_80985FE8(this, sp24);
+-    func_809862E0(this, play);
++    DemoIm_TrackPlayerDuringCs(this, play);  // was func_80985EAC [LLM:HIGH]
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_StartWhistleLoopWhenAnimDone(this, sp24);  // was func_80985FE8 [LLM:HIGH]
++    DemoIm_HandleCourtyardCues(this, play);  // was func_809862E0 [LLM:HIGH]
+ }
+ 
+-void func_80986494(DemoIm* this, PlayState* play) {
++void DemoIm_Action13(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+-    func_80985EF4(this);
+-    func_80984BE0(this);
+-    func_809861C4(this, play);
++    DemoIm_UpdateAnimUnlessLastFrame(this);  // was func_80985EF4 [LLM:HIGH]
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_HandleWhistleCues(this, play);  // was func_809861C4 [LLM:HIGH]
+ }
+ 
+-void func_809864D4(DemoIm* this, PlayState* play) {
++void DemoIm_Action14(DemoIm* this, PlayState* play) {
+     s32 sp24;
+ 
+     DemoIm_UpdateBgCheckInfo(this, play);
+     sp24 = DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_809860DC(this, sp24);
+-    func_8098629C(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_ReturnToIdleWhenAnimDone(this, sp24);  // was func_809860DC [LLM:HIGH]
++    DemoIm_ReturnToIdleWhenCsEnds(this, play);  // was func_8098629C [LLM:HIGH]
+ }
+ 
+-void func_8098652C(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8098652C: loops the idle animation and enters action 15
++void DemoIm_SetupIdleAction15(DemoIm* this, PlayState* play) {
+     DemoIm_ChangeAnim(this, &gImpaIdleAnim, ANIMMODE_LOOP, 0.0f, false);
+     this->action = 15;
+ }
+ 
+-void func_80986570(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80986570: plays the floor's own footstep sound at animation frame 7 while grounded
++void DemoIm_PlayFootstepSfx(DemoIm* this, PlayState* play) {
+     if (Animation_OnFrame(&this->skelAnime, 7.0f) && (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+         u32 sfxId = SFX_FLAG;
+ 
+@@ -732,7 +806,8 @@ void func_80986570(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809865F8(DemoIm* this, PlayState* play, s32 arg2) {
++// LLM generated name (GUESS), was func_809865F8: drives the deku nut throw off an unnamed float field; named for the animation it accompanies
++void DemoIm_UpdateNutThrow(DemoIm* this, PlayState* play, s32 arg2) {
+     s32 pad[2];
+ 
+     if (arg2 != 0) {
+@@ -756,27 +831,31 @@ void func_809865F8(DemoIm* this, PlayState* play, s32 arg2) {
+     }
+ }
+ 
+-void func_80986700(DemoIm* this) {
++// LLM generated name (HIGH), was func_80986700: enters action 15 with nothing drawn
++void DemoIm_SetupHiddenAction15(DemoIm* this) {
+     this->action = 15;
+     this->drawConfig = 0;
+ }
+ 
+-void func_80986710(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80986710: loops the idle, snaps onto cue 5 and enters action 16
++void DemoIm_SetupIdleAction16(DemoIm* this, PlayState* play) {
+     Animation_Change(&this->skelAnime, &gImpaIdleAnim, 1.0f, 0.0f, Animation_GetLastFrame(&gImpaIdleAnim),
+                      ANIMMODE_LOOP, 0.0f);
+-    func_80985180(this, play, 5);
++    DemoIm_SetPosRotFromCue(this, play, 5);  // was func_80985180 [LLM:HIGH]
+     this->action = 16;
+     this->drawConfig = 1;
+ }
+ 
+-void func_80986794(DemoIm* this) {
++// LLM generated name (HIGH), was func_80986794: plays gImpaThrowDekuNutAnim and enters action 17
++void DemoIm_SetupThrowNut(DemoIm* this) {
+     Animation_Change(&this->skelAnime, &gImpaThrowDekuNutAnim, 1.0f, 0.0f,
+                      Animation_GetLastFrame(&gImpaThrowDekuNutAnim), ANIMMODE_ONCE, -8.0f);
+     this->action = 17;
+     this->drawConfig = 1;
+ }
+ 
+-void func_8098680C(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8098680C: dispatches each new cue 5 action during the castle escape
++void DemoIm_HandleEscapeCues(DemoIm* this, PlayState* play) {
+     CsCmdActorCue* npcAction = DemoIm_GetNpcAction(play, 5);
+ 
+     if (npcAction != NULL) {
+@@ -786,13 +865,13 @@ void func_8098680C(DemoIm* this, PlayState* play) {
+         if (action != unk_274) {
+             switch (action) {
+                 case 1:
+-                    func_80986700(this);
++                    DemoIm_SetupHiddenAction15(this);  // was func_80986700 [LLM:HIGH]
+                     break;
+                 case 2:
+-                    func_80986710(this, play);
++                    DemoIm_SetupIdleAction16(this, play);  // was func_80986710 [LLM:HIGH]
+                     break;
+                 case 10:
+-                    func_80986794(this);
++                    DemoIm_SetupThrowNut(this);  // was func_80986794 [LLM:HIGH]
+                     break;
+                 case 11:
+                     Actor_Kill(&this->actor);
+@@ -805,35 +884,37 @@ void func_8098680C(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809868E8(DemoIm* this, PlayState* play) {
+-    func_8098680C(this, play);
++void DemoIm_Action15(DemoIm* this, PlayState* play) {
++    DemoIm_HandleEscapeCues(this, play);  // was func_8098680C [LLM:HIGH]
+ }
+ 
+-void func_80986908(DemoIm* this, PlayState* play) {
++void DemoIm_Action16(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_8098680C(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_HandleEscapeCues(this, play);  // was func_8098680C [LLM:HIGH]
+ }
+ 
+-void func_80986948(DemoIm* this, PlayState* play) {
++void DemoIm_Action17(DemoIm* this, PlayState* play) {
+     s32 sp24;
+ 
+     DemoIm_UpdateBgCheckInfo(this, play);
+     sp24 = DemoIm_UpdateSkelAnime(this);
+-    func_80986570(this, play);
+-    func_80984BE0(this);
+-    func_809865F8(this, play, sp24);
+-    func_8098680C(this, play);
++    DemoIm_PlayFootstepSfx(this, play);  // was func_80986570 [LLM:HIGH]
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_UpdateNutThrow(this, play, sp24);  // was func_809865F8 [LLM:GUESS]
++    DemoIm_HandleEscapeCues(this, play);  // was func_8098680C [LLM:HIGH]
+ }
+ 
+-void func_809869B0(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809869B0: loops the idle with no shadow at action 18
++void DemoIm_SetupHiddenAction18(DemoIm* this, PlayState* play) {
+     DemoIm_ChangeAnim(this, &gImpaIdleAnim, ANIMMODE_LOOP, 0.0f, false);
+     this->action = 18;
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-s32 func_809869F8(DemoIm* this, PlayState* play) {
++// LLM generated name (GUESS), was func_809869F8: true once the player is far enough along X and Impa is off screen; the threshold is a kREG so the courtyard reading comes from the scene she runs in
++s32 DemoIm_IsPlayerPastCourtyardEdge(DemoIm* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 playerPosX = player->actor.world.pos.x;
+     f32 thisPosX = this->actor.world.pos.x;
+@@ -845,7 +926,8 @@ s32 func_809869F8(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80986A5C(DemoIm* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80986A5C: true once the player closes to within another kREG distance along X and no cutscene is running
++s32 DemoIm_IsPlayerNearCourtyard(DemoIm* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 playerPosX = player->actor.world.pos.x;
+     f32 thisPosX = this->actor.world.pos.x;
+@@ -857,7 +939,8 @@ s32 func_80986A5C(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80986AD0(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80986AD0: offers text 0x708E and reports when the player accepts
++s32 DemoIm_OfferTalk(DemoIm* this, PlayState* play) {
+     this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY;
+     if (!Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->actor.textId = 0x708E;
+@@ -868,7 +951,8 @@ s32 func_80986AD0(DemoIm* this, PlayState* play) {
+     return false;
+ }
+ 
+-void func_80986B2C(PlayState* play) {
++// LLM generated name (HIGH), was func_80986B2C: sends the player out of the courtyard once the textbox closes, honouring entrance randomizer
++void DemoIm_LeaveCourtyardOnTextClose(PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         Player* player = GET_PLAYER(play);
+ 
+@@ -884,8 +968,9 @@ void func_80986B2C(PlayState* play) {
+     }
+ }
+ 
+-void func_80986BA0(DemoIm* this, PlayState* play) {
+-    if (func_809869F8(this, play)) {
++// LLM generated name (HIGH), was func_80986BA0: pops Impa in at action 21 once the player is past her
++void DemoIm_AppearWhenPlayerPasses(DemoIm* this, PlayState* play) {
++    if (DemoIm_IsPlayerPastCourtyardEdge(this, play)) {  // was func_809869F8 [LLM:GUESS]
+         this->action = 21;
+         this->drawConfig = 1;
+         this->unk_280 = 1;
+@@ -893,13 +978,15 @@ void func_80986BA0(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80986BE4(DemoIm* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80986BE4: moves to action 22 once the talk is accepted
++void DemoIm_GoToAction22WhenTalked(DemoIm* this, s32 arg1) {
+     if (arg1 != 0) {
+         this->action = 22;
+     }
+ }
+ 
+-void func_80986BF8(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80986BF8: pops Impa in at action 24 once Zelda's letter has been obtained
++void DemoIm_AppearAfterZeldasLetter(DemoIm* this, PlayState* play) {
+     if (Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_ZELDAS_LETTER)) {
+         this->action = 24;
+         this->drawConfig = 1;
+@@ -908,12 +995,13 @@ void func_80986BF8(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80986C30(DemoIm* this, PlayState* play) {
+-    if (func_80986A5C(this, play)) {
++// LLM generated name (HIGH), was func_80986C30: triggers the Zelda's Lullaby cutscene when the player comes close
++void DemoIm_StartLullabyCs(DemoIm* this, PlayState* play) {
++    if (DemoIm_IsPlayerNearCourtyard(this, play)) {  // was func_80986A5C [LLM:GUESS]
+         if (GameInteractor_Should(VB_PLAY_ZELDAS_LULLABY_CS, true, this)) {
+             play->csCtx.segment = SEGMENTED_TO_VIRTUAL(gZeldasCourtyardLullabyCs);
+             gSaveContext.cutsceneTrigger = 1;
+-            func_80985F54(this);
++            DemoIm_SetupHiddenCourtyard(this);  // was func_80985F54 [LLM:HIGH]
+         }
+         Flags_SetEventChkInf(EVENTCHKINF_LEARNED_ZELDAS_LULLABY);
+         if (GameInteractor_Should(VB_GIVE_ITEM_SONG, true, ITEM_SONG_LULLABY)) {
+@@ -922,7 +1010,8 @@ void func_80986C30(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80986CC8(DemoIm* this) {
++// LLM generated name (HIGH), was func_80986CC8: the same letter check entering action 26 instead
++void DemoIm_AppearAfterZeldasLetter2(DemoIm* this) {
+     if (Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_ZELDAS_LETTER)) {
+         this->action = 26;
+         this->drawConfig = 1;
+@@ -931,14 +1020,15 @@ void func_80986CC8(DemoIm* this) {
+     }
+ }
+ 
+-void func_80986CFC(DemoIm* this, PlayState* play) {
+-    if (func_80986A5C(this, play)) {
++// LLM generated name (HIGH), was func_80986CFC: sets EVENTCHKINF_4C and moves to action 19 when the player comes close
++void DemoIm_LeaveWhenPlayerNear(DemoIm* this, PlayState* play) {
++    if (DemoIm_IsPlayerNearCourtyard(this, play)) {  // was func_80986A5C [LLM:GUESS]
+         Flags_SetEventChkInf(EVENTCHKINF_4C);
+         this->action = 19;
+     }
+ }
+ 
+-void func_80986D40(DemoIm* this, PlayState* play) {
++void DemoIm_Action18(DemoIm* this, PlayState* play) {
+     if (gSaveContext.sceneLayer == 6) {
+         this->action = 19;
+         this->drawConfig = 1;
+@@ -952,71 +1042,73 @@ void func_80986D40(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80986DC8(DemoIm* this, PlayState* play) {
++void DemoIm_Action19(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_80984E58(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_TrackPlayerWithinAngle(this, play);  // was func_80984E58 [LLM:HIGH]
+     this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+ }
+ 
+-void func_80986E20(DemoIm* this, PlayState* play) {
+-    func_80986BA0(this, play);
++void DemoIm_Action20(DemoIm* this, PlayState* play) {
++    DemoIm_AppearWhenPlayerPasses(this, play);  // was func_80986BA0 [LLM:HIGH]
+ }
+ 
+-void func_80986E40(DemoIm* this, PlayState* play) {
++void DemoIm_Action21(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_80984E58(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_TrackPlayerWithinAngle(this, play);  // was func_80984E58 [LLM:HIGH]
+     DemoIm_UpdateCollider(this, play);
+-    func_80986BE4(this, func_80986AD0(this, play));
++    DemoIm_GoToAction22WhenTalked(this, DemoIm_OfferTalk(this, play));  // was func_80986AD0 [LLM:HIGH]
+ }
+ 
+-void func_80986EAC(DemoIm* this, PlayState* play) {
++void DemoIm_Action22(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_80984F94(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_TrackPlayerBody(this, play);  // was func_80984F94 [LLM:HIGH]
+     DemoIm_UpdateCollider(this, play);
+-    func_80986B2C(play);
++    DemoIm_LeaveCourtyardOnTextClose(play);  // was func_80986B2C [LLM:HIGH]
+ }
+ 
+-void func_80986F08(DemoIm* this, PlayState* play) {
+-    func_80986BF8(this, play);
++void DemoIm_Action23(DemoIm* this, PlayState* play) {
++    DemoIm_AppearAfterZeldasLetter(this, play);  // was func_80986BF8 [LLM:HIGH]
+ }
+ 
+-void func_80986F28(DemoIm* this, PlayState* play) {
++void DemoIm_Action24(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_80984E58(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_TrackPlayerWithinAngle(this, play);  // was func_80984E58 [LLM:HIGH]
+     DemoIm_UpdateCollider(this, play);
+-    func_80986C30(this, play);
++    DemoIm_StartLullabyCs(this, play);  // was func_80986C30 [LLM:HIGH]
+ }
+ 
+-void func_80986F88(DemoIm* this, PlayState* play) {
+-    func_80986CC8(this);
++void DemoIm_Action25(DemoIm* this, PlayState* play) {
++    DemoIm_AppearAfterZeldasLetter2(this);  // was func_80986CC8 [LLM:HIGH]
+ }
+ 
+-void func_80986FA8(DemoIm* this, PlayState* play) {
++void DemoIm_Action26(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_80984E58(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_TrackPlayerWithinAngle(this, play);  // was func_80984E58 [LLM:HIGH]
+     this->actor.flags &= ~(ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_FRIENDLY);
+     DemoIm_UpdateCollider(this, play);
+-    func_80986CFC(this, play);
++    DemoIm_LeaveWhenPlayerNear(this, play);  // was func_80986CFC [LLM:HIGH]
+ }
+ 
+-void func_80987018(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80987018: loops the idle with nothing drawn at action 27
++void DemoIm_SetupHiddenAction27(DemoIm* this, PlayState* play) {
+     DemoIm_ChangeAnim(this, &gImpaIdleAnim, ANIMMODE_LOOP, 0.0f, false);
+     this->action = 27;
+     this->drawConfig = 0;
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-void func_80987064(DemoIm* this) {
++// LLM generated name (HIGH), was func_80987064: ramps the alpha and shadow up over the kREG-tunable window
++void DemoIm_FadeIn(DemoIm* this) {
+     f32* unk_268 = &this->unk_268;
+     f32 temp;
+     s32 alpha = 255;
+@@ -1031,31 +1123,36 @@ void func_80987064(DemoIm* this) {
+     }
+ }
+ 
+-void func_809870F0(DemoIm* this, PlayState* play) {
+-    func_80985200(this, play, 5);
++// LLM generated name (HIGH), was func_809870F0: snaps onto cue 5 and starts the translucent fade at action 28
++void DemoIm_SetupFadeInAction28(DemoIm* this, PlayState* play) {
++    DemoIm_SetPosRotFromCue2(this, play, 5);  // was func_80985200 [LLM:HIGH]
+     this->action = 28;
+     this->drawConfig = 2;
+ }
+ 
+-void func_80987128(DemoIm* this) {
++// LLM generated name (HIGH), was func_80987128: switches to the solid draw once the fade completes
++void DemoIm_CheckFadeInDone(DemoIm* this) {
+     if (this->unk_268 >= kREG(17) + 10.0f) {
+         this->action = 29;
+         this->drawConfig = 1;
+     }
+ }
+ 
+-void func_80987174(DemoIm* this) {
++// LLM generated name (HIGH), was func_80987174: plays object_im_Anim_0101C8 once and enters action 30
++void DemoIm_SetupFinalAnim(DemoIm* this) {
+     DemoIm_ChangeAnim(this, &object_im_Anim_0101C8, ANIMMODE_ONCE, -8.0f, false);
+     this->action = 30;
+ }
+ 
+-void func_809871B4(DemoIm* this, s32 arg1) {
++// LLM generated name (HIGH), was func_809871B4: loops object_im_Anim_00FB10 once that animation ends
++void DemoIm_LoopFinalAnimWhenDone(DemoIm* this, s32 arg1) {
+     if (arg1 != 0) {
+         DemoIm_ChangeAnim(this, &object_im_Anim_00FB10, ANIMMODE_LOOP, 0.0f, false);
+     }
+ }
+ 
+-void func_809871E8(DemoIm* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809871E8: dispatches each new cue 5 action during the closing scene
++void DemoIm_HandleFinalCues(DemoIm* this, PlayState* play) {
+     CsCmdActorCue* npcAction = DemoIm_GetNpcAction(play, 5);
+ 
+     if (npcAction != NULL) {
+@@ -1065,10 +1162,10 @@ void func_809871E8(DemoIm* this, PlayState* play) {
+         if (action != unk_274) {
+             switch (action) {
+                 case 12:
+-                    func_809870F0(this, play);
++                    DemoIm_SetupFadeInAction28(this, play);  // was func_809870F0 [LLM:HIGH]
+                     break;
+                 case 13:
+-                    func_80987174(this);
++                    DemoIm_SetupFinalAnim(this);  // was func_80987174 [LLM:HIGH]
+                     break;
+                 default:
+                     osSyncPrintf("Demo_Im_inEnding_Check_DemoMode:そんな動作は無い!!!!!!!!\n");
+@@ -1078,32 +1175,32 @@ void func_809871E8(DemoIm* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80987288(DemoIm* this, PlayState* play) {
+-    func_809871E8(this, play);
++void DemoIm_Action27(DemoIm* this, PlayState* play) {
++    DemoIm_HandleFinalCues(this, play);  // was func_809871E8 [LLM:HIGH]
+ }
+ 
+-void func_809872A8(DemoIm* this, PlayState* play) {
++void DemoIm_Action28(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_80987064(this);
+-    func_80987128(this);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_FadeIn(this);  // was func_80987064 [LLM:HIGH]
++    DemoIm_CheckFadeInDone(this);  // was func_80987128 [LLM:HIGH]
+ }
+ 
+-void func_809872F0(DemoIm* this, PlayState* play) {
++void DemoIm_Action29(DemoIm* this, PlayState* play) {
+     DemoIm_UpdateBgCheckInfo(this, play);
+     DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_809871E8(this, play);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_HandleFinalCues(this, play);  // was func_809871E8 [LLM:HIGH]
+ }
+ 
+-void func_80987330(DemoIm* this, PlayState* play) {
++void DemoIm_Action30(DemoIm* this, PlayState* play) {
+     s32 sp1C;
+ 
+     DemoIm_UpdateBgCheckInfo(this, play);
+     sp1C = DemoIm_UpdateSkelAnime(this);
+-    func_80984BE0(this);
+-    func_809871B4(this, sp1C);
++    DemoIm_UpdateEyes(this);  // was func_80984BE0 [LLM:HIGH]
++    DemoIm_LoopFinalAnimWhenDone(this, sp1C);  // was func_809871B4 [LLM:HIGH]
+ }
+ 
+ void DemoIm_Update(Actor* thisx, PlayState* play) {
+@@ -1126,22 +1223,22 @@ void DemoIm_Init(Actor* thisx, PlayState* play) {
+ 
+     switch (this->actor.params) {
+         case 2:
+-            func_80985860(this, play);
++            DemoIm_SetupHiddenIdle(this, play);  // was func_80985860 [LLM:HIGH]
+             break;
+         case 3:
+-            func_80985E60(this, play);
++            DemoIm_SetupCourtyardIdle(this, play);  // was func_80985E60 [LLM:HIGH]
+             break;
+         case 4:
+-            func_8098652C(this, play);
++            DemoIm_SetupIdleAction15(this, play);  // was func_8098652C [LLM:HIGH]
+             break;
+         case 5:
+-            func_809869B0(this, play);
++            DemoIm_SetupHiddenAction18(this, play);  // was func_809869B0 [LLM:HIGH]
+             break;
+         case 6:
+-            func_80987018(this, play);
++            DemoIm_SetupHiddenAction27(this, play);  // was func_80987018 [LLM:HIGH]
+             break;
+         default:
+-            func_80985310(this, play);
++            DemoIm_SetupUnderground(this, play);  // was func_80985310 [LLM:HIGH]
+     }
+ }
+ 
+@@ -1181,7 +1278,7 @@ void DemoIm_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
+     DemoIm* this = (DemoIm*)thisx;
+ 
+     if (limbIndex == IMPA_LIMB_HEAD) {
+-        Vec3f sp28 = D_809887D8;
++        Vec3f sp28 = sHeadFocusOffset;  // was D_809887D8 [LLM:HIGH]
+         Vec3f dest;
+ 
+         Matrix_MultVec3f(&sp28, &dest);
+diff --git a/soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.h b/soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.h
+index e25aee903..874c234f6 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.h
++++ b/soh/src/overlays/actors/ovl_Demo_Im/z_demo_im.h
+@@ -51,6 +51,6 @@ typedef struct DemoIm {
+     /* 0x02D4 */ NpcInteractInfo interactInfo;
+ } DemoIm; // size = 0x02FC
+ 
+-void func_80986794(DemoIm* demoIm);
++void DemoIm_SetupThrowNut(DemoIm* demoIm);  // was func_80986794 [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

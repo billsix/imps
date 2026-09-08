@@ -32,17 +32,29 @@ try to patch symbols that no longer exist under those names. The stream folders
 stay separate regardless — that is what keeps `upstream-candidates/` submittable
 on its own (see `../CLAUDE.md`).
 
-- `patches/personal/0001…3799-*.patch` — the decomp rename series, **one
-  rename per patch**: 18 patches renaming address-named
-  `soh/src/code/code_<addr>.c` files, then 3,781 renaming a single `func_`/
-  `D_`/type symbol each (everywhere it occurs). Provenance per symbol:
+- `patches/personal/0001…0488-*.patch` — the decomp rename series, **one
+  file per patch**: patch 0001 renames the 18 address-named
+  `soh/src/code/code_<addr>.c` files, and each of the other 487 names every
+  address-named symbol in one definition file (156 of those files hold a single
+  symbol). **Squashed 2026-09-08 from 3,799 one-rename-per-commit patches** —
+  that grain was right for *producing* the work (a breakage localises to one
+  symbol) and wrong for *reviewing* it. The squash is content-neutral: the
+  pre- and post-squash trees have the identical SHA and the identical diff from
+  the pin. Each grouped patch keeps every folded commit's per-symbol
+  justification in its message, under a header that states the provenance rules
+  once. Method, decisions and the branches left behind (`squash-backup` is the
+  undo):
+  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/ocarina-deduce-remaining-decomp-names.md),
+  "Step 9 as executed". Provenance per symbol:
   **665 adopted from zeldaret/oot**, **2,844 deduced at HIGH confidence**,
   **272 deduced as GUESS**. Every renamed symbol carries a
   provenance comment at its definition **and** a short `// was func_… [oot]`
   / `[LLM:HIGH]` tag at each header declaration (and, for a guess, at every
   call site), so a reader of `functions.h` can tell an upstream name from one
   of our deductions. `git grep '\[LLM:'` lists every place the decomp leans on
-  an inference.
+  an inference. `tools/check_renames.py series` gates the whole series on one
+  property: **no rename may happen that its commit message does not account
+  for**, and every claimed rename must be total.
   **Every address-named symbol in the tree now has a name except four**, all in
   declared exclusions: `func_800FBCE0` / `func_800FBFD8` (the RCP block in
   `code_800FBCE0.c`) and `func_80837C0C` / `func_80838940` (`z_player.c`).

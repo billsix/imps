@@ -1,0 +1,88 @@
+From 10fdb65865ae377b0b9276c34ddd4be9e600595e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:39 +0000
+Subject: [PATCH 459/488] soh: name the 2 address-named symbols defined in
+ audio_data.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/audio_data.c.
+
+  * D_8012EA90 -> sUnusedAudioTable1
+    deduced, confidence GUESS: an s16 table in audio_data.c that nothing in
+    the tree reads
+
+  * D_80130418 -> sUnusedAudioMatrix
+    deduced, confidence GUESS: an 8 by 8 s16 table in audio_data.c that
+    nothing in the tree reads
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/audio_data.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/code/audio_data.c b/soh/src/code/audio_data.c
+index 1f2255a4e..cf961a08a 100644
+--- a/soh/src/code/audio_data.c
++++ b/soh/src/code/audio_data.c
+@@ -212,7 +212,8 @@ s16 gWhiteNoiseSample[] = {
+ };
+ 
+ // Sine White Noise?
+-s16 D_8012EA90[] = {
++// LLM generated name (GUESS), was D_8012EA90: an s16 table in audio_data.c that nothing in the tree reads
++s16 sUnusedAudioTable1[] = {  // was D_8012EA90 [LLM:GUESS]
+     // Frequency of 1
+     0,      16316,  20148,  20257,  27209,  -32657, 29264,  27259,
+     -29394, -21494, -26410, 30770,  30033,  29130,  20206,  14129,
+@@ -343,7 +344,7 @@ s16 gQuarterPulseWaveSample[] = {
+ 
+ s16* gWaveSamples[] = {
+     gSawtoothWaveSample, gTriangleWaveSample,    gSineWaveSample,         gSquareWaveSample,       gWhiteNoiseSample,
+-    D_8012EA90,          gEighthPulseWaveSample, gQuarterPulseWaveSample, gQuarterPulseWaveSample,
++    sUnusedAudioTable1,          gEighthPulseWaveSample, gQuarterPulseWaveSample, gQuarterPulseWaveSample,  // was D_8012EA90 [LLM:GUESS]
+ };
+ 
+ f32 gBendPitchOneOctaveFrequencies[] = {
+@@ -664,7 +665,8 @@ s16 sHighPassFilterData[15 * 8] = {
+     /* 0xE */ -772,  -3,    -6985, 17240, -6985, -3,    -772,  -3,
+ };
+ 
+-s16 D_80130418[8 * 8] = {
++// LLM generated name (GUESS), was D_80130418: an 8 by 8 s16 table in audio_data.c that nothing in the tree reads
++s16 sUnusedAudioMatrix[8 * 8] = {  // was D_80130418 [LLM:GUESS]
+     /* 0x0 */ 0,      6392,   12539,  18204,  23169,  27244,  30272,  32137,
+     /* 0x1 */ 32767,  32137,  30272,  27244,  23169,  18204,  12539,  6392,
+     /* 0x2 */ 0,      -3211,  -6392,  -9511,  -12539, -15446, -18204, -20787,
+-- 
+2.55.0
+

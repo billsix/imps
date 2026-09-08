@@ -1,0 +1,107 @@
+From e82887c7e61530a86408013eab4e84e784067f78 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:39 +0000
+Subject: [PATCH 462/488] soh: name the 2 address-named symbols defined in
+ z_en_item00.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_en_item00.c.
+
+  * D_80157D90 -> sDynaPolyCheckFrame
+    deduced, confidence HIGH: the gameplay frame the shared dynapoly
+    movement test last ran on, so it runs once a frame for all collectibles
+
+  * D_80157D94 -> sDynaPolyMoved
+    deduced, confidence HIGH: whether any dynapoly actor moved on that frame
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_en_item00.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/code/z_en_item00.c b/soh/src/code/z_en_item00.c
+index 3a8415673..34f9c0414 100644
+--- a/soh/src/code/z_en_item00.c
++++ b/soh/src/code/z_en_item00.c
+@@ -759,8 +759,8 @@ void EnItem00_Collected(EnItem00* this, PlayState* play) {
+ 
+ // The BSS in the function acted weird in the past. It is matching now but might cause issues in the future
+ void EnItem00_Update(Actor* thisx, PlayState* play) {
+-    static u32 D_80157D90;
+-    static s16 D_80157D94[1];
++    static u32 sDynaPolyCheckFrame;  // was D_80157D90 [LLM:HIGH]
++    static s16 sDynaPolyMoved[1];  // was D_80157D94 [LLM:HIGH]
+     s16* params;
+     Actor* dynaActor;
+     s32 getItemId = GI_NONE;
+@@ -794,7 +794,7 @@ void EnItem00_Update(Actor* thisx, PlayState* play) {
+ 
+     this->actionFunc(this, play);
+     Math_SmoothStepToF(&this->actor.scale.x, this->scale, 0.1f, this->scale * 0.1f, 0.0f);
+-    temp = &D_80157D90;
++    temp = &sDynaPolyCheckFrame;  // was D_80157D90 [LLM:HIGH]
+ 
+     this->actor.scale.z = this->actor.scale.x;
+     this->actor.scale.y = this->actor.scale.x;
+@@ -802,8 +802,8 @@ void EnItem00_Update(Actor* thisx, PlayState* play) {
+     if (this->actor.gravity) {
+         if (this->actor.bgCheckFlags & 0x0003) {
+             if (*temp != play->gameplayFrames) {
+-                D_80157D90 = play->gameplayFrames;
+-                D_80157D94[0] = 0;
++                sDynaPolyCheckFrame = play->gameplayFrames;  // was D_80157D90 [LLM:HIGH]
++                sDynaPolyMoved[0] = 0;  // was D_80157D94 [LLM:HIGH]
+                 for (i = 0; i < 50; i++) {
+                     if (play->colCtx.dyna.bgActorFlags[i] & 1) {
+                         dynaActor = play->colCtx.dyna.bgActors[i].actor;
+@@ -811,7 +811,7 @@ void EnItem00_Update(Actor* thisx, PlayState* play) {
+                             if ((dynaActor->world.pos.x != dynaActor->prevPos.x) ||
+                                 (dynaActor->world.pos.y != dynaActor->prevPos.y) ||
+                                 (dynaActor->world.pos.z != dynaActor->prevPos.z)) {
+-                                D_80157D94[0]++;
++                                sDynaPolyMoved[0]++;  // was D_80157D94 [LLM:HIGH]
+                                 break;
+                             }
+                         }
+@@ -824,7 +824,7 @@ void EnItem00_Update(Actor* thisx, PlayState* play) {
+             Actor_MoveXZGravity(&this->actor);
+         }
+ 
+-        if (sp3A || D_80157D94[0]) {
++        if (sp3A || sDynaPolyMoved[0]) {  // was D_80157D94 [LLM:HIGH]
+             Actor_UpdateBgCheckInfo(play, &this->actor, 10.0f, 15.0f, 15.0f, 0x1D);
+ 
+             if (GameInteractor_Should(VB_ITEM00_KILL, this->actor.floorHeight <= -10000.0f, this)) {
+-- 
+2.55.0
+

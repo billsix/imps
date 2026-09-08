@@ -1,0 +1,190 @@
+From 948a712c7231ad4b1f0d69985e9091d47223e8b3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:34 +0000
+Subject: [PATCH 403/488] soh: name the 6 address-named symbols defined in
+ z_scene_table.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/code/z_scene_table.c.
+
+  * D_8012A2F8 -> sYdanTextures
+    deduced, confidence HIGH: the day and night entrance textures
+    Scene_DrawConfigYdan binds
+
+  * D_8012A330 -> sWaterTempleTextures
+    deduced, confidence HIGH: the day and night entrance textures the Water
+    Temple draw config binds
+
+  * D_8012A380 -> sSpot12Textures
+    deduced, confidence HIGH: the day and night textures the Gerudo Valley
+    draw config binds
+
+  * D_8012A39C -> sJabuJabuScrollA
+    deduced, confidence HIGH: the first of two angles the Jabu-Jabu draw
+    config advances by 1820 a frame to scroll its texture
+
+  * D_8012A3A0 -> sJabuJabuScrollB
+    deduced, confidence HIGH: the second such angle
+
+  * func_8009D974 -> Scene_DrawConfigSpiritTempleEntrance
+    deduced, confidence HIGH: the draw config that binds the already-named
+    sSpiritTempleEntranceTextures by time of day
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_scene_table.c | 40 ++++++++++++++++++++----------------
+ 1 file changed, 22 insertions(+), 18 deletions(-)
+
+diff --git a/soh/src/code/z_scene_table.c b/soh/src/code/z_scene_table.c
+index 5a865b92e..ccef996c6 100644
+--- a/soh/src/code/z_scene_table.c
++++ b/soh/src/code/z_scene_table.c
+@@ -118,7 +118,8 @@ void Scene_DrawConfigDefault(PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void* D_8012A2F8[] = {
++// LLM generated name (HIGH), was D_8012A2F8: the day and night entrance textures Scene_DrawConfigYdan binds
++void* sYdanTextures[] = {  // was D_8012A2F8 [LLM:HIGH]
+     gYdanTex_00BA18,
+     gYdanTex_00CA18,
+ };
+@@ -142,7 +143,7 @@ void Scene_DrawConfigYdan(PlayState* play) {
+     if (ResourceMgr_IsGameMasterQuest()) {
+         gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_8012A2F8_MQ[gSaveContext.nightFlag]));
+     } else {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_8012A2F8[gSaveContext.nightFlag]));
++        gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sYdanTextures[gSaveContext.nightFlag]));  // was D_8012A2F8 [LLM:HIGH]
+     }
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+@@ -460,7 +461,8 @@ void Scene_DrawConfigThievesHideout(PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void* D_8012A330[] = {
++// LLM generated name (HIGH), was D_8012A330: the day and night entrance textures the Water Temple draw config binds
++void* sWaterTempleTextures[] = {  // was D_8012A330 [LLM:HIGH]
+     gWaterTempleDayEntranceTex,
+     gWaterTempleNightEntranceTex,
+ };
+@@ -481,7 +483,7 @@ void Scene_DrawConfigWaterTemple(PlayState* play) {
+     if (ResourceMgr_IsGameMasterQuest()) {
+         gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_8012A330_MQ[gSaveContext.nightFlag]));
+     } else {
+-        gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_8012A330[gSaveContext.nightFlag]));
++        gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sWaterTempleTextures[gSaveContext.nightFlag]));  // was D_8012A330 [LLM:HIGH]
+     }
+ 
+     if (spB0 == 1) {
+@@ -1038,7 +1040,8 @@ void* sSpiritTempleEntranceTextures[] = {
+ };
+ 
+ // Scene Draw Config 25
+-void func_8009D974(PlayState* play) {
++// LLM generated name (HIGH), was func_8009D974: the draw config that binds the already-named sSpiritTempleEntranceTextures by time of day
++void Scene_DrawConfigSpiritTempleEntrance(PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     { s32 pad[2]; }
+@@ -1384,7 +1387,8 @@ void Scene_DrawConfigDesertColossus(PlayState* play) {
+ }
+ 
+ // walls of GF room where they throw you when you get caught
+-void* D_8012A380[] = {
++// LLM generated name (HIGH), was D_8012A380: the day and night textures the Gerudo Valley draw config binds
++void* sSpot12Textures[] = {  // was D_8012A380 [LLM:HIGH]
+     gSpot12_009678Tex,
+     gSpot12_00DE78Tex,
+ };
+@@ -1396,7 +1400,7 @@ void Scene_DrawConfigSpot12(PlayState* play) {
+ 
+     { s32 pad[2]; }
+ 
+-    gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_8012A380[gSaveContext.nightFlag]));
++    gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sSpot12Textures[gSaveContext.nightFlag]));  // was D_8012A380 [LLM:HIGH]
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+@@ -1594,8 +1598,8 @@ f32 sJabuJabuWobblePhase = 0.0f;  // was D_8012A398 [LLM:HIGH]
+ 
+ // Name from zeldaret/oot (was func_8009FE58): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_scene_table.c]
+ void Scene_DrawConfigJabuJabu(PlayState* play) {
+-    static s16 D_8012A39C = 538;
+-    static s16 D_8012A3A0 = 4272;
++    static s16 sJabuJabuScrollA = 538;  // was D_8012A39C [LLM:HIGH]
++    static s16 sJabuJabuScrollB = 4272;  // was D_8012A3A0 [LLM:HIGH]
+     u32 gameplayFrames;
+     f32 temp;
+ 
+@@ -1624,20 +1628,20 @@ void Scene_DrawConfigJabuJabu(PlayState* play) {
+     if (FrameAdvance_IsEnabled(play) != true) {
+ 
+         if (GameInteractor_Should(VB_JABU_WOBBLE, true)) {
+-            D_8012A39C += 1820;
+-            D_8012A3A0 += 1820;
++            sJabuJabuScrollA += 1820;  // was D_8012A39C [LLM:HIGH]
++            sJabuJabuScrollB += 1820;  // was D_8012A3A0 [LLM:HIGH]
+         }
+ 
+         temp = 0.020000001f;
+ 
+         if (play->pauseCtx.state == 0) {
+             View_SetDistortionOrientation(&play->view,
+-                                          ((360.00018f / 65535.0f) * (M_PI / 180.0f)) * temp * Math_CosS(D_8012A39C),
+-                                          ((360.00018f / 65535.0f) * (M_PI / 180.0f)) * temp * Math_SinS(D_8012A39C),
+-                                          ((360.00018f / 65535.0f) * (M_PI / 180.0f)) * temp * Math_SinS(D_8012A3A0));
+-            View_SetDistortionScale(&play->view, 1.f + (0.79999995f * temp * Math_SinS(D_8012A3A0)),
+-                                    1.f + (0.39999998f * temp * Math_CosS(D_8012A3A0)),
+-                                    1.f + (1 * temp * Math_CosS(D_8012A39C)));
++                                          ((360.00018f / 65535.0f) * (M_PI / 180.0f)) * temp * Math_CosS(sJabuJabuScrollA),  // was D_8012A39C [LLM:HIGH]
++                                          ((360.00018f / 65535.0f) * (M_PI / 180.0f)) * temp * Math_SinS(sJabuJabuScrollA),  // was D_8012A39C [LLM:HIGH]
++                                          ((360.00018f / 65535.0f) * (M_PI / 180.0f)) * temp * Math_SinS(sJabuJabuScrollB));  // was D_8012A3A0 [LLM:HIGH]
++            View_SetDistortionScale(&play->view, 1.f + (0.79999995f * temp * Math_SinS(sJabuJabuScrollB)),  // was D_8012A3A0 [LLM:HIGH]
++                                    1.f + (0.39999998f * temp * Math_CosS(sJabuJabuScrollB)),  // was D_8012A3A0 [LLM:HIGH]
++                                    1.f + (1 * temp * Math_CosS(sJabuJabuScrollA)));  // was D_8012A39C [LLM:HIGH]
+             View_SetDistortionSpeed(&play->view, 0.95f);
+         }
+ 
+@@ -1742,7 +1746,7 @@ void (*sSceneDrawHandlers[])(PlayState*) = {
+     Scene_DrawConfigDefault, Scene_DrawConfigHyruleField, Scene_DrawConfigKakarikoVillage, Scene_DrawConfigZorasRiver, Scene_DrawConfigKokiriForest, Scene_DrawConfigLakeHylia, Scene_DrawConfigZorasDomain,
+     Scene_DrawConfigZorasFountain, Scene_DrawConfigGerudoValley, Scene_DrawConfigSpot10, Scene_DrawConfigDesertColossus, Scene_DrawConfigSpot12, Scene_DrawConfigHauntedWasteland, Scene_DrawConfigHyruleCastle,
+     Scene_DrawConfigDeathMountainTrail, Scene_DrawConfigDeathMountainCrater, Scene_DrawConfigGoronCity, Scene_DrawConfigLonLonRanch, Scene_DrawConfigFireTemple, Scene_DrawConfigYdan, Scene_DrawConfigDodongosCavern,
+-    Scene_DrawConfigJabuJabu, Scene_DrawConfigForestTemple, Scene_DrawConfigWaterTemple, Scene_DrawConfigShadowTempleAndWell, func_8009D974, Scene_DrawConfigInsideGanonsCastle, Scene_DrawConfigGerudoTrainingGround,
++    Scene_DrawConfigJabuJabu, Scene_DrawConfigForestTemple, Scene_DrawConfigWaterTemple, Scene_DrawConfigShadowTempleAndWell, Scene_DrawConfigSpiritTempleEntrance, Scene_DrawConfigInsideGanonsCastle, Scene_DrawConfigGerudoTrainingGround,  // was func_8009D974 [LLM:HIGH]
+     Scene_DrawConfigDekuTreeBoss, Scene_DrawConfigWaterTempleBoss, Scene_DrawConfigTempleOfTime, Scene_DrawConfigGrottos, Scene_DrawConfigChamberOfTheSages, Scene_DrawConfigGreatFairyFountain, Scene_DrawConfigShootingGallery,
+     Scene_DrawConfigCastleCourtyardGuards, Scene_DrawConfigOutsideGanonsCastle, Scene_DrawConfigIceCavern, Scene_DrawConfigGanonsTowerCollapseExterior, Scene_DrawConfigFairysFountain, Scene_DrawConfigThievesHideout, Scene_DrawConfigBombchuBowlingAlley,
+     Scene_DrawConfigRoyalFamilysTomb, Scene_DrawConfigLakesideLaboratory, Scene_DrawConfigLonLonBuildings, Scene_DrawConfigMarketGuardHouse, Scene_DrawConfigPotionShopGranny, Scene_DrawConfigCalmWater, Scene_DrawConfigGraveExitLightShining,
+-- 
+2.55.0
+

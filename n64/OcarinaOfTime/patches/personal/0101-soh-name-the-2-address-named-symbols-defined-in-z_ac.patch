@@ -1,0 +1,105 @@
+From 2e40e4a4990fc9dacb87b74fc87625aa3f74d761 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:06 +0000
+Subject: [PATCH 101/488] soh: name the 2 address-named symbols defined in
+ z_actor.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_actor.c.
+
+  * D_80115FF8 -> sAttentionRanges
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * D_80116068 -> sCategoryFreezeMasks
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_actor.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index c00c1e451..53174f65f 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1915,14 +1915,15 @@ typedef struct {
+ #define TARGET_RANGE(range, leash) \
+     { SQ(range), (f32)range / leash }
+ 
+-TargetRangeParams D_80115FF8[] = {
++// Name from zeldaret/oot (was D_80115FF8): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_actor.c]
++TargetRangeParams sAttentionRanges[] = {
+     TARGET_RANGE(70, 140),   TARGET_RANGE(170, 255),    TARGET_RANGE(280, 5600),      TARGET_RANGE(350, 525),
+     TARGET_RANGE(700, 1050), TARGET_RANGE(1000, 1500),  TARGET_RANGE(100, 105.36842), TARGET_RANGE(140, 163.33333),
+     TARGET_RANGE(240, 576),  TARGET_RANGE(280, 280000),
+ };
+ 
+ u32 Attention_ActorIsInRange(Actor* actor, f32 arg1) {
+-    return arg1 < D_80115FF8[actor->targetMode].rangeSq;
++    return arg1 < sAttentionRanges[actor->targetMode].rangeSq;
+ }
+ 
+ s32 Attention_ShouldReleaseLockOn(Actor* actor, Player* player, s32 flag) {
+@@ -1941,7 +1942,7 @@ s32 Attention_ShouldReleaseLockOn(Actor* actor, Player* player, s32 flag) {
+             dist = actor->xyzDistToPlayerSq;
+         }
+ 
+-        return !Attention_ActorIsInRange(actor, D_80115FF8[actor->targetMode].leashScale * dist);
++        return !Attention_ActorIsInRange(actor, sAttentionRanges[actor->targetMode].leashScale * dist);
+     }
+ 
+     return false;
+@@ -2560,7 +2561,8 @@ void Actor_InitContext(PlayState* play, ActorContext* actorCtx, ActorEntry* acto
+     func_8002FA60(play);
+ }
+ 
+-u32 D_80116068[ACTORCAT_MAX] = {
++// Name from zeldaret/oot (was D_80116068): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_actor.c]
++u32 sCategoryFreezeMasks[ACTORCAT_MAX] = {
+     PLAYER_STATE1_TALKING | PLAYER_STATE1_DEAD | PLAYER_STATE1_IN_ITEM_CS,
+     PLAYER_STATE1_TALKING | PLAYER_STATE1_DEAD | PLAYER_STATE1_IN_ITEM_CS,
+     0,
+@@ -2615,7 +2617,7 @@ void Actor_UpdateAll(PlayState* play, ActorContext* actorCtx) {
+                     refActor->world.pos.z, 0, 0, 0, 1);
+     }
+ 
+-    sp80 = &D_80116068[0];
++    sp80 = &sCategoryFreezeMasks[0];
+ 
+     if (player->stateFlags2 & PLAYER_STATE2_OCARINA_PLAYING) {
+         unkFlag = ACTOR_FLAG_UPDATE_DURING_OCARINA;
+-- 
+2.55.0
+

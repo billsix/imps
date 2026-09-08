@@ -1,0 +1,186 @@
+From 5b65a8a830cff40088a8ce8821d12ca438051055 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:21 +0000
+Subject: [PATCH 266/488] soh: name the 4 address-named symbols defined in
+ z_file_nameset_PAL.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c; updating their references touches 3 files in total.
+
+  * D_808124C0 -> sNameCharXOffsets
+    deduced, confidence HIGH: indexed by the character code stored in
+    filename[], and added to the name-entry box X position to nudge each
+    drawn glyph.
+
+  * D_80812544 -> sKeyboardCharXOffsets
+    deduced, confidence HIGH: indexed by the keyboard cell index, and added
+    to each cell's X when laying out the keyboard vertices and when
+    positioning the cursor.
+
+  * D_808125EC -> sNameEntryBoxXPositions
+    deduced, confidence HIGH: the eleven X positions of the name-entry
+    plate's boxes, added to nameEntryBoxPosX when building nameEntryVtx.
+
+  * D_80812604 -> sNameEntryBoxYPositions
+    deduced, confidence HIGH: the matching eleven Y positions for the same
+    nameEntryVtx quads.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../gamestates/ovl_file_choose/file_choose.h  |  4 ++--
+ .../ovl_file_choose/z_file_nameset_NES.c      |  4 ++--
+ .../ovl_file_choose/z_file_nameset_PAL.c      | 24 +++++++++++--------
+ 3 files changed, 18 insertions(+), 14 deletions(-)
+
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/file_choose.h b/soh/src/overlays/gamestates/ovl_file_choose/file_choose.h
+index 62084c095..de6244602 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/file_choose.h
++++ b/soh/src/overlays/gamestates/ovl_file_choose/file_choose.h
+@@ -253,8 +253,8 @@ extern s16 gKeyboardCharactersAlphanumeric[];
+ 
+ extern s16 D_808127DC_ne0[];
+ 
+-extern s16 D_808125EC[];
+-extern s16 D_80812604[];
++extern s16 sNameEntryBoxXPositions[];  // was D_808125EC [LLM:HIGH]
++extern s16 sNameEntryBoxYPositions[];  // was D_80812604 [LLM:HIGH]
+ 
+ // Port Data:
+ extern s16 sLastCharIndex;
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
+index dd01c32ba..19376b3a6 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
+@@ -184,12 +184,12 @@ void FileChoose_SetNameEntryVtxNES(GameState* thisx) {
+ 
+     for (var_s0 = 0, var_t2 = 0; var_t2 < 44; var_t2 += 4, var_s0++) {
+         this->nameEntryVtx[var_t2].v.ob[0] = this->nameEntryVtx[var_t2 + 2].v.ob[0] =
+-            D_808125EC[var_s0] + this->nameEntryBoxPosX;
++            sNameEntryBoxXPositions[var_s0] + this->nameEntryBoxPosX;  // was D_808125EC [LLM:HIGH]
+ 
+         this->nameEntryVtx[var_t2 + 1].v.ob[0] = this->nameEntryVtx[var_t2 + 3].v.ob[0] =
+             this->nameEntryVtx[var_t2].v.ob[0] + 0xA;
+ 
+-        this->nameEntryVtx[var_t2].v.ob[1] = this->nameEntryVtx[var_t2 + 1].v.ob[1] = D_80812604[var_s0];
++        this->nameEntryVtx[var_t2].v.ob[1] = this->nameEntryVtx[var_t2 + 1].v.ob[1] = sNameEntryBoxYPositions[var_s0];  // was D_80812604 [LLM:HIGH]
+ 
+         this->nameEntryVtx[var_t2 + 2].v.ob[1] = this->nameEntryVtx[var_t2 + 3].v.ob[1] =
+             this->nameEntryVtx[var_t2].v.ob[1] - 0xA;
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c
+index f2763a225..e6de5a185 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_PAL.c
+@@ -7,7 +7,8 @@
+ #include "soh/ResourceManagerHelpers.h"
+ #include "soh/SaveManager.h"
+ 
+-static s16 D_808124C0[] = {
++// LLM generated name (HIGH), was D_808124C0: indexed by the character code stored in filename[], and added to the name-entry box X position to nudge each drawn glyph.
++static s16 sNameCharXOffsets[] = {  // was D_808124C0 [LLM:HIGH]
+     0x0002, 0x0003, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0001, 0x0002, 0x0000, 0x0001,
+     0x0001, 0x0002, 0x0001, 0x0001, 0x0004, 0x0002, 0x0002, 0x0002, 0x0001, 0x0001, 0x0000, 0x0002, 0x0000, 0x0001,
+     0x0001, 0x0001, 0x0001, 0x0001, 0x0000, 0x0001, 0x0001, 0x0001, 0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0003,
+@@ -15,7 +16,8 @@ static s16 D_808124C0[] = {
+     0x0002, 0x0002, 0x0000, 0x0002, 0x0002, 0x0002, 0x0000, 0x0003, 0x0001, 0x0000,
+ };
+ 
+-static s16 D_80812544[] = {
++// LLM generated name (HIGH), was D_80812544: indexed by the keyboard cell index, and added to each cell's X when laying out the keyboard vertices and when positioning the cursor.
++static s16 sKeyboardCharXOffsets[] = {  // was D_80812544 [LLM:HIGH]
+     0x0001, 0x0002, 0x0000, 0x0001, 0x0001, 0x0002, 0x0001, 0x0001, 0x0004, 0x0002, 0x0002, 0x0002, 0x0001,
+     0x0001, 0x0000, 0x0002, 0x0000, 0x0001, 0x0001, 0x0001, 0x0001, 0x0001, 0x0000, 0x0001, 0x0001, 0x0001,
+     0x0002, 0x0002, 0x0002, 0x0002, 0x0002, 0x0003, 0x0002, 0x0002, 0x0004, 0x0003, 0x0002, 0x0004, 0x0001,
+@@ -51,10 +53,10 @@ void FileChoose_SetKeyboardVtx(GameState* thisx) {
+         phi_t0 = -0x60;
+ 
+         for (phi_t1 = 0; phi_t1 < 13; phi_t1++, phi_t3 += 4, phi_t2++) {
+-            this->keyboardVtx[phi_t3].v.ob[0] = this->keyboardVtx[phi_t3 + 2].v.ob[0] = D_80812544[phi_t2] + phi_t0;
++            this->keyboardVtx[phi_t3].v.ob[0] = this->keyboardVtx[phi_t3 + 2].v.ob[0] = sKeyboardCharXOffsets[phi_t2] + phi_t0;  // was D_80812544 [LLM:HIGH]
+ 
+             this->keyboardVtx[phi_t3 + 1].v.ob[0] = this->keyboardVtx[phi_t3 + 3].v.ob[0] =
+-                D_80812544[phi_t2] + phi_t0 + 12;
++                sKeyboardCharXOffsets[phi_t2] + phi_t0 + 12;  // was D_80812544 [LLM:HIGH]
+ 
+             this->keyboardVtx[phi_t3].v.ob[1] = this->keyboardVtx[phi_t3 + 1].v.ob[1] = phi_s1;
+ 
+@@ -99,11 +101,13 @@ static void* sBackspaceEndTextures[][2] = {
+ 
+ static u16 sBackspaceEndWidths[] = { 28, 44 };
+ 
+-s16 D_808125EC[] = {
++// LLM generated name (HIGH), was D_808125EC: the eleven X positions of the name-entry plate's boxes, added to nameEntryBoxPosX when building nameEntryVtx.
++s16 sNameEntryBoxXPositions[] = {  // was D_808125EC [LLM:HIGH]
+     0xFFE2, 0xFFF0, 0xFFFA, 0x0004, 0x000E, 0x0018, 0x0022, 0x002C, 0x0036, 0xFFF0, 0xFFF0,
+ };
+ 
+-s16 D_80812604[] = {
++// LLM generated name (HIGH), was D_80812604: the matching eleven Y positions for the same nameEntryVtx quads.
++s16 sNameEntryBoxYPositions[] = {  // was D_80812604 [LLM:HIGH]
+     0x0048, 0x0045, 0x0045, 0x0045, 0x0045, 0x0045, 0x0045, 0x0045, 0x0045, 0x0045, 0x0045,
+ };
+ 
+@@ -155,19 +159,19 @@ void FileChoose_SetNameEntryVtx(GameState* thisx) {
+             temp = filename[phi_s0 - 1];
+ 
+             this->nameEntryVtx[phi_t1].v.ob[0] = this->nameEntryVtx[phi_t1 + 2].v.ob[0] =
+-                D_808125EC[phi_s0] + this->nameEntryBoxPosX + D_808124C0[temp];
++                sNameEntryBoxXPositions[phi_s0] + this->nameEntryBoxPosX + sNameCharXOffsets[temp];  // was D_808124C0 [LLM:HIGH]
+ 
+             this->nameEntryVtx[phi_t1 + 1].v.ob[0] = this->nameEntryVtx[phi_t1 + 3].v.ob[0] =
+                 this->nameEntryVtx[phi_t1].v.ob[0] + 0xA;
+         } else {
+             this->nameEntryVtx[phi_t1].v.ob[0] = this->nameEntryVtx[phi_t1 + 2].v.ob[0] =
+-                D_808125EC[phi_s0] + this->nameEntryBoxPosX;
++                sNameEntryBoxXPositions[phi_s0] + this->nameEntryBoxPosX;  // was D_808125EC [LLM:HIGH]
+ 
+             this->nameEntryVtx[phi_t1 + 1].v.ob[0] = this->nameEntryVtx[phi_t1 + 3].v.ob[0] =
+                 this->nameEntryVtx[phi_t1].v.ob[0] + 0xA;
+         }
+ 
+-        this->nameEntryVtx[phi_t1].v.ob[1] = this->nameEntryVtx[phi_t1 + 1].v.ob[1] = D_80812604[phi_s0];
++        this->nameEntryVtx[phi_t1].v.ob[1] = this->nameEntryVtx[phi_t1 + 1].v.ob[1] = sNameEntryBoxYPositions[phi_s0];  // was D_80812604 [LLM:HIGH]
+ 
+         this->nameEntryVtx[phi_t1 + 2].v.ob[1] = this->nameEntryVtx[phi_t1 + 3].v.ob[1] =
+             this->nameEntryVtx[phi_t1].v.ob[1] - 0xA;
+@@ -313,7 +317,7 @@ void FileChoose_DrawNameEntry(GameState* thisx) {
+         }
+ 
+         this->nameEntryVtx[40].v.ob[0] = this->nameEntryVtx[42].v.ob[0] =
+-            this->keyboardVtx[this->charIndex * 4].v.ob[0] - D_80812544[this->charIndex] - 6;
++            this->keyboardVtx[this->charIndex * 4].v.ob[0] - sKeyboardCharXOffsets[this->charIndex] - 6;  // was D_80812544 [LLM:HIGH]
+         this->nameEntryVtx[41].v.ob[0] = this->nameEntryVtx[43].v.ob[0] = this->nameEntryVtx[40].v.ob[0] + 24;
+         this->nameEntryVtx[40].v.ob[1] = this->nameEntryVtx[41].v.ob[1] =
+             this->keyboardVtx[this->charIndex * 4].v.ob[1] + 6;
+-- 
+2.55.0
+

@@ -1,0 +1,363 @@
+From 7531cb8c7e091322840942b2ba3045993db4816f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:26 +0000
+Subject: [PATCH 326/488] soh: name the 11 address-named symbols defined in
+ z_bg_hidan_rock.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 11 are defined in soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c.
+
+  * D_8088BF60 -> sPushedRestPos
+    deduced, confidence HIGH: the fixed position the pushable Fire Temple
+    block settles at; Init snaps to it when the switch flag is already set,
+    the push action tests against it and the flame is drawn there.
+
+  * func_8088B24C -> BgHidanRock_SetupRise
+    deduced, confidence HIGH: disables culling and installs the rising
+    action.
+
+  * func_8088B268 -> BgHidanRock_Pushable
+    deduced, confidence HIGH: the type 0 block's push handling: it
+    accelerates under the player's push in 20-unit steps with the rock-slide
+    sfx and, once the block reaches sPushedRestPos, sets its switch flag and
+    locks it there.
+
+  * func_8088B5F4 -> BgHidanRock_Delay
+    deduced, confidence HIGH: counts the 60-frame pause down before the
+    block starts rising.
+
+  * func_8088B634 -> BgHidanRock_WaitForPlayer
+    deduced, confidence HIGH: the type 1 block's idle: once the player
+    stands on it, it arms the 20-frame shake and aims it away from the
+    camera.
+
+  * func_8088B69C -> BgHidanRock_Shake
+    deduced, confidence HIGH: jitters the block in a small circle with
+    rumble and the block-shake sfx, then recentres it and starts the rise.
+
+  * func_8088B990 -> BgHidanRock_Rise
+    deduced, confidence HIGH: eases the block up to its per-type height,
+    fading the flame column in as it goes, and on arrival arms the pause
+    before it drops.
+
+  * func_8088B954 -> BgHidanRock_HangAtTop
+    deduced, confidence HIGH: holds the block at the top for twenty frames,
+    then zeroes its vertical velocity and lets it fall.
+
+  * func_8088B79C -> BgHidanRock_Fall
+    deduced, confidence HIGH: falls under gravity, fading the flame out on
+    the way, and on landing plays the impact and surface sfx before either
+    restarting the cycle or settling.
+
+  * func_8088B90C -> BgHidanRock_Settle
+    deduced, confidence HIGH: eases the type 1 block the last few units back
+    to home height and returns it to waiting for the player.
+
+  * func_8088BC40 -> BgHidanRock_DrawFlame
+    deduced, confidence HIGH: draws the big vertical flame column beneath
+    the block, billboarded to the camera and scaled by the fade value the
+    rise and fall actions drive.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c       | 107 ++++++++++--------
+ 1 file changed, 59 insertions(+), 48 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c
+index 9b6780ce5..6b0f39e22 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Rock/z_bg_hidan_rock.c
+@@ -16,20 +16,31 @@ void BgHidanRock_Update(Actor* thisx, PlayState* play);
+ void BgHidanRock_Draw(Actor* thisx, PlayState* play);
+ void BgHidanRock_Reset(void);
+ 
+-void func_8088B24C(BgHidanRock* this);
+-
+-void func_8088B268(BgHidanRock* this, PlayState* play);
+-void func_8088B5F4(BgHidanRock* this, PlayState* play);
+-void func_8088B634(BgHidanRock* this, PlayState* play);
+-void func_8088B69C(BgHidanRock* this, PlayState* play);
+-void func_8088B79C(BgHidanRock* this, PlayState* play);
+-void func_8088B90C(BgHidanRock* this, PlayState* play);
+-void func_8088B954(BgHidanRock* this, PlayState* play);
+-void func_8088B990(BgHidanRock* this, PlayState* play);
+-
+-void func_8088BC40(PlayState* play, BgHidanRock* this);
+-
+-static Vec3f D_8088BF60 = { 3310.0f, 120.0f, 0.0f };
++// LLM generated name (HIGH), was func_8088B24C: disables culling and installs the rising action.
++void BgHidanRock_SetupRise(BgHidanRock* this);  // was func_8088B24C [LLM:HIGH]
++
++// LLM generated name (HIGH), was func_8088B268: the type 0 block's push handling: it accelerates under the player's push in 20-unit steps with the rock-slide sfx and, once the block reaches sPushedRestPos, sets its switch flag and locks it there.
++void BgHidanRock_Pushable(BgHidanRock* this, PlayState* play);  // was func_8088B268 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088B5F4: counts the 60-frame pause down before the block starts rising.
++void BgHidanRock_Delay(BgHidanRock* this, PlayState* play);  // was func_8088B5F4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088B634: the type 1 block's idle: once the player stands on it, it arms the 20-frame shake and aims it away from the camera.
++void BgHidanRock_WaitForPlayer(BgHidanRock* this, PlayState* play);  // was func_8088B634 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088B69C: jitters the block in a small circle with rumble and the block-shake sfx, then recentres it and starts the rise.
++void BgHidanRock_Shake(BgHidanRock* this, PlayState* play);  // was func_8088B69C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088B79C: falls under gravity, fading the flame out on the way, and on landing plays the impact and surface sfx before either restarting the cycle or settling.
++void BgHidanRock_Fall(BgHidanRock* this, PlayState* play);  // was func_8088B79C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088B90C: eases the type 1 block the last few units back to home height and returns it to waiting for the player.
++void BgHidanRock_Settle(BgHidanRock* this, PlayState* play);  // was func_8088B90C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088B954: holds the block at the top for twenty frames, then zeroes its vertical velocity and lets it fall.
++void BgHidanRock_HangAtTop(BgHidanRock* this, PlayState* play);  // was func_8088B954 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088B990: eases the block up to its per-type height, fading the flame column in as it goes, and on arrival arms the pause before it drops.
++void BgHidanRock_Rise(BgHidanRock* this, PlayState* play);  // was func_8088B990 [LLM:HIGH]
++
++// LLM generated name (HIGH), was func_8088BC40: draws the big vertical flame column beneath the block, billboarded to the camera and scaled by the fade value the rise and fall actions drive.
++void BgHidanRock_DrawFlame(PlayState* play, BgHidanRock* this);  // was func_8088BC40 [LLM:HIGH]
++
++// LLM generated name (HIGH), was D_8088BF60: the fixed position the pushable Fire Temple block settles at; Init snaps to it when the switch flag is already set, the push action tests against it and the flame is drawn there.
++static Vec3f sPushedRestPos = { 3310.0f, 120.0f, 0.0f };  // was D_8088BF60 [LLM:HIGH]
+ 
+ const ActorInit Bg_Hidan_Rock_InitVars = {
+     ACTOR_BG_HIDAN_ROCK,
+@@ -87,12 +98,12 @@ void BgHidanRock_Init(Actor* thisx, PlayState* play) {
+ 
+     if (this->type == 0) {
+         if (Flags_GetSwitch(play, thisx->params)) {
+-            Math_Vec3f_Copy(&thisx->home.pos, &D_8088BF60);
+-            Math_Vec3f_Copy(&thisx->world.pos, &D_8088BF60);
++            Math_Vec3f_Copy(&thisx->home.pos, &sPushedRestPos);  // was D_8088BF60 [LLM:HIGH]
++            Math_Vec3f_Copy(&thisx->world.pos, &sPushedRestPos);  // was D_8088BF60 [LLM:HIGH]
+             this->timer = 60;
+-            this->actionFunc = func_8088B5F4;
++            this->actionFunc = BgHidanRock_Delay;  // was func_8088B5F4 [LLM:HIGH]
+         } else {
+-            this->actionFunc = func_8088B268;
++            this->actionFunc = BgHidanRock_Pushable;  // was func_8088B268 [LLM:HIGH]
+         }
+         thisx->flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED;
+         CollisionHeader_GetVirtual(&gFireTempleStoneBlock1Col, &colHeader);
+@@ -101,7 +112,7 @@ void BgHidanRock_Init(Actor* thisx, PlayState* play) {
+         this->collider.dim.pos.x = thisx->home.pos.x;
+         this->collider.dim.pos.y = thisx->home.pos.y;
+         this->collider.dim.pos.z = thisx->home.pos.z;
+-        this->actionFunc = func_8088B634;
++        this->actionFunc = BgHidanRock_WaitForPlayer;  // was func_8088B634 [LLM:HIGH]
+     }
+ 
+     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, thisx, colHeader);
+@@ -116,9 +127,9 @@ void BgHidanRock_Destroy(Actor* thisx, PlayState* play) {
+     Audio_StopSfxByPos(&this->unk_170);
+ }
+ 
+-void func_8088B24C(BgHidanRock* this) {
++void BgHidanRock_SetupRise(BgHidanRock* this) {
+     this->dyna.actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED;
+-    this->actionFunc = func_8088B990;
++    this->actionFunc = BgHidanRock_Rise;  // was func_8088B990 [LLM:HIGH]
+ }
+ 
+ static f32 D_8088BFC0 = 0.0f;
+@@ -127,7 +138,7 @@ static f32 D_8088BFC0 = 0.0f;
+ 
+ SHIP_SAVESTATE_DEFINE(BgHidanRock, BG_HIDAN_ROCK_SHIP_SAVESTATE_FIELDS)
+ 
+-void func_8088B268(BgHidanRock* this, PlayState* play) {
++void BgHidanRock_Pushable(BgHidanRock* this, PlayState* play) {
+     f32 sp2C;
+     s32 temp_v1;
+     s32 frame;
+@@ -179,16 +190,16 @@ void func_8088B268(BgHidanRock* this, PlayState* play) {
+         this->timer = 0;
+     }
+ 
+-    sp2C = this->dyna.actor.world.pos.z - D_8088BF60.z;
++    sp2C = this->dyna.actor.world.pos.z - sPushedRestPos.z;  // was D_8088BF60 [LLM:HIGH]
+     if (sp2C < 0.5f) {
+         Flags_SetSwitch(play, this->dyna.actor.params);
+-        Math_Vec3f_Copy(&this->dyna.actor.home.pos, &D_8088BF60);
+-        this->dyna.actor.world.pos.x = D_8088BF60.x;
+-        this->dyna.actor.world.pos.z = D_8088BF60.z;
++        Math_Vec3f_Copy(&this->dyna.actor.home.pos, &sPushedRestPos);  // was D_8088BF60 [LLM:HIGH]
++        this->dyna.actor.world.pos.x = sPushedRestPos.x;  // was D_8088BF60 [LLM:HIGH]
++        this->dyna.actor.world.pos.z = sPushedRestPos.z;  // was D_8088BF60 [LLM:HIGH]
+         this->dyna.actor.speedXZ = 0.0f;
+         D_8088BFC0 = 0.0f;
+         player->stateFlags2 &= ~PLAYER_STATE2_MOVING_DYNAPOLY;
+-        this->actionFunc = func_8088B79C;
++        this->actionFunc = BgHidanRock_Fall;  // was func_8088B79C [LLM:HIGH]
+     }
+ 
+     frame = play->gameplayFrames & 0xFF;
+@@ -208,25 +219,25 @@ void func_8088B268(BgHidanRock* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8088B5F4(BgHidanRock* this, PlayState* play) {
++void BgHidanRock_Delay(BgHidanRock* this, PlayState* play) {
+     if (this->timer != 0) {
+         this->timer--;
+     }
+ 
+     if (this->timer == 0) {
+-        func_8088B24C(this);
++        BgHidanRock_SetupRise(this);  // was func_8088B24C [LLM:HIGH]
+     }
+ }
+ 
+-void func_8088B634(BgHidanRock* this, PlayState* play) {
++void BgHidanRock_WaitForPlayer(BgHidanRock* this, PlayState* play) {
+     if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+         this->timer = 20;
+         this->dyna.actor.world.rot.y = Camera_GetCamDirYaw(GET_ACTIVE_CAM(play)) + 0x4000;
+-        this->actionFunc = func_8088B69C;
++        this->actionFunc = BgHidanRock_Shake;  // was func_8088B69C [LLM:HIGH]
+     }
+ }
+ 
+-void func_8088B69C(BgHidanRock* this, PlayState* play) {
++void BgHidanRock_Shake(BgHidanRock* this, PlayState* play) {
+     if (this->timer != 0) {
+         this->timer--;
+     }
+@@ -239,7 +250,7 @@ void func_8088B69C(BgHidanRock* this, PlayState* play) {
+     } else {
+         this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x;
+         this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z;
+-        func_8088B24C(this);
++        BgHidanRock_SetupRise(this);  // was func_8088B24C [LLM:HIGH]
+     }
+ 
+     if (!(this->timer % 4)) {
+@@ -248,15 +259,15 @@ void func_8088B69C(BgHidanRock* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8088B79C(BgHidanRock* this, PlayState* play) {
++void BgHidanRock_Fall(BgHidanRock* this, PlayState* play) {
+     this->timer--;
+     if (this->dyna.actor.bgCheckFlags & 2) {
+         if (this->type == 0) {
+             this->timer = 60;
+-            this->actionFunc = func_8088B5F4;
++            this->actionFunc = BgHidanRock_Delay;  // was func_8088B5F4 [LLM:HIGH]
+         } else {
+             this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y - 15.0f;
+-            this->actionFunc = func_8088B90C;
++            this->actionFunc = BgHidanRock_Settle;  // was func_8088B90C [LLM:HIGH]
+             this->dyna.actor.flags &= ~(ACTOR_FLAG_UPDATE_CULLING_DISABLED | ACTOR_FLAG_DRAW_CULLING_DISABLED);
+         }
+ 
+@@ -284,24 +295,24 @@ void func_8088B79C(BgHidanRock* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8088B90C(BgHidanRock* this, PlayState* play) {
++void BgHidanRock_Settle(BgHidanRock* this, PlayState* play) {
+     if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y, 1.0f)) {
+-        this->actionFunc = func_8088B634;
++        this->actionFunc = BgHidanRock_WaitForPlayer;  // was func_8088B634 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8088B954(BgHidanRock* this, PlayState* play) {
++void BgHidanRock_HangAtTop(BgHidanRock* this, PlayState* play) {
+     if (this->timer != 0) {
+         this->timer--;
+     }
+ 
+     if (this->timer == 0) {
+-        this->actionFunc = func_8088B79C;
++        this->actionFunc = BgHidanRock_Fall;  // was func_8088B79C [LLM:HIGH]
+         this->dyna.actor.velocity.y = 0.0f;
+     }
+ }
+ 
+-void func_8088B990(BgHidanRock* this, PlayState* play) {
++void BgHidanRock_Rise(BgHidanRock* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->timer++;
+@@ -318,7 +329,7 @@ void func_8088B990(BgHidanRock* this, PlayState* play) {
+             Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_BLOCK_BOUND);
+         }
+         this->timer = 20;
+-        this->actionFunc = func_8088B954;
++        this->actionFunc = BgHidanRock_HangAtTop;  // was func_8088B954 [LLM:HIGH]
+     }
+ 
+     this->unk_16C = (this->dyna.actor.world.pos.y + 50.0f - this->dyna.actor.home.pos.y + 40.0f) / 80.0f;
+@@ -341,7 +352,7 @@ void BgHidanRock_Update(Actor* thisx, PlayState* play) {
+     BgHidanRock* this = (BgHidanRock*)thisx;
+ 
+     this->actionFunc(this, play);
+-    if (this->actionFunc == func_8088B79C) {
++    if (this->actionFunc == BgHidanRock_Fall) {  // was func_8088B79C [LLM:HIGH]
+         Actor_MoveXZGravity(&this->dyna.actor);
+         Actor_UpdateBgCheckInfo(play, &this->dyna.actor, 0.0f, 0.0f, 0.0f, 4);
+     }
+@@ -358,7 +369,7 @@ static void* sVerticalFlamesTexs[] = {
+     gFireTempleBigVerticalFlame6Tex, gFireTempleBigVerticalFlame7Tex,
+ };
+ 
+-void func_8088BC40(PlayState* play, BgHidanRock* this) {
++void BgHidanRock_DrawFlame(PlayState* play, BgHidanRock* this) {
+     s32 pad;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -368,7 +379,7 @@ void func_8088BC40(PlayState* play, BgHidanRock* this) {
+     gDPSetEnvColor(POLY_XLU_DISP++, 255, 0, 0, 255);
+ 
+     if (this->type == 0) {
+-        Matrix_Translate(D_8088BF60.x, D_8088BF60.y - 40.0f, D_8088BF60.z, MTXMODE_NEW);
++        Matrix_Translate(sPushedRestPos.x, sPushedRestPos.y - 40.0f, sPushedRestPos.z, MTXMODE_NEW);  // was D_8088BF60 [LLM:HIGH]
+     } else {
+         Matrix_Translate(this->dyna.actor.home.pos.x, this->dyna.actor.home.pos.y - 40.0f, this->dyna.actor.home.pos.z,
+                          MTXMODE_NEW);
+@@ -397,16 +408,16 @@ void BgHidanRock_Draw(Actor* thisx, PlayState* play) {
+ 
+     if (this->unk_16C > 0.0f) {
+         if (this->type == 0) {
+-            SkinMatrix_Vec3fMtxFMultXYZ(&play->viewProjectionMtxF, &D_8088BF60, &this->unk_170);
++            SkinMatrix_Vec3fMtxFMultXYZ(&play->viewProjectionMtxF, &sPushedRestPos, &this->unk_170);  // was D_8088BF60 [LLM:HIGH]
+         } else {
+             SkinMatrix_Vec3fMtxFMultXYZ(&play->viewProjectionMtxF, &this->dyna.actor.home.pos, &this->unk_170);
+         }
+ 
+         Sfx_PlaySfxAtPos(&this->unk_170, NA_SE_EV_FIRE_PILLAR - SFX_FLAG);
+-        func_8088BC40(play, this);
++        BgHidanRock_DrawFlame(play, this);  // was func_8088BC40 [LLM:HIGH]
+     }
+ }
+ 
+ void BgHidanRock_Reset(void) {
+     D_8088BFC0 = 0;
+-}
+\ No newline at end of file
++}
+-- 
+2.55.0
+

@@ -1,0 +1,291 @@
+From 2da01225559eec95f917b643416abadbcabee041 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:26 +0000
+Subject: [PATCH 319/488] soh: name the 10 address-named symbols defined in
+ z_en_ani.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 10 are defined in soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c.
+
+  * func_809B064C -> EnAni_ChildIdle
+    deduced, confidence HIGH: the child-era idle on the roof: picks the day,
+    night or face-reaction line, offers talk at two different ranges, and
+    routes an accepted conversation to the heart-piece hand-off or to the
+    plain talk state.
+
+  * func_809B07F8 -> EnAni_AdultIdle
+    deduced, confidence HIGH: the adult-era twin of EnAni_ChildIdle,
+    choosing its line from whether Death Mountain has erupted and whether
+    the heart piece has already been taken.
+
+  * func_809B05F0 -> EnAni_OfferHeartPiece
+    deduced, confidence HIGH: offers GI_HEART_PIECE every frame while the
+    textbox is up, and moves to the hand-off state once it closes.
+
+  * func_809B0558 -> EnAni_GiveHeartPiece
+    deduced, confidence HIGH: re-offers the heart piece until the player
+    takes it, then sets ITEMGETINF_15 and returns to the age-appropriate
+    talk state.
+
+  * func_809B04F0 -> EnAni_ChildTalk
+    deduced, confidence HIGH: waits for the textbox to close and returns to
+    the child idle.
+
+  * func_809B0524 -> EnAni_AdultTalk
+    deduced, confidence HIGH: waits for the textbox to close and returns to
+    the adult idle.
+
+  * func_809B0A6C -> EnAni_CsWaitForKnockback
+    deduced, confidence HIGH: cutscene step 0: loops the current animation
+    until actor cue 2, then plays the knockback animation, drops the shadow
+    and advances the cutscene step.
+
+  * func_809B0A28 -> EnAni_CsWaitForAnimEnd
+    deduced, confidence HIGH: cutscene steps 1 and 3: advances the step as
+    soon as the running animation finishes.
+
+  * func_809B0994 -> EnAni_CsWaitForGetUp
+    deduced, confidence HIGH: cutscene step 2: waits for actor cue 4, then
+    plays the getting-up animation and restores the shadow.
+
+  * func_809B0988 -> EnAni_CsDoNothing
+    deduced, confidence HIGH: cutscene step 4: the empty terminal step.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c | 86 +++++++++++--------
+ 1 file changed, 48 insertions(+), 38 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+index 19ac91854..ea6f589d8 100644
+--- a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
++++ b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+@@ -16,16 +16,26 @@ void EnAni_Update(Actor* thisx, PlayState* play);
+ void EnAni_Draw(Actor* thisx, PlayState* play);
+ 
+ s32 EnAni_SetText(EnAni* this, PlayState* play, u16 textId);
+-void func_809B04F0(EnAni* this, PlayState* play);
+-void func_809B0524(EnAni* this, PlayState* play);
+-void func_809B0558(EnAni* this, PlayState* play);
+-void func_809B05F0(EnAni* this, PlayState* play);
+-void func_809B064C(EnAni* this, PlayState* play);
+-void func_809B07F8(EnAni* this, PlayState* play);
+-void func_809B0988(EnAni* this, PlayState* play);
+-void func_809B0994(EnAni* this, PlayState* play);
+-void func_809B0A28(EnAni* this, PlayState* play);
+-void func_809B0A6C(EnAni* this, PlayState* play);
++// LLM generated name (HIGH), was func_809B04F0: waits for the textbox to close and returns to the child idle.
++void EnAni_ChildTalk(EnAni* this, PlayState* play);  // was func_809B04F0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B0524: waits for the textbox to close and returns to the adult idle.
++void EnAni_AdultTalk(EnAni* this, PlayState* play);  // was func_809B0524 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B0558: re-offers the heart piece until the player takes it, then sets ITEMGETINF_15 and returns to the age-appropriate talk state.
++void EnAni_GiveHeartPiece(EnAni* this, PlayState* play);  // was func_809B0558 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B05F0: offers GI_HEART_PIECE every frame while the textbox is up, and moves to the hand-off state once it closes.
++void EnAni_OfferHeartPiece(EnAni* this, PlayState* play);  // was func_809B05F0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B064C: the child-era idle on the roof: picks the day, night or face-reaction line, offers talk at two different ranges, and routes an accepted conversation to the heart-piece hand-off or to the plain talk state.
++void EnAni_ChildIdle(EnAni* this, PlayState* play);  // was func_809B064C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B07F8: the adult-era twin of EnAni_ChildIdle, choosing its line from whether Death Mountain has erupted and whether the heart piece has already been taken.
++void EnAni_AdultIdle(EnAni* this, PlayState* play);  // was func_809B07F8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B0988: cutscene step 4: the empty terminal step.
++void EnAni_CsDoNothing(EnAni* this, PlayState* play);  // was func_809B0988 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B0994: cutscene step 2: waits for actor cue 4, then plays the getting-up animation and restores the shadow.
++void EnAni_CsWaitForGetUp(EnAni* this, PlayState* play);  // was func_809B0994 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B0A28: cutscene steps 1 and 3: advances the step as soon as the running animation finishes.
++void EnAni_CsWaitForAnimEnd(EnAni* this, PlayState* play);  // was func_809B0A28 [LLM:HIGH]
++// LLM generated name (HIGH), was func_809B0A6C: cutscene step 0: loops the current animation until actor cue 2, then plays the knockback animation, drops the shadow and advances the cutscene step.
++void EnAni_CsWaitForKnockback(EnAni* this, PlayState* play);  // was func_809B0A6C [LLM:HIGH]
+ 
+ const ActorInit En_Ani_InitVars = {
+     ACTOR_EN_ANI,
+@@ -82,9 +92,9 @@ void EnAni_Init(Actor* thisx, PlayState* play) {
+     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
+     if (!LINK_IS_ADULT) {
+-        EnAni_SetupAction(this, func_809B064C);
++        EnAni_SetupAction(this, EnAni_ChildIdle);  // was func_809B064C [LLM:HIGH]
+     } else {
+-        EnAni_SetupAction(this, func_809B07F8);
++        EnAni_SetupAction(this, EnAni_AdultIdle);  // was func_809B07F8 [LLM:HIGH]
+     }
+     this->unk_2AA = 0;
+     this->unk_2A8 = 0;
+@@ -105,25 +115,25 @@ s32 EnAni_SetText(EnAni* this, PlayState* play, u16 textId) {
+     return 0;
+ }
+ 
+-void func_809B04F0(EnAni* this, PlayState* play) {
++void EnAni_ChildTalk(EnAni* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+-        EnAni_SetupAction(this, func_809B064C);
++        EnAni_SetupAction(this, EnAni_ChildIdle);  // was func_809B064C [LLM:HIGH]
+     }
+ }
+ 
+-void func_809B0524(EnAni* this, PlayState* play) {
++void EnAni_AdultTalk(EnAni* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+-        EnAni_SetupAction(this, func_809B07F8);
++        EnAni_SetupAction(this, EnAni_AdultIdle);  // was func_809B07F8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809B0558(EnAni* this, PlayState* play) {
++void EnAni_GiveHeartPiece(EnAni* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play) || !GameInteractor_Should(VB_GIVE_ITEM_FROM_MAN_ON_ROOF, true)) {
+         this->actor.parent = NULL;
+         if (!LINK_IS_ADULT) {
+-            EnAni_SetupAction(this, func_809B04F0);
++            EnAni_SetupAction(this, EnAni_ChildTalk);  // was func_809B04F0 [LLM:HIGH]
+         } else {
+-            EnAni_SetupAction(this, func_809B0524);
++            EnAni_SetupAction(this, EnAni_AdultTalk);  // was func_809B0524 [LLM:HIGH]
+         }
+         Flags_SetItemGetInf(ITEMGETINF_15);
+     } else {
+@@ -133,9 +143,9 @@ void func_809B0558(EnAni* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809B05F0(EnAni* this, PlayState* play) {
++void EnAni_OfferHeartPiece(EnAni* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+-        EnAni_SetupAction(this, func_809B0558);
++        EnAni_SetupAction(this, EnAni_GiveHeartPiece);  // was func_809B0558 [LLM:HIGH]
+     }
+ 
+     if (GameInteractor_Should(VB_GIVE_ITEM_FROM_MAN_ON_ROOF, true)) {
+@@ -143,7 +153,7 @@ void func_809B05F0(EnAni* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809B064C(EnAni* this, PlayState* play) {
++void EnAni_ChildIdle(EnAni* this, PlayState* play) {
+     u16 textId;
+     s16 yawDiff;
+     u16 textId2;
+@@ -160,11 +170,11 @@ void func_809B064C(EnAni* this, PlayState* play) {
+     yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if (this->actor.textId == 0x5056) {
+-            EnAni_SetupAction(this, func_809B04F0);
++            EnAni_SetupAction(this, EnAni_ChildTalk);  // was func_809B04F0 [LLM:HIGH]
+         } else if (this->actor.textId == 0x5055) {
+-            EnAni_SetupAction(this, func_809B05F0);
++            EnAni_SetupAction(this, EnAni_OfferHeartPiece);  // was func_809B05F0 [LLM:HIGH]
+         } else {
+-            EnAni_SetupAction(this, func_809B04F0);
++            EnAni_SetupAction(this, EnAni_ChildTalk);  // was func_809B04F0 [LLM:HIGH]
+         }
+     } else if (yawDiff >= -0x36AF && yawDiff < 0 && this->actor.xzDistToPlayer < 150.0f &&
+                -80.0f < this->actor.yDistToPlayer) {
+@@ -178,7 +188,7 @@ void func_809B064C(EnAni* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809B07F8(EnAni* this, PlayState* play) {
++void EnAni_AdultIdle(EnAni* this, PlayState* play) {
+     s16 pad;
+     s16 yawDiff;
+     u16 textId;
+@@ -186,11 +196,11 @@ void func_809B07F8(EnAni* this, PlayState* play) {
+     yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if (this->actor.textId == 0x5056) {
+-            EnAni_SetupAction(this, func_809B0524);
++            EnAni_SetupAction(this, EnAni_AdultTalk);  // was func_809B0524 [LLM:HIGH]
+         } else if (this->actor.textId == 0x5055) {
+-            EnAni_SetupAction(this, func_809B05F0);
++            EnAni_SetupAction(this, EnAni_OfferHeartPiece);  // was func_809B05F0 [LLM:HIGH]
+         } else {
+-            EnAni_SetupAction(this, func_809B0524);
++            EnAni_SetupAction(this, EnAni_AdultTalk);  // was func_809B0524 [LLM:HIGH]
+         }
+     } else if (yawDiff > -0x36B0 && yawDiff < 0 && this->actor.xzDistToPlayer < 150.0f &&
+                -80.0f < this->actor.yDistToPlayer) {
+@@ -209,10 +219,10 @@ void func_809B07F8(EnAni* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809B0988(EnAni* this, PlayState* play) {
++void EnAni_CsDoNothing(EnAni* this, PlayState* play) {
+ }
+ 
+-void func_809B0994(EnAni* this, PlayState* play) {
++void EnAni_CsWaitForGetUp(EnAni* this, PlayState* play) {
+     if (play->csCtx.npcActions[0]->action == 4) {
+         Animation_Change(&this->skelAnime, &gRoofManGettingUpAfterKnockbackAnim, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&gRoofManGettingUpAfterKnockbackAnim), ANIMMODE_ONCE, -4.0f);
+@@ -221,13 +231,13 @@ void func_809B0994(EnAni* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809B0A28(EnAni* this, PlayState* play) {
++void EnAni_CsWaitForAnimEnd(EnAni* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->unk_2AA++;
+     }
+ }
+ 
+-void func_809B0A6C(EnAni* this, PlayState* play) {
++void EnAni_CsWaitForKnockback(EnAni* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->skelAnime.curFrame = 0.0f;
+     }
+@@ -250,19 +260,19 @@ void EnAni_Update(Actor* thisx, PlayState* play) {
+     if ((play->csCtx.state != CS_STATE_IDLE) && (play->csCtx.npcActions[0] != NULL)) {
+         switch (this->unk_2AA) {
+             case 0:
+-                func_809B0A6C(this, play);
++                EnAni_CsWaitForKnockback(this, play);  // was func_809B0A6C [LLM:HIGH]
+                 break;
+             case 1:
+-                func_809B0A28(this, play);
++                EnAni_CsWaitForAnimEnd(this, play);  // was func_809B0A28 [LLM:HIGH]
+                 break;
+             case 2:
+-                func_809B0994(this, play);
++                EnAni_CsWaitForGetUp(this, play);  // was func_809B0994 [LLM:HIGH]
+                 break;
+             case 3:
+-                func_809B0A28(this, play);
++                EnAni_CsWaitForAnimEnd(this, play);  // was func_809B0A28 [LLM:HIGH]
+                 break;
+             case 4:
+-                func_809B0988(this, play);
++                EnAni_CsDoNothing(this, play);  // was func_809B0988 [LLM:HIGH]
+                 break;
+         }
+ 
+-- 
+2.55.0
+

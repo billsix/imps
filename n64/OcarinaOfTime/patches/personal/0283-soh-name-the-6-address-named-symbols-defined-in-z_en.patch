@@ -1,0 +1,216 @@
+From 88f81ce3e2362a4b239ebd57706110ba750ce531 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 283/488] soh: name the 6 address-named symbols defined in
+ z_en_kakasi2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c.
+
+  * func_80A90264 -> EnKakasi2_WaitToAppear
+    deduced, confidence HIGH: the buried state: watches for the player
+    playing the scarecrow's song nearby (or the debug/skip path), then
+    builds the skeleton and collider, sets the switch flag, plays the chime
+    and starts the rise.
+
+  * func_80A904D8 -> EnKakasi2_SetupRise
+    deduced, confidence HIGH: starts the looping animation and plays the
+    emerging sfx.
+
+  * func_80A90578 -> EnKakasi2_Rise
+    deduced, confidence HIGH: spins the scarecrow while easing shape.yOffset
+    up from underground, playing the swing sfx on two animation frames, and
+    stops once it reaches the surface.
+
+  * func_80A9062C -> EnKakasi2_SetupIdle
+    deduced, confidence HIGH: reloads the animation at play speed 0 so it
+    can be eased back to its first frame.
+
+  * func_80A906C4 -> EnKakasi2_Idle
+    deduced, confidence HIGH: eases the animation back to frame 0 and turns
+    the scarecrow back to the yaw it was spawned with.
+
+  * func_80A90948 -> EnKakasi2_Draw
+    deduced, confidence HIGH: installed into actor.draw once the scarecrow
+    is visible; the actor has no draw function in its ActorInit.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Kakasi2/z_en_kakasi2.c      | 52 +++++++++++--------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c b/soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c
+index 366ffdb41..136740e7d 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi2/z_en_kakasi2.c
+@@ -37,13 +37,19 @@ static ColliderCylinderInit sCylinderInit = {
+ void EnKakasi2_Init(Actor* thisx, PlayState* play);
+ void EnKakasi2_Destroy(Actor* thisx, PlayState* play);
+ void EnKakasi2_Update(Actor* thisx, PlayState* play);
+-void func_80A90948(Actor* thisx, PlayState* play);
+-
+-void func_80A9062C(EnKakasi2* this, PlayState* play);
+-void func_80A90264(EnKakasi2* this, PlayState* play);
+-void func_80A904D8(EnKakasi2* this, PlayState* play);
+-void func_80A90578(EnKakasi2* this, PlayState* play);
+-void func_80A906C4(EnKakasi2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A90948: installed into actor.draw once the scarecrow is visible; the actor has no draw function in its ActorInit.
++void EnKakasi2_Draw(Actor* thisx, PlayState* play);  // was func_80A90948 [LLM:HIGH]
++
++// LLM generated name (HIGH), was func_80A9062C: reloads the animation at play speed 0 so it can be eased back to its first frame.
++void EnKakasi2_SetupIdle(EnKakasi2* this, PlayState* play);  // was func_80A9062C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A90264: the buried state: watches for the player playing the scarecrow's song nearby (or the debug/skip path), then builds the skeleton and collider, sets the switch flag, plays the chime and starts the rise.
++void EnKakasi2_WaitToAppear(EnKakasi2* this, PlayState* play);  // was func_80A90264 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A904D8: starts the looping animation and plays the emerging sfx.
++void EnKakasi2_SetupRise(EnKakasi2* this, PlayState* play);  // was func_80A904D8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A90578: spins the scarecrow while easing shape.yOffset up from underground, playing the swing sfx on two animation frames, and stops once it reaches the surface.
++void EnKakasi2_Rise(EnKakasi2* this, PlayState* play);  // was func_80A90578 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A906C4: eases the animation back to frame 0 and turns the scarecrow back to the yaw it was spawned with.
++void EnKakasi2_Idle(EnKakasi2* this, PlayState* play);  // was func_80A906C4 [LLM:HIGH]
+ 
+ const ActorInit En_Kakasi2_InitVars = {
+     ACTOR_EN_KAKASI2,
+@@ -98,13 +104,13 @@ void EnKakasi2_Init(Actor* thisx, PlayState* play) {
+     this->unk_198 = this->actor.shape.rot.y;
+ 
+     if (this->switchFlag >= 0 && Flags_GetSwitch(play, this->switchFlag)) {
+-        this->actor.draw = func_80A90948;
++        this->actor.draw = EnKakasi2_Draw;  // was func_80A90948 [LLM:HIGH]
+         Collider_InitCylinder(play, &this->collider);
+         Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+         SkelAnime_InitFlex(play, &this->skelAnime, &object_ka_Skel_0065B0, &object_ka_Anim_000214, NULL, NULL, 0);
+-        this->actionFunc = func_80A9062C;
++        this->actionFunc = EnKakasi2_SetupIdle;  // was func_80A9062C [LLM:HIGH]
+     } else {
+-        this->actionFunc = func_80A90264;
++        this->actionFunc = EnKakasi2_WaitToAppear;  // was func_80A90264 [LLM:HIGH]
+         this->actor.shape.yOffset = -8000.0f;
+     }
+ }
+@@ -116,7 +122,7 @@ void EnKakasi2_Destroy(Actor* thisx, PlayState* play) {
+     SkelAnime_Free(&this->skelAnime, play);
+ }
+ 
+-void func_80A90264(EnKakasi2* this, PlayState* play) {
++void EnKakasi2_WaitToAppear(EnKakasi2* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->unk_194++;
+@@ -124,7 +130,7 @@ void func_80A90264(EnKakasi2* this, PlayState* play) {
+     if ((BREG(1) != 0) || GameInteractor_Should(VB_SKIP_SCARECROWS_SONG, false) &&
+                               (this->actor.xzDistToPlayer < this->maxSpawnDistance.x) &&
+                               (fabsf(player->actor.world.pos.y - this->actor.world.pos.y) < this->maxSpawnDistance.y)) {
+-        this->actor.draw = func_80A90948;
++        this->actor.draw = EnKakasi2_Draw;  // was func_80A90948 [LLM:HIGH]
+         Collider_InitCylinder(play, &this->collider);
+         Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+         SkelAnime_InitFlex(play, &this->skelAnime, &object_ka_Skel_0065B0, &object_ka_Anim_000214, NULL, NULL, 0);
+@@ -137,7 +143,7 @@ void func_80A90264(EnKakasi2* this, PlayState* play) {
+         }
+ 
+         osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ SAVE 終了 ☆☆☆☆☆ %d\n" VT_RST, this->switchFlag);
+-        this->actionFunc = func_80A904D8;
++        this->actionFunc = EnKakasi2_SetupRise;  // was func_80A904D8 [LLM:HIGH]
+     } else if ((this->actor.xzDistToPlayer < this->maxSpawnDistance.x) &&
+                (fabsf(player->actor.world.pos.y - this->actor.world.pos.y) < this->maxSpawnDistance.y) &&
+                (Flags_GetEventChkInf(EVENTCHKINF_PLAYED_SONG_FOR_SCARECROW_AS_ADULT))) {
+@@ -149,7 +155,7 @@ void func_80A90264(EnKakasi2* this, PlayState* play) {
+             }
+             osSyncPrintf(VT_FGCOL(GREEN) "☆☆☆☆☆ SAVE 終了 ☆☆☆☆☆ %d\n" VT_RST, this->switchFlag);
+             play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+-            this->actor.draw = func_80A90948;
++            this->actor.draw = EnKakasi2_Draw;  // was func_80A90948 [LLM:HIGH]
+             Collider_InitCylinder(play, &this->collider);
+             Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+             SkelAnime_InitFlex(play, &this->skelAnime, &object_ka_Skel_0065B0, &object_ka_Anim_000214, NULL, NULL, 0);
+@@ -157,20 +163,20 @@ void func_80A90264(EnKakasi2* this, PlayState* play) {
+             Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+ 
+             this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_LOCK_ON_DISABLED;
+-            this->actionFunc = func_80A904D8;
++            this->actionFunc = EnKakasi2_SetupRise;  // was func_80A904D8 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A904D8(EnKakasi2* this, PlayState* play) {
++void EnKakasi2_SetupRise(EnKakasi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&object_ka_Anim_000214);
+ 
+     Animation_Change(&this->skelAnime, &object_ka_Anim_000214, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EV_COME_UP_DEKU_JR);
+-    this->actionFunc = func_80A90578;
++    this->actionFunc = EnKakasi2_Rise;  // was func_80A90578 [LLM:HIGH]
+ }
+ 
+-void func_80A90578(EnKakasi2* this, PlayState* play) {
++void EnKakasi2_Rise(EnKakasi2* this, PlayState* play) {
+     s16 currentFrame;
+ 
+     SkelAnime_Update(&this->skelAnime);
+@@ -184,19 +190,19 @@ void func_80A90578(EnKakasi2* this, PlayState* play) {
+     Math_ApproachZeroF(&this->actor.shape.yOffset, 0.5f, 500.0f);
+ 
+     if (this->actor.shape.yOffset > -100.0f) {
+-        this->actionFunc = func_80A9062C;
++        this->actionFunc = EnKakasi2_SetupIdle;  // was func_80A9062C [LLM:HIGH]
+         this->actor.shape.yOffset = 0.0f;
+     }
+ }
+ 
+-void func_80A9062C(EnKakasi2* this, PlayState* play) {
++void EnKakasi2_SetupIdle(EnKakasi2* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&object_ka_Anim_000214);
+ 
+     Animation_Change(&this->skelAnime, &object_ka_Anim_000214, 0.0f, 0.0f, (s16)frameCount, ANIMMODE_ONCE, -10.0f);
+-    this->actionFunc = func_80A906C4;
++    this->actionFunc = EnKakasi2_Idle;  // was func_80A906C4 [LLM:HIGH]
+ }
+ 
+-void func_80A906C4(EnKakasi2* this, PlayState* play) {
++void EnKakasi2_Idle(EnKakasi2* this, PlayState* play) {
+     if (this->skelAnime.curFrame != 0) {
+         Math_ApproachZeroF(&this->skelAnime.curFrame, 0.5f, 1.0f);
+     }
+@@ -241,7 +247,7 @@ void EnKakasi2_Update(Actor* thisx, PlayState* play2) {
+     }
+ }
+ 
+-void func_80A90948(Actor* thisx, PlayState* play) {
++void EnKakasi2_Draw(Actor* thisx, PlayState* play) {
+     EnKakasi2* this = (EnKakasi2*)thisx;
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-- 
+2.55.0
+

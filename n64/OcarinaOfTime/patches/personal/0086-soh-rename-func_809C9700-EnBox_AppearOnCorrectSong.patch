@@ -1,0 +1,50 @@
+From f5d4612fb8ee6c04d10327fac2486d626e05f3b5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:05 +0000
+Subject: [PATCH 086/488] soh: rename func_809C9700 ->
+ EnBox_AppearOnCorrectSong
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 0.83.
+Defined in soh/src/overlays/actors/ovl_En_Box/z_en_box.c.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Box/z_en_box.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+index 87573f929..3f1777aca 100644
+--- a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
++++ b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+@@ -47,7 +47,8 @@ void EnBox_Update(Actor* thisx, PlayState* play);
+ void EnBox_Draw(Actor* thisx, PlayState* play);
+ 
+ void EnBox_FallOnSwitchFlag(EnBox*, PlayState*);
+-void func_809C9700(EnBox*, PlayState*);
++// Name from zeldaret/oot (was func_809C9700): adopted upstream's name for this address; body verified to match upstream at 0.83. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Box/z_en_box.c]
++void EnBox_AppearOnCorrectSong(EnBox*, PlayState*);
+ void EnBox_AppearOnSwitchFlag(EnBox*, PlayState*);
+ void EnBox_AppearOnRoomClear(EnBox*, PlayState*);
+ void EnBox_AppearInit(EnBox*, PlayState*);
+@@ -162,7 +163,7 @@ void EnBox_Init(Actor* thisx, PlayState* play2) {
+         this->alpha = 0;
+         this->dyna.actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+     } else if (this->type == ENBOX_TYPE_9 || this->type == ENBOX_TYPE_10) {
+-        EnBox_SetupAction(this, func_809C9700);
++        EnBox_SetupAction(this, EnBox_AppearOnCorrectSong);
+         this->dyna.actor.flags |= ACTOR_FLAG_UPDATE_DURING_OCARINA;
+         DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
+         this->movementFlags |= ENBOX_MOVE_IMMOBILE;
+@@ -304,7 +305,7 @@ void EnBox_FallOnSwitchFlag(EnBox* this, PlayState* play) {
+ }
+ 
+ // used for types 9, 10
+-void func_809C9700(EnBox* this, PlayState* play) {
++void EnBox_AppearOnCorrectSong(EnBox* this, PlayState* play) {
+     s32 treasureFlag = this->dyna.actor.params & 0x1F;
+     Player* player = GET_PLAYER(play);
+ 
+-- 
+2.55.0
+

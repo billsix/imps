@@ -1,0 +1,118 @@
+From 493470b78bfb38729f3d2e4a77e2fc1c1d4c09c8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:00 +0000
+Subject: [PATCH 035/488] soh: name the 3 address-named symbols defined in
+ z_bg_haka_huta.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c.
+
+  * func_8087D720 -> BgHakaHuta_Rest
+    deduced, confidence HIGH
+
+  * D_8087D958 -> sLidRestOffset
+    deduced, confidence HIGH
+
+  * D_8087D964 -> sLidRestAxis
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c  | 25 +++++++++++--------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c b/soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c
+index 9626f7f59..4eac2d948 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c
++++ b/soh/src/overlays/actors/ovl_Bg_Haka_Huta/z_bg_haka_huta.c
+@@ -20,7 +20,7 @@ void BgHakaHuta_PlaySound(BgHakaHuta* this, PlayState* play, u16 sfx);
+ void BgHakaHuta_SpawnEnemies(BgHakaHuta* this, PlayState* play);
+ void BgHakaHuta_Open(BgHakaHuta* this, PlayState* play);
+ void BgHakaHuta_SlideOpen(BgHakaHuta* this, PlayState* play);
+-void func_8087D720(BgHakaHuta* this, PlayState* play);
++void BgHakaHuta_Rest(BgHakaHuta* this, PlayState* play);
+ void BgHakaHuta_DoNothing(BgHakaHuta* this, PlayState* play);
+ 
+ const ActorInit Bg_Haka_Huta_InitVars = {
+@@ -53,7 +53,7 @@ void BgHakaHuta_Init(Actor* thisx, PlayState* play) {
+     thisx->params &= 0xFF;
+     if (Flags_GetSwitch(play, thisx->params)) {
+         this->counter = -1;
+-        this->actionFunc = func_8087D720;
++        this->actionFunc = BgHakaHuta_Rest;
+     } else {
+         this->actionFunc = BgHakaHuta_SpawnEnemies;
+     }
+@@ -169,13 +169,16 @@ void BgHakaHuta_SlideOpen(BgHakaHuta* this, PlayState* play) {
+     }
+     if (this->counter == 0) {
+         BgHakaHuta_PlaySound(this, play, NA_SE_EV_COFFIN_CAP_BOUND);
+-        this->actionFunc = func_8087D720;
++        this->actionFunc = BgHakaHuta_Rest;
+     }
+ }
+ 
+-void func_8087D720(BgHakaHuta* this, PlayState* play) {
+-    static Vec3f D_8087D958 = { 30.0f, 0.0f, 0.0f };
+-    static Vec3f D_8087D964 = { 0.03258f, 0.3258f, -0.9449f };
++// LLM generated name (HIGH), was func_8087D720: settles the coffin lid into its final resting pose, adding a camera quake
++void BgHakaHuta_Rest(BgHakaHuta* this, PlayState* play) {
++    // LLM generated name (HIGH), was D_8087D958: lid offset vector rotated about the axis below to place the resting lid
++    static Vec3f sLidRestOffset = { 30.0f, 0.0f, 0.0f };
++    // LLM generated name (HIGH), was D_8087D964: rotation axis applied to the lid rest offset each frame
++    static Vec3f sLidRestAxis = { 0.03258f, 0.3258f, -0.9449f };
+     MtxF mtx;
+     Vec3f vec;
+     s32 quakeIndex;
+@@ -192,13 +195,13 @@ void func_8087D720(BgHakaHuta* this, PlayState* play) {
+         this->actionFunc = BgHakaHuta_DoNothing;
+     }
+ 
+-    D_8087D958.x = this->counter + 24.0f;
+-    if (D_8087D958.x > 30.0f) {
+-        D_8087D958.x = 30.0f;
++    sLidRestOffset.x = this->counter + 24.0f;
++    if (sLidRestOffset.x > 30.0f) {
++        sLidRestOffset.x = 30.0f;
+     }
+     Matrix_RotateY(this->dyna.actor.world.rot.y * (M_PI / 0x8000), MTXMODE_NEW);
+-    Matrix_RotateAxis(this->counter * (191 * M_PI / 3750), &D_8087D964, MTXMODE_APPLY);
+-    Matrix_MultVec3f(&D_8087D958, &vec);
++    Matrix_RotateAxis(this->counter * (191 * M_PI / 3750), &sLidRestAxis, MTXMODE_APPLY);
++    Matrix_MultVec3f(&sLidRestOffset, &vec);
+     this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x + vec.x;
+     this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y + vec.y;
+     this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z + vec.z;
+-- 
+2.55.0
+

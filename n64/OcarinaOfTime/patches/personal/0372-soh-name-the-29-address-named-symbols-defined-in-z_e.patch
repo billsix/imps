@@ -1,0 +1,551 @@
+From 7228f28079efb1c0df9453ac5c1a3cb49a3f3838 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 372/488] soh: name the 29 address-named symbols defined in
+ z_en_rl.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 29 are defined in soh/src/overlays/actors/ovl_En_Rl/z_en_rl.c.
+
+  * func_80AE72D0 -> EnRl_UpdateEyes
+    deduced, confidence HIGH: runs the blink timer and clamps the eye
+    texture index to the three sEyeTextures entries
+
+  * func_80AE7358 -> EnRl_SetupFadedOut
+    deduced, confidence HIGH: loops the idle animation and drops to action 4
+    with nothing drawn and no shadow
+
+  * func_80AE73D8 -> EnRl_WatchCutsceneEnd
+    deduced, confidence HIGH: latches while a cutscene runs and, on its end,
+    fades the params 2 Rauru out
+
+  * func_80AE744C -> EnRl_UpdateBgCheck
+    deduced, confidence HIGH: runs Actor_UpdateBgCheckInfo with Rauru's
+    dimensions
+
+  * func_80AE74B4 -> EnRl_IsCueAction
+    deduced, confidence HIGH: true when the given cue channel is live and
+    sitting on the caller's action id
+
+  * func_80AE74FC -> EnRl_IsNotCueAction
+    deduced, confidence HIGH: true when that cue channel is live and on any
+    action other than the caller's
+
+  * func_80AE7544 -> EnRl_InitSkelAnime
+    deduced, confidence HIGH: builds the skeleton on the idle animation
+
+  * func_80AE7590 -> EnRl_GiveLightMedallion
+    deduced, confidence HIGH: in the Chamber of the Sages on cue 6 action 2,
+    spawns the medallion effect above the player and grants
+    ITEM_MEDALLION_LIGHT once
+
+  * func_80AE7668 -> EnRl_SetupChamberScene
+    deduced, confidence GUESS: turns the player around to face Rauru and
+    moves to action 1 with the opaque draw; the scene it opens is inferred
+    from the actions that follow
+
+  * func_80AE7698 -> EnRl_WaitForGestureCue
+    deduced, confidence GUESS: waits for cue 0 to reach action 3 and then
+    plays object_rl_Anim_00040C once; the animation's content is not
+    established beyond being the lead-in to the looping one
+
+  * func_80AE772C -> EnRl_CheckGestureDone
+    deduced, confidence HIGH: on that animation finishing, loops
+    object_rl_Anim_000830 and advances to action 3
+
+  * func_80AE7798 -> EnRl_Action0
+    deduced, confidence HIGH: action 0: opens the chamber scene straight
+    away
+
+  * func_80AE77B8 -> EnRl_Action1
+    deduced, confidence HIGH: action 1: bg check, animation and eyes while
+    waiting for the gesture cue
+
+  * func_80AE77F8 -> EnRl_Action2
+    deduced, confidence HIGH: action 2: plays the gesture out and moves to
+    the looping animation
+
+  * func_80AE7838 -> EnRl_Action3
+    deduced, confidence HIGH: action 3: the medallion hand-over step
+
+  * func_80AE7878 -> EnRl_InitSkelAnimeHidden
+    deduced, confidence HIGH: the params 2 init: builds the skeleton, starts
+    at action 4 and hides the shadow
+
+  * func_80AE78D4 -> EnRl_SpawnLightBall
+    deduced, confidence HIGH: spawns the params 5 DEMO_6K light effect above
+    Rauru
+
+  * func_80AE7954 -> EnRl_WaitForAppearCue
+    deduced, confidence HIGH: waits for cue 0 action 4, then starts the
+    translucent fade-in from zero alpha
+
+  * func_80AE79A4 -> EnRl_FadeInOut
+    deduced, confidence HIGH: ramps alpha and shadow alpha up while the cue
+    holds and back down when it does not, switching draw mode at each end
+
+  * func_80AE7AF8 -> EnRl_CheckGestureOrFade
+    deduced, confidence GUESS: branches between starting the gesture
+    animation and fading fully in with the light ball; named for the two
+    outcomes rather than an identified beat of the scene
+
+  * func_80AE7BF8 -> EnRl_CheckGestureDone2
+    deduced, confidence HIGH: the action 6 twin of EnRl_CheckGestureDone,
+    ending at action 7 instead of 3
+
+  * func_80AE7C64 -> EnRl_Action4
+    deduced, confidence HIGH: action 4: waits for the appear cue and watches
+    for the cutscene ending
+
+  * func_80AE7C94 -> EnRl_Action5
+    deduced, confidence HIGH: action 5: runs the alpha fade with the
+    animation and eyes
+
+  * func_80AE7CE8 -> EnRl_Action6
+    deduced, confidence HIGH: action 6: plays the gesture out into the
+    looping animation
+
+  * func_80AE7D40 -> EnRl_Action7
+    deduced, confidence HIGH: action 7: the looping state, watching for the
+    next gesture or a fade back
+
+  * func_80AE7D94 -> EnRl_DrawXlu
+    deduced, confidence HIGH: draw config 2: draws the skeleton
+    translucently at the current alpha
+
+  * func_80AE7FD0 -> EnRl_DrawNothing
+    deduced, confidence HIGH: draw config 0: draws nothing
+
+  * func_80AE7FDC -> EnRl_DrawOpa
+    deduced, confidence HIGH: draw config 1: draws the skeleton opaque at
+    full alpha
+
+  * D_80AE81A0 -> sEyeTextures
+    deduced, confidence HIGH: the three eye textures indexed by the blink
+    counter
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Rl/z_en_rl.c | 189 +++++++++++---------
+ 1 file changed, 109 insertions(+), 80 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Rl/z_en_rl.c b/soh/src/overlays/actors/ovl_En_Rl/z_en_rl.c
+index cf73853b3..f85d36108 100644
+--- a/soh/src/overlays/actors/ovl_En_Rl/z_en_rl.c
++++ b/soh/src/overlays/actors/ovl_En_Rl/z_en_rl.c
+@@ -16,19 +16,31 @@ void EnRl_Destroy(Actor* thisx, PlayState* play);
+ void EnRl_Update(Actor* thisx, PlayState* play);
+ void EnRl_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80AE7798(EnRl* this, PlayState* play);
+-void func_80AE77B8(EnRl* this, PlayState* play);
+-void func_80AE77F8(EnRl* this, PlayState* play);
+-void func_80AE7838(EnRl* this, PlayState* play);
+-void func_80AE7C64(EnRl* this, PlayState* play);
+-void func_80AE7C94(EnRl* this, PlayState* play);
+-void func_80AE7CE8(EnRl* this, PlayState* play);
+-void func_80AE7D40(EnRl* this, PlayState* play);
+-void func_80AE7FD0(EnRl* this, PlayState* play);
+-void func_80AE7FDC(EnRl* this, PlayState* play);
+-void func_80AE7D94(EnRl* this, PlayState* play);
+-
+-static void* D_80AE81A0[] = { object_rl_Tex_003620, object_rl_Tex_003960, object_rl_Tex_003B60 };
++// LLM generated name (HIGH), was func_80AE7798: action 0: opens the chamber scene straight away
++void EnRl_Action0(EnRl* this, PlayState* play);  // was func_80AE7798 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE77B8: action 1: bg check, animation and eyes while waiting for the gesture cue
++void EnRl_Action1(EnRl* this, PlayState* play);  // was func_80AE77B8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE77F8: action 2: plays the gesture out and moves to the looping animation
++void EnRl_Action2(EnRl* this, PlayState* play);  // was func_80AE77F8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE7838: action 3: the medallion hand-over step
++void EnRl_Action3(EnRl* this, PlayState* play);  // was func_80AE7838 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE7C64: action 4: waits for the appear cue and watches for the cutscene ending
++void EnRl_Action4(EnRl* this, PlayState* play);  // was func_80AE7C64 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE7C94: action 5: runs the alpha fade with the animation and eyes
++void EnRl_Action5(EnRl* this, PlayState* play);  // was func_80AE7C94 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE7CE8: action 6: plays the gesture out into the looping animation
++void EnRl_Action6(EnRl* this, PlayState* play);  // was func_80AE7CE8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE7D40: action 7: the looping state, watching for the next gesture or a fade back
++void EnRl_Action7(EnRl* this, PlayState* play);  // was func_80AE7D40 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE7FD0: draw config 0: draws nothing
++void EnRl_DrawNothing(EnRl* this, PlayState* play);  // was func_80AE7FD0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE7FDC: draw config 1: draws the skeleton opaque at full alpha
++void EnRl_DrawOpa(EnRl* this, PlayState* play);  // was func_80AE7FDC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AE7D94: draw config 2: draws the skeleton translucently at the current alpha
++void EnRl_DrawXlu(EnRl* this, PlayState* play);  // was func_80AE7D94 [LLM:HIGH]
++
++// LLM generated name (HIGH), was D_80AE81A0: the three eye textures indexed by the blink counter
++static void* sEyeTextures[] = { object_rl_Tex_003620, object_rl_Tex_003960, object_rl_Tex_003B60 };  // was D_80AE81A0 [LLM:HIGH]
+ static s32 D_80AE81AC = 0;
+ 
+ void EnRl_Destroy(Actor* thisx, PlayState* play) {
+@@ -37,7 +49,8 @@ void EnRl_Destroy(Actor* thisx, PlayState* play) {
+     SkelAnime_Free(&this->skelAnime, play);
+ }
+ 
+-void func_80AE72D0(EnRl* this) {
++// LLM generated name (HIGH), was func_80AE72D0: runs the blink timer and clamps the eye texture index to the three sEyeTextures entries
++void EnRl_UpdateEyes(EnRl* this) {
+     s32 pad[3];
+     s16* timer = &this->timer;
+     s16* eyeTextureIndex = &this->eyeTextureIndex;
+@@ -52,7 +65,8 @@ void func_80AE72D0(EnRl* this) {
+     }
+ }
+ 
+-void func_80AE7358(EnRl* this) {
++// LLM generated name (HIGH), was func_80AE7358: loops the idle animation and drops to action 4 with nothing drawn and no shadow
++void EnRl_SetupFadedOut(EnRl* this) {
+     Animation_Change(&this->skelAnime, &object_rl_Anim_000A3C, 1.0f, 0.0f,
+                      Animation_GetLastFrame(&object_rl_Anim_000A3C), ANIMMODE_LOOP, 0.0f);
+     this->action = 4;
+@@ -63,12 +77,13 @@ void func_80AE7358(EnRl* this) {
+     this->unk_19C = 0.0f;
+ }
+ 
+-void func_80AE73D8(EnRl* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AE73D8: latches while a cutscene runs and, on its end, fades the params 2 Rauru out
++void EnRl_WatchCutsceneEnd(EnRl* this, PlayState* play) {
+ 
+     if (play->csCtx.state == CS_STATE_IDLE) {
+         if (D_80AE81AC) {
+             if (this->actor.params == 2) {
+-                func_80AE7358(this);
++                EnRl_SetupFadedOut(this);  // was func_80AE7358 [LLM:HIGH]
+             }
+             D_80AE81AC = 0;
+         }
+@@ -77,7 +92,8 @@ void func_80AE73D8(EnRl* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AE744C(EnRl* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AE744C: runs Actor_UpdateBgCheckInfo with Rauru's dimensions
++void EnRl_UpdateBgCheck(EnRl* this, PlayState* play) {
+     Actor_UpdateBgCheckInfo(play, &this->actor, 75.0f, 30.0f, 30.0f, 5);
+ }
+ 
+@@ -85,7 +101,8 @@ s32 EnRl_UpdateSkelAnime(EnRl* this) {
+     return SkelAnime_Update(&this->skelAnime);
+ }
+ 
+-s32 func_80AE74B4(EnRl* this, PlayState* play, u16 arg2, s32 arg3) {
++// LLM generated name (HIGH), was func_80AE74B4: true when the given cue channel is live and sitting on the caller's action id
++s32 EnRl_IsCueAction(EnRl* this, PlayState* play, u16 arg2, s32 arg3) {
+     CsCmdActorCue* csCmdActorAction;
+ 
+     if (play->csCtx.state != CS_STATE_IDLE) {
+@@ -97,7 +114,8 @@ s32 func_80AE74B4(EnRl* this, PlayState* play, u16 arg2, s32 arg3) {
+     return 0;
+ }
+ 
+-s32 func_80AE74FC(EnRl* this, PlayState* play, u16 arg2, s32 arg3) {
++// LLM generated name (HIGH), was func_80AE74FC: true when that cue channel is live and on any action other than the caller's
++s32 EnRl_IsNotCueAction(EnRl* this, PlayState* play, u16 arg2, s32 arg3) {
+     CsCmdActorCue* csCmdActorAction;
+ 
+     if (play->csCtx.state != CS_STATE_IDLE) {
+@@ -109,11 +127,13 @@ s32 func_80AE74FC(EnRl* this, PlayState* play, u16 arg2, s32 arg3) {
+     return 0;
+ }
+ 
+-void func_80AE7544(EnRl* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AE7544: builds the skeleton on the idle animation
++void EnRl_InitSkelAnime(EnRl* this, PlayState* play) {
+     SkelAnime_InitFlex(play, &this->skelAnime, &object_rl_Skel_007B38, &object_rl_Anim_000A3C, NULL, NULL, 0);
+ }
+ 
+-void func_80AE7590(EnRl* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AE7590: in the Chamber of the Sages on cue 6 action 2, spawns the medallion effect above the player and grants ITEM_MEDALLION_LIGHT once
++void EnRl_GiveLightMedallion(EnRl* this, PlayState* play) {
+     s32 pad;
+     Player* player;
+     Vec3f pos;
+@@ -133,7 +153,8 @@ void func_80AE7590(EnRl* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AE7668(EnRl* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80AE7668: turns the player around to face Rauru and moves to action 1 with the opaque draw; the scene it opens is inferred from the actions that follow
++void EnRl_SetupChamberScene(EnRl* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->drawConfig = 1;
+@@ -141,7 +162,8 @@ void func_80AE7668(EnRl* this, PlayState* play) {
+     player->actor.world.rot.y = player->actor.shape.rot.y = this->actor.world.rot.y + 0x8000;
+ }
+ 
+-void func_80AE7698(EnRl* this, PlayState* play) {
++// LLM generated name (GUESS), was func_80AE7698: waits for cue 0 to reach action 3 and then plays object_rl_Anim_00040C once; the animation's content is not established beyond being the lead-in to the looping one
++void EnRl_WaitForGestureCue(EnRl* this, PlayState* play) {
+     CsCmdActorCue* csCmdActorAction;
+ 
+     if (play->csCtx.state != CS_STATE_IDLE) {
+@@ -154,7 +176,8 @@ void func_80AE7698(EnRl* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AE772C(EnRl* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80AE772C: on that animation finishing, loops object_rl_Anim_000830 and advances to action 3
++void EnRl_CheckGestureDone(EnRl* this, s32 arg1) {
+     if (arg1) {
+         Animation_Change(&this->skelAnime, &object_rl_Anim_000830, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&object_rl_Anim_000830), ANIMMODE_LOOP, 0.0f);
+@@ -162,46 +185,49 @@ void func_80AE772C(EnRl* this, s32 arg1) {
+     }
+ }
+ 
+-void func_80AE7798(EnRl* this, PlayState* play) {
+-    func_80AE7668(this, play);
++void EnRl_Action0(EnRl* this, PlayState* play) {
++    EnRl_SetupChamberScene(this, play);  // was func_80AE7668 [LLM:GUESS]
+ }
+ 
+-void func_80AE77B8(EnRl* this, PlayState* play) {
+-    func_80AE744C(this, play);
++void EnRl_Action1(EnRl* this, PlayState* play) {
++    EnRl_UpdateBgCheck(this, play);  // was func_80AE744C [LLM:HIGH]
+     EnRl_UpdateSkelAnime(this);
+-    func_80AE72D0(this);
+-    func_80AE7698(this, play);
++    EnRl_UpdateEyes(this);  // was func_80AE72D0 [LLM:HIGH]
++    EnRl_WaitForGestureCue(this, play);  // was func_80AE7698 [LLM:GUESS]
+ }
+ 
+-void func_80AE77F8(EnRl* this, PlayState* play) {
++void EnRl_Action2(EnRl* this, PlayState* play) {
+     s32 temp;
+ 
+-    func_80AE744C(this, play);
++    EnRl_UpdateBgCheck(this, play);  // was func_80AE744C [LLM:HIGH]
+     temp = EnRl_UpdateSkelAnime(this);
+-    func_80AE72D0(this);
+-    func_80AE772C(this, temp);
++    EnRl_UpdateEyes(this);  // was func_80AE72D0 [LLM:HIGH]
++    EnRl_CheckGestureDone(this, temp);  // was func_80AE772C [LLM:HIGH]
+ }
+ 
+-void func_80AE7838(EnRl* this, PlayState* play) {
+-    func_80AE744C(this, play);
++void EnRl_Action3(EnRl* this, PlayState* play) {
++    EnRl_UpdateBgCheck(this, play);  // was func_80AE744C [LLM:HIGH]
+     EnRl_UpdateSkelAnime(this);
+-    func_80AE72D0(this);
+-    func_80AE7590(this, play);
++    EnRl_UpdateEyes(this);  // was func_80AE72D0 [LLM:HIGH]
++    EnRl_GiveLightMedallion(this, play);  // was func_80AE7590 [LLM:HIGH]
+ }
+ 
+-void func_80AE7878(EnRl* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AE7878: the params 2 init: builds the skeleton, starts at action 4 and hides the shadow
++void EnRl_InitSkelAnimeHidden(EnRl* this, PlayState* play) {
+     SkelAnime_InitFlex(play, &this->skelAnime, &object_rl_Skel_007B38, &object_rl_Anim_000A3C, NULL, NULL, 0);
+     this->action = 4;
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-void func_80AE78D4(EnRl* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AE78D4: spawns the params 5 DEMO_6K light effect above Rauru
++void EnRl_SpawnLightBall(EnRl* this, PlayState* play) {
+     Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_DEMO_6K, this->actor.world.pos.x,
+                        kREG(18) + 22.0f + this->actor.world.pos.y, this->actor.world.pos.z, 0, 0, 0, 5);
+ }
+ 
+-void func_80AE7954(EnRl* this, PlayState* play) {
+-    if (func_80AE74B4(this, play, 4, 0)) {
++// LLM generated name (HIGH), was func_80AE7954: waits for cue 0 action 4, then starts the translucent fade-in from zero alpha
++void EnRl_WaitForAppearCue(EnRl* this, PlayState* play) {
++    if (EnRl_IsCueAction(this, play, 4, 0)) {  // was func_80AE74B4 [LLM:HIGH]
+         this->action = 5;
+         this->drawConfig = 2;
+         this->alpha = 0;
+@@ -210,11 +236,12 @@ void func_80AE7954(EnRl* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AE79A4(EnRl* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AE79A4: ramps alpha and shadow alpha up while the cue holds and back down when it does not, switching draw mode at each end
++void EnRl_FadeInOut(EnRl* this, PlayState* play) {
+     f32* unk_19C = &this->unk_19C;
+     s32 alpha = 255;
+ 
+-    if (func_80AE74B4(this, play, 4, 0)) {
++    if (EnRl_IsCueAction(this, play, 4, 0)) {  // was func_80AE74B4 [LLM:HIGH]
+         *unk_19C += 1.0f;
+         if (*unk_19C >= kREG(5) + 10.0f) {
+             this->action = 7;
+@@ -240,25 +267,27 @@ void func_80AE79A4(EnRl* this, PlayState* play) {
+     this->actor.shape.shadowAlpha = alpha;
+ }
+ 
+-void func_80AE7AF8(EnRl* this, PlayState* play) {
+-    if (func_80AE74B4(this, play, 3, 0)) {
++// LLM generated name (GUESS), was func_80AE7AF8: branches between starting the gesture animation and fading fully in with the light ball; named for the two outcomes rather than an identified beat of the scene
++void EnRl_CheckGestureOrFade(EnRl* this, PlayState* play) {
++    if (EnRl_IsCueAction(this, play, 3, 0)) {  // was func_80AE74B4 [LLM:HIGH]
+         Animation_Change(&this->skelAnime, &object_rl_Anim_00040C, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&object_rl_Anim_00040C), ANIMMODE_ONCE, -8.0f);
+         this->action = 6;
+-    } else if (func_80AE74FC(this, play, 4, 0)) {
++    } else if (EnRl_IsNotCueAction(this, play, 4, 0)) {  // was func_80AE74FC [LLM:HIGH]
+         this->action = 5;
+         this->drawConfig = 2;
+         this->unk_19C = kREG(5) + 10.0f;
+         this->alpha = 255;
+         if (!this->lightBallSpawned) {
+-            func_80AE78D4(this, play);
++            EnRl_SpawnLightBall(this, play);  // was func_80AE78D4 [LLM:HIGH]
+             this->lightBallSpawned = 1;
+         }
+         this->actor.shape.shadowAlpha = 0xFF;
+     }
+ }
+ 
+-void func_80AE7BF8(EnRl* this, s32 arg1) {
++// LLM generated name (HIGH), was func_80AE7BF8: the action 6 twin of EnRl_CheckGestureDone, ending at action 7 instead of 3
++void EnRl_CheckGestureDone2(EnRl* this, s32 arg1) {
+     if (arg1 != 0) {
+         Animation_Change(&this->skelAnime, &object_rl_Anim_000830, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&object_rl_Anim_000830), ANIMMODE_LOOP, 0.0f);
+@@ -266,41 +295,41 @@ void func_80AE7BF8(EnRl* this, s32 arg1) {
+     }
+ }
+ 
+-void func_80AE7C64(EnRl* this, PlayState* play) {
+-    func_80AE7954(this, play);
+-    func_80AE73D8(this, play);
++void EnRl_Action4(EnRl* this, PlayState* play) {
++    EnRl_WaitForAppearCue(this, play);  // was func_80AE7954 [LLM:HIGH]
++    EnRl_WatchCutsceneEnd(this, play);  // was func_80AE73D8 [LLM:HIGH]
+ }
+ 
+-void func_80AE7C94(EnRl* this, PlayState* play) {
+-    func_80AE744C(this, play);
++void EnRl_Action5(EnRl* this, PlayState* play) {
++    EnRl_UpdateBgCheck(this, play);  // was func_80AE744C [LLM:HIGH]
+     EnRl_UpdateSkelAnime(this);
+-    func_80AE72D0(this);
+-    func_80AE79A4(this, play);
+-    func_80AE73D8(this, play);
++    EnRl_UpdateEyes(this);  // was func_80AE72D0 [LLM:HIGH]
++    EnRl_FadeInOut(this, play);  // was func_80AE79A4 [LLM:HIGH]
++    EnRl_WatchCutsceneEnd(this, play);  // was func_80AE73D8 [LLM:HIGH]
+ }
+ 
+-void func_80AE7CE8(EnRl* this, PlayState* play) {
++void EnRl_Action6(EnRl* this, PlayState* play) {
+     s32 temp;
+ 
+-    func_80AE744C(this, play);
++    EnRl_UpdateBgCheck(this, play);  // was func_80AE744C [LLM:HIGH]
+     temp = EnRl_UpdateSkelAnime(this);
+-    func_80AE72D0(this);
+-    func_80AE7BF8(this, temp);
+-    func_80AE73D8(this, play);
++    EnRl_UpdateEyes(this);  // was func_80AE72D0 [LLM:HIGH]
++    EnRl_CheckGestureDone2(this, temp);  // was func_80AE7BF8 [LLM:HIGH]
++    EnRl_WatchCutsceneEnd(this, play);  // was func_80AE73D8 [LLM:HIGH]
+ }
+ 
+-void func_80AE7D40(EnRl* this, PlayState* play) {
+-    func_80AE744C(this, play);
++void EnRl_Action7(EnRl* this, PlayState* play) {
++    EnRl_UpdateBgCheck(this, play);  // was func_80AE744C [LLM:HIGH]
+     EnRl_UpdateSkelAnime(this);
+-    func_80AE72D0(this);
+-    func_80AE7AF8(this, play);
+-    func_80AE73D8(this, play);
++    EnRl_UpdateEyes(this);  // was func_80AE72D0 [LLM:HIGH]
++    EnRl_CheckGestureOrFade(this, play);  // was func_80AE7AF8 [LLM:GUESS]
++    EnRl_WatchCutsceneEnd(this, play);  // was func_80AE73D8 [LLM:HIGH]
+ }
+ 
+-void func_80AE7D94(EnRl* this, PlayState* play) {
++void EnRl_DrawXlu(EnRl* this, PlayState* play) {
+     s32 pad[2];
+     s16 temp = this->eyeTextureIndex;
+-    void* tex = D_80AE81A0[temp];
++    void* tex = sEyeTextures[temp];  // was D_80AE81A0 [LLM:HIGH]
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -319,8 +348,8 @@ void func_80AE7D94(EnRl* this, PlayState* play) {
+ }
+ 
+ static EnRlActionFunc sActionFuncs[] = {
+-    func_80AE7798, func_80AE77B8, func_80AE77F8, func_80AE7838,
+-    func_80AE7C64, func_80AE7C94, func_80AE7CE8, func_80AE7D40,
++    EnRl_Action0, EnRl_Action1, EnRl_Action2, EnRl_Action3,  // was func_80AE7798 [LLM:HIGH]
++    EnRl_Action4, EnRl_Action5, EnRl_Action6, EnRl_Action7,  // was func_80AE7C64 [LLM:HIGH]
+ };
+ 
+ void EnRl_Update(Actor* thisx, PlayState* play) {
+@@ -338,18 +367,18 @@ void EnRl_Init(Actor* thisx, PlayState* play) {
+ 
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 50.0f);
+     if (this->actor.params == 2) {
+-        func_80AE7878(this, play);
++        EnRl_InitSkelAnimeHidden(this, play);  // was func_80AE7878 [LLM:HIGH]
+     } else {
+-        func_80AE7544(this, play);
++        EnRl_InitSkelAnime(this, play);  // was func_80AE7544 [LLM:HIGH]
+     }
+ }
+-void func_80AE7FD0(EnRl* this, PlayState* play) {
++void EnRl_DrawNothing(EnRl* this, PlayState* play) {
+ }
+ 
+-void func_80AE7FDC(EnRl* this, PlayState* play) {
++void EnRl_DrawOpa(EnRl* this, PlayState* play) {
+     s32 pad[2];
+     s16 temp = this->eyeTextureIndex;
+-    void* tex = D_80AE81A0[temp];
++    void* tex = sEyeTextures[temp];  // was D_80AE81A0 [LLM:HIGH]
+     SkelAnime* skelAnime = &this->skelAnime;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -366,9 +395,9 @@ void func_80AE7FDC(EnRl* this, PlayState* play) {
+ }
+ 
+ static EnRlDrawFunc sDrawFuncs[] = {
+-    func_80AE7FD0,
+-    func_80AE7FDC,
+-    func_80AE7D94,
++    EnRl_DrawNothing,  // was func_80AE7FD0 [LLM:HIGH]
++    EnRl_DrawOpa,  // was func_80AE7FDC [LLM:HIGH]
++    EnRl_DrawXlu,  // was func_80AE7D94 [LLM:HIGH]
+ };
+ 
+ void EnRl_Draw(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

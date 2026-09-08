@@ -1,0 +1,248 @@
+From 915cb439b048b64e44c1fa211d23a41681012cf4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:23 +0000
+Subject: [PATCH 289/488] soh: name the 6 address-named symbols defined in
+ z_en_in.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_En_In/z_en_in.c.
+
+  * func_80A7A4C8 -> EnIn_OfferFirstRace
+    deduced, confidence HIGH: the default idle: when the player accepts the
+    conversation it starts the race transition, sets the race state to 1 and
+    switches the BGM to NA_BGM_HORSE.
+
+  * func_80A7A568 -> EnIn_HorseRentalActive
+    deduced, confidence HIGH: runs while the rented horse's timer is
+    counting; expiry hands off to EnIn_RentalTimeExpired's follow-up state,
+    and talking charges 50 rupees for another race or ends the rental.
+
+  * func_80A7A770 -> EnIn_ChargeRaceFee
+    deduced, confidence HIGH: auto-accepts the conversation, takes 50
+    rupees, sets the race state to 7 and moves to the rematch prompt.
+
+  * func_80A7A848 -> EnIn_OfferRematch
+    deduced, confidence HIGH: resolves the race-again prompt: yes starts the
+    second race, no (or too few rupees) returns to the first-race offer.
+
+  * func_80A7A940 -> EnIn_PlayerLostRace
+    deduced, confidence HIGH: plays NA_SE_VO_IN_LOST after a short delay
+    and, once the player talks, starts the second race; the counterpart of
+    the already-named EnIn_PlayerWonSecondRace.
+
+  * func_80A7B024 -> EnIn_RentalExpiredTalk
+    deduced, confidence HIGH: the state installed when the rental timer runs
+    out: it freezes the player and the horse, and on talking sets the
+    rented-horse flag and warps back out. While it is active the head
+    tracking looks at the camera rather than at the player.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_In/z_en_in.c | 52 ++++++++++++---------
+ 1 file changed, 29 insertions(+), 23 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_In/z_en_in.c b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+index 40a0c1c3c..aa049afab 100644
+--- a/soh/src/overlays/actors/ovl_En_In/z_en_in.c
++++ b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+@@ -14,20 +14,26 @@ void EnIn_Reset(void);
+ void EnIn_WaitForObject(EnIn* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A7A304): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+ void EnIn_Racing(EnIn* this, PlayState* play);
+-void func_80A7A4C8(EnIn* this, PlayState* play);
+-void func_80A7A568(EnIn* this, PlayState* play);
+-void func_80A7A848(EnIn* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A7A4C8: the default idle: when the player accepts the conversation it starts the race transition, sets the race state to 1 and switches the BGM to NA_BGM_HORSE.
++void EnIn_OfferFirstRace(EnIn* this, PlayState* play);  // was func_80A7A4C8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A7A568: runs while the rented horse's timer is counting; expiry hands off to EnIn_RentalTimeExpired's follow-up state, and talking charges 50 rupees for another race or ends the rental.
++void EnIn_HorseRentalActive(EnIn* this, PlayState* play);  // was func_80A7A568 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A7A848: resolves the race-again prompt: yes starts the second race, no (or too few rupees) returns to the first-race offer.
++void EnIn_OfferRematch(EnIn* this, PlayState* play);  // was func_80A7A848 [LLM:HIGH]
+ // Name from zeldaret/oot (was func_80A7ABD4): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+ void EnIn_ClosingGate(EnIn* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A7AEF0): adopted upstream's name for this address; body verified to match upstream at 0.97. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+ void EnIn_GuardingGate(EnIn* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A7B018): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+ void EnIn_PlayerEscapesRanch(EnIn* this, PlayState* play);
+-void func_80A7B024(EnIn* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A7B024: the state installed when the rental timer runs out: it freezes the player and the horse, and on talking sets the rented-horse flag and warps back out. While it is active the head tracking looks at the camera rather than at the player.
++void EnIn_RentalExpiredTalk(EnIn* this, PlayState* play);  // was func_80A7B024 [LLM:HIGH]
+ // Name from zeldaret/oot (was func_80A7AE84): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+ void EnIn_FinishClosingGate(EnIn* this, PlayState* play);
+-void func_80A7A770(EnIn* this, PlayState* play);
+-void func_80A7A940(EnIn* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A7A770: auto-accepts the conversation, takes 50 rupees, sets the race state to 7 and moves to the rematch prompt.
++void EnIn_ChargeRaceFee(EnIn* this, PlayState* play);  // was func_80A7A770 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A7A940: plays NA_SE_VO_IN_LOST after a short delay and, once the player talks, starts the second race; the counterpart of the already-named EnIn_PlayerWonSecondRace.
++void EnIn_PlayerLostRace(EnIn* this, PlayState* play);  // was func_80A7A940 [LLM:HIGH]
+ // Name from zeldaret/oot (was func_80A7AA40): adopted upstream's name for this address; body verified to match upstream at 0.80. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+ void EnIn_PlayerWonSecondRace(EnIn* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A7A4BC): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_In/z_en_in.c]
+@@ -271,7 +277,7 @@ s16 EnIn_UpdateTalkStateOnChoice(PlayState* play, Actor* thisx) {
+                 gSaveContext.eventInf[0] &= ~0xF;
+                 gSaveContext.eventInf[0] &= ~0x20;
+                 gSaveContext.eventInf[0] &= ~0x40;
+-                this->actionFunc = func_80A7A4C8;
++                this->actionFunc = EnIn_OfferFirstRace;  // was func_80A7A4C8 [LLM:HIGH]
+             }
+             break;
+     }
+@@ -336,10 +342,10 @@ void EnIn_UpdateTracking(EnIn* this, PlayState* play) {
+     } else {
+         npcTrackingMode = NPC_TRACKING_PLAYER_AUTO_TURN;
+     }
+-    if (this->actionFunc == func_80A7A568) {
++    if (this->actionFunc == EnIn_HorseRentalActive) {  // was func_80A7A568 [LLM:HIGH]
+         npcTrackingMode = NPC_TRACKING_FULL_BODY;
+     }
+-    if (this->actionFunc == func_80A7B024) {
++    if (this->actionFunc == EnIn_RentalExpiredTalk) {  // was func_80A7B024 [LLM:HIGH]
+         this->interactInfo.trackPos = play->view.eye;
+         this->interactInfo.yOffset = 60.0f;
+     } else {
+@@ -591,23 +597,23 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+                     case 0:
+                     case 2:
+                         EnIn_ChangeAnim(this, ENIN_ANIM_2);
+-                        this->actionFunc = func_80A7A4C8;
++                        this->actionFunc = EnIn_OfferFirstRace;  // was func_80A7A4C8 [LLM:HIGH]
+                         gSaveContext.eventInf[0] = 0;
+                         break;
+                     case 1:
+                         this->actor.targetMode = 3;
+                         EnIn_ChangeAnim(this, ENIN_ANIM_2);
+-                        this->actionFunc = func_80A7A568;
++                        this->actionFunc = EnIn_HorseRentalActive;  // was func_80A7A568 [LLM:HIGH]
+                         Interface_SetTimer(0x3C);
+                         break;
+                     case 3:
+                         EnIn_ChangeAnim(this, ENIN_ANIM_4);
+-                        this->actionFunc = func_80A7A770;
++                        this->actionFunc = EnIn_ChargeRaceFee;  // was func_80A7A770 [LLM:HIGH]
+                         break;
+                     case 4:
+                         EnIn_ChangeAnim(this, ENIN_ANIM_6);
+                         this->unk_1EC = 8;
+-                        this->actionFunc = func_80A7A940;
++                        this->actionFunc = EnIn_PlayerLostRace;  // was func_80A7A940 [LLM:HIGH]
+                         break;
+                     case 5:
+                     case 6:
+@@ -618,7 +624,7 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+                         break;
+                     case 7:
+                         EnIn_ChangeAnim(this, ENIN_ANIM_2);
+-                        this->actionFunc = func_80A7A848;
++                        this->actionFunc = EnIn_OfferRematch;  // was func_80A7A848 [LLM:HIGH]
+                         break;
+                 }
+         }
+@@ -654,7 +660,7 @@ void EnIn_Racing(EnIn* this, PlayState* play) {
+ void EnIn_Idle(EnIn* this, PlayState* play) {
+ }
+ 
+-void func_80A7A4C8(EnIn* this, PlayState* play) {
++void EnIn_OfferFirstRace(EnIn* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         EnIn_StartTransition(this, play, 1, TRANS_TYPE_CIRCLE(TCA_NORMAL, TCC_BLACK, TCS_FAST));
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x000F) | 0x0001;
+@@ -667,7 +673,7 @@ void func_80A7A4C8(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7A568(EnIn* this, PlayState* play) {
++void EnIn_HorseRentalActive(EnIn* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 phi_a2;
+     s32 transitionType;
+@@ -679,7 +685,7 @@ void func_80A7A568(EnIn* this, PlayState* play) {
+         Audio_PlaySfxGeneral(NA_SE_SY_FOUND, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+         EnIn_RentalTimeExpired(this, play);
+-        this->actionFunc = func_80A7B024;
++        this->actionFunc = EnIn_RentalExpiredTalk;  // was func_80A7B024 [LLM:HIGH]
+         gSaveContext.timerState = TIMER_STATE_OFF;
+     } else if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         if (play->msgCtx.choiceIndex == 0) {
+@@ -717,14 +723,14 @@ void func_80A7A568(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7A770(EnIn* this, PlayState* play) {
++void EnIn_ChargeRaceFee(EnIn* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+     } else if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         Rupees_ChangeBy(-50);
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+         EnIn_ChangeAnim(this, ENIN_ANIM_3);
+-        this->actionFunc = func_80A7A848;
++        this->actionFunc = EnIn_OfferRematch;  // was func_80A7A848 [LLM:HIGH]
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x0F) | 7;
+         this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & 0xFFFF) | 0x20;
+@@ -735,11 +741,11 @@ void func_80A7A770(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7A848(EnIn* this, PlayState* play) {
++void EnIn_OfferRematch(EnIn* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         if ((play->msgCtx.choiceIndex == 0 && gSaveContext.rupees < 50) || play->msgCtx.choiceIndex == 1) {
+             gSaveContext.eventInf[0] &= ~0xF;
+-            this->actionFunc = func_80A7A4C8;
++            this->actionFunc = EnIn_OfferFirstRace;  // was func_80A7A4C8 [LLM:HIGH]
+         } else {
+             if (GameInteractor_Should(VB_RACE_INGO, true, 2)) {
+                 EnIn_StartTransition(this, play, 2, TRANS_TYPE_CIRCLE(TCA_STARBURST, TCC_BLACK, TCS_FAST));
+@@ -757,7 +763,7 @@ void func_80A7A848(EnIn* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A7A940(EnIn* this, PlayState* play) {
++void EnIn_PlayerLostRace(EnIn* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+         return;
+@@ -907,7 +913,7 @@ void EnIn_GuardingGate(EnIn* this, PlayState* play) {
+ void EnIn_PlayerEscapesRanch(EnIn* this, PlayState* play) {
+ }
+ 
+-void func_80A7B024(EnIn* this, PlayState* play) {
++void EnIn_RentalExpiredTalk(EnIn* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (player->rideActor != NULL) {
+-- 
+2.55.0
+

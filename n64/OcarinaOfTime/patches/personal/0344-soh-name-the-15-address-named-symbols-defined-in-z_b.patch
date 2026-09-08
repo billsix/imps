@@ -1,0 +1,370 @@
+From f11107cd5ce9dda04b6dfd6b5d5ecda1a51ae4e0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 344/488] soh: name the 15 address-named symbols defined in
+ z_bg_spot15_rrbox.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 15 are defined in soh/src/overlays/actors/ovl_Bg_Spot15_Rrbox/z_bg_spot15_rrbox.c.
+
+  * D_808B45C4 -> sSpawnPositions
+    deduced, confidence HIGH: the fixed positions the Lon Lon crates are
+    placed at, taken in turn as each one spawns.
+
+  * D_808B4590 -> sNextSpawnIndex
+    deduced, confidence HIGH: which entry of sSpawnPositions the next crate
+    takes; it is bumped on each spawn and reset when the scene reloads.
+
+  * func_808B3960 -> BgSpot15Rrbox_InitDynaPoly
+    deduced, confidence HIGH: registers the crate as a dyna-poly bg actor
+    with the given collision header, warning when the bg actor table is
+    full.
+
+  * func_808B3A34 -> BgSpot15Rrbox_ClearRiddenBgId
+    deduced, confidence HIGH: forgets whichever bg actor the crate was last
+    resting on.
+
+  * func_808B3A40 -> BgSpot15Rrbox_IsOnRememberedBg
+    deduced, confidence HIGH: returns whether the crate is still sitting on
+    the bg actor it remembered, by comparing their XZ positions.
+
+  * func_808B3AAC -> BgSpot15Rrbox_CanBePushed
+    deduced, confidence HIGH: decides whether a push should be allowed here:
+    always inside the Lon Lon buildings, never while riding another bg
+    actor, and otherwise only away from the ranch's fenced edge.
+
+  * func_808B4010 -> BgSpot15Rrbox_IsPathBlocked
+    deduced, confidence HIGH: returns whether something is in the way of the
+    push, by negating DynaPolyActor_IsPushPathClear at the crate's own
+    width.
+
+  * func_808B4084 -> BgSpot15Rrbox_SetupIdle
+    deduced, confidence HIGH: stops the crate dead and installs the idle
+    action.
+
+  * func_808B40AC -> BgSpot15Rrbox_Idle
+    deduced, confidence HIGH: watches for the player pushing: it starts a
+    slide when the push is allowed and unobstructed, and otherwise cancels
+    the player's push.
+
+  * func_808B4178 -> BgSpot15Rrbox_SetupSlide
+    deduced, confidence HIGH: installs the sliding action and turns gravity
+    off for the slide.
+
+  * func_808B4194 -> BgSpot15Rrbox_Slide
+    deduced, confidence HIGH: accelerates the crate along the push direction
+    up to 20 units, then hands off to the fall so it settles onto whatever
+    is beneath it.
+
+  * func_808B4380 -> BgSpot15Rrbox_SetupFall
+    deduced, confidence HIGH: zeroes the crate's velocity, turns gravity
+    back on and records the floor height before installing the falling
+    action.
+
+  * func_808B43D0 -> BgSpot15Rrbox_Fall
+    deduced, confidence HIGH: drops the crate under gravity, cancels any
+    push while it is airborne, and complains and recovers if it falls out of
+    the world.
+
+  * func_808B44B8 -> BgSpot15Rrbox_SetupStuck
+    deduced, confidence HIGH: installs the terminal action for a crate that
+    can no longer be moved.
+
+  * func_808B44CC -> BgSpot15Rrbox_Stuck
+    deduced, confidence HIGH: refuses every push, cancelling the player's
+    dyna-poly move each frame.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Spot15_Rrbox/z_bg_spot15_rrbox.c   | 105 ++++++++++--------
+ 1 file changed, 60 insertions(+), 45 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot15_Rrbox/z_bg_spot15_rrbox.c b/soh/src/overlays/actors/ovl_Bg_Spot15_Rrbox/z_bg_spot15_rrbox.c
+index 2af062842..e5b577887 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot15_Rrbox/z_bg_spot15_rrbox.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot15_Rrbox/z_bg_spot15_rrbox.c
+@@ -14,16 +14,25 @@ void BgSpot15Rrbox_Destroy(Actor* thisx, PlayState* play);
+ void BgSpot15Rrbox_Update(Actor* thisx, PlayState* play);
+ void BgSpot15Rrbox_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_808B4084(BgSpot15Rrbox* this, PlayState* play);
+-void func_808B40AC(BgSpot15Rrbox* this, PlayState* play);
+-void func_808B4194(BgSpot15Rrbox* this, PlayState* play);
+-void func_808B4380(BgSpot15Rrbox* this, PlayState* play);
+-void func_808B43D0(BgSpot15Rrbox* this, PlayState* play);
+-void func_808B44B8(BgSpot15Rrbox* this, PlayState* play);
+-void func_808B4178(BgSpot15Rrbox* this, PlayState* play);
+-void func_808B44CC(BgSpot15Rrbox* this, PlayState* play);
+-
+-static s16 D_808B4590 = 0;
++// LLM generated name (HIGH), was func_808B4084: stops the crate dead and installs the idle action.
++void BgSpot15Rrbox_SetupIdle(BgSpot15Rrbox* this, PlayState* play);  // was func_808B4084 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B40AC: watches for the player pushing: it starts a slide when the push is allowed and unobstructed, and otherwise cancels the player's push.
++void BgSpot15Rrbox_Idle(BgSpot15Rrbox* this, PlayState* play);  // was func_808B40AC [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B4194: accelerates the crate along the push direction up to 20 units, then hands off to the fall so it settles onto whatever is beneath it.
++void BgSpot15Rrbox_Slide(BgSpot15Rrbox* this, PlayState* play);  // was func_808B4194 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B4380: zeroes the crate's velocity, turns gravity back on and records the floor height before installing the falling action.
++void BgSpot15Rrbox_SetupFall(BgSpot15Rrbox* this, PlayState* play);  // was func_808B4380 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B43D0: drops the crate under gravity, cancels any push while it is airborne, and complains and recovers if it falls out of the world.
++void BgSpot15Rrbox_Fall(BgSpot15Rrbox* this, PlayState* play);  // was func_808B43D0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B44B8: installs the terminal action for a crate that can no longer be moved.
++void BgSpot15Rrbox_SetupStuck(BgSpot15Rrbox* this, PlayState* play);  // was func_808B44B8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B4178: installs the sliding action and turns gravity off for the slide.
++void BgSpot15Rrbox_SetupSlide(BgSpot15Rrbox* this, PlayState* play);  // was func_808B4178 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B44CC: refuses every push, cancelling the player's dyna-poly move each frame.
++void BgSpot15Rrbox_Stuck(BgSpot15Rrbox* this, PlayState* play);  // was func_808B44CC [LLM:HIGH]
++
++// LLM generated name (HIGH), was D_808B4590: which entry of sSpawnPositions the next crate takes; it is bumped on each spawn and reset when the scene reloads.
++static s16 sNextSpawnIndex = 0;  // was D_808B4590 [LLM:HIGH]
+ 
+ const ActorInit Bg_Spot15_Rrbox_InitVars = {
+     ACTOR_BG_SPOT15_RRBOX,
+@@ -45,7 +54,8 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(uncullZoneDownward, 1000, ICHAIN_STOP),
+ };
+ 
+-static Vec3f D_808B45C4[] = {
++// LLM generated name (HIGH), was D_808B45C4: the fixed positions the Lon Lon crates are placed at, taken in turn as each one spawns.
++static Vec3f sSpawnPositions[] = {  // was D_808B45C4 [LLM:HIGH]
+     { 770.0f, 1490.0f, -299.0f },
+     { 770.0f, 1550.0f, -299.0f },
+ };
+@@ -56,7 +66,8 @@ static Vec3f sBoxGroundCheckPoints[] = {
+     { 29.99f, 0.01f, 29.99f },  { 0.0f, 0.01f, 0.0f },
+ };
+ 
+-void func_808B3960(BgSpot15Rrbox* this, PlayState* play, CollisionHeader* collision, s32 flags) {
++// LLM generated name (HIGH), was func_808B3960: registers the crate as a dyna-poly bg actor with the given collision header, warning when the bg actor table is full.
++void BgSpot15Rrbox_InitDynaPoly(BgSpot15Rrbox* this, PlayState* play, CollisionHeader* collision, s32 flags) {
+     s32 pad;
+     CollisionHeader* colHeader = NULL;
+     u32 pad2;
+@@ -78,11 +89,13 @@ void BgSpot15Rrbox_RotatePoint(Vec3f* arg0, Vec3f* arg1, f32 arg2, f32 arg3) {
+     arg0->z = (arg1->z * arg3) - (arg1->x * arg2);
+ }
+ 
+-void func_808B3A34(BgSpot15Rrbox* this) {
++// LLM generated name (HIGH), was func_808B3A34: forgets whichever bg actor the crate was last resting on.
++void BgSpot15Rrbox_ClearRiddenBgId(BgSpot15Rrbox* this) {
+     this->bgId = BG_ACTOR_MAX;
+ }
+ 
+-s32 func_808B3A40(BgSpot15Rrbox* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B3A40: returns whether the crate is still sitting on the bg actor it remembered, by comparing their XZ positions.
++s32 BgSpot15Rrbox_IsOnRememberedBg(BgSpot15Rrbox* this, PlayState* play) {
+     DynaPolyActor* dynaPolyActor = DynaPoly_GetActor(&play->colCtx, this->bgId);
+ 
+     if ((dynaPolyActor != NULL) &&
+@@ -93,13 +106,14 @@ s32 func_808B3A40(BgSpot15Rrbox* this, PlayState* play) {
+     return false;
+ }
+ 
+-s32 func_808B3AAC(BgSpot15Rrbox* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B3AAC: decides whether a push should be allowed here: always inside the Lon Lon buildings, never while riding another bg actor, and otherwise only away from the ranch's fenced edge.
++s32 BgSpot15Rrbox_CanBePushed(BgSpot15Rrbox* this, PlayState* play) {
+     s16 rotY;
+     Actor* actor = &this->dyna.actor;
+ 
+     if (play->sceneNum == SCENE_LON_LON_BUILDINGS) {
+         return true;
+-    } else if (func_808B3A40(this, play)) {
++    } else if (BgSpot15Rrbox_IsOnRememberedBg(this, play)) {  // was func_808B3A40 [LLM:HIGH]
+         return false;
+     }
+ 
+@@ -122,15 +136,15 @@ s32 func_808B3AAC(BgSpot15Rrbox* this, PlayState* play) {
+ void BgSpot15Rrbox_Init(Actor* thisx, PlayState* play) {
+     BgSpot15Rrbox* this = (BgSpot15Rrbox*)thisx;
+ 
+-    func_808B3960(this, play, &gLonLonMilkCrateCol, DPM_UNK);
++    BgSpot15Rrbox_InitDynaPoly(this, play, &gLonLonMilkCrateCol, DPM_UNK);  // was func_808B3960 [LLM:HIGH]
+     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
+-    func_808B3A34(this);
++    BgSpot15Rrbox_ClearRiddenBgId(this);  // was func_808B3A34 [LLM:HIGH]
+     if (Flags_GetSwitch(play, (this->dyna.actor.params & 0x3F))) {
+-        func_808B44B8(this, play);
+-        this->dyna.actor.world.pos = D_808B45C4[D_808B4590];
+-        D_808B4590++;
++        BgSpot15Rrbox_SetupStuck(this, play);  // was func_808B44B8 [LLM:HIGH]
++        this->dyna.actor.world.pos = sSpawnPositions[sNextSpawnIndex];  // was D_808B45C4 [LLM:HIGH]
++        sNextSpawnIndex++;  // was D_808B4590 [LLM:HIGH]
+     } else {
+-        func_808B4084(this, play);
++        BgSpot15Rrbox_SetupIdle(this, play);  // was func_808B4084 [LLM:HIGH]
+     }
+     osSyncPrintf("(spot15 ロンロン木箱)(arg_data 0x%04x)\n", this->dyna.actor.params);
+ }
+@@ -139,7 +153,7 @@ void BgSpot15Rrbox_Destroy(Actor* thisx, PlayState* play) {
+     BgSpot15Rrbox* this = (BgSpot15Rrbox*)thisx;
+ 
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+-    D_808B4590 = 0;
++    sNextSpawnIndex = 0;  // was D_808B4590 [LLM:HIGH]
+ }
+ 
+ s32 BgSpot15Rrbox_TrySnapToCheckedPoint(BgSpot15Rrbox* this, PlayState* play, s32 arg2) {
+@@ -147,7 +161,7 @@ s32 BgSpot15Rrbox_TrySnapToCheckedPoint(BgSpot15Rrbox* this, PlayState* play, s3
+     Vec3f actorPosition;
+     Vec3f actorScale;
+ 
+-    func_808B3A34(this);
++    BgSpot15Rrbox_ClearRiddenBgId(this);  // was func_808B3A34 [LLM:HIGH]
+ 
+     actorScale.x = sBoxGroundCheckPoints[arg2].x * (this->dyna.actor.scale.x * 10.0f);
+     actorScale.y = sBoxGroundCheckPoints[arg2].y * (this->dyna.actor.scale.y * 10.0f);
+@@ -178,7 +192,7 @@ f32 BgSpot15Rrbox_GetFloorHeight(BgSpot15Rrbox* this, PlayState* play) {
+     f32 returnValue = BGCHECK_Y_MIN;
+     s32 bgId;
+ 
+-    func_808B3A34(this);
++    BgSpot15Rrbox_ClearRiddenBgId(this);  // was func_808B3A34 [LLM:HIGH]
+     for (i = 0; i < ARRAY_COUNT(sBoxGroundCheckPoints); i++) {
+         scale.x = sBoxGroundCheckPoints[i].x * (actor->scale.x * 10.0f);
+         scale.y = sBoxGroundCheckPoints[i].y * (actor->scale.y * 10.0f);
+@@ -219,26 +233,27 @@ s32 BgSpot15Rrbox_TrySnapToFloor(BgSpot15Rrbox* this, PlayState* play) {
+     return false;
+ }
+ 
+-s32 func_808B4010(BgSpot15Rrbox* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808B4010: returns whether something is in the way of the push, by negating DynaPolyActor_IsPushPathClear at the crate's own width.
++s32 BgSpot15Rrbox_IsPathBlocked(BgSpot15Rrbox* this, PlayState* play) {
+     return !DynaPolyActor_IsPushPathClear(play, &this->dyna, this->dyna.actor.scale.x * 290.0f,
+                           this->dyna.actor.scale.x * 290.0f + 20.0f, 1.0f);
+ }
+ 
+-void func_808B4084(BgSpot15Rrbox* this, PlayState* play) {
+-    this->actionFunc = func_808B40AC;
++void BgSpot15Rrbox_SetupIdle(BgSpot15Rrbox* this, PlayState* play) {
++    this->actionFunc = BgSpot15Rrbox_Idle;  // was func_808B40AC [LLM:HIGH]
+     this->dyna.actor.gravity = 0.0f;
+     this->dyna.actor.velocity.x = 0.0f;
+     this->dyna.actor.velocity.y = 0.0f;
+     this->dyna.actor.velocity.z = 0.0f;
+ }
+ 
+-void func_808B40AC(BgSpot15Rrbox* this, PlayState* play) {
++void BgSpot15Rrbox_Idle(BgSpot15Rrbox* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (this->unk_168 <= 0 && fabsf(this->dyna.unk_150) > 0.001f) {
+-        if (func_808B3AAC(this, play) && !func_808B4010(this, play)) {
++        if (BgSpot15Rrbox_CanBePushed(this, play) && !BgSpot15Rrbox_IsPathBlocked(this, play)) {  // was func_808B3AAC [LLM:HIGH]
+             this->unk_17C = this->dyna.unk_150;
+-            func_808B4178(this, play);
++            BgSpot15Rrbox_SetupSlide(this, play);  // was func_808B4178 [LLM:HIGH]
+         } else {
+             player->stateFlags2 &= ~PLAYER_STATE2_MOVING_DYNAPOLY;
+             this->dyna.unk_150 = 0.0f;
+@@ -249,12 +264,12 @@ void func_808B40AC(BgSpot15Rrbox* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808B4178(BgSpot15Rrbox* this, PlayState* play) {
+-    this->actionFunc = func_808B4194;
++void BgSpot15Rrbox_SetupSlide(BgSpot15Rrbox* this, PlayState* play) {
++    this->actionFunc = BgSpot15Rrbox_Slide;  // was func_808B4194 [LLM:HIGH]
+     this->dyna.actor.gravity = 0.0f;
+ }
+ 
+-void func_808B4194(BgSpot15Rrbox* this, PlayState* play) {
++void BgSpot15Rrbox_Slide(BgSpot15Rrbox* this, PlayState* play) {
+     f32 sign;
+     Player* player = GET_PLAYER(play);
+     f32 tempUnk178;
+@@ -280,13 +295,13 @@ void func_808B4194(BgSpot15Rrbox* this, PlayState* play) {
+         this->dyna.unk_150 = 0.0f;
+         this->unk_178 = 0.0f;
+         this->unk_174 = 0.0f;
+-        func_808B4380(this, play);
++        BgSpot15Rrbox_SetupFall(this, play);  // was func_808B4380 [LLM:HIGH]
+     } else if (approxFResult) {
+         player = GET_PLAYER(play);
+-        if (func_808B4010(this, play)) {
++        if (BgSpot15Rrbox_IsPathBlocked(this, play)) {  // was func_808B4010 [LLM:HIGH]
+             Audio_PlayActorSound2(actor, NA_SE_EV_WOOD_BOUND);
+         }
+-        if (func_808B3A40(this, play)) {
++        if (BgSpot15Rrbox_IsOnRememberedBg(this, play)) {  // was func_808B3A40 [LLM:HIGH]
+             Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+         }
+         actor->home.pos.x = actor->world.pos.x;
+@@ -296,21 +311,21 @@ void func_808B4194(BgSpot15Rrbox* this, PlayState* play) {
+         this->unk_178 = 0.0f;
+         this->unk_174 = 0.0f;
+         this->unk_168 = 10 - ((CVarGetInteger(CVAR_ENHANCEMENT("FasterBlockPush"), 0) * 3) / 2);
+-        func_808B4084(this, play);
++        BgSpot15Rrbox_SetupIdle(this, play);  // was func_808B4084 [LLM:HIGH]
+     }
+     Audio_PlayActorSound2(actor, NA_SE_EV_ROCK_SLIDE - SFX_FLAG);
+ }
+ 
+-void func_808B4380(BgSpot15Rrbox* this, PlayState* play) {
++void BgSpot15Rrbox_SetupFall(BgSpot15Rrbox* this, PlayState* play) {
+     this->dyna.actor.velocity.x = 0.0f;
+     this->dyna.actor.velocity.y = 0.0f;
+     this->dyna.actor.velocity.z = 0.0f;
+     this->dyna.actor.gravity = -1.0f;
+     this->dyna.actor.floorHeight = BgSpot15Rrbox_GetFloorHeight(this, play);
+-    this->actionFunc = func_808B43D0;
++    this->actionFunc = BgSpot15Rrbox_Fall;  // was func_808B43D0 [LLM:HIGH]
+ }
+ 
+-void func_808B43D0(BgSpot15Rrbox* this, PlayState* play) {
++void BgSpot15Rrbox_Fall(BgSpot15Rrbox* this, PlayState* play) {
+     f32 floorHeight;
+     Player* player = GET_PLAYER(play);
+     Actor* actor = &this->dyna.actor;
+@@ -335,16 +350,16 @@ void func_808B43D0(BgSpot15Rrbox* this, PlayState* play) {
+ 
+     if ((floorHeight - actor->world.pos.y) >= -0.001f) {
+         actor->world.pos.y = floorHeight;
+-        func_808B4084(this, play);
++        BgSpot15Rrbox_SetupIdle(this, play);  // was func_808B4084 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_WOOD_BOUND);
+     }
+ }
+ 
+-void func_808B44B8(BgSpot15Rrbox* this, PlayState* play) {
+-    this->actionFunc = func_808B44CC;
++void BgSpot15Rrbox_SetupStuck(BgSpot15Rrbox* this, PlayState* play) {
++    this->actionFunc = BgSpot15Rrbox_Stuck;  // was func_808B44CC [LLM:HIGH]
+ }
+ 
+-void func_808B44CC(BgSpot15Rrbox* this, PlayState* play) {
++void BgSpot15Rrbox_Stuck(BgSpot15Rrbox* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     player->stateFlags2 &= ~PLAYER_STATE2_MOVING_DYNAPOLY;
+-- 
+2.55.0
+

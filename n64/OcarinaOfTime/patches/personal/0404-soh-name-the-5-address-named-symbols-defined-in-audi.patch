@@ -1,0 +1,136 @@
+From b096c5adfad41e33bd134120759f564b68a87c29 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:34 +0000
+Subject: [PATCH 404/488] soh: name the 5 address-named symbols defined in
+ audio_synthesis.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/code/audio_synthesis.c.
+
+  * D_801304A0 -> sResampleUcode0
+    deduced, confidence GUESS: one of four u32 words
+    AudioSynth_FinalResample selects between; they read as packed RSP
+    command words, which the body does not confirm
+
+  * D_801304A4 -> sResampleUcode1
+    deduced, confidence GUESS: the second such word
+
+  * D_801304A8 -> sResampleUcode2
+    deduced, confidence GUESS: the third such word
+
+  * D_801304AC -> sResampleUcode3
+    deduced, confidence GUESS: the fourth such word
+
+  * D_801304C0 -> sResampleShifts
+    deduced, confidence HIGH: the 0x40, 0x20, 0x10, 0x8 divisors that go
+    with those four words
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/audio_synthesis.c | 27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/code/audio_synthesis.c b/soh/src/code/audio_synthesis.c
+index b577bd29d..2ee491ebc 100644
+--- a/soh/src/code/audio_synthesis.c
++++ b/soh/src/code/audio_synthesis.c
+@@ -31,17 +31,22 @@ Acmd* AudioSynth_ProcessEnvelope(Acmd* cmd, NoteSubEu* noteSubEu, NoteSynthesisS
+ Acmd* AudioSynth_FinalResample(Acmd* cmd, NoteSynthesisState* synthState, s32 count, u16 pitch, u16 inpDmem,
+                                s32 resampleFlags);
+ 
+-u32 D_801304A0 = 0x13000000;
+-u32 D_801304A4 = 0x5CAEC8E2;
+-u32 D_801304A8 = 0x945CC8E2;
+-u32 D_801304AC = 0x94AEC8E2;
++// LLM generated name (GUESS), was D_801304A0: one of four u32 words AudioSynth_FinalResample selects between; they read as packed RSP command words, which the body does not confirm
++u32 sResampleUcode0 = 0x13000000;  // was D_801304A0 [LLM:GUESS]
++// LLM generated name (GUESS), was D_801304A4: the second such word
++u32 sResampleUcode1 = 0x5CAEC8E2;  // was D_801304A4 [LLM:GUESS]
++// LLM generated name (GUESS), was D_801304A8: the third such word
++u32 sResampleUcode2 = 0x945CC8E2;  // was D_801304A8 [LLM:GUESS]
++// LLM generated name (GUESS), was D_801304AC: the fourth such word
++u32 sResampleUcode3 = 0x94AEC8E2;  // was D_801304AC [LLM:GUESS]
+ 
+ // LLM generated name (GUESS), was D_801304B0: u16[8] of alternating near-extreme values with no reader anywhere in the tree; the shape suggests a mixing or envelope table, but nothing uses it to confirm.
+ u16 gUnusedSynthTable[] = {  // was D_801304B0 [LLM:GUESS]
+     0x7FFF, 0xD001, 0x3FFF, 0xF001, 0x5FFF, 0x9001, 0x7FFF, 0x8001,
+ };
+ 
+-u8 D_801304C0[] = { 0x40, 0x20, 0x10, 0x8 };
++// LLM generated name (HIGH), was D_801304C0: the 0x40, 0x20, 0x10, 0x8 divisors that go with those four words
++u8 sResampleShifts[] = { 0x40, 0x20, 0x10, 0x8 };  // was D_801304C0 [LLM:HIGH]
+ 
+ void AudioSynth_InitNextRingBuf(s32 chunkLen, s32 bufIndex, s32 reverbIndex) {
+     ReverbRingBufferItem* bufItem;
+@@ -1185,24 +1190,24 @@ Acmd* AudioSynth_ProcessEnvelope(Acmd* cmd, NoteSubEu* noteSubEu, NoteSynthesisS
+         AudioSynth_EnvSetup2(cmd++, curVolLeft, curVolRight);
+         switch (headsetPanSettings) {
+             case 1:
+-                phi_a1 = D_801304A4;
++                phi_a1 = sResampleUcode1;  // was D_801304A4 [LLM:GUESS]
+                 break;
+             case 2:
+-                phi_a1 = D_801304A8;
++                phi_a1 = sResampleUcode2;  // was D_801304A8 [LLM:GUESS]
+                 break;
+             default:
+-                phi_a1 = D_801304AC;
++                phi_a1 = sResampleUcode3;  // was D_801304AC [LLM:GUESS]
+                 break;
+         }
+     } else {
+         aEnvSetup1(cmd++, phi_t1 * 2, rampReverb, rampLeft, rampRight);
+         aEnvSetup2(cmd++, curVolLeft, curVolRight);
+-        phi_a1 = D_801304AC;
++        phi_a1 = sResampleUcode3;  // was D_801304AC [LLM:GUESS]
+     }
+ 
+     aEnvMixer(cmd++, inBuf, aiBufLen, (sourceReverbVol & 0x80) >> 7, noteSubEu->bitField0.stereoHeadsetEffects,
+               noteSubEu->bitField0.usesHeadsetPanEffects, noteSubEu->bitField0.stereoStrongRight,
+-              noteSubEu->bitField0.stereoStrongLeft, phi_a1, D_801304A0);
++              noteSubEu->bitField0.stereoStrongLeft, phi_a1, sResampleUcode0);  // was D_801304A0 [LLM:GUESS]
+     return cmd;
+ }
+ 
+@@ -1219,7 +1224,7 @@ Acmd* AudioSynth_LoadWaveSamples(Acmd* cmd, NoteSubEu* noteSubEu, NoteSynthesisS
+     } else {
+         aLoadBuffer(cmd++, noteSubEu->sound.samples, DMEM_UNCOMPRESSED_NOTE, 0x80);
+         if (unk6 != 0) {
+-            samplePosInt = (samplePosInt * D_801304C0[unk6 >> 2]) / D_801304C0[unk6 & 3];
++            samplePosInt = (samplePosInt * sResampleShifts[unk6 >> 2]) / sResampleShifts[unk6 & 3];  // was D_801304C0 [LLM:HIGH]
+         }
+         samplePosInt &= 0x3F;
+         temp_v0 = 0x40 - samplePosInt;
+-- 
+2.55.0
+

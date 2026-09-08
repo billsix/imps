@@ -1,0 +1,121 @@
+From afa33adc4b9d08df1fceb663d3065d1c471d5f1e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:40 +0000
+Subject: [PATCH 473/488] soh: name the 2 address-named symbols defined in
+ z_kaleido_map_PAL.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c.
+
+  * D_8082A5B8 -> sWorldMapPointSizes
+    deduced, confidence HIGH: the icon sizes KaleidoScope_DrawWorldMap draws
+    its points at
+
+  * D_8082A6D4 -> sWorldMapScroll
+    deduced, confidence HIGH: the scroll it advances each frame
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../misc/ovl_kaleido_scope/z_kaleido_map_PAL.c     | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c
+index 09c86e650..c01ce79a8 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c
+@@ -415,7 +415,7 @@ void KaleidoScope_DrawWorldMap(PlayState* play, GraphicsContext* gfxCtx) {
+     };
+     static s16 pointPulseStage = 1;
+     static s16 pointPulseTimer = 20;
+-    static s16 D_8082A5B8[] = { 64, 64, 64, 28 };
++    static s16 sWorldMapPointSizes[] = { 64, 64, 64, 28 };  // was D_8082A5B8 [LLM:HIGH]
+     static s16 areaBoxPosX[] = {
+         -41, 19, 44, 40, 49, 51, -49, 83, 80, -67, 50, -109, -76, -86, -10, -6, 19, 24, 11, -17, 37, -6,
+     };
+@@ -441,7 +441,7 @@ void KaleidoScope_DrawWorldMap(PlayState* play, GraphicsContext* gfxCtx) {
+         gPauseCurrentPositionFRATex,
+         gPauseCurrentPositionJPNTex,
+     };
+-    static u16 D_8082A6D4 = 0;
++    static u16 sWorldMapScroll = 0;  // was D_8082A6D4 [LLM:HIGH]
+     PauseContext* pauseCtx = &play->pauseCtx;
+     Input* input = &play->state.input[0];
+     s16 i;
+@@ -467,7 +467,7 @@ void KaleidoScope_DrawWorldMap(PlayState* play, GraphicsContext* gfxCtx) {
+                  ((pauseCtx->stickRelX > 30) || (dpad && CHECK_BTN_ALL(input->press.button, BTN_DRIGHT)))) ||
+                 (mirroredWorld &&
+                  ((pauseCtx->stickRelX < -30) || (dpad && CHECK_BTN_ALL(input->press.button, BTN_DLEFT))))) {
+-                D_8082A6D4 = 0;
++                sWorldMapScroll = 0;  // was D_8082A6D4 [LLM:HIGH]
+ 
+                 do {
+                     pauseCtx->cursorPoint[PAUSE_WORLD_MAP]++;
+@@ -482,7 +482,7 @@ void KaleidoScope_DrawWorldMap(PlayState* play, GraphicsContext* gfxCtx) {
+                         ((pauseCtx->stickRelX < -30) || (dpad && CHECK_BTN_ALL(input->press.button, BTN_DLEFT)))) ||
+                        (mirroredWorld &&
+                         ((pauseCtx->stickRelX > 30) || (dpad && CHECK_BTN_ALL(input->press.button, BTN_DRIGHT))))) {
+-                D_8082A6D4 = 0;
++                sWorldMapScroll = 0;  // was D_8082A6D4 [LLM:HIGH]
+ 
+                 do {
+                     pauseCtx->cursorPoint[PAUSE_WORLD_MAP]--;
+@@ -494,7 +494,7 @@ void KaleidoScope_DrawWorldMap(PlayState* play, GraphicsContext* gfxCtx) {
+                     }
+                 } while (pauseCtx->worldMapPoints[pauseCtx->cursorPoint[PAUSE_WORLD_MAP]] == 0);
+             } else {
+-                D_8082A6D4++;
++                sWorldMapScroll++;  // was D_8082A6D4 [LLM:HIGH]
+             }
+ 
+             pauseCtx->cursorItem[PAUSE_MAP] = pauseCtx->cursorPoint[PAUSE_WORLD_MAP];
+@@ -523,7 +523,7 @@ void KaleidoScope_DrawWorldMap(PlayState* play, GraphicsContext* gfxCtx) {
+                     KaleidoScope_SetCursorVtx(pauseCtx, pauseCtx->cursorSlot[PAUSE_MAP] * 4, pauseCtx->mapPageVtx);
+                     Audio_PlaySfxGeneral(NA_SE_SY_CURSOR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-                    D_8082A6D4 = 0;
++                    sWorldMapScroll = 0;  // was D_8082A6D4 [LLM:HIGH]
+                 }
+             } else {
+                 if ((pauseCtx->stickRelX < -30) || (dpad && CHECK_BTN_ALL(input->press.button, BTN_DLEFT))) {
+@@ -546,7 +546,7 @@ void KaleidoScope_DrawWorldMap(PlayState* play, GraphicsContext* gfxCtx) {
+                     KaleidoScope_SetCursorVtx(pauseCtx, pauseCtx->cursorSlot[PAUSE_MAP] * 4, pauseCtx->mapPageVtx);
+                     Audio_PlaySfxGeneral(NA_SE_SY_CURSOR, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+-                    D_8082A6D4 = 0;
++                    sWorldMapScroll = 0;  // was D_8082A6D4 [LLM:HIGH]
+                 }
+             }
+         }
+-- 
+2.55.0
+

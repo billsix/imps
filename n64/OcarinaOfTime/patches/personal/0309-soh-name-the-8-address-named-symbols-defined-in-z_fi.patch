@@ -1,0 +1,200 @@
+From fafe93cb888d554e7d6967c0daa30d4910b80bf4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:25 +0000
+Subject: [PATCH 309/488] soh: name the 8 address-named symbols defined in
+ z_file_choose.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 8 are defined in soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c.
+
+  * D_80812818 -> sIconXSteps
+    deduced, confidence HIGH: the horizontal advance from one icon quad to
+    the next as the four-quad row is laid out.
+
+  * D_80812820 -> sIconWidths
+    deduced, confidence HIGH: added to each icon quad's left edge to give
+    its right edge in the same loop.
+
+  * D_80812828 -> sIconHeights
+    deduced, confidence HIGH: subtracted from each icon quad's top edge to
+    give its bottom edge in the same loop.
+
+  * D_80812830 -> sMainMenuButtonVtx
+    deduced, confidence HIGH: the windowContentVtx index whose Y anchors the
+    highlight quad for each button of the main config menu; the warning
+    banner is positioned from it too.
+
+  * D_8081283C -> sSelectMenuButtonVtx
+    deduced, confidence HIGH: the same anchor indices for the copy-source,
+    copy-destination and erase-select screens.
+
+  * D_80812844 -> sConfirmMenuButtonVtx
+    deduced, confidence HIGH: the same anchor indices for the erase-confirm
+    and copy-confirm screens.
+
+  * D_80812848 -> sFileConfirmButtonVtx
+    deduced, confidence HIGH: the same anchor indices for the confirm-file
+    screen of the select menu, chosen by confirmButtonIndex.
+
+  * D_8081284C -> sFileVtxBases
+    deduced, confidence HIGH: the windowContentVtx index each save slot's
+    block of vertices starts at; every gSPVertex in the per-file draw is
+    offset from it.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_file_choose/z_file_choose.c           | 48 +++++++++++--------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
+
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+index 190442a17..56971ec51 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+@@ -1156,13 +1156,20 @@ void FileChoose_SetWindowVtx(GameState* thisx) {
+     }
+ }
+ 
+-static s16 D_80812818[] = { 0x001A, 0x000A, 0x000A, 0x000A };
+-static s16 D_80812820[] = { 0x0020, 0x000C, 0x000C, 0x000C };
+-static s16 D_80812828[] = { 0x0010, 0x000C, 0x000C, 0x000C };
+-static s16 D_80812830[] = { 0x0040, 0x0054, 0x0068, 0x0274, 0x0278, 0x027C };
+-static s16 D_8081283C[] = { 0x0040, 0x0054, 0x0068, 0x0278 };
+-static s16 D_80812844[] = { 0x0274, 0x0278 };
+-static s16 D_80812848[] = { 0x0274, 0x0278 };
++// LLM generated name (HIGH), was D_80812818: the horizontal advance from one icon quad to the next as the four-quad row is laid out.
++static s16 sIconXSteps[] = { 0x001A, 0x000A, 0x000A, 0x000A };  // was D_80812818 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80812820: added to each icon quad's left edge to give its right edge in the same loop.
++static s16 sIconWidths[] = { 0x0020, 0x000C, 0x000C, 0x000C };  // was D_80812820 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80812828: subtracted from each icon quad's top edge to give its bottom edge in the same loop.
++static s16 sIconHeights[] = { 0x0010, 0x000C, 0x000C, 0x000C };  // was D_80812828 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80812830: the windowContentVtx index whose Y anchors the highlight quad for each button of the main config menu; the warning banner is positioned from it too.
++static s16 sMainMenuButtonVtx[] = { 0x0040, 0x0054, 0x0068, 0x0274, 0x0278, 0x027C };  // was D_80812830 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8081283C: the same anchor indices for the copy-source, copy-destination and erase-select screens.
++static s16 sSelectMenuButtonVtx[] = { 0x0040, 0x0054, 0x0068, 0x0278 };  // was D_8081283C [LLM:HIGH]
++// LLM generated name (HIGH), was D_80812844: the same anchor indices for the erase-confirm and copy-confirm screens.
++static s16 sConfirmMenuButtonVtx[] = { 0x0274, 0x0278 };  // was D_80812844 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80812848: the same anchor indices for the confirm-file screen of the select menu, chosen by confirmButtonIndex.
++static s16 sFileConfirmButtonVtx[] = { 0x0274, 0x0278 };  // was D_80812848 [LLM:HIGH]
+ 
+ void FileChoose_SetWindowContentVtx(GameState* thisx) {
+     FileChooseContext* this = (FileChooseContext*)thisx;
+@@ -1339,11 +1346,11 @@ void FileChoose_SetWindowContentVtx(GameState* thisx) {
+             for (phi_a1 = 0; phi_a1 < 4; phi_a1++, phi_t2 += 4) {
+                 this->windowContentVtx[phi_t2].v.ob[0] = this->windowContentVtx[phi_t2 + 2].v.ob[0] = phi_t0;
+                 this->windowContentVtx[phi_t2 + 1].v.ob[0] = this->windowContentVtx[phi_t2 + 3].v.ob[0] =
+-                    this->windowContentVtx[phi_t2].v.ob[0] + D_80812820[phi_a1];
++                    this->windowContentVtx[phi_t2].v.ob[0] + sIconWidths[phi_a1];  // was D_80812820 [LLM:HIGH]
+                 this->windowContentVtx[phi_t2].v.ob[1] = this->windowContentVtx[phi_t2 + 1].v.ob[1] = temp_t1;
+                 this->windowContentVtx[phi_t2 + 2].v.ob[1] = this->windowContentVtx[phi_t2 + 3].v.ob[1] =
+-                    this->windowContentVtx[phi_t2].v.ob[1] - D_80812828[phi_a1];
+-                phi_t0 += D_80812818[phi_a1];
++                    this->windowContentVtx[phi_t2].v.ob[1] - sIconHeights[phi_a1];  // was D_80812828 [LLM:HIGH]
++                phi_t0 += sIconXSteps[phi_a1];  // was D_80812818 [LLM:HIGH]
+             }
+ 
+             this->windowContentVtx[phi_t2 - 15].v.tc[0] = this->windowContentVtx[phi_t2 - 13].v.tc[0] = 0x400;
+@@ -1411,14 +1418,14 @@ void FileChoose_SetWindowContentVtx(GameState* thisx) {
+         if (this->menuMode == FS_MENU_MODE_CONFIG) {
+             if ((this->configMode == CM_SELECT_COPY_SOURCE) || (this->configMode == CM_SELECT_COPY_DEST) ||
+                 (this->configMode == CM_ERASE_SELECT)) {
+-                phi_t5 = D_8081283C[this->buttonIndex];
++                phi_t5 = sSelectMenuButtonVtx[this->buttonIndex];  // was D_8081283C [LLM:HIGH]
+             } else if ((this->configMode == CM_ERASE_CONFIRM) || (this->configMode == CM_COPY_CONFIRM)) {
+-                phi_t5 = D_80812844[this->buttonIndex];
++                phi_t5 = sConfirmMenuButtonVtx[this->buttonIndex];  // was D_80812844 [LLM:HIGH]
+             } else {
+-                phi_t5 = D_80812830[this->buttonIndex];
++                phi_t5 = sMainMenuButtonVtx[this->buttonIndex];  // was D_80812830 [LLM:HIGH]
+             }
+         } else {
+-            phi_t5 = D_80812848[this->confirmButtonIndex];
++            phi_t5 = sFileConfirmButtonVtx[this->confirmButtonIndex];  // was D_80812848 [LLM:HIGH]
+         }
+ 
+         this->windowContentVtx[phi_t2].v.ob[0] = this->windowContentVtx[phi_t2 + 2].v.ob[0] = this->windowPosX - 0xA;
+@@ -1436,13 +1443,14 @@ void FileChoose_SetWindowContentVtx(GameState* thisx) {
+     this->windowContentVtx[phi_t2 + 5].v.ob[0] = this->windowContentVtx[phi_t2 + 7].v.ob[0] =
+         this->windowContentVtx[phi_t2 + 4].v.ob[0] + 0x80;
+     this->windowContentVtx[phi_t2 + 4].v.ob[1] = this->windowContentVtx[phi_t2 + 5].v.ob[1] =
+-        this->windowContentVtx[D_80812830[this->warningButtonIndex]].v.ob[1];
++        this->windowContentVtx[sMainMenuButtonVtx[this->warningButtonIndex]].v.ob[1];  // was D_80812830 [LLM:HIGH]
+     this->windowContentVtx[phi_t2 + 6].v.ob[1] = this->windowContentVtx[phi_t2 + 7].v.ob[1] =
+         this->windowContentVtx[phi_t2 + 4].v.ob[1] - 0x10;
+     this->windowContentVtx[phi_t2 + 5].v.tc[0] = this->windowContentVtx[phi_t2 + 7].v.tc[0] = 0x1000;
+ }
+ 
+-static u16 D_8081284C[] = { 0x007C, 0x0124, 0x01CC };
++// LLM generated name (HIGH), was D_8081284C: the windowContentVtx index each save slot's block of vertices starts at; every gSPVertex in the per-file draw is offset from it.
++static u16 sFileVtxBases[] = { 0x007C, 0x0124, 0x01CC };  // was D_8081284C [LLM:HIGH]
+ 
+ static void* sQuestItemTextures[] = {
+     gFileSelKokiriEmeraldTex,   gFileSelGoronRubyTex,       gFileSelZoraSapphireTex,
+@@ -1491,7 +1499,7 @@ void FileChoose_DrawFileInfo(GameState* thisx, s16 fileIndex, s16 isActive) {
+ 
+     // draw file name
+     if (this->nameAlpha[fileIndex] != 0) {
+-        gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[D_8081284C[fileIndex]], 32, 0);
++        gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[sFileVtxBases[fileIndex]], 32, 0);  // was D_8081284C [LLM:HIGH]
+         gDPSetPrimColor(POLY_OPA_DISP++, 0x00, 0x00, sNamePrimColors[isActive][0], sNamePrimColors[isActive][1],
+                         sNamePrimColors[isActive][2], this->nameAlpha[fileIndex]);
+ 
+@@ -1539,7 +1547,7 @@ void FileChoose_DrawFileInfo(GameState* thisx, s16 fileIndex, s16 isActive) {
+         gDPSetCombineLERP(POLY_OPA_DISP++, 1, 0, PRIMITIVE, 0, TEXEL0, 0, PRIMITIVE, 0, 1, 0, PRIMITIVE, 0, TEXEL0, 0,
+                           PRIMITIVE, 0);
+         gDPSetPrimColor(POLY_OPA_DISP++, 0x00, 0x00, 255, 255, 255, this->fileInfoAlpha[fileIndex]);
+-        gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[D_8081284C[fileIndex]] + 0x24, 12, 0);
++        gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[sFileVtxBases[fileIndex]] + 0x24, 12, 0);  // was D_8081284C [LLM:HIGH]
+ 
+         FileChoose_SplitNumber(Save_GetSaveMetaInfo(fileIndex)->deaths, &deathCountSplit[0], &deathCountSplit[1],
+                                &deathCountSplit[2]);
+@@ -1574,7 +1582,7 @@ void FileChoose_DrawFileInfo(GameState* thisx, s16 fileIndex, s16 isActive) {
+         if (GameInteractor_Should(VB_FILE_SELECT_DRAW_HEARTS, true, this)) {
+             // draw hearts
+             for (vtxOffset = 0, j = 0; j < i; j++, vtxOffset += 4) {
+-                gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[D_8081284C[fileIndex] + vtxOffset] + 0x30, 4, 0);
++                gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[sFileVtxBases[fileIndex] + vtxOffset] + 0x30, 4, 0);  // was D_8081284C [LLM:HIGH]
+ 
+                 POLY_OPA_DISP = FileChoose_QuadTextureIA8(POLY_OPA_DISP, sHeartTextures[heartType], 0x10, 0x10, 0);
+             }
+@@ -1592,7 +1600,7 @@ void FileChoose_DrawFileInfo(GameState* thisx, s16 fileIndex, s16 isActive) {
+             // draw quest items
+             for (vtxOffset = 0, j = 0; j < 9; j++, vtxOffset += 4) {
+                 if (Save_GetSaveMetaInfo(fileIndex)->questItems & gBitFlags[sQuestItemFlags[j]]) {
+-                    gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[D_8081284C[fileIndex] + vtxOffset] + 0x80, 4, 0);
++                    gSPVertex(POLY_OPA_DISP++, &this->windowContentVtx[sFileVtxBases[fileIndex] + vtxOffset] + 0x80, 4, 0);  // was D_8081284C [LLM:HIGH]
+                     gDPPipeSync(POLY_OPA_DISP++);
+                     gDPSetPrimColor(POLY_OPA_DISP++, 0x00, 0x00, sQuestItemRed[j], sQuestItemGreen[j],
+                                     sQuestItemBlue[j], this->fileInfoAlpha[fileIndex]);
+-- 
+2.55.0
+

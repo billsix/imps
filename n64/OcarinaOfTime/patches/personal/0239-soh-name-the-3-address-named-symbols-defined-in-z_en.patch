@@ -1,0 +1,98 @@
+From dac094f007b1af1483ee8a311293d6bb9cb6de6e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:18 +0000
+Subject: [PATCH 239/488] soh: name the 3 address-named symbols defined in
+ z_en_ganon_mant.c
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c.
+
+  * D_80A24DB4 -> sBackSwayCoefficientsExtra
+    deduced, confidence GUESS: seven unreferenced zero floats immediately
+    following sBackSwayCoefficients; they read as the tail of one longer
+    table that the GANON_MANT_NUM_JOINTS split left over.
+
+  * D_80A24E00 -> sSideSwayCoefficientsExtra
+    deduced, confidence GUESS: six unreferenced zero floats immediately
+    following sSideSwayCoefficients, the same leftover-tail shape.
+
+  * D_80A24E48 -> sDistMultipliersExtra
+    deduced, confidence GUESS: a single unreferenced 1.8f directly after
+    sDistMultipliers, which ends at 1.7f — it continues that table's 0.1
+    progression, so it looks like its cut-off thirteenth entry.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c  | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c b/soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c
+index 9c1ad757e..e0d5040e9 100644
+--- a/soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c
++++ b/soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c
+@@ -62,7 +62,8 @@ static f32 sBackSwayCoefficients[GANON_MANT_NUM_JOINTS] = {
+     0.0f, 1.0f, 0.5f, 0.25f, 0.1f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+ };
+ 
+-static f32 D_80A24DB4[] = {
++// LLM generated name (GUESS), was D_80A24DB4: seven unreferenced zero floats immediately following sBackSwayCoefficients; they read as the tail of one longer table that the GANON_MANT_NUM_JOINTS split left over.
++static f32 sBackSwayCoefficientsExtra[] = {  // was D_80A24DB4 [LLM:GUESS]
+     0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+ };
+ 
+@@ -71,7 +72,8 @@ static f32 sSideSwayCoefficients[GANON_MANT_NUM_JOINTS] = {
+     0.0f, 1.0f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f, 0.2f, 0.1f, 0.0f,
+ };
+ 
+-static f32 D_80A24E00[] = {
++// LLM generated name (GUESS), was D_80A24E00: six unreferenced zero floats immediately following sSideSwayCoefficients, the same leftover-tail shape.
++static f32 sSideSwayCoefficientsExtra[] = {  // was D_80A24E00 [LLM:GUESS]
+     0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+ };
+ 
+@@ -79,7 +81,8 @@ static f32 sDistMultipliers[GANON_MANT_NUM_JOINTS] = {
+     0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.6f, 1.7f,
+ };
+ 
+-static f32 D_80A24E48[] = {
++// LLM generated name (GUESS), was D_80A24E48: a single unreferenced 1.8f directly after sDistMultipliers, which ends at 1.7f — it continues that table's 0.1 progression, so it looks like its cut-off thirteenth entry.
++static f32 sDistMultipliersExtra[] = {  // was D_80A24E48 [LLM:GUESS]
+     1.8f,
+ };
+ 
+-- 
+2.55.0
+

@@ -1,0 +1,164 @@
+From d7a7b596abb622b313c303417518eed727995686 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:04 +0000
+Subject: [PATCH 081/488] soh: name the 3 address-named symbols defined in
+ z_room.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/code/z_room.c; updating their references touches 4 files in total.
+
+  * func_80096FD4 -> Room_Init
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80096FE8 -> Room_SetupFirstRoom
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+  * func_800973FC -> Room_ProcessRoomRequest
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.85
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h | 6 +++---
+ soh/soh/z_play_otr.cpp  | 4 ++--
+ soh/src/code/z_play.c   | 6 +++---
+ soh/src/code/z_room.c   | 9 ++++++---
+ 4 files changed, 14 insertions(+), 11 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 9a8ea956b..8eea03fd4 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1241,10 +1241,10 @@ void func_80095974(GraphicsContext* gfxCtx);
+ void func_80095AA0(PlayState* play, Room* room, Input* arg2, UNK_TYPE arg3);
+ void Room_DrawBackground2D(Gfx** gfxP, void* tex, void* tlut, u16 width, u16 height, u8 fmt, u8 siz, u16 tlutMode,
+                            u16 tlutCount, f32 offsetX, f32 offsetY);
+-void func_80096FD4(PlayState* play, Room* room);
+-u32 func_80096FE8(PlayState* play, RoomContext* roomCtx);
++void Room_Init(PlayState* play, Room* room);  // was func_80096FD4 [oot]
++u32 Room_SetupFirstRoom(PlayState* play, RoomContext* roomCtx);  // was func_80096FE8 [oot]
+ s32 Room_RequestNewRoom(PlayState* play, RoomContext* roomCtx, s32 roomNum);
+-s32 func_800973FC(PlayState* play, RoomContext* roomCtx);
++s32 Room_ProcessRoomRequest(PlayState* play, RoomContext* roomCtx);  // was func_800973FC [oot]
+ void Room_Draw(PlayState* play, Room* room, u32 flags);
+ void Room_FinishRoomChange(PlayState* play, RoomContext* roomCtx);
+ void Sample_Destroy(GameState* thisx);
+diff --git a/soh/soh/z_play_otr.cpp b/soh/soh/z_play_otr.cpp
+index a9537cea2..3254e104d 100644
+--- a/soh/soh/z_play_otr.cpp
++++ b/soh/soh/z_play_otr.cpp
+@@ -59,7 +59,7 @@ extern "C" void OTRPlay_SpawnScene(PlayState* play, s32 sceneId, s32 spawn) {
+     // gSegments[2] = VIRTUAL_TO_PHYSICAL(play->sceneSegment);
+ 
+     OTRPlay_InitScene(play, spawn);
+-    auto roomSize = func_80096FE8(play, &play->roomCtx);
++    auto roomSize = Room_SetupFirstRoom(play, &play->roomCtx);
+ 
+     osSyncPrintf("ROOM SIZE=%fK\n", roomSize / 1024.0f);
+ 
+@@ -79,7 +79,7 @@ void OTRPlay_InitScene(PlayState* play, s32 spawn) {
+     Object_InitBank(play, &play->objectCtx);
+     LightContext_Init(play, &play->lightCtx);
+     TransitionActor_InitContext(&play->state, &play->transiActorCtx);
+-    func_80096FD4(play, &play->roomCtx.curRoom);
++    Room_Init(play, &play->roomCtx.curRoom);
+     YREG(15) = 0;
+     gSaveContext.worldMapArea = 0;
+     OTRScene_ExecuteCommands(play, (SOH::Scene*)play->sceneSegment);
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 50214be48..9a4497ad0 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -565,7 +565,7 @@ void Play_Init(GameState* thisx) {
+ 
+     Actor_InitContext(play, &play->actorCtx, play->linkActorEntry);
+ 
+-    while (!func_800973FC(play, &play->roomCtx)) {
++    while (!Room_ProcessRoomRequest(play, &play->roomCtx)) {
+         ; // Empty Loop
+     }
+ 
+@@ -1152,7 +1152,7 @@ void Play_Update(PlayState* play) {
+                     }
+                 } else {
+                     PLAY_LOG(3606);
+-                    func_800973FC(play, &play->roomCtx);
++                    Room_ProcessRoomRequest(play, &play->roomCtx);
+ 
+                     PLAY_LOG(3612);
+                     CollisionCheck_AT(play, &play->colChkCtx);
+@@ -1806,7 +1806,7 @@ void Play_InitScene(PlayState* play, s32 spawn) {
+     Object_InitBank(play, &play->objectCtx);
+     LightContext_Init(play, &play->lightCtx);
+     TransitionActor_InitContext(&play->state, &play->transiActorCtx);
+-    func_80096FD4(play, &play->roomCtx.curRoom);
++    Room_Init(play, &play->roomCtx.curRoom);
+     YREG(15) = 0;
+     gSaveContext.worldMapArea = 0;
+     Scene_ExecuteCommands(play, play->sceneSegment);
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index cfdedcdaa..cb9d4358a 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -513,12 +513,14 @@ void func_80096F6C(PlayState* play, Room* room, u32 flags) {
+     }
+ }
+ 
+-void func_80096FD4(PlayState* play, Room* room) {
++// Name from zeldaret/oot (was func_80096FD4): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_room.c]
++void Room_Init(PlayState* play, Room* room) {
+     room->num = -1;
+     room->segment = NULL;
+ }
+ 
+-u32 func_80096FE8(PlayState* play, RoomContext* roomCtx) {
++// Name from zeldaret/oot (was func_80096FE8): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_room.c]
++u32 Room_SetupFirstRoom(PlayState* play, RoomContext* roomCtx) {
+     u32 maxRoomSize = 0;
+     RomFile* roomList = play->roomList;
+     u32 roomSize;
+@@ -608,7 +610,8 @@ s32 Room_RequestNewRoom(PlayState* play, RoomContext* roomCtx, s32 roomNum) {
+     return 0;
+ }
+ 
+-s32 func_800973FC(PlayState* play, RoomContext* roomCtx) {
++// Name from zeldaret/oot (was func_800973FC): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_room.c]
++s32 Room_ProcessRoomRequest(PlayState* play, RoomContext* roomCtx) {
+     return OTRfunc_800973FC(play, roomCtx);
+ 
+     if (roomCtx->status == 1) {
+-- 
+2.55.0
+

@@ -1,0 +1,185 @@
+From 9fc489b8698f41f7c93c225008f63ef6ddff58ea Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:20 +0000
+Subject: [PATCH 260/488] soh: name the 5 address-named symbols defined in
+ z_bg_spot18_shutter.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_Bg_Spot18_Shutter/z_bg_spot18_shutter.c.
+
+  * func_808B95AC -> BgSpot18Shutter_DoNothing
+    deduced, confidence HIGH: empty action installed once the door has
+    finished opening, and at Init when it is already open.
+
+  * func_808B95B8 -> BgSpot18Shutter_WaitForSwitch
+    deduced, confidence HIGH: the child-Link idle: waits for the switch
+    flag, then aims the attention camera and starts the upward slide.
+
+  * func_808B9618 -> BgSpot18Shutter_WaitForCityUnlock
+    deduced, confidence HIGH: the adult idle: waits for
+    INFTABLE_GORON_CITY_DOORS_UNLOCKED, then starts the upward slide or, for
+    the sideways door, the sliding-aside move with its one-point cutscene.
+
+  * func_808B9698 -> BgSpot18Shutter_OpenUpward
+    deduced, confidence HIGH: raises the door 180 units above home with the
+    stone-statue sfx, ending on the stone-door stop sfx.
+
+  * func_808B971C -> BgSpot18Shutter_SlideAside
+    deduced, confidence HIGH: moves the door 125 units along its own facing
+    in X and Z instead of upward, with the same pair of sfx.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_bg_spot18_shutter.c                     | 47 ++++++++++---------
+ 1 file changed, 26 insertions(+), 21 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot18_Shutter/z_bg_spot18_shutter.c b/soh/src/overlays/actors/ovl_Bg_Spot18_Shutter/z_bg_spot18_shutter.c
+index 8a5efd19f..b30ea33fd 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot18_Shutter/z_bg_spot18_shutter.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot18_Shutter/z_bg_spot18_shutter.c
+@@ -14,11 +14,16 @@ void BgSpot18Shutter_Destroy(Actor* thisx, PlayState* play);
+ void BgSpot18Shutter_Update(Actor* thisx, PlayState* play);
+ void BgSpot18Shutter_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_808B95AC(BgSpot18Shutter* this, PlayState* play);
+-void func_808B95B8(BgSpot18Shutter* this, PlayState* play);
+-void func_808B9618(BgSpot18Shutter* this, PlayState* play);
+-void func_808B9698(BgSpot18Shutter* this, PlayState* play);
+-void func_808B971C(BgSpot18Shutter* this, PlayState* play);
++// LLM generated name (HIGH), was func_808B95AC: empty action installed once the door has finished opening, and at Init when it is already open.
++void BgSpot18Shutter_DoNothing(BgSpot18Shutter* this, PlayState* play);  // was func_808B95AC [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B95B8: the child-Link idle: waits for the switch flag, then aims the attention camera and starts the upward slide.
++void BgSpot18Shutter_WaitForSwitch(BgSpot18Shutter* this, PlayState* play);  // was func_808B95B8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B9618: the adult idle: waits for INFTABLE_GORON_CITY_DOORS_UNLOCKED, then starts the upward slide or, for the sideways door, the sliding-aside move with its one-point cutscene.
++void BgSpot18Shutter_WaitForCityUnlock(BgSpot18Shutter* this, PlayState* play);  // was func_808B9618 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B9698: raises the door 180 units above home with the stone-statue sfx, ending on the stone-door stop sfx.
++void BgSpot18Shutter_OpenUpward(BgSpot18Shutter* this, PlayState* play);  // was func_808B9698 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808B971C: moves the door 125 units along its own facing in X and Z instead of upward, with the same pair of sfx.
++void BgSpot18Shutter_SlideAside(BgSpot18Shutter* this, PlayState* play);  // was func_808B971C [LLM:HIGH]
+ 
+ const ActorInit Bg_Spot18_Shutter_InitVars = {
+     ACTOR_BG_SPOT18_SHUTTER,
+@@ -49,26 +54,26 @@ void BgSpot18Shutter_Init(Actor* thisx, PlayState* play) {
+     if (param == 0) {
+         if (LINK_AGE_IN_YEARS == YEARS_ADULT) {
+             if (Flags_GetInfTable(INFTABLE_GORON_CITY_DOORS_UNLOCKED)) {
+-                this->actionFunc = func_808B95AC;
++                this->actionFunc = BgSpot18Shutter_DoNothing;  // was func_808B95AC [LLM:HIGH]
+                 this->dyna.actor.world.pos.y += 180.0f;
+             } else {
+-                this->actionFunc = func_808B9618;
++                this->actionFunc = BgSpot18Shutter_WaitForCityUnlock;  // was func_808B9618 [LLM:HIGH]
+             }
+         } else {
+             if (Flags_GetSwitch(play, this->dyna.actor.params & 0x3F)) {
+-                this->actionFunc = func_808B95AC;
++                this->actionFunc = BgSpot18Shutter_DoNothing;  // was func_808B95AC [LLM:HIGH]
+                 this->dyna.actor.world.pos.y += 180.0f;
+             } else {
+-                this->actionFunc = func_808B95B8;
++                this->actionFunc = BgSpot18Shutter_WaitForSwitch;  // was func_808B95B8 [LLM:HIGH]
+             }
+         }
+     } else {
+         if (Flags_GetInfTable(INFTABLE_GORON_CITY_DOORS_UNLOCKED)) {
+             this->dyna.actor.world.pos.x += 125.0f * Math_CosS(this->dyna.actor.world.rot.y);
+             this->dyna.actor.world.pos.z -= 125.0f * Math_SinS(this->dyna.actor.world.rot.y);
+-            this->actionFunc = func_808B95AC;
++            this->actionFunc = BgSpot18Shutter_DoNothing;  // was func_808B95AC [LLM:HIGH]
+         } else {
+-            this->actionFunc = func_808B9618;
++            this->actionFunc = BgSpot18Shutter_WaitForCityUnlock;  // was func_808B9618 [LLM:HIGH]
+         }
+     }
+ 
+@@ -82,39 +87,39 @@ void BgSpot18Shutter_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_808B95AC(BgSpot18Shutter* this, PlayState* play) {
++void BgSpot18Shutter_DoNothing(BgSpot18Shutter* this, PlayState* play) {
+ }
+ 
+-void func_808B95B8(BgSpot18Shutter* this, PlayState* play) {
++void BgSpot18Shutter_WaitForSwitch(BgSpot18Shutter* this, PlayState* play) {
+     if (Flags_GetSwitch(play, this->dyna.actor.params & 0x3F)) {
+         Actor_SetFocus(&this->dyna.actor, 70.0f);
+         OnePointCutscene_Attention(play, &this->dyna.actor);
+-        this->actionFunc = func_808B9698;
++        this->actionFunc = BgSpot18Shutter_OpenUpward;  // was func_808B9698 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808B9618(BgSpot18Shutter* this, PlayState* play) {
++void BgSpot18Shutter_WaitForCityUnlock(BgSpot18Shutter* this, PlayState* play) {
+     if (Flags_GetInfTable(INFTABLE_GORON_CITY_DOORS_UNLOCKED)) {
+         Actor_SetFocus(&this->dyna.actor, 70.0f);
+         if (((this->dyna.actor.params >> 8) & 1) == 0) {
+-            this->actionFunc = func_808B9698;
++            this->actionFunc = BgSpot18Shutter_OpenUpward;  // was func_808B9698 [LLM:HIGH]
+         } else {
+-            this->actionFunc = func_808B971C;
++            this->actionFunc = BgSpot18Shutter_SlideAside;  // was func_808B971C [LLM:HIGH]
+             OnePointCutscene_Init(play, 4221, 140, &this->dyna.actor, CAM_ID_MAIN);
+         }
+     }
+ }
+ 
+-void func_808B9698(BgSpot18Shutter* this, PlayState* play) {
++void BgSpot18Shutter_OpenUpward(BgSpot18Shutter* this, PlayState* play) {
+     if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y + 180.0f, 1.44f)) {
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_STONEDOOR_STOP);
+-        this->actionFunc = func_808B95AC;
++        this->actionFunc = BgSpot18Shutter_DoNothing;  // was func_808B95AC [LLM:HIGH]
+     } else {
+         Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_STONE_STATUE_OPEN - SFX_FLAG);
+     }
+ }
+ 
+-void func_808B971C(BgSpot18Shutter* this, PlayState* play) {
++void BgSpot18Shutter_SlideAside(BgSpot18Shutter* this, PlayState* play) {
+     f32 sin = Math_SinS(this->dyna.actor.world.rot.y);
+     f32 cos = Math_CosS(this->dyna.actor.world.rot.y);
+     s32 flag = true;
+@@ -124,7 +129,7 @@ void func_808B971C(BgSpot18Shutter* this, PlayState* play) {
+ 
+     if (flag) {
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_STONEDOOR_STOP);
+-        this->actionFunc = func_808B95AC;
++        this->actionFunc = BgSpot18Shutter_DoNothing;  // was func_808B95AC [LLM:HIGH]
+     } else {
+         Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_STONE_STATUE_OPEN - SFX_FLAG);
+     }
+-- 
+2.55.0
+

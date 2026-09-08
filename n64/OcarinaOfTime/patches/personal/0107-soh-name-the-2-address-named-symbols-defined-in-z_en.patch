@@ -1,0 +1,95 @@
+From 5ef646786a7715f10ff274d9f7ef5fc6e8a82384 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:07 +0000
+Subject: [PATCH 107/488] soh: name the 2 address-named symbols defined in
+ z_en_hs.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c.
+
+  * func_80A6E6D8 -> EnHs_SleepingTalk
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80A6E70C -> EnHs_OddMushroomNo
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c b/soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c
+index ae5930078..005e0f3e0 100644
+--- a/soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c
++++ b/soh/src/overlays/actors/ovl_En_Hs/z_en_hs.c
+@@ -145,13 +145,15 @@ void func_80A6E6B0(EnHs* this, PlayState* play) {
+     EnHs_SittingAwakeInteract(this, play, 0x10B6, func_80A6E5EC);
+ }
+ 
+-void func_80A6E6D8(EnHs* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A6E6D8): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Hs/z_en_hs.c]
++void EnHs_SleepingTalk(EnHs* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         EnHs_SetActionFunc(this, EnHs_SleepingInteract);
+     }
+ }
+ 
+-void func_80A6E70C(EnHs* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80A6E70C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Hs/z_en_hs.c]
++void EnHs_OddMushroomNo(EnHs* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         EnHs_SetActionFunc(this, EnHs_SleepingInteract);
+     }
+@@ -180,7 +182,7 @@ void func_80A6E7BC(EnHs* this, PlayState* play) {
+                 break;
+             case 1:
+                 Message_ContinueTextbox(play, 0x10B4);
+-                EnHs_SetActionFunc(this, func_80A6E70C);
++                EnHs_SetActionFunc(this, EnHs_OddMushroomNo);
+                 break;
+         }
+ 
+@@ -225,7 +227,7 @@ void EnHs_SleepingInteract(EnHs* this, PlayState* play) {
+             Sfx_PlaySfxCentered(NA_SE_SY_TRE_BOX_APPEAR);
+         } else {
+             player->actor.textId = 0x10B1;
+-            EnHs_SetActionFunc(this, func_80A6E6D8);
++            EnHs_SetActionFunc(this, EnHs_SleepingTalk);
+         }
+     } else {
+         yawDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+-- 
+2.55.0
+

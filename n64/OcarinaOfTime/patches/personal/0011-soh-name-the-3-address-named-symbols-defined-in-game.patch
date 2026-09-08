@@ -1,0 +1,156 @@
+From f992df49b59b1f38d2d87840429dc54721e280dc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:58 +0000
+Subject: [PATCH 011/488] soh: name the 3 address-named symbols defined in
+ game.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/code/game.c; updating their references touches 2 files in total.
+
+  * D_801664D0 -> sGameStateSpeedMeter
+    deduced, confidence HIGH
+
+  * func_800C4344 -> GameState_UpdateDebugRegisters
+    deduced, confidence HIGH
+
+  * func_800C49F4 -> GameState_DrawEnd
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h |  4 ++--
+ soh/src/code/game.c     | 21 ++++++++++++---------
+ 2 files changed, 14 insertions(+), 11 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index f13991323..46c4424aa 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1635,11 +1635,11 @@ void TitleSetup_Destroy(GameState* gameState);
+ void TitleSetup_Init(GameState* gameState);
+ void GameState_FaultPrint(void);
+ void GameState_SetFBFilter(Gfx** gfx);
+-// ? func_800C4344(?);
++// ? GameState_UpdateDebugRegisters(?);
+ void GameState_DrawInputDisplay(u16 input, Gfx** gfx);
+ void GameState_Draw(GameState* gameState, GraphicsContext* gfxCtx);
+ void GameState_SetFrameBuffer(GraphicsContext* gfxCtx);
+-// ? func_800C49F4(?);
++// ? GameState_DrawEnd(?);
+ void GameState_ReqPadData(GameState* gameState);
+ void GameState_Update(GameState* gameState);
+ void GameState_InitArena(GameState* gameState, size_t size);
+diff --git a/soh/src/code/game.c b/soh/src/code/game.c
+index 5237a539b..1ffbfcaa0 100644
+--- a/soh/src/code/game.c
++++ b/soh/src/code/game.c
+@@ -12,7 +12,8 @@ extern MessageTableEntry* sGerMessageEntryTablePtr;
+ extern MessageTableEntry* sFraMessageEntryTablePtr;
+ extern MessageTableEntry* sJpnMessageEntryTablePtr;
+ 
+-SpeedMeter D_801664D0;
++// LLM generated name (HIGH), was D_801664D0: the GameState's SpeedMeter, Init/Draw/Destroy'd across the frame loop.
++SpeedMeter sGameStateSpeedMeter;
+ VisCvg sVisCvg;
+ VisZBuf sVisZBuf;
+ VisMono sVisMono;
+@@ -81,7 +82,8 @@ void GameState_SetFBFilter(Gfx** gfxP) {
+     *gfxP = gfx;
+ }
+ 
+-void func_800C4344(GameState* gameState) {
++// LLM generated name (HIGH), was func_800C4344: reads/writes the HREG/SREG debug registers driving dev-tool behavior.
++void GameState_UpdateDebugRegisters(GameState* gameState) {
+     Input* selectedInput;
+     s32 hexDumpSize;
+     u16 hReg82;
+@@ -209,8 +211,8 @@ void GameState_Draw(GameState* gameState, GraphicsContext* gfxCtx) {
+     func_80063D7C(gfxCtx);
+ 
+     if (R_ENABLE_ARENA_DBG != 0) {
+-        SpeedMeter_DrawTimeEntries(&D_801664D0, gfxCtx);
+-        SpeedMeter_DrawAllocEntries(&D_801664D0, gfxCtx, gameState);
++        SpeedMeter_DrawTimeEntries(&sGameStateSpeedMeter, gfxCtx);
++        SpeedMeter_DrawAllocEntries(&sGameStateSpeedMeter, gfxCtx, gameState);
+     }
+ }
+ 
+@@ -230,7 +232,8 @@ void GameState_SetFrameBuffer(GraphicsContext* gfxCtx) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_800C49F4(GraphicsContext* gfxCtx) {
++// LLM generated name (HIGH), was func_800C49F4: closes the frame's display lists, branching POLY_OPA to the overlay.
++void GameState_DrawEnd(GraphicsContext* gfxCtx) {
+     Gfx* newDlist;
+     Gfx* polyOpaP;
+ 
+@@ -269,7 +272,7 @@ void GameState_Update(GameState* gameState) {
+ 
+     gameState->main(gameState);
+ 
+-    func_800C4344(gameState);
++    GameState_UpdateDebugRegisters(gameState);
+ 
+     if (SREG(63) == 1u) {
+         if (SREG(48) < 0) {
+@@ -340,7 +343,7 @@ void GameState_Update(GameState* gameState) {
+ 
+     if (R_PAUSE_MENU_MODE != 2u) {
+         GameState_Draw(gameState, gfxCtx);
+-        func_800C49F4(gfxCtx);
++        GameState_DrawEnd(gfxCtx);
+     }
+ 
+     gSaveContext.language = CVarGetInteger(CVAR_SETTING("Languages"), LANGUAGE_ENG);
+@@ -449,7 +452,7 @@ void GameState_Init(GameState* gameState, GameStateFunc init, GraphicsContext* g
+     if (SREG(48) == 0) {
+         ViMode_Init(&sViMode);
+     }
+-    SpeedMeter_Init(&D_801664D0);
++    SpeedMeter_Init(&sGameStateSpeedMeter);
+     func_800AA0B4();
+     osSendMesgPtr(&gameState->gfxCtx->queue, NULL, OS_MESG_BLOCK);
+ 
+@@ -472,7 +475,7 @@ void GameState_Destroy(GameState* gameState) {
+         gameState->destroy(gameState);
+     }
+     func_800AA0F0();
+-    SpeedMeter_Destroy(&D_801664D0);
++    SpeedMeter_Destroy(&sGameStateSpeedMeter);
+     VisCvg_Destroy(&sVisCvg);
+     VisZBuf_Destroy(&sVisZBuf);
+     VisMono_Destroy(&sVisMono);
+-- 
+2.55.0
+

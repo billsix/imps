@@ -1,0 +1,78 @@
+From 37b6947dc40517aad2e66857a161b0fc765ee5a9 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:40 +0000
+Subject: [PATCH 468/488] soh: name the 2 address-named symbols defined in
+ z_en_gs.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c.
+
+  * D_80A4FE34 -> sResetRot
+    deduced, confidence HIGH: the zero rotation EnGs_ResetTransform restores
+
+  * D_80A4FE3C -> sResetScale
+    deduced, confidence HIGH: the unit scale it restores with it
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c b/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
+index 4bb2b4f50..28b09db07 100644
+--- a/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
++++ b/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
+@@ -514,16 +514,16 @@ void EnGs_Idle(EnGs* this, PlayState* play) {
+ }
+ 
+ void EnGs_ResetTransform(EnGs* this) {
+-    static Vec3s D_80A4FE34 = { 0, 0, 0 };
+-    static Vec3f D_80A4FE3C = { 1.0f, 1.0f, 1.0f };
++    static Vec3s sResetRot = { 0, 0, 0 };  // was D_80A4FE34 [LLM:HIGH]
++    static Vec3f sResetScale = { 1.0f, 1.0f, 1.0f };  // was D_80A4FE3C [LLM:HIGH]
+     s32 i;
+ 
+     for (i = 0; i < 3; i++) {
+-        this->unk_1A0[i] = D_80A4FE34;
++        this->unk_1A0[i] = sResetRot;  // was D_80A4FE34 [LLM:HIGH]
+     }
+ 
+     for (i = 0; i < 2; i++) {
+-        this->unk_1B4[i] = D_80A4FE3C;
++        this->unk_1B4[i] = sResetScale;  // was D_80A4FE3C [LLM:HIGH]
+     }
+ 
+     this->unk_19C = 3;
+-- 
+2.55.0
+

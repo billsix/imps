@@ -1,0 +1,122 @@
+From 2508478f033f966d5be5248156e0a1ab03044a45 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 277/488] soh: name the 6 address-named symbols defined in
+ z_arms_hook.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c.
+
+  * D_80865B70 -> sStowedHookOffset
+    deduced, confidence HIGH: the local-space offset used for the hook's
+    drawn position while the hookshot is not in flight; its extended
+    counterpart sits 900 units forward.
+
+  * D_80865B7C -> sShotHookOffset
+    deduced, confidence HIGH: the same offset while ArmsHook_Shoot is
+    running and the timer has not expired, placing the hook 900 units ahead.
+
+  * D_80865B88 -> sStowedWeaponTip
+    deduced, confidence HIGH: the tip point handed to
+    Player_UpdateWeaponInfo while the hook is stowed.
+
+  * D_80865B94 -> sStowedWeaponBase
+    deduced, confidence HIGH: the matching base point for the stowed hook's
+    weapon quad.
+
+  * D_80865BA0 -> sShotWeaponTip
+    deduced, confidence HIGH: the tip point handed to
+    Player_UpdateWeaponInfo while the hook is in flight.
+
+  * D_80865BAC -> sShotWeaponBase
+    deduced, confidence HIGH: the matching base point for the in-flight
+    hook's weapon quad.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Arms_Hook/z_arms_hook.c        | 30 +++++++++++--------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c b/soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c
+index e30c5d571..c945754a4 100644
+--- a/soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c
++++ b/soh/src/overlays/actors/ovl_Arms_Hook/z_arms_hook.c
+@@ -54,12 +54,18 @@ static Color_RGB8 sUnusedColors[] = {
+     { 255, 255, 50 },
+ };
+ 
+-static Vec3f D_80865B70 = { 0.0f, 0.0f, 0.0f };
+-static Vec3f D_80865B7C = { 0.0f, 0.0f, 900.0f };
+-static Vec3f D_80865B88 = { 0.0f, 500.0f, -3000.0f };
+-static Vec3f D_80865B94 = { 0.0f, -500.0f, -3000.0f };
+-static Vec3f D_80865BA0 = { 0.0f, 500.0f, 1200.0f };
+-static Vec3f D_80865BAC = { 0.0f, -500.0f, 1200.0f };
++// LLM generated name (HIGH), was D_80865B70: the local-space offset used for the hook's drawn position while the hookshot is not in flight; its extended counterpart sits 900 units forward.
++static Vec3f sStowedHookOffset = { 0.0f, 0.0f, 0.0f };  // was D_80865B70 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80865B7C: the same offset while ArmsHook_Shoot is running and the timer has not expired, placing the hook 900 units ahead.
++static Vec3f sShotHookOffset = { 0.0f, 0.0f, 900.0f };  // was D_80865B7C [LLM:HIGH]
++// LLM generated name (HIGH), was D_80865B88: the tip point handed to Player_UpdateWeaponInfo while the hook is stowed.
++static Vec3f sStowedWeaponTip = { 0.0f, 500.0f, -3000.0f };  // was D_80865B88 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80865B94: the matching base point for the stowed hook's weapon quad.
++static Vec3f sStowedWeaponBase = { 0.0f, -500.0f, -3000.0f };  // was D_80865B94 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80865BA0: the tip point handed to Player_UpdateWeaponInfo while the hook is in flight.
++static Vec3f sShotWeaponTip = { 0.0f, 500.0f, 1200.0f };  // was D_80865BA0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80865BAC: the matching base point for the in-flight hook's weapon quad.
++static Vec3f sShotWeaponBase = { 0.0f, -500.0f, 1200.0f };  // was D_80865BAC [LLM:HIGH]
+ 
+ void ArmsHook_SetupAction(ArmsHook* this, ArmsHookActionFunc actionFunc) {
+     this->actionFunc = actionFunc;
+@@ -316,14 +322,14 @@ void ArmsHook_Draw(Actor* thisx, PlayState* play) {
+         OPEN_DISPS(play->state.gfxCtx);
+ 
+         if ((ArmsHook_Shoot != this->actionFunc) || (this->timer <= 0)) {
+-            Matrix_MultVec3f(&D_80865B70, &this->unk_1E8);
+-            Matrix_MultVec3f(&D_80865B88, &sp6C);
+-            Matrix_MultVec3f(&D_80865B94, &sp60);
++            Matrix_MultVec3f(&sStowedHookOffset, &this->unk_1E8);  // was D_80865B70 [LLM:HIGH]
++            Matrix_MultVec3f(&sStowedWeaponTip, &sp6C);  // was D_80865B88 [LLM:HIGH]
++            Matrix_MultVec3f(&sStowedWeaponBase, &sp60);  // was D_80865B94 [LLM:HIGH]
+             this->hookInfo.active = 0;
+         } else {
+-            Matrix_MultVec3f(&D_80865B7C, &this->unk_1E8);
+-            Matrix_MultVec3f(&D_80865BA0, &sp6C);
+-            Matrix_MultVec3f(&D_80865BAC, &sp60);
++            Matrix_MultVec3f(&sShotHookOffset, &this->unk_1E8);  // was D_80865B7C [LLM:HIGH]
++            Matrix_MultVec3f(&sShotWeaponTip, &sp6C);  // was D_80865BA0 [LLM:HIGH]
++            Matrix_MultVec3f(&sShotWeaponBase, &sp60);  // was D_80865BAC [LLM:HIGH]
+         }
+ 
+         Player_UpdateWeaponInfo(play, &this->collider, &this->hookInfo, &sp6C, &sp60);
+-- 
+2.55.0
+

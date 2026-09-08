@@ -1,0 +1,179 @@
+From 693b1452ae81500cb5ceb0a18670bab283d21919 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 280/488] soh: name the 6 address-named symbols defined in
+ z_bg_zg.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c.
+
+  * func_808C0C50 -> BgZg_PlayOpenSfx
+    deduced, confidence HIGH: plays NA_SE_EV_METALDOOR_OPEN at the actor's
+    position; called once when the bars start rising.
+
+  * func_808C0C98 -> BgZg_IsSwitchSet
+    deduced, confidence HIGH: returns Flags_GetSwitch for the switch index
+    held in the high byte of params.
+
+  * func_808C0CC8 -> BgZg_GetVariant
+    deduced, confidence GUESS: returns the low byte of params; Init uses it
+    only to scale the bars up when it is 8 or 9. What the byte actually
+    selects is not stated anywhere in the file.
+
+  * func_808C0CD4 -> BgZg_WaitForSwitch
+    deduced, confidence HIGH: sActionFuncs[0]: waits for the switch flag,
+    then advances to action 1 and plays the opening sfx.
+
+  * func_808C0D08 -> BgZg_Rise
+    deduced, confidence HIGH: sActionFuncs[1]: lifts the bars at a fixed
+    rate and kills the actor once they are about 240 units above home.
+
+  * func_808C0EEC -> BgZg_DrawBars
+    deduced, confidence HIGH: sDrawFuncs[0]: draws gTowerCollapseBarsDL
+    opaquely.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c | 44 ++++++++++++---------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c b/soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c
+index 034cd4aae..05713c184 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c
++++ b/soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c
+@@ -15,16 +15,22 @@ void BgZg_Destroy(Actor* thisx, PlayState* play);
+ void BgZg_Update(Actor* thisx, PlayState* play);
+ void BgZg_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_808C0C50(BgZg* this);
+-s32 func_808C0C98(BgZg* this, PlayState* play);
+-s32 func_808C0CC8(BgZg* this);
+-void func_808C0CD4(BgZg* this, PlayState* play);
+-void func_808C0D08(BgZg* this, PlayState* play);
+-void func_808C0EEC(BgZg* this, PlayState* play);
++// LLM generated name (HIGH), was func_808C0C50: plays NA_SE_EV_METALDOOR_OPEN at the actor's position; called once when the bars start rising.
++void BgZg_PlayOpenSfx(BgZg* this);  // was func_808C0C50 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808C0C98: returns Flags_GetSwitch for the switch index held in the high byte of params.
++s32 BgZg_IsSwitchSet(BgZg* this, PlayState* play);  // was func_808C0C98 [LLM:HIGH]
++// LLM generated name (GUESS), was func_808C0CC8: returns the low byte of params; Init uses it only to scale the bars up when it is 8 or 9. What the byte actually selects is not stated anywhere in the file.
++s32 BgZg_GetVariant(BgZg* this);  // was func_808C0CC8 [LLM:GUESS]
++// LLM generated name (HIGH), was func_808C0CD4: sActionFuncs[0]: waits for the switch flag, then advances to action 1 and plays the opening sfx.
++void BgZg_WaitForSwitch(BgZg* this, PlayState* play);  // was func_808C0CD4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808C0D08: sActionFuncs[1]: lifts the bars at a fixed rate and kills the actor once they are about 240 units above home.
++void BgZg_Rise(BgZg* this, PlayState* play);  // was func_808C0D08 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808C0EEC: sDrawFuncs[0]: draws gTowerCollapseBarsDL opaquely.
++void BgZg_DrawBars(BgZg* this, PlayState* play);  // was func_808C0EEC [LLM:HIGH]
+ 
+ static BgZgActionFunc sActionFuncs[] = {
+-    func_808C0CD4,
+-    func_808C0D08,
++    BgZg_WaitForSwitch,  // was func_808C0CD4 [LLM:HIGH]
++    BgZg_Rise,  // was func_808C0D08 [LLM:HIGH]
+ };
+ 
+ static InitChainEntry sInitChain[] = {
+@@ -32,7 +38,7 @@ static InitChainEntry sInitChain[] = {
+ };
+ 
+ static BgZgDrawFunc sDrawFuncs[] = {
+-    func_808C0EEC,
++    BgZg_DrawBars,  // was func_808C0EEC [LLM:HIGH]
+ };
+ 
+ const ActorInit Bg_Zg_InitVars = {
+@@ -54,31 +60,31 @@ void BgZg_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_808C0C50(BgZg* this) {
++void BgZg_PlayOpenSfx(BgZg* this) {
+     Audio_PlaySfxGeneral(NA_SE_EV_METALDOOR_OPEN, &this->dyna.actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ }
+ 
+-s32 func_808C0C98(BgZg* this, PlayState* play) {
++s32 BgZg_IsSwitchSet(BgZg* this, PlayState* play) {
+     s32 flag = (this->dyna.actor.params >> 8) & 0xFF;
+ 
+     return Flags_GetSwitch(play, flag);
+ }
+ 
+-s32 func_808C0CC8(BgZg* this) {
++s32 BgZg_GetVariant(BgZg* this) {
+     s32 flag = this->dyna.actor.params & 0xFF;
+ 
+     return flag;
+ }
+ 
+-void func_808C0CD4(BgZg* this, PlayState* play) {
+-    if (func_808C0C98(this, play) != 0) {
++void BgZg_WaitForSwitch(BgZg* this, PlayState* play) {
++    if (BgZg_IsSwitchSet(this, play) != 0) {  // was func_808C0C98 [LLM:HIGH]
+         this->action = 1;
+-        func_808C0C50(this);
++        BgZg_PlayOpenSfx(this);  // was func_808C0C50 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808C0D08(BgZg* this, PlayState* play) {
++void BgZg_Rise(BgZg* this, PlayState* play) {
+     this->dyna.actor.world.pos.y += (kREG(16) + 20.0f) * 1.2f;
+     if ((((kREG(17) + 200.0f) * 1.2f) + this->dyna.actor.home.pos.y) <= this->dyna.actor.world.pos.y) {
+         Actor_Kill(&this->dyna.actor);
+@@ -107,7 +113,7 @@ void BgZg_Init(Actor* thisx, PlayState* play) {
+     colHeader = NULL;
+     CollisionHeader_GetVirtual(&gTowerCollapseBarsCol, &colHeader);
+     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, &this->dyna.actor, colHeader);
+-    if ((func_808C0CC8(this) == 8) || (func_808C0CC8(this) == 9)) {
++    if ((BgZg_GetVariant(this) == 8) || (BgZg_GetVariant(this) == 9)) {  // was func_808C0CC8 [LLM:GUESS]
+         this->dyna.actor.scale.x = this->dyna.actor.scale.x * 1.3f;
+         this->dyna.actor.scale.z = this->dyna.actor.scale.z * 1.3f;
+         this->dyna.actor.scale.y = this->dyna.actor.scale.y * 1.2f;
+@@ -115,12 +121,12 @@ void BgZg_Init(Actor* thisx, PlayState* play) {
+ 
+     this->action = 0;
+     this->drawConfig = 0;
+-    if (func_808C0C98(this, play)) {
++    if (BgZg_IsSwitchSet(this, play)) {  // was func_808C0C98 [LLM:HIGH]
+         Actor_Kill(&this->dyna.actor);
+     }
+ }
+ 
+-void func_808C0EEC(BgZg* this, PlayState* play) {
++void BgZg_DrawBars(BgZg* this, PlayState* play) {
+     GraphicsContext* localGfxCtx = play->state.gfxCtx;
+ 
+     OPEN_DISPS(localGfxCtx);
+-- 
+2.55.0
+

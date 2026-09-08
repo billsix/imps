@@ -1,0 +1,109 @@
+From 33f4b58d226dec8a40d2ea4ec9f937486ad8f091 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:14 +0000
+Subject: [PATCH 187/488] soh: name the 2 address-named symbols defined in
+ z_en_niw_girl.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Niw_Girl/z_en_niw_girl.c.
+
+  * func_80AB9210 -> EnNiwGirl_ChaseCucco
+    deduced, confidence HIGH: action state entered from EnNiwGirl_Jump;
+    accelerates to speedXZ 3.0, steers chasedEnNiw's path by distance and
+    turns to face it.
+
+  * func_80AB94D0 -> EnNiwGirl_Wait
+    deduced, confidence HIGH: action state entered from EnNiwGirl_Talk;
+    decelerates to a stop, offers talk, and after jumpTimer expires hands
+    off to EnNiwGirl_Jump.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Niw_Girl/z_en_niw_girl.c       | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Niw_Girl/z_en_niw_girl.c b/soh/src/overlays/actors/ovl_En_Niw_Girl/z_en_niw_girl.c
+index ea8e94a0f..8a47adbe0 100644
+--- a/soh/src/overlays/actors/ovl_En_Niw_Girl/z_en_niw_girl.c
++++ b/soh/src/overlays/actors/ovl_En_Niw_Girl/z_en_niw_girl.c
+@@ -16,8 +16,10 @@ void EnNiwGirl_Update(Actor* thisx, PlayState* play);
+ void EnNiwGirl_Draw(Actor* thisx, PlayState* play);
+ 
+ void EnNiwGirl_Talk(EnNiwGirl* this, PlayState* play);
+-void func_80AB94D0(EnNiwGirl* this, PlayState* play);
+-void func_80AB9210(EnNiwGirl* this, PlayState* play);
++// LLM generated name (HIGH), was func_80AB94D0: action state entered from EnNiwGirl_Talk; decelerates to a stop, offers talk, and after jumpTimer expires hands off to EnNiwGirl_Jump.
++void EnNiwGirl_Wait(EnNiwGirl* this, PlayState* play);  // was func_80AB94D0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AB9210: action state entered from EnNiwGirl_Jump; accelerates to speedXZ 3.0, steers chasedEnNiw's path by distance and turns to face it.
++void EnNiwGirl_ChaseCucco(EnNiwGirl* this, PlayState* play);  // was func_80AB9210 [LLM:HIGH]
+ 
+ const ActorInit En_Niw_Girl_InitVars = {
+     ACTOR_EN_NIW_GIRL,
+@@ -98,10 +100,10 @@ void EnNiwGirl_Jump(EnNiwGirl* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&gNiwGirlRunAnim);
+     Animation_Change(&this->skelAnime, &gNiwGirlRunAnim, 1.0f, 0.0f, frameCount, 0, -10.0f);
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+-    this->actionFunc = func_80AB9210;
++    this->actionFunc = EnNiwGirl_ChaseCucco;  // was func_80AB9210 [LLM:HIGH]
+ }
+ 
+-void func_80AB9210(EnNiwGirl* this, PlayState* play) {
++void EnNiwGirl_ChaseCucco(EnNiwGirl* this, PlayState* play) {
+     Path* path = &play->setupPathList[this->path];
+     f32 xDistBetween;
+     f32 zDistBetween;
+@@ -162,10 +164,10 @@ void EnNiwGirl_Talk(EnNiwGirl* this, PlayState* play) {
+             break;
+     }
+     this->unk_270 = 6;
+-    this->actionFunc = func_80AB94D0;
++    this->actionFunc = EnNiwGirl_Wait;  // was func_80AB94D0 [LLM:HIGH]
+ }
+ 
+-void func_80AB94D0(EnNiwGirl* this, PlayState* play) {
++void EnNiwGirl_Wait(EnNiwGirl* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (Message_GetState(&play->msgCtx) != TEXT_STATE_NONE) {
+         this->chasedEnNiw->path = 0;
+@@ -192,7 +194,7 @@ void EnNiwGirl_Update(Actor* thisx, PlayState* play) {
+ 
+     Actor_SetScale(&this->actor, 0.013f);
+     this->unkUpTimer++;
+-    tempActionFunc = func_80AB94D0;
++    tempActionFunc = EnNiwGirl_Wait;  // was func_80AB94D0 [LLM:HIGH]
+     if (this->blinkTimer == 0) {
+         this->eyeIndex++;
+         if (this->eyeIndex >= 3) {
+-- 
+2.55.0
+

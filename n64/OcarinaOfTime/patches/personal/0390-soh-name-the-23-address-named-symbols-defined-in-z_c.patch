@@ -1,0 +1,1068 @@
+From f3a2c4e179f3c9bbd1cd4f2ab0975cc793c2edd4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:33 +0000
+Subject: [PATCH 390/488] soh: name the 23 address-named symbols defined in
+ z_camera_data.inc
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 23 are defined in soh/src/code/z_camera_data.inc; updating their references touches 3 files in total.
+
+  * D_8015BD7C -> sCameraPlayState
+    deduced, confidence HIGH: the PlayState the camera code reads controller
+    input through
+
+  * D_8015BD80 -> sDbCamera
+    deduced, confidence HIGH: the debug camera state Camera_Update hands out
+
+  * D_8011D3AC -> sTargetCategory
+    deduced, confidence HIGH: the actor category of the camera's current
+    target, published for Camera_GetTargetCategory
+
+  * D_8011D3B0 -> sAttentionYawOffsets
+    deduced, confidence HIGH: the yaw offsets the attention camera tries
+    when it needs a clear line to the target
+
+  * D_8011D3CC -> sAttentionPitchOffsets
+    deduced, confidence HIGH: the pitch offsets tried alongside them
+
+  * D_8011D3EC -> sUnusedCameraFlag
+    deduced, confidence GUESS: an s32 beside sUpdateCameraDirection that
+    nothing in the tree reads or writes
+
+  * D_8011D3F0 -> sCameraSkipFrames
+    deduced, confidence HIGH: set to 3 on a camera reset and counted down so
+    the main camera skips that many updates
+
+  * D_8011D658 -> sCsSpiralOffsets
+    deduced, confidence HIGH: the spherical offsets the demo 3 spiral
+    cutscene interpolates the eye and at through
+
+  * D_8011D678 -> sCsSpiralPoints
+    deduced, confidence HIGH: the positions that same cutscene interpolates
+    between
+
+  * D_8011D6AC -> sAttentionPlayerFarKeyFrames
+    deduced, confidence HIGH: the attention keyframes used when the target
+    is the player and the eye is more than 30 units away
+
+  * D_8011D724 -> sAttentionPlayerNearKeyFrames
+    deduced, confidence HIGH: the same for a player target with the eye
+    close in
+
+  * D_8011D79C -> sAttentionDefaultKeyFrames
+    deduced, confidence HIGH: the attention keyframes used for a target that
+    is neither close nor a door
+
+  * D_8011D83C -> sAttentionCloseKeyFrames
+    deduced, confidence HIGH: the keyframes used when both the target and
+    the player are close to the camera
+
+  * D_8011D88C -> sAttentionCloseAltKeyFrames
+    deduced, confidence HIGH: the alternative close-range keyframe set
+
+  * D_8011D8DC -> sAttentionSwingKeyFrames
+    deduced, confidence HIGH: the keyframes that swing around the target,
+    scaled by its distance
+
+  * D_8011D954 -> sAttentionDoorKeyFrames
+    deduced, confidence HIGH: the keyframes used when the target is a door
+
+  * D_8011D9F4 -> sAttentionFarKeyFrames
+    deduced, confidence HIGH: the keyframes used for a distant target,
+    scaled by the player-to-target distance
+
+  * D_8011DA6C -> sSpec7EyeHighPoints
+    deduced, confidence HIGH: the fixed eye positions the spec 7 camera uses
+    above its height threshold
+
+  * D_8011DA9C -> sSpec7EyeLowPoints
+    deduced, confidence HIGH: the fixed eye positions it uses below that
+    threshold
+
+  * D_8011DACC -> sSpec7HighY
+    deduced, confidence HIGH: the upper height threshold per spec 7 index
+
+  * D_8011DADC -> sSpec7LowY
+    deduced, confidence HIGH: the lower height threshold per spec 7 index
+
+  * D_8011DAEC -> sSpec7Rolls
+    deduced, confidence HIGH: the roll each spec 7 index reaches between
+    those two heights
+
+  * D_8011DAFC -> sDbgCameraSettings
+    deduced, confidence HIGH: the camera settings the debug mode cycles
+    through
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../TimeSavers/timesaver_hook_handlers.cpp    |   8 +-
+ soh/src/code/z_camera.c                       | 374 +++++++++---------
+ soh/src/code/z_camera_data.inc                |  69 ++--
+ 3 files changed, 237 insertions(+), 214 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+index 5d07abfeb..c3cba4d61 100644
+--- a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
++++ b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+@@ -37,7 +37,7 @@ extern "C" {
+ #include <objects/object_gnd/object_gnd.h>
+ extern SaveContext gSaveContext;
+ extern PlayState* gPlayState;
+-extern int32_t D_8011D3AC;
++extern int32_t sTargetCategory;  // was D_8011D3AC [LLM:HIGH]
+ 
+ extern void BgSpot03Taki_HandleWaterfallState(BgSpot03Taki* bgSpot03Taki, PlayState* play);
+ extern void BgSpot03Taki_ApplyOpeningAlpha(BgSpot03Taki* bgSpot03Taki, s32 bufferIndex);
+@@ -268,9 +268,9 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_li
+ 
+                 // there are a few checks throughout the game (such as chest spawns) that rely on this
+                 // the checks are for Camera_GetTargetCategory() == this->dyna.actor.category, was func_8005B198 [LLM:HIGH]
+-                // Camera_GetTargetCategory just returns D_8011D3AC, was func_8005B198 [LLM:HIGH]
+-                // D_8011D3AC is set to camera->target->category in Camera_Demo5
+-                D_8011D3AC = actor->category;
++                // Camera_GetTargetCategory just returns sTargetCategory, was func_8005B198 [LLM:HIGH]
++                // sTargetCategory is set to camera->target->category in Camera_Demo5, was D_8011D3AC [LLM:HIGH]
++                sTargetCategory = actor->category;  // was D_8011D3AC [LLM:HIGH]
+ 
+                 switch (actor->category) {
+                     case ACTORCAT_BG:
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index cfdc1fbc6..c341e7261 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -1429,8 +1429,8 @@ s32 Camera_Noop(Camera* camera) {
+ }
+ 
+ s32 SetCameraManual(Camera* camera) {
+-    f32 newCamX = -D_8015BD7C->state.input[0].cur.right_stick_x * 10.0f;
+-    f32 newCamY = D_8015BD7C->state.input[0].cur.right_stick_y * 10.0f;
++    f32 newCamX = -sCameraPlayState->state.input[0].cur.right_stick_x * 10.0f;  // was D_8015BD7C [LLM:HIGH]
++    f32 newCamY = sCameraPlayState->state.input[0].cur.right_stick_y * 10.0f;  // was D_8015BD7C [LLM:HIGH]
+ 
+     Mouse_HandleThirdPerson(&newCamX, &newCamY);
+ 
+@@ -1512,8 +1512,8 @@ s32 Camera_Free(Camera* camera) {
+ 
+     camera->animState = 0;
+ 
+-    f32 newCamX = -D_8015BD7C->state.input[0].cur.right_stick_x * 10.0f;
+-    f32 newCamY = +D_8015BD7C->state.input[0].cur.right_stick_y * 10.0f;
++    f32 newCamX = -sCameraPlayState->state.input[0].cur.right_stick_x * 10.0f;  // was D_8015BD7C [LLM:HIGH]
++    f32 newCamY = +sCameraPlayState->state.input[0].cur.right_stick_y * 10.0f;  // was D_8015BD7C [LLM:HIGH]
+ 
+     /* Disable mouse movement when holding down the shield */
+     if (!(camera->player->stateFlags1 & 0x400000)) {
+@@ -3589,7 +3589,7 @@ s32 Camera_KeepOn3(Camera* camera) {
+         playerHeadPos = camPlayerPosRot->pos;
+         playerHeadPos.y += playerHeight;
+         Camera_Vec3fVecSphGeoAdd(&anim->atTarget, &playerHeadPos, &targetToPlayerDir);
+-        angleCnt = ARRAY_COUNT(D_8011D3B0);
++        angleCnt = ARRAY_COUNT(sAttentionYawOffsets);  // was D_8011D3B0 [LLM:HIGH]
+         i = 0;
+         targetToPlayerDir.r = prevTargetPlayerDist;
+         atToEyeAdj.r = ((keep3->minDist + (targetToPlayerDir.r * (1 - 0.5f))) - atToEyeNextDir.r) + atToEyeNextDir.r;
+@@ -3601,8 +3601,8 @@ s32 Camera_KeepOn3(Camera* camera) {
+                     !Camera_BGCheck(camera, &anim->atTarget, &lineChkPointB)) {
+                     break;
+                 }
+-                atToEyeAdj.yaw = sp80 + D_8011D3B0[i];
+-                atToEyeAdj.pitch = sp82 + D_8011D3CC[i];
++                atToEyeAdj.yaw = sp80 + sAttentionYawOffsets[i];  // was D_8011D3B0 [LLM:HIGH]
++                atToEyeAdj.pitch = sp82 + sAttentionPitchOffsets[i];  // was D_8011D3CC [LLM:HIGH]
+                 Camera_Vec3fVecSphGeoAdd(&lineChkPointB, &anim->atTarget, &atToEyeAdj);
+                 i++;
+             }
+@@ -3641,14 +3641,14 @@ s32 Camera_KeepOn3(Camera* camera) {
+         Camera_SetSnapUpdateRates(camera);  // was func_80043B60 [LLM:HIGH]
+         camera->atLERPStepScale = 0.0f;
+ 
+-        if (camera->xzSpeed > 0.001f || CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+-            CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_B) ||
+-            CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CLEFT) ||
+-            CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CDOWN) ||
+-            CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CUP) ||
+-            CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CRIGHT) ||
+-            CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_R) ||
+-            CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_Z)) {
++        if (camera->xzSpeed > 0.001f || CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_A) ||  // was D_8015BD7C [LLM:HIGH]
++            CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_B) ||  // was D_8015BD7C [LLM:HIGH]
++            CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CLEFT) ||  // was D_8015BD7C [LLM:HIGH]
++            CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CDOWN) ||  // was D_8015BD7C [LLM:HIGH]
++            CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CUP) ||  // was D_8015BD7C [LLM:HIGH]
++            CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CRIGHT) ||  // was D_8015BD7C [LLM:HIGH]
++            CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_R) ||  // was D_8015BD7C [LLM:HIGH]
++            CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_Z)) {  // was D_8015BD7C [LLM:HIGH]
+             camera->unk_14C |= 4;
+             camera->unk_14C &= ~8;
+         }
+@@ -3877,15 +3877,15 @@ s32 Camera_KeepOn4(Camera* camera) {
+             spB8.r = keep4->unk_04;
+             Camera_Vec3fVecSphGeoAdd(&sKeepOn4ScratchC, &sKeepOn4ScratchA, &spB8);  // was D_8015BD50 [LLM:GUESS]
+             if (!(keep4->unk_1C & 1)) {
+-                angleCnt = ARRAY_COUNT(D_8011D3B0);
++                angleCnt = ARRAY_COUNT(sAttentionYawOffsets);  // was D_8011D3B0 [LLM:HIGH]
+                 for (i = 0; i < angleCnt; i++) {
+                     if (!CollisionCheck_LineOCCheck(camera->play, &camera->play->colChkCtx, &sKeepOn4ScratchA, &sKeepOn4ScratchC,  // was D_8015BD50 [LLM:GUESS]
+                                                     spCC, sp9C) &&
+                         !Camera_BGCheck(camera, &sKeepOn4ScratchA, &sKeepOn4ScratchC)) {  // was D_8015BD50 [LLM:GUESS]
+                         break;
+                     }
+-                    spB8.yaw = D_8011D3B0[i] + spA0;
+-                    spB8.pitch = D_8011D3CC[i] + spA2;
++                    spB8.yaw = sAttentionYawOffsets[i] + spA0;  // was D_8011D3B0 [LLM:HIGH]
++                    spB8.pitch = sAttentionPitchOffsets[i] + spA2;  // was D_8011D3CC [LLM:HIGH]
+                     Camera_Vec3fVecSphGeoAdd(&sKeepOn4ScratchC, &sKeepOn4ScratchA, &spB8);  // was D_8015BD50 [LLM:GUESS]
+                 }
+                 osSyncPrintf("camera: item: BG&collision check %d time(s)\n", i);
+@@ -4930,14 +4930,14 @@ s32 Camera_Unique3(Camera* camera) {
+                 break;
+             }
+             uniq3->doorParams.timer3 = 5;
+-            if (camera->xzSpeed > 0.001f || CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+-                CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_B) ||
+-                CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CLEFT) ||
+-                CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CDOWN) ||
+-                CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CUP) ||
+-                CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CRIGHT) ||
+-                CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_R) ||
+-                CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_Z)) {
++            if (camera->xzSpeed > 0.001f || CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_A) ||  // was D_8015BD7C [LLM:HIGH]
++                CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_B) ||  // was D_8015BD7C [LLM:HIGH]
++                CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CLEFT) ||  // was D_8015BD7C [LLM:HIGH]
++                CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CDOWN) ||  // was D_8015BD7C [LLM:HIGH]
++                CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CUP) ||  // was D_8015BD7C [LLM:HIGH]
++                CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CRIGHT) ||  // was D_8015BD7C [LLM:HIGH]
++                CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_R) ||  // was D_8015BD7C [LLM:HIGH]
++                CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_Z)) {  // was D_8015BD7C [LLM:HIGH]
+                 camera->animState++;
+             } else {
+                 break;
+@@ -5038,14 +5038,14 @@ s32 Camera_Unique0(Camera* camera) {
+             anim->initalPos = playerPosRot->pos;
+         } else if ((!(player->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE)) &&
+                    ((OLib_Vec3fDistXZ(&playerPosRot->pos, &anim->initalPos) >= 10.0f) ||
+-                    CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+-                    CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_B) ||
+-                    CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CLEFT) ||
+-                    CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CDOWN) ||
+-                    CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CUP) ||
+-                    CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CRIGHT) ||
+-                    CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_R) ||
+-                    CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_Z))) {
++                    CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_A) ||  // was D_8015BD7C [LLM:HIGH]
++                    CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_B) ||  // was D_8015BD7C [LLM:HIGH]
++                    CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CLEFT) ||  // was D_8015BD7C [LLM:HIGH]
++                    CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CDOWN) ||  // was D_8015BD7C [LLM:HIGH]
++                    CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CUP) ||  // was D_8015BD7C [LLM:HIGH]
++                    CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CRIGHT) ||  // was D_8015BD7C [LLM:HIGH]
++                    CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_R) ||  // was D_8015BD7C [LLM:HIGH]
++                    CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_Z))) {  // was D_8015BD7C [LLM:HIGH]
+             camera->dist = OLib_Vec3fDist(&camera->at, eye);
+             camera->posOffset.x = camera->at.x - playerPosRot->pos.x;
+             camera->posOffset.y = camera->at.y - playerPosRot->pos.y;
+@@ -5065,14 +5065,14 @@ s32 Camera_Unique0(Camera* camera) {
+         }
+ 
+         if ((!(player->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE)) &&
+-            ((0.001f < camera->xzSpeed) || CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+-             CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_B) ||
+-             CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CLEFT) ||
+-             CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CDOWN) ||
+-             CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CUP) ||
+-             CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CRIGHT) ||
+-             CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_R) ||
+-             CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_Z))) {
++            ((0.001f < camera->xzSpeed) || CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_A) ||  // was D_8015BD7C [LLM:HIGH]
++             CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_B) ||  // was D_8015BD7C [LLM:HIGH]
++             CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CLEFT) ||  // was D_8015BD7C [LLM:HIGH]
++             CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CDOWN) ||  // was D_8015BD7C [LLM:HIGH]
++             CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CUP) ||  // was D_8015BD7C [LLM:HIGH]
++             CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CRIGHT) ||  // was D_8015BD7C [LLM:HIGH]
++             CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_R) ||  // was D_8015BD7C [LLM:HIGH]
++             CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_Z))) {  // was D_8015BD7C [LLM:HIGH]
+             camera->dist = OLib_Vec3fDist(&camera->at, &camera->eye);
+             camera->posOffset.x = camera->at.x - playerPosRot->pos.x;
+             camera->posOffset.y = camera->at.y - playerPosRot->pos.y;
+@@ -5278,7 +5278,7 @@ s32 Camera_Unique9(Camera* camera) {
+ 
+             if (anim->curKeyFrame->unk_01 != 0xFF) {
+                 if ((anim->curKeyFrame->unk_01 & 0xF0) == 0x80) {
+-                    D_8011D3AC = anim->curKeyFrame->unk_01 & 0xF;
++                    sTargetCategory = anim->curKeyFrame->unk_01 & 0xF;  // was D_8011D3AC [LLM:HIGH]
+                 } else if ((anim->curKeyFrame->unk_01 & 0xF0) == 0xC0) {
+                     Camera_UpdateInterface(0xF000 | ((anim->curKeyFrame->unk_01 & 0xF) << 8));
+                 } else if (camera->player->stateFlags1 & PLAYER_STATE1_IN_WATER &&
+@@ -5861,34 +5861,34 @@ s32 Camera_Demo3(Camera* camera) {
+                 angle += 0x3FFF;
+                 anim->yawDir = -1;
+             }
+-            sp74.x = sp68.x + (D_8011D658[1].r * Math_SinS(angle));
++            sp74.x = sp68.x + (sCsSpiralOffsets[1].r * Math_SinS(angle));  // was D_8011D658 [LLM:HIGH]
+             sp74.y = anim->initialAt.y + 5.0f;
+-            sp74.z = sp68.z + (D_8011D658[1].r * Math_CosS(angle));
++            sp74.z = sp68.z + (sCsSpiralOffsets[1].r * Math_CosS(angle));  // was D_8011D658 [LLM:HIGH]
+             if (Camera_BGCheck(camera, &sp68, &sp74)) {
+                 anim->yawDir = -anim->yawDir;
+             }
+-            OLib_Vec3fToVecSphGeo(&atOffset, &D_8011D678[0]);
++            OLib_Vec3fToVecSphGeo(&atOffset, &sCsSpiralPoints[0]);  // was D_8011D678 [LLM:HIGH]
+             atOffset.yaw += camPlayerPosRot->rot.y;
+             Camera_Vec3fVecSphGeoAdd(at, &anim->initialAt, &atOffset);
+-            eyeOffset.r = D_8011D658[0].r;
+-            eyeOffset.pitch = D_8011D658[0].pitch;
+-            eyeOffset.yaw = (D_8011D658[0].yaw * anim->yawDir) + camPlayerPosRot->rot.y;
++            eyeOffset.r = sCsSpiralOffsets[0].r;  // was D_8011D658 [LLM:HIGH]
++            eyeOffset.pitch = sCsSpiralOffsets[0].pitch;  // was D_8011D658 [LLM:HIGH]
++            eyeOffset.yaw = (sCsSpiralOffsets[0].yaw * anim->yawDir) + camPlayerPosRot->rot.y;  // was D_8011D658 [LLM:HIGH]
+             anim->unk_0C = 1.0f;
+             break;
+         case 1:
+             temp_f0 = (anim->animFrame - 2) * (1.0f / 146.0f);
+ 
+-            sp5C.x = F32_LERPIMP(D_8011D678[0].x, D_8011D678[1].x, temp_f0);
+-            sp5C.y = F32_LERPIMP(D_8011D678[0].y, D_8011D678[1].y, temp_f0);
+-            sp5C.z = F32_LERPIMP(D_8011D678[0].z, D_8011D678[1].z, temp_f0);
++            sp5C.x = F32_LERPIMP(sCsSpiralPoints[0].x, sCsSpiralPoints[1].x, temp_f0);  // was D_8011D678 [LLM:HIGH]
++            sp5C.y = F32_LERPIMP(sCsSpiralPoints[0].y, sCsSpiralPoints[1].y, temp_f0);  // was D_8011D678 [LLM:HIGH]
++            sp5C.z = F32_LERPIMP(sCsSpiralPoints[0].z, sCsSpiralPoints[1].z, temp_f0);  // was D_8011D678 [LLM:HIGH]
+ 
+             OLib_Vec3fToVecSphGeo(&atOffset, &sp5C);
+             atOffset.yaw = (atOffset.yaw * anim->yawDir) + camPlayerPosRot->rot.y;
+             Camera_Vec3fVecSphGeoAdd(at, &anim->initialAt, &atOffset);
+ 
+-            atOffset.r = F32_LERPIMP(D_8011D658[0].r, D_8011D658[1].r, temp_f0);
+-            atOffset.pitch = BINANG_LERPIMP(D_8011D658[0].pitch, D_8011D658[1].pitch, temp_f0);
+-            atOffset.yaw = BINANG_LERPIMP(D_8011D658[0].yaw, D_8011D658[1].yaw, temp_f0);
++            atOffset.r = F32_LERPIMP(sCsSpiralOffsets[0].r, sCsSpiralOffsets[1].r, temp_f0);  // was D_8011D658 [LLM:HIGH]
++            atOffset.pitch = BINANG_LERPIMP(sCsSpiralOffsets[0].pitch, sCsSpiralOffsets[1].pitch, temp_f0);  // was D_8011D658 [LLM:HIGH]
++            atOffset.yaw = BINANG_LERPIMP(sCsSpiralOffsets[0].yaw, sCsSpiralOffsets[1].yaw, temp_f0);  // was D_8011D658 [LLM:HIGH]
+ 
+             eyeOffset.r = atOffset.r;
+             eyeOffset.pitch = atOffset.pitch;
+@@ -5899,18 +5899,18 @@ s32 Camera_Demo3(Camera* camera) {
+         case 2:
+             temp_f0 = (anim->animFrame - 0x94) * 0.1f;
+ 
+-            sp5C.x = F32_LERPIMP(D_8011D678[1].x, D_8011D678[2].x, temp_f0);
+-            sp5C.y = F32_LERPIMP((D_8011D678[1].y - yOffset), D_8011D678[2].y, temp_f0);
++            sp5C.x = F32_LERPIMP(sCsSpiralPoints[1].x, sCsSpiralPoints[2].x, temp_f0);  // was D_8011D678 [LLM:HIGH]
++            sp5C.y = F32_LERPIMP((sCsSpiralPoints[1].y - yOffset), sCsSpiralPoints[2].y, temp_f0);  // was D_8011D678 [LLM:HIGH]
+             sp5C.y += yOffset;
+-            sp5C.z = F32_LERPIMP(D_8011D678[1].z, D_8011D678[2].z, temp_f0);
++            sp5C.z = F32_LERPIMP(sCsSpiralPoints[1].z, sCsSpiralPoints[2].z, temp_f0);  // was D_8011D678 [LLM:HIGH]
+ 
+             OLib_Vec3fToVecSphGeo(&atOffset, &sp5C);
+             atOffset.yaw = (atOffset.yaw * anim->yawDir) + camPlayerPosRot->rot.y;
+             Camera_Vec3fVecSphGeoAdd(at, &anim->initialAt, &atOffset);
+ 
+-            atOffset.r = F32_LERPIMP(D_8011D658[1].r, D_8011D658[2].r, temp_f0);
+-            atOffset.pitch = BINANG_LERPIMP(D_8011D658[1].pitch, D_8011D658[2].pitch, temp_f0);
+-            atOffset.yaw = BINANG_LERPIMP(D_8011D658[1].yaw, D_8011D658[2].yaw, temp_f0);
++            atOffset.r = F32_LERPIMP(sCsSpiralOffsets[1].r, sCsSpiralOffsets[2].r, temp_f0);  // was D_8011D658 [LLM:HIGH]
++            atOffset.pitch = BINANG_LERPIMP(sCsSpiralOffsets[1].pitch, sCsSpiralOffsets[2].pitch, temp_f0);  // was D_8011D658 [LLM:HIGH]
++            atOffset.yaw = BINANG_LERPIMP(sCsSpiralOffsets[1].yaw, sCsSpiralOffsets[2].yaw, temp_f0);  // was D_8011D658 [LLM:HIGH]
+ 
+             eyeOffset.r = atOffset.r;
+             eyeOffset.pitch = atOffset.pitch;
+@@ -5920,18 +5920,18 @@ s32 Camera_Demo3(Camera* camera) {
+         case 3:
+             temp_f0 = (anim->animFrame - 0x9F) * (1.0f / 9.0f);
+ 
+-            sp5C.x = F32_LERPIMP(D_8011D678[2].x, D_8011D678[3].x, temp_f0);
+-            sp5C.y = F32_LERPIMP(D_8011D678[2].y, D_8011D678[3].y, temp_f0);
++            sp5C.x = F32_LERPIMP(sCsSpiralPoints[2].x, sCsSpiralPoints[3].x, temp_f0);  // was D_8011D678 [LLM:HIGH]
++            sp5C.y = F32_LERPIMP(sCsSpiralPoints[2].y, sCsSpiralPoints[3].y, temp_f0);  // was D_8011D678 [LLM:HIGH]
+             sp5C.y += yOffset;
+-            sp5C.z = F32_LERPIMP(D_8011D678[2].z, D_8011D678[3].z, temp_f0);
++            sp5C.z = F32_LERPIMP(sCsSpiralPoints[2].z, sCsSpiralPoints[3].z, temp_f0);  // was D_8011D678 [LLM:HIGH]
+ 
+             OLib_Vec3fToVecSphGeo(&atOffset, &sp5C);
+             atOffset.yaw = (atOffset.yaw * anim->yawDir) + camPlayerPosRot->rot.y;
+             Camera_Vec3fVecSphGeoAdd(at, &anim->initialAt, &atOffset);
+ 
+-            atOffset.r = F32_LERPIMP(D_8011D658[2].r, D_8011D658[3].r, temp_f0);
+-            atOffset.pitch = BINANG_LERPIMP(D_8011D658[2].pitch, D_8011D658[3].pitch, temp_f0);
+-            atOffset.yaw = BINANG_LERPIMP(D_8011D658[2].yaw, D_8011D658[3].yaw, temp_f0);
++            atOffset.r = F32_LERPIMP(sCsSpiralOffsets[2].r, sCsSpiralOffsets[3].r, temp_f0);  // was D_8011D658 [LLM:HIGH]
++            atOffset.pitch = BINANG_LERPIMP(sCsSpiralOffsets[2].pitch, sCsSpiralOffsets[3].pitch, temp_f0);  // was D_8011D658 [LLM:HIGH]
++            atOffset.yaw = BINANG_LERPIMP(sCsSpiralOffsets[2].yaw, sCsSpiralOffsets[3].yaw, temp_f0);  // was D_8011D658 [LLM:HIGH]
+ 
+             eyeOffset.r = atOffset.r;
+             eyeOffset.pitch = atOffset.pitch;
+@@ -5955,14 +5955,14 @@ s32 Camera_Demo3(Camera* camera) {
+             sCameraInterfaceFlags = 0x3400;
+ 
+             if (!((anim->animFrame < 0 || camera->xzSpeed > 0.001f ||
+-                   CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+-                   CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_B) ||
+-                   CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CLEFT) ||
+-                   CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CDOWN) ||
+-                   CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CUP) ||
+-                   CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CRIGHT) ||
+-                   CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_R) ||
+-                   CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_Z)) &&
++                   CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_A) ||  // was D_8015BD7C [LLM:HIGH]
++                   CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_B) ||  // was D_8015BD7C [LLM:HIGH]
++                   CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CLEFT) ||  // was D_8015BD7C [LLM:HIGH]
++                   CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CDOWN) ||  // was D_8015BD7C [LLM:HIGH]
++                   CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CUP) ||  // was D_8015BD7C [LLM:HIGH]
++                   CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CRIGHT) ||  // was D_8015BD7C [LLM:HIGH]
++                   CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_R) ||  // was D_8015BD7C [LLM:HIGH]
++                   CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_Z)) &&  // was D_8015BD7C [LLM:HIGH]
+                   camera->unk_14C & 8)) {
+                 goto skipeyeUpdate;
+             }
+@@ -6050,7 +6050,7 @@ s32 Camera_Demo5(Camera* camera) {
+     }
+     Actor_GetFocus(&camera->targetPosRot, camera->target);
+     OLib_Vec3fDiffToVecSphGeo(&playerTargetGeo, &camera->targetPosRot.pos, &camera->playerPosRot.pos);
+-    D_8011D3AC = camera->target->category;
++    sTargetCategory = camera->target->category;  // was D_8011D3AC [LLM:HIGH]
+     Actor_GetScreenPos(camera->play, camera->target, &sp78.yaw, &sp78.pitch);
+     eyeTargetDist = OLib_Vec3fDist(&camera->targetPosRot.pos, &camera->eye);
+     OLib_Vec3fDiffToVecSphGeo(&eyePlayerGeo, &playerhead.pos, &camera->eyeNext);
+@@ -6058,94 +6058,94 @@ s32 Camera_Demo5(Camera* camera) {
+     if (camera->target->category == ACTORCAT_PLAYER) {
+         // camera is targeting a(the) player actor
+         if (eyePlayerGeo.r > 30.0f) {
+-            D_8011D6AC[1].timerInit = camera->timer - 1;
+-            D_8011D6AC[1].atTargetInit.z = Rand_ZeroOne() * 10.0f;
+-            D_8011D6AC[1].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;
+-            ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D6AC;
+-            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D6AC);
++            sAttentionPlayerFarKeyFrames[1].timerInit = camera->timer - 1;  // was D_8011D6AC [LLM:HIGH]
++            sAttentionPlayerFarKeyFrames[1].atTargetInit.z = Rand_ZeroOne() * 10.0f;  // was D_8011D6AC [LLM:HIGH]
++            sAttentionPlayerFarKeyFrames[1].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;  // was D_8011D6AC [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionPlayerFarKeyFrames;  // was D_8011D6AC [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionPlayerFarKeyFrames);  // was D_8011D6AC [LLM:HIGH]
+             if (camera->parentCamIdx != CAM_ID_MAIN) {
+                 ONEPOINT_CS_INFO(camera)->keyFrameCnt--;
+             } else {
+-                camera->timer += D_8011D6AC[2].timerInit;
++                camera->timer += sAttentionPlayerFarKeyFrames[2].timerInit;  // was D_8011D6AC [LLM:HIGH]
+             }
+         } else {
+-            D_8011D724[1].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;
+-            D_8011D724[1].timerInit = camera->timer - 1;
+-            ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D724;
+-            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D724);
++            sAttentionPlayerNearKeyFrames[1].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;  // was D_8011D724 [LLM:HIGH]
++            sAttentionPlayerNearKeyFrames[1].timerInit = camera->timer - 1;  // was D_8011D724 [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionPlayerNearKeyFrames;  // was D_8011D724 [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionPlayerNearKeyFrames);  // was D_8011D724 [LLM:HIGH]
+             if (camera->parentCamIdx != CAM_ID_MAIN) {
+                 ONEPOINT_CS_INFO(camera)->keyFrameCnt--;
+             } else {
+-                camera->timer += D_8011D724[2].timerInit;
++                camera->timer += sAttentionPlayerNearKeyFrames[2].timerInit;  // was D_8011D724 [LLM:HIGH]
+             }
+         }
+     } else if (playerTargetGeo.r < 30.0f) {
+         // distance between player and target is less than 30 units.
+-        ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D79C;
+-        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D79C);
++        ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionDefaultKeyFrames;  // was D_8011D79C [LLM:HIGH]
++        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionDefaultKeyFrames);  // was D_8011D79C [LLM:HIGH]
+         if ((sp78.yaw < 0x15) || (sp78.yaw >= 0x12C) || (sp78.pitch < 0x29) || (sp78.pitch >= 0xC8)) {
+-            D_8011D79C[0].actionFlags = 0x41;
+-            D_8011D79C[0].atTargetInit.y = -30.0f;
+-            D_8011D79C[0].atTargetInit.x = 0.0f;
+-            D_8011D79C[0].atTargetInit.z = 0.0f;
+-            D_8011D79C[0].eyeTargetInit.y = 0.0f;
+-            D_8011D79C[0].eyeTargetInit.x = 10.0f;
+-            D_8011D79C[0].eyeTargetInit.z = -50.0f;
++            sAttentionDefaultKeyFrames[0].actionFlags = 0x41;  // was D_8011D79C [LLM:HIGH]
++            sAttentionDefaultKeyFrames[0].atTargetInit.y = -30.0f;  // was D_8011D79C [LLM:HIGH]
++            sAttentionDefaultKeyFrames[0].atTargetInit.x = 0.0f;  // was D_8011D79C [LLM:HIGH]
++            sAttentionDefaultKeyFrames[0].atTargetInit.z = 0.0f;  // was D_8011D79C [LLM:HIGH]
++            sAttentionDefaultKeyFrames[0].eyeTargetInit.y = 0.0f;  // was D_8011D79C [LLM:HIGH]
++            sAttentionDefaultKeyFrames[0].eyeTargetInit.x = 10.0f;  // was D_8011D79C [LLM:HIGH]
++            sAttentionDefaultKeyFrames[0].eyeTargetInit.z = -50.0f;  // was D_8011D79C [LLM:HIGH]
+         }
+ 
+-        D_8011D79C[1].timerInit = camera->timer - 1;
++        sAttentionDefaultKeyFrames[1].timerInit = camera->timer - 1;  // was D_8011D79C [LLM:HIGH]
+ 
+         if (camera->parentCamIdx != CAM_ID_MAIN) {
+             ONEPOINT_CS_INFO(camera)->keyFrameCnt -= 2;
+         } else {
+-            camera->timer += D_8011D79C[2].timerInit + D_8011D79C[3].timerInit;
++            camera->timer += sAttentionDefaultKeyFrames[2].timerInit + sAttentionDefaultKeyFrames[3].timerInit;  // was D_8011D79C [LLM:HIGH]
+         }
+     } else if (eyeTargetDist < 300.0f && eyePlayerGeo.r < 30.0f) {
+         // distance from the camera's current positon and the target is less than 300 units
+         // and the distance fromthe camera's current position to the player is less than 30 units
+-        D_8011D83C[0].timerInit = camera->timer;
+-        ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D83C;
+-        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D83C);
++        sAttentionCloseKeyFrames[0].timerInit = camera->timer;  // was D_8011D83C [LLM:HIGH]
++        ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionCloseKeyFrames;  // was D_8011D83C [LLM:HIGH]
++        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionCloseKeyFrames);  // was D_8011D83C [LLM:HIGH]
+         if (camera->parentCamIdx != CAM_ID_MAIN) {
+             ONEPOINT_CS_INFO(camera)->keyFrameCnt--;
+         } else {
+-            camera->timer += D_8011D83C[1].timerInit;
++            camera->timer += sAttentionCloseKeyFrames[1].timerInit;  // was D_8011D83C [LLM:HIGH]
+         }
+     } else if (eyeTargetDist < 700.0f && ABS(sp4A) < 0x36B0) {
+         // The distance between the camera's current position and the target is less than 700 units
+         // and the angle between the camera's position and the player, and the player to the target
+         // is less than ~76.9 degrees
+         if (sp78.yaw >= 0x15 && sp78.yaw < 0x12C && sp78.pitch >= 0x29 && sp78.pitch < 0xC8 && eyePlayerGeo.r > 30.0f) {
+-            D_8011D88C[0].timerInit = camera->timer;
+-            ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D88C;
+-            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D88C);
++            sAttentionCloseAltKeyFrames[0].timerInit = camera->timer;  // was D_8011D88C [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionCloseAltKeyFrames;  // was D_8011D88C [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionCloseAltKeyFrames);  // was D_8011D88C [LLM:HIGH]
+             if (camera->parentCamIdx != CAM_ID_MAIN) {
+                 ONEPOINT_CS_INFO(camera)->keyFrameCnt--;
+             } else {
+-                camera->timer += D_8011D88C[1].timerInit;
++                camera->timer += sAttentionCloseAltKeyFrames[1].timerInit;  // was D_8011D88C [LLM:HIGH]
+             }
+         } else {
+-            D_8011D8DC[0].atTargetInit.z = eyeTargetDist * 0.6f;
+-            D_8011D8DC[0].eyeTargetInit.z = eyeTargetDist + 50.0f;
+-            D_8011D8DC[0].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;
++            sAttentionSwingKeyFrames[0].atTargetInit.z = eyeTargetDist * 0.6f;  // was D_8011D8DC [LLM:HIGH]
++            sAttentionSwingKeyFrames[0].eyeTargetInit.z = eyeTargetDist + 50.0f;  // was D_8011D8DC [LLM:HIGH]
++            sAttentionSwingKeyFrames[0].eyeTargetInit.x = Rand_ZeroOne() * 10.0f;  // was D_8011D8DC [LLM:HIGH]
+             if (BINANG_SUB(eyePlayerGeo.yaw, playerTargetGeo.yaw) > 0) {
+-                D_8011D8DC[0].atTargetInit.x = -D_8011D8DC[0].atTargetInit.x;
+-                D_8011D8DC[0].eyeTargetInit.x = -D_8011D8DC[0].eyeTargetInit.x;
+-                D_8011D8DC[0].rollTargetInit = -D_8011D8DC[0].rollTargetInit;
++                sAttentionSwingKeyFrames[0].atTargetInit.x = -sAttentionSwingKeyFrames[0].atTargetInit.x;  // was D_8011D8DC [LLM:HIGH]
++                sAttentionSwingKeyFrames[0].eyeTargetInit.x = -sAttentionSwingKeyFrames[0].eyeTargetInit.x;  // was D_8011D8DC [LLM:HIGH]
++                sAttentionSwingKeyFrames[0].rollTargetInit = -sAttentionSwingKeyFrames[0].rollTargetInit;  // was D_8011D8DC [LLM:HIGH]
+             }
+-            D_8011D8DC[0].timerInit = camera->timer;
+-            D_8011D8DC[1].timerInit = (s16)(eyeTargetDist * 0.005f) + 8;
+-            ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D8DC;
+-            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D8DC);
++            sAttentionSwingKeyFrames[0].timerInit = camera->timer;  // was D_8011D8DC [LLM:HIGH]
++            sAttentionSwingKeyFrames[1].timerInit = (s16)(eyeTargetDist * 0.005f) + 8;  // was D_8011D8DC [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionSwingKeyFrames;  // was D_8011D8DC [LLM:HIGH]
++            ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionSwingKeyFrames);  // was D_8011D8DC [LLM:HIGH]
+             if (camera->parentCamIdx != CAM_ID_MAIN) {
+                 ONEPOINT_CS_INFO(camera)->keyFrameCnt -= 2;
+             } else {
+-                camera->timer += D_8011D8DC[1].timerInit + D_8011D8DC[2].timerInit;
++                camera->timer += sAttentionSwingKeyFrames[1].timerInit + sAttentionSwingKeyFrames[2].timerInit;  // was D_8011D8DC [LLM:HIGH]
+             }
+         }
+     } else if (camera->target->category == ACTORCAT_DOOR) {
+         // the target is a door.
+-        D_8011D954[0].timerInit = camera->timer - 5;
++        sAttentionDoorKeyFrames[0].timerInit = camera->timer - 5;  // was D_8011D954 [LLM:HIGH]
+         sp4A = 0;
+         if (!Play_GetDoorFacingYaw(camera->play, camera->target, &sp4A)) {  // was func_800C0D34 [LLM:HIGH]
+             osSyncPrintf(VT_COL(YELLOW, BLACK) "camera: attention demo: this door is dummy door!\n" VT_RST);
+@@ -6156,58 +6156,58 @@ s32 Camera_Demo5(Camera* camera) {
+             }
+         }
+ 
+-        D_8011D954[0].atTargetInit.y = D_8011D954[0].eyeTargetInit.y = D_8011D954[1].atTargetInit.y =
++        sAttentionDoorKeyFrames[0].atTargetInit.y = sAttentionDoorKeyFrames[0].eyeTargetInit.y = sAttentionDoorKeyFrames[1].atTargetInit.y =  // was D_8011D954 [LLM:HIGH]
+             camera->target->shape.rot.y == sp4A ? 180.0f : 0.0f;
+         sp90 = (BINANG_SUB(playerTargetGeo.yaw, sp4A) < 0 ? 20.0f : -20.0f) * Rand_ZeroOne();
+-        D_8011D954[0].eyeTargetInit.y = D_8011D954->eyeTargetInit.y + sp90;
++        sAttentionDoorKeyFrames[0].eyeTargetInit.y = sAttentionDoorKeyFrames->eyeTargetInit.y + sp90;  // was D_8011D954 [LLM:HIGH]
+         temp_v0 = Rand_ZeroOne() * (sp90 * -0.2f);
+-        D_8011D954[1].rollTargetInit = temp_v0;
+-        D_8011D954[0].rollTargetInit = temp_v0;
++        sAttentionDoorKeyFrames[1].rollTargetInit = temp_v0;  // was D_8011D954 [LLM:HIGH]
++        sAttentionDoorKeyFrames[0].rollTargetInit = temp_v0;  // was D_8011D954 [LLM:HIGH]
+         Actor_GetFocus(&targethead, camera->target);
+         targethead.pos.x += 50.0f * Math_SinS(BINANG_ROT180(sp4A));
+         targethead.pos.z += 50.0f * Math_CosS(BINANG_ROT180(sp4A));
+         if (Camera_BGCheck(camera, &playerhead.pos, &targethead.pos)) {
+-            D_8011D954[1].actionFlags = 0xC1;
+-            D_8011D954[2].actionFlags = 0x8F;
++            sAttentionDoorKeyFrames[1].actionFlags = 0xC1;  // was D_8011D954 [LLM:HIGH]
++            sAttentionDoorKeyFrames[2].actionFlags = 0x8F;  // was D_8011D954 [LLM:HIGH]
+         } else {
+-            D_8011D954[2].timerInit = (s16)(eyeTargetDist * 0.004f) + 6;
++            sAttentionDoorKeyFrames[2].timerInit = (s16)(eyeTargetDist * 0.004f) + 6;  // was D_8011D954 [LLM:HIGH]
+         }
+-        ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D954;
+-        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D954);
++        ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionDoorKeyFrames;  // was D_8011D954 [LLM:HIGH]
++        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionDoorKeyFrames);  // was D_8011D954 [LLM:HIGH]
+         if (camera->parentCamIdx != CAM_ID_MAIN) {
+             ONEPOINT_CS_INFO(camera)->keyFrameCnt -= 2;
+         } else {
+-            camera->timer += D_8011D954[2].timerInit + D_8011D954[3].timerInit;
++            camera->timer += sAttentionDoorKeyFrames[2].timerInit + sAttentionDoorKeyFrames[3].timerInit;  // was D_8011D954 [LLM:HIGH]
+         }
+     } else {
+         if (playerTargetGeo.r < 200.0f) {
+-            D_8011D9F4[0].eyeTargetInit.z = playerTargetGeo.r;
+-            D_8011D9F4[0].atTargetInit.z = playerTargetGeo.r * 0.25f;
++            sAttentionFarKeyFrames[0].eyeTargetInit.z = playerTargetGeo.r;  // was D_8011D9F4 [LLM:HIGH]
++            sAttentionFarKeyFrames[0].atTargetInit.z = playerTargetGeo.r * 0.25f;  // was D_8011D9F4 [LLM:HIGH]
+         }
+         if (playerTargetGeo.r < 400.0f) {
+-            D_8011D9F4[0].eyeTargetInit.x = Rand_ZeroOne() * 25.0f;
++            sAttentionFarKeyFrames[0].eyeTargetInit.x = Rand_ZeroOne() * 25.0f;  // was D_8011D9F4 [LLM:HIGH]
+         }
+         Player_GetHeight(camera->player);
+-        D_8011D9F4[0].timerInit = camera->timer;
++        sAttentionFarKeyFrames[0].timerInit = camera->timer;  // was D_8011D9F4 [LLM:HIGH]
+         Actor_GetFocus(&targethead, camera->target);
+         if (Camera_BGCheck(camera, &playerhead.pos, &targethead.pos)) {
+-            D_8011D9F4[1].timerInit = 4;
+-            D_8011D9F4[1].actionFlags = 0x8F;
++            sAttentionFarKeyFrames[1].timerInit = 4;  // was D_8011D9F4 [LLM:HIGH]
++            sAttentionFarKeyFrames[1].actionFlags = 0x8F;  // was D_8011D9F4 [LLM:HIGH]
+         } else {
+             t = eyeTargetDist * 0.005f;
+-            D_8011D9F4[1].timerInit = t + 8;
++            sAttentionFarKeyFrames[1].timerInit = t + 8;  // was D_8011D9F4 [LLM:HIGH]
+         }
+-        ONEPOINT_CS_INFO(camera)->keyFrames = D_8011D9F4;
+-        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(D_8011D9F4);
++        ONEPOINT_CS_INFO(camera)->keyFrames = sAttentionFarKeyFrames;  // was D_8011D9F4 [LLM:HIGH]
++        ONEPOINT_CS_INFO(camera)->keyFrameCnt = ARRAY_COUNT(sAttentionFarKeyFrames);  // was D_8011D9F4 [LLM:HIGH]
+         if (camera->parentCamIdx != CAM_ID_MAIN) {
+             if (camera->play->state.frames & 1) {
+-                D_8011D9F4[0].rollTargetInit = -D_8011D9F4[0].rollTargetInit;
+-                D_8011D9F4[1].rollTargetInit = -D_8011D9F4[1].rollTargetInit;
++                sAttentionFarKeyFrames[0].rollTargetInit = -sAttentionFarKeyFrames[0].rollTargetInit;  // was D_8011D9F4 [LLM:HIGH]
++                sAttentionFarKeyFrames[1].rollTargetInit = -sAttentionFarKeyFrames[1].rollTargetInit;  // was D_8011D9F4 [LLM:HIGH]
+             }
+             ONEPOINT_CS_INFO(camera)->keyFrameCnt -= 2;
+         } else {
+-            camera->timer += D_8011D9F4[1].timerInit + D_8011D9F4[2].timerInit;
+-            D_8011D9F4[0].rollTargetInit = D_8011D9F4[1].rollTargetInit = 0;
++            camera->timer += sAttentionFarKeyFrames[1].timerInit + sAttentionFarKeyFrames[2].timerInit;  // was D_8011D9F4 [LLM:HIGH]
++            sAttentionFarKeyFrames[0].rollTargetInit = sAttentionFarKeyFrames[1].rollTargetInit = 0;  // was D_8011D9F4 [LLM:HIGH]
+         }
+     }
+ 
+@@ -6664,7 +6664,7 @@ s32 Camera_Special5(Camera* camera) {
+ }
+ 
+ /**
+- * Camera's eye is fixed at points specified at D_8011DA6C / D_8011DA9C
++ * Camera's eye is fixed at points specified at sSpec7EyeHighPoints / sSpec7EyeLowPoints  // was D_8011DA6C [LLM:HIGH]
+  * depending on the player's position
+  */
+ s32 Camera_Special7(Camera* camera) {
+@@ -6690,20 +6690,20 @@ s32 Camera_Special7(Camera* camera) {
+         camera->roll = 0;
+     }
+ 
+-    if (camera->at.y < D_8011DACC[spec7->idx]) {
++    if (camera->at.y < sSpec7HighY[spec7->idx]) {  // was D_8011DACC [LLM:HIGH]
+         atTarget = playerPosRot->pos;
+         atTarget.y -= 20.0f;
+         Camera_LERPCeilVec3f(&atTarget, &camera->at, 0.4f, 0.4f, 0.10f);
+-        camera->eye = camera->eyeNext = D_8011DA6C[spec7->idx];
+-        temp_f0 = (playerPosRot->pos.y - D_8011DADC[spec7->idx]) / (D_8011DACC[spec7->idx] - D_8011DADC[spec7->idx]);
+-        camera->roll = D_8011DAEC[spec7->idx] * temp_f0;
++        camera->eye = camera->eyeNext = sSpec7EyeHighPoints[spec7->idx];  // was D_8011DA6C [LLM:HIGH]
++        temp_f0 = (playerPosRot->pos.y - sSpec7LowY[spec7->idx]) / (sSpec7HighY[spec7->idx] - sSpec7LowY[spec7->idx]);  // was D_8011DACC [LLM:HIGH]
++        camera->roll = sSpec7Rolls[spec7->idx] * temp_f0;  // was D_8011DAEC [LLM:HIGH]
+         camera->fov = (20.0f * temp_f0) + 60.0f;
+     } else {
+         atTarget = playerPosRot->pos;
+         atTarget.y += yOffset;
+         Camera_LERPCeilVec3f(&atTarget, &camera->at, 0.4f, 0.4f, 0.1f);
+         camera->roll = 0;
+-        camera->eye = camera->eyeNext = D_8011DA9C[spec7->idx];
++        camera->eye = camera->eyeNext = sSpec7EyeLowPoints[spec7->idx];  // was D_8011DA9C [LLM:HIGH]
+         camera->fov = 70.0f;
+     }
+ 
+@@ -6950,14 +6950,14 @@ s32 Camera_Special9(Camera* camera) {
+             // back on right-stick input (see soh/Enhancements/camera/FreeLookDoorCamRelease.cpp).
+             if (GameInteractor_Should(
+                     VB_RELEASE_DOORC_CAMERA,
+-                    camera->xzSpeed > 0.001f || CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+-                        CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_B) ||
+-                        CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CLEFT) ||
+-                        CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CDOWN) ||
+-                        CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CUP) ||
+-                        CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CRIGHT) ||
+-                        CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_R) ||
+-                        CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_Z) || params->interfaceFlags & 0x8,
++                    camera->xzSpeed > 0.001f || CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_A) ||  // was D_8015BD7C [LLM:HIGH]
++                        CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_B) ||  // was D_8015BD7C [LLM:HIGH]
++                        CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CLEFT) ||  // was D_8015BD7C [LLM:HIGH]
++                        CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CDOWN) ||  // was D_8015BD7C [LLM:HIGH]
++                        CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CUP) ||  // was D_8015BD7C [LLM:HIGH]
++                        CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_CRIGHT) ||  // was D_8015BD7C [LLM:HIGH]
++                        CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_R) ||  // was D_8015BD7C [LLM:HIGH]
++                        CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_Z) || params->interfaceFlags & 0x8,  // was D_8015BD7C [LLM:HIGH]
+                     camera)) {
+ 
+                 Camera_ChangeSettingFlags(camera, camera->prevSetting, 2);
+@@ -7011,12 +7011,12 @@ void Camera_Init(Camera* camera, View* view, CollisionContext* colCtx, PlayState
+             R_CAM_DATA(i) = sCamDataRegsInit[i];
+         }
+ 
+-        DbCamera_Reset(camera, &D_8015BD80);
++        DbCamera_Reset(camera, &sDbCamera);  // was D_8015BD80 [LLM:HIGH]
+         sInitRegs = false;
+         PREG(88) = -1;
+     }
+-    camera->play = D_8015BD7C = play;
+-    DbCamera_Init(&D_8015BD80, camera);
++    camera->play = sCameraPlayState = play;  // was D_8015BD7C [LLM:HIGH]
++    DbCamera_Init(&sDbCamera, camera);  // was D_8015BD80 [LLM:HIGH]
+     curUID = sNextUID;
+     sNextUID++;
+     while (curUID != 0) {
+@@ -7069,7 +7069,7 @@ void Camera_Init(Camera* camera, View* view, CollisionContext* colCtx, PlayState
+     camera->atLERPStepScale = 1;
+     sCameraInterfaceFlags = 0xFF00;
+     sDbgModeIdx = -1;
+-    D_8011D3F0 = 3;
++    sCameraSkipFrames = 3;  // was D_8011D3F0 [LLM:HIGH]
+     osSyncPrintf(VT_FGCOL(BLUE) "camera: initialize --- " VT_RST " UID %d\n", camera->uid);
+ }
+ 
+@@ -7411,25 +7411,25 @@ s32 Camera_DbgChangeMode(Camera* camera) {
+     s32 changeDir = 0;
+ 
+     if (!gDbgCamEnabled && camera->play->activeCamera == CAM_ID_MAIN) {
+-        if (CHECK_BTN_ALL(D_8015BD7C->state.input[2].press.button, BTN_CUP)) {
++        if (CHECK_BTN_ALL(sCameraPlayState->state.input[2].press.button, BTN_CUP)) {  // was D_8015BD7C [LLM:HIGH]
+             osSyncPrintf("attention sound URGENCY\n");
+             Sfx_PlaySfxCentered(NA_SE_SY_ATTENTION_URGENCY);
+         }
+-        if (CHECK_BTN_ALL(D_8015BD7C->state.input[2].press.button, BTN_CDOWN)) {
++        if (CHECK_BTN_ALL(sCameraPlayState->state.input[2].press.button, BTN_CDOWN)) {  // was D_8015BD7C [LLM:HIGH]
+             osSyncPrintf("attention sound NORMAL\n");
+             Sfx_PlaySfxCentered(NA_SE_SY_ATTENTION_ON);
+         }
+ 
+-        if (CHECK_BTN_ALL(D_8015BD7C->state.input[2].press.button, BTN_CRIGHT)) {
++        if (CHECK_BTN_ALL(sCameraPlayState->state.input[2].press.button, BTN_CRIGHT)) {  // was D_8015BD7C [LLM:HIGH]
+             changeDir = 1;
+         }
+-        if (CHECK_BTN_ALL(D_8015BD7C->state.input[2].press.button, BTN_CLEFT)) {
++        if (CHECK_BTN_ALL(sCameraPlayState->state.input[2].press.button, BTN_CLEFT)) {  // was D_8015BD7C [LLM:HIGH]
+             changeDir = -1;
+         }
+         if (changeDir != 0) {
+             sDbgModeIdx = (sDbgModeIdx + changeDir) % 6;
+-            if (Camera_RequestSetting(camera, D_8011DAFC[sDbgModeIdx]) > 0) {
+-                osSyncPrintf("camera: force change SET to %s!\n", sCameraSettingNames[D_8011DAFC[sDbgModeIdx]]);
++            if (Camera_RequestSetting(camera, sDbgCameraSettings[sDbgModeIdx]) > 0) {  // was D_8011DAFC [LLM:HIGH]
++                osSyncPrintf("camera: force change SET to %s!\n", sCameraSettingNames[sDbgCameraSettings[sDbgModeIdx]]);  // was D_8011DAFC [LLM:HIGH]
+             }
+         }
+     }
+@@ -7643,8 +7643,8 @@ Vec3s Camera_Update(Camera* camera) {
+         if ((gSaveContext.gameMode != GAMEMODE_NORMAL) && (gSaveContext.gameMode != GAMEMODE_END_CREDITS)) {
+             sCameraInterfaceFlags = 0;
+             Camera_UpdateInterface(sCameraInterfaceFlags);
+-        } else if ((D_8011D3F0 != 0) && (camera->thisIdx == CAM_ID_MAIN)) {
+-            D_8011D3F0--;
++        } else if ((sCameraSkipFrames != 0) && (camera->thisIdx == CAM_ID_MAIN)) {  // was D_8011D3F0 [LLM:HIGH]
++            sCameraSkipFrames--;  // was D_8011D3F0 [LLM:HIGH]
+             sCameraInterfaceFlags = 0x3200;
+             Camera_UpdateInterface(sCameraInterfaceFlags);
+         } else if (camera->play->transitionMode != TRANS_MODE_OFF) {
+@@ -7671,10 +7671,10 @@ Vec3s Camera_Update(Camera* camera) {
+ 
+     // enable/disable debug cam
+     if (CVarGetInteger(CVAR_DEVELOPER_TOOLS("DebugEnabled"), 0) &&
+-        CHECK_BTN_ALL(D_8015BD7C->state.input[2].press.button, BTN_START)) {
++        CHECK_BTN_ALL(sCameraPlayState->state.input[2].press.button, BTN_START)) {  // was D_8015BD7C [LLM:HIGH]
+         gDbgCamEnabled ^= 1;
+         if (gDbgCamEnabled) {
+-            DbgCamera_Enable(&D_8015BD80, camera);
++            DbgCamera_Enable(&sDbCamera, camera);  // was D_8015BD80 [LLM:HIGH]
+         } else if (camera->play->csCtx.state != CS_STATE_IDLE) {
+             Cutscene_StopManual(camera->play, &camera->play->csCtx);
+         }
+@@ -7682,13 +7682,13 @@ Vec3s Camera_Update(Camera* camera) {
+ 
+     // Debug cam update
+     if (gDbgCamEnabled) {
+-        camera->play->view.fovy = D_8015BD80.fov;
+-        DbCamera_Update(&D_8015BD80, camera);
+-        func_800AA358(&camera->play->view, &D_8015BD80.eye, &D_8015BD80.at, &D_8015BD80.unk_1C);
++        camera->play->view.fovy = sDbCamera.fov;  // was D_8015BD80 [LLM:HIGH]
++        DbCamera_Update(&sDbCamera, camera);  // was D_8015BD80 [LLM:HIGH]
++        func_800AA358(&camera->play->view, &sDbCamera.eye, &sDbCamera.at, &sDbCamera.unk_1C);  // was D_8015BD80 [LLM:HIGH]
+         if (R_DBG_CAM_UPDATE) {
+             osSyncPrintf("camera: debug out\n");
+         }
+-        return D_8015BD80.sub.unk_104A;
++        return sDbCamera.sub.unk_104A;  // was D_8015BD80 [LLM:HIGH]
+     }
+ 
+     OREG(0) &= ~8;
+@@ -7753,7 +7753,7 @@ Vec3s Camera_Update(Camera* camera) {
+                      BINANG_TO_DEGF(camera->camDir.x), camera->camDir.y, BINANG_TO_DEGF(camera->camDir.y));
+     }
+ 
+-    if (camera->timer != -1 && CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_DRIGHT) &&
++    if (camera->timer != -1 && CHECK_BTN_ALL(sCameraPlayState->state.input[0].press.button, BTN_DRIGHT) &&  // was D_8015BD7C [LLM:HIGH]
+         CVarGetInteger(CVAR_DEVELOPER_TOOLS("DebugEnabled"), 0)) {
+         camera->timer = 0;
+     }
+@@ -8069,7 +8069,7 @@ s32 Camera_ChangeDataIdx(Camera* camera, s32 camDataIdx) {
+ 
+ Vec3s* Camera_GetInputDir(Vec3s* dst, Camera* camera) {
+     if (gDbgCamEnabled) {
+-        *dst = D_8015BD80.sub.unk_104A;
++        *dst = sDbCamera.sub.unk_104A;  // was D_8015BD80 [LLM:HIGH]
+         return dst;
+     } else {
+         *dst = camera->inputDir;
+@@ -8093,7 +8093,7 @@ s16 Camera_GetInputDirYaw(Camera* camera) {
+ 
+ Vec3s* Camera_GetCamDir(Vec3s* dst, Camera* camera) {
+     if (gDbgCamEnabled) {
+-        *dst = D_8015BD80.sub.unk_104A;
++        *dst = sDbCamera.sub.unk_104A;  // was D_8015BD80 [LLM:HIGH]
+         return dst;
+     } else {
+         *dst = camera->camDir;
+@@ -8357,7 +8357,7 @@ s32 Camera_QRegInit() {
+ 
+ // LLM generated name (HIGH), was func_8005B198: returns the actor category the camera last locked onto; Bg_Bdan_Switch compares it against its own category to tell whether the camera is watching it.
+ s32 Camera_GetTargetCategory() {
+-    return D_8011D3AC;
++    return sTargetCategory;  // was D_8011D3AC [LLM:HIGH]
+ }
+ 
+ // Name from zeldaret/oot (was func_8005B1A4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_camera.c]
+@@ -8380,18 +8380,18 @@ s16 Camera_SetFinishedFlag(Camera* camera) {
+     F(sCameraInterfaceFlags)            \
+     F(sCameraInterfaceAlpha)            \
+     F(sCameraShrinkWindowVal)           \
+-    F(D_8011D3AC)                       \
++    F(sTargetCategory)                       \
+     F(sDemo5PrevAction12Frame)          \
+     F(sDemo5PrevSfxFrame)               \
+-    F(D_8011D3F0)                       \
+-    F(D_8011D6AC)                       \
+-    F(D_8011D724)                       \
+-    F(D_8011D79C)                       \
+-    F(D_8011D83C)                       \
+-    F(D_8011D88C)                       \
+-    F(D_8011D8DC)                       \
+-    F(D_8011D954)                       \
+-    F(D_8011D9F4)                       \
++    F(sCameraSkipFrames)                       \
++    F(sAttentionPlayerFarKeyFrames)                       \
++    F(sAttentionPlayerNearKeyFrames)                       \
++    F(sAttentionDefaultKeyFrames)                       \
++    F(sAttentionCloseKeyFrames)                       \
++    F(sAttentionCloseAltKeyFrames)                       \
++    F(sAttentionSwingKeyFrames)                       \
++    F(sAttentionDoorKeyFrames)                       \
++    F(sAttentionFarKeyFrames)                       \
+     F(depthPhase)                       \
+     F(screenPlanePhase)                 \
+     F(sOOBTimer)                        \
+diff --git a/soh/src/code/z_camera_data.inc b/soh/src/code/z_camera_data.inc
+index 26ebf5f08..15ce9934a 100644
+--- a/soh/src/code/z_camera_data.inc
++++ b/soh/src/code/z_camera_data.inc
+@@ -2230,19 +2230,24 @@ static s32 sCameraInterfaceFlags = 1;
+ 
+ static s32 sCameraInterfaceAlpha = 0x02;
+ static s32 sCameraShrinkWindowVal = 0x20;
+-s32 D_8011D3AC = -1;
++// LLM generated name (HIGH), was D_8011D3AC: the actor category of the camera's current target, published for Camera_GetTargetCategory
++s32 sTargetCategory = -1;  // was D_8011D3AC [LLM:HIGH]
+ 
+-s16 D_8011D3B0[] = {
++// LLM generated name (HIGH), was D_8011D3B0: the yaw offsets the attention camera tries when it needs a clear line to the target
++s16 sAttentionYawOffsets[] = {  // was D_8011D3B0 [LLM:HIGH]
+     0x0AAA, 0xF556, 0x1555, 0xEAAB, 0x2AAA, 0xD556, 0x3FFF, 0xC001, 0x5555, 0xAAAB, 0x6AAA, 0x9556, 0x7FFF, 0x0000,
+ };
+ 
+-s16 D_8011D3CC[] = {
++// LLM generated name (HIGH), was D_8011D3CC: the pitch offsets tried alongside them
++s16 sAttentionPitchOffsets[] = {  // was D_8011D3CC [LLM:HIGH]
+     0x0000, 0x02C6, 0x058C, 0x0000, 0x0000, 0xFD3A, 0x0000, 0x0852, 0x0000, 0x0000, 0x0B18, 0x02C6, 0xFA74, 0x0000,
+ };
+ 
+ s32 sUpdateCameraDirection = 0;
+-s32 D_8011D3EC = 0;
+-static s32 D_8011D3F0 = 0;
++// LLM generated name (GUESS), was D_8011D3EC: an s32 beside sUpdateCameraDirection that nothing in the tree reads or writes
++s32 sUnusedCameraFlag = 0;  // was D_8011D3EC [LLM:GUESS]
++// LLM generated name (HIGH), was D_8011D3F0: set to 3 on a camera reset and counted down so the main camera skips that many updates
++static s32 sCameraSkipFrames = 0;  // was D_8011D3F0 [LLM:HIGH]
+ 
+ static s32 sDemo5PrevAction12Frame = -16;
+ 
+@@ -2257,14 +2262,16 @@ char sCameraFunctionNames[][8] = {
+     "SPEC9()", "",        "",        "",        "",        "",
+ };
+ 
+-VecSph D_8011D658[] = {
++// LLM generated name (HIGH), was D_8011D658: the spherical offsets the demo 3 spiral cutscene interpolates the eye and at through
++VecSph sCsSpiralOffsets[] = {  // was D_8011D658 [LLM:HIGH]
+     { 50.0f, 0xEE3A, 0xD558 },
+     { 75.0f, 0x0000, 0x8008 },
+     { 80.0f, 0xEE3A, 0x8008 },
+     { 15.0f, 0xEE3A, 0x8008 },
+ };
+ 
+-Vec3f D_8011D678[] = {
++// LLM generated name (HIGH), was D_8011D678: the positions that same cutscene interpolates between
++Vec3f sCsSpiralPoints[] = {  // was D_8011D678 [LLM:HIGH]
+     { 0.0f, 40.0f, 20.0f },
+     { 0.0f, 40.0f, 0.0f },
+     { 0.0f, 3.0f, -3.0f },
+@@ -2277,7 +2284,8 @@ Vec3f D_8011D678[] = {
+ static s32 sDemo5PrevSfxFrame = -200;
+ 
+ // target is player, far from eye
+-static OnePointCsFull D_8011D6AC[] = {
++// LLM generated name (HIGH), was D_8011D6AC: the attention keyframes used when the target is the player and the eye is more than 30 units away
++static OnePointCsFull sAttentionPlayerFarKeyFrames[] = {  // was D_8011D6AC [LLM:HIGH]
+     { // initflags & 0x00FF (at): 2, atTarget is view lookAt + atInit
+       // initFlags & 0xFF00 (eye): none
+       // action: 15, copy at, eye, roll, fov to camera
+@@ -2319,14 +2327,16 @@ static OnePointCsFull D_8011D6AC[] = {
+ };
+ 
+ // target is player close to current eye
+-static OnePointCsFull D_8011D724[] = {
++// LLM generated name (HIGH), was D_8011D724: the same for a player target with the eye close in
++static OnePointCsFull sAttentionPlayerNearKeyFrames[] = {  // was D_8011D724 [LLM:HIGH]
+     { 0x8F, 0xFF, 0x2424, 0x0001, 0x0000, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 10.0f, -20.0f } },
+     { 0x81, 0xFF, 0x2121, 0x0013, 0x0000, 50.0f, 1.0f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 60.0f } },
+     { 0x12, 0xFF, 0x0000, 0x0001, 0x0000, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+ // target is close to player
+-static OnePointCsFull D_8011D79C[] = {
++// LLM generated name (HIGH), was D_8011D79C: the attention keyframes used for a target that is neither close nor a door
++static OnePointCsFull sAttentionDefaultKeyFrames[] = {  // was D_8011D79C [LLM:HIGH]
+     { 0xCF, 0xFF, 0x0002, 0x0001, 0x0000, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0xC1, 0xFF, 0x0303, 0x0013, 0x0000, 45.0f, 1.0f, { 0.0f, -20.0f, 0.0f }, { 0.0f, -10.0f, 5.0f } },
+     {
+@@ -2344,7 +2354,8 @@ static OnePointCsFull D_8011D79C[] = {
+ };
+ 
+ // target is within 300 units of eye, and player is within 30 units of eye
+-static OnePointCsFull D_8011D83C[] = {
++// LLM generated name (HIGH), was D_8011D83C: the keyframes used when both the target and the player are close to the camera
++static OnePointCsFull sAttentionCloseKeyFrames[] = {  // was D_8011D83C [LLM:HIGH]
+     { 0x83, 0xFF, 0x2141, 0x0014, 0x0000, 45.0f, 0.2f, { 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 10.0f } },
+     { 0x12, 0xFF, 0x0000, 0x0001, 0x0000, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+@@ -2352,20 +2363,23 @@ static OnePointCsFull D_8011D83C[] = {
+ // target is within 700 units of eye, angle between player/eye and target/eye is less than
+ // 76.9 degrees.  The x/y coordinates of the target on screen is between (21, 41) and (300, 200),
+ // and the player is farther than 30 units of the eye
+-static OnePointCsFull D_8011D88C[] = {
++// LLM generated name (HIGH), was D_8011D88C: the alternative close-range keyframe set
++static OnePointCsFull sAttentionCloseAltKeyFrames[] = {  // was D_8011D88C [LLM:HIGH]
+     { 0x81, 0xFF, 0x0303, 0x0014, 0x0000, 45.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x12, 0xFF, 0x0000, 0x0001, 0x0000, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+ // same as above, but the target is NOT within the screen area.
+-static OnePointCsFull D_8011D8DC[] = {
++// LLM generated name (HIGH), was D_8011D8DC: the keyframes that swing around the target, scaled by its distance
++static OnePointCsFull sAttentionSwingKeyFrames[] = {  // was D_8011D8DC [LLM:HIGH]
+     { 0x8F, 0xFF, 0x0404, 0x0014, 0x0001, 50.0f, 1.0f, { 0.0f, 5.0f, 10.0f }, { 0.0f, 10.0f, -80.0f } },
+     { 0x82, 0xFF, 0x2121, 0x0005, 0x0000, 60.0f, 1.0f, { 0.0f, 5.0f, 0.0f }, { 5.0f, 5.0f, -200.0f } },
+     { 0x12, 0xFF, 0x0000, 0x0001, 0x0000, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+ // target is a door.
+-static OnePointCsFull D_8011D954[] = {
++// LLM generated name (HIGH), was D_8011D954: the keyframes used when the target is a door
++static OnePointCsFull sAttentionDoorKeyFrames[] = {  // was D_8011D954 [LLM:HIGH]
+     { 0x0F, 0xFF, 0xC1C1, 0x0014, 0x0000, 60.0f, 1.0f, { 0.0f, 0.0f, 50.0f }, { 0.0f, 0.0f, 250.0f } },
+     { 0x83, 0xFF, 0x05B1, 0x0005, 0x0000, 60.0f, 0.1f, { 0.0f, 10.0f, 50.0f }, { 0.0f, 10.0f, 100.0f } },
+     { 0x82, 0xFF, 0x2121, 0x0005, 0x0002, 60.0f, 1.0f, { 0.0f, 10.0f, 0.0f }, { 0.0f, 20.0f, -150.0f } },
+@@ -2373,33 +2387,42 @@ static OnePointCsFull D_8011D954[] = {
+ };
+ 
+ // otherwise
+-static OnePointCsFull D_8011D9F4[] = {
++// LLM generated name (HIGH), was D_8011D9F4: the keyframes used for a distant target, scaled by the player-to-target distance
++static OnePointCsFull sAttentionFarKeyFrames[] = {  // was D_8011D9F4 [LLM:HIGH]
+     { 0x8F, 0xFF, 0x0504, 0x0014, 0x0002, 60.0f, 1.0f, { 0.0f, 5.0f, 50.0f }, { 0.0f, 20.0f, 300.0f } },
+     { 0x82, 0xFF, 0x2121, 0x0005, 0x0002, 60.0f, 1.0f, { 0.0f, 10.0f, 0.0f }, { 0.0f, 20.0f, -150.0f } },
+     { 0x12, 0xFF, 0x0000, 0x0001, 0x0000, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-Vec3f D_8011DA6C[] = {
++// LLM generated name (HIGH), was D_8011DA6C: the fixed eye positions the spec 7 camera uses above its height threshold
++Vec3f sSpec7EyeHighPoints[] = {  // was D_8011DA6C [LLM:HIGH]
+     { 3050.0f, 700.0f, 0.0f }, { 1755.0f, 3415.0f, -380.0f }, { -3120.0f, 3160.0f, 245.0f }, { 0.0f, -10.0f, 240.0f }
+ };
+ 
+-Vec3f D_8011DA9C[] = {
++// LLM generated name (HIGH), was D_8011DA9C: the fixed eye positions it uses below that threshold
++Vec3f sSpec7EyeLowPoints[] = {  // was D_8011DA9C [LLM:HIGH]
+     { 3160.0f, 2150.0f, 0.0f },
+     { 1515.0f, 4130.0f, -835.0f },
+     { -3040.0f, 4135.0f, 230.0f },
+     { -50.0f, 600.0f, -75.0f },
+ };
+ 
+-f32 D_8011DACC[] = { 1570.0f, 3680.0f, 3700.0f, 395.0f };
++// LLM generated name (HIGH), was D_8011DACC: the upper height threshold per spec 7 index
++f32 sSpec7HighY[] = { 1570.0f, 3680.0f, 3700.0f, 395.0f };  // was D_8011DACC [LLM:HIGH]
+ 
+-f32 D_8011DADC[] = { 320.0f, 320.0f, 320.0f, 0.0f };
++// LLM generated name (HIGH), was D_8011DADC: the lower height threshold per spec 7 index
++f32 sSpec7LowY[] = { 320.0f, 320.0f, 320.0f, 0.0f };  // was D_8011DADC [LLM:HIGH]
+ 
+-s16 D_8011DAEC[] = { -2000, -1000, 0, 0, 0, 0, 0, 0 };
++// LLM generated name (HIGH), was D_8011DAEC: the roll each spec 7 index reaches between those two heights
++s16 sSpec7Rolls[] = { -2000, -1000, 0, 0, 0, 0, 0, 0 };  // was D_8011DAEC [LLM:HIGH]
+ 
+-s16 D_8011DAFC[] = {
++// LLM generated name (HIGH), was D_8011DAFC: the camera settings the debug mode cycles through
++s16 sDbgCameraSettings[] = {  // was D_8011DAFC [LLM:HIGH]
+     CAM_SET_NORMAL0, CAM_SET_NORMAL1, CAM_SET_NORMAL2, CAM_SET_DUNGEON0, CAM_SET_DUNGEON1, CAM_SET_DUNGEON2,
+ };
+ 
+-PlayState* D_8015BD7C;
+-DbCamera D_8015BD80;
++// LLM generated name (HIGH), was D_8015BD7C: the PlayState the camera code reads controller input through
++PlayState* sCameraPlayState;  // was D_8015BD7C [LLM:HIGH]
++// LLM generated name (HIGH), was D_8015BD80: the debug camera state Camera_Update hands out
++DbCamera sDbCamera;  // was D_8015BD80 [LLM:HIGH]
+ CollisionPoly* playerFloorPoly;
+-- 
+2.55.0
+

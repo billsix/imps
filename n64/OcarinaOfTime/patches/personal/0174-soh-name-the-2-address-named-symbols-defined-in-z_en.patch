@@ -1,0 +1,89 @@
+From f5a3c37d399a8954aa96fa7d598742a2e0c2fee0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:13 +0000
+Subject: [PATCH 174/488] soh: name the 2 address-named symbols defined in
+ z_en_vali.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c.
+
+  * D_80B28998 -> sBariCoreInvertTexCombinerDL
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * D_80B289A8 -> sBariCoreNormalCombinerDL
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c b/soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c
+index b7187a490..d62118a65 100644
+--- a/soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c
++++ b/soh/src/overlays/actors/ovl_En_Vali/z_en_vali.c
+@@ -773,13 +773,15 @@ void EnVali_DrawBody(EnVali* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-static Gfx D_80B28998[] = {
++// Name from zeldaret/oot (was D_80B28998): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Vali/z_en_vali.c]
++static Gfx sBariCoreInvertTexCombinerDL[] = {
+     gsDPSetCombineLERP(1, TEXEL0, SHADE, 0, TEXEL0, 0, PRIMITIVE, 0, COMBINED, 0, PRIMITIVE, 0, TEXEL1, 0,
+                        PRIM_LOD_FRAC, COMBINED),
+     gsSPEndDisplayList(),
+ };
+ 
+-static Gfx D_80B289A8[] = {
++// Name from zeldaret/oot (was D_80B289A8): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Vali/z_en_vali.c]
++static Gfx sBariCoreNormalCombinerDL[] = {
+     gsDPSetCombineLERP(TEXEL0, 0, SHADE, 0, TEXEL0, 0, PRIMITIVE, 0, COMBINED, 0, PRIMITIVE, 0, TEXEL1, 0,
+                        PRIM_LOD_FRAC, COMBINED),
+     gsSPEndDisplayList(),
+@@ -796,9 +798,9 @@ void EnVali_Draw(Actor* thisx, PlayState* play) {
+                Gfx_TexScrollEx(play->state.gfxCtx, 0, (127 - (play->gameplayFrames * 12)) % 128, 32, 32, 0, -12));
+ 
+     if ((this->lightningTimer % 2) != 0) {
+-        gSPSegment(POLY_XLU_DISP++, 0x09, D_80B28998);
++        gSPSegment(POLY_XLU_DISP++, 0x09, sBariCoreInvertTexCombinerDL);
+     } else {
+-        gSPSegment(POLY_XLU_DISP++, 0x09, D_80B289A8);
++        gSPSegment(POLY_XLU_DISP++, 0x09, sBariCoreNormalCombinerDL);
+     }
+ 
+     EnVali_DrawBody(this, play);
+-- 
+2.55.0
+

@@ -1,0 +1,93 @@
+From b03fd230f5a6c17e3c041ca913a662a8dd756ba2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:11 +0000
+Subject: [PATCH 152/488] soh: name the 2 address-named symbols defined in
+ z_en_box.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Box/z_en_box.c.
+
+  * func_809CA4A0 -> EnBox_AllocXluRenderModeDList
+    deduced, confidence HIGH: allocates a two-command display list that sets
+    a ZMODE_XLU translucent render mode and ends; bound to segment 8 of
+    POLY_XLU_DISP when drawing the chest.
+
+  * func_809CA518 -> EnBox_AllocOpaRenderModeDList
+    deduced, confidence HIGH: the opaque counterpart of
+    EnBox_AllocXluRenderModeDList -- same two-command shape, but a ZMODE_OPA
+    render mode with G_RM_AA_ZB_OPA_SURF2.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Box/z_en_box.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+index 3f1777aca..397c96ecf 100644
+--- a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
++++ b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+@@ -673,7 +673,8 @@ Gfx* EnBox_EmptyDList(GraphicsContext* gfxCtx) {
+ }
+ 
+ // set render mode with a focus on transparency
+-Gfx* func_809CA4A0(GraphicsContext* gfxCtx) {
++// LLM generated name (HIGH), was func_809CA4A0: allocates a two-command display list that sets a ZMODE_XLU translucent render mode and ends; bound to segment 8 of POLY_XLU_DISP when drawing the chest.
++Gfx* EnBox_AllocXluRenderModeDList(GraphicsContext* gfxCtx) {
+     Gfx* dList;
+     Gfx* dListHead;
+ 
+@@ -691,7 +692,8 @@ Gfx* func_809CA4A0(GraphicsContext* gfxCtx) {
+     return dList;
+ }
+ 
+-Gfx* func_809CA518(GraphicsContext* gfxCtx) {
++// LLM generated name (HIGH), was func_809CA518: the opaque counterpart of EnBox_AllocXluRenderModeDList -- same two-command shape, but a ZMODE_OPA render mode with G_RM_AA_ZB_OPA_SURF2.
++Gfx* EnBox_AllocOpaRenderModeDList(GraphicsContext* gfxCtx) {
+     Gfx* dList;
+     Gfx* dListHead;
+ 
+@@ -730,9 +732,9 @@ void EnBox_Draw(Actor* thisx, PlayState* play) {
+         Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+         gDPSetEnvColor(POLY_XLU_DISP++, 0, 0, 0, this->alpha);
+         if (this->type == ENBOX_TYPE_4 || this->type == ENBOX_TYPE_6) {
+-            gSPSegment(POLY_XLU_DISP++, 0x08, func_809CA518(play->state.gfxCtx));
++            gSPSegment(POLY_XLU_DISP++, 0x08, EnBox_AllocOpaRenderModeDList(play->state.gfxCtx));  // was func_809CA518 [LLM:HIGH]
+         } else {
+-            gSPSegment(POLY_XLU_DISP++, 0x08, func_809CA4A0(play->state.gfxCtx));
++            gSPSegment(POLY_XLU_DISP++, 0x08, EnBox_AllocXluRenderModeDList(play->state.gfxCtx));  // was func_809CA4A0 [LLM:HIGH]
+         }
+         POLY_XLU_DISP = SkelAnime_DrawSkeleton2(play, &this->skelanime, NULL, EnBox_PostLimbDraw, this, POLY_XLU_DISP);
+     }
+-- 
+2.55.0
+

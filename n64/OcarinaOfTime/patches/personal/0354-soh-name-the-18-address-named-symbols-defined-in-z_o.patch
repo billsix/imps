@@ -1,0 +1,465 @@
+From 69c9e5c98223c33a8956399ca774ce0d59a82731 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 354/488] soh: name the 18 address-named symbols defined in
+ z_obj_bean.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 18 are defined in soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c; updating their references touches 3 files in total.
+
+  * D_80B90E30 -> sWateredBean
+    deduced, confidence HIGH: the one bean plant that has been watered this
+    frame; a bean claims the slot so only one plays the growth cutscene, and
+    clears it when it despawns.
+
+  * func_80B8EBC8 -> ObjBean_ResetGrowth
+    deduced, confidence HIGH: zeroes the three growth angles and the sway
+    offset, returning the plant to its ungrown state.
+
+  * func_80B8EDF4 -> ObjBean_HidePlant
+    deduced, confidence HIGH: zeroes the growth angles and scales the plant
+    away entirely.
+
+  * func_80B8EE24 -> ObjBean_GrowPlant
+    deduced, confidence HIGH: advances the two growth angles toward their
+    limits and drives the plant's scale from their sines, easing the sway
+    offset back to centre.
+
+  * func_80B8FE00 -> ObjBean_SetupSproutDelay
+    deduced, confidence HIGH: shows the leaves and arms the 60-frame pause
+    before the plant sprouts.
+
+  * func_80B8FE3C -> ObjBean_SproutDelay
+    deduced, confidence HIGH: waits out that pause.
+
+  * func_80B8FE6C -> ObjBean_SetupSprout
+    deduced, confidence HIGH: shows the leaves and soil together and starts
+    the plant at a tiny scale.
+
+  * func_80B8FEAC -> ObjBean_Sprout
+    deduced, confidence HIGH: grows the plant to its full height and width,
+    then moves on to the overshoot.
+
+  * func_80B8FF50 -> ObjBean_SetupOvershoot
+    deduced, confidence HIGH: installs the overshoot action at its starting
+    angle.
+
+  * func_80B8FF8C -> ObjBean_Overshoot
+    deduced, confidence HIGH: stretches the plant past its final size on a
+    sine and hands off to the settle once it passes the threshold.
+
+  * func_80B90010 -> ObjBean_SetupSettle
+    deduced, confidence HIGH: installs the settling action with its starting
+    angle and decaying amplitude.
+
+  * func_80B90050 -> ObjBean_Settle
+    deduced, confidence HIGH: wobbles the plant's scale with a decaying
+    oscillation and, once the amplitude runs out, hands it to the
+    wait-for-water state.
+
+  * func_80B908EC -> ObjBean_SetupWaitToFly
+    deduced, confidence HIGH: hides the plant and installs the action that
+    waits for the player to step off.
+
+  * func_80B90918 -> ObjBean_WaitToFly
+    deduced, confidence HIGH: once the player is off the leaf it rebuilds
+    the path, moves the plant back to its start and hands off to the regrow
+    delay.
+
+  * func_80B90970 -> ObjBean_SetupRegrowDelay
+    deduced, confidence HIGH: hides the plant, resets its scale and arms the
+    100-frame pause before it grows back.
+
+  * func_80B909B0 -> ObjBean_RegrowDelay
+    deduced, confidence HIGH: holds that pause, restarting it whenever a
+    horse tramples the patch.
+
+  * func_80B909F8 -> ObjBean_SetupRegrow
+    deduced, confidence HIGH: shows the plant again and arms the 30-frame
+    regrow.
+
+  * func_80B90A34 -> ObjBean_Regrow
+    deduced, confidence HIGH: grows the plant back, re-enabling its
+    collision, and returns it to waiting for the player once nothing is
+    trampling it.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../Enhancements/randomizer/hook_handlers.cpp |   4 +-
+ .../Enhancements/randomizer/randomizer.cpp    |   2 +-
+ .../overlays/actors/ovl_Obj_Bean/z_obj_bean.c | 132 ++++++++++--------
+ 3 files changed, 78 insertions(+), 60 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 5f0ec83d3..2c23825a1 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -70,7 +70,7 @@ static ObjectExtension::Register<ScrubIdentity> RegisterScrubIdentity;
+ extern SaveContext gSaveContext;
+ extern PlayState* gPlayState;
+ extern void func_8084DFAC(PlayState* play, Player* player);
+-extern void func_80B8FE00(ObjBean*); // trigger planting
++extern void ObjBean_SetupSproutDelay(ObjBean*); // trigger planting
+ extern void Player_SetupActionPreserveAnimMovement(PlayState* play, Player* player, PlayerActionFunc actionFunc,
+                                                    s32 flags);
+ extern s32 Player_SetupWaitForPutAway(PlayState* play, Player* player, AfterPutAwayFunc func);
+@@ -479,7 +479,7 @@ static void PlantAllBeans() {
+     }
+     ObjBean* bean = (ObjBean*)Actor_Find(&gPlayState->actorCtx, ACTOR_OBJ_BEAN, ACTORCAT_BG);
+     if (bean != nullptr) {
+-        func_80B8FE00(bean);
++        ObjBean_SetupSproutDelay(bean);  // was func_80B8FE00 [LLM:HIGH]
+     }
+     AMMO(ITEM_BEAN) = 0;
+ }
+diff --git a/soh/soh/Enhancements/randomizer/randomizer.cpp b/soh/soh/Enhancements/randomizer/randomizer.cpp
+index 8f8ade08f..74a136b80 100644
+--- a/soh/soh/Enhancements/randomizer/randomizer.cpp
++++ b/soh/soh/Enhancements/randomizer/randomizer.cpp
+@@ -28,7 +28,7 @@ extern "C" {
+ #include <functions.h>
+ #include "../../../src/overlays/actors/ovl_En_GirlA/z_en_girla.h"
+ #include "src/overlays/actors/ovl_Obj_Bean/z_obj_bean.h"
+-extern void func_80B8FE00(ObjBean*); // trigger planting
++extern void ObjBean_SetupSproutDelay(ObjBean*); // trigger planting
+ extern PlayState* gPlayState;
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+index 279d0b8c2..5dfed2d0a 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
++++ b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+@@ -36,21 +36,35 @@ void ObjBean_SetupShakeLeaves(ObjBean* this);
+ void ObjBean_ShakeLeaves(ObjBean* this);
+ void ObjBean_SetupWaitForBean(ObjBean* this);
+ void ObjBean_WaitForBean(ObjBean* this, PlayState* play);
+-void func_80B8FE3C(ObjBean* this, PlayState* play);
+-void func_80B8FE00(ObjBean* this);
+-void func_80B8FE6C(ObjBean* this);
+-void func_80B8FEAC(ObjBean* this, PlayState* play);
+-void func_80B8FF50(ObjBean* this);
++// LLM generated name (HIGH), was func_80B8FE3C: waits out that pause.
++void ObjBean_SproutDelay(ObjBean* this, PlayState* play);  // was func_80B8FE3C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B8FE00: shows the leaves and arms the 60-frame pause before the plant sprouts.
++void ObjBean_SetupSproutDelay(ObjBean* this);  // was func_80B8FE00 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B8FE6C: shows the leaves and soil together and starts the plant at a tiny scale.
++void ObjBean_SetupSprout(ObjBean* this);  // was func_80B8FE6C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B8FEAC: grows the plant to its full height and width, then moves on to the overshoot.
++void ObjBean_Sprout(ObjBean* this, PlayState* play);  // was func_80B8FEAC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B8FF50: installs the overshoot action at its starting angle.
++void ObjBean_SetupOvershoot(ObjBean* this);  // was func_80B8FF50 [LLM:HIGH]
+ void ObjBean_SetupGrowWaterPhase4(ObjBean* this);
+-void func_80B8FF8C(ObjBean* this, PlayState* play);
+-void func_80B90050(ObjBean* this, PlayState* play);
+-void func_80B90010(ObjBean* this);
+-void func_80B908EC(ObjBean* this);
+-void func_80B90918(ObjBean* this, PlayState* play);
+-void func_80B90970(ObjBean* this);
+-void func_80B909B0(ObjBean* this, PlayState* play);
+-void func_80B909F8(ObjBean* this);
+-void func_80B90A34(ObjBean* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B8FF8C: stretches the plant past its final size on a sine and hands off to the settle once it passes the threshold.
++void ObjBean_Overshoot(ObjBean* this, PlayState* play);  // was func_80B8FF8C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B90050: wobbles the plant's scale with a decaying oscillation and, once the amplitude runs out, hands it to the wait-for-water state.
++void ObjBean_Settle(ObjBean* this, PlayState* play);  // was func_80B90050 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B90010: installs the settling action with its starting angle and decaying amplitude.
++void ObjBean_SetupSettle(ObjBean* this);  // was func_80B90010 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B908EC: hides the plant and installs the action that waits for the player to step off.
++void ObjBean_SetupWaitToFly(ObjBean* this);  // was func_80B908EC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B90918: once the player is off the leaf it rebuilds the path, moves the plant back to its start and hands off to the regrow delay.
++void ObjBean_WaitToFly(ObjBean* this, PlayState* play);  // was func_80B90918 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B90970: hides the plant, resets its scale and arms the 100-frame pause before it grows back.
++void ObjBean_SetupRegrowDelay(ObjBean* this);  // was func_80B90970 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B909B0: holds that pause, restarting it whenever a horse tramples the patch.
++void ObjBean_RegrowDelay(ObjBean* this, PlayState* play);  // was func_80B909B0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B909F8: shows the plant again and arms the 30-frame regrow.
++void ObjBean_SetupRegrow(ObjBean* this);  // was func_80B909F8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B90A34: grows the plant back, re-enabling its collision, and returns it to waiting for the player once nothing is trampling it.
++void ObjBean_Regrow(ObjBean* this, PlayState* play);  // was func_80B90A34 [LLM:HIGH]
+ void ObjBean_SetupWaitForPlayer(ObjBean* this);
+ void ObjBean_GrowWaterPhase4(ObjBean* this, PlayState* play);
+ void ObjBean_GrowWaterPhase5(ObjBean* this, PlayState* play);
+@@ -71,7 +85,8 @@ void ObjBean_WaitForStepOff(ObjBean* this, PlayState* play);
+ #define BEAN_STATE_BEEN_WATERED (1 << 6)
+ #define BEAN_STATE_PLAYER_ON_TOP (1 << 7)
+ 
+-static ObjBean* D_80B90E30 = NULL;
++// LLM generated name (HIGH), was D_80B90E30: the one bean plant that has been watered this frame; a bean claims the slot so only one plays the growth cutscene, and clears it when it despawns.
++static ObjBean* sWateredBean = NULL;  // was D_80B90E30 [LLM:HIGH]
+ 
+ const ActorInit Obj_Bean_InitVars = {
+     ACTOR_OBJ_BEAN,
+@@ -163,7 +178,8 @@ void ObjBean_FindFloor(ObjBean* this, PlayState* play) {
+         BgCheck_EntityRaycastFloor4(&play->colCtx, &this->dyna.actor.floorPoly, &sp20, &this->dyna.actor, &vec);
+ }
+ 
+-void func_80B8EBC8(ObjBean* this) {
++// LLM generated name (HIGH), was func_80B8EBC8: zeroes the three growth angles and the sway offset, returning the plant to its ungrown state.
++void ObjBean_ResetGrowth(ObjBean* this) {
+     this->unk_1B6.x = this->unk_1B6.y = this->unk_1B6.z = 0;
+     this->unk_1E4 = 0.0f;
+ }
+@@ -191,13 +207,15 @@ void ObjBean_UpdatePosition(ObjBean* this) {
+         (Math_SinS((s16)(this->unk_1B6.z * 2)) * 2100.0f) + ((f32)this->dyna.actor.home.rot.y + (temp_f20 * 1000.0f));
+ }
+ 
+-void func_80B8EDF4(ObjBean* this) {
++// LLM generated name (HIGH), was func_80B8EDF4: zeroes the growth angles and scales the plant away entirely.
++void ObjBean_HidePlant(ObjBean* this) {
+     this->unk_1B6.x = this->unk_1B6.y = this->unk_1B6.z = 0;
+ 
+     Actor_SetScale(&this->dyna.actor, 0.0f);
+ }
+ 
+-void func_80B8EE24(ObjBean* this) {
++// LLM generated name (HIGH), was func_80B8EE24: advances the two growth angles toward their limits and drives the plant's scale from their sines, easing the sway offset back to centre.
++void ObjBean_GrowPlant(ObjBean* this) {
+     this->unk_1B6.x += 0x384;
+     if (this->unk_1B6.x > 0x5FFF) {
+         this->unk_1B6.x = 0x5FFF;
+@@ -526,8 +544,8 @@ void ObjBean_Destroy(Actor* thisx, PlayState* play) {
+     if (this->stateFlags & BEAN_STATE_COLLIDER_SET) {
+         Collider_DestroyCylinder(play, &this->collider);
+     }
+-    if (D_80B90E30 == this) {
+-        D_80B90E30 = NULL;
++    if (sWateredBean == this) {  // was D_80B90E30 [LLM:HIGH]
++        sWateredBean = NULL;  // was D_80B90E30 [LLM:HIGH]
+     }
+ }
+ 
+@@ -540,7 +558,7 @@ void ObjBean_SetupWaitForBean(ObjBean* this) {
+ void ObjBean_WaitForBean(ObjBean* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->dyna.actor, play)) {
+         if (Actor_GetPlayerExchangeItemId(play) == EXCH_ITEM_BEAN) {
+-            func_80B8FE00(this);
++            ObjBean_SetupSproutDelay(this);  // was func_80B8FE00 [LLM:HIGH]
+             Flags_SetSwitch(play, this->dyna.actor.params & 0x3F);
+         }
+     } else {
+@@ -548,8 +566,8 @@ void ObjBean_WaitForBean(ObjBean* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B8FE00(ObjBean* this) {
+-    this->actionFunc = func_80B8FE3C;
++void ObjBean_SetupSproutDelay(ObjBean* this) {
++    this->actionFunc = ObjBean_SproutDelay;  // was func_80B8FE3C [LLM:HIGH]
+     ObjBean_SetDrawMode(this, BEAN_STATE_DRAW_LEAVES);
+     if (GameInteractor_Should(VB_PLAY_BEAN_PLANTING_CS, true)) {
+         this->timer = 60;
+@@ -557,20 +575,20 @@ void func_80B8FE00(ObjBean* this) {
+ }
+ 
+ // Link is looking at the soft soil
+-void func_80B8FE3C(ObjBean* this, PlayState* play) {
++void ObjBean_SproutDelay(ObjBean* this, PlayState* play) {
+     if (this->timer <= 0) {
+-        func_80B8FE6C(this);
++        ObjBean_SetupSprout(this);  // was func_80B8FE6C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B8FE6C(ObjBean* this) {
+-    this->actionFunc = func_80B8FEAC;
++void ObjBean_SetupSprout(ObjBean* this) {
++    this->actionFunc = ObjBean_Sprout;  // was func_80B8FEAC [LLM:HIGH]
+     ObjBean_SetDrawMode(this, BEAN_STATE_DRAW_LEAVES | BEAN_STATE_DRAW_SOIL);
+     Actor_SetScale(&this->dyna.actor, 0.01f);
+ }
+ 
+ // The leaves are visable and growing
+-void func_80B8FEAC(ObjBean* this, PlayState* play) {
++void ObjBean_Sprout(ObjBean* this, PlayState* play) {
+     s32 temp_v1 = true;
+ 
+     temp_v1 &= Math_StepToF(&this->dyna.actor.scale.y, 0.16672663f, 0.01f);
+@@ -579,7 +597,7 @@ void func_80B8FEAC(ObjBean* this, PlayState* play) {
+     this->dyna.actor.scale.z = this->dyna.actor.scale.x;
+     if (temp_v1) {
+         if (this->timer <= 0) {
+-            func_80B8FF50(this);
++            ObjBean_SetupOvershoot(this);  // was func_80B8FF50 [LLM:HIGH]
+         }
+     } else {
+         this->timer = 1;
+@@ -587,30 +605,30 @@ void func_80B8FEAC(ObjBean* this, PlayState* play) {
+     Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_PL_PLANT_GROW_UP - SFX_FLAG);
+ }
+ 
+-void func_80B8FF50(ObjBean* this) {
+-    this->actionFunc = func_80B8FF8C;
++void ObjBean_SetupOvershoot(ObjBean* this) {
++    this->actionFunc = ObjBean_Overshoot;  // was func_80B8FF8C [LLM:HIGH]
+     ObjBean_SetDrawMode(this, BEAN_STATE_DRAW_LEAVES | BEAN_STATE_DRAW_SOIL);
+     this->unk_1B6.x = 0x33E9;
+ }
+ 
+-void func_80B8FF8C(ObjBean* this, PlayState* play) {
++void ObjBean_Overshoot(ObjBean* this, PlayState* play) {
+     this->unk_1B6.x -= 0x960;
+     this->dyna.actor.scale.y = Math_SinS(this->unk_1B6.x) * 0.17434467f;
+     this->dyna.actor.scale.x = this->dyna.actor.scale.z = Math_CosS(this->unk_1B6.x) * 0.12207746f;
+     if (this->unk_1B6.x < 0x18E4) {
+-        func_80B90010(this);
++        ObjBean_SetupSettle(this);  // was func_80B90010 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B90010(ObjBean* this) {
+-    this->actionFunc = func_80B90050;
++void ObjBean_SetupSettle(ObjBean* this) {
++    this->actionFunc = ObjBean_Settle;  // was func_80B90050 [LLM:HIGH]
+     ObjBean_SetDrawMode(this, BEAN_STATE_DRAW_LEAVES | BEAN_STATE_DRAW_SOIL);
+     this->unk_1B6.x = 0;
+     this->unk_1B6.y = 0xBB8;
+ }
+ 
+ // Control is returned to the player and the leaves start to flatten out
+-void func_80B90050(ObjBean* this, PlayState* play) {
++void ObjBean_Settle(ObjBean* this, PlayState* play) {
+     s16 temp_a0;
+     f32 temp_f2;
+ 
+@@ -635,18 +653,18 @@ void ObjBean_SetupWaitForWater(ObjBean* this) {
+ void ObjBean_WaitForWater(ObjBean* this, PlayState* play) {
+     this->transformFunc(this);
+ 
+-    if (!(this->stateFlags & BEAN_STATE_BEEN_WATERED) && Flags_GetEnv(play, 5) && (D_80B90E30 == NULL) &&
++    if (!(this->stateFlags & BEAN_STATE_BEEN_WATERED) && Flags_GetEnv(play, 5) && (sWateredBean == NULL) &&  // was D_80B90E30 [LLM:HIGH]
+         (this->dyna.actor.xzDistToPlayer < 50.0f)) {
+         ObjBean_SetupGrowWaterPhase1(this);
+-        D_80B90E30 = this;
++        sWateredBean = this;  // was D_80B90E30 [LLM:HIGH]
+         OnePointCutscene_Init(play, 2210, -99, &this->dyna.actor, CAM_ID_MAIN);
+         this->dyna.actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+         return;
+     }
+ 
+-    if ((D_80B90E30 == this) && !Flags_GetEnv(play, 5)) {
+-        D_80B90E30 = NULL;
+-        if (D_80B90E30) {}
++    if ((sWateredBean == this) && !Flags_GetEnv(play, 5)) {  // was D_80B90E30 [LLM:HIGH]
++        sWateredBean = NULL;  // was D_80B90E30 [LLM:HIGH]
++        if (sWateredBean) {}  // was D_80B90E30 [LLM:HIGH]
+     }
+ }
+ 
+@@ -744,7 +762,7 @@ void ObjBean_SetupGrowWaterPhase5(ObjBean* this) {
+ void ObjBean_GrowWaterPhase5(ObjBean* this, PlayState* play) {
+     this->transformFunc(this);
+     if (this->timer <= 0) {
+-        func_80B8FF50(this);
++        ObjBean_SetupOvershoot(this);  // was func_80B8FF50 [LLM:HIGH]
+         this->dyna.actor.flags &= ~ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+     }
+ }
+@@ -821,52 +839,52 @@ void ObjBean_WaitForStepOff(ObjBean* this, PlayState* play) {
+     ObjBean_UpdatePosition(this);
+ }
+ 
+-void func_80B908EC(ObjBean* this) {
+-    this->actionFunc = func_80B90918;
++void ObjBean_SetupWaitToFly(ObjBean* this) {
++    this->actionFunc = ObjBean_WaitToFly;  // was func_80B90918 [LLM:HIGH]
+     ObjBean_SetDrawMode(this, 0);
+ }
+ 
+-void func_80B90918(ObjBean* this, PlayState* play) {
++void ObjBean_WaitToFly(ObjBean* this, PlayState* play) {
+     if (!DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+         ObjBean_SetupPathCount(this, play);
+         ObjBean_SetupPath(this, play);
+         ObjBean_Move(this);
+-        func_80B90970(this);
++        ObjBean_SetupRegrowDelay(this);  // was func_80B90970 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B90970(ObjBean* this) {
+-    this->actionFunc = func_80B909B0;
++void ObjBean_SetupRegrowDelay(ObjBean* this) {
++    this->actionFunc = ObjBean_RegrowDelay;  // was func_80B909B0 [LLM:HIGH]
+     ObjBean_SetDrawMode(this, 0);
+     this->timer = 100;
+-    func_80B8EDF4(this);
++    ObjBean_HidePlant(this);  // was func_80B8EDF4 [LLM:HIGH]
+ }
+ 
+-void func_80B909B0(ObjBean* this, PlayState* play) {
++void ObjBean_RegrowDelay(ObjBean* this, PlayState* play) {
+     if (ObjBean_CheckForHorseTrample(this, play)) {
+         this->timer = 100;
+     } else if (this->timer <= 0) {
+-        func_80B909F8(this);
++        ObjBean_SetupRegrow(this);  // was func_80B909F8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B909F8(ObjBean* this) {
+-    this->actionFunc = func_80B90A34;
++void ObjBean_SetupRegrow(ObjBean* this) {
++    this->actionFunc = ObjBean_Regrow;  // was func_80B90A34 [LLM:HIGH]
+     ObjBean_SetDrawMode(this, BEAN_STATE_DRAW_PLANT);
+     this->timer = 30;
+ }
+ 
+-void func_80B90A34(ObjBean* this, PlayState* play) {
++void ObjBean_Regrow(ObjBean* this, PlayState* play) {
+     s32 trampled = ObjBean_CheckForHorseTrample(this, play);
+ 
+-    func_80B8EE24(this);
++    ObjBean_GrowPlant(this);  // was func_80B8EE24 [LLM:HIGH]
+     if (trampled) {
+         DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
+     } else {
+         DynaPoly_EnableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
+     }
+     if ((this->timer <= 0) && (!trampled)) {
+-        func_80B8EBC8(this);
++        ObjBean_ResetGrowth(this);  // was func_80B8EBC8 [LLM:HIGH]
+         ObjBean_SetupWaitForPlayer(this);
+     }
+ }
+@@ -900,7 +918,7 @@ void ObjBean_Update(Actor* thisx, PlayState* play) {
+             osSyncPrintf(VT_RST);
+             ObjBean_Break(this, play);
+             DynaPoly_DisableCollision(play, &play->colCtx.dyna, this->dyna.bgId);
+-            func_80B908EC(this);
++            ObjBean_SetupWaitToFly(this);  // was func_80B908EC [LLM:HIGH]
+         }
+     } else {
+         this->dyna.actor.shape.shadowDraw = NULL;
+-- 
+2.55.0
+

@@ -1,0 +1,172 @@
+From 12cec35c4bc6fe469c6b3cbf793d8a6619ec634f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:18 +0000
+Subject: [PATCH 236/488] soh: name the 3 address-named symbols defined in
+ z_en_wonder_talk.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_En_Wonder_Talk/z_en_wonder_talk.c.
+
+  * func_80B391CC -> EnWonderTalk_SetupTextId
+    deduced, confidence HIGH: picks actor.textId, the expected message state
+    and the talk range from unk_150, printing the debug banner for each
+    variant, then hands off to the waiting state.
+
+  * func_80B3943C -> EnWonderTalk_WaitForPlayer
+    deduced, confidence HIGH: waiting state: offers talk once the player is
+    inside the configured range and roughly in front, and routes an accepted
+    talk to the message-handling state.
+
+  * func_80B395F0 -> EnWonderTalk_HandleMessage
+    deduced, confidence HIGH: runs once the textbox reaches the expected
+    state: sets the switch flag, resolves the diary choice, spawns the Poh
+    variants, and returns to the setup state.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_En_Wonder_Talk/z_en_wonder_talk.c     | 31 ++++++++++---------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Wonder_Talk/z_en_wonder_talk.c b/soh/src/overlays/actors/ovl_En_Wonder_Talk/z_en_wonder_talk.c
+index 78ff2f165..5edc5d212 100644
+--- a/soh/src/overlays/actors/ovl_En_Wonder_Talk/z_en_wonder_talk.c
++++ b/soh/src/overlays/actors/ovl_En_Wonder_Talk/z_en_wonder_talk.c
+@@ -13,9 +13,12 @@ void EnWonderTalk_Init(Actor* thisx, PlayState* play);
+ void EnWonderTalk_Destroy(Actor* thisx, PlayState* play);
+ void EnWonderTalk_Update(Actor* thisx, PlayState* play);
+ 
+-void func_80B391CC(EnWonderTalk* this, PlayState* play);
+-void func_80B395F0(EnWonderTalk* this, PlayState* play);
+-void func_80B3943C(EnWonderTalk* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B391CC: picks actor.textId, the expected message state and the talk range from unk_150, printing the debug banner for each variant, then hands off to the waiting state.
++void EnWonderTalk_SetupTextId(EnWonderTalk* this, PlayState* play);  // was func_80B391CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B395F0: runs once the textbox reaches the expected state: sets the switch flag, resolves the diary choice, spawns the Poh variants, and returns to the setup state.
++void EnWonderTalk_HandleMessage(EnWonderTalk* this, PlayState* play);  // was func_80B395F0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B3943C: waiting state: offers talk once the player is inside the configured range and roughly in front, and routes an accepted talk to the message-handling state.
++void EnWonderTalk_WaitForPlayer(EnWonderTalk* this, PlayState* play);  // was func_80B3943C [LLM:HIGH]
+ 
+ const ActorInit En_Wonder_Talk_InitVars = {
+     ACTOR_EN_WONDER_TALK,
+@@ -54,11 +57,11 @@ void EnWonderTalk_Init(Actor* thisx, PlayState* play) {
+             return;
+         }
+     }
+-    this->actionFunc = func_80B391CC;
++    this->actionFunc = EnWonderTalk_SetupTextId;  // was func_80B391CC [LLM:HIGH]
+     this->unk_15C = 40.0f;
+ }
+ 
+-void func_80B391CC(EnWonderTalk* this, PlayState* play) {
++void EnWonderTalk_SetupTextId(EnWonderTalk* this, PlayState* play) {
+     if (this->switchFlag < 0 || !Flags_GetSwitch(play, this->switchFlag)) {
+         switch (this->unk_150) {
+             case 1:
+@@ -125,11 +128,11 @@ void func_80B391CC(EnWonderTalk* this, PlayState* play) {
+         }
+ 
+         osSyncPrintf(VT_FGCOL(CYAN) "☆☆☆☆☆ this->actor.talk_message    ☆☆☆☆☆ %x\n" VT_RST, this->actor.textId);
+-        this->actionFunc = func_80B3943C;
++        this->actionFunc = EnWonderTalk_WaitForPlayer;  // was func_80B3943C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B3943C(EnWonderTalk* this, PlayState* play) {
++void EnWonderTalk_WaitForPlayer(EnWonderTalk* this, PlayState* play) {
+     s16 yawDiff;
+     s16 yawDiffTemp;
+ 
+@@ -143,14 +146,14 @@ void func_80B3943C(EnWonderTalk* this, PlayState* play) {
+             if (this->unk_156 != TEXT_STATE_DONE) {
+                 // not if we're rando'd in the temple of time talking to the altar
+                 if (!(IS_RANDO && play->sceneNum == SCENE_TEMPLE_OF_TIME)) {
+-                    this->actionFunc = func_80B395F0;
++                    this->actionFunc = EnWonderTalk_HandleMessage;  // was func_80B395F0 [LLM:HIGH]
+                 }
+             } else {
+                 if (this->switchFlag >= 0) {
+                     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+                     Flags_SetSwitch(play, this->switchFlag);
+                 }
+-                this->actionFunc = func_80B391CC;
++                this->actionFunc = EnWonderTalk_SetupTextId;  // was func_80B391CC [LLM:HIGH]
+             }
+         } else if (!(this->unk_15C < this->actor.xzDistToPlayer)) {
+             yawDiffTemp = (this->actor.yawTowardsPlayer - this->actor.world.rot.y);
+@@ -176,7 +179,7 @@ void func_80B3943C(EnWonderTalk* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B395F0(EnWonderTalk* this, PlayState* play) {
++void EnWonderTalk_HandleMessage(EnWonderTalk* this, PlayState* play) {
+     if (this->unk_156 == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         if (this->switchFlag >= 0) {
+             this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+@@ -185,7 +188,7 @@ void func_80B395F0(EnWonderTalk* this, PlayState* play) {
+         switch (this->unk_150) {
+             case 1:
+                 Message_CloseTextbox(play);
+-                this->actionFunc = func_80B391CC;
++                this->actionFunc = EnWonderTalk_SetupTextId;  // was func_80B391CC [LLM:HIGH]
+                 break;
+             case 2:
+                 switch (play->msgCtx.choiceIndex) {
+@@ -209,7 +212,7 @@ void func_80B395F0(EnWonderTalk* this, PlayState* play) {
+ 
+                 this->unk_156 = TEXT_STATE_DONE;
+                 Message_ContinueTextbox(play, this->actor.textId);
+-                this->actionFunc = func_80B391CC;
++                this->actionFunc = EnWonderTalk_SetupTextId;  // was func_80B391CC [LLM:HIGH]
+                 break;
+             case 3:
+                 Message_CloseTextbox(play);
+@@ -219,7 +222,7 @@ void func_80B395F0(EnWonderTalk* this, PlayState* play) {
+                     this->unk_164 = 1;
+                 }
+ 
+-                this->actionFunc = func_80B391CC;
++                this->actionFunc = EnWonderTalk_SetupTextId;  // was func_80B391CC [LLM:HIGH]
+                 break;
+             case 5:
+                 Message_CloseTextbox(play);
+@@ -228,7 +231,7 @@ void func_80B395F0(EnWonderTalk* this, PlayState* play) {
+                                 this->actor.world.pos.z, 0, 0, 0, 3);
+                     this->unk_164 = 1;
+                 }
+-                this->actionFunc = func_80B391CC;
++                this->actionFunc = EnWonderTalk_SetupTextId;  // was func_80B391CC [LLM:HIGH]
+                 break;
+         }
+     }
+-- 
+2.55.0
+

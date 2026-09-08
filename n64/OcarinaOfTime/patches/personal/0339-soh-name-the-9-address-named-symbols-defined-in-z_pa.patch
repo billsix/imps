@@ -1,0 +1,384 @@
+From d1982387634e7f42a2dadf9d7b868c86eae31d18 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 339/488] soh: name the 9 address-named symbols defined in
+ z_parameter.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 9 are defined in soh/src/code/z_parameter.c; updating their references touches 7 files in total.
+
+  * func_80082644 -> Interface_SetButtonAlphasFromStatus
+    deduced, confidence HIGH: sets each HUD button's alpha to the caller's
+    value, or to the dimmed 70 for any button whose buttonStatus is
+    BTN_DISABLED.
+
+  * func_8008277C -> Interface_ClampButtonAlphas
+    deduced, confidence HIGH: clamps every non-zero HUD button alpha down to
+    the given maximum, delegating to Interface_SetButtonAlphasFromStatus
+    while the rising-alpha override is set.
+
+  * func_80082850 -> Interface_ApplyHudVisibility
+    deduced, confidence HIGH: applies the queued HUD visibility mode,
+    raising or clamping each button, heart, magic and minimap alpha to match
+    it.
+
+  * func_80083108 -> Interface_UpdateButtonsForScene
+    deduced, confidence HIGH: enables or disables the B and C buttons for
+    the current situation -- riding a horse, the shooting gallery, the
+    bowling alley, being swordless -- and reloads the affected item icons.
+
+  * func_800849EC -> Interface_SwapGiantsKnife
+    deduced, confidence HIGH: toggles the Giant's Knife between whole and
+    broken in the equipment flags and puts the matching item on the B
+    button.
+
+  * func_80084BF4 -> Interface_RestoreBButtonItem
+    deduced, confidence HIGH: puts the stored B-button item back after a
+    projectile weapon or the swordless state has been forced onto that slot,
+    and reloads its icon.
+
+  * func_80086D5C -> Interface_ClearIntBuffer
+    deduced, confidence HIGH: zeroes a run of s32 values.
+
+  * func_8008A8B8 -> Interface_SetViewport
+    deduced, confidence HIGH: points the interface view at the origin
+    looking down -Z and gives it the caller's viewport rectangle and a
+    60-degree perspective. Its body is commented out in this tree.
+
+  * func_8008A994 -> Interface_SetFullscreenViewport
+    deduced, confidence HIGH: resets the interface view to the full-screen
+    viewport and applies it.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  4 +-
+ .../TimeSavers/SkipCutscene/SkipIntro.cpp     |  2 +-
+ soh/soh/SohGui/SohMenuEnhancements.cpp        |  2 +-
+ soh/src/code/z_parameter.c                    | 53 +++++++++++--------
+ .../overlays/actors/ovl_En_GirlA/z_en_girla.c |  2 +-
+ .../actors/ovl_player_actor/z_player.c        |  2 +-
+ .../ovl_kaleido_scope/z_kaleido_scope_PAL.c   |  2 +-
+ 7 files changed, 38 insertions(+), 29 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 9fc46a443..2f42e1dab 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1067,10 +1067,10 @@ void Interface_ChangeHudVisibilityMode(u16 alphaType);
+ void Interface_SetSceneRestrictions(PlayState* play);
+ void Inventory_SwapAgeEquipment(void);
+ void Interface_InitHorsebackArchery(PlayState* play);
+-void func_800849EC(PlayState* play);
++void Interface_SwapGiantsKnife(PlayState* play);  // was func_800849EC [LLM:HIGH]
+ void Interface_LoadItemIcon1(PlayState* play, u16 button);
+ void Interface_LoadItemIcon2(PlayState* play, u16 button);
+-void func_80084BF4(PlayState* play, u16 flag);
++void Interface_RestoreBButtonItem(PlayState* play, u16 flag);  // was func_80084BF4 [LLM:HIGH]
+ uint16_t Interface_DrawTextLine(GraphicsContext* gfx, char text[], int16_t x, int16_t y, uint16_t colorR, uint16_t colorG, uint16_t colorB, uint16_t colorA, float textScale, uint8_t textShadow);
+ u8 Item_Give(PlayState* play, u8 item);
+ u16 Randomizer_Item_Give(PlayState* play, GetItemEntry giEntry);
+diff --git a/soh/soh/Enhancements/TimeSavers/SkipCutscene/SkipIntro.cpp b/soh/soh/Enhancements/TimeSavers/SkipCutscene/SkipIntro.cpp
+index 6a72312c6..c0b45dce4 100644
+--- a/soh/soh/Enhancements/TimeSavers/SkipCutscene/SkipIntro.cpp
++++ b/soh/soh/Enhancements/TimeSavers/SkipCutscene/SkipIntro.cpp
+@@ -26,7 +26,7 @@ static void SkipIntro_OnSceneSpawnActors() {
+         player->actor.prevPos = sIntroEndPos;
+         player->actor.home.pos = sIntroEndPos;
+         gPlayState->unk_1242B = 1; // VIEWPOINT_LOCKED
+-        // Watching the intro leaves this visit on the cutscene layer, which stops func_80083108
++        // Watching the intro leaves this visit on the cutscene layer, which stops Interface_UpdateButtonsForScene, was func_80083108 [LLM:HIGH]
+         // from running & dimming the buttons. Zeroing cutsceneIndex loses that, so put it back
+         gSaveContext.sceneLayer = SCENE_LAYER_CUTSCENE_FIRST + 1;
+     }
+diff --git a/soh/soh/SohGui/SohMenuEnhancements.cpp b/soh/soh/SohGui/SohMenuEnhancements.cpp
+index 84db38733..8694c0512 100644
+--- a/soh/soh/SohGui/SohMenuEnhancements.cpp
++++ b/soh/soh/SohGui/SohMenuEnhancements.cpp
+@@ -1250,7 +1250,7 @@ void SohMenu::AddMenuEnhancements() {
+             bool knifeIsBroken = gSaveContext.swordHealth == 0.0f;
+ 
+             if (hasGiantsKnife && (hasBrokenKnife != knifeIsBroken)) {
+-                func_800849EC(gPlayState);
++                Interface_SwapGiantsKnife(gPlayState);  // was func_800849EC [LLM:HIGH]
+             }
+         })
+         .Options(
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 80ef10011..77617d8cf 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -217,7 +217,8 @@ void Interface_ChangeHudVisibilityMode(u16 hudVisibilityMode) {
+     }
+ }
+ 
+-void func_80082644(PlayState* play, s16 alpha) {
++// LLM generated name (HIGH), was func_80082644: sets each HUD button's alpha to the caller's value, or to the dimmed 70 for any button whose buttonStatus is BTN_DISABLED.
++void Interface_SetButtonAlphasFromStatus(PlayState* play, s16 alpha) {
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+ 
+     if (gSaveContext.buttonStatus[0] == BTN_DISABLED) {
+@@ -311,11 +312,12 @@ void func_80082644(PlayState* play, s16 alpha) {
+     }
+ }
+ 
+-void func_8008277C(PlayState* play, s16 maxAlpha, s16 alpha) {
++// LLM generated name (HIGH), was func_8008277C: clamps every non-zero HUD button alpha down to the given maximum, delegating to Interface_SetButtonAlphasFromStatus while the rising-alpha override is set.
++void Interface_ClampButtonAlphas(PlayState* play, s16 maxAlpha, s16 alpha) {
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+ 
+     if (gSaveContext.forceRisingButtonAlphas != 0) {
+-        func_80082644(play, alpha);
++        Interface_SetButtonAlphasFromStatus(play, alpha);  // was func_80082644 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -356,7 +358,8 @@ void func_8008277C(PlayState* play, s16 maxAlpha, s16 alpha) {
+     }
+ }
+ 
+-void func_80082850(PlayState* play, s16 maxAlpha) {
++// LLM generated name (HIGH), was func_80082850: applies the queued HUD visibility mode, raising or clamping each button, heart, magic and minimap alpha to match it.
++void Interface_ApplyHudVisibility(PlayState* play, s16 maxAlpha) {
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+     s16 alpha = 255 - maxAlpha;
+ 
+@@ -428,7 +431,7 @@ void func_80082850(PlayState* play, s16 maxAlpha) {
+                 interfaceCtx->aAlpha = maxAlpha;
+             }
+ 
+-            func_8008277C(play, maxAlpha, alpha);
++            Interface_ClampButtonAlphas(play, maxAlpha, alpha);  // was func_8008277C [LLM:HIGH]
+ 
+             if ((interfaceCtx->magicAlpha != 0) && (interfaceCtx->magicAlpha > maxAlpha)) {
+                 interfaceCtx->magicAlpha = maxAlpha;
+@@ -498,7 +501,7 @@ void func_80082850(PlayState* play, s16 maxAlpha) {
+ 
+             break;
+         case 5:
+-            func_8008277C(play, maxAlpha, alpha);
++            Interface_ClampButtonAlphas(play, maxAlpha, alpha);  // was func_8008277C [LLM:HIGH]
+ 
+             if ((interfaceCtx->minimapAlpha != 0) && (interfaceCtx->minimapAlpha > maxAlpha)) {
+                 interfaceCtx->minimapAlpha = maxAlpha;
+@@ -518,7 +521,7 @@ void func_80082850(PlayState* play, s16 maxAlpha) {
+ 
+             break;
+         case 6:
+-            func_8008277C(play, maxAlpha, alpha);
++            Interface_ClampButtonAlphas(play, maxAlpha, alpha);  // was func_8008277C [LLM:HIGH]
+ 
+             if (interfaceCtx->aAlpha != 255) {
+                 interfaceCtx->aAlpha = alpha;
+@@ -571,7 +574,7 @@ void func_80082850(PlayState* play, s16 maxAlpha) {
+                 interfaceCtx->minimapAlpha = maxAlpha;
+             }
+ 
+-            func_80082644(play, alpha);
++            Interface_SetButtonAlphasFromStatus(play, alpha);  // was func_80082644 [LLM:HIGH]
+ 
+             if (interfaceCtx->healthAlpha != 255) {
+                 interfaceCtx->healthAlpha = alpha;
+@@ -783,7 +786,7 @@ void func_80082850(PlayState* play, s16 maxAlpha) {
+ 
+             break;
+         case 13:
+-            func_8008277C(play, maxAlpha, alpha);
++            Interface_ClampButtonAlphas(play, maxAlpha, alpha);  // was func_8008277C [LLM:HIGH]
+ 
+             if ((interfaceCtx->minimapAlpha != 0) && (interfaceCtx->minimapAlpha > maxAlpha)) {
+                 interfaceCtx->minimapAlpha = maxAlpha;
+@@ -809,7 +812,8 @@ void func_80082850(PlayState* play, s16 maxAlpha) {
+     }
+ }
+ 
+-void func_80083108(PlayState* play) {
++// LLM generated name (HIGH), was func_80083108: enables or disables the B and C buttons for the current situation -- riding a horse, the shooting gallery, the bowling alley, being swordless -- and reloads the affected item icons.
++void Interface_UpdateButtonsForScene(PlayState* play) {
+     MessageContext* msgCtx = &play->msgCtx;
+     Player* player = GET_PLAYER(play);
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+@@ -1704,7 +1708,8 @@ void Interface_InitHorsebackArchery(PlayState* play) {
+     }
+ }
+ 
+-void func_800849EC(PlayState* play) {
++// LLM generated name (HIGH), was func_800849EC: toggles the Giant's Knife between whole and broken in the equipment flags and puts the matching item on the B button.
++void Interface_SwapGiantsKnife(PlayState* play) {
+     gSaveContext.inventory.equipment |= OWNED_EQUIP_FLAG(EQUIP_TYPE_SWORD, EQUIP_INV_SWORD_BIGGORON);
+     gSaveContext.inventory.equipment ^= OWNED_EQUIP_FLAG_ALT(EQUIP_TYPE_SWORD, EQUIP_INV_SWORD_BROKENGIANTKNIFE);
+ 
+@@ -1739,7 +1744,8 @@ void Interface_LoadItemIcon2(PlayState* play, u16 button) {
+     osRecvMesg(&interfaceCtx->loadQueue, NULL, OS_MESG_BLOCK);
+ }
+ 
+-void func_80084BF4(PlayState* play, u16 flag) {
++// LLM generated name (HIGH), was func_80084BF4: puts the stored B-button item back after a projectile weapon or the swordless state has been forced onto that slot, and reloads its icon.
++void Interface_RestoreBButtonItem(PlayState* play, u16 flag) {
+     if (flag) {
+         if ((gSaveContext.equips.buttonItems[0] == ITEM_SLINGSHOT) ||
+             (gSaveContext.equips.buttonItems[0] == ITEM_BOW) || (gSaveContext.equips.buttonItems[0] == ITEM_BOMBCHU) ||
+@@ -1771,7 +1777,7 @@ void func_80084BF4(PlayState* play, u16 flag) {
+             gSaveContext.buttonStatus[3] = BTN_ENABLED;
+         gSaveContext.buttonStatus[5] = gSaveContext.buttonStatus[6] = gSaveContext.buttonStatus[7] =
+             gSaveContext.buttonStatus[8] = BTN_ENABLED;
+-        func_80083108(play);
++        Interface_UpdateButtonsForScene(play);  // was func_80083108 [LLM:HIGH]
+     }
+ }
+ 
+@@ -2766,7 +2772,8 @@ bool Inventory_HatchPocketCucco(PlayState* play) {
+     return 1;
+ }
+ 
+-void func_80086D5C(s32* buf, u16 size) {
++// LLM generated name (HIGH), was func_80086D5C: zeroes a run of s32 values.
++void Interface_ClearIntBuffer(s32* buf, u16 size) {
+     for (u16 i = 0; i < size; i++) {
+         buf[i] = 0;
+     }
+@@ -5061,7 +5068,8 @@ void Interface_InitVertices(PlayState* play) {
+ }
+ 
+ /*
+-void func_8008A8B8(PlayState* play, s32 topY, s32 bottomY, s32 leftX, s32 rightX) {
++// LLM generated name (HIGH), was func_8008A8B8: points the interface view at the origin looking down -Z and gives it the caller's viewport rectangle and a 60-degree perspective. Its body is commented out in this tree.
++void Interface_SetViewport(PlayState* play, s32 topY, s32 bottomY, s32 leftX, s32 rightX) {
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+     Vec3f eye;
+     Vec3f lookAt;
+@@ -5086,7 +5094,8 @@ void func_8008A8B8(PlayState* play, s32 topY, s32 bottomY, s32 leftX, s32 rightX
+ }
+ */
+ 
+-void func_8008A994(InterfaceContext* interfaceCtx) {
++// LLM generated name (HIGH), was func_8008A994: resets the interface view to the full-screen viewport and applies it.
++void Interface_SetFullscreenViewport(InterfaceContext* interfaceCtx) {
+     SET_FULLSCREEN_VIEWPORT(&interfaceCtx->view);
+     func_800AB2C4(&interfaceCtx->view);
+ }
+@@ -5176,7 +5185,7 @@ void Interface_Draw(PlayState* play) {
+ 
+     if (pauseCtx->debugState == 0) {
+         Interface_InitVertices(play);
+-        func_8008A994(interfaceCtx);
++        Interface_SetFullscreenViewport(interfaceCtx);  // was func_8008A994 [LLM:HIGH]
+         if (fullUi || gSaveContext.health != gSaveContext.healthCapacity) {
+             HealthMeter_Draw(play);
+         }
+@@ -5755,7 +5764,7 @@ void Interface_Draw(PlayState* play) {
+ 
+         gDPPipeSync(OVERLAY_DISP++);
+ 
+-        func_8008A994(interfaceCtx);
++        Interface_SetFullscreenViewport(interfaceCtx);  // was func_8008A994 [LLM:HIGH]
+         svar3 = 16;
+ 
+         if ((pauseCtx->state == 6) && (pauseCtx->unk_1E4 == 3)) {
+@@ -6550,7 +6559,7 @@ void Interface_Update(PlayState* play) {
+             if ((msgCtx->msgMode == MSGMODE_NONE) ||
+                 ((msgCtx->msgMode != MSGMODE_NONE) && (play->sceneNum == SCENE_BOMBCHU_BOWLING_ALLEY))) {
+                 if (play->gameOverCtx.state == GAMEOVER_INACTIVE) {
+-                    func_80083108(play);
++                    Interface_UpdateButtonsForScene(play);  // was func_80083108 [LLM:HIGH]
+                 }
+             }
+         }
+@@ -6575,7 +6584,7 @@ void Interface_Update(PlayState* play) {
+                 alpha = 0;
+             }
+ 
+-            func_80082850(play, alpha);
++            Interface_ApplyHudVisibility(play, alpha);  // was func_80082850 [LLM:HIGH]
+             gSaveContext.hudVisibilityModeTimer++;
+ 
+             if (alpha == 0) {
+@@ -6594,7 +6603,7 @@ void Interface_Update(PlayState* play) {
+             }
+ 
+             osSyncPrintf("case 50 : alpha=%d  alpha1=%d\n", alpha, alpha1);
+-            func_80082644(play, alpha1);
++            Interface_SetButtonAlphasFromStatus(play, alpha1);  // was func_80082644 [LLM:HIGH]
+ 
+             if (interfaceCtx->healthAlpha != 255) {
+                 interfaceCtx->healthAlpha = alpha1;
+@@ -6646,7 +6655,7 @@ void Interface_Update(PlayState* play) {
+             break;
+         case 52:
+             gSaveContext.nextHudVisibilityMode = 1;
+-            func_80082850(play, 0);
++            Interface_ApplyHudVisibility(play, 0);  // was func_80082850 [LLM:HIGH]
+             gSaveContext.nextHudVisibilityMode = 0;
+         default:
+             break;
+diff --git a/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c b/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
+index d3ddf46ff..87e37023f 100644
+--- a/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
++++ b/soh/src/overlays/actors/ovl_En_GirlA/z_en_girla.c
+@@ -945,7 +945,7 @@ void EnGirlA_ItemGive_Longsword(PlayState* play, EnGirlA* this) {
+     GetItemEntry entry = ItemTable_Retrieve(this->getItemId);
+     gSaveContext.ship.pendingSale = entry.itemId;
+     gSaveContext.ship.pendingSaleMod = entry.modIndex;
+-    func_800849EC(play);
++    Interface_SwapGiantsKnife(play);  // was func_800849EC [LLM:HIGH]
+     gSaveContext.swordHealth = 8;
+     Rupees_ChangeBy(-this->basePrice);
+ }
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 2f260aa0c..3caf20c0f 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -9099,7 +9099,7 @@ s32 func_80842B7C(PlayState* play, Player* this) {
+             if ((gSaveContext.swordHealth -= 1.0f) <= 0.0f) {
+                 EffectSsStick_Spawn(play, &this->bodyPartsPos[PLAYER_BODYPART_R_HAND],
+                                     this->actor.shape.rot.y + 0x8000);
+-                func_800849EC(play);
++                Interface_SwapGiantsKnife(play);  // was func_800849EC [LLM:HIGH]
+                 Player_PlaySfx(this, NA_SE_IT_MAJIN_SWORD_BROKEN);
+             }
+         }
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 2cd32c12d..0f54f7a93 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -3560,7 +3560,7 @@ void func_808265BC(PlayState* play) {
+     pauseCtx->unk_1EA += 4 * ZREG(46);
+ 
+     if (pauseCtx->unk_1EA == (64 * ZREG(47))) {
+-        func_80084BF4(play, 1);
++        Interface_RestoreBButtonItem(play, 1);  // was func_80084BF4 [LLM:HIGH]
+ 
+         for (int buttonIndex = 0; buttonIndex < ARRAY_COUNT(gSaveContext.buttonStatus); buttonIndex++) {
+             gSaveContext.buttonStatus[buttonIndex] = D_8082AB6C[pauseCtx->pageIndex][buttonIndex];
+-- 
+2.55.0
+

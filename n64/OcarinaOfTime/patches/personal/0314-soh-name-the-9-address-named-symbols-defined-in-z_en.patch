@@ -1,0 +1,257 @@
+From 42f783a5acc9bc6ece6be4aecade324ab655ac85 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:25 +0000
+Subject: [PATCH 314/488] soh: name the 9 address-named symbols defined in
+ z_en_js.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 9 are defined in soh/src/overlays/actors/ovl_En_Js/z_en_js.c; updating their references touches 3 files in total.
+
+  * func_80A88F64 -> EnJs_OfferTalk
+    deduced, confidence HIGH: shared talk helper: returns 1 when the player
+    accepts, otherwise sets the given text id and offers talk while they are
+    within 100 units and closely in front, flagging head tracking on for
+    that frame.
+
+  * func_80A89008 -> EnJs_SetupIdle
+    deduced, confidence HIGH: installs the idle action and starts the
+    knee-slapping animation.
+
+  * func_80A89304 -> EnJs_Idle
+    deduced, confidence HIGH: the resting action: offers the sales pitch
+    text and, when the player accepts, switches to the offer state.
+
+  * func_80A89294 -> EnJs_SetupOffer
+    deduced, confidence HIGH: installs the offer action and starts the idle
+    animation.
+
+  * func_80A891C4 -> EnJs_Offer
+    deduced, confidence HIGH: resolves the buy/decline choice: too few
+    rupees or a refusal returns to idle, and an accepted sale charges 200
+    rupees and hands over the bombchus.
+
+  * func_80A89160 -> EnJs_GiveBombchus
+    deduced, confidence HIGH: re-offers GI_BOMBCHUS_10 until the player
+    takes it, recording the pending sale, then moves on to the thank-you
+    line.
+
+  * func_80A8910C -> EnJs_SetupThanks
+    deduced, confidence HIGH: once the get-item textbox closes it arms the
+    thank-you text and switches to the state that forces that conversation.
+
+  * func_80A890C0 -> EnJs_ForceTalk
+    deduced, confidence HIGH: offers talk from any distance until the player
+    accepts, so the thank-you line cannot be walked away from.
+
+  * func_80A89078 -> EnJs_FinishTalk
+    deduced, confidence HIGH: waits for that textbox to close, clears the
+    auto-accept flag and returns the merchant to idle.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../Enhancements/randomizer/hook_handlers.cpp |  2 +-
+ soh/src/overlays/actors/ovl_En_Js/z_en_js.c   | 55 +++++++++++--------
+ soh/src/overlays/actors/ovl_En_Js/z_en_js.h   |  2 +-
+ 3 files changed, 34 insertions(+), 25 deletions(-)
+
+diff --git a/soh/soh/Enhancements/randomizer/hook_handlers.cpp b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+index 4d58df8af..239759591 100644
+--- a/soh/soh/Enhancements/randomizer/hook_handlers.cpp
++++ b/soh/soh/Enhancements/randomizer/hook_handlers.cpp
+@@ -1429,7 +1429,7 @@ void RandomizerOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_l
+                     -1);
+                 enJs->actor.parent = NULL;
+                 enJs->actor.textId = TEXT_CARPET_SALESMAN_ARMS_DEALER;
+-                enJs->actionFunc = (EnJsActionFunc)func_80A890C0;
++                enJs->actionFunc = (EnJsActionFunc)EnJs_ForceTalk;  // was func_80A890C0 [LLM:HIGH]
+                 enJs->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+                 Flags_SetRandomizerInf(RAND_INF_MERCHANTS_CARPET_SALESMAN);
+                 *should = true;
+diff --git a/soh/src/overlays/actors/ovl_En_Js/z_en_js.c b/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
+index c7c9c844c..6c2ccfe31 100644
+--- a/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
++++ b/soh/src/overlays/actors/ovl_En_Js/z_en_js.c
+@@ -16,7 +16,8 @@ void EnJs_Destroy(Actor* thisx, PlayState* play);
+ void EnJs_Update(Actor* thisx, PlayState* play);
+ void EnJs_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A89304(EnJs* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A89304: the resting action: offers the sales pitch text and, when the player accepts, switches to the offer state.
++void EnJs_Idle(EnJs* this, PlayState* play);  // was func_80A89304 [LLM:HIGH]
+ 
+ const ActorInit En_Js_InitVars = {
+     ACTOR_EN_JS,
+@@ -67,7 +68,7 @@ void EnJs_Init(Actor* thisx, PlayState* play) {
+     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
+     Actor_SetScale(&this->actor, 0.01f);
+-    En_Js_SetupAction(this, func_80A89304);
++    En_Js_SetupAction(this, EnJs_Idle);  // was func_80A89304 [LLM:HIGH]
+     this->unk_284 = 0;
+     this->actor.gravity = -1.0f;
+     Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_JSJUTAN, this->actor.world.pos.x,
+@@ -80,7 +81,8 @@ void EnJs_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-u8 func_80A88F64(EnJs* this, PlayState* play, u16 textId) {
++// LLM generated name (HIGH), was func_80A88F64: shared talk helper: returns 1 when the player accepts, otherwise sets the given text id and offers talk while they are within 100 units and closely in front, flagging head tracking on for that frame.
++u8 EnJs_OfferTalk(EnJs* this, PlayState* play, u16 textId) {
+     s16 yawDiff;
+ 
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+@@ -97,39 +99,44 @@ u8 func_80A88F64(EnJs* this, PlayState* play, u16 textId) {
+     }
+ }
+ 
+-void func_80A89008(EnJs* this) {
+-    En_Js_SetupAction(this, func_80A89304);
++// LLM generated name (HIGH), was func_80A89008: installs the idle action and starts the knee-slapping animation.
++void EnJs_SetupIdle(EnJs* this) {
++    En_Js_SetupAction(this, EnJs_Idle);  // was func_80A89304 [LLM:HIGH]
+     Animation_Change(&this->skelAnime, &gCarpetMerchantSlappingKneeAnim, 1.0f, 0.0f,
+                      Animation_GetLastFrame(&gCarpetMerchantSlappingKneeAnim), ANIMMODE_ONCE, -4.0f);
+ }
+ 
+-void func_80A89078(EnJs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A89078: waits for that textbox to close, clears the auto-accept flag and returns the merchant to idle.
++void EnJs_FinishTalk(EnJs* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+-        func_80A89008(this);
++        EnJs_SetupIdle(this);  // was func_80A89008 [LLM:HIGH]
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+     }
+ }
+ 
+-void func_80A890C0(EnJs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A890C0: offers talk from any distance until the player accepts, so the thank-you line cannot be walked away from.
++void EnJs_ForceTalk(EnJs* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+-        En_Js_SetupAction(this, func_80A89078);
++        En_Js_SetupAction(this, EnJs_FinishTalk);  // was func_80A89078 [LLM:HIGH]
+     } else {
+         Actor_OfferTalk(&this->actor, play, 1000.0f);
+     }
+ }
+ 
+-void func_80A8910C(EnJs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A8910C: once the get-item textbox closes it arms the thank-you text and switches to the state that forces that conversation.
++void EnJs_SetupThanks(EnJs* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         this->actor.textId = 0x6078;
+-        En_Js_SetupAction(this, func_80A890C0);
++        En_Js_SetupAction(this, EnJs_ForceTalk);  // was func_80A890C0 [LLM:HIGH]
+         this->actor.flags |= ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+     }
+ }
+ 
+-void func_80A89160(EnJs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A89160: re-offers GI_BOMBCHUS_10 until the player takes it, recording the pending sale, then moves on to the thank-you line.
++void EnJs_GiveBombchus(EnJs* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         this->actor.parent = NULL;
+-        En_Js_SetupAction(this, func_80A8910C);
++        En_Js_SetupAction(this, EnJs_SetupThanks);  // was func_80A8910C [LLM:HIGH]
+     } else {
+         GetItemEntry itemEntry = ItemTable_Retrieve(GI_BOMBCHUS_10);
+         gSaveContext.ship.pendingSale = itemEntry.itemId;
+@@ -138,42 +145,44 @@ void func_80A89160(EnJs* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A891C4(EnJs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A891C4: resolves the buy/decline choice: too few rupees or a refusal returns to idle, and an accepted sale charges 200 rupees and hands over the bombchus.
++void EnJs_Offer(EnJs* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CHOICE && Message_ShouldAdvance(play)) {
+         switch (play->msgCtx.choiceIndex) {
+             case 0: // yes
+                 if (GameInteractor_Should(VB_CHECK_RANDO_PRICE_OF_CARPET_SALESMAN, gSaveContext.rupees < 200, this)) {
+                     Message_ContinueTextbox(play, 0x6075);
+-                    func_80A89008(this);
++                    EnJs_SetupIdle(this);  // was func_80A89008 [LLM:HIGH]
+                 } else {
+                     if (!GameInteractor_Should(VB_GIVE_ITEM_FROM_CARPET_SALESMAN, false, this)) {
+                         if (GameInteractor_Should(VB_GIVE_BOMBCHUS_FROM_CARPET_SALESMAN, true, this) ||
+                             Actor_HasParent(&this->actor, play)) {
+                             Rupees_ChangeBy(-200);
+-                            En_Js_SetupAction(this, func_80A89160);
++                            En_Js_SetupAction(this, EnJs_GiveBombchus);  // was func_80A89160 [LLM:HIGH]
+                         } else {
+                             Message_ContinueTextbox(play, 0x6073);
+-                            func_80A89008(this);
++                            EnJs_SetupIdle(this);  // was func_80A89008 [LLM:HIGH]
+                         }
+                     }
+                 }
+                 break;
+             case 1: // no
+                 Message_ContinueTextbox(play, 0x6074);
+-                func_80A89008(this);
++                EnJs_SetupIdle(this);  // was func_80A89008 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A89294(EnJs* this) {
+-    En_Js_SetupAction(this, func_80A891C4);
++// LLM generated name (HIGH), was func_80A89294: installs the offer action and starts the idle animation.
++void EnJs_SetupOffer(EnJs* this) {
++    En_Js_SetupAction(this, EnJs_Offer);  // was func_80A891C4 [LLM:HIGH]
+     Animation_Change(&this->skelAnime, &gCarpetMerchantIdleAnim, 1.0f, 0.0f,
+                      Animation_GetLastFrame(&gCarpetMerchantIdleAnim), ANIMMODE_ONCE, -4.0f);
+ }
+ 
+-void func_80A89304(EnJs* this, PlayState* play) {
+-    if (func_80A88F64(this, play, 0x6077)) {
+-        func_80A89294(this);
++void EnJs_Idle(EnJs* this, PlayState* play) {
++    if (EnJs_OfferTalk(this, play, 0x6077)) {  // was func_80A88F64 [LLM:HIGH]
++        EnJs_SetupOffer(this);  // was func_80A89294 [LLM:HIGH]
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Js/z_en_js.h b/soh/src/overlays/actors/ovl_En_Js/z_en_js.h
+index e5dcbd610..751c70186 100644
+--- a/soh/src/overlays/actors/ovl_En_Js/z_en_js.h
++++ b/soh/src/overlays/actors/ovl_En_Js/z_en_js.h
+@@ -22,6 +22,6 @@ typedef struct EnJs {
+     /* 0x028C */ EnJsActionFunc actionFunc;
+ } EnJs; // size = 0x0290
+ 
+-void func_80A890C0(EnJs* actor, PlayState* play);
++void EnJs_ForceTalk(EnJs* actor, PlayState* play);  // was func_80A890C0 [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

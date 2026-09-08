@@ -1,0 +1,161 @@
+From cc2c3195e1ed82e3f8e91745748465c9d5192e95 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:20 +0000
+Subject: [PATCH 259/488] soh: name the 5 address-named symbols defined in
+ z_bg_spot01_objects2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c.
+
+  * func_808AC22C -> BgSpot01Objects2_GetPathPoint
+    deduced, confidence HIGH: copies the requested waypoint of the requested
+    path into a Vec3f; used to place the spawned carpenter.
+
+  * func_808AC2BC -> BgSpot01Objects2_WaitForObject
+    deduced, confidence HIGH: waits for the actor's object bank to load,
+    then installs the per-params collision header and draw function and, for
+    the daytime shooting-gallery variant, spawns Carpenter Sabooro at the
+    path's first point.
+
+  * func_808AC474 -> BgSpot01Objects2_DoNothing
+    deduced, confidence HIGH: empty action installed once setup is finished.
+
+  * func_808AC4A4 -> BgSpot01Objects2_Draw
+    deduced, confidence HIGH: the actor's draw function, installed into
+    actor.draw once the object is loaded; it draws sDLists indexed by
+    params.
+
+  * D_808AC510 -> sDLists
+    deduced, confidence HIGH: the five Kakariko display lists (potion-shop,
+    shooting-gallery and bazaar signs, construction site, shooting gallery)
+    indexed by params & 7 in the draw function.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_bg_spot01_objects2.c                    | 31 +++++++++++--------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c b/soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c
+index c72be812e..012ef33b5 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c
+@@ -14,9 +14,12 @@ void BgSpot01Objects2_Init(Actor* thisx, PlayState* play);
+ void BgSpot01Objects2_Destroy(Actor* thisx, PlayState* play);
+ void BgSpot01Objects2_Update(Actor* thisx, PlayState* play);
+ 
+-void func_808AC2BC(BgSpot01Objects2* this, PlayState* play);
+-void func_808AC474(BgSpot01Objects2* this, PlayState* play);
+-void func_808AC4A4(Actor* thisx, PlayState* play);
++// LLM generated name (HIGH), was func_808AC2BC: waits for the actor's object bank to load, then installs the per-params collision header and draw function and, for the daytime shooting-gallery variant, spawns Carpenter Sabooro at the path's first point.
++void BgSpot01Objects2_WaitForObject(BgSpot01Objects2* this, PlayState* play);  // was func_808AC2BC [LLM:HIGH]
++// LLM generated name (HIGH), was func_808AC474: empty action installed once setup is finished.
++void BgSpot01Objects2_DoNothing(BgSpot01Objects2* this, PlayState* play);  // was func_808AC474 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808AC4A4: the actor's draw function, installed into actor.draw once the object is loaded; it draws sDLists indexed by params.
++void BgSpot01Objects2_Draw(Actor* thisx, PlayState* play);  // was func_808AC4A4 [LLM:HIGH]
+ 
+ const ActorInit Bg_Spot01_Objects2_InitVars = {
+     ACTOR_BG_SPOT01_OBJECTS2,
+@@ -38,7 +41,8 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_STOP),
+ };
+ 
+-static Gfx* D_808AC510[] = {
++// LLM generated name (HIGH), was D_808AC510: the five Kakariko display lists (potion-shop, shooting-gallery and bazaar signs, construction site, shooting gallery) indexed by params & 7 in the draw function.
++static Gfx* sDLists[] = {  // was D_808AC510 [LLM:HIGH]
+     gKakarikoPotionShopSignDL,   gKakarikoShootingGallerySignDL, gKakarikoBazaarSignDL,
+     gKakarikoConstructionSiteDL, gKakarikoShootingGalleryDL,
+ };
+@@ -70,14 +74,15 @@ void BgSpot01Objects2_Init(Actor* thisx, PlayState* play) {
+     } else {
+         Actor_Kill(&this->dyna.actor);
+     }
+-    this->actionFunc = func_808AC2BC;
++    this->actionFunc = BgSpot01Objects2_WaitForObject;  // was func_808AC2BC [LLM:HIGH]
+     Actor_ProcessInitChain(&this->dyna.actor, sInitChain);
+ }
+ 
+ void BgSpot01Objects2_Destroy(Actor* thisx, PlayState* play) {
+ }
+ 
+-s32 func_808AC22C(Path* pathList, Vec3f* pos, s32 path, s32 waypoint) {
++// LLM generated name (HIGH), was func_808AC22C: copies the requested waypoint of the requested path into a Vec3f; used to place the spawned carpenter.
++s32 BgSpot01Objects2_GetPathPoint(Path* pathList, Vec3f* pos, s32 path, s32 waypoint) {
+     Vec3s* pointPos = &((Vec3s*)SEGMENTED_TO_VIRTUAL((pathList + path)->points))[waypoint];
+ 
+     pos->x = pointPos->x;
+@@ -86,7 +91,7 @@ s32 func_808AC22C(Path* pathList, Vec3f* pos, s32 path, s32 waypoint) {
+     return 0;
+ }
+ 
+-void func_808AC2BC(BgSpot01Objects2* this, PlayState* play) {
++void BgSpot01Objects2_WaitForObject(BgSpot01Objects2* this, PlayState* play) {
+     CollisionHeader* colHeader = NULL;
+     Actor* thisx = &this->dyna.actor;
+     s32 pad;
+@@ -109,7 +114,7 @@ void func_808AC2BC(BgSpot01Objects2* this, PlayState* play) {
+                 CollisionHeader_GetVirtual(&object_spot01_matoyab_col, &colHeader);
+                 this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, thisx, colHeader);
+                 if (IS_DAY) {
+-                    func_808AC22C(play->setupPathList, &position, ((s32)thisx->params >> 8) & 0xFF, 0);
++                    BgSpot01Objects2_GetPathPoint(play->setupPathList, &position, ((s32)thisx->params >> 8) & 0xFF, 0);  // was func_808AC22C [LLM:HIGH]
+                     Actor_SpawnAsChild(&play->actorCtx, thisx, play, ACTOR_EN_DAIKU_KAKARIKO, position.x, position.y,
+                                        position.z, thisx->world.rot.x, thisx->world.rot.y, thisx->world.rot.z,
+                                        ((((s32)thisx->params >> 8) & 0xFF) << 8) + 1);
+@@ -121,12 +126,12 @@ void func_808AC2BC(BgSpot01Objects2* this, PlayState* play) {
+                 break;
+         }
+ 
+-        this->dyna.actor.draw = func_808AC4A4;
+-        this->actionFunc = func_808AC474;
++        this->dyna.actor.draw = BgSpot01Objects2_Draw;  // was func_808AC4A4 [LLM:HIGH]
++        this->actionFunc = BgSpot01Objects2_DoNothing;  // was func_808AC474 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808AC474(BgSpot01Objects2* this, PlayState* play) {
++void BgSpot01Objects2_DoNothing(BgSpot01Objects2* this, PlayState* play) {
+ }
+ 
+ void BgSpot01Objects2_Update(Actor* thisx, PlayState* play) {
+@@ -135,6 +140,6 @@ void BgSpot01Objects2_Update(Actor* thisx, PlayState* play) {
+     this->actionFunc(this, play);
+ }
+ 
+-void func_808AC4A4(Actor* thisx, PlayState* play) {
+-    Gfx_DrawDListOpa(play, D_808AC510[thisx->params & 7]);
++void BgSpot01Objects2_Draw(Actor* thisx, PlayState* play) {
++    Gfx_DrawDListOpa(play, sDLists[thisx->params & 7]);  // was D_808AC510 [LLM:HIGH]
+ }
+-- 
+2.55.0
+

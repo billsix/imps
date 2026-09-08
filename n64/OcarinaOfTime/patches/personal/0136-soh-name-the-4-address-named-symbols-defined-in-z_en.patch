@@ -1,0 +1,307 @@
+From 99ec09bcf401ae6674f56792920e349191887f05 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:09 +0000
+Subject: [PATCH 136/488] soh: name the 4 address-named symbols defined in
+ z_en_zf.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c.
+
+  * func_80B44DC4 -> EnZf_PickAction
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.93
+
+  * func_80B46098 -> EnZf_TurnTowardsPlayer
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.94
+
+  * D_80B4A1B0 -> sPairedActiveFleeFlag
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_80B4A1B4 -> sPairedInactiveType
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c | 72 +++++++++++----------
+ 1 file changed, 38 insertions(+), 34 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+index 43a6a9701..de92a338a 100644
+--- a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
++++ b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+@@ -30,7 +30,8 @@ void EnZf_SetupJumpForward(EnZf* this);
+ void EnZf_JumpForward(EnZf* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80B4604C): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
+ void EnZf_SetupTurnTowardsPlayer(EnZf* this);
+-void func_80B46098(EnZf* this, PlayState* play);
++// Name from zeldaret/oot (was func_80B46098): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
++void EnZf_TurnTowardsPlayer(EnZf* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80B462E4): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
+ void EnZf_SetupSidestepIfFloor(EnZf* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80B463E4): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
+@@ -105,12 +106,14 @@ static Vec3f sPlatformPositions[] = {
+ };
+ 
+ // These seem to relate to the tagging in/out the minibosses do
+-static s16 D_80B4A1B0 = 0;
+-static s16 D_80B4A1B4 = 1;
++// Name from zeldaret/oot (was D_80B4A1B0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
++static s16 sPairedActiveFleeFlag = 0;
++// Name from zeldaret/oot (was D_80B4A1B4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
++static s16 sPairedInactiveType = 1;
+ 
+ #define EN_ZF_SHIP_SAVESTATE_FIELDS(F) \
+-    F(D_80B4A1B0)                      \
+-    F(D_80B4A1B4)
++    F(sPairedActiveFleeFlag)                      \
++    F(sPairedInactiveType)
+ 
+ SHIP_SAVESTATE_DEFINE(EnZf, EN_ZF_SHIP_SAVESTATE_FIELDS)
+ 
+@@ -347,7 +350,7 @@ void EnZf_Init(Actor* thisx, PlayState* play) {
+ 
+     if (thisx->params < ENZF_TYPE_LIZALFOS_MINIBOSS_A) { // Not minibosses
+         this->homePlatform = this->curPlatform = -1;
+-        D_80B4A1B4 = -1;
++        sPairedInactiveType = -1;
+         this->hopAnimIndex = 1;
+         if (thisx->params == ENZF_TYPE_LIZALFOS_LONE) {
+             EnZf_SetupDropIn(this);
+@@ -360,7 +363,7 @@ void EnZf_Init(Actor* thisx, PlayState* play) {
+         if ((ABS(posDiff) <= 100.0f) && !Flags_GetSwitch(play, this->clearFlag)) {
+             this->homePlatform = this->curPlatform = EnZf_FindPlatform(&thisx->world.pos, 0);
+             EnZf_SetupDropIn(this);
+-            D_80B4A1B4 = 1;
++            sPairedInactiveType = 1;
+         } else {
+             Actor_Kill(thisx);
+         }
+@@ -572,7 +575,8 @@ s32 EnZf_CanAttack(PlayState* play, EnZf* this) {
+     return false;
+ }
+ 
+-void func_80B44DC4(EnZf* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80B44DC4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zf/z_en_zf.c]
++void EnZf_PickAction(EnZf* this, PlayState* play) {
+     s16 angleDiff = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+ 
+     if (angleDiff < 0) {
+@@ -977,10 +981,10 @@ void EnZf_JumpForward(EnZf* this, PlayState* play) {
+ void EnZf_SetupTurnTowardsPlayer(EnZf* this) {
+     Animation_MorphToLoop(&this->skelAnime, &gZfWalkingAnim, -4.0f);
+     this->action = ENZF_ACTION_6;
+-    EnZf_SetupAction(this, func_80B46098);
++    EnZf_SetupAction(this, EnZf_TurnTowardsPlayer);
+ }
+ 
+-void func_80B46098(EnZf* this, PlayState* play) {
++void EnZf_TurnTowardsPlayer(EnZf* this, PlayState* play) {
+     s32 pad;
+     f32 phi_f2;
+     Player* player = GET_PLAYER(play);
+@@ -1334,8 +1338,8 @@ void EnZf_Stunned(EnZf* this, PlayState* play) {
+         if (this->actor.colChkInfo.health == 0) {
+             EnZf_SetupDie(this);
+         } else if ((this->actor.params != ENZF_TYPE_DINOLFOS) || !EnZf_ChooseAction(play, this)) {
+-            if (D_80B4A1B4 != -1) {
+-                func_80B44DC4(this, play);
++            if (sPairedInactiveType != -1) {
++                EnZf_PickAction(this, play);
+             } else {
+                 angleToWall = this->actor.wallYaw - this->actor.shape.rot.y;
+                 angleToWall = ABS(angleToWall);
+@@ -1346,12 +1350,12 @@ void EnZf_Stunned(EnZf* this, PlayState* play) {
+                     EnZf_SetupJumpUp(this);
+                 } else if (!EnZf_DodgeRangedEngaging(play, this)) {
+                     if (this->actor.params != ENZF_TYPE_DINOLFOS) {
+-                        func_80B44DC4(this, play);
++                        EnZf_PickAction(this, play);
+                     } else if ((this->actor.xzDistToPlayer <= 100.0f) && ((play->gameplayFrames % 4) != 0) &&
+                                EnZf_CanAttack(play, this)) {
+                         EnZf_SetupSlash(this);
+                     } else {
+-                        func_80B44DC4(this, play);
++                        EnZf_PickAction(this, play);
+                     }
+                 }
+             }
+@@ -1665,9 +1669,9 @@ void EnZf_Damaged(EnZf* this, PlayState* play) {
+     if (((this->actor.params != ENZF_TYPE_DINOLFOS) || !EnZf_ChooseAction(play, this)) &&
+         SkelAnime_Update(&this->skelAnime) && (this->actor.bgCheckFlags & BGCHECKFLAG_GROUND)) {
+ 
+-        if (D_80B4A1B4 != -1) {
++        if (sPairedInactiveType != -1) {
+             if (this->damageEffect == ENZF_DMGEFF_PROJECTILE) {
+-                D_80B4A1B0++;
++                sPairedActiveFleeFlag++;
+             } else {
+                 this->actor.world.rot.y = this->actor.shape.rot.y;
+ 
+@@ -1676,7 +1680,7 @@ void EnZf_Damaged(EnZf* this, PlayState* play) {
+                 } else if ((this->actor.xzDistToPlayer <= 100.0f) && ((play->gameplayFrames % 4) == 0)) {
+                     EnZf_SetupSlash(this);
+                 } else {
+-                    func_80B44DC4(this, play);
++                    EnZf_PickAction(this, play);
+                 }
+             }
+         } else {
+@@ -1696,13 +1700,13 @@ void EnZf_Damaged(EnZf* this, PlayState* play) {
+                     } else if ((this->actor.xzDistToPlayer <= 100.0f) && ((play->gameplayFrames % 4) == 0)) {
+                         EnZf_SetupSlash(this);
+                     } else {
+-                        func_80B44DC4(this, play);
++                        EnZf_PickAction(this, play);
+                     }
+                 } else if ((this->actor.xzDistToPlayer <= 100.0f) && ((play->gameplayFrames % 4) == 0) &&
+                            EnZf_CanAttack(play, this)) {
+                     EnZf_SetupSlash(this);
+                 } else {
+-                    func_80B44DC4(this, play);
++                    EnZf_PickAction(this, play);
+                 }
+             }
+         }
+@@ -1859,7 +1863,7 @@ void EnZf_CircleAroundPlayer(EnZf* this, PlayState* play) {
+         this->actor.speedXZ = 0.0f;
+ 
+         if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) /* miniboss */ &&
+-            (D_80B4A1B4 == this->actor.params)) {
++            (sPairedInactiveType == this->actor.params)) {
+             EnZf_SetupHopAndTaunt(this);
+         } else {
+             EnZf_SetupApproachPlayer(this, play);
+@@ -1871,13 +1875,13 @@ void EnZf_CircleAroundPlayer(EnZf* this, PlayState* play) {
+             phi_v0_4 = ABS(phi_v0_4);
+ 
+             if (phi_v0_4 >= 0x3A98) {
+-                if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) && (D_80B4A1B4 == this->actor.params)) {
++                if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) && (sPairedInactiveType == this->actor.params)) {
+                     EnZf_SetupHopAndTaunt(this);
+                 } else {
+                     EnZf_SetupIdle(this);
+                     this->unk_3F0 = Rand_ZeroOne() * 5.0f + 1.0f;
+                 }
+-            } else if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) && (D_80B4A1B4 == this->actor.params)) {
++            } else if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) && (sPairedInactiveType == this->actor.params)) {
+                 EnZf_SetupHopAndTaunt(this);
+             } else {
+                 this->actor.world.rot.y = this->actor.shape.rot.y;
+@@ -1922,7 +1926,7 @@ void EnZf_SetupDie(EnZf* this) {
+     this->action = ENZF_ACTION_DIE;
+     this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+ 
+-    if (D_80B4A1B4 != -1) {
++    if (sPairedInactiveType != -1) {
+         if (this->actor.prev != NULL) {
+             ((EnZf*)this->actor.prev)->unk_3F4 = 90;
+ 
+@@ -1938,7 +1942,7 @@ void EnZf_SetupDie(EnZf* this) {
+         }
+     }
+ 
+-    D_80B4A1B0 = 0;
++    sPairedActiveFleeFlag = 0;
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_RIZA_DEAD);
+     EnZf_SetupAction(this, EnZf_Die);
+ 
+@@ -1958,11 +1962,11 @@ void EnZf_Die(EnZf* this, PlayState* play) {
+ 
+     if (SkelAnime_Update(&this->skelAnime)) {
+         if (this->actor.category != ACTORCAT_PROP) {
+-            if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) /* miniboss */ && (D_80B4A1B4 == -1)) {
++            if ((this->actor.params >= ENZF_TYPE_LIZALFOS_MINIBOSS_A) /* miniboss */ && (sPairedInactiveType == -1)) {
+                 Flags_SetSwitch(play, this->clearFlag);
+                 Audio_RestorePrevBgm();
+             } else {
+-                D_80B4A1B4 = -1;
++                sPairedInactiveType = -1;
+             }
+             Actor_ChangeCategory(play, &play->actorCtx, &this->actor, ACTORCAT_PROP);
+         }
+@@ -2004,7 +2008,7 @@ void EnZf_UpdateDamage(EnZf* this, PlayState* play) {
+         this->bodyCollider.base.acFlags &= ~AC_HIT;
+ 
+         if (((this->actor.params < ENZF_TYPE_LIZALFOS_MINIBOSS_A) /* not miniboss */ ||
+-             (D_80B4A1B4 != this->actor.params)) &&
++             (sPairedInactiveType != this->actor.params)) &&
+             (this->actor.colChkInfo.damageEffect != ENZF_DMGEFF_IMMUNE)) {
+             this->damageEffect = this->actor.colChkInfo.damageEffect;
+             Actor_SetDropFlag(&this->actor, &this->bodyCollider.info, 0);
+@@ -2031,7 +2035,7 @@ void EnZf_UpdateDamage(EnZf* this, PlayState* play) {
+                     Item_DropCollectibleRandom(play, &this->actor, &this->actor.world.pos, dropParams);
+                     Enemy_StartFinishingBlow(play, &this->actor);
+                 } else {
+-                    if ((D_80B4A1B4 != -1) && ((this->actor.colChkInfo.health + this->actor.colChkInfo.damage) >= 4) &&
++                    if ((sPairedInactiveType != -1) && ((this->actor.colChkInfo.health + this->actor.colChkInfo.damage) >= 4) &&
+                         (this->actor.colChkInfo.health < 4)) {
+                         this->damageEffect = ENZF_DMGEFF_PROJECTILE;
+                     }
+@@ -2078,10 +2082,10 @@ void EnZf_Update(Actor* thisx, PlayState* play) {
+             EnZf_UpdateHeadRotation(this, play);
+         }
+ 
+-        if ((D_80B4A1B0 != 0) && (D_80B4A1B4 != this->actor.params)) {
++        if ((sPairedActiveFleeFlag != 0) && (sPairedInactiveType != this->actor.params)) {
+             EnZf_SetupSheatheSword(this, play);
+-            D_80B4A1B4 = this->actor.params;
+-            D_80B4A1B0 = 0;
++            sPairedInactiveType = this->actor.params;
++            sPairedActiveFleeFlag = 0;
+ 
+             if (this->actor.prev != NULL) {
+                 ((EnZf*)this->actor.prev)->unk_3F4 = 90;
+@@ -2119,7 +2123,7 @@ void EnZf_Update(Actor* thisx, PlayState* play) {
+         }
+ 
+         if ((this->actor.params < ENZF_TYPE_LIZALFOS_MINIBOSS_A) /* not miniboss */ ||
+-            (D_80B4A1B4 != this->actor.params)) {
++            (sPairedInactiveType != this->actor.params)) {
+             if ((this->actor.colorFilterTimer == 0) || !(this->actor.colorFilterParams & 0x4000)) {
+                 CollisionCheck_SetAC(play, &play->colChkCtx, &this->bodyCollider.base);
+             }
+@@ -2445,6 +2449,6 @@ s32 EnZf_DodgeRangedWaiting(PlayState* play, EnZf* this) {
+ }
+ 
+ void EnZf_Reset(void) {
+-    D_80B4A1B0 = 0;
+-    D_80B4A1B4 = 1;
++    sPairedActiveFleeFlag = 0;
++    sPairedInactiveType = 1;
+ }
+-- 
+2.55.0
+

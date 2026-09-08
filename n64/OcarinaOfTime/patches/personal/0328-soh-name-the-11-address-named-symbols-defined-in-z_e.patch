@@ -1,0 +1,281 @@
+From c9bc5ce918dd9c00938f0d2aa81b98d936f33bc1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 328/488] soh: name the 11 address-named symbols defined in
+ z_en_ny.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 11 are defined in soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c.
+
+  * func_80ABCD40 -> EnNy_UpdateSwimSpeed
+    deduced, confidence HIGH: sets the Shellblade's target speed, slowing it
+    to 70 percent while it is under water.
+
+  * func_80ABCD84 -> EnNy_SetupWaitForPlayer
+    deduced, confidence HIGH: installs the dormant action that waits for the
+    player to come near.
+
+  * func_80ABCE50 -> EnNy_WaitForPlayer
+    deduced, confidence HIGH: stays stone until the player is within 160
+    units, then starts the shell opening.
+
+  * func_80ABCD94 -> EnNy_SetupOpenShell
+    deduced, confidence HIGH: arms the 20-frame opening timer and installs
+    the opening action.
+
+  * func_80ABCE90 -> EnNy_OpenShell
+    deduced, confidence HIGH: cross-fades the stone and flesh colour blend
+    from stone to open in 0x40 steps, then hands off to the grow action.
+
+  * func_80ABCDAC -> EnNy_SetupGrow
+    deduced, confidence HIGH: installs the action that scales the Shellblade
+    back up to full size.
+
+  * func_80ABCEEC -> EnNy_Grow
+    deduced, confidence HIGH: returns the scale factor to 1.0 and then
+    starts the chase.
+
+  * func_80ABCDBC -> EnNy_SetupMove
+    deduced, confidence HIGH: resets the turn rate, refreshes the swim
+    speed, arms the 180-frame chase timer and installs EnNy_Move.
+
+  * func_80ABCE38 -> EnNy_SetupCloseShell
+    deduced, confidence HIGH: arms the 60-frame closing timer and installs
+    the closing action.
+
+  * func_80ABD11C -> EnNy_CloseShell
+    deduced, confidence HIGH: cross-fades the colour blend back toward stone
+    and, once it is fully closed and the timer expires, returns the
+    Shellblade to waiting.
+
+  * func_80ABD3B8 -> EnNy_UpdateBuoyancy
+    deduced, confidence HIGH: turns gravity off and eases the vertical
+    velocity toward the swim target while the actor is between the two given
+    water depths, and restores normal gravity otherwise.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c | 73 ++++++++++++---------
+ 1 file changed, 42 insertions(+), 31 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c b/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
+index edc387e5f..a157e3b29 100644
+--- a/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
++++ b/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
+@@ -13,17 +13,24 @@ void EnNy_Draw(Actor* thisx, PlayState* play);
+ void EnNy_UpdateUnused(Actor* thisx, PlayState* play);
+ void EnNy_Move(EnNy* this, PlayState* play);
+ void EnNy_Die(EnNy* this, PlayState* play);
+-void func_80ABCD40(EnNy* this);
+-void func_80ABCDBC(EnNy* this);
++// LLM generated name (HIGH), was func_80ABCD40: sets the Shellblade's target speed, slowing it to 70 percent while it is under water.
++void EnNy_UpdateSwimSpeed(EnNy* this);  // was func_80ABCD40 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABCDBC: resets the turn rate, refreshes the swim speed, arms the 180-frame chase timer and installs EnNy_Move.
++void EnNy_SetupMove(EnNy* this);  // was func_80ABCDBC [LLM:HIGH]
+ void EnNy_TurnToStone(EnNy* this, PlayState* play);
+-void func_80ABD11C(EnNy* this, PlayState* play);
+-void func_80ABCE50(EnNy* this, PlayState* play);
+-void func_80ABCE90(EnNy* this, PlayState* play);
+-void func_80ABCEEC(EnNy* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ABD11C: cross-fades the colour blend back toward stone and, once it is fully closed and the timer expires, returns the Shellblade to waiting.
++void EnNy_CloseShell(EnNy* this, PlayState* play);  // was func_80ABD11C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABCE50: stays stone until the player is within 160 units, then starts the shell opening.
++void EnNy_WaitForPlayer(EnNy* this, PlayState* play);  // was func_80ABCE50 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABCE90: cross-fades the stone and flesh colour blend from stone to open in 0x40 steps, then hands off to the grow action.
++void EnNy_OpenShell(EnNy* this, PlayState* play);  // was func_80ABCE90 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABCEEC: returns the scale factor to 1.0 and then starts the chase.
++void EnNy_Grow(EnNy* this, PlayState* play);  // was func_80ABCEEC [LLM:HIGH]
+ void EnNy_UpdateDeath(Actor* thisx, PlayState* PlayState);
+ void EnNy_SetupDie(EnNy* this, PlayState* play);
+ void EnNy_DrawDeathEffect(Actor* thisx, PlayState* PlayState);
+-void func_80ABD3B8(EnNy* this, f32, f32);
++// LLM generated name (HIGH), was func_80ABD3B8: turns gravity off and eases the vertical velocity toward the swim target while the actor is between the two given water depths, and restores normal gravity otherwise.
++void EnNy_UpdateBuoyancy(EnNy* this, f32, f32);  // was func_80ABD3B8 [LLM:HIGH]
+ 
+ const ActorInit En_Ny_InitVars = {
+     ACTOR_EN_NY,
+@@ -136,7 +143,7 @@ void EnNy_Init(Actor* thisx, PlayState* play) {
+         this->unk_1D4 = 0;
+         this->unk_1D8 = 0xFF;
+         this->unk_1E0 = 1.0f;
+-        func_80ABCDBC(this);
++        EnNy_SetupMove(this);  // was func_80ABCDBC [LLM:HIGH]
+     } else {
+         // This mode is unused in the final game
+         // "Dummy new initials"
+@@ -153,29 +160,32 @@ void EnNy_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyJntSph(play, &this->collider);
+ }
+ 
+-void func_80ABCD40(EnNy* this) {
++void EnNy_UpdateSwimSpeed(EnNy* this) {
+     f32 temp;
+ 
+     temp = (this->actor.yDistToWater > 0.0f) ? 0.7f : 1.0f;
+     this->unk_1E8 = 2.8f * temp;
+ }
+ 
+-void func_80ABCD84(EnNy* this) {
+-    this->actionFunc = func_80ABCE50;
++// LLM generated name (HIGH), was func_80ABCD84: installs the dormant action that waits for the player to come near.
++void EnNy_SetupWaitForPlayer(EnNy* this) {
++    this->actionFunc = EnNy_WaitForPlayer;  // was func_80ABCE50 [LLM:HIGH]
+ }
+ 
+-void func_80ABCD94(EnNy* this) {
++// LLM generated name (HIGH), was func_80ABCD94: arms the 20-frame opening timer and installs the opening action.
++void EnNy_SetupOpenShell(EnNy* this) {
+     this->stoneTimer = 0x14;
+-    this->actionFunc = func_80ABCE90;
++    this->actionFunc = EnNy_OpenShell;  // was func_80ABCE90 [LLM:HIGH]
+ }
+ 
+-void func_80ABCDAC(EnNy* this) {
+-    this->actionFunc = func_80ABCEEC;
++// LLM generated name (HIGH), was func_80ABCDAC: installs the action that scales the Shellblade back up to full size.
++void EnNy_SetupGrow(EnNy* this) {
++    this->actionFunc = EnNy_Grow;  // was func_80ABCEEC [LLM:HIGH]
+ }
+ 
+-void func_80ABCDBC(EnNy* this) {
++void EnNy_SetupMove(EnNy* this) {
+     this->unk_1F4 = 0.0f;
+-    func_80ABCD40(this);
++    EnNy_UpdateSwimSpeed(this);  // was func_80ABCD40 [LLM:HIGH]
+     this->stoneTimer = 180;
+     this->actionFunc = EnNy_Move;
+ }
+@@ -186,18 +196,19 @@ void EnNy_SetupTurnToStone(EnNy* this) {
+     this->unk_1E8 = 0.0f;
+ }
+ 
+-void func_80ABCE38(EnNy* this) {
++// LLM generated name (HIGH), was func_80ABCE38: arms the 60-frame closing timer and installs the closing action.
++void EnNy_SetupCloseShell(EnNy* this) {
+     this->stoneTimer = 0x3C;
+-    this->actionFunc = func_80ABD11C;
++    this->actionFunc = EnNy_CloseShell;  // was func_80ABD11C [LLM:HIGH]
+ }
+ 
+-void func_80ABCE50(EnNy* this, PlayState* play) {
++void EnNy_WaitForPlayer(EnNy* this, PlayState* play) {
+     if (this->actor.xyzDistToPlayerSq <= 25600.0f) {
+-        func_80ABCD94(this);
++        EnNy_SetupOpenShell(this);  // was func_80ABCD94 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80ABCE90(EnNy* this, PlayState* play) {
++void EnNy_OpenShell(EnNy* this, PlayState* play) {
+     s32 phi_v1;
+     s32 phi_v0;
+ 
+@@ -206,20 +217,20 @@ void func_80ABCE90(EnNy* this, PlayState* play) {
+     if (phi_v0 >= 0xFF) {
+         phi_v1 = 0;
+         phi_v0 = 0xFF;
+-        func_80ABCDAC(this);
++        EnNy_SetupGrow(this);  // was func_80ABCDAC [LLM:HIGH]
+     }
+     this->unk_1D4 = phi_v1;
+     this->unk_1D8 = phi_v0;
+ }
+ 
+-void func_80ABCEEC(EnNy* this, PlayState* play) {
++void EnNy_Grow(EnNy* this, PlayState* play) {
+     f32 phi_f0;
+ 
+     phi_f0 = this->unk_1E0;
+     phi_f0 += 2.0f;
+     if (phi_f0 >= 1.0f) {
+         phi_f0 = 1.0f;
+-        func_80ABCDBC(this);
++        EnNy_SetupMove(this);  // was func_80ABCDBC [LLM:HIGH]
+     }
+     this->unk_1E0 = phi_f0;
+ }
+@@ -231,7 +242,7 @@ void EnNy_Move(EnNy* this, PlayState* play) {
+     if (!(this->unk_1F0 < this->actor.yDistToWater)) {
+         Actor_PlaySfx_Flagged(&this->actor, NA_SE_EN_NYU_MOVE - SFX_FLAG);
+     }
+-    func_80ABCD40(this);
++    EnNy_UpdateSwimSpeed(this);  // was func_80ABCD40 [LLM:HIGH]
+     stoneTimer = this->stoneTimer;
+     this->stoneTimer--;
+     if ((stoneTimer <= 0) || (this->hitPlayer != false)) {
+@@ -262,13 +273,13 @@ void EnNy_TurnToStone(EnNy* this, PlayState* play) {
+             this->actor.bgCheckFlags &= ~2;
+             this->actor.speedXZ = 0.0f;
+             this->actor.world.rot.y = this->actor.shape.rot.y;
+-            func_80ABCE38(this);
++            EnNy_SetupCloseShell(this);  // was func_80ABCE38 [LLM:HIGH]
+         }
+     }
+     this->unk_1E0 = phi_f0;
+ }
+ 
+-void func_80ABD11C(EnNy* this, PlayState* play) {
++void EnNy_CloseShell(EnNy* this, PlayState* play) {
+     s32 phi_v0;
+     s32 phi_v1;
+ 
+@@ -282,7 +293,7 @@ void func_80ABD11C(EnNy* this, PlayState* play) {
+         if (this->stoneTimer != 0) {
+             this->stoneTimer--;
+         } else {
+-            func_80ABCD84(this);
++            EnNy_SetupWaitForPlayer(this);  // was func_80ABCD84 [LLM:HIGH]
+         }
+     }
+     this->unk_1D4 = phi_v0;
+@@ -346,7 +357,7 @@ s32 EnNy_CollisionCheck(EnNy* this, PlayState* play) {
+     return 0;
+ }
+ 
+-void func_80ABD3B8(EnNy* this, f32 arg1, f32 arg2) {
++void EnNy_UpdateBuoyancy(EnNy* this, f32 arg1, f32 arg2) {
+     if (this->unk_1E8 == 0.0f) {
+         this->actor.gravity = -0.4f;
+     } else if (!(arg1 < this->actor.yDistToWater)) {
+@@ -383,7 +394,7 @@ void EnNy_Update(Actor* thisx, PlayState* play) {
+     this->collider.elements[0].dim.scale = 1.33f * temp_f20 + 1.0f;
+     temp_f22 = (24.0f * temp_f20) + 12.0f;
+     this->actor.shape.rot.x += (s16)(this->unk_1E8 * 1000.0f);
+-    func_80ABD3B8(this, temp_f22 + 10.0f, temp_f22 - 10.0f);
++    EnNy_UpdateBuoyancy(this, temp_f22 + 10.0f, temp_f22 - 10.0f);  // was func_80ABD3B8 [LLM:HIGH]
+     Actor_MoveXZGravity(&this->actor);
+     Math_StepToF(&this->unk_1E4, this->unk_1E8, 0.1f);
+     this->actionFunc(this, play);
+-- 
+2.55.0
+

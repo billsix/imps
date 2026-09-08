@@ -1,0 +1,380 @@
+From f63c2531e7e7329121dbca427efef7a7471f528d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:09 +0000
+Subject: [PATCH 135/488] soh: name the 7 address-named symbols defined in
+ z_en_sa.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 7 are defined in soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c; updating their references touches 3 files in total.
+
+  * func_80AF5560 -> EnSa_UpdateTextState
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_80AF5CD4 -> EnSa_SetAnimGroup
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_80AF5CE4 -> EnSa_Animate
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * func_80AF5DFC -> EnSa_GetType
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.96
+
+  * func_80AF6448 -> EnSa_Idle
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.99
+
+  * func_80AF68E4 -> EnSa_HandleCutscene
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.97
+
+  * func_80AF6B20 -> EnSa_BecomeIdle
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.93
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../TimeSavers/timesaver_hook_handlers.cpp    |  2 +-
+ soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c   | 81 ++++++++++---------
+ soh/src/overlays/actors/ovl_En_Sa/z_en_sa.h   |  2 +-
+ 3 files changed, 46 insertions(+), 39 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+index d0e41ed12..f7698c9ac 100644
+--- a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
++++ b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+@@ -652,7 +652,7 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_li
+         case VB_PLAY_SARIAS_SONG_CS: {
+             if (CVarGetInteger(CVAR_ENHANCEMENT("TimeSavers.SkipCutscene.LearnSong"), IS_RANDO) || IS_RANDO) {
+                 EnSa* enSa = va_arg(args, EnSa*);
+-                enSa->actionFunc = func_80AF6B20;
++                enSa->actionFunc = EnSa_BecomeIdle;
+                 *should = false;
+             }
+             break;
+diff --git a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
+index 9a2224a54..036cd5577 100644
+--- a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
++++ b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
+@@ -15,12 +15,15 @@ void EnSa_Destroy(Actor* thisx, PlayState* play);
+ void EnSa_Update(Actor* thisx, PlayState* play);
+ void EnSa_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80AF6448(EnSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_80AF6448): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.99. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_Idle(EnSa* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80AF67D0): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
+ void EnSa_TalkInForestMeadow(EnSa* this, PlayState* play);
+ void func_80AF683C(EnSa* this, PlayState* play);
+-void func_80AF68E4(EnSa* this, PlayState* play);
+-void func_80AF6B20(EnSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_80AF68E4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.97. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_HandleCutscene(EnSa* this, PlayState* play);
++// Name from zeldaret/oot (was func_80AF6B20): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_BecomeIdle(EnSa* this, PlayState* play);
+ 
+ typedef enum {
+     /* 0 */ SARIA_EYE_OPEN,
+@@ -131,7 +134,8 @@ static AnimationInfo sAnimationInfo2[] = {
+     { &gSariaWaitArmsToSideAnim, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -8.0f },
+ };
+ 
+-s16 func_80AF5560(EnSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AF5560): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++s16 EnSa_UpdateTextState(EnSa* this, PlayState* play) {
+     s16 textState = Message_GetState(&play->msgCtx);
+ 
+     if (this->unk_209 == TEXT_STATE_AWAITING_NEXT || this->unk_209 == TEXT_STATE_EVENT ||
+@@ -191,7 +195,7 @@ s16 EnSa_UpdateTalkState(PlayState* play, Actor* thisx) {
+     s16 ret = NPC_TALK_STATE_TALKING;
+     EnSa* this = (EnSa*)thisx;
+ 
+-    switch (func_80AF5560(this, play)) {
++    switch (EnSa_UpdateTextState(this, play)) {
+         case TEXT_STATE_CLOSING:
+             switch (this->actor.textId) {
+                 case 0x1002:
+@@ -354,12 +358,14 @@ void EnSa_HandToChest(EnSa* this) {
+     }
+ }
+ 
+-void func_80AF5CD4(EnSa* this, u8 arg1) {
++// Name from zeldaret/oot (was func_80AF5CD4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_SetAnimGroup(EnSa* this, u8 arg1) {
+     this->unk_20B = arg1;
+     this->unk_20A = 0;
+ }
+ 
+-void func_80AF5CE4(EnSa* this) {
++// Name from zeldaret/oot (was func_80AF5CE4): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++void EnSa_Animate(EnSa* this) {
+     switch (this->unk_20B) {
+         case 1:
+             EnSa_ExtendRightHand(this);
+@@ -391,7 +397,8 @@ void EnSa_ChangeAnim(EnSa* this, s32 index) {
+                      sAnimationInfo1[index].morphFrames);
+ }
+ 
+-s32 func_80AF5DFC(EnSa* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AF5DFC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.96. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Sa/z_en_sa.c]
++s32 EnSa_GetType(EnSa* this, PlayState* play) {
+     if (gSaveContext.cutsceneIndex >= 0xFFF0 && gSaveContext.cutsceneIndex != 0xFFFD) {
+         if (play->sceneNum == SCENE_KOKIRI_FOREST) {
+             return 4;
+@@ -423,16 +430,16 @@ void EnSa_UpdateTrackingMode(EnSa* this, PlayState* play) {
+     s16 trackingMode = NPC_TRACKING_PLAYER_AUTO_TURN;
+ 
+     if (play->sceneNum == SCENE_KOKIRI_FOREST) {
+-        trackingMode = (this->actionFunc == func_80AF68E4) ? NPC_TRACKING_NONE : NPC_TRACKING_FULL_BODY;
++        trackingMode = (this->actionFunc == EnSa_HandleCutscene) ? NPC_TRACKING_NONE : NPC_TRACKING_FULL_BODY;
+     }
+     if (play->sceneNum == SCENE_SACRED_FOREST_MEADOW) {
+         trackingMode = (this->skelAnime.animation == &gSariaPlayingOcarinaAnim) ? NPC_TRACKING_NONE : NPC_TRACKING_HEAD;
+     }
+-    if (play->sceneNum == SCENE_SACRED_FOREST_MEADOW && this->actionFunc == func_80AF6448 &&
++    if (play->sceneNum == SCENE_SACRED_FOREST_MEADOW && this->actionFunc == EnSa_Idle &&
+         this->skelAnime.animation == &gSariaStopPlayingOcarinaAnim) {
+         trackingMode = NPC_TRACKING_NONE;
+     }
+-    if (play->sceneNum == SCENE_SACRED_FOREST_MEADOW && this->actionFunc == func_80AF68E4 &&
++    if (play->sceneNum == SCENE_SACRED_FOREST_MEADOW && this->actionFunc == EnSa_HandleCutscene &&
+         this->skelAnime.animation == &gSariaOcarinaToMouthAnim) {
+         trackingMode = NPC_TRACKING_NONE;
+     }
+@@ -505,10 +512,10 @@ void EnSa_Init(Actor* thisx, PlayState* play) {
+     Collider_SetCylinder(play, &this->collider, &this->actor, &sCylinderInit);
+     CollisionCheck_SetInfo2(&this->actor.colChkInfo, NULL, &sColChkInfoInit);
+ 
+-    switch (func_80AF5DFC(this, play)) {
++    switch (EnSa_GetType(this, play)) {
+         case 2:
+             EnSa_ChangeAnim(this, ENSA_ANIM1_11);
+-            this->actionFunc = func_80AF6448;
++            this->actionFunc = EnSa_Idle;
+             break;
+         case 5:
+             EnSa_ChangeAnim(this, ENSA_ANIM1_11);
+@@ -517,7 +524,7 @@ void EnSa_Init(Actor* thisx, PlayState* play) {
+         case 1:
+             this->actor.gravity = -1.0f;
+             EnSa_ChangeAnim(this, ENSA_ANIM1_0);
+-            this->actionFunc = func_80AF6448;
++            this->actionFunc = EnSa_Idle;
+             break;
+         case 4:
+             this->unk_210 = 0;
+@@ -525,13 +532,13 @@ void EnSa_Init(Actor* thisx, PlayState* play) {
+             play->csCtx.segment = SEGMENTED_TO_VIRTUAL(gSpot04Cs_10E20);
+             gSaveContext.cutsceneTrigger = 1;
+             EnSa_ChangeAnim(this, ENSA_ANIM1_4);
+-            this->actionFunc = func_80AF68E4;
++            this->actionFunc = EnSa_HandleCutscene;
+             break;
+         case 3:
+             this->unk_210 = 0;
+             this->actor.gravity = -1.0f;
+             EnSa_ChangeAnim(this, ENSA_ANIM1_0);
+-            this->actionFunc = func_80AF68E4;
++            this->actionFunc = EnSa_HandleCutscene;
+             break;
+         case 0:
+             Actor_Kill(&this->actor);
+@@ -555,17 +562,17 @@ void EnSa_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80AF6448(EnSa* this, PlayState* play) {
++void EnSa_Idle(EnSa* this, PlayState* play) {
+     if (GameInteractor_Should(VB_SARIA_GESTURE, play->sceneNum == SCENE_KOKIRI_FOREST, this)) {
+         if (this->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+             switch (this->actor.textId) {
+                 case 0x1002:
+                     if (this->unk_208 == 0 && this->unk_20B != 1) {
+-                        func_80AF5CD4(this, 1);
++                        EnSa_SetAnimGroup(this, 1);
+                         this->mouthIndex = 1;
+                     }
+                     if (this->unk_208 == 2 && this->unk_20B != 2) {
+-                        func_80AF5CD4(this, 2);
++                        EnSa_SetAnimGroup(this, 2);
+                         this->mouthIndex = 1;
+                     }
+                     if (this->unk_208 == 5) {
+@@ -574,50 +581,50 @@ void func_80AF6448(EnSa* this, PlayState* play) {
+                     break;
+                 case 0x1003:
+                     if (this->unk_208 == 0 && this->unk_20B != 4) {
+-                        func_80AF5CD4(this, 4);
++                        EnSa_SetAnimGroup(this, 4);
+                     }
+                     break;
+                 case 0x1031:
+                     if (this->unk_208 == 0 && this->unk_20B != 4 &&
+                         this->skelAnime.animation == &gSariaHandsBehindBackWaitAnim) {
+-                        func_80AF5CD4(this, 4);
++                        EnSa_SetAnimGroup(this, 4);
+                         this->mouthIndex = 3;
+                     }
+                     if (this->unk_208 == 2 && this->unk_20B != 5) {
+-                        func_80AF5CD4(this, 5);
++                        EnSa_SetAnimGroup(this, 5);
+                         this->mouthIndex = 2;
+                     }
+                     if (this->unk_208 == 4 && this->unk_20B != 6) {
+-                        func_80AF5CD4(this, 6);
++                        EnSa_SetAnimGroup(this, 6);
+                         this->mouthIndex = 0;
+                     }
+                     break;
+                 case 0x1032:
+                     if (this->unk_208 == 0 && this->unk_20B != 4 &&
+                         this->skelAnime.animation == &gSariaHandsBehindBackWaitAnim) {
+-                        func_80AF5CD4(this, 4);
++                        EnSa_SetAnimGroup(this, 4);
+                     }
+                     break;
+                 case 0x1047:
+                     if (this->unk_208 == 1 && this->unk_20B != 7) {
+-                        func_80AF5CD4(this, 7);
++                        EnSa_SetAnimGroup(this, 7);
+                     }
+                     break;
+                 case 0x1048:
+                     if (this->unk_208 == 0 && this->unk_20B != 7) {
+-                        func_80AF5CD4(this, 7);
++                        EnSa_SetAnimGroup(this, 7);
+                     }
+                     break;
+             }
+         } else if (!CHECK_QUEST_ITEM(QUEST_KOKIRI_EMERALD) &&
+                    ((Flags_GetInfTable(INFTABLE_01)) || (Flags_GetInfTable(INFTABLE_03)))) {
+             if (this->unk_20B != 3) {
+-                func_80AF5CD4(this, 3);
++                EnSa_SetAnimGroup(this, 3);
+             }
+         } else {
+-            func_80AF5CD4(this, 0);
++            EnSa_SetAnimGroup(this, 0);
+         }
+-        func_80AF5CE4(this);
++        EnSa_Animate(this);
+     }
+     if (this->skelAnime.animation == &gSariaStopPlayingOcarinaAnim) {
+         this->skelAnime.playSpeed = -1.0f;
+@@ -634,7 +641,7 @@ void func_80AF6448(EnSa* this, PlayState* play) {
+ void EnSa_TalkInForestMeadow(EnSa* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         Animation_Change(&this->skelAnime, &gSariaStopPlayingOcarinaAnim, 0.0f, 10.0f, 0.0f, ANIMMODE_ONCE, -10.0f);
+-        this->actionFunc = func_80AF6448;
++        this->actionFunc = EnSa_Idle;
+     }
+ }
+ 
+@@ -648,12 +655,12 @@ void func_80AF683C(EnSa* this, PlayState* play) {
+         if (GameInteractor_Should(VB_PLAY_SARIAS_SONG_CS, true, this)) {
+             play->csCtx.segment = SEGMENTED_TO_VIRTUAL(spot05_scene_Cs_005730);
+             gSaveContext.cutsceneTrigger = 1;
+-            this->actionFunc = func_80AF68E4;
++            this->actionFunc = EnSa_HandleCutscene;
+         }
+     }
+ }
+ 
+-void func_80AF68E4(EnSa* this, PlayState* play) {
++void EnSa_HandleCutscene(EnSa* this, PlayState* play) {
+     s16 phi_v0;
+     Vec3f startPos;
+     Vec3f endPos;
+@@ -663,7 +670,7 @@ void func_80AF68E4(EnSa* this, PlayState* play) {
+     f32 gravity;
+ 
+     if ((gSaveContext.cutsceneTrigger != 1) && (play->csCtx.state == CS_STATE_IDLE)) {
+-        this->actionFunc = func_80AF6B20;
++        this->actionFunc = EnSa_BecomeIdle;
+         return;
+     }
+     csAction = play->csCtx.npcActions[1];
+@@ -725,7 +732,7 @@ void func_80AF68E4(EnSa* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AF6B20(EnSa* this, PlayState* play) {
++void EnSa_BecomeIdle(EnSa* this, PlayState* play) {
+     if (play->sceneNum == SCENE_SACRED_FOREST_MEADOW) {
+         if (GameInteractor_Should(VB_GIVE_ITEM_SONG, true, ITEM_SONG_SARIA)) {
+             Item_Give(play, ITEM_SONG_SARIA);
+@@ -741,7 +748,7 @@ void func_80AF6B20(EnSa* this, PlayState* play) {
+         Flags_SetInfTable(INFTABLE_GREETED_BY_SARIA);
+     }
+ 
+-    this->actionFunc = func_80AF6448;
++    this->actionFunc = EnSa_Idle;
+ }
+ 
+ void EnSa_Update(Actor* thisx, PlayState* play) {
+@@ -757,7 +764,7 @@ void EnSa_Update(Actor* thisx, PlayState* play) {
+         EnSa_ChangeAnim(this, ENSA_ANIM1_6);
+     }
+ 
+-    if (GameInteractor_Should(VB_FADE_KOKIRI, this->actionFunc != func_80AF68E4, this)) {
++    if (GameInteractor_Should(VB_FADE_KOKIRI, this->actionFunc != EnSa_HandleCutscene, this)) {
+         this->alpha = Actor_UpdateAlphaByDistance(&this->actor, play, this->alpha, 400.0f);
+     } else {
+         this->alpha = 255;
+@@ -765,7 +772,7 @@ void EnSa_Update(Actor* thisx, PlayState* play) {
+ 
+     this->actor.shape.shadowAlpha = this->alpha;
+ 
+-    if (this->actionFunc == func_80AF68E4) {
++    if (this->actionFunc == EnSa_HandleCutscene) {
+         this->actor.world.pos.x += this->actor.velocity.x;
+         this->actor.world.pos.y += this->actor.velocity.y;
+         this->actor.world.pos.z += this->actor.velocity.z;
+diff --git a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.h b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.h
+index 56d368f13..ae868c73f 100644
+--- a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.h
++++ b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.h
+@@ -30,6 +30,6 @@ typedef struct EnSa {
+     /* 0x0286 */ Vec3s morphTable[17];
+ } EnSa; // size = 0x02EC
+ 
+-void func_80AF6B20(EnSa* enSa, PlayState* play);
++void EnSa_BecomeIdle(EnSa* enSa, PlayState* play);  // was func_80AF6B20 [oot]
+ 
+ #endif
+-- 
+2.55.0
+

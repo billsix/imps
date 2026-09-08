@@ -1,0 +1,146 @@
+From 1e3e25ed3fa772b805af45fb934a93ad56e04cdd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:05 +0000
+Subject: [PATCH 084/488] soh: name the 4 address-named symbols defined in
+ z_bg_spot11_oasis.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c.
+
+  * func_808B27F0 -> BgSpot11Oasis_SetWaterLevel
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_808B280C -> BgSpot11Oasis_IsPlayerInsideOasis
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+  * func_808B29F0 -> BgSpot11Oasis_Rise
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+  * func_808B2AB8 -> BgSpot11Oasis_Full
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c   | 26 +++++++++++--------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c b/soh/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c
+index 23526623d..371bcef8a 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c
+@@ -16,9 +16,11 @@ void BgSpot11Oasis_Draw(Actor* thisx, PlayState* play);
+ void func_808B2970(BgSpot11Oasis* this);
+ void func_808B2980(BgSpot11Oasis* this, PlayState* play);
+ void func_808B29E0(BgSpot11Oasis* this);
+-void func_808B29F0(BgSpot11Oasis* this, PlayState* play);
++// Name from zeldaret/oot (was func_808B29F0): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c]
++void BgSpot11Oasis_Rise(BgSpot11Oasis* this, PlayState* play);
+ void func_808B2AA8(BgSpot11Oasis* this);
+-void func_808B2AB8(BgSpot11Oasis* this, PlayState* play);
++// Name from zeldaret/oot (was func_808B2AB8): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c]
++void BgSpot11Oasis_Full(BgSpot11Oasis* this, PlayState* play);
+ 
+ const ActorInit Bg_Spot11_Oasis_InitVars = {
+     ACTOR_BG_SPOT11_OASIS,
+@@ -49,13 +51,15 @@ static Vec3f D_808B2E34[] = {
+     { -75.0f, -90.0f, 90.0f }, { 30.0f, -100.0f, 40.0f },
+ };
+ 
+-void func_808B27F0(PlayState* play, s16 waterSurface) {
++// Name from zeldaret/oot (was func_808B27F0): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c]
++void BgSpot11Oasis_SetWaterLevel(PlayState* play, s16 waterSurface) {
+     WaterBox* waterBox = &play->colCtx.colHeader->waterBoxes[0];
+ 
+     waterBox->ySurface = waterSurface;
+ }
+ 
+-s32 func_808B280C(PlayState* play) {
++// Name from zeldaret/oot (was func_808B280C): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Spot11_Oasis/z_bg_spot11_oasis.c]
++s32 BgSpot11Oasis_IsPlayerInsideOasis(PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     Vec3f sp58;
+     Vec3f sp4C;
+@@ -87,7 +91,7 @@ void BgSpot11Oasis_Init(Actor* thisx, PlayState* play) {
+     Actor_ProcessInitChain(&this->actor, sInitChain);
+     func_808B2970(this);
+     this->actor.world.pos.y = -100.0f;
+-    func_808B27F0(play, -100);
++    BgSpot11Oasis_SetWaterLevel(play, -100);
+ }
+ 
+ void func_808B2970(BgSpot11Oasis* this) {
+@@ -95,31 +99,31 @@ void func_808B2970(BgSpot11Oasis* this) {
+ }
+ 
+ void func_808B2980(BgSpot11Oasis* this, PlayState* play) {
+-    if (Flags_GetEnv(play, 5) && func_808B280C(play)) {
++    if (Flags_GetEnv(play, 5) && BgSpot11Oasis_IsPlayerInsideOasis(play)) {
+         OnePointCutscene_Init(play, 4150, -99, &this->actor, CAM_ID_MAIN);
+         func_808B29E0(this);
+     }
+ }
+ 
+ void func_808B29E0(BgSpot11Oasis* this) {
+-    this->actionFunc = func_808B29F0;
++    this->actionFunc = BgSpot11Oasis_Rise;
+ }
+ 
+-void func_808B29F0(BgSpot11Oasis* this, PlayState* play) {
++void BgSpot11Oasis_Rise(BgSpot11Oasis* this, PlayState* play) {
+     if (Math_StepToF(&this->actor.world.pos.y, 0.0f, 0.7f)) {
+         func_808B2AA8(this);
+         Actor_Spawn(&play->actorCtx, play, ACTOR_EN_ELF, this->actor.world.pos.x, this->actor.world.pos.y + 40.0f,
+                     this->actor.world.pos.z, 0, 0, 0, FAIRY_SPAWNER);
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+     }
+-    func_808B27F0(play, this->actor.world.pos.y);
++    BgSpot11Oasis_SetWaterLevel(play, this->actor.world.pos.y);
+ }
+ 
+ void func_808B2AA8(BgSpot11Oasis* this) {
+-    this->actionFunc = func_808B2AB8;
++    this->actionFunc = BgSpot11Oasis_Full;
+ }
+ 
+-void func_808B2AB8(BgSpot11Oasis* this, PlayState* play) {
++void BgSpot11Oasis_Full(BgSpot11Oasis* this, PlayState* play) {
+ }
+ 
+ void BgSpot11Oasis_Update(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

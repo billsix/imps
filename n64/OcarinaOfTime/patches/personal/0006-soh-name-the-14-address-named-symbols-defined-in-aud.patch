@@ -1,0 +1,773 @@
+From 43a07a5060e1e57d7410c07d76b0d7278fb7b70d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:57 +0000
+Subject: [PATCH 006/488] soh: name the 14 address-named symbols defined in
+ audio_seq.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 14 are defined in soh/src/code/audio_seq.c; updating their references touches 9 files in total.
+
+  * Struct_8016E320 -> SeqRequest
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_8016E320 -> sSeqRequests
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_80133408 -> gStartSeqDisabled
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_8013340C -> gAudioDebugPrintSeqCmd
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_80133410 -> sSoundModeList
+    deduced, confidence HIGH
+
+  * D_80133418 -> sAudioResetState
+    deduced, confidence HIGH
+
+  * func_800F9474 -> Audio_StopSequence
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800FA0B4 -> Audio_GetActiveSeqId
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800FA11C -> Audio_IsSeqCmdNotQueued
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800FA174 -> Audio_ResetSequenceRequests
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800FA18C -> Audio_ReplaceSeqCmdSetupOpVolRestore
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800FA3DC -> Audio_UpdateActiveSequences
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800FAD34 -> Audio_UpdateResetState
+    deduced, confidence HIGH
+
+  * func_800FAEB4 -> Audio_ResetActiveSequencesAndVolume
+    zeldaret/oot (same decomp, same ROM address)
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       | 16 ++--
+ soh/include/variables.h                       |  6 +-
+ soh/soh/Enhancements/audio/AudioEditor.cpp    | 14 +--
+ .../GameInteractor_RawAction.cpp              |  2 +-
+ soh/soh/stubs.c                               |  2 +-
+ soh/src/code/audio_general.c                  | 66 +++++++-------
+ soh/src/code/audio_seq.c                      | 89 +++++++++++--------
+ soh/src/code/z_kankyo.c                       |  2 +-
+ .../z_en_okarina_effect.c                     |  2 +-
+ 9 files changed, 107 insertions(+), 92 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 2a3ccadea..9e59fefae 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2159,19 +2159,19 @@ void Audio_ProcessSoundRequests(void);
+ void func_800F8F88(void);
+ u8 Audio_IsSfxPlaying(u32 sfxId);
+ void Audio_ResetSounds(void);
+-void func_800F9474(u8, u16);
++void Audio_StopSequence(u8, u16);  // was func_800F9474 [oot]
+ void func_800F94FC(u32);
+ void Audio_ProcessSeqCmd(u32);
+ void Audio_ProcessSeqCmds(void);
+-u16 func_800FA0B4(u8 a0);
+-s32 func_800FA11C(u32 arg0, u32 arg1);
+-void func_800FA174(u8);
+-void func_800FA18C(u8, u8);
++u16 Audio_GetActiveSeqId(u8 a0);  // was func_800FA0B4 [oot]
++s32 Audio_IsSeqCmdNotQueued(u32 arg0, u32 arg1);  // was func_800FA11C [oot]
++void Audio_ResetSequenceRequests(u8);  // was func_800FA174 [oot]
++void Audio_ReplaceSeqCmdSetupOpVolRestore(u8, u8);  // was func_800FA18C [oot]
+ void Audio_SetVolScale(u8 playerIdx, u8 scaleIdx, u8 targetVol, u8 volFadeTimer);
+-void func_800FA3DC(void);
+-u8 func_800FAD34(void);
++void Audio_UpdateActiveSequences(void);  // was func_800FA3DC [oot]
++u8 Audio_UpdateResetState(void);  // was func_800FAD34 [LLM:HIGH]
+ void Audio_ResetActiveSequences(void);
+-void func_800FAEB4(void);
++void Audio_ResetActiveSequencesAndVolume(void);  // was func_800FAEB4 [oot]
+ void GfxPrint_SetColor(GfxPrint* this, u32 r, u32 g, u32 b, u32 a);
+ void GfxPrint_SetPosPx(GfxPrint* this, s32 x, s32 y);
+ void GfxPrint_SetPos(GfxPrint* this, s32 x, s32 y);
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 87ef3e473..094097354 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -164,10 +164,10 @@ extern "C"
+ 	extern s8 gSfxDefaultReverb;
+ 	extern u8 D_801333F0;
+ 	extern u8 gAudioSfxSwapOff;
+-	extern u8 D_80133408;
+-	extern u8 D_8013340C;
++	extern u8 gStartSeqDisabled;  // was D_80133408 [oot]
++	extern u8 gAudioDebugPrintSeqCmd;  // was D_8013340C [oot]
+ 	extern u8 gAudioSpecId;
+-	extern u8 D_80133418;
++	extern u8 sAudioResetState;  // was D_80133418 [LLM:HIGH]
+ 	extern AudioSpec gAudioSpecs[18];
+ 	extern s32 gOverlayLogSeverity;
+ 	extern s32 gSystemArenaLogSeverity;
+diff --git a/soh/soh/Enhancements/audio/AudioEditor.cpp b/soh/soh/Enhancements/audio/AudioEditor.cpp
+index 891a3d06a..032e74639 100644
+--- a/soh/soh/Enhancements/audio/AudioEditor.cpp
++++ b/soh/soh/Enhancements/audio/AudioEditor.cpp
+@@ -93,7 +93,7 @@ static const std::map<int32_t, const char*> audioRandomizerModes = {
+ // Grabs the current BGM sequence ID and replays it
+ // which will lookup the proper override, or reset back to vanilla
+ void ReplayCurrentBGM() {
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+     // TODO: replace with Audio_StartSeq when the macro is shared
+     // The fade time and audio player flags will always be 0 in the case of replaying the BGM, so they are not set here
+     Audio_QueueSeqCmd(0x00000000 | curSeqId);
+@@ -106,7 +106,7 @@ void UpdateCurrentBGM(u16 seqKey, SeqType seqType) {
+         return;
+     }
+ 
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+     if (curSeqId == seqKey) {
+         ReplayCurrentBGM();
+     }
+@@ -262,7 +262,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     ImGui::SeparatorText(tabName.c_str());
+     if (UIWidgets::Button(resetAllButton.c_str(),
+                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
+-        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
+         ResetGroup(map, type);
+         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+@@ -274,7 +274,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     ImGui::SameLine();
+     if (UIWidgets::Button(randomizeAllButton.c_str(),
+                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
+-        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
+         RandomizeGroup(type);
+         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+@@ -286,7 +286,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     ImGui::SameLine();
+     if (UIWidgets::Button(lockAllButton.c_str(),
+                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
+-        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
+         LockGroup(map, type);
+         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+@@ -298,7 +298,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     ImGui::SameLine();
+     if (UIWidgets::Button(unlockAllButton.c_str(),
+                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
+-        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
+         UnlockGroup(map, type);
+         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
+@@ -309,7 +309,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
+     }
+ 
+     auto playingFromMenu = CVarGetInteger(CVAR_AUDIO("Playing"), 0);
+-    auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     // Longest text in Audio Editor
+     ImVec2 columnSize = ImGui::CalcTextSize("Navi - Look/Hey/Watchout (Target Enemy)");
+diff --git a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
+index 544a66ea4..45c729c8e 100644
+--- a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
++++ b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
+@@ -78,7 +78,7 @@ void GameInteractor::RawAction::SetWeatherStorm(bool active) {
+         gPlayState->envCtx.unk_F2[0] = 0;
+         if (gPlayState->csCtx.state == CS_STATE_IDLE) {
+             Environment_StopStormNatureAmbience(gPlayState);
+-        } else if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
++        } else if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_LIGHTNING, CHANNEL_IO_PORT_1, 0);
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_RAIN, CHANNEL_IO_PORT_1, 0);
+         }
+diff --git a/soh/soh/stubs.c b/soh/soh/stubs.c
+index 2b0323c37..65ed78e55 100644
+--- a/soh/soh/stubs.c
++++ b/soh/soh/stubs.c
+@@ -16,7 +16,7 @@ OSViMode osViModePalLan1;
+ u8 gLetterTLUT[4][32];
+ u8 gFontFF[999];
+ DmaEntry gDmaDataTable[0x60C];
+-// u8 D_80133418;
++// u8 sAudioResetState;
+ u16 gAudioSEFlagSwapSource[64];
+ u16 gAudioSEFlagSwapTarget[64];
+ u8 gAudioSEFlagSwapMode[64];
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 2c70cf572..ee9b16e8d 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -3867,7 +3867,7 @@ void AudioDebug_ProcessInput(void) {
+             if (CHECK_BTN_ANY(sDebugPadPress, BTN_A)) {
+                 sAudioSndContWork[5] ^= 1;
+                 Audio_SeqCmdE01(SEQ_PLAYER_BGM_MAIN, sAudioSndContWork[5]);
+-                if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) != NA_BGM_NATURE_AMBIENCE) {
++                if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) != NA_BGM_NATURE_AMBIENCE) {
+                     Audio_SeqCmd1(SEQ_PLAYER_BGM_MAIN, 0);
+                 }
+                 Audio_SeqCmd1(SEQ_PLAYER_FANFARE, 0);
+@@ -3913,7 +3913,7 @@ void AudioDebug_ProcessInput(void) {
+             break;
+     }
+ 
+-    D_8013340C = sAudioScrPrtWork[10];
++    gAudioDebugPrintSeqCmd = sAudioScrPrtWork[10];
+ }
+ 
+ void Audio_UpdateRiverSoundVolumes(void);
+@@ -3923,7 +3923,7 @@ void Audio_UpdateFanfare(void);
+  * This is Audio_Update for the graph thread
+  */
+ void Audio_Update(void) {
+-    if (func_800FAD34() == 0) {
++    if (Audio_UpdateResetState() == 0) {
+         sAudioUpdateTaskStart = gAudioContext.totalTaskCnt;
+         sAudioUpdateStartTime = osGetTime();
+         AudioOcarina_Update();
+@@ -3938,7 +3938,7 @@ void Audio_Update(void) {
+         Audio_ProcessSoundRequests();
+         Audio_ProcessSeqCmds();
+         func_800F8F88();
+-        func_800FA3DC();
++        Audio_UpdateActiveSequences();
+         AudioDebug_SetInput();
+         AudioDebug_ProcessInput();
+         Audio_ScheduleProcessCmds();
+@@ -4746,8 +4746,8 @@ void Audio_SplitBgmChannels(s8 volSplit) {
+     u8 channelIdx;
+     u8 i;
+ 
+-    if ((func_800FA0B4(SEQ_PLAYER_FANFARE) == NA_BGM_DISABLED) &&
+-        (func_800FA0B4(SEQ_PLAYER_BGM_SUB) != NA_BGM_LONLON)) {
++    if ((Audio_GetActiveSeqId(SEQ_PLAYER_FANFARE) == NA_BGM_DISABLED) &&
++        (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) != NA_BGM_LONLON)) {
+         for (i = 0; i < ARRAY_COUNT(bgmPlayers); i++) {
+             if (i == 0) {
+                 // Main Bgm SeqPlayer
+@@ -4839,9 +4839,9 @@ void Audio_PlaySceneSequence(u16 seqId) {
+     u8 sp27 = 0;
+     u16 nv;
+ 
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) != NA_BGM_WINDMILL) {
+-        if (func_800FA0B4(SEQ_PLAYER_BGM_SUB) == NA_BGM_LONLON) {
+-            func_800F9474(SEQ_PLAYER_BGM_SUB, 0);
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) != NA_BGM_WINDMILL) {
++        if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) == NA_BGM_LONLON) {
++            Audio_StopSequence(SEQ_PLAYER_BGM_SUB, 0);
+             Audio_QueueCmdS32(0xF8000000, 0);
+         }
+ 
+@@ -4869,7 +4869,7 @@ void Audio_UpdateSceneSequenceResumePoint(void) {
+     u16 temp_v0;
+     u8 bvar;
+ 
+-    temp_v0 = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    temp_v0 = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+     bvar = temp_v0 & 0xFF;
+     if ((temp_v0 != NA_BGM_DISABLED) && (Audio_GetSeqFlags(bvar) & 0x10)) {
+         if (sSeqResumePoint != 0xC0) {
+@@ -4881,7 +4881,7 @@ void Audio_UpdateSceneSequenceResumePoint(void) {
+ }
+ 
+ void Audio_PlayWindmillBgm(void) {
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) != NA_BGM_WINDMILL) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) != NA_BGM_WINDMILL) {
+         Audio_StartSeq(SEQ_PLAYER_BGM_MAIN, 0, NA_BGM_WINDMILL);
+     }
+ }
+@@ -4896,7 +4896,7 @@ void Audio_SetMainBgmTempoFreqAfterFanfare(f32 arg0, u8 arg2) {
+ }
+ 
+ void Audio_SetFastTempoForTimedMinigame(void) {
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_TIMED_MINI_GAME && func_800FA11C(0, 0xF0000000)) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_TIMED_MINI_GAME && Audio_IsSeqCmdNotQueued(0, 0xF0000000)) {
+         Audio_SeqCmdB(SEQ_PLAYER_BGM_MAIN, 5, 0, 0xD2);
+     }
+ }
+@@ -4936,7 +4936,7 @@ s32 Audio_IsSequencePlaying(u8 arg0) {
+         phi_a1 = 1;
+     }
+ 
+-    if (arg0 == (u8)func_800FA0B4(phi_a1)) {
++    if (arg0 == (u8)Audio_GetActiveSeqId(phi_a1)) {
+         return 1;
+     } else {
+         return 0;
+@@ -4948,7 +4948,7 @@ s32 Audio_IsSequencePlaying(u8 arg0) {
+  * Designed for the mini-boss sequence, but also used by mini-game 2 sequence
+  */
+ void func_800F5ACC(u16 seqId) {
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if ((curSeqId & 0xFF) != NA_BGM_GANON_TOWER && (curSeqId & 0xFF) != NA_BGM_ESCAPE && curSeqId != seqId) {
+         Audio_SetSequenceMode(SEQ_MODE_IGNORE);
+@@ -4964,7 +4964,7 @@ void func_800F5ACC(u16 seqId) {
+ 
+ // based on func_800F5ACC
+ void PreviewSequence(u16 seqId) {
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if ((curSeqId & 0xFF) != NA_BGM_GANON_TOWER && (curSeqId & 0xFF) != NA_BGM_ESCAPE && curSeqId != seqId) {
+         Audio_SetSequenceMode(SEQ_MODE_IGNORE);
+@@ -4983,8 +4983,8 @@ void PreviewSequence(u16 seqId) {
+  */
+ // LLM generated name (HIGH), was func_800F5B58: restarts sPrevMainBgmSeqId on the main BGM player
+ void Audio_RestorePrevBgm(void) {
+-    if ((func_800FA0B4(SEQ_PLAYER_BGM_MAIN) != NA_BGM_DISABLED) && (sPrevMainBgmSeqId != NA_BGM_DISABLED) &&
+-        (Audio_GetSeqFlags(func_800FA0B4(SEQ_PLAYER_BGM_MAIN) & 0xFF) & 8)) {
++    if ((Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) != NA_BGM_DISABLED) && (sPrevMainBgmSeqId != NA_BGM_DISABLED) &&
++        (Audio_GetSeqFlags(Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) & 0xFF) & 8)) {
+         if (sPrevMainBgmSeqId == NA_BGM_DISABLED) {
+             Audio_SeqCmd1(SEQ_PLAYER_BGM_MAIN, 0);
+         } else {
+@@ -4999,7 +4999,7 @@ void Audio_RestorePrevBgm(void) {
+  * Plays the nature ambience sequence on the main bgm player, but stores the previous sequence to return to later
+  */
+ void func_800F5BF0(u8 natureAmbienceId) {
+-    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
++    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
+ 
+     if (curSeqId != NA_BGM_NATURE_AMBIENCE) {
+         sPrevMainBgmSeqId = curSeqId;
+@@ -5024,7 +5024,7 @@ void Audio_PlayFanfare(u16 seqId) {
+     u8* curFontId;
+     u8* requestedFontId;
+ 
+-    curSeqId = func_800FA0B4(SEQ_PLAYER_FANFARE);
++    curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_FANFARE);
+ 
+     // Although seqIds are u16, there is no fanfare that is above 0xFF
+     // Sometimes the game will add 0x900 to a requested fanfare ID
+@@ -5057,9 +5057,9 @@ void Audio_UpdateFanfare(void) {
+         if (sFanfareStartTimer == 0) {
+             Audio_QueueCmdS32(0xE3000000, SEQUENCE_TABLE);
+             Audio_QueueCmdS32(0xE3000000, FONT_TABLE);
+-            func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
+-            sp26 = func_800FA0B4(SEQ_PLAYER_FANFARE);
+-            sp22 = func_800FA0B4(SEQ_PLAYER_BGM_SUB);
++            Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
++            sp26 = Audio_GetActiveSeqId(SEQ_PLAYER_FANFARE);
++            sp22 = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB);
+             if (sp26 == NA_BGM_DISABLED) {
+                 Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 1, 0, 5);
+                 Audio_SetVolScale(SEQ_PLAYER_BGM_SUB, 1, 0, 5);
+@@ -5097,7 +5097,7 @@ void Audio_SetSequenceMode(u8 seqMode) {
+ 
+         seqId = gActiveSeqs[SEQ_PLAYER_BGM_MAIN].seqId;
+ 
+-        if (seqId == NA_BGM_FIELD_LOGIC && func_800FA0B4(SEQ_PLAYER_BGM_SUB) == (NA_BGM_ENEMY | 0x800)) {
++        if (seqId == NA_BGM_FIELD_LOGIC && Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) == (NA_BGM_ENEMY | 0x800)) {
+             seqMode = SEQ_MODE_IGNORE;
+         }
+ 
+@@ -5191,7 +5191,7 @@ void Audio_UpdateMalonSinging(f32 dist, u16 arg1) {
+     sIsMalonSinging = true;
+     sMalonSingingDist = dist;
+     if (sMalonSingingDisabled == 0) {
+-        temp_a0 = (s8)(func_800FA0B4(SEQ_PLAYER_BGM_MAIN) & 0xFF);
++        temp_a0 = (s8)(Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) & 0xFF);
+         if (temp_a0 == (arg1 & 0xFF)) {
+             if ((arg1 & 0xFF) == NA_BGM_LONLON) {
+ 
+@@ -5211,7 +5211,7 @@ void Audio_UpdateMalonSinging(f32 dist, u16 arg1) {
+                 }
+             }
+         } else if ((temp_a0 == NA_BGM_NATURE_AMBIENCE) && ((arg1 & 0xFF) == NA_BGM_LONLON)) {
+-            temp_a0 = (s8)(func_800FA0B4(SEQ_PLAYER_BGM_SUB) & 0xFF);
++            temp_a0 = (s8)(Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) & 0xFF);
+             if ((temp_a0 != (arg1 & 0xFF)) && (sMalonSingingTimer < 10)) {
+                 Audio_PlaySequenceWithSeqPlayerIO(SEQ_PLAYER_BGM_SUB, NA_BGM_LONLON, 0, 0, 0);
+                 Audio_SeqCmdA(SEQ_PLAYER_BGM_SUB, 0xFFFC);
+@@ -5254,10 +5254,10 @@ void Audio_ToggleMalonSinging(u8 arg0) {
+     u16 sp34;
+ 
+     sMalonSingingDisabled = arg0;
+-    if ((func_800FA0B4(SEQ_PLAYER_BGM_MAIN) & 0xFF) == NA_BGM_LONLON) {
++    if ((Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) & 0xFF) == NA_BGM_LONLON) {
+         playerIdx = SEQ_PLAYER_BGM_MAIN;
+         sp34 = 0;
+-    } else if ((func_800FA0B4(SEQ_PLAYER_BGM_SUB) & 0xFF) == NA_BGM_LONLON) {
++    } else if ((Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) & 0xFF) == NA_BGM_LONLON) {
+         playerIdx = SEQ_PLAYER_BGM_SUB;
+         sp34 = 0xFFFC;
+     } else {
+@@ -5470,14 +5470,14 @@ void Audio_SetNatureAmbienceChannelIO(u8 channelIdxRange, u8 port, u8 val) {
+     u8 lastChannelIdx;
+     u8 channelIdx;
+ 
+-    if ((gActiveSeqs[SEQ_PLAYER_BGM_MAIN].seqId != NA_BGM_NATURE_AMBIENCE) && func_800FA11C(1, 0xF00000FF)) {
++    if ((gActiveSeqs[SEQ_PLAYER_BGM_MAIN].seqId != NA_BGM_NATURE_AMBIENCE) && Audio_IsSeqCmdNotQueued(1, 0xF00000FF)) {
+         sAudioNatureFailed = true;
+         return;
+     }
+ 
+     // channelIdxRange = 01 on port 1
+     if (((channelIdxRange << 8) + port) == ((NATURE_CHANNEL_CRITTER_0 << 8) + CHANNEL_IO_PORT_1)) {
+-        if (func_800FA0B4(SEQ_PLAYER_BGM_SUB) != NA_BGM_LONLON) {
++        if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_SUB) != NA_BGM_LONLON) {
+             sMalonSingingTimer = 0;
+         }
+     }
+@@ -5497,7 +5497,7 @@ void Audio_SetNatureAmbienceChannelIO(u8 channelIdxRange, u8 port, u8 val) {
+ void Audio_StartNatureAmbienceSequence(u16 playerIO, u16 channelMask) {
+     u8 channelIdx;
+ 
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_WINDMILL) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_WINDMILL) {
+         Audio_PlayCutsceneEffectsSequence(0xF);
+         return;
+     }
+@@ -5508,7 +5508,7 @@ void Audio_StartNatureAmbienceSequence(u16 playerIO, u16 channelMask) {
+     Audio_SetVolScale(SEQ_PLAYER_BGM_MAIN, 0, 0x7F, 1);
+ 
+     channelIdx = false;
+-    if (D_80133408 != 0) {
++    if (gStartSeqDisabled != 0) {
+         channelIdx = true;
+         Audio_SeqCmdE01(SEQ_PLAYER_BGM_MAIN, 0);
+     }
+@@ -5558,7 +5558,7 @@ void Audio_InitSound(void) {
+     Audio_ResetData();
+     AudioOcarina_ResetStaffs();
+     Audio_ResetSfxChannelState();
+-    func_800FAEB4();
++    Audio_ResetActiveSequencesAndVolume();
+     Audio_ResetSounds();
+     Audio_StartSequence(SEQ_PLAYER_SFX, 0, 0x70, 10);
+ }
+@@ -5571,7 +5571,7 @@ void func_800F7170(void) {
+ }
+ 
+ void func_800F71BC(s32 arg0) {
+-    D_80133418 = 1;
++    sAudioResetState = 1;
+     Audio_ResetData();
+     AudioOcarina_ResetStaffs();
+     Audio_ResetSfxChannelState();
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index cb6a7d0ca..a677be2ca 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -4,25 +4,32 @@
+ 
+ #include "soh/Enhancements/audio/AudioEditor.h"
+ 
++// Name from zeldaret/oot, was Struct_8016E320: struct queued in sSeqRequests holding a seqId (unk_0) and [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++// importance (unk_1).
+ typedef struct {
+     u8 unk_0;
+     u8 unk_1; // importance?
+-} Struct_8016E320;
++} SeqRequest;
+ 
+ #define GET_PLAYER_IDX(cmd) (cmd & 0xF000000) >> 24
+ 
+-Struct_8016E320 D_8016E320[4][5];
++// Name from zeldaret/oot, was D_8016E320: per-player queue of pending SeqRequest entries. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++SeqRequest sSeqRequests[4][5];
+ u8 sNumSeqRequests[4];
+ u32 sAudioSeqCmds[0x100];
+ ActiveSequence gActiveSeqs[4];
+ 
+ u8 sSeqCmdWrPos = 0;
+ u8 sSeqCmdRdPos = 0;
+-u8 D_80133408 = 0;
+-u8 D_8013340C = 1;
+-u8 D_80133410[] = { 0, 1, 2, 3 };
++// Name from zeldaret/oot, was D_80133408: when set, blocks starting a sequence except on the SFX player. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++u8 gStartSeqDisabled = 0;
++// Name from zeldaret/oot, was D_8013340C: gates the osSyncPrintf debug print of processed seq commands. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++u8 gAudioDebugPrintSeqCmd = 1;
++// LLM generated name (HIGH), was D_80133410: sound-mode values indexed to issue the set-sound-mode command.
++u8 sSoundModeList[] = { 0, 1, 2, 3 };
+ u8 gAudioSpecId = 0;
+-u8 D_80133418 = 0;
++// LLM generated name (HIGH), was D_80133418: audio-heap reset state machine (0/1/2) driven by Audio_UpdateResetState.
++u8 sAudioResetState = 0;
+ 
+ // TODO: clean up these macros. They are similar to ones in audio_general.c (was code_800EC960.c) but without casts.
+ #define Audio_StartSeq(playerIdx, fadeTimer, seqId) \
+@@ -42,7 +49,7 @@ void Audio_StartSequence(u8 playerIdx, u8 seqId, u8 arg2, u16 fadeTimer) {
+     u16 resolvedSeqId;
+     s32 pad;
+ 
+-    if (D_80133408 == 0 || playerIdx == SEQ_PLAYER_SFX) {
++    if (gStartSeqDisabled == 0 || playerIdx == SEQ_PLAYER_SFX) {
+         // Resolve here so the full 16-bit id rides in the command (bits 0-15) rather than the shared
+         // seqToPlay slot. seqReplaced is set out-of-band by preview/slow load.
+         // See AudioEditor_GetReplacementSeq().
+@@ -85,7 +92,8 @@ void Audio_StartSequence(u8 playerIdx, u8 seqId, u8 arg2, u16 fadeTimer) {
+     }
+ }
+ 
+-void func_800F9474(u8 playerIdx, u16 arg1) {
++// Name from zeldaret/oot, was func_800F9474: queues a stop command and disables the player's active seqId. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++void Audio_StopSequence(u8 playerIdx, u16 arg1) {
+     Audio_QueueCmdS32(0x83000000 | ((u8)playerIdx << 16),
+                       (arg1 * (u16)gAudioContext.audioBufferParameters.updatesPerFrame) / 4);
+     gActiveSeqs[playerIdx].seqId = NA_BGM_DISABLED;
+@@ -130,7 +138,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+     s32 new_var;
+     f32 freqScale;
+ 
+-    if (D_8013340C && (cmd & 0xF0000000) != 0x70000000) {
++    if (gAudioDebugPrintSeqCmd && (cmd & 0xF0000000) != 0x70000000) {
+         AudioDebug_ScrPrt((const s8*)D_80133390, (cmd >> 16) & 0xFFFF); // "SEQ H"
+         AudioDebug_ScrPrt((const s8*)D_80133398, cmd & 0xFFFF);         // "    L"
+     }
+@@ -152,7 +160,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+         case 0x1:
+             // disable seq player
+             fadeTimer = (cmd & 0xFF0000) >> 13;
+-            func_800F9474(playerIdx, fadeTimer);
++            Audio_StopSequence(playerIdx, fadeTimer);
+             break;
+ 
+         case 0x2:
+@@ -162,7 +170,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+             fadeTimer = (cmd & 0xFF0000) >> 13;
+             new_var = seqArgs;
+             for (i = 0; i < sNumSeqRequests[playerIdx]; i++) {
+-                if (D_8016E320[playerIdx][i].unk_0 == seqId) {
++                if (sSeqRequests[playerIdx][i].unk_0 == seqId) {
+                     if (i == 0) {
+                         Audio_StartSequence(playerIdx, seqId, seqArgs, fadeTimer);
+                     }
+@@ -172,7 +180,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+ 
+             found = sNumSeqRequests[playerIdx];
+             for (i = 0; i < sNumSeqRequests[playerIdx]; i++) {
+-                if (D_8016E320[playerIdx][i].unk_1 <= new_var) {
++                if (sSeqRequests[playerIdx][i].unk_1 <= new_var) {
+                     found = i;
+                     i = sNumSeqRequests[playerIdx]; // "break;"
+                 }
+@@ -182,11 +190,11 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+                 sNumSeqRequests[playerIdx]++;
+             }
+             for (i = sNumSeqRequests[playerIdx] - 1; i != found; i--) {
+-                D_8016E320[playerIdx][i].unk_1 = D_8016E320[playerIdx][i - 1].unk_1;
+-                D_8016E320[playerIdx][i].unk_0 = D_8016E320[playerIdx][i - 1].unk_0;
++                sSeqRequests[playerIdx][i].unk_1 = sSeqRequests[playerIdx][i - 1].unk_1;
++                sSeqRequests[playerIdx][i].unk_0 = sSeqRequests[playerIdx][i - 1].unk_0;
+             }
+-            D_8016E320[playerIdx][found].unk_1 = seqArgs;
+-            D_8016E320[playerIdx][found].unk_0 = seqId;
++            sSeqRequests[playerIdx][found].unk_1 = seqArgs;
++            sSeqRequests[playerIdx][found].unk_0 = seqId;
+ 
+             if (found == 0) {
+                 Audio_StartSequence(playerIdx, seqId, seqArgs, fadeTimer);
+@@ -200,7 +208,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+ 
+             found = sNumSeqRequests[playerIdx];
+             for (i = 0; i < sNumSeqRequests[playerIdx]; i++) {
+-                if (D_8016E320[playerIdx][i].unk_0 == seqId) {
++                if (sSeqRequests[playerIdx][i].unk_0 == seqId) {
+                     found = i;
+                     i = sNumSeqRequests[playerIdx]; // "break;"
+                 }
+@@ -208,16 +216,16 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+ 
+             if (found != sNumSeqRequests[playerIdx]) {
+                 for (i = found; i < sNumSeqRequests[playerIdx] - 1; i++) {
+-                    D_8016E320[playerIdx][i].unk_1 = D_8016E320[playerIdx][i + 1].unk_1;
+-                    D_8016E320[playerIdx][i].unk_0 = D_8016E320[playerIdx][i + 1].unk_0;
++                    sSeqRequests[playerIdx][i].unk_1 = sSeqRequests[playerIdx][i + 1].unk_1;
++                    sSeqRequests[playerIdx][i].unk_0 = sSeqRequests[playerIdx][i + 1].unk_0;
+                 }
+                 sNumSeqRequests[playerIdx]--;
+             }
+ 
+             if (found == 0) {
+-                func_800F9474(playerIdx, fadeTimer);
++                Audio_StopSequence(playerIdx, fadeTimer);
+                 if (sNumSeqRequests[playerIdx] != 0) {
+-                    Audio_StartSequence(playerIdx, D_8016E320[playerIdx][0].unk_0, D_8016E320[playerIdx][0].unk_1,
++                    Audio_StartSequence(playerIdx, sSeqRequests[playerIdx][0].unk_0, sSeqRequests[playerIdx][0].unk_1,
+                                         fadeTimer);
+                 }
+             }
+@@ -358,11 +366,11 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+             switch (subOp) {
+                 case 0:
+                     // set sound mode
+-                    Audio_QueueCmdS32(0xF0000000, D_80133410[val]);
++                    Audio_QueueCmdS32(0xF0000000, sSoundModeList[val]);
+                     break;
+                 case 1:
+                     // set sequence starting disabled?
+-                    D_80133408 = val & 1;
++                    gStartSeqDisabled = val & 1;
+                     break;
+             }
+             break;
+@@ -397,14 +405,16 @@ void Audio_ProcessSeqCmds(void) {
+     }
+ }
+ 
+-u16 func_800FA0B4(u8 playerIdx) {
++// Name from zeldaret/oot, was func_800FA0B4: returns the player's active seqId, or disabled if not enabled. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++u16 Audio_GetActiveSeqId(u8 playerIdx) {
+     if (!gAudioContext.seqPlayers[playerIdx].enabled) {
+         return NA_BGM_DISABLED;
+     }
+     return gActiveSeqs[playerIdx].seqId;
+ }
+ 
+-s32 func_800FA11C(u32 arg0, u32 arg1) {
++// Name from zeldaret/oot, was func_800FA11C: scans the cmd ring, returns false if a matching cmd is queued. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++s32 Audio_IsSeqCmdNotQueued(u32 arg0, u32 arg1) {
+     u8 i;
+ 
+     for (i = sSeqCmdRdPos; i != sSeqCmdWrPos; i++) {
+@@ -416,11 +426,13 @@ s32 func_800FA11C(u32 arg0, u32 arg1) {
+     return true;
+ }
+ 
+-void func_800FA174(u8 playerIdx) {
++// Name from zeldaret/oot, was func_800FA174: clears the player's pending sequence-request count. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++void Audio_ResetSequenceRequests(u8 playerIdx) {
+     sNumSeqRequests[playerIdx] = 0;
+ }
+ 
+-void func_800FA18C(u8 playerIdx, u8 arg1) {
++// Name from zeldaret/oot, was func_800FA18C: nulls queued setup commands whose op field matches arg1. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++void Audio_ReplaceSeqCmdSetupOpVolRestore(u8 playerIdx, u8 arg1) {
+     u8 i;
+ 
+     for (i = 0; i < gActiveSeqs[playerIdx].setupCmdNum; i++) {
+@@ -450,7 +462,8 @@ void Audio_SetVolScale(u8 playerIdx, u8 scaleIdx, u8 targetVol, u8 volFadeTimer)
+     }
+ }
+ 
+-void func_800FA3DC(void) {
++// Name from zeldaret/oot, was func_800FA3DC: per-frame update of fades/tempo/setup for all active sequences. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++void Audio_UpdateActiveSequences(void) {
+     u32 temp_a1;
+     u16 temp_lo;
+     u16 temp_v1;
+@@ -599,7 +612,7 @@ void func_800FA3DC(void) {
+         }
+ 
+         if (gActiveSeqs[playerIdx].setupCmdNum != 0) {
+-            if (func_800FA11C(0xF0000000, 0xF0000000) == 0) {
++            if (Audio_IsSeqCmdNotQueued(0xF0000000, 0xF0000000) == 0) {
+                 gActiveSeqs[playerIdx].setupCmdNum = 0;
+                 return;
+             }
+@@ -680,23 +693,24 @@ void func_800FA3DC(void) {
+     }
+ }
+ 
+-u8 func_800FAD34(void) {
+-    if (D_80133418 != 0) {
+-        if (D_80133418 == 1) {
++// LLM generated name (HIGH), was func_800FAD34: advances and returns sAudioResetState as the heap reset completes.
++u8 Audio_UpdateResetState(void) {
++    if (sAudioResetState != 0) {
++        if (sAudioResetState == 1) {
+             if (func_800E5EDC() == 1) {
+-                D_80133418 = 0;
++                sAudioResetState = 0;
+                 Audio_QueueCmdS8(0x46020000, gSfxChannelLayout);
+                 func_800F7170();
+             }
+-        } else if (D_80133418 == 2) {
++        } else if (sAudioResetState == 2) {
+             while (func_800E5EDC() != 1) {}
+-            D_80133418 = 0;
++            sAudioResetState = 0;
+             Audio_QueueCmdS8(0x46020000, gSfxChannelLayout);
+             func_800F7170();
+         }
+     }
+ 
+-    return D_80133418;
++    return sAudioResetState;
+ }
+ 
+ void Audio_ResetActiveSequences(void) {
+@@ -725,7 +739,8 @@ void Audio_ResetActiveSequences(void) {
+     }
+ }
+ 
+-void func_800FAEB4(void) {
++// Name from zeldaret/oot, was func_800FAEB4: resets per-player volumes then resets all active sequences. [oot: https://github.com/zeldaret/oot/blob/main/src/audio/game/sequence.c]
++void Audio_ResetActiveSequencesAndVolume(void) {
+     u8 playerIdx, j;
+ 
+     for (playerIdx = 0; playerIdx < 4; playerIdx++) {
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index a79017603..82dd05b86 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -2520,7 +2520,7 @@ void Environment_StopStormNatureAmbience(PlayState* play) {
+     Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_RAIN, CHANNEL_IO_PORT_1, 0);
+     Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_LIGHTNING, CHANNEL_IO_PORT_1, 0);
+ 
+-    if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
++    if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
+         gSaveContext.seqId = NA_BGM_NATURE_SFX_RAIN;
+         Environment_PlaySceneSequence(play);
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c b/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
+index 89ef1b781..bcca98270 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Effect/z_en_okarina_effect.c
+@@ -93,7 +93,7 @@ void EnOkarinaEffect_ManageStorm(EnOkarinaEffect* this, PlayState* play) {
+         play->envCtx.unk_F2[0] = 0;
+         if (play->csCtx.state == CS_STATE_IDLE) {
+             Environment_StopStormNatureAmbience(play);
+-        } else if (func_800FA0B4(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
++        } else if (Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN) == NA_BGM_NATURE_AMBIENCE) {
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_LIGHTNING, CHANNEL_IO_PORT_1, 0);
+             Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_RAIN, CHANNEL_IO_PORT_1, 0);
+         }
+-- 
+2.55.0
+

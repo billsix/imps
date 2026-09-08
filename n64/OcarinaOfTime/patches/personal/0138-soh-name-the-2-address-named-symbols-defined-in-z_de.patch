@@ -1,0 +1,124 @@
+From 479ee2954f78bf5ce09b3464ce8fef52716cfd93 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:10 +0000
+Subject: [PATCH 138/488] soh: name the 2 address-named symbols defined in
+ z_demo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_demo.c; updating their references touches 3 files in total.
+
+  * func_800645A0 -> Cutscene_UpdateScripted
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.80
+
+  * func_80068DC0 -> CutsceneHandler_StopScript
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.88
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h |  2 +-
+ soh/src/code/z_demo.c   | 10 ++++++----
+ soh/src/code/z_play.c   |  2 +-
+ 3 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 942575403..7b6d23b3f 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -866,7 +866,7 @@ void Cutscene_InitContext(PlayState* play, CutsceneContext* csCtx);  // was func
+ void Cutscene_StartManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064520 [oot]
+ void Cutscene_StopManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064534 [oot]
+ void Cutscene_UpdateManual(PlayState* play, CutsceneContext* csCtx);  // was func_80064558 [oot]
+-void func_800645A0(PlayState* play, CutsceneContext* csCtx);
++void Cutscene_UpdateScripted(PlayState* play, CutsceneContext* csCtx);  // was func_800645A0 [oot]
+ void Cutscene_HandleEntranceTriggers(PlayState* play);
+ void Cutscene_HandleConditionalTriggers(PlayState* play);
+ void Cutscene_SetSegment(PlayState* play, void* segment);
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 150adfd8c..886f85936 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -52,14 +52,15 @@ void CutsceneHandler_StartScript(PlayState* play, CutsceneContext* csCtx);
+ void func_80068C3C(PlayState* play, CutsceneContext* csCtx);
+ // Name from zeldaret/oot (was func_80068D84): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ void CutsceneHandler_StopManual(PlayState* play, CutsceneContext* csCtx);
+-void func_80068DC0(PlayState* play, CutsceneContext* csCtx);
++// Name from zeldaret/oot (was func_80068DC0): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++void CutsceneHandler_StopScript(PlayState* play, CutsceneContext* csCtx);
+ 
+ CutsceneStateHandler sCsStateHandlers1[] = {
+     CutsceneHandler_DoNothing, CutsceneHandler_StartManual, CutsceneHandler_DoNothing, CutsceneHandler_StopManual, CutsceneHandler_DoNothing,
+ };
+ 
+ CutsceneStateHandler sCsStateHandlers2[] = {
+-    CutsceneHandler_DoNothing, CutsceneHandler_StartScript, func_80068C3C, func_80068DC0, func_80068C3C,
++    CutsceneHandler_DoNothing, CutsceneHandler_StartScript, func_80068C3C, CutsceneHandler_StopScript, func_80068C3C,
+ };
+ 
+ u8 sTitleCsState = 0;
+@@ -170,7 +171,8 @@ void Cutscene_UpdateManual(PlayState* play, CutsceneContext* csCtx) {
+     }
+ }
+ 
+-void func_800645A0(PlayState* play, CutsceneContext* csCtx) {
++// Name from zeldaret/oot (was func_800645A0): adopted upstream's name for this address; body verified to match upstream at 0.80. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
++void Cutscene_UpdateScripted(PlayState* play, CutsceneContext* csCtx) {
+     Input* input = &play->state.input[0];
+ 
+     if (CVarGetInteger(CVAR_DEVELOPER_TOOLS("DebugEnabled"), 0) && CHECK_BTN_ALL(input->press.button, BTN_DLEFT) &&
+@@ -2112,7 +2114,7 @@ void CutsceneHandler_StopManual(PlayState* play, CutsceneContext* csCtx) {
+     }
+ }
+ 
+-void func_80068DC0(PlayState* play, CutsceneContext* csCtx) {
++void CutsceneHandler_StopScript(PlayState* play, CutsceneContext* csCtx) {
+     s16 i;
+ 
+     if (Cutscene_StepTimer(play, csCtx, 0.0f)) {
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index d5fb9a5f9..141e79c4b 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1176,7 +1176,7 @@ void Play_Update(PlayState* play) {
+                     Cutscene_UpdateManual(play, &play->csCtx);
+ 
+                     PLAY_LOG(3648);
+-                    func_800645A0(play, &play->csCtx);
++                    Cutscene_UpdateScripted(play, &play->csCtx);
+ 
+                     PLAY_LOG(3651);
+                     Effect_UpdateAll(play);
+-- 
+2.55.0
+

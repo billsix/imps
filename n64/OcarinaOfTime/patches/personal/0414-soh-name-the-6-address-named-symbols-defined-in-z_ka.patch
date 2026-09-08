@@ -1,0 +1,312 @@
+From 6bcf397ba8052d201dca81ce7dc86bdb97cb860a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:35 +0000
+Subject: [PATCH 414/488] soh: name the 6 address-named symbols defined in
+ z_kankyo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/code/z_kankyo.c; updating their references touches 4 files in total.
+
+  * Struct_8011FAF0 -> ZBufValConversionEntry
+    deduced, confidence HIGH: the shift and base pair of
+    sZBufValConversionTable, which upstream already named
+
+  * func_8006F0A0 -> Environment_ZBufValToDepth
+    deduced, confidence HIGH: expands a packed Z buffer value through
+    sZBufValConversionTable into a linear depth
+
+  * D_8011FB44 -> sSunDepth
+    deduced, confidence HIGH: the pixel depth read at the sun's screen
+    position, used to decide whether the lens flare is occluded
+
+  * D_8011FB48 -> sTimeBasedLightConfigs
+    deduced, confidence HIGH: per-scene rows of time ranges and the light
+    setting each blends between, read through the TIME_ENTRY macros
+
+  * D_8011FC1C -> sTimeBasedSkyboxConfigs
+    deduced, confidence HIGH: per-scene rows of time ranges, blend flag and
+    the skybox indices each covers
+
+  * D_8015FDB0 -> sSandstormScroll
+    deduced, confidence HIGH: the sandstorm texture scroll, advanced each
+    frame and multiplied by three different rates for its layers
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h |  2 +-
+ soh/include/variables.h |  2 +-
+ soh/src/code/z_kankyo.c | 77 ++++++++++++++++++++++-------------------
+ soh/src/code/z_vr_box.c | 14 ++++----
+ 4 files changed, 50 insertions(+), 45 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index aa1b29fe7..505d2714d 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -908,7 +908,7 @@ void Font_LoadCharWide(Font* font, u16 arg1, u16 arg2);
+ void Font_LoadChar(Font* font, u8 character, u16 codePointIndex);
+ void Font_LoadMessageBoxIcon(Font* font, u16 icon);
+ void Font_LoadOrderedFont(Font* font);
+-s32 func_8006F0A0(s32 arg0);
++s32 Environment_ZBufValToDepth(s32 arg0);  // was func_8006F0A0 [LLM:HIGH]
+ u16 Environment_GetPixelDepth(s32 x, s32 y);
+ void Environment_GraphCallback(GraphicsContext* gfxCtx, void* param);
+ void Environment_Init(PlayState* play, EnvironmentContext* envCtx, s32 unused);
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 3d9e4daaf..56fbad074 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -78,7 +78,7 @@ extern "C"
+ 	extern u8 gInterruptSongOfStorms;  // was D_8011FB38 [oot]
+ 	extern u8 gSkyboxBlendingEnabled;
+ 	extern u16 gTimeSpeed;
+-	extern struct_8011FC1C D_8011FC1C[][9];
++	extern struct_8011FC1C sTimeBasedSkyboxConfigs[][9];  // was D_8011FC1C [LLM:HIGH]
+ 	extern SkyboxFile gSkyboxFiles[];
+ 	extern s32 gZeldaArenaLogSeverity;
+ 	extern MapData gMapDataTable;
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 0613e4366..82f2aa538 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -42,10 +42,10 @@ typedef struct {
+ typedef struct {
+     /* 0x00 */ s32 unk_00;
+     /* 0x04 */ s32 unk_04;
+-} Struct_8011FAF0; // size = 0x8
++} ZBufValConversionEntry; // size = 0x8, was Struct_8011FAF0 [LLM:HIGH]
+ 
+ // Name from zeldaret/oot (was D_8011FAF0): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
+-Struct_8011FAF0 sZBufValConversionTable[] = {
++ZBufValConversionEntry sZBufValConversionTable[] = {  // was Struct_8011FAF0 [LLM:HIGH]
+     { 6, 0x00000000 }, { 5, 0x00020000 }, { 4, 0x00030000 }, { 3, 0x00038000 },
+     { 2, 0x0003C000 }, { 1, 0x0003E000 }, { 0, 0x0003F000 }, { 0, 0x0003F800 },
+ };
+@@ -65,9 +65,11 @@ u16 gTimeSpeed = 0;
+ #define ENVIRONMENT_SHIP_SAVESTATE_FIELDS(F) F(gTimeSpeed)
+ SHIP_SAVESTATE_DEFINE(Environment, ENVIRONMENT_SHIP_SAVESTATE_FIELDS)
+ 
+-u16 D_8011FB44 = 0xFFFC;
++// LLM generated name (HIGH), was D_8011FB44: the pixel depth read at the sun's screen position, used to decide whether the lens flare is occluded
++u16 sSunDepth = 0xFFFC;  // was D_8011FB44 [LLM:HIGH]
+ 
+-struct_8011FB48 D_8011FB48[][7] = {
++// LLM generated name (HIGH), was D_8011FB48: per-scene rows of time ranges and the light setting each blends between, read through the TIME_ENTRY macros
++struct_8011FB48 sTimeBasedLightConfigs[][7] = {  // was D_8011FB48 [LLM:HIGH]
+     {
+         { 0x0000, 0x2AAC, 3, 3 },
+         { 0x2AAC, 0x4000, 3, 0 },
+@@ -115,7 +117,8 @@ struct_8011FB48 D_8011FB48[][7] = {
+     },
+ };
+ 
+-struct_8011FC1C D_8011FC1C[][9] = {
++// LLM generated name (HIGH), was D_8011FC1C: per-scene rows of time ranges, blend flag and the skybox indices each covers
++struct_8011FC1C sTimeBasedSkyboxConfigs[][9] = {  // was D_8011FC1C [LLM:HIGH]
+     {
+         { 0x0000, 0x2AAC, 0, 3, 3 },
+         { 0x2AAC, 0x3556, 1, 3, 0 },
+@@ -227,14 +230,16 @@ LightInfo sNGameOverLightInfo;
+ LightNode* sSGameOverLightNode;
+ LightInfo sSGameOverLightInfo;
+ u8 sGameOverLightsIntensity;
+-u16 D_8015FDB0;
++// LLM generated name (HIGH), was D_8015FDB0: the sandstorm texture scroll, advanced each frame and multiplied by three different rates for its layers
++u16 sSandstormScroll;  // was D_8015FDB0 [LLM:HIGH]
+ 
+ void LoadSkyboxPalette(SkyboxContext* skyboxCtx, int paletteIndex, char* palTex, int width, int height);
+ void LoadSkyboxTex(SkyboxContext* skyboxCtx, int segmentIndex, int imageIndex, char* tex, int width, int height,
+                    int offsetW, int offsetH);
+ void Skybox_Update(SkyboxContext* skyboxCtx);
+ 
+-s32 func_8006F0A0(s32 a0) {
++// LLM generated name (HIGH), was func_8006F0A0: expands a packed Z buffer value through sZBufValConversionTable into a linear depth
++s32 Environment_ZBufValToDepth(s32 a0) {
+     s32 ret = ((a0 >> 4 & 0x7FF) << sZBufValConversionTable[a0 >> 15 & 7].unk_00) + sZBufValConversionTable[a0 >> 15 & 7].unk_04;
+ 
+     return ret;
+@@ -250,7 +255,7 @@ void Environment_GraphCallback(GraphicsContext* gfxCtx, void* param) {
+     OTRGetPixelDepthPrepare(sSunDepthTestX, sSunDepthTestY);
+     Lights_GlowCheckPrepare(play);
+ 
+-    D_8011FB44 = Environment_GetPixelDepth(sSunDepthTestX, sSunDepthTestY);
++    sSunDepth = Environment_GetPixelDepth(sSunDepthTestX, sSunDepthTestY);  // was D_8011FB44 [LLM:HIGH]
+     Lights_GlowCheck(play);
+ }
+ 
+@@ -631,13 +636,13 @@ void Environment_UpdateSkybox(PlayState* play, u8 skyboxId, EnvironmentContext*
+     if (skyboxId == SKYBOX_CUTSCENE_MAP) {
+         envCtx->unk_17 = 3;
+ 
+-        for (i = 0; i < ARRAY_COUNT(D_8011FC1C[envCtx->unk_17]); i++) {
+-            if (gSaveContext.skyboxTime >= D_8011FC1C[envCtx->unk_17][i].startTime &&
+-                (gSaveContext.skyboxTime < D_8011FC1C[envCtx->unk_17][i].endTime ||
+-                 D_8011FC1C[envCtx->unk_17][i].endTime == 0xFFFF)) {
+-                if (D_8011FC1C[envCtx->unk_17][i].blend) {
+-                    envCtx->skyboxBlend = Environment_LerpWeight(D_8011FC1C[envCtx->unk_17][i].endTime,
+-                                                                 D_8011FC1C[envCtx->unk_17][i].startTime,
++        for (i = 0; i < ARRAY_COUNT(sTimeBasedSkyboxConfigs[envCtx->unk_17]); i++) {  // was D_8011FC1C [LLM:HIGH]
++            if (gSaveContext.skyboxTime >= sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime &&  // was D_8011FC1C [LLM:HIGH]
++                (gSaveContext.skyboxTime < sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime ||  // was D_8011FC1C [LLM:HIGH]
++                 sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime == 0xFFFF)) {  // was D_8011FC1C [LLM:HIGH]
++                if (sTimeBasedSkyboxConfigs[envCtx->unk_17][i].blend) {  // was D_8011FC1C [LLM:HIGH]
++                    envCtx->skyboxBlend = Environment_LerpWeight(sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime,  // was D_8011FC1C [LLM:HIGH]
++                                                                 sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime,  // was D_8011FC1C [LLM:HIGH]
+                                                                  ((void)0, gSaveContext.skyboxTime)) *
+                                           255;
+                 } else {
+@@ -647,22 +652,22 @@ void Environment_UpdateSkybox(PlayState* play, u8 skyboxId, EnvironmentContext*
+             }
+         }
+     } else if (skyboxId == SKYBOX_NORMAL_SKY && !envCtx->skyboxDisabled) {
+-        for (i = 0; i < ARRAY_COUNT(D_8011FC1C[envCtx->unk_17]); i++) {
+-            if (gSaveContext.skyboxTime >= D_8011FC1C[envCtx->unk_17][i].startTime &&
+-                (gSaveContext.skyboxTime < D_8011FC1C[envCtx->unk_17][i].endTime ||
+-                 D_8011FC1C[envCtx->unk_17][i].endTime == 0xFFFF)) {
+-                newSkybox1Index = D_8011FC1C[envCtx->unk_17][i].skybox1Index;
+-                newSkybox2Index = D_8011FC1C[envCtx->unk_17][i].skybox2Index;
+-                gSkyboxBlendingEnabled = D_8011FC1C[envCtx->unk_17][i].blend;
++        for (i = 0; i < ARRAY_COUNT(sTimeBasedSkyboxConfigs[envCtx->unk_17]); i++) {  // was D_8011FC1C [LLM:HIGH]
++            if (gSaveContext.skyboxTime >= sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime &&  // was D_8011FC1C [LLM:HIGH]
++                (gSaveContext.skyboxTime < sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime ||  // was D_8011FC1C [LLM:HIGH]
++                 sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime == 0xFFFF)) {  // was D_8011FC1C [LLM:HIGH]
++                newSkybox1Index = sTimeBasedSkyboxConfigs[envCtx->unk_17][i].skybox1Index;  // was D_8011FC1C [LLM:HIGH]
++                newSkybox2Index = sTimeBasedSkyboxConfigs[envCtx->unk_17][i].skybox2Index;  // was D_8011FC1C [LLM:HIGH]
++                gSkyboxBlendingEnabled = sTimeBasedSkyboxConfigs[envCtx->unk_17][i].blend;  // was D_8011FC1C [LLM:HIGH]
+ 
+                 if (gSkyboxBlendingEnabled) {
+-                    skyboxBlend = Environment_LerpWeight(D_8011FC1C[envCtx->unk_17][i].endTime,
+-                                                         D_8011FC1C[envCtx->unk_17][i].startTime,
++                    skyboxBlend = Environment_LerpWeight(sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime,  // was D_8011FC1C [LLM:HIGH]
++                                                         sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime,  // was D_8011FC1C [LLM:HIGH]
+                                                          ((void)0, gSaveContext.skyboxTime)) *
+                                   255;
+                 } else {
+-                    skyboxBlend = Environment_LerpWeight(D_8011FC1C[envCtx->unk_17][i].endTime,
+-                                                         D_8011FC1C[envCtx->unk_17][i].startTime,
++                    skyboxBlend = Environment_LerpWeight(sTimeBasedSkyboxConfigs[envCtx->unk_17][i].endTime,  // was D_8011FC1C [LLM:HIGH]
++                                                         sTimeBasedSkyboxConfigs[envCtx->unk_17][i].startTime,  // was D_8011FC1C [LLM:HIGH]
+                                                          ((void)0, gSaveContext.skyboxTime)) *
+                                   255;
+ 
+@@ -680,8 +685,8 @@ void Environment_UpdateSkybox(PlayState* play, u8 skyboxId, EnvironmentContext*
+         Environment_UpdateStorm(envCtx, skyboxBlend);
+ 
+         if (envCtx->unk_19 >= 3) {
+-            newSkybox1Index = D_8011FC1C[envCtx->unk_17][i].skybox1Index;
+-            newSkybox2Index = D_8011FC1C[envCtx->unk_18][i].skybox2Index;
++            newSkybox1Index = sTimeBasedSkyboxConfigs[envCtx->unk_17][i].skybox1Index;  // was D_8011FC1C [LLM:HIGH]
++            newSkybox2Index = sTimeBasedSkyboxConfigs[envCtx->unk_18][i].skybox2Index;  // was D_8011FC1C [LLM:HIGH]
+ 
+             skyboxBlend = ((f32)envCtx->unk_24 - envCtx->unk_1A--) / (f32)envCtx->unk_24 * 255;
+ 
+@@ -886,8 +891,8 @@ void Environment_PrintDebugInfo(PlayState* play, Gfx** gfx) {
+     GfxPrint_Destroy(&printer);
+ }
+ 
+-#define TIME_ENTRY_1F (D_8011FB48[envCtx->unk_1F][i])
+-#define TIME_ENTRY_20 (D_8011FB48[envCtx->unk_20][i])
++#define TIME_ENTRY_1F (sTimeBasedLightConfigs[envCtx->unk_1F][i])  // was D_8011FB48 [LLM:HIGH]
++#define TIME_ENTRY_20 (sTimeBasedLightConfigs[envCtx->unk_20][i])  // was D_8011FB48 [LLM:HIGH]
+ 
+ // Name from zeldaret/oot (was func_80075B44): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_kankyo.c]
+ void Environment_PlayTimeBasedSequence(PlayState* play);
+@@ -988,7 +993,7 @@ void Environment_Update(PlayState* play, EnvironmentContext* envCtx, LightContex
+ 
+         if (envCtx->unk_BF != 0xFE) {
+             if (!envCtx->indoors && (envCtx->unk_BF == 0xFF)) {
+-                for (i = 0; i < ARRAY_COUNT(D_8011FB48[envCtx->unk_1F]); i++) {
++                for (i = 0; i < ARRAY_COUNT(sTimeBasedLightConfigs[envCtx->unk_1F]); i++) {  // was D_8011FB48 [LLM:HIGH]
+                     if ((gSaveContext.skyboxTime >= TIME_ENTRY_1F.startTime) &&
+                         ((gSaveContext.skyboxTime < TIME_ENTRY_1F.endTime) || TIME_ENTRY_1F.endTime == 0xFFFF)) {
+                         u8 blend8[2];
+@@ -1528,7 +1533,7 @@ void Environment_DrawLensFlare(PlayState* play, EnvironmentContext* envCtx, View
+             Play_GetScreenPos(play, &pos, &screenPos);
+             sSunDepthTestX = (s16)screenPos.x;
+             sSunDepthTestY = (s16)screenPos.y - 5.0f;
+-            if (D_8011FB44 != 0xFFFC || screenPos.x < 0.0f || screenPos.y < shrink || screenPos.x > SCREEN_WIDTH ||
++            if (sSunDepth != 0xFFFC || screenPos.x < 0.0f || screenPos.y < shrink || screenPos.x > SCREEN_WIDTH ||  // was D_8011FB44 [LLM:HIGH]
+                 screenPos.y > (SCREEN_HEIGHT - shrink)) {
+                 isOffScreen = true;
+             }
+@@ -2429,9 +2434,9 @@ void Environment_DrawSandstorm(PlayState* play, u8 sandstormState) {
+     envColor.g = ((envColor.g * sp98) + ((6.0f - sp98) * primColor.g)) * (1.0f / 6.0f);
+     envColor.b = ((envColor.b * sp98) + ((6.0f - sp98) * primColor.b)) * (1.0f / 6.0f);
+ 
+-    sp96 = (s32)(D_8015FDB0 * (11.0f / 6.0f));
+-    sp94 = (s32)(D_8015FDB0 * (9.0f / 6.0f));
+-    sp92 = (s32)(D_8015FDB0 * (6.0f / 6.0f));
++    sp96 = (s32)(sSandstormScroll * (11.0f / 6.0f));  // was D_8015FDB0 [LLM:HIGH]
++    sp94 = (s32)(sSandstormScroll * (9.0f / 6.0f));  // was D_8015FDB0 [LLM:HIGH]
++    sp92 = (s32)(sSandstormScroll * (6.0f / 6.0f));  // was D_8015FDB0 [LLM:HIGH]
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+@@ -2448,7 +2453,7 @@ void Environment_DrawSandstorm(PlayState* play, u8 sandstormState) {
+     gSPDisplayList(POLY_XLU_DISP++, gFieldSandstormDL);
+     CLOSE_DISPS(play->state.gfxCtx);
+ 
+-    D_8015FDB0 += (s32)sp98;
++    sSandstormScroll += (s32)sp98;  // was D_8015FDB0 [LLM:HIGH]
+ }
+ 
+ void Environment_AdjustLights(PlayState* play, f32 arg1, f32 arg2, f32 arg3, f32 arg4) {
+diff --git a/soh/src/code/z_vr_box.c b/soh/src/code/z_vr_box.c
+index 4b8ae3658..4d947a832 100644
+--- a/soh/src/code/z_vr_box.c
++++ b/soh/src/code/z_vr_box.c
+@@ -574,14 +574,14 @@ void Skybox_Setup(PlayState* play, SkyboxContext* skyboxCtx, s16 skyboxId) {
+             }
+ 
+             for (i = 0; i < 9; i++) {
+-                if (gSaveContext.skyboxTime >= D_8011FC1C[phi_v1][i].startTime &&
+-                    (gSaveContext.skyboxTime < D_8011FC1C[phi_v1][i].endTime ||
+-                     D_8011FC1C[phi_v1][i].endTime == 0xFFFF)) {
+-                    play->envCtx.skybox1Index = sp41 = D_8011FC1C[phi_v1][i].skybox1Index;
+-                    play->envCtx.skybox2Index = sp40 = D_8011FC1C[phi_v1][i].skybox2Index;
+-                    if (D_8011FC1C[phi_v1][i].blend != 0) {
++                if (gSaveContext.skyboxTime >= sTimeBasedSkyboxConfigs[phi_v1][i].startTime &&  // was D_8011FC1C [LLM:HIGH]
++                    (gSaveContext.skyboxTime < sTimeBasedSkyboxConfigs[phi_v1][i].endTime ||  // was D_8011FC1C [LLM:HIGH]
++                     sTimeBasedSkyboxConfigs[phi_v1][i].endTime == 0xFFFF)) {  // was D_8011FC1C [LLM:HIGH]
++                    play->envCtx.skybox1Index = sp41 = sTimeBasedSkyboxConfigs[phi_v1][i].skybox1Index;  // was D_8011FC1C [LLM:HIGH]
++                    play->envCtx.skybox2Index = sp40 = sTimeBasedSkyboxConfigs[phi_v1][i].skybox2Index;  // was D_8011FC1C [LLM:HIGH]
++                    if (sTimeBasedSkyboxConfigs[phi_v1][i].blend != 0) {  // was D_8011FC1C [LLM:HIGH]
+                         play->envCtx.skyboxBlend =
+-                            Environment_LerpWeight(D_8011FC1C[phi_v1][i].endTime, D_8011FC1C[phi_v1][i].startTime,
++                            Environment_LerpWeight(sTimeBasedSkyboxConfigs[phi_v1][i].endTime, sTimeBasedSkyboxConfigs[phi_v1][i].startTime,  // was D_8011FC1C [LLM:HIGH]
+                                                    ((void)0, gSaveContext.skyboxTime)) *
+                             255.0f;
+                     } else {
+-- 
+2.55.0
+

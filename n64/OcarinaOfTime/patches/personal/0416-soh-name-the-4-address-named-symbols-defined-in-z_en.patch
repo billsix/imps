@@ -1,0 +1,133 @@
+From 54e9cd5fbc24772a3090394365c5249226a0a233 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:35 +0000
+Subject: [PATCH 416/488] soh: name the 4 address-named symbols defined in
+ z_en_go2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c.
+
+  * D_80A4854C -> sGoronFireZeroRot
+    deduced, confidence HIGH: the zero rotation EnGo2_GoronFireGenericAction
+    passes
+
+  * D_80A48554 -> sGo2CurledFocusOffset
+    deduced, confidence HIGH: the zero vector EnGo2_DrawCurledUp records the
+    focus position from
+
+  * D_80A48560 -> sGo2RollingFocusOffset
+    deduced, confidence HIGH: the same for EnGo2_DrawRolling
+
+  * D_80A4856C -> sGo2HeadFocusOffset
+    deduced, confidence HIGH: the head-space point EnGo2_PostLimbDraw
+    records the focus position from
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+index 585fa2f17..c5a5bbb3c 100644
+--- a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
++++ b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+@@ -1934,7 +1934,7 @@ void EnGo2_GoronLinkStopRolling(EnGo2* this, PlayState* play) {
+ 
+ void EnGo2_GoronFireGenericAction(EnGo2* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+-    Vec3s D_80A4854C = { 0x00, 0x00, 0x00 };
++    Vec3s sGoronFireZeroRot = { 0x00, 0x00, 0x00 };  // was D_80A4854C [LLM:HIGH]
+ 
+     switch (this->goronState) {
+         case 0: // Wake up
+@@ -1951,8 +1951,8 @@ void EnGo2_GoronFireGenericAction(EnGo2* this, PlayState* play) {
+                 this->animTimer = 60;
+                 this->actor.gravity = 0.0f;
+                 this->actor.speedXZ = 2.0f;
+-                this->interactInfo.headRot = D_80A4854C;
+-                this->interactInfo.torsoRot = D_80A4854C;
++                this->interactInfo.headRot = sGoronFireZeroRot;  // was D_80A4854C [LLM:HIGH]
++                this->interactInfo.torsoRot = sGoronFireZeroRot;  // was D_80A4854C [LLM:HIGH]
+                 this->goronState++;
+                 this->goronState++;
+                 player->actor.world.rot.y = this->actor.world.rot.y;
+@@ -2032,21 +2032,21 @@ void EnGo2_Update(Actor* thisx, PlayState* play) {
+ }
+ 
+ s32 EnGo2_DrawCurledUp(EnGo2* this, PlayState* play) {
+-    Vec3f D_80A48554 = { 0.0f, 0.0f, 0.0f };
++    Vec3f sGo2CurledFocusOffset = { 0.0f, 0.0f, 0.0f };  // was D_80A48554 [LLM:HIGH]
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+     gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+     gSPDisplayList(POLY_OPA_DISP++, gGoronDL_00BD80);
+     CLOSE_DISPS(play->state.gfxCtx);
+-    Matrix_MultVec3f(&D_80A48554, &this->actor.focus.pos);
++    Matrix_MultVec3f(&sGo2CurledFocusOffset, &this->actor.focus.pos);  // was D_80A48554 [LLM:HIGH]
+ 
+     return 1;
+ }
+ 
+ s32 EnGo2_DrawRolling(EnGo2* this, PlayState* play) {
+     s32 pad;
+-    Vec3f D_80A48560 = { 0.0f, 0.0f, 0.0f };
++    Vec3f sGo2RollingFocusOffset = { 0.0f, 0.0f, 0.0f };  // was D_80A48560 [LLM:HIGH]
+     f32 speedXZ;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -2056,7 +2056,7 @@ s32 EnGo2_DrawRolling(EnGo2* this, PlayState* play) {
+     gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+     gSPDisplayList(POLY_OPA_DISP++, gGoronDL_00C140);
+     CLOSE_DISPS(play->state.gfxCtx);
+-    Matrix_MultVec3f(&D_80A48560, &this->actor.focus.pos);
++    Matrix_MultVec3f(&sGo2RollingFocusOffset, &this->actor.focus.pos);  // was D_80A48560 [LLM:HIGH]
+     return 1;
+ }
+ 
+@@ -2092,10 +2092,10 @@ s32 EnGo2_OverrideLimbDraw(PlayState* play, s32 limb, Gfx** dList, Vec3f* pos, V
+ 
+ void EnGo2_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx) {
+     EnGo2* this = (EnGo2*)thisx;
+-    Vec3f D_80A4856C = { 600.0f, 0.0f, 0.0f };
++    Vec3f sGo2HeadFocusOffset = { 600.0f, 0.0f, 0.0f };  // was D_80A4856C [LLM:HIGH]
+ 
+     if (limbIndex == 17) {
+-        Matrix_MultVec3f(&D_80A4856C, &this->actor.focus.pos);
++        Matrix_MultVec3f(&sGo2HeadFocusOffset, &this->actor.focus.pos);  // was D_80A4856C [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

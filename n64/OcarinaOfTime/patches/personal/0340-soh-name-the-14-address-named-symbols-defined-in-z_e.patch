@@ -1,0 +1,248 @@
+From 1846bb9439c3fabbd4b55b7a714ce58b46064873 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 340/488] soh: name the 14 address-named symbols defined in
+ z_en_vm.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 14 are defined in soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c.
+
+  * D_80B2EAEC -> sZeroVec
+    deduced, confidence HIGH: the zero velocity and acceleration handed to
+    EffectSsDeadDd_Spawn when the Beamos dies.
+
+  * D_80B2EAF8 -> sBeamEndTemplate
+    deduced, confidence HIGH: the template copied into the local that is
+    stretched to the beam's current length to find its far end.
+
+  * D_80B2EB04 -> sBeamFarRightTemplate
+    deduced, confidence HIGH: the template for the beam quad's far right
+    corner; only its Z is overwritten with the measured beam length.
+
+  * D_80B2EB10 -> sBeamFarLeftTemplate
+    deduced, confidence HIGH: the matching template for the beam quad's far
+    left corner.
+
+  * D_80B2EB1C -> sBeamOriginOffset
+    deduced, confidence HIGH: the local-space point the beam is emitted
+    from, transformed by the eye limb's matrix.
+
+  * D_80B2EB28 -> sBeamAimOffset
+    deduced, confidence HIGH: the point 1600 units ahead of the eye that
+    gives the beam its direction.
+
+  * D_80B2EB34 -> sEyeQuadTopRight
+    deduced, confidence HIGH: one corner of the eye's damage quad,
+    transformed by the eye limb's matrix each frame.
+
+  * D_80B2EB40 -> sEyeQuadBottomRight
+    deduced, confidence HIGH: the second corner of that same eye quad.
+
+  * D_80B2EB4C -> sEyeQuadTopLeft
+    deduced, confidence HIGH: the third corner of that same eye quad.
+
+  * D_80B2EB58 -> sEyeQuadBottomLeft
+    deduced, confidence HIGH: the fourth corner of that same eye quad.
+
+  * D_80B2EB64 -> sBeamNearRight
+    deduced, confidence HIGH: the beam quad's near right corner, fixed at
+    the emitter.
+
+  * D_80B2EB70 -> sBeamNearLeft
+    deduced, confidence HIGH: the beam quad's near left corner, fixed at the
+    emitter.
+
+  * D_80B2EB7C -> sDeathFlameScale
+    deduced, confidence HIGH: the scale passed to the enemy-death flame
+    effect.
+
+  * D_80B2EB88 -> sDeathFlameTextures
+    deduced, confidence HIGH: the ten enemy-death flame frames, cycled by
+    the gameplay frame counter and bound to segment 8 in the draw function.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c | 72 ++++++++++++---------
+ 1 file changed, 43 insertions(+), 29 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c b/soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c
+index 6601334c7..7c3ed0f30 100644
+--- a/soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c
++++ b/soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c
+@@ -97,33 +97,47 @@ static ColliderQuadInit sQuadInit2 = {
+     { { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } } },
+ };
+ 
+-static Vec3f D_80B2EAEC = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80B2EAEC: the zero velocity and acceleration handed to EffectSsDeadDd_Spawn when the Beamos dies.
++static Vec3f sZeroVec = { 0.0f, 0.0f, 0.0f };  // was D_80B2EAEC [LLM:HIGH]
+ 
+-static Vec3f D_80B2EAF8 = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80B2EAF8: the template copied into the local that is stretched to the beam's current length to find its far end.
++static Vec3f sBeamEndTemplate = { 0.0f, 0.0f, 0.0f };  // was D_80B2EAF8 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB04 = { 500.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80B2EB04: the template for the beam quad's far right corner; only its Z is overwritten with the measured beam length.
++static Vec3f sBeamFarRightTemplate = { 500.0f, 0.0f, 0.0f };  // was D_80B2EB04 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB10 = { -500.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80B2EB10: the matching template for the beam quad's far left corner.
++static Vec3f sBeamFarLeftTemplate = { -500.0f, 0.0f, 0.0f };  // was D_80B2EB10 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB1C = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80B2EB1C: the local-space point the beam is emitted from, transformed by the eye limb's matrix.
++static Vec3f sBeamOriginOffset = { 0.0f, 0.0f, 0.0f };  // was D_80B2EB1C [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB28 = { 0.0f, 0.0f, 1600.0f };
++// LLM generated name (HIGH), was D_80B2EB28: the point 1600 units ahead of the eye that gives the beam its direction.
++static Vec3f sBeamAimOffset = { 0.0f, 0.0f, 1600.0f };  // was D_80B2EB28 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB34 = { 1000.0f, 700.0f, 2000.0f };
++// LLM generated name (HIGH), was D_80B2EB34: one corner of the eye's damage quad, transformed by the eye limb's matrix each frame.
++static Vec3f sEyeQuadTopRight = { 1000.0f, 700.0f, 2000.0f };  // was D_80B2EB34 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB40 = { 1000.0f, -700.0f, 2000.0f };
++// LLM generated name (HIGH), was D_80B2EB40: the second corner of that same eye quad.
++static Vec3f sEyeQuadBottomRight = { 1000.0f, -700.0f, 2000.0f };  // was D_80B2EB40 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB4C = { -1000.0f, 700.0f, 1500.0f };
++// LLM generated name (HIGH), was D_80B2EB4C: the third corner of that same eye quad.
++static Vec3f sEyeQuadTopLeft = { -1000.0f, 700.0f, 1500.0f };  // was D_80B2EB4C [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB58 = { -1000.0f, -700.0f, 1500.0f };
++// LLM generated name (HIGH), was D_80B2EB58: the fourth corner of that same eye quad.
++static Vec3f sEyeQuadBottomLeft = { -1000.0f, -700.0f, 1500.0f };  // was D_80B2EB58 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB64 = { 500.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80B2EB64: the beam quad's near right corner, fixed at the emitter.
++static Vec3f sBeamNearRight = { 500.0f, 0.0f, 0.0f };  // was D_80B2EB64 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB70 = { -500.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80B2EB70: the beam quad's near left corner, fixed at the emitter.
++static Vec3f sBeamNearLeft = { -500.0f, 0.0f, 0.0f };  // was D_80B2EB70 [LLM:HIGH]
+ 
+-static Vec3f D_80B2EB7C = { 0.4f, 0.4f, 0.4f };
++// LLM generated name (HIGH), was D_80B2EB7C: the scale passed to the enemy-death flame effect.
++static Vec3f sDeathFlameScale = { 0.4f, 0.4f, 0.4f };  // was D_80B2EB7C [LLM:HIGH]
+ 
+-static void* D_80B2EB88[] = {
++// LLM generated name (HIGH), was D_80B2EB88: the ten enemy-death flame frames, cycled by the gameplay frame counter and bound to segment 8 in the draw function.
++static void* sDeathFlameTextures[] = {  // was D_80B2EB88 [LLM:HIGH]
+     gEffEnemyDeathFlame1Tex, gEffEnemyDeathFlame2Tex,  gEffEnemyDeathFlame3Tex, gEffEnemyDeathFlame4Tex,
+     gEffEnemyDeathFlame5Tex, gEffEnemyDeathFlame6Tex,  gEffEnemyDeathFlame7Tex, gEffEnemyDeathFlame8Tex,
+     gEffEnemyDeathFlame9Tex, gEffEnemyDeathFlame10Tex,
+@@ -242,7 +256,7 @@ void EnVm_Wait(EnVm* this, PlayState* play) {
+             this->skelAnime.playSpeed = 1.0f;
+         } else {
+             this->skelAnime.curFrame = 6.0f;
+-            EffectSsDeadDd_Spawn(play, &this->beamPos2, &D_80B2EAEC, &D_80B2EAEC, 150, -25, 0, 0, 255, 0, 255, 255, 255,
++            EffectSsDeadDd_Spawn(play, &this->beamPos2, &sZeroVec, &sZeroVec, 150, -25, 0, 0, 255, 0, 255, 255, 255,  // was D_80B2EAEC [LLM:HIGH]
+                                  16, 20);
+             EnVm_SetupAttack(this);
+         }
+@@ -468,9 +482,9 @@ s32 EnVm_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
+ 
+ void EnVm_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx) {
+     EnVm* this = (EnVm*)thisx;
+-    Vec3f sp80 = D_80B2EAF8;
+-    Vec3f sp74 = D_80B2EB04;
+-    Vec3f sp68 = D_80B2EB10;
++    Vec3f sp80 = sBeamEndTemplate;  // was D_80B2EAF8 [LLM:HIGH]
++    Vec3f sp74 = sBeamFarRightTemplate;  // was D_80B2EB04 [LLM:HIGH]
++    Vec3f sp68 = sBeamFarLeftTemplate;  // was D_80B2EB10 [LLM:HIGH]
+     s32 pad;
+     Vec3f posResult;
+     CollisionPoly* poly;
+@@ -478,8 +492,8 @@ void EnVm_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     f32 dist;
+ 
+     if (limbIndex == 2) {
+-        Matrix_MultVec3f(&D_80B2EB1C, &this->beamPos1);
+-        Matrix_MultVec3f(&D_80B2EB28, &this->beamPos2);
++        Matrix_MultVec3f(&sBeamOriginOffset, &this->beamPos1);  // was D_80B2EB1C [LLM:HIGH]
++        Matrix_MultVec3f(&sBeamAimOffset, &this->beamPos2);  // was D_80B2EB28 [LLM:HIGH]
+ 
+         if (this->unk_260 >= 3) {
+             poly = NULL;
+@@ -498,8 +512,8 @@ void EnVm_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+                     dist = 70.0f;
+                 }
+                 sp74.z = sp68.z = Math_Vec3f_DistXYZ(&this->beamPos1, &this->beamPos3) * dist;
+-                Matrix_MultVec3f(&D_80B2EB64, &this->colliderQuad1.dim.quad[3]);
+-                Matrix_MultVec3f(&D_80B2EB70, &this->colliderQuad1.dim.quad[2]);
++                Matrix_MultVec3f(&sBeamNearRight, &this->colliderQuad1.dim.quad[3]);  // was D_80B2EB64 [LLM:HIGH]
++                Matrix_MultVec3f(&sBeamNearLeft, &this->colliderQuad1.dim.quad[2]);  // was D_80B2EB70 [LLM:HIGH]
+                 Matrix_MultVec3f(&sp74, &this->colliderQuad1.dim.quad[1]);
+                 Matrix_MultVec3f(&sp68, &this->colliderQuad1.dim.quad[0]);
+                 Collider_SetQuadVertices(&this->colliderQuad1, &this->colliderQuad1.dim.quad[0],
+@@ -507,10 +521,10 @@ void EnVm_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+                                          &this->colliderQuad1.dim.quad[3]);
+             }
+         }
+-        Matrix_MultVec3f(&D_80B2EB34, &this->colliderQuad2.dim.quad[1]);
+-        Matrix_MultVec3f(&D_80B2EB40, &this->colliderQuad2.dim.quad[0]);
+-        Matrix_MultVec3f(&D_80B2EB4C, &this->colliderQuad2.dim.quad[3]);
+-        Matrix_MultVec3f(&D_80B2EB58, &this->colliderQuad2.dim.quad[2]);
++        Matrix_MultVec3f(&sEyeQuadTopRight, &this->colliderQuad2.dim.quad[1]);  // was D_80B2EB34 [LLM:HIGH]
++        Matrix_MultVec3f(&sEyeQuadBottomRight, &this->colliderQuad2.dim.quad[0]);  // was D_80B2EB40 [LLM:HIGH]
++        Matrix_MultVec3f(&sEyeQuadTopLeft, &this->colliderQuad2.dim.quad[3]);  // was D_80B2EB4C [LLM:HIGH]
++        Matrix_MultVec3f(&sEyeQuadBottomLeft, &this->colliderQuad2.dim.quad[2]);  // was D_80B2EB58 [LLM:HIGH]
+         Collider_SetQuadVertices(&this->colliderQuad2, &this->colliderQuad2.dim.quad[0],
+                                  &this->colliderQuad2.dim.quad[1], &this->colliderQuad2.dim.quad[2],
+                                  &this->colliderQuad2.dim.quad[3]);
+@@ -528,7 +542,7 @@ void EnVm_Draw(Actor* thisx, PlayState* play2) {
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnVm_OverrideLimbDraw, EnVm_PostLimbDraw, this);
+     actorPos = this->actor.world.pos;
+-    func_80033C30(&actorPos, &D_80B2EB7C, 255, play);
++    func_80033C30(&actorPos, &sDeathFlameScale, 255, play);  // was D_80B2EB7C [LLM:HIGH]
+ 
+     if (this->unk_260 >= 3) {
+         Matrix_Translate(this->beamPos3.x, this->beamPos3.y + 10.0f, this->beamPos3.z, MTXMODE_NEW);
+@@ -537,11 +551,11 @@ void EnVm_Draw(Actor* thisx, PlayState* play2) {
+         gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, 168);
+         Gfx_SetupDL_60NoCDXlu(play->state.gfxCtx);
+         gDPSetEnvColor(POLY_XLU_DISP++, 0, 0, 255, 0);
+-        gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_80B2EB88[play->gameplayFrames % 8]));
++        gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sDeathFlameTextures[play->gameplayFrames % 8]));  // was D_80B2EB88 [LLM:HIGH]
+         gSPDisplayList(POLY_XLU_DISP++, gEffEnemyDeathFlameDL);
+         Matrix_RotateY(32767.0f, MTXMODE_APPLY);
+         gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+-        gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_80B2EB88[(play->gameplayFrames + 4) % 8]));
++        gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sDeathFlameTextures[(play->gameplayFrames + 4) % 8]));  // was D_80B2EB88 [LLM:HIGH]
+         gSPDisplayList(POLY_XLU_DISP++, gEffEnemyDeathFlameDL);
+     }
+     gSPSegment(POLY_OPA_DISP++, 0x08, Gfx_TexScrollNoSize(play->state.gfxCtx, 0, this->beamTexScroll));  // was func_80094E78 [LLM:HIGH]
+-- 
+2.55.0
+

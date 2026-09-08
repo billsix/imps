@@ -1,0 +1,200 @@
+From b0cd1a820c81b3cb52c9687b44fd07f8ecf8416b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:33 +0000
+Subject: [PATCH 395/488] soh: name the 9 address-named symbols defined in
+ z_boss_tw.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 9 are defined in soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c.
+
+  * D_8094A944 -> sCrownOriginOffset
+    deduced, confidence HIGH: the zero vector limb 21 records the head focus
+    position from
+
+  * D_8094A950 -> sCrownOffset
+    deduced, confidence HIGH: the point limb 21 records the crown position
+    from
+
+  * D_8094A95C -> sScepterFlameOffsets
+    deduced, confidence HIGH: the five points along the scepter the flame
+    positions are recorded from
+
+  * D_8094A9B0 -> sTwinrovaEyeTextures
+    deduced, confidence HIGH: the open, half and closed eye textures fused
+    Twinrova draws
+
+  * D_8094A9BC -> sTwinrovaFocusOffset
+    deduced, confidence HIGH: the zero vector Twinrova records her focus
+    position from
+
+  * D_8094A9C8 -> sTwinrovaCrownOffset
+    deduced, confidence HIGH: the point she records her crown position from
+
+  * D_8094A9D4 -> sLeftScepterOffset
+    deduced, confidence HIGH: the reach along limb 34 her left scepter
+    position is recorded from
+
+  * D_8094A9E0 -> sRightScepterOffset
+    deduced, confidence HIGH: the same reach along limb 40 for the right
+    scepter
+
+  * D_8094A9EC -> sTwinrovaBeamOriginOffset
+    deduced, confidence HIGH: the point fused Twinrova records her beam
+    origin from
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Boss_Tw/z_boss_tw.c   | 47 ++++++++++---------
+ 1 file changed, 24 insertions(+), 23 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+index 7f2cef78e..b391f12a6 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
++++ b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+@@ -3213,9 +3213,9 @@ s32 BossTw_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
+ }
+ 
+ void BossTw_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx) {
+-    static Vec3f D_8094A944 = { 0.0f, 0.0f, 0.0f };
+-    static Vec3f D_8094A950 = { 0.0f, 2000.0f, -2000.0f };
+-    static Vec3f D_8094A95C[] = {
++    static Vec3f sCrownOriginOffset = { 0.0f, 0.0f, 0.0f };  // was D_8094A944 [LLM:HIGH]
++    static Vec3f sCrownOffset = { 0.0f, 2000.0f, -2000.0f };  // was D_8094A950 [LLM:HIGH]
++    static Vec3f sScepterFlameOffsets[] = {  // was D_8094A95C [LLM:HIGH]
+         { 0.0f, 0.0f, -10000.0f }, { 0.0f, 0.0f, -8000.0f },  { 0.0f, 0.0f, -9000.0f },
+         { 0.0f, 0.0f, -11000.0f }, { 0.0f, 0.0f, -12000.0f },
+     };
+@@ -3225,8 +3225,8 @@ void BossTw_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
+ 
+     switch (limbIndex) {
+         case 21:
+-            Matrix_MultVec3f(&D_8094A944, &this->actor.focus.pos);
+-            Matrix_MultVec3f(&D_8094A950, &this->crownPos);
++            Matrix_MultVec3f(&sCrownOriginOffset, &this->actor.focus.pos);  // was D_8094A944 [LLM:HIGH]
++            Matrix_MultVec3f(&sCrownOffset, &this->crownPos);  // was D_8094A950 [LLM:HIGH]
+ 
+             if (this->unk_5F8 != 0) {
+                 gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx),
+@@ -3239,11 +3239,11 @@ void BossTw_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot
+             }
+             break;
+         case 14:
+-            Matrix_MultVec3f(&D_8094A95C[0], &this->scepterFlamePos[0]);
+-            Matrix_MultVec3f(&D_8094A95C[1], &this->scepterFlamePos[1]);
+-            Matrix_MultVec3f(&D_8094A95C[2], &this->scepterFlamePos[2]);
+-            Matrix_MultVec3f(&D_8094A95C[3], &this->scepterFlamePos[3]);
+-            Matrix_MultVec3f(&D_8094A95C[4], &this->scepterFlamePos[4]);
++            Matrix_MultVec3f(&sScepterFlameOffsets[0], &this->scepterFlamePos[0]);  // was D_8094A95C [LLM:HIGH]
++            Matrix_MultVec3f(&sScepterFlameOffsets[1], &this->scepterFlamePos[1]);  // was D_8094A95C [LLM:HIGH]
++            Matrix_MultVec3f(&sScepterFlameOffsets[2], &this->scepterFlamePos[2]);  // was D_8094A95C [LLM:HIGH]
++            Matrix_MultVec3f(&sScepterFlameOffsets[3], &this->scepterFlamePos[3]);  // was D_8094A95C [LLM:HIGH]
++            Matrix_MultVec3f(&sScepterFlameOffsets[4], &this->scepterFlamePos[4]);  // was D_8094A95C [LLM:HIGH]
+ 
+             if (this->scepterAlpha > 0.0f) {
+                 gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx),
+@@ -3573,7 +3573,8 @@ void BossTw_Draw(Actor* thisx, PlayState* play2) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void* D_8094A9B0[] = {
++// LLM generated name (HIGH), was D_8094A9B0: the open, half and closed eye textures fused Twinrova draws
++void* sTwinrovaEyeTextures[] = {  // was D_8094A9B0 [LLM:HIGH]
+     gTwinrovaEyeOpenTex,
+     gTwinrovaEyeHalfTex,
+     gTwinrovaEyeClosedTex,
+@@ -3588,8 +3589,8 @@ s32 BossTw_TwinrovaOverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList,
+         case 21:
+             gSPSegment(POLY_OPA_DISP++, 0xC,
+                        Gfx_TexScrollEx(play->state.gfxCtx, 0, (s16)(f32)this->work[CS_TIMER_1], 8, 8, 0, 1));
+-            gSPSegment(POLY_OPA_DISP++, 8, SEGMENTED_TO_VIRTUAL(D_8094A9B0[this->eyeTexIdx]));
+-            gSPSegment(POLY_OPA_DISP++, 9, SEGMENTED_TO_VIRTUAL(D_8094A9B0[this->leftEyeTexIdx]));
++            gSPSegment(POLY_OPA_DISP++, 8, SEGMENTED_TO_VIRTUAL(sTwinrovaEyeTextures[this->eyeTexIdx]));  // was D_8094A9B0 [LLM:HIGH]
++            gSPSegment(POLY_OPA_DISP++, 9, SEGMENTED_TO_VIRTUAL(sTwinrovaEyeTextures[this->leftEyeTexIdx]));  // was D_8094A9B0 [LLM:HIGH]
+             gDPSetEnvColor(POLY_OPA_DISP++, 255, 255, 255, this->work[UNK_S8]);
+             break;
+         case 17:
+@@ -3642,10 +3643,10 @@ s32 BossTw_TwinrovaOverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList,
+ }
+ 
+ void BossTw_TwinrovaPostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx) {
+-    static Vec3f D_8094A9BC = { 0.0f, 0.0f, 0.0f };
+-    static Vec3f D_8094A9C8 = { 0.0f, 2000.0f, -2000.0f };
+-    static Vec3f D_8094A9D4 = { 13000.0f, 0.0f, 0.0f };
+-    static Vec3f D_8094A9E0 = { 13000.0f, 0.0f, 0.0f };
++    static Vec3f sTwinrovaFocusOffset = { 0.0f, 0.0f, 0.0f };  // was D_8094A9BC [LLM:HIGH]
++    static Vec3f sTwinrovaCrownOffset = { 0.0f, 2000.0f, -2000.0f };  // was D_8094A9C8 [LLM:HIGH]
++    static Vec3f sLeftScepterOffset = { 13000.0f, 0.0f, 0.0f };  // was D_8094A9D4 [LLM:HIGH]
++    static Vec3f sRightScepterOffset = { 13000.0f, 0.0f, 0.0f };  // was D_8094A9E0 [LLM:HIGH]
+ 
+     BossTw* this = (BossTw*)thisx;
+ 
+@@ -3653,14 +3654,14 @@ void BossTw_TwinrovaPostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Ve
+ 
+     switch (limbIndex) {
+         case 34:
+-            Matrix_MultVec3f(&D_8094A9D4, &this->leftScepterPos);
++            Matrix_MultVec3f(&sLeftScepterOffset, &this->leftScepterPos);  // was D_8094A9D4 [LLM:HIGH]
+             break;
+         case 40:
+-            Matrix_MultVec3f(&D_8094A9E0, &this->rightScepterPos);
++            Matrix_MultVec3f(&sRightScepterOffset, &this->rightScepterPos);  // was D_8094A9E0 [LLM:HIGH]
+             break;
+         case 21:
+-            Matrix_MultVec3f(&D_8094A9BC, &this->actor.focus.pos);
+-            Matrix_MultVec3f(&D_8094A9C8, &this->crownPos);
++            Matrix_MultVec3f(&sTwinrovaFocusOffset, &this->actor.focus.pos);  // was D_8094A9BC [LLM:HIGH]
++            Matrix_MultVec3f(&sTwinrovaCrownOffset, &this->crownPos);  // was D_8094A9C8 [LLM:HIGH]
+             break;
+         case 15:
+         case 16:
+@@ -3869,7 +3870,7 @@ void BossTw_DrawLightPillar(BossTw* this, PlayState* play) {
+ }
+ 
+ void BossTw_TwinrovaDraw(Actor* thisx, PlayState* play2) {
+-    static Vec3f D_8094A9EC = { 0.0f, 200.0f, 2000.0f };
++    static Vec3f sTwinrovaBeamOriginOffset = { 0.0f, 200.0f, 2000.0f };  // was D_8094A9EC [LLM:HIGH]
+     PlayState* play = play2;
+     BossTw* this = (BossTw*)thisx;
+ 
+@@ -3888,7 +3889,7 @@ void BossTw_TwinrovaDraw(Actor* thisx, PlayState* play2) {
+                                   thisx);
+         Matrix_Pop();
+ 
+-        Matrix_MultVec3f(&D_8094A9EC, &this->beamOrigin);
++        Matrix_MultVec3f(&sTwinrovaBeamOriginOffset, &this->beamOrigin);  // was D_8094A9EC [LLM:HIGH]
+         POLY_OPA_DISP = Gfx_SetFog2(POLY_OPA_DISP, play->lightCtx.fogColor[0], play->lightCtx.fogColor[1],
+                                     play->lightCtx.fogColor[2], 0, play->lightCtx.fogNear, 1000);
+     }
+-- 
+2.55.0
+

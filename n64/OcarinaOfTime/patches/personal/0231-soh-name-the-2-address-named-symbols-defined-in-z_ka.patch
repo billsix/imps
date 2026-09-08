@@ -1,0 +1,125 @@
+From a7e58ec45caa4aff5f3547cbd3c3fc848454c8bb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:18 +0000
+Subject: [PATCH 231/488] soh: name the 2 address-named symbols defined in
+ z_kaleido_scope_PAL.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c; updating their references touches 3 files in total.
+
+  * D_8082AAEC -> sCloudTexWidths
+    deduced, confidence HIGH: s16 table passed as the width argument of
+    gDPLoadTextureBlock_4b for each pause-map cloud texture.
+
+  * D_8082AB2C -> sCloudTexHeights
+    deduced, confidence HIGH: s16 table passed as the height argument of the
+    same gDPLoadTextureBlock_4b call.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../misc/ovl_kaleido_scope/z_kaleido_map_PAL.c         |  4 ++--
+ .../overlays/misc/ovl_kaleido_scope/z_kaleido_scope.h  |  4 ++--
+ .../misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c       | 10 ++++++----
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c
+index f3e7aa5de..09c86e650 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_map_PAL.c
+@@ -645,8 +645,8 @@ void KaleidoScope_DrawWorldMap(PlayState* play, GraphicsContext* gfxCtx) {
+ 
+             for (j = i = 0; i < 8; i++, j += 4) {
+                 if (!(gSaveContext.worldMapAreaData & gBitFlags[cloudFlagNums[k + i]])) {
+-                    gDPLoadTextureBlock_4b(POLY_OPA_DISP++, cloudTexs[k + i], G_IM_FMT_I, D_8082AAEC[k + i],
+-                                           D_8082AB2C[k + i], 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR,
++                    gDPLoadTextureBlock_4b(POLY_OPA_DISP++, cloudTexs[k + i], G_IM_FMT_I, sCloudTexWidths[k + i],  // was D_8082AAEC [LLM:HIGH]
++                                           sCloudTexHeights[k + i], 0, G_TX_WRAP | G_TX_NOMIRROR, G_TX_WRAP | G_TX_NOMIRROR,  // was D_8082AB2C [LLM:HIGH]
+                                            G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+ 
+                     gSP1Quadrangle(POLY_OPA_DISP++, j, j + 2, j + 3, j + 1, 0);
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope.h b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope.h
+index 95493ab09..544d7598c 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope.h
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope.h
+@@ -6,8 +6,8 @@
+ #include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
+ 
+ extern u8 gAmmoItems[];
+-extern s16 D_8082AAEC[];
+-extern s16 D_8082AB2C[];
++extern s16 sCloudTexWidths[];  // was D_8082AAEC [LLM:HIGH]
++extern s16 sCloudTexHeights[];  // was D_8082AB2C [LLM:HIGH]
+ extern u8 gEquipAgeReqs[][4];
+ extern u8 gSlotAgeReqs[];
+ extern u8 gItemAgeReqs[];
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index e13805398..f226a0db5 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -895,11 +895,13 @@ static void* mapNameTextures[] = {
+     /* 21 */ gGanonsCastlePositionNameJPNTex,
+ };
+ 
+-s16 D_8082AAEC[] = {
++// LLM generated name (HIGH), was D_8082AAEC: s16 table passed as the width argument of gDPLoadTextureBlock_4b for each pause-map cloud texture.
++s16 sCloudTexWidths[] = {  // was D_8082AAEC [LLM:HIGH]
+     32, 112, 32, 48, 32, 32, 32, 48, 32, 64, 32, 48, 48, 48, 48, 64, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 80, 64,
+ };
+ 
+-s16 D_8082AB2C[] = {
++// LLM generated name (HIGH), was D_8082AB2C: s16 table passed as the height argument of the same gDPLoadTextureBlock_4b call.
++s16 sCloudTexHeights[] = {  // was D_8082AB2C [LLM:HIGH]
+     24, 72, 13, 22, 19, 20, 19, 27, 14, 26, 22, 21, 49, 32, 45, 60, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 16, 32, 8,
+ };
+ 
+@@ -2675,7 +2677,7 @@ static s16* D_8082B000[] = {
+ };
+ 
+ static s16* D_8082B018[] = {
+-    D_8082AF0C, D_8082AF10, D_8082AF14, D_8082AF38, D_8082AAEC, D_8082AF3C,
++    D_8082AF0C, D_8082AF10, D_8082AF14, D_8082AF38, sCloudTexWidths, D_8082AF3C,  // was D_8082AAEC [LLM:HIGH]
+ };
+ 
+ static s16* D_8082B030[] = {
+@@ -2683,7 +2685,7 @@ static s16* D_8082B030[] = {
+ };
+ 
+ static s16* D_8082B048[] = {
+-    D_8082AFC4, D_8082AFC8, D_8082AFCC, D_8082AFF0, D_8082AB2C, D_8082AFF4,
++    D_8082AFC4, D_8082AFC8, D_8082AFCC, D_8082AFF0, sCloudTexHeights, D_8082AFF4,  // was D_8082AB2C [LLM:HIGH]
+ };
+ 
+ static s16 D_8082B060[] = {
+-- 
+2.55.0
+

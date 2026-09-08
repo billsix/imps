@@ -1,0 +1,363 @@
+From f83de96a855fe96c0309659ee5d4475b682609c7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:26 +0000
+Subject: [PATCH 318/488] soh: name the 9 address-named symbols defined in
+ z_en_go2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 9 are defined in soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c; updating their references touches 2 files in total.
+
+  * D_80A4816C -> sColliderDims
+    deduced, confidence HIGH: per-Goron-variant collider radius, height and
+    the XZ and Y offsets its collider sits at relative to the actor.
+
+  * D_80A481F8 -> sShapeData
+    deduced, confidence HIGH: per-Goron-variant shadow scale, actor scale,
+    target mode and interact range, all applied by EnGo2_SetShape.
+
+  * func_80A44790 -> EnGo2_UpdateTalking
+    deduced, confidence HIGH: drives the conversation: the ordinary Gorons
+    go through Npc_UpdateTalking, while Biggoron and the big rolling Goron
+    use a hand-rolled offer that only engages once the player is touching
+    their collider.
+
+  * func_80A44AB0 -> EnGo2_CheckHitWhileRolling
+    deduced, confidence HIGH: returns whether a rolling Goron has just been
+    struck, playing the correct-chime and clearing the AC flag when it has;
+    it does nothing for Biggoron or for a Goron that is not currently
+    rolling.
+
+  * func_80A44D84 -> EnGo2_FaceNextWaypoint
+    deduced, confidence HIGH: orients the actor toward its current path
+    waypoint and stores that yaw in world.rot.y.
+
+  * func_80A45288 -> EnGo2_UpdateTrackingAndTalk
+    deduced, confidence HIGH: tracks the player with the head at the
+    per-variant, per-age offset and, once the Goron is awake, runs the talk
+    update and picks Biggoron's text.
+
+  * func_80A45360 -> EnGo2_UpdateAlpha
+    deduced, confidence HIGH: fades the Goron's alpha and shadow alpha out
+    during the first 32 frames of the curl-up animation and back in
+    otherwise.
+
+  * func_80A454CC -> EnGo2_SetIdleAnimation
+    deduced, confidence HIGH: picks the per-variant idle animation to settle
+    into once the Goron has finished uncurling, including Biggoron's
+    trade-dependent poses.
+
+  * func_80A46B40 -> EnGo2_Uncurl
+    deduced, confidence HIGH: the uncurling action: it grows the collider
+    height as the animation plays and, on the last frame, installs the idle
+    animation and re-enables targeting for Biggoron.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c | 77 +++++++++++--------
+ soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h |  4 +-
+ 2 files changed, 45 insertions(+), 36 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+index 89f5759bf..09fb43fb5 100644
+--- a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
++++ b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.c
+@@ -53,7 +53,8 @@ void EnGo2_Draw(Actor* thisx, PlayState* play);
+ void EnGo2_StopRolling(EnGo2* this, PlayState* play);
+ void EnGo2_CurledUp(EnGo2* this, PlayState* play);
+ 
+-void func_80A46B40(EnGo2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A46B40: the uncurling action: it grows the collider height as the animation plays and, on the last frame, installs the idle animation and re-enables targeting for Biggoron.
++void EnGo2_Uncurl(EnGo2* this, PlayState* play);  // was func_80A46B40 [LLM:HIGH]
+ void EnGo2_GoronDmtBombFlowerAnimation(EnGo2* this, PlayState* play);
+ void EnGo2_GoronRollingBigContinueRolling(EnGo2* this, PlayState* play);
+ void EnGo2_ContinueRolling(EnGo2* this, PlayState* play);
+@@ -110,13 +111,15 @@ const ActorInit En_Go2_InitVars = {
+     NULL,
+ };
+ 
+-static EnGo2DataStruct1 D_80A4816C[14] = {
++// LLM generated name (HIGH), was D_80A4816C: per-Goron-variant collider radius, height and the XZ and Y offsets its collider sits at relative to the actor.
++static EnGo2DataStruct1 sColliderDims[14] = {  // was D_80A4816C [LLM:HIGH]
+     { 0, 0, 0, 68, 148 }, { 0, 0, 0, 24, 52 }, { 0, 320, 380, 400, 120 }, { 0, 0, 0, 30, 68 }, { 0, 0, 0, 46, 90 },
+     { 0, 0, 0, 30, 68 },  { 0, 0, 0, 30, 68 }, { 0, 0, 0, 30, 68 },       { 0, 0, 0, 30, 68 }, { 0, 0, 0, 30, 68 },
+     { 0, 0, 0, 30, 68 },  { 0, 0, 0, 30, 68 }, { 0, 0, 0, 30, 68 },       { 0, 0, 0, 30, 68 },
+ };
+ 
+-static EnGo2DataStruct2 D_80A481F8[14] = {
++// LLM generated name (HIGH), was D_80A481F8: per-Goron-variant shadow scale, actor scale, target mode and interact range, all applied by EnGo2_SetShape.
++static EnGo2DataStruct2 sShapeData[14] = {  // was D_80A481F8 [LLM:HIGH]
+     { 30.0f, 0.026f, 6, 60.0f }, { 24.0f, 0.008f, 6, 30.0f }, { 28.0f, 0.16f, 5, 380.0f }, { 28.0f, 0.01f, 7, 40.0f },
+     { 30.0f, 0.015f, 6, 30.0f }, { 28.0f, 0.01f, 6, 30.0f },  { 28.0f, 0.01f, 6, 30.0f },  { 28.0f, 0.01f, 6, 30.0f },
+     { 28.0f, 0.01f, 6, 30.0f },  { 28.0f, 0.01f, 6, 30.0f },  { 28.0f, 0.01f, 6, 30.0f },  { 28.0f, 0.01f, 6, 30.0f },
+@@ -821,7 +824,8 @@ s16 EnGo2_UpdateTalkState(PlayState* play, Actor* thisx) {
+     }
+ }
+ 
+-s32 func_80A44790(EnGo2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A44790: drives the conversation: the ordinary Gorons go through Npc_UpdateTalking, while Biggoron and the big rolling Goron use a hand-rolled offer that only engages once the player is touching their collider.
++s32 EnGo2_UpdateTalking(EnGo2* this, PlayState* play) {
+     if ((this->actor.params & 0x1F) != GORON_DMT_BIGGORON && (this->actor.params & 0x1F) != GORON_CITY_ROLLING_BIG) {
+         return Npc_UpdateTalking(play, &this->actor, &this->interactInfo.talkState, this->interactRange,
+                                  EnGo2_GetTextId, EnGo2_UpdateTalkState);
+@@ -844,17 +848,17 @@ s32 func_80A44790(EnGo2* this, PlayState* play) {
+ void EnGo2_SetColliderDim(EnGo2* this) {
+     u8 index = this->actor.params & 0x1F;
+ 
+-    this->collider.dim.radius = D_80A4816C[index].radius;
+-    this->collider.dim.height = D_80A4816C[index].height;
++    this->collider.dim.radius = sColliderDims[index].radius;  // was D_80A4816C [LLM:HIGH]
++    this->collider.dim.height = sColliderDims[index].height;  // was D_80A4816C [LLM:HIGH]
+ }
+ 
+ void EnGo2_SetShape(EnGo2* this) {
+     u8 index = this->actor.params & 0x1F;
+ 
+-    this->actor.shape.shadowScale = D_80A481F8[index].shape_unk_10;
+-    Actor_SetScale(&this->actor, D_80A481F8[index].scale);
+-    this->actor.targetMode = D_80A481F8[index].actor_unk_1F;
+-    this->interactRange = D_80A481F8[index].interactRange;
++    this->actor.shape.shadowScale = sShapeData[index].shape_unk_10;  // was D_80A481F8 [LLM:HIGH]
++    Actor_SetScale(&this->actor, sShapeData[index].scale);  // was D_80A481F8 [LLM:HIGH]
++    this->actor.targetMode = sShapeData[index].actor_unk_1F;  // was D_80A481F8 [LLM:HIGH]
++    this->interactRange = sShapeData[index].interactRange;  // was D_80A481F8 [LLM:HIGH]
+     this->interactRange += this->collider.dim.radius;
+ }
+ 
+@@ -865,10 +869,10 @@ void EnGo2_CheckCollision(EnGo2* this, PlayState* play) {
+     pos.x = this->actor.world.pos.x;
+     pos.y = this->actor.world.pos.y;
+     pos.z = this->actor.world.pos.z;
+-    xzDist = D_80A4816C[this->actor.params & 0x1F].xzDist;
++    xzDist = sColliderDims[this->actor.params & 0x1F].xzDist;  // was D_80A4816C [LLM:HIGH]
+     pos.x += (s16)(xzDist * Math_SinS(this->actor.shape.rot.y));
+     pos.z += (s16)(xzDist * Math_CosS(this->actor.shape.rot.y));
+-    pos.y += D_80A4816C[this->actor.params & 0x1F].yDist;
++    pos.y += sColliderDims[this->actor.params & 0x1F].yDist;  // was D_80A4816C [LLM:HIGH]
+     this->collider.dim.pos = pos;
+     CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+     CollisionCheck_SetAC(play, &play->colChkCtx, &this->collider.base);
+@@ -882,7 +886,8 @@ void EnGo2_SwapInitialFrameAnimFrameCount(EnGo2* this) {
+     this->skelAnime.endFrame = initialFrame;
+ }
+ 
+-s32 func_80A44AB0(EnGo2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A44AB0: returns whether a rolling Goron has just been struck, playing the correct-chime and clearing the AC flag when it has; it does nothing for Biggoron or for a Goron that is not currently rolling.
++s32 EnGo2_CheckHitWhileRolling(EnGo2* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 arg2;
+ 
+@@ -956,7 +961,8 @@ s32 EnGo2_Orient(EnGo2* this, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80A44D84(EnGo2* this) {
++// LLM generated name (HIGH), was func_80A44D84: orients the actor toward its current path waypoint and stores that yaw in world.rot.y.
++s32 EnGo2_FaceNextWaypoint(EnGo2* this) {
+     s16 targetYaw;
+ 
+     Path_OrientAndGetDistSq(&this->actor, this->path, this->waypoint, &targetYaw);
+@@ -1090,7 +1096,8 @@ void EnGo2_BiggoronSetTextId(EnGo2* this, PlayState* play, Player* player) {
+     }
+ }
+ 
+-void func_80A45288(EnGo2* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A45288: tracks the player with the head at the per-variant, per-age offset and, once the Goron is awake, runs the talk update and picks Biggoron's text.
++void EnGo2_UpdateTrackingAndTalk(EnGo2* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 linkAge;
+ 
+@@ -1102,13 +1109,14 @@ void func_80A45288(EnGo2* this, PlayState* play) {
+     }
+     if ((this->actionFunc != EnGo2_SetGetItem) &&
+         GameInteractor_Should(VB_PREVENT_GORON_LINK_SOFTLOCK, this->isAwake, this)) {
+-        if (func_80A44790(this, play)) {
++        if (EnGo2_UpdateTalking(this, play)) {  // was func_80A44790 [LLM:HIGH]
+             EnGo2_BiggoronSetTextId(this, play, player);
+         }
+     }
+ }
+ 
+-void func_80A45360(EnGo2* this, f32* alpha) {
++// LLM generated name (HIGH), was func_80A45360: fades the Goron's alpha and shadow alpha out during the first 32 frames of the curl-up animation and back in otherwise.
++void EnGo2_UpdateAlpha(EnGo2* this, f32* alpha) {
+     f32 alphaTarget =
+         (this->skelAnime.animation == &gGoronAnim_004930) && (this->skelAnime.curFrame <= 32.0f) ? 0.0f : 255.0f;
+ 
+@@ -1130,7 +1138,8 @@ void EnGo2_RollForward(EnGo2* this) {
+     this->actor.speedXZ = speedXZ;
+ }
+ 
+-void func_80A454CC(EnGo2* this) {
++// LLM generated name (HIGH), was func_80A454CC: picks the per-variant idle animation to settle into once the Goron has finished uncurling, including Biggoron's trade-dependent poses.
++void EnGo2_SetIdleAnimation(EnGo2* this) {
+     switch (this->actor.params & 0x1F) {
+         case GORON_CITY_ROLLING_BIG:
+         case GORON_DMT_DC_ENTRANCE:
+@@ -1345,13 +1354,13 @@ void EnGo2_WakeUp(EnGo2* this, PlayState* play) {
+         Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENGO2_ANIM_1);
+         this->skelAnime.playSpeed = 1.0f;
+     }
+-    this->actionFunc = func_80A46B40;
++    this->actionFunc = EnGo2_Uncurl;  // was func_80A46B40 [LLM:HIGH]
+ }
+ 
+ void EnGo2_GetItemAnimation(EnGo2* this, PlayState* play) {
+     Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENGO2_ANIM_1);
+     this->unk_211 = true;
+-    this->actionFunc = func_80A46B40;
++    this->actionFunc = EnGo2_Uncurl;  // was func_80A46B40 [LLM:HIGH]
+     this->skelAnime.playSpeed = 0.0f;
+     this->actor.speedXZ = 0.0f;
+     this->skelAnime.curFrame = this->skelAnime.endFrame;
+@@ -1597,14 +1606,14 @@ void EnGo2_Init(Actor* thisx, PlayState* play) {
+                 }
+             } else {
+                 Flags_UnsetInfTable(INFTABLE_STOPPED_GORON_LINKS_ROLLING);
+-                this->collider.dim.height = (D_80A4816C[this->actor.params & 0x1F].height * 0.6f);
++                this->collider.dim.height = (sColliderDims[this->actor.params & 0x1F].height * 0.6f);  // was D_80A4816C [LLM:HIGH]
+                 EnGo2_SetupRolling(this, play);
+                 this->isAwake = true;
+             }
+             break;
+         case GORON_CITY_ROLLING_BIG:
+         case GORON_DMT_ROLLING_SMALL:
+-            this->collider.dim.height = (D_80A4816C[this->actor.params & 0x1F].height * 0.6f);
++            this->collider.dim.height = (sColliderDims[this->actor.params & 0x1F].height * 0.6f);  // was D_80A4816C [LLM:HIGH]
+             EnGo2_SetupRolling(this, play);
+             break;
+         case GORON_FIRE_GENERIC:
+@@ -1659,11 +1668,11 @@ void EnGo2_CurledUp(EnGo2* this, PlayState* play) {
+     }
+ 
+     if ((s32)this->skelAnime.curFrame == 0) {
+-        this->collider.dim.height = (D_80A4816C[index].height * 0.6f);
++        this->collider.dim.height = (sColliderDims[index].height * 0.6f);  // was D_80A4816C [LLM:HIGH]
+     } else {
+-        height = D_80A4816C[index].height;
++        height = sColliderDims[index].height;  // was D_80A4816C [LLM:HIGH]
+         this->collider.dim.height =
+-            ((D_80A4816C[index].height * 0.4f * (this->skelAnime.curFrame / this->skelAnime.startFrame)) +
++            ((sColliderDims[index].height * 0.4f * (this->skelAnime.curFrame / this->skelAnime.startFrame)) +  // was D_80A4816C [LLM:HIGH]
+              (height * 0.6f));
+     }
+     if (EnGo2_IsFreeingGoronInFire(this, play)) {
+@@ -1675,7 +1684,7 @@ void EnGo2_CurledUp(EnGo2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A46B40(EnGo2* this, PlayState* play) {
++void EnGo2_Uncurl(EnGo2* this, PlayState* play) {
+     u8 index = (this->actor.params & 0x1F);
+     f32 height;
+ 
+@@ -1696,11 +1705,11 @@ void func_80A46B40(EnGo2* this, PlayState* play) {
+             if ((this->actor.params & 0x1F) == GORON_DMT_BIGGORON) {
+                 this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+             }
+-            func_80A454CC(this);
++            EnGo2_SetIdleAnimation(this);  // was func_80A454CC [LLM:HIGH]
+             this->unk_211 = true;
+-            this->collider.dim.height = D_80A4816C[index].height;
++            this->collider.dim.height = sColliderDims[index].height;  // was D_80A4816C [LLM:HIGH]
+         } else {
+-            height = D_80A4816C[index].height;
++            height = sColliderDims[index].height;  // was D_80A4816C [LLM:HIGH]
+             this->collider.dim.height =
+                 (s16)((height * 0.4f * (this->skelAnime.curFrame / this->skelAnime.endFrame)) + (height * 0.6f));
+         }
+@@ -1838,7 +1847,7 @@ void EnGo2_SetGetItem(EnGo2* this, PlayState* play) {
+                 this->actionFunc = EnGo2_GoronRollingBigContinueRolling;
+                 return;
+         }
+-        this->actionFunc = func_80A46B40;
++        this->actionFunc = EnGo2_Uncurl;  // was func_80A46B40 [LLM:HIGH]
+     }
+ }
+ 
+@@ -1937,7 +1946,7 @@ void EnGo2_GoronFireGenericAction(EnGo2* this, PlayState* play) {
+                 Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENGO2_ANIM_2);
+                 this->waypoint = 1;
+                 this->skelAnime.playSpeed = 2.0f;
+-                func_80A44D84(this);
++                EnGo2_FaceNextWaypoint(this);  // was func_80A44D84 [LLM:HIGH]
+                 this->actor.shape.rot = this->actor.world.rot;
+                 this->animTimer = 60;
+                 this->actor.gravity = 0.0f;
+@@ -2004,20 +2013,20 @@ void EnGo2_GoronFireGenericAction(EnGo2* this, PlayState* play) {
+ void EnGo2_Update(Actor* thisx, PlayState* play) {
+     EnGo2* this = (EnGo2*)thisx;
+ 
+-    func_80A45360(this, &this->alpha);
++    EnGo2_UpdateAlpha(this, &this->alpha);  // was func_80A45360 [LLM:HIGH]
+     EnGo2_SitDownAnimation(this);
+     SkelAnime_Update(&this->skelAnime);
+     EnGo2_RollForward(this);
+     Actor_UpdateBgCheckInfo(play, &this->actor, (f32)this->collider.dim.height * 0.5f,
+                             (f32)this->collider.dim.radius * 0.6f, 0.0f, 5);
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+-        func_80A44AB0(this, play);
++        EnGo2_CheckHitWhileRolling(this, play);  // was func_80A44AB0 [LLM:HIGH]
+     }
+     this->actionFunc(this, play);
+     if (this->unk_211 == true) {
+         Actor_UpdateFidgetTables(play, this->fidgetTableY, this->fidgetTableZ, 18);
+     }
+-    func_80A45288(this, play);
++    EnGo2_UpdateTrackingAndTalk(this, play);  // was func_80A45288 [LLM:HIGH]
+     EnGo2_EyeMouthTexState(this);
+     EnGo2_CheckCollision(this, play);
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h
+index 81c53f882..0b799e99e 100644
+--- a/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h
++++ b/soh/src/overlays/actors/ovl_En_Go2/z_en_go2.h
+@@ -88,7 +88,7 @@ typedef struct EnGo2 {
+     /* 0x0216 */ u8 unk_216; // Set to z rotation, checked by waypoint
+     /* 0x0218 */ f32 interactRange;
+     /* 0x021C */ char unk_21C[0x04];
+-    /* 0x0220 */ f32 alpha; // Set to 0, used by func_80A45360, smoothed to this->actor.shape.unk_14 from either 0 or 255.0f
++    /* 0x0220 */ f32 alpha; // Set to 0, used by EnGo2_UpdateAlpha, smoothed to this->actor.shape.unk_14 from either 0 or 255.0f, was func_80A45360 [LLM:HIGH]
+     /* 0x0224 */ s16 blinkTimer; 
+     /* 0x0226 */ s16 fidgetTableY[18]; // Remains unknown
+     /* 0x024A */ s16 fidgetTableZ[18]; // Remains unknown
+@@ -110,6 +110,6 @@ typedef struct EnGo2 {
+ void EnGo2_GetItemAnimation(EnGo2* enGo2, PlayState* play);
+ void EnGo2_RollingAnimation(EnGo2* enGo2, PlayState* play);
+ void EnGo2_GoronRollingBigContinueRolling(EnGo2* enGo2, PlayState* play);
+-void func_80A46B40(EnGo2* enGo2, PlayState* play);
++void EnGo2_Uncurl(EnGo2* enGo2, PlayState* play);  // was func_80A46B40 [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

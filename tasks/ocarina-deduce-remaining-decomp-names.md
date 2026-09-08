@@ -7,8 +7,10 @@ compiling; `z_player.c` stays out of scope. Both work-lists are exhausted:
 address-named symbols left in the tree are the four in the declared exclusions
 (`func_800FBCE0` / `func_800FBFD8` in `code_800FBCE0.c`, `func_80837C0C` /
 `func_80838940` in `z_player.c`). Builds clean; 3,799 patches.
-**All that remains is step 9 — squash the series into reviewable units**, which
-has its own section below.
+**Step 9 is done too** (2026-09-08): the series was regrouped from 3,799
+one-rename commits into **488 commits, one per definition file**, proven
+content-neutral (identical tree SHA to the pre-squash tip). The task is
+complete pending the maintainer's review.
 **Priority:** 5
 **Difficulty:** 8
 **Started:** 2026-09-07
@@ -172,9 +174,9 @@ or overturn — every name, because the evidence for it is recorded next to it.
       **EXECUTED 2026-09-08.** Both in-scope files are done — see the batch-log
       entries below. `gap_symbols.py` now reports exactly those four excluded
       names and nothing else, so the deduction work is finished.
-- [ ] **9. FINAL STEP — squash the series into reviewable units.** Runs only
-      when every step above is done. See "Step 9 in full" below; it is long
-      enough to need its own section.
+- [x] **9. FINAL STEP — squash the series into reviewable units.** DONE
+      2026-09-08. See "Step 9 in full" for the plan and "Step 9 as executed"
+      for what actually happened and the four decisions it required.
 
 ## Step 9 in full — squash the series into reviewable units
 
@@ -246,6 +248,113 @@ away, and nothing is dropped for brevity.
 - **`runDir/` stays untouched.** It is a sibling of the checkout, so no git
   operation on the checkout can reach it; keep any `git clean` scoped to the
   source subtree rather than the whole tree.
+
+## Step 9 as executed — 2026-09-08
+
+**Result: 3,799 commits -> 488**, one per definition file, in the checkout
+`n64/OcarinaOfTime/Shipwright/`. Branches left in place:
+
+- **`squash-backup`** — the pre-squash tip, 3,799 commits. The undo:
+  `git reset --hard squash-backup`. Never write to it.
+- **`squash-rebuild`** — the regrouped history, 488 commits.
+
+The script is `tasks/adhoc/ocarina-deduce-remaining-decomp-names/squash_series.py`,
+saved because the "how" behind a 4,287-file diff is not recoverable from the
+diff itself. It is re-runnable: it rebuilds the work branch from the pin every
+time rather than stacking onto a previous run.
+
+### Four decisions the step required
+
+**1. The unit is the definition file, and units are runs of CONSECUTIVE
+commits.** A commit's unit key is the file its provenance marker landed in —
+the symbol's definition site. That answers the maintainer's worked example
+directly (a function-pointer array's thirty entries all live in one file, so
+they become one commit) and it gives a reviewer the natural unit: one file at a
+time. 488 units, of which 156 are files carrying a single rename.
+
+*Rejected: grouping every commit for a file globally* (which would give ~342
+units instead of 488). It requires reordering commits, and the shared headers
+`functions.h` / `variables.h` are touched by almost every unit — so partitioning
+their content per unit means splitting the diff hunk by hunk. More risk for a
+30% reduction that does not change the review experience, since the residue is
+dominated by the 156 single-rename files either way. 83 files therefore appear
+as more than one commit, because their renames were made in more than one batch.
+
+**2. Trees were SET, not replayed.** Each unit commits with
+`git read-tree --reset -u <last sha of the unit>` — pointing at a tree that
+already exists in history — rather than `git cherry-pick`. No patch is applied,
+so there is nothing that can conflict and nothing that can be silently dropped,
+and the final tree is byte-identical to the pre-squash tip *by construction*
+rather than by luck. The doc's step 4 proof still runs as a check, and passed.
+
+**3. The reasoning is preserved per symbol; only the invariant boilerplate is
+hoisted.** Each original message is subject + a name-source paragraph + an
+optional `Reason:` + `Defined in <path>` + a closing paragraph. The closing
+paragraph and most of the name-source text are **byte-identical across every
+commit that shares a source type** — 36 distinct templates across 3,799
+messages. Repeating that 203 times inside one commit message would bury the
+reasoning rather than preserve it, so the squashed message states it once in a
+header and then carries one entry per symbol:
+
+```
+  * func_80B5A1D0 -> EnZl3_DrawXlu
+    deduced, confidence HIGH: sDrawFuncs[2]: SkelAnime_DrawFlex into
+    POLY_XLU_DISP after Gfx_SetupDL_25Xlu, using this->alpha
+```
+
+Every per-symbol fact survives: old name, new name, source, confidence or the
+upstream similarity score, and the reason. **This is enforced, not asserted:**
+`check_lossless()` fails the run if any `Reason:` recorded in an original
+message does not appear in its squashed unit. It earned its keep on the first
+run by catching 12 genuine losses — `textwrap` was breaking hyphenated words
+(`joint-sphere` -> `joint-` / `sphere`) across a newline, quietly altering the
+recorded text. Fixed by disabling `break_on_hyphens` and `break_long_words`.
+
+A file with exactly one rename keeps its **original message verbatim**; wrapping
+a single symbol in a page of preamble would make it worse, not better. All 488
+messages gained the `Co-Authored-By` trailer, which the unsquashed series lacked.
+
+**4. `check_renames.py series` was relaxed, not retired.** The doc predicted it
+would fail the moment the squash landed. In fact the failure mode was worse than
+predicted: its `SUBJECT_RE` simply would not match a grouped subject, so every
+grouped commit would be **skipped** and the check would report OK having
+verified nothing — a green gate over zero work. It now accepts both commit
+shapes: a single-symbol subject, or a grouped commit that states its count in
+the subject and lists `  * <old> -> <new>` entries in its body, with the count
+and the entries required to agree. The property being gated is unchanged and is
+the one that always mattered: **no rename may happen that its commit message
+does not account for**, and every claimed rename must be total. That the
+regrouped history claims **3,781** renames — exactly the number the unsquashed
+series performed — is an independent cross-check that nothing fell out.
+
+The generalised check reported two false failures on its first run, both worth
+knowing about: SoH forks some upstream functions and names the fork after the
+same address with a suffix (`func_808C1554_Raw`, `func_80AB70A0_nocutscene`),
+which `ADDR_RE`'s closing `\b` cannot match — so those names never appear in the
+"symbols that disappeared" set however correctly they are renamed. The claimed
+set is now filtered through `ADDR_RE` before that comparison, and the suffixed
+names are still held to account by the totality scan, which greps the literal
+name. Recorded in
+[`tasks/reference/ocarina/decomp-renaming.md`](reference/ocarina/decomp-renaming.md)
+because a false failure of this shape is indistinguishable at a glance from a
+dropped rename.
+
+### Verification
+
+| check | result |
+| --- | --- |
+| `git diff squash-backup squash-rebuild` | empty |
+| tree SHA, both branches | `881936bc3` — identical |
+| `git diff <pin> <branch>`, both branches | identical sha256 |
+| every recorded `Reason:` survives | enforced by `check_lossless()` |
+| build | `ninja: no work to do` — byte-identical to the tree that linked clean |
+| `tools/check_patches_apply.sh OcarinaOfTime` | 488 patches apply cleanly onto the pin |
+| `check_renames.py all` (on the `git am`-ed patches) | ALL CHECKS PASSED — 488 commits, 3,781 renames claimed |
+| `runDir/` | untouched — it is a sibling of the checkout |
+
+**imps' own history was not rewritten.** All of the above happens inside the
+gitignored `Shipwright/` checkout; imps sees one ordinary commit that replaces
+3,799 patch files with 488.
 
 ## Measuring progress — use the PLANNED denominator
 

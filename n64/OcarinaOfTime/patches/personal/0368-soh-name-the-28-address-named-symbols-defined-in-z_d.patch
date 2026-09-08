@@ -1,0 +1,491 @@
+From ba5a54d8cc141ac89ea414774f1617017641f393 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:30 +0000
+Subject: [PATCH 368/488] soh: name the 28 address-named symbols defined in
+ z_demo_go.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 28 are defined in soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c.
+
+  * func_8097C8A8 -> DemoGo_PlayLandingSfx
+    deduced, confidence HIGH: projects the Goron's position and plays
+    NA_SE_EV_OBJECT_FALL there, for the two rolling Gorons only
+
+  * func_8097C930 -> DemoGo_UpdateBlink
+    deduced, confidence HIGH: counts the blink timer down, reseeds it, and
+    clamps the eye texture index to 0-2
+
+  * func_8097C9B8 -> DemoGo_PlayImpactSfx
+    deduced, confidence HIGH: plays NA_SE_EN_DODO_M_GND at the Goron's
+    projected position
+
+  * func_8097C9DC -> DemoGo_PlayFootstepSfx
+    deduced, confidence HIGH: plays NA_SE_EN_MORIBLIN_WALK on animation
+    frames 12 and 25
+
+  * func_8097CA30 -> DemoGo_UpdateBgCheck
+    deduced, confidence HIGH: runs Actor_UpdateBgCheckInfo with the Goron's
+    dimensions
+
+  * func_8097CA78 -> DemoGo_SpawnLandingDust
+    deduced, confidence HIGH: kicks up dust at the Goron's position with
+    func_80033480 and plays the impact sound
+
+  * func_8097CB0C -> DemoGo_MoveAlongCue
+    deduced, confidence HIGH: lerps position between the cue's start and end
+    points and takes the cue's yaw outright
+
+  * func_8097CC08 -> DemoGo_WalkForward
+    deduced, confidence HIGH: ramps speedXZ up to the kREG-tunable walk
+    speed over eight frames and moves the actor
+
+  * func_8097CCC0 -> DemoGo_MoveWithGravity
+    deduced, confidence HIGH: moves the actor at its current speed with no
+    speed change of its own
+
+  * func_8097CCE0 -> DemoGo_TurnTowardCueYaw
+    deduced, confidence HIGH: steps the Goron's yaw toward the cue's yaw at
+    a capped rate instead of snapping to it
+
+  * func_8097CDB0 -> DemoGo_IsCueAction
+    deduced, confidence HIGH: true when this Goron's cue channel is live and
+    sitting on the caller's action id
+
+  * func_8097CE10 -> DemoGo_WaitForCutscene
+    deduced, confidence HIGH: the action 0 step: advances straight to action
+    1
+
+  * func_8097CE20 -> DemoGo_WaitForRollCue
+    deduced, confidence HIGH: on cue action 2, snaps to the cue, enables
+    drawing and starts the roll
+
+  * func_8097CE78 -> DemoGo_RollUntilCueEnds
+    deduced, confidence HIGH: rides the cue until its end frame, then throws
+    up landing dust and advances
+
+  * func_8097CEEC -> DemoGo_WaitForUnfoldCue
+    deduced, confidence HIGH: waits for cue action 3 before unfolding
+
+  * func_8097CF20 -> DemoGo_StartWalkAnim
+    deduced, confidence HIGH: on the unfold animation finishing, loops
+    gGoronAnim_0029A8 and resets the walk ramp
+
+  * func_8097CF9C -> DemoGo_CountWalkRamp
+    deduced, confidence HIGH: counts the eight-frame speed ramp out and
+    advances to the full-speed walk
+
+  * func_8097CFDC -> DemoGo_Action0
+    deduced, confidence HIGH: action 0: nothing but the advance to action 1
+
+  * func_8097CFFC -> DemoGo_Action1
+    deduced, confidence HIGH: action 1: waits for the roll cue
+
+  * func_8097D01C -> DemoGo_Action2
+    deduced, confidence HIGH: action 2: rides the cue with bg checks until
+    it ends
+
+  * func_8097D058 -> DemoGo_Action3
+    deduced, confidence HIGH: action 3: bg checks while waiting for the
+    unfold cue
+
+  * func_8097D088 -> DemoGo_Action4
+    deduced, confidence HIGH: action 4: plays the unfold animation out and
+    starts the walk
+
+  * func_8097D0D0 -> DemoGo_Action5
+    deduced, confidence HIGH: action 5: walks at ramping speed while turning
+    toward the cue
+
+  * func_8097D130 -> DemoGo_Action6
+    deduced, confidence HIGH: action 6: the same walk at full speed
+
+  * func_8097D290 -> DemoGo_DrawNothing
+    deduced, confidence HIGH: draw config 0: draws nothing, used before the
+    Goron appears
+
+  * func_8097D29C -> DemoGo_DrawSkeleton
+    deduced, confidence HIGH: draw config 1: binds the current eye and smile
+    textures and draws the Goron skeleton
+
+  * D_8097D44C -> sActionFuncs
+    deduced, confidence HIGH: the seven action steps indexed by
+    DemoGo.action
+
+  * D_8097D468 -> sDrawFuncs
+    deduced, confidence HIGH: the two draw configs indexed by
+    DemoGo.drawConfig
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Demo_Go/z_demo_go.c   | 174 ++++++++++--------
+ 1 file changed, 101 insertions(+), 73 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c b/soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c
+index edca1fc2d..78c794dc6 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c
++++ b/soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c
+@@ -15,26 +15,38 @@ void DemoGo_Destroy(Actor* thisx, PlayState* play);
+ void DemoGo_Update(Actor* thisx, PlayState* play);
+ void DemoGo_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8097CE10(DemoGo* this, PlayState* play);
+-void func_8097CFDC(DemoGo* this, PlayState* play);
+-void func_8097CFFC(DemoGo* this, PlayState* play);
+-void func_8097D01C(DemoGo* this, PlayState* play);
+-void func_8097D058(DemoGo* this, PlayState* play);
+-void func_8097D088(DemoGo* this, PlayState* play);
+-void func_8097D0D0(DemoGo* this, PlayState* play);
+-void func_8097D130(DemoGo* this, PlayState* play);
+-void func_8097D290(DemoGo* this, PlayState* play);
+-void func_8097D29C(DemoGo* this, PlayState* play);
++// LLM generated name (HIGH), was func_8097CE10: the action 0 step: advances straight to action 1
++void DemoGo_WaitForCutscene(DemoGo* this, PlayState* play);  // was func_8097CE10 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097CFDC: action 0: nothing but the advance to action 1
++void DemoGo_Action0(DemoGo* this, PlayState* play);  // was func_8097CFDC [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097CFFC: action 1: waits for the roll cue
++void DemoGo_Action1(DemoGo* this, PlayState* play);  // was func_8097CFFC [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097D01C: action 2: rides the cue with bg checks until it ends
++void DemoGo_Action2(DemoGo* this, PlayState* play);  // was func_8097D01C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097D058: action 3: bg checks while waiting for the unfold cue
++void DemoGo_Action3(DemoGo* this, PlayState* play);  // was func_8097D058 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097D088: action 4: plays the unfold animation out and starts the walk
++void DemoGo_Action4(DemoGo* this, PlayState* play);  // was func_8097D088 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097D0D0: action 5: walks at ramping speed while turning toward the cue
++void DemoGo_Action5(DemoGo* this, PlayState* play);  // was func_8097D0D0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097D130: action 6: the same walk at full speed
++void DemoGo_Action6(DemoGo* this, PlayState* play);  // was func_8097D130 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097D290: draw config 0: draws nothing, used before the Goron appears
++void DemoGo_DrawNothing(DemoGo* this, PlayState* play);  // was func_8097D290 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8097D29C: draw config 1: binds the current eye and smile textures and draws the Goron skeleton
++void DemoGo_DrawSkeleton(DemoGo* this, PlayState* play);  // was func_8097D29C [LLM:HIGH]
+ 
+ static void* sEyeTextures[] = { gGoronCsEyeOpenTex, gGoronCsEyeHalfTex, gGoronCsEyeClosedTex };
+ 
+-static DemoGoActionFunc D_8097D44C[] = {
+-    func_8097CFDC, func_8097CFFC, func_8097D01C, func_8097D058, func_8097D088, func_8097D0D0, func_8097D130,
++// LLM generated name (HIGH), was D_8097D44C: the seven action steps indexed by DemoGo.action
++static DemoGoActionFunc sActionFuncs[] = {  // was D_8097D44C [LLM:HIGH]
++    DemoGo_Action0, DemoGo_Action1, DemoGo_Action2, DemoGo_Action3, DemoGo_Action4, DemoGo_Action5, DemoGo_Action6,  // was func_8097CFDC [LLM:HIGH]
+ };
+ 
+-static DemoGoDrawFunc D_8097D468[] = {
+-    func_8097D290,
+-    func_8097D29C,
++// LLM generated name (HIGH), was D_8097D468: the two draw configs indexed by DemoGo.drawConfig
++static DemoGoDrawFunc sDrawFuncs[] = {  // was D_8097D468 [LLM:HIGH]
++    DemoGo_DrawNothing,  // was func_8097D290 [LLM:HIGH]
++    DemoGo_DrawSkeleton,  // was func_8097D29C [LLM:HIGH]
+ };
+ 
+ const ActorInit Demo_Go_InitVars = {
+@@ -69,7 +81,8 @@ s32 DemoGo_GetCueChannel(DemoGo* this) {
+     return ret;
+ }
+ 
+-void func_8097C8A8(DemoGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097C8A8: projects the Goron's position and plays NA_SE_EV_OBJECT_FALL there, for the two rolling Gorons only
++void DemoGo_PlayLandingSfx(DemoGo* this, PlayState* play) {
+     Actor* thisx = &this->actor;
+     Vec3f sp20;
+     f32 sp1C;
+@@ -86,7 +99,8 @@ void DemoGo_Destroy(Actor* thisx, PlayState* play) {
+     SkelAnime_Free(&this->skelAnime, play);
+ }
+ 
+-void func_8097C930(DemoGo* this) {
++// LLM generated name (HIGH), was func_8097C930: counts the blink timer down, reseeds it, and clamps the eye texture index to 0-2
++void DemoGo_UpdateBlink(DemoGo* this) {
+     s16* something = &this->unk_192;
+     s16* other = &this->unk_190;
+     s32 pad[3];
+@@ -100,11 +114,13 @@ void func_8097C930(DemoGo* this) {
+     }
+ }
+ 
+-void func_8097C9B8(DemoGo* this) {
++// LLM generated name (HIGH), was func_8097C9B8: plays NA_SE_EN_DODO_M_GND at the Goron's projected position
++void DemoGo_PlayImpactSfx(DemoGo* this) {
+     Sfx_PlaySfxAtPos(&this->actor.projectedPos, NA_SE_EN_DODO_M_GND);
+ }
+ 
+-void func_8097C9DC(DemoGo* this) {
++// LLM generated name (HIGH), was func_8097C9DC: plays NA_SE_EN_MORIBLIN_WALK on animation frames 12 and 25
++void DemoGo_PlayFootstepSfx(DemoGo* this) {
+     s32 pad[2];
+ 
+     if (Animation_OnFrame(&this->skelAnime, 12.0f) || Animation_OnFrame(&this->skelAnime, 25.0f)) {
+@@ -112,18 +128,21 @@ void func_8097C9DC(DemoGo* this) {
+     }
+ }
+ 
+-void func_8097CA30(DemoGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097CA30: runs Actor_UpdateBgCheckInfo with the Goron's dimensions
++void DemoGo_UpdateBgCheck(DemoGo* this, PlayState* play) {
+     Actor_UpdateBgCheckInfo(play, &this->actor, 75.0f, 30.0f, 30.0f, 5);
+ }
+ 
+-void func_8097CA78(DemoGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097CA78: kicks up dust at the Goron's position with func_80033480 and plays the impact sound
++void DemoGo_SpawnLandingDust(DemoGo* this, PlayState* play) {
+     s16 pad;
+     Vec3f vec = this->actor.world.pos;
+     func_80033480(play, &vec, kREG(11) + 100.0f, kREG(12) + 0xA, kREG(13) + 0x12C, kREG(14), 0);
+-    func_8097C9B8(this);
++    DemoGo_PlayImpactSfx(this);  // was func_8097C9B8 [LLM:HIGH]
+ }
+ 
+-void func_8097CB0C(DemoGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097CB0C: lerps position between the cue's start and end points and takes the cue's yaw outright
++void DemoGo_MoveAlongCue(DemoGo* this, PlayState* play) {
+     Actor* thisx = &this->actor;
+     PosRot* world = &thisx->world;
+     CutsceneContext* csCtx = &play->csCtx;
+@@ -151,7 +170,8 @@ void func_8097CB0C(DemoGo* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8097CC08(DemoGo* this) {
++// LLM generated name (HIGH), was func_8097CC08: ramps speedXZ up to the kREG-tunable walk speed over eight frames and moves the actor
++void DemoGo_WalkForward(DemoGo* this) {
+     f32 something = this->unk_19C;
+ 
+     if (something < 8.0f) {
+@@ -162,11 +182,13 @@ void func_8097CC08(DemoGo* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_8097CCC0(DemoGo* this) {
++// LLM generated name (HIGH), was func_8097CCC0: moves the actor at its current speed with no speed change of its own
++void DemoGo_MoveWithGravity(DemoGo* this) {
+     Actor_MoveXZGravity(&this->actor);
+ }
+ 
+-void func_8097CCE0(DemoGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097CCE0: steps the Goron's yaw toward the cue's yaw at a capped rate instead of snapping to it
++void DemoGo_TurnTowardCueYaw(DemoGo* this, PlayState* play) {
+     CsCmdActorCue* npcAction;
+     Actor* thisx = &this->actor;
+     s32 rotYDelta;
+@@ -195,7 +217,8 @@ s32 DemoGo_UpdateSkelAnime(DemoGo* this) {
+     return SkelAnime_Update(&this->skelAnime);
+ }
+ 
+-s32 func_8097CDB0(DemoGo* this, PlayState* play, u16 npcAction) {
++// LLM generated name (HIGH), was func_8097CDB0: true when this Goron's cue channel is live and sitting on the caller's action id
++s32 DemoGo_IsCueAction(DemoGo* this, PlayState* play, u16 npcAction) {
+     CutsceneContext* csCtx = &play->csCtx;
+     s32 actionIdx = DemoGo_GetCueChannel(this);
+ 
+@@ -206,39 +229,43 @@ s32 func_8097CDB0(DemoGo* this, PlayState* play, u16 npcAction) {
+     return 0;
+ }
+ 
+-void func_8097CE10(DemoGo* this, PlayState* play) {
++void DemoGo_WaitForCutscene(DemoGo* this, PlayState* play) {
+     this->action = 1;
+ }
+ 
+-void func_8097CE20(DemoGo* this, PlayState* play) {
+-    if (func_8097CDB0(this, play, 2)) {
++// LLM generated name (HIGH), was func_8097CE20: on cue action 2, snaps to the cue, enables drawing and starts the roll
++void DemoGo_WaitForRollCue(DemoGo* this, PlayState* play) {
++    if (DemoGo_IsCueAction(this, play, 2)) {  // was func_8097CDB0 [LLM:HIGH]
+         this->action = 2;
+         this->drawConfig = 1;
+-        func_8097CB0C(this, play);
+-        func_8097C8A8(this, play);
++        DemoGo_MoveAlongCue(this, play);  // was func_8097CB0C [LLM:HIGH]
++        DemoGo_PlayLandingSfx(this, play);  // was func_8097C8A8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8097CE78(DemoGo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8097CE78: rides the cue until its end frame, then throws up landing dust and advances
++void DemoGo_RollUntilCueEnds(DemoGo* this, PlayState* play) {
+     CutsceneContext* csCtx = &play->csCtx;
+     CsCmdActorCue* npcAction;
+ 
+     if (play->csCtx.state != CS_STATE_IDLE) {
+         npcAction = csCtx->npcActions[DemoGo_GetCueChannel(this)];
+         if (npcAction != NULL && csCtx->frames >= npcAction->endFrame) {
+-            func_8097CA78(this, play);
++            DemoGo_SpawnLandingDust(this, play);  // was func_8097CA78 [LLM:HIGH]
+             this->action = 3;
+         }
+     }
+ }
+ 
+-void func_8097CEEC(DemoGo* this, PlayState* play) {
+-    if (func_8097CDB0(this, play, 3)) {
++// LLM generated name (HIGH), was func_8097CEEC: waits for cue action 3 before unfolding
++void DemoGo_WaitForUnfoldCue(DemoGo* this, PlayState* play) {
++    if (DemoGo_IsCueAction(this, play, 3)) {  // was func_8097CDB0 [LLM:HIGH]
+         this->action = 4;
+     }
+ }
+ 
+-void func_8097CF20(DemoGo* this, PlayState* play, s32 arg2) {
++// LLM generated name (HIGH), was func_8097CF20: on the unfold animation finishing, loops gGoronAnim_0029A8 and resets the walk ramp
++void DemoGo_StartWalkAnim(DemoGo* this, PlayState* play, s32 arg2) {
+     AnimationHeader* animation = &gGoronAnim_0029A8;
+     if (arg2 != 0) {
+         Animation_Change(&this->skelAnime, animation, 1.0f, 0.0f, Animation_GetLastFrame(animation), ANIMMODE_LOOP,
+@@ -248,67 +275,68 @@ void func_8097CF20(DemoGo* this, PlayState* play, s32 arg2) {
+     }
+ }
+ 
+-void func_8097CF9C(DemoGo* this) {
++// LLM generated name (HIGH), was func_8097CF9C: counts the eight-frame speed ramp out and advances to the full-speed walk
++void DemoGo_CountWalkRamp(DemoGo* this) {
+     this->unk_19C += 1.0f;
+     if (this->unk_19C >= 8.0f) {
+         this->action = 6;
+     }
+ }
+ 
+-void func_8097CFDC(DemoGo* this, PlayState* play) {
+-    func_8097CE10(this, play);
++void DemoGo_Action0(DemoGo* this, PlayState* play) {
++    DemoGo_WaitForCutscene(this, play);  // was func_8097CE10 [LLM:HIGH]
+ }
+ 
+-void func_8097CFFC(DemoGo* this, PlayState* play) {
+-    func_8097CE20(this, play);
++void DemoGo_Action1(DemoGo* this, PlayState* play) {
++    DemoGo_WaitForRollCue(this, play);  // was func_8097CE20 [LLM:HIGH]
+ }
+ 
+-void func_8097D01C(DemoGo* this, PlayState* play) {
+-    func_8097CB0C(this, play);
+-    func_8097CA30(this, play);
+-    func_8097CE78(this, play);
++void DemoGo_Action2(DemoGo* this, PlayState* play) {
++    DemoGo_MoveAlongCue(this, play);  // was func_8097CB0C [LLM:HIGH]
++    DemoGo_UpdateBgCheck(this, play);  // was func_8097CA30 [LLM:HIGH]
++    DemoGo_RollUntilCueEnds(this, play);  // was func_8097CE78 [LLM:HIGH]
+ }
+ 
+-void func_8097D058(DemoGo* this, PlayState* play) {
+-    func_8097CA30(this, play);
+-    func_8097CEEC(this, play);
++void DemoGo_Action3(DemoGo* this, PlayState* play) {
++    DemoGo_UpdateBgCheck(this, play);  // was func_8097CA30 [LLM:HIGH]
++    DemoGo_WaitForUnfoldCue(this, play);  // was func_8097CEEC [LLM:HIGH]
+ }
+ 
+-void func_8097D088(DemoGo* this, PlayState* play) {
++void DemoGo_Action4(DemoGo* this, PlayState* play) {
+     s32 something;
+ 
+-    func_8097CA30(this, play);
++    DemoGo_UpdateBgCheck(this, play);  // was func_8097CA30 [LLM:HIGH]
+     something = DemoGo_UpdateSkelAnime(this);
+-    func_8097C930(this);
+-    func_8097CF20(this, play, something);
++    DemoGo_UpdateBlink(this);  // was func_8097C930 [LLM:HIGH]
++    DemoGo_StartWalkAnim(this, play, something);  // was func_8097CF20 [LLM:HIGH]
+ }
+ 
+-void func_8097D0D0(DemoGo* this, PlayState* play) {
+-    func_8097CCE0(this, play);
+-    func_8097CCC0(this);
+-    func_8097CA30(this, play);
++void DemoGo_Action5(DemoGo* this, PlayState* play) {
++    DemoGo_TurnTowardCueYaw(this, play);  // was func_8097CCE0 [LLM:HIGH]
++    DemoGo_MoveWithGravity(this);  // was func_8097CCC0 [LLM:HIGH]
++    DemoGo_UpdateBgCheck(this, play);  // was func_8097CA30 [LLM:HIGH]
+     DemoGo_UpdateSkelAnime(this);
+-    func_8097C930(this);
+-    func_8097C9DC(this);
+-    func_8097CF9C(this);
+-}
+-void func_8097D130(DemoGo* this, PlayState* play) {
+-    func_8097CCE0(this, play);
+-    func_8097CC08(this);
+-    func_8097CA30(this, play);
++    DemoGo_UpdateBlink(this);  // was func_8097C930 [LLM:HIGH]
++    DemoGo_PlayFootstepSfx(this);  // was func_8097C9DC [LLM:HIGH]
++    DemoGo_CountWalkRamp(this);  // was func_8097CF9C [LLM:HIGH]
++}
++void DemoGo_Action6(DemoGo* this, PlayState* play) {
++    DemoGo_TurnTowardCueYaw(this, play);  // was func_8097CCE0 [LLM:HIGH]
++    DemoGo_WalkForward(this);  // was func_8097CC08 [LLM:HIGH]
++    DemoGo_UpdateBgCheck(this, play);  // was func_8097CA30 [LLM:HIGH]
+     DemoGo_UpdateSkelAnime(this);
+-    func_8097C930(this);
+-    func_8097C9DC(this);
++    DemoGo_UpdateBlink(this);  // was func_8097C930 [LLM:HIGH]
++    DemoGo_PlayFootstepSfx(this);  // was func_8097C9DC [LLM:HIGH]
+ }
+ 
+ void DemoGo_Update(Actor* thisx, PlayState* play) {
+     DemoGo* this = (DemoGo*)thisx;
+ 
+-    if (this->action < 0 || this->action >= 7 || D_8097D44C[this->action] == 0) {
++    if (this->action < 0 || this->action >= 7 || sActionFuncs[this->action] == 0) {  // was D_8097D44C [LLM:HIGH]
+         osSyncPrintf(VT_FGCOL(RED) "メインモードがおかしい!!!!!!!!!!!!!!!!!!!!!!!!!\n" VT_RST);
+         return;
+     }
+-    D_8097D44C[this->action](this, play);
++    sActionFuncs[this->action](this, play);  // was D_8097D44C [LLM:HIGH]
+ }
+ 
+ void DemoGo_Init(Actor* thisx, PlayState* play) {
+@@ -321,10 +349,10 @@ void DemoGo_Init(Actor* thisx, PlayState* play) {
+     this->action = 0;
+ }
+ 
+-void func_8097D290(DemoGo* this, PlayState* play) {
++void DemoGo_DrawNothing(DemoGo* this, PlayState* play) {
+ }
+ 
+-void func_8097D29C(DemoGo* this, PlayState* play) {
++void DemoGo_DrawSkeleton(DemoGo* this, PlayState* play) {
+     s32 pad;
+     s16 eyeTexIdx = this->unk_190;
+     SkelAnime* skelAnime = &this->skelAnime;
+@@ -345,9 +373,9 @@ void func_8097D29C(DemoGo* this, PlayState* play) {
+ void DemoGo_Draw(Actor* thisx, PlayState* play) {
+     DemoGo* this = (DemoGo*)thisx;
+ 
+-    if (this->drawConfig < 0 || this->drawConfig >= 2 || D_8097D468[this->drawConfig] == NULL) {
++    if (this->drawConfig < 0 || this->drawConfig >= 2 || sDrawFuncs[this->drawConfig] == NULL) {  // was D_8097D468 [LLM:HIGH]
+         osSyncPrintf(VT_FGCOL(RED) "描画モードがおかしい!!!!!!!!!!!!!!!!!!!!!!!!!\n" VT_RST);
+         return;
+     }
+-    D_8097D468[this->drawConfig](this, play);
++    sDrawFuncs[this->drawConfig](this, play);  // was D_8097D468 [LLM:HIGH]
+ }
+-- 
+2.55.0
+

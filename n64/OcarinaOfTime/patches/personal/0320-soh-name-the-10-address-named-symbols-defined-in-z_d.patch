@@ -1,0 +1,253 @@
+From f48eadd972e86e9cb7ea0cb1766a01ccf1babc78 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:26 +0000
+Subject: [PATCH 320/488] soh: name the 10 address-named symbols defined in
+ z_demo_geff.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 10 are defined in soh/src/overlays/actors/ovl_Demo_Geff/z_demo_geff.c.
+
+  * func_80977EA8 -> DemoGeff_DrawDList
+    deduced, confidence HIGH: the shared draw helper: sets up the opaque DL,
+    pushes the current matrix, draws the caller's display list and pops.
+
+  * func_80977F80 -> DemoGeff_SetObjectSegment
+    deduced, confidence HIGH: binds this actor's loaded object bank to
+    segment 6 for both the RSP and the CPU-side gSegments table.
+
+  * func_80978030 -> DemoGeff_SetupRubble
+    deduced, confidence HIGH: the only entry in sInitFuncs: advances the
+    actor to action 1 and draw config 1 and gives it the per-params rubble
+    scale, all three axes tunable through kREG.
+
+  * func_809781FC -> DemoGeff_FindDemoGt
+    deduced, confidence HIGH: scans the prop actor list for the Demo_Gt this
+    piece rides on and records the offset from it, once.
+
+  * func_809782A0 -> DemoGeff_FollowDemoGt
+    deduced, confidence HIGH: keeps the piece at its recorded offset from
+    the Demo_Gt it found, except for the three params variants that stay
+    put.
+
+  * func_80978308 -> DemoGeff_Active
+    deduced, confidence HIGH: sActionFuncs[1]: finds and follows the Demo_Gt
+    and refreshes the rubble scale every frame.
+
+  * func_80978344 -> DemoGeff_DrawRubble
+    deduced, confidence HIGH: sDrawFuncs[1]: draws gGanonRubbleDL through
+    the shared draw helper.
+
+  * func_80978370 -> DemoGeff_RunInitFunc
+    deduced, confidence HIGH: looks the params up in sInitFuncs and calls
+    it, killing the actor and complaining when the slot is empty.
+
+  * func_809783D4 -> DemoGeff_WaitForObject
+    deduced, confidence HIGH: sActionFuncs[0]: waits for this params
+    variant's object bank to load, then records its index and runs the init
+    function.
+
+  * func_809784D4 -> DemoGeff_DrawNothing
+    deduced, confidence HIGH: sDrawFuncs[0]: the empty draw used before the
+    object has loaded.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Demo_Geff/z_demo_geff.c        | 64 +++++++++++--------
+ 1 file changed, 37 insertions(+), 27 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Geff/z_demo_geff.c b/soh/src/overlays/actors/ovl_Demo_Geff/z_demo_geff.c
+index 8d9c917e6..346268966 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Geff/z_demo_geff.c
++++ b/soh/src/overlays/actors/ovl_Demo_Geff/z_demo_geff.c
+@@ -15,31 +15,36 @@ void DemoGeff_Destroy(Actor* thisx, PlayState* play);
+ void DemoGeff_Update(Actor* thisx, PlayState* play);
+ void DemoGeff_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80978030(DemoGeff* this, PlayState* play);
++// LLM generated name (HIGH), was func_80978030: the only entry in sInitFuncs: advances the actor to action 1 and draw config 1 and gives it the per-params rubble scale, all three axes tunable through kREG.
++void DemoGeff_SetupRubble(DemoGeff* this, PlayState* play);  // was func_80978030 [LLM:HIGH]
+ 
+-void func_809783D4(DemoGeff* this, PlayState* play);
+-void func_80978308(DemoGeff* this, PlayState* play);
++// LLM generated name (HIGH), was func_809783D4: sActionFuncs[0]: waits for this params variant's object bank to load, then records its index and runs the init function.
++void DemoGeff_WaitForObject(DemoGeff* this, PlayState* play);  // was func_809783D4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80978308: sActionFuncs[1]: finds and follows the Demo_Gt and refreshes the rubble scale every frame.
++void DemoGeff_Active(DemoGeff* this, PlayState* play);  // was func_80978308 [LLM:HIGH]
+ 
+-void func_809784D4(DemoGeff* this, PlayState* play);
+-void func_80978344(DemoGeff* this, PlayState* play);
++// LLM generated name (HIGH), was func_809784D4: sDrawFuncs[0]: the empty draw used before the object has loaded.
++void DemoGeff_DrawNothing(DemoGeff* this, PlayState* play);  // was func_809784D4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80978344: sDrawFuncs[1]: draws gGanonRubbleDL through the shared draw helper.
++void DemoGeff_DrawRubble(DemoGeff* this, PlayState* play);  // was func_80978344 [LLM:HIGH]
+ 
+ static s16 sObjectIDs[] = {
+     OBJECT_GEFF, OBJECT_GEFF, OBJECT_GEFF, OBJECT_GEFF, OBJECT_GEFF, OBJECT_GEFF, OBJECT_GEFF, OBJECT_GEFF, OBJECT_GEFF,
+ };
+ 
+ static DemoGeffInitFunc sInitFuncs[] = {
+-    func_80978030, func_80978030, func_80978030, func_80978030, func_80978030,
+-    func_80978030, func_80978030, func_80978030, func_80978030,
++    DemoGeff_SetupRubble, DemoGeff_SetupRubble, DemoGeff_SetupRubble, DemoGeff_SetupRubble, DemoGeff_SetupRubble,  // was func_80978030 [LLM:HIGH]
++    DemoGeff_SetupRubble, DemoGeff_SetupRubble, DemoGeff_SetupRubble, DemoGeff_SetupRubble,  // was func_80978030 [LLM:HIGH]
+ };
+ 
+ static DemoGeffActionFunc sActionFuncs[] = {
+-    func_809783D4,
+-    func_80978308,
++    DemoGeff_WaitForObject,  // was func_809783D4 [LLM:HIGH]
++    DemoGeff_Active,  // was func_80978308 [LLM:HIGH]
+ };
+ 
+ static DemoGeffDrawFunc sDrawFuncs[] = {
+-    func_809784D4,
+-    func_80978344,
++    DemoGeff_DrawNothing,  // was func_809784D4 [LLM:HIGH]
++    DemoGeff_DrawRubble,  // was func_80978344 [LLM:HIGH]
+ };
+ 
+ const ActorInit Demo_Geff_InitVars = {
+@@ -70,7 +75,8 @@ void DemoGeff_Init(Actor* thisx, PlayState* play) {
+     this->drawConfig = 0;
+ }
+ 
+-void func_80977EA8(PlayState* play, Gfx* dlist) {
++// LLM generated name (HIGH), was func_80977EA8: the shared draw helper: sets up the opaque DL, pushes the current matrix, draws the caller's display list and pops.
++void DemoGeff_DrawDList(PlayState* play, Gfx* dlist) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+ 
+     OPEN_DISPS(gfxCtx);
+@@ -84,7 +90,8 @@ void func_80977EA8(PlayState* play, Gfx* dlist) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_80977F80(DemoGeff* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80977F80: binds this actor's loaded object bank to segment 6 for both the RSP and the CPU-side gSegments table.
++void DemoGeff_SetObjectSegment(DemoGeff* this, PlayState* play) {
+     s32 pad[2];
+     s32 objBankIndex = this->objBankIndex;
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+@@ -97,7 +104,7 @@ void func_80977F80(DemoGeff* this, PlayState* play) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_80978030(DemoGeff* this, PlayState* play) {
++void DemoGeff_SetupRubble(DemoGeff* this, PlayState* play) {
+     Vec3f* thisScale = &this->actor.scale;
+ 
+     this->action = 1;
+@@ -126,7 +133,8 @@ void func_80978030(DemoGeff* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809781FC(DemoGeff* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809781FC: scans the prop actor list for the Demo_Gt this piece rides on and records the offset from it, once.
++void DemoGeff_FindDemoGt(DemoGeff* this, PlayState* play) {
+     s32 targetParams = 2;
+     Actor* propIt;
+ 
+@@ -149,7 +157,8 @@ void func_809781FC(DemoGeff* this, PlayState* play) {
+     }
+ }
+ 
+-void func_809782A0(DemoGeff* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809782A0: keeps the piece at its recorded offset from the Demo_Gt it found, except for the three params variants that stay put.
++void DemoGeff_FollowDemoGt(DemoGeff* this, PlayState* play) {
+     DemoGt* demoGt = this->demoGt;
+     s16 params = this->actor.params;
+ 
+@@ -160,17 +169,18 @@ void func_809782A0(DemoGeff* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80978308(DemoGeff* this, PlayState* play) {
+-    func_809781FC(this, play);
+-    func_809782A0(this, play);
+-    func_80978030(this, play);
++void DemoGeff_Active(DemoGeff* this, PlayState* play) {
++    DemoGeff_FindDemoGt(this, play);  // was func_809781FC [LLM:HIGH]
++    DemoGeff_FollowDemoGt(this, play);  // was func_809782A0 [LLM:HIGH]
++    DemoGeff_SetupRubble(this, play);  // was func_80978030 [LLM:HIGH]
+ }
+ 
+-void func_80978344(DemoGeff* this, PlayState* play) {
+-    func_80977EA8(play, gGanonRubbleDL);
++void DemoGeff_DrawRubble(DemoGeff* this, PlayState* play) {
++    DemoGeff_DrawDList(play, gGanonRubbleDL);  // was func_80977EA8 [LLM:HIGH]
+ }
+ 
+-void func_80978370(DemoGeff* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80978370: looks the params up in sInitFuncs and calls it, killing the actor and complaining when the slot is empty.
++void DemoGeff_RunInitFunc(DemoGeff* this, PlayState* play) {
+     s16 params = this->actor.params;
+     DemoGeffInitFunc initFunc = sInitFuncs[params];
+     if (initFunc == NULL) {
+@@ -181,7 +191,7 @@ void func_80978370(DemoGeff* this, PlayState* play) {
+     initFunc(this, play);
+ }
+ 
+-void func_809783D4(DemoGeff* this, PlayState* play) {
++void DemoGeff_WaitForObject(DemoGeff* this, PlayState* play) {
+     ObjectContext* objCtx = &play->objectCtx;
+     Actor* thisx = &this->actor;
+     s32 params = thisx->params;
+@@ -196,7 +206,7 @@ void func_809783D4(DemoGeff* this, PlayState* play) {
+     }
+     if (Object_IsLoaded(objCtx, objBankIndex)) {
+         this->objBankIndex = objBankIndex;
+-        func_80978370(this, play);
++        DemoGeff_RunInitFunc(this, play);  // was func_80978370 [LLM:HIGH]
+     }
+ }
+ 
+@@ -210,7 +220,7 @@ void DemoGeff_Update(Actor* thisx, PlayState* play) {
+     sActionFuncs[this->action](this, play);
+ }
+ 
+-void func_809784D4(DemoGeff* this, PlayState* play) {
++void DemoGeff_DrawNothing(DemoGeff* this, PlayState* play) {
+ }
+ 
+ void DemoGeff_Draw(Actor* thisx, PlayState* play) {
+@@ -222,7 +232,7 @@ void DemoGeff_Draw(Actor* thisx, PlayState* play) {
+         return;
+     }
+     if (drawConfig != 0) {
+-        func_80977F80(this, play);
++        DemoGeff_SetObjectSegment(this, play);  // was func_80977F80 [LLM:HIGH]
+     }
+     sDrawFuncs[drawConfig](this, play);
+ }
+-- 
+2.55.0
+

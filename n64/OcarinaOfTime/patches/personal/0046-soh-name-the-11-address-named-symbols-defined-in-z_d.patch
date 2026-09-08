@@ -1,0 +1,266 @@
+From e1623950699ffd754caf8fb9507504a4b3af00d5 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:01 +0000
+Subject: [PATCH 046/488] soh: name the 11 address-named symbols defined in
+ z_demo_kankyo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 11 are defined in soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c.
+
+  * D_8098C314 -> sUnusedFloats
+    deduced, confidence GUESS
+
+  * D_8098CF80 -> sRainSpeed
+    deduced, confidence HIGH
+
+  * D_8098CF84 -> sWarpCsFrameThreshold
+    deduced, confidence HIGH
+
+  * func_80989B54 -> DemoKankyo_InitRainDrop
+    deduced, confidence HIGH
+
+  * D_8098CF90 -> sWarpUnused0
+    deduced, confidence GUESS
+
+  * D_8098CF94 -> sWarpUnused1
+    deduced, confidence GUESS
+
+  * D_8098CF98 -> sWarpSparklePos
+    deduced, confidence HIGH
+
+  * D_8098CFAC -> sSparkleUnused0
+    deduced, confidence GUESS
+
+  * D_8098CFB0 -> sSparkleUnused1
+    deduced, confidence GUESS
+
+  * D_8098CFB4 -> sSparkleUnused2
+    deduced, confidence GUESS
+
+  * D_8098CFB8 -> sSparklePos
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Demo_Kankyo/z_demo_kankyo.c    | 67 +++++++++++--------
+ 1 file changed, 39 insertions(+), 28 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c b/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
+index 584765b97..63418dca0 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
++++ b/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
+@@ -63,7 +63,8 @@ static s16 sObjIds[] = {
+ };
+ 
+ // unused, presumed to be floats
+-static f32 D_8098C314[] = {
++// LLM generated name (GUESS), was D_8098C314: file-scope float array never referenced; name flags it unused.
++static f32 sUnusedFloats[] = {
+     0.0f,
+     150.0f,
+ };
+@@ -173,9 +174,11 @@ static CutsceneCameraPoint sSparklesCameraPoints[] = {
+     { CS_CMD_STOP, 0, 2, 45.0f, { 0xFFF6, 0x002B, 0xFFD4 } },
+ };
+ 
+-static s16 D_8098CF80;
++// LLM generated name (HIGH), was D_8098CF80: per-scene rain fall speed multiplier used when init'ing rain drops.
++static s16 sRainSpeed;
+ static s16 sRainScale;
+-static s16 D_8098CF84;
++// LLM generated name (HIGH), was D_8098CF84: cutscene frame count that gates warp-out transition.
++static s16 sWarpCsFrameThreshold;
+ 
+ void DemoKankyo_SetupAction(DemoKankyo* this, DemoKankyoActionFunc actionFunc) {
+     this->actionFunc = actionFunc;
+@@ -199,15 +202,15 @@ void DemoKankyo_Init(Actor* thisx, PlayState* play) {
+             switch (play->sceneNum) {
+                 case SCENE_CUTSCENE_MAP:
+                     play->roomCtx.curRoom.segment = NULL;
+-                    D_8098CF80 = 10;
++                    sRainSpeed = 10;
+                     sRainScale = 8;
+                     break;
+                 case SCENE_TEMPLE_OF_TIME:
+-                    D_8098CF80 = 14;
++                    sRainSpeed = 14;
+                     sRainScale = 8;
+                     break;
+                 case SCENE_HYRULE_FIELD:
+-                    D_8098CF80 = 1;
++                    sRainSpeed = 1;
+                     sRainScale = 5;
+                     break;
+                 default:
+@@ -322,14 +325,14 @@ void DemoKankyo_SetupType(DemoKankyo* this, PlayState* play) {
+                 }
+                 if (this->warpTimer == 1) {
+                     if (play->sceneNum == SCENE_TEMPLE_OF_TIME) {
+-                        D_8098CF84 = 25;
++                        sWarpCsFrameThreshold = 25;
+                         if (!LINK_IS_ADULT) {
+                             play->csCtx.segment = gChildWarpInToTCS;
+                         } else {
+                             play->csCtx.segment = gAdultWarpInToTCS;
+                         }
+                     } else {
+-                        D_8098CF84 = 32;
++                        sWarpCsFrameThreshold = 32;
+                         if (!LINK_IS_ADULT) {
+                             play->csCtx.segment = gChildWarpInCS;
+                         } else {
+@@ -485,7 +488,8 @@ void DemoKankyo_Draw(Actor* thisx, PlayState* play) {
+ }
+ 
+ // transform relating to blue rain
+-void func_80989B54(Actor* thisx, PlayState* play, s16 i) {
++// LLM generated name (HIGH), was func_80989B54: initializes one rain-drop particle's position/velocity per scene.
++void DemoKankyo_InitRainDrop(Actor* thisx, PlayState* play, s16 i) {
+     DemoKankyo* this = (DemoKankyo*)thisx;
+ 
+     switch (play->sceneNum) {
+@@ -508,7 +512,7 @@ void func_80989B54(Actor* thisx, PlayState* play, s16 i) {
+             this->unk_150[i].unk_0.z = (Rand_ZeroOne() - 0.5f) * 600.0f;
+             break;
+     }
+-    this->unk_150[i].unk_18 = Rand_ZeroOne() * (D_8098CF80 * 4.0f) + D_8098CF80;
++    this->unk_150[i].unk_18 = Rand_ZeroOne() * (sRainSpeed * 4.0f) + sRainSpeed;
+ }
+ 
+ void DemoKankyo_DrawRain(Actor* thisx, PlayState* play) {
+@@ -542,7 +546,7 @@ void DemoKankyo_DrawRain(Actor* thisx, PlayState* play) {
+ 
+         switch (this->unk_150[i].unk_22) {
+             case 0:
+-                func_80989B54(thisx, play, i);
++                DemoKankyo_InitRainDrop(thisx, play, i);
+                 if (gSaveContext.entranceIndex == ENTR_CUTSCENE_MAP_0) { // Cutscene Map
+                     this->unk_150[i].unk_0.y = Rand_ZeroOne() * 500.0f;
+                 } else {
+@@ -572,7 +576,7 @@ void DemoKankyo_DrawRain(Actor* thisx, PlayState* play) {
+                 }
+                 break;
+             case 2:
+-                func_80989B54(thisx, play, i);
++                DemoKankyo_InitRainDrop(thisx, play, i);
+                 this->unk_150[i].unk_22--;
+                 break;
+         }
+@@ -760,9 +764,12 @@ void DemoKankyo_DrawWarpSparkles(Actor* thisx, PlayState* play) {
+     static f32 sWarpRoll;
+     static f32 sWarpFoV;
+     // the following 2 vars are unused
+-    static u32 D_8098CF90;
+-    static u32 D_8098CF94;
+-    static Vec3f D_8098CF98;
++    // LLM generated name (GUESS), was D_8098CF90: unused function-scope static; name flags it as unused.
++    static u32 sWarpUnused0;
++    // LLM generated name (GUESS), was D_8098CF94: unused function-scope static; name flags it as unused.
++    static u32 sWarpUnused1;
++    // LLM generated name (HIGH), was D_8098CF98: sparkle world pos added to spline camera pos for warp effect.
++    static Vec3f sWarpSparklePos;
+ 
+     s16 i;
+     f32 temp_f22;
+@@ -812,12 +819,12 @@ void DemoKankyo_DrawWarpSparkles(Actor* thisx, PlayState* play) {
+                                       &this->unk_150[i].unk_1C) != 0) {
+                         this->unk_150[i].unk_22++;
+                     }
+-                    if (D_8098CF84 < play->csCtx.frames && this->actor.params == DEMOKANKYO_WARP_OUT) {
++                    if (sWarpCsFrameThreshold < play->csCtx.frames && this->actor.params == DEMOKANKYO_WARP_OUT) {
+                         this->unk_150[i].unk_22++;
+                     }
+                 }
+                 Actor_GetWorld(&posRot, &player->actor);
+-                DemoKankyo_Vec3fAddPosRot(&posRot, &camPos, &D_8098CF98);
++                DemoKankyo_Vec3fAddPosRot(&posRot, &camPos, &sWarpSparklePos);
+                 break;
+             case 2:
+                 if (this->actor.params == DEMOKANKYO_WARP_OUT) {
+@@ -832,9 +839,9 @@ void DemoKankyo_DrawWarpSparkles(Actor* thisx, PlayState* play) {
+                 break;
+         }
+ 
+-        this->unk_150[i].unk_C.x = D_8098CF98.x;
+-        this->unk_150[i].unk_C.y = D_8098CF98.y;
+-        this->unk_150[i].unk_C.z = D_8098CF98.z;
++        this->unk_150[i].unk_C.x = sWarpSparklePos.x;
++        this->unk_150[i].unk_C.y = sWarpSparklePos.y;
++        this->unk_150[i].unk_C.z = sWarpSparklePos.z;
+ 
+         switch (this->unk_150[i].unk_23) {
+             case 0:
+@@ -901,10 +908,14 @@ void DemoKankyo_DrawSparkles(Actor* thisx, PlayState* play) {
+     static f32 sSparklesRoll;
+     static f32 sSparklesFoV;
+     // the following 3 vars are unused
+-    static u32 D_8098CFAC;
+-    static u32 D_8098CFB0;
+-    static u32 D_8098CFB4;
+-    static Vec3f D_8098CFB8;
++    // LLM generated name (GUESS), was D_8098CFAC: unused function-scope static; name flags it as unused.
++    static u32 sSparkleUnused0;
++    // LLM generated name (GUESS), was D_8098CFB0: unused function-scope static; name flags it as unused.
++    static u32 sSparkleUnused1;
++    // LLM generated name (GUESS), was D_8098CFB4: unused function-scope static; name flags it as unused.
++    static u32 sSparkleUnused2;
++    // LLM generated name (HIGH), was D_8098CFB8: sparkle world pos added to spline camera pos for draw.
++    static Vec3f sSparklePos;
+ 
+     DemoKankyo* this = (DemoKankyo*)thisx;
+     f32 translateX;
+@@ -942,7 +953,7 @@ void DemoKankyo_DrawSparkles(Actor* thisx, PlayState* play) {
+                     this->unk_150[i].unk_22++;
+                 }
+                 Actor_GetWorld(&posRot, &this->actor);
+-                DemoKankyo_Vec3fAddPosRot(&posRot, &camPos, &D_8098CFB8);
++                DemoKankyo_Vec3fAddPosRot(&posRot, &camPos, &sSparklePos);
+                 break;
+             case 2:
+                 if (i + 1 == this->sparkleCounter && play->csCtx.state == CS_STATE_IDLE) {
+@@ -951,9 +962,9 @@ void DemoKankyo_DrawSparkles(Actor* thisx, PlayState* play) {
+                 break;
+         }
+ 
+-        this->unk_150[i].unk_C.x = D_8098CFB8.x;
+-        this->unk_150[i].unk_C.y = D_8098CFB8.y;
+-        this->unk_150[i].unk_C.z = D_8098CFB8.z;
++        this->unk_150[i].unk_C.x = sSparklePos.x;
++        this->unk_150[i].unk_C.y = sSparklePos.y;
++        this->unk_150[i].unk_C.z = sSparklePos.z;
+ 
+         switch (this->unk_150[i].unk_23) {
+             case 0:
+-- 
+2.55.0
+

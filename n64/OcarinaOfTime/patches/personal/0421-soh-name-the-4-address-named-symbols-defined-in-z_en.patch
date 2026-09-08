@@ -1,0 +1,186 @@
+From 41e5fc1302aa5caf8703421e1ce62ec32dbf314e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:36 +0000
+Subject: [PATCH 421/488] soh: name the 4 address-named symbols defined in
+ z_en_xc.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c.
+
+  * D_80B41D90 -> sWindSfxStarted
+    deduced, confidence HIGH: set once the colossus wind sound has a
+    previous camera position to measure speed against
+
+  * D_80B42DB0 -> sWindSfxPrevEye
+    deduced, confidence HIGH: the camera eye position that speed is measured
+    from
+
+  * D_80B41DA8 -> sPrevFlameCueAction
+    deduced, confidence HIGH: the cue action EnXc_DestroyFlame last acted
+    on, so each new one fires once
+
+  * D_80B41DAC -> sWarpNotSpawned
+    deduced, confidence HIGH: guards the frame 310 warp spawn so it happens
+    only once
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c | 43 +++++++++++----------
+ 1 file changed, 23 insertions(+), 20 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+index fef3e390f..e41cf2f54 100644
+--- a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
++++ b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+@@ -503,12 +503,13 @@ void EnXc_PlaySkipSfxOutsideColossus(PlayState* play) {
+ // LLM generated name (HIGH), was D_80B42DA0: the projected position NA_SE_EV_DIVE_INTO_WATER is played at
+ static Vec3f sDiveSfxPos;  // was D_80B42DA0 [LLM:HIGH]
+ 
+-static s32 D_80B41D90 = 0;
++// LLM generated name (HIGH), was D_80B41D90: set once the colossus wind sound has a previous camera position to measure speed against
++static s32 sWindSfxStarted = 0;  // was D_80B41D90 [LLM:HIGH]
+ void EnXc_SetColossusWindSFX(PlayState* play) {
+     if (gSaveContext.sceneLayer == 4) {
+         static Vec3f sPos = { 0.0f, 0.0f, 0.0f };
+         static f32 sMaxSpeed = 0.0f;
+-        static Vec3f D_80B42DB0;
++        static Vec3f sWindSfxPrevEye;  // was D_80B42DB0 [LLM:HIGH]
+         s32 pad;
+         s16 sceneNum = play->sceneNum;
+ 
+@@ -520,8 +521,8 @@ void EnXc_SetColossusWindSFX(PlayState* play) {
+                 s32 pad;
+                 Vec3f* eye = &play->view.eye;
+ 
+-                if (D_80B41D90 != 0) {
+-                    f32 speed = Math3D_Vec3f_DistXYZ(&D_80B42DB0, eye) / 7.058922f;
++                if (sWindSfxStarted != 0) {  // was D_80B41D90 [LLM:HIGH]
++                    f32 speed = Math3D_Vec3f_DistXYZ(&sWindSfxPrevEye, eye) / 7.058922f;  // was D_80B42DB0 [LLM:HIGH]
+ 
+                     sMaxSpeed = CLAMP_MIN(sMaxSpeed, speed);
+ 
+@@ -531,10 +532,10 @@ void EnXc_SetColossusWindSFX(PlayState* play) {
+                     Audio_PlaySfxScaledByRate(&sPos, NA_SE_EV_FLYING_AIR - SFX_FLAG, 0.6f + (0.4f * speed));  // was func_800F436C [LLM:HIGH]
+                 }
+ 
+-                D_80B42DB0.x = eye->x;
+-                D_80B42DB0.y = eye->y;
+-                D_80B42DB0.z = eye->z;
+-                D_80B41D90 = 1;
++                sWindSfxPrevEye.x = eye->x;  // was D_80B42DB0 [LLM:HIGH]
++                sWindSfxPrevEye.y = eye->y;  // was D_80B42DB0 [LLM:HIGH]
++                sWindSfxPrevEye.z = eye->z;  // was D_80B42DB0 [LLM:HIGH]
++                sWindSfxStarted = 1;  // was D_80B41D90 [LLM:HIGH]
+             }
+         }
+     }
+@@ -575,7 +576,8 @@ void EnXc_DestroyFlame(EnXc* this) {
+     Actor_Kill(&this->actor);
+ }
+ 
+-static s32 D_80B41DA8 = 1;
++// LLM generated name (HIGH), was D_80B41DA8: the cue action EnXc_DestroyFlame last acted on, so each new one fires once
++static s32 sPrevFlameCueAction = 1;  // was D_80B41DA8 [LLM:HIGH]
+ void EnXc_InitFlame(EnXc* this, PlayState* play) {
+     s32 pad;
+     s16 sceneNum = play->sceneNum;
+@@ -585,7 +587,7 @@ void EnXc_InitFlame(EnXc* this, PlayState* play) {
+         if (npcAction != NULL) {
+             s32 action = npcAction->action;
+ 
+-            if (D_80B41DA8 != action) {
++            if (sPrevFlameCueAction != action) {  // was D_80B41DA8 [LLM:HIGH]
+                 if (action != 1) {
+                     EnXc_SpawnFlame(this, play);
+                 }
+@@ -594,7 +596,7 @@ void EnXc_InitFlame(EnXc* this, PlayState* play) {
+                     EnXc_DestroyFlame(this);
+                 }
+ 
+-                D_80B41DA8 = action;
++                sPrevFlameCueAction = action;  // was D_80B41DA8 [LLM:HIGH]
+             }
+ 
+             EnXc_SetupFlamePos(this, play);
+@@ -1491,13 +1493,14 @@ void EnXc_SpawnWarpAtFrame310(PlayState* play) {
+     }
+ }
+ 
+-static s32 D_80B41DAC = 1;
++// LLM generated name (HIGH), was D_80B41DAC: guards the frame 310 warp spawn so it happens only once
++static s32 sWarpNotSpawned = 1;  // was D_80B41DAC [LLM:HIGH]
+ 
+ #define EN_XC_SHIP_SAVESTATE_FIELDS(F) \
+-    F(D_80B41D90)                      \
++    F(sWindSfxStarted)                      \
+     F(sFlameSpawned)                   \
+-    F(D_80B41DA8)                      \
+-    F(D_80B41DAC)
++    F(sPrevFlameCueAction)                      \
++    F(sWarpNotSpawned)  // was D_80B41DAC [LLM:HIGH]
+ 
+ SHIP_SAVESTATE_DEFINE(EnXc, EN_XC_SHIP_SAVESTATE_FIELDS)
+ 
+@@ -1508,7 +1511,7 @@ void EnXc_HandleCue0Actions(EnXc* this, PlayState* play) {
+     if (npcAction != NULL) {
+         s32 action = npcAction->action;
+ 
+-        if (action != D_80B41DAC) {
++        if (action != sWarpNotSpawned) {  // was D_80B41DAC [LLM:HIGH]
+             switch (action) {
+                 case 2:
+                     EnXc_PlaySkipSfx();  // was func_80B3F3D8 [LLM:HIGH]
+@@ -1519,7 +1522,7 @@ void EnXc_HandleCue0Actions(EnXc* this, PlayState* play) {
+                 default:
+                     break;
+             }
+-            D_80B41DAC = action;
++            sWarpNotSpawned = action;  // was D_80B41DAC [LLM:HIGH]
+         }
+     }
+ }
+@@ -2565,8 +2568,8 @@ const ActorInit En_Xc_InitVars = {
+ };
+ 
+ void EnXc_Reset(void) {
+-    D_80B41D90 = 0;
++    sWindSfxStarted = 0;  // was D_80B41D90 [LLM:HIGH]
+     sFlameSpawned = false;
+-    D_80B41DA8 = 1;
+-    D_80B41DAC = 1;
++    sPrevFlameCueAction = 1;  // was D_80B41DA8 [LLM:HIGH]
++    sWarpNotSpawned = 1;  // was D_80B41DAC [LLM:HIGH]
+ }
+-- 
+2.55.0
+

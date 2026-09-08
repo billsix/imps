@@ -1,0 +1,386 @@
+From 127108f83af0ea82e7563f4f61f5b35783b6a7c2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:30 +0000
+Subject: [PATCH 364/488] soh: name the 24 address-named symbols defined in
+ z_en_zl1_camera_data.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 24 are defined in soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1_camera_data.c.
+
+  * D_80B4D5C0 -> sCsCameraAngles
+    deduced, confidence HIGH: the CutsceneCameraAngle table of this
+    cutscene; no reader remains in the overlay that includes this file
+
+  * D_80B4D72C -> sCsCameraAtPoints0
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 0;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4D7AC -> sCsCameraEyePoints0
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 0;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4D82C -> sCsCameraAtPoints1
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 1;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4D8CC -> sCsCameraEyePoints1
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 1;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4D96C -> sCsCameraAtPoints2
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 2;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4DA4C -> sCsCameraEyePoints2
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 2;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4DB2C -> sCsCameraAtPoints3
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 3;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4DBBC -> sCsCameraEyePoints3
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 3;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4DC4C -> sCsCameraAtPoints4
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 4;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4DD3C -> sCsCameraEyePoints4
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 4;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4DE2C -> sCsCameraAtPoints5
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 5;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4DF0C -> sCsCameraEyePoints5
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 5;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4DFEC -> sCsCameraAtPoints6
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 6;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4E08C -> sCsCameraEyePoints6
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 6;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4E12C -> sCsCameraAtPoints7
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 7;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4E1BC -> sCsCameraEyePoints7
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 7;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4E24C -> sCsCameraAtPoints8
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 8;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4E2CC -> sCsCameraEyePoints8
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 8;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4E34C -> sCsCameraAtPoints9
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 9;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4E3CC -> sCsCameraEyePoints9
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 9;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4E44C -> sCsCameraAtPoints10
+    deduced, confidence HIGH: the atPoints array of sCsCameraMove entry 10;
+    atPoints is the first member of CutsceneCameraMove
+
+  * D_80B4E4CC -> sCsCameraEyePoints10
+    deduced, confidence HIGH: the eyePoints array of sCsCameraMove entry 10;
+    eyePoints is the second member of CutsceneCameraMove
+
+  * D_80B4E54C -> sCsCameraMove
+    deduced, confidence HIGH: the CutsceneCameraMove table pairing the at
+    and eye point arrays above; no reader remains in the overlay that
+    includes this file
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Zl1/z_en_zl1_camera_data.c  | 80 ++++++++++++-------
+ 1 file changed, 52 insertions(+), 28 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1_camera_data.c b/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1_camera_data.c
+index ffdd58496..695c632f6 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1_camera_data.c
++++ b/soh/src/overlays/actors/ovl_En_Zl1/z_en_zl1_camera_data.c
+@@ -1,7 +1,8 @@
+ #include "z_en_zl1.h"
+ #include "z64cutscene_commands.h"
+ 
+-static CutsceneCameraAngle D_80B4D5C0[] = {
++// LLM generated name (HIGH), was D_80B4D5C0: the CutsceneCameraAngle table of this cutscene; no reader remains in the overlay that includes this file
++static CutsceneCameraAngle sCsCameraAngles[] = {  // was D_80B4D5C0 [LLM:HIGH]
+     { { -440.0f, 117.0f, 0.0f }, { -490.0f, 120.0f, 0.0f }, 0, 45 },
+     { { -484.0f, 122.0f, -29.0f }, { -480.0f, 116.0f, 18.0f }, 0, 80 },
+     { { -413.0f, 136.0f, -72.0f }, { -403.0f, 141.0f, -89.0f }, 0, 25 },
+@@ -17,21 +18,24 @@ static CutsceneCameraAngle D_80B4D5C0[] = {
+     { { -485.0f, 120.0f, -42.0f }, { -484.0f, 120.0f, 10.0f }, 0, 45 },
+ };
+ 
+-static CutsceneCameraPoint D_80B4D72C[] = {
++// LLM generated name (HIGH), was D_80B4D72C: the atPoints array of sCsCameraMove entry 0; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints0[] = {  // was D_80B4D72C [LLM:HIGH]
+     { 0, 0, 20, 80.79987f, { -484, 122, -29 } },  { 0, 0, 20, 80.79987f, { -484, 122, -29 } },
+     { 0, 0, 20, 80.79987f, { -484, 122, -29 } },  { 0, 0, 20, 80.79987f, { -452, 121, -21 } },
+     { 0, 0, 20, 80.79987f, { -452, 121, -21 } },  { 0, 0, 20, 80.79987f, { -452, 121, -21 } },
+     { -1, 0, 20, 80.79987f, { -452, 121, -21 } }, { -1, 0, 30, 80.79987f, { -452, 121, -21 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4D7AC[] = {
++// LLM generated name (HIGH), was D_80B4D7AC: the eyePoints array of sCsCameraMove entry 0; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints0[] = {  // was D_80B4D7AC [LLM:HIGH]
+     { 0, 0, 0, 80.79987f, { -480, 116, 18 } },  { 0, 0, 0, 80.79987f, { -480, 116, 18 } },
+     { 0, 0, 0, 80.79987f, { -480, 116, 18 } },  { 0, 0, 0, 80.79987f, { -480, 116, 18 } },
+     { 0, 0, 0, 80.79987f, { -480, 116, 18 } },  { 0, 0, 0, 80.79987f, { -480, 116, 18 } },
+     { -1, 0, 0, 80.79987f, { -480, 116, 18 } }, { -1, 0, 0, 80.79987f, { -480, 116, 18 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4D82C[] = {
++// LLM generated name (HIGH), was D_80B4D82C: the atPoints array of sCsCameraMove entry 1; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints1[] = {  // was D_80B4D82C [LLM:HIGH]
+     { 0, 0, 20, 45.200058f, { -439, 116, 0 } }, { 0, 0, 20, 45.200058f, { -439, 116, 0 } },
+     { 0, 0, 20, 50.60008f, { -433, 116, 0 } },  { 0, 0, 20, 55.600098f, { -431, 116, 0 } },
+     { 0, 0, 20, 60.000114f, { -427, 116, 0 } }, { 0, 0, 20, 65.000114f, { -424, 116, 0 } },
+@@ -39,7 +43,8 @@ static CutsceneCameraPoint D_80B4D82C[] = {
+     { -1, 0, 20, 75.59995f, { -419, 116, 0 } }, { -1, 0, 30, 75.59995f, { -419, 115, 0 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4D8CC[] = {
++// LLM generated name (HIGH), was D_80B4D8CC: the eyePoints array of sCsCameraMove entry 1; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints1[] = {  // was D_80B4D8CC [LLM:HIGH]
+     { 0, 0, 0, 60.400116f, { -480, 114, 0 } }, { 0, 0, 0, 45.200058f, { -480, 114, 0 } },
+     { 0, 0, 0, 45.200058f, { -474, 114, 0 } }, { 0, 0, 0, 50.60008f, { -472, 114, 0 } },
+     { 0, 0, 0, 55.600098f, { -468, 114, 0 } }, { 0, 0, 0, 60.000114f, { -465, 114, 0 } },
+@@ -47,7 +52,8 @@ static CutsceneCameraPoint D_80B4D8CC[] = {
+     { -1, 0, 0, 75.59995f, { -460, 114, 0 } }, { -1, 0, 0, 75.59995f, { -460, 114, 0 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4D96C[] = {
++// LLM generated name (HIGH), was D_80B4D96C: the atPoints array of sCsCameraMove entry 2; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints2[] = {  // was D_80B4D96C [LLM:HIGH]
+     { 0, 0, 25, 60.000114f, { -116, 50, 469 } },  { 0, 0, 25, 60.000114f, { -116, 50, 469 } },
+     { 0, 0, 25, 60.000114f, { -118, 50, 467 } },  { 0, 0, 25, 60.000114f, { -120, 50, 465 } },
+     { 0, 0, 25, 60.000114f, { -123, 50, 464 } },  { 0, 0, 25, 60.000114f, { -126, 50, 463 } },
+@@ -57,7 +63,8 @@ static CutsceneCameraPoint D_80B4D96C[] = {
+     { -1, 0, 25, 60.000114f, { -140, 50, 466 } }, { -1, 0, 25, 60.000114f, { -140, 50, 466 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4DA4C[] = {
++// LLM generated name (HIGH), was D_80B4DA4C: the eyePoints array of sCsCameraMove entry 2; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints2[] = {  // was D_80B4DA4C [LLM:HIGH]
+     { 0, 0, 0, 20.399963f, { -130, 50, 480 } },  { 0, 0, 0, 60.000114f, { -130, 50, 480 } },
+     { 0, 0, 0, 60.000114f, { -130, 50, 480 } },  { 0, 0, 0, 60.000114f, { -130, 50, 480 } },
+     { 0, 0, 0, 60.000114f, { -130, 50, 480 } },  { 0, 0, 0, 60.000114f, { -130, 50, 480 } },
+@@ -67,7 +74,8 @@ static CutsceneCameraPoint D_80B4DA4C[] = {
+     { -1, 0, 0, 60.000114f, { -130, 50, 480 } }, { -1, 0, 0, 60.000114f, { -130, 50, 480 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4DB2C[] = {
++// LLM generated name (HIGH), was D_80B4DB2C: the atPoints array of sCsCameraMove entry 3; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints3[] = {  // was D_80B4DB2C [LLM:HIGH]
+     { 0, 0, 30, 20.799965f, { -427, 116, 4 } },   { 0, 0, 30, 20.799965f, { -426, 115, 4 } },
+     { 0, 0, 30, 20.799965f, { -429, 115, 7 } },   { 0, 0, 30, 20.799965f, { -428, 114, 12 } },
+     { 0, 0, 30, 20.799965f, { -430, 114, 14 } },  { 0, 0, 30, 20.799965f, { -430, 114, 14 } },
+@@ -75,7 +83,8 @@ static CutsceneCameraPoint D_80B4DB2C[] = {
+     { -1, 0, 30, 20.799965f, { -430, 112, 14 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4DBBC[] = {
++// LLM generated name (HIGH), was D_80B4DBBC: the eyePoints array of sCsCameraMove entry 3; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints3[] = {  // was D_80B4DBBC [LLM:HIGH]
+     { 0, 0, 0, 20.799965f, { -389, 109, 36 } },  { 0, 0, 0, 20.799965f, { -389, 109, 36 } },
+     { 0, 0, 0, 20.799965f, { -389, 109, 36 } },  { 0, 0, 0, 20.799965f, { -389, 109, 36 } },
+     { 0, 0, 0, 20.799965f, { -389, 109, 36 } },  { 0, 0, 0, 20.799965f, { -389, 109, 36 } },
+@@ -83,7 +92,8 @@ static CutsceneCameraPoint D_80B4DBBC[] = {
+     { -1, 0, 0, 20.799965f, { -389, 109, 36 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4DC4C[] = {
++// LLM generated name (HIGH), was D_80B4DC4C: the atPoints array of sCsCameraMove entry 4; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints4[] = {  // was D_80B4DC4C [LLM:HIGH]
+     { 0, 0, 30, 45.0f, { -496, 119, 0 } },     { 0, 0, 30, 45.0f, { -496, 119, 0 } },
+     { 0, 0, 30, 45.0f, { -496, 119, 0 } },     { 0, 0, 15, 45.0f, { -496, 119, 0 } },
+     { 0, 0, 15, 45.80006f, { -471, 122, 0 } }, { 0, 0, 15, 45.80006f, { -395, 139, 0 } },
+@@ -94,7 +104,8 @@ static CutsceneCameraPoint D_80B4DC4C[] = {
+     { -1, 0, 30, 45.80006f, { 429, 328, 0 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4DD3C[] = {
++// LLM generated name (HIGH), was D_80B4DD3C: the eyePoints array of sCsCameraMove entry 4; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints4[] = {  // was D_80B4DD3C [LLM:HIGH]
+     { 0, 0, 0, 45.0f, { -443, 115, 0 } },     { 0, 0, 0, 45.0f, { -443, 115, 0 } },
+     { 0, 0, 0, 45.0f, { -443, 115, 0 } },     { 0, 0, 0, 45.0f, { -443, 115, 0 } },
+     { 0, 0, 0, 45.80006f, { -420, 133, 0 } }, { 0, 0, 0, 45.80006f, { -344, 150, 0 } },
+@@ -105,7 +116,8 @@ static CutsceneCameraPoint D_80B4DD3C[] = {
+     { -1, 0, 0, 45.80006f, { 482, 332, 0 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4DE2C[] = {
++// LLM generated name (HIGH), was D_80B4DE2C: the atPoints array of sCsCameraMove entry 5; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints5[] = {  // was D_80B4DE2C [LLM:HIGH]
+     { 0, 0, 25, 60.600117f, { 66, 404, 425 } },  { 0, 0, 25, 60.400116f, { 66, 404, 425 } },
+     { 0, 0, 25, 55.600098f, { 66, 404, 426 } },  { 0, 0, 25, 55.200096f, { 63, 373, 413 } },
+     { 0, 0, 25, 50.400078f, { 26, 353, 408 } },  { 0, 0, 25, 50.400078f, { 17, 325, 397 } },
+@@ -115,7 +127,8 @@ static CutsceneCameraPoint D_80B4DE2C[] = {
+     { -1, 0, 30, 30.2f, { -376, 108, 65 } },     { -1, 0, 30, 30.2f, { -376, 108, 65 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4DF0C[] = {
++// LLM generated name (HIGH), was D_80B4DF0C: the eyePoints array of sCsCameraMove entry 5; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints5[] = {  // was D_80B4DF0C [LLM:HIGH]
+     { 0, 0, 0, 45.80006f, { 29, 383, 445 } }, { 0, 0, 0, 45.80006f, { 29, 383, 445 } },
+     { 0, 0, 0, 45.80006f, { 29, 383, 445 } }, { 0, 0, 0, 45.80006f, { 29, 383, 445 } },
+     { 0, 0, 0, 45.80006f, { 29, 383, 445 } }, { 0, 0, 0, 45.80006f, { 49, 347, 424 } },
+@@ -125,7 +138,8 @@ static CutsceneCameraPoint D_80B4DF0C[] = {
+     { -1, 0, 0, 30.2f, { -345, 109, 96 } },   { -1, 0, 0, 30.2f, { -345, 109, 96 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4DFEC[] = {
++// LLM generated name (HIGH), was D_80B4DFEC: the atPoints array of sCsCameraMove entry 6; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints6[] = {  // was D_80B4DFEC [LLM:HIGH]
+     { 0, 0, 10, 30.0f, { -482, 119, 0 } },       { 0, 0, 10, 30.0f, { -482, 119, 0 } },
+     { 0, 0, 10, 30.0f, { -482, 119, 0 } },       { 0, 0, 10, 30.800003f, { -482, 119, 0 } },
+     { 0, 0, 10, 30.800003f, { -482, 119, 0 } },  { 0, 0, 10, 30.800003f, { -462, 126, 0 } },
+@@ -133,7 +147,8 @@ static CutsceneCameraPoint D_80B4DFEC[] = {
+     { -1, 0, 30, 30.800003f, { -395, 150, 0 } }, { -1, 0, 30, 30.800003f, { -395, 150, 0 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E08C[] = {
++// LLM generated name (HIGH), was D_80B4E08C: the eyePoints array of sCsCameraMove entry 6; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints6[] = {  // was D_80B4E08C [LLM:HIGH]
+     { 0, 0, 0, 30.0f, { -440, 115, 0 } },       { 0, 0, 0, 30.0f, { -440, 115, 0 } },
+     { 0, 0, 0, 30.0f, { -440, 115, 0 } },       { 0, 0, 0, 30.800003f, { -440, 115, 0 } },
+     { 0, 0, 0, 30.800003f, { -440, 115, 0 } },  { 0, 0, 0, 30.800003f, { -423, 142, 0 } },
+@@ -141,7 +156,8 @@ static CutsceneCameraPoint D_80B4E08C[] = {
+     { -1, 0, 0, 30.800003f, { -358, 171, 0 } }, { -1, 0, 0, 30.800003f, { -358, 171, 0 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E12C[] = {
++// LLM generated name (HIGH), was D_80B4E12C: the atPoints array of sCsCameraMove entry 7; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints7[] = {  // was D_80B4E12C [LLM:HIGH]
+     { 0, 0, 30, 25.0f, { -551, 119, 7 } },   { 0, 0, 30, 25.0f, { -551, 119, 7 } },
+     { 0, 0, 15, 25.0f, { -551, 119, 7 } },   { 0, 0, 15, 60.0f, { -485, 120, -7 } },
+     { 0, 0, 30, 60.0f, { -485, 120, -7 } },  { 0, 0, 30, 60.0f, { -485, 120, -7 } },
+@@ -149,7 +165,8 @@ static CutsceneCameraPoint D_80B4E12C[] = {
+     { -1, 0, 30, 60.0f, { -485, 119, -6 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E1BC[] = {
++// LLM generated name (HIGH), was D_80B4E1BC: the eyePoints array of sCsCameraMove entry 7; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints7[] = {  // was D_80B4E1BC [LLM:HIGH]
+     { 0, 0, 0, 45.200058f, { -587, 115, 14 } }, { 0, 0, 0, 25.400097f, { -587, 115, 14 } },
+     { 0, 0, 0, 25.400097f, { -587, 115, 14 } }, { 0, 0, 0, 60.20023f, { -521, 117, -1 } },
+     { 0, 0, 0, 60.20023f, { -521, 117, -1 } },  { 0, 0, 0, 60.20023f, { -521, 117, -1 } },
+@@ -157,51 +174,58 @@ static CutsceneCameraPoint D_80B4E1BC[] = {
+     { -1, 0, 0, 60.19925f, { -521, 116, 0 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E24C[] = {
++// LLM generated name (HIGH), was D_80B4E24C: the atPoints array of sCsCameraMove entry 8; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints8[] = {  // was D_80B4E24C [LLM:HIGH]
+     { 0, 0, 30, 60.000114f, { 75, 52, 50 } },   { 0, 0, 30, 60.000114f, { 75, 52, 48 } },
+     { 0, 0, 60, 60.000114f, { 74, 52, 45 } },   { 0, 0, 60, 60.000114f, { 49, 51, -43 } },
+     { 0, 0, 30, 60.000114f, { 49, 51, -43 } },  { 0, 0, 30, 60.000114f, { 49, 51, -43 } },
+     { -1, 0, 30, 60.000114f, { 49, 51, -43 } }, { -1, 0, 30, 60.000114f, { 49, 51, -43 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E2CC[] = {
++// LLM generated name (HIGH), was D_80B4E2CC: the eyePoints array of sCsCameraMove entry 8; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints8[] = {  // was D_80B4E2CC [LLM:HIGH]
+     { 0, 0, 0, 60.000114f, { 90, 52, 53 } },   { 0, 0, 0, 60.000114f, { 90, 52, 50 } },
+     { 0, 0, 0, 60.000114f, { 90, 52, 45 } },   { 0, 0, 0, 60.000114f, { 65, 51, -44 } },
+     { 0, 0, 0, 60.000114f, { 65, 51, -44 } },  { 0, 0, 0, 60.000114f, { 65, 51, -44 } },
+     { -1, 0, 0, 60.000114f, { 65, 51, -44 } }, { -1, 0, 0, 60.000114f, { 65, 51, -44 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E34C[] = {
++// LLM generated name (HIGH), was D_80B4E34C: the atPoints array of sCsCameraMove entry 9; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints9[] = {  // was D_80B4E34C [LLM:HIGH]
+     { 0, 0, 31, 60.000114f, { -449, 121, -19 } },  { 0, 0, 30, 60.000114f, { -449, 121, -19 } },
+     { 0, 0, 30, 60.000114f, { -449, 121, -19 } },  { 0, 0, 30, 60.000114f, { -456, 110, -17 } },
+     { 0, 0, 30, 60.000114f, { -456, 110, -17 } },  { 0, 0, 30, 60.000114f, { -456, 110, -17 } },
+     { -1, 0, 30, 60.000114f, { -456, 110, -17 } }, { -1, 0, 30, 60.000114f, { -456, 110, -17 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E3CC[] = {
++// LLM generated name (HIGH), was D_80B4E3CC: the eyePoints array of sCsCameraMove entry 9; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints9[] = {  // was D_80B4E3CC [LLM:HIGH]
+     { 0, 0, 0, 60.000114f, { -441, 107, -22 } },  { 0, 0, 0, 60.000114f, { -441, 107, -22 } },
+     { 0, 0, 0, 60.000114f, { -441, 107, -22 } },  { 0, 0, 0, 60.000114f, { -441, 107, -22 } },
+     { 0, 0, 0, 60.000114f, { -441, 107, -22 } },  { 0, 0, 0, 60.000114f, { -441, 107, -22 } },
+     { -1, 0, 0, 60.000114f, { -441, 107, -22 } }, { -1, 0, 0, 60.000114f, { -441, 107, -22 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E44C[] = {
++// LLM generated name (HIGH), was D_80B4E44C: the atPoints array of sCsCameraMove entry 10; atPoints is the first member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraAtPoints10[] = {  // was D_80B4E44C [LLM:HIGH]
+     { 0, 0, 30, 20.799965f, { -331, 110, -91 } }, { 0, 0, 30, 20.799965f, { -331, 110, -91 } },
+     { 0, 0, 30, 20.799965f, { -331, 110, -91 } }, { 0, 0, 30, 20.799965f, { -511, 121, 7 } },
+     { 0, 0, 30, 20.799965f, { -511, 121, 7 } },   { 0, 0, 30, 20.799965f, { -511, 121, 7 } },
+     { -1, 0, 30, 20.799965f, { -511, 121, 7 } },  { -1, 0, 30, 20.799965f, { -511, 121, 7 } },
+ };
+ 
+-static CutsceneCameraPoint D_80B4E4CC[] = {
++// LLM generated name (HIGH), was D_80B4E4CC: the eyePoints array of sCsCameraMove entry 10; eyePoints is the second member of CutsceneCameraMove
++static CutsceneCameraPoint sCsCameraEyePoints10[] = {  // was D_80B4E4CC [LLM:HIGH]
+     { 0, 0, 0, 20.799965f, { -369, 110, -70 } }, { 0, 0, 0, 20.799965f, { -369, 110, -70 } },
+     { 0, 0, 0, 20.799965f, { -369, 110, -70 } }, { 0, 0, 0, 20.799965f, { -549, 124, 29 } },
+     { 0, 0, 0, 20.799965f, { -549, 124, 29 } },  { 0, 0, 0, 20.799965f, { -549, 124, 29 } },
+     { -1, 0, 0, 20.799965f, { -549, 124, 29 } }, { -1, 0, 0, 20.799965f, { -549, 124, 29 } },
+ };
+ 
+-static CutsceneCameraMove D_80B4E54C[] = {
+-    { D_80B4D72C, D_80B4D7AC, 0 }, { D_80B4D82C, D_80B4D8CC, 0 }, { D_80B4D96C, D_80B4DA4C, 0 },
+-    { D_80B4DB2C, D_80B4DBBC, 0 }, { D_80B4DC4C, D_80B4DD3C, 0 }, { D_80B4DE2C, D_80B4DF0C, 0 },
+-    { D_80B4DFEC, D_80B4E08C, 0 }, { D_80B4E12C, D_80B4E1BC, 0 }, { D_80B4E24C, D_80B4E2CC, 0 },
+-    { D_80B4E34C, D_80B4E3CC, 0 }, { D_80B4E44C, D_80B4E4CC, 0 },
++// LLM generated name (HIGH), was D_80B4E54C: the CutsceneCameraMove table pairing the at and eye point arrays above; no reader remains in the overlay that includes this file
++static CutsceneCameraMove sCsCameraMove[] = {  // was D_80B4E54C [LLM:HIGH]
++    { sCsCameraAtPoints0, sCsCameraEyePoints0, 0 }, { sCsCameraAtPoints1, sCsCameraEyePoints1, 0 }, { sCsCameraAtPoints2, sCsCameraEyePoints2, 0 },  // was D_80B4D72C [LLM:HIGH]
++    { sCsCameraAtPoints3, sCsCameraEyePoints3, 0 }, { sCsCameraAtPoints4, sCsCameraEyePoints4, 0 }, { sCsCameraAtPoints5, sCsCameraEyePoints5, 0 },  // was D_80B4DB2C [LLM:HIGH]
++    { sCsCameraAtPoints6, sCsCameraEyePoints6, 0 }, { sCsCameraAtPoints7, sCsCameraEyePoints7, 0 }, { sCsCameraAtPoints8, sCsCameraEyePoints8, 0 },  // was D_80B4DFEC [LLM:HIGH]
++    { sCsCameraAtPoints9, sCsCameraEyePoints9, 0 }, { sCsCameraAtPoints10, sCsCameraEyePoints10, 0 },  // was D_80B4E34C [LLM:HIGH]
+ };
+-- 
+2.55.0
+

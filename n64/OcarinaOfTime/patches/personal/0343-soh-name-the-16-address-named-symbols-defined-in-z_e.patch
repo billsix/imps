@@ -1,0 +1,394 @@
+From c83ef858a7947c7e7e2cfa69d7fe44bf197a484e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 343/488] soh: name the 16 address-named symbols defined in
+ z_en_sda.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 16 are defined in soh/src/overlays/actors/ovl_En_Sda/z_en_sda.c.
+
+  * D_80AFA660 -> sBodyPartPos
+    deduced, confidence HIGH: the sixteen body-part positions copied out of
+    the player each frame and used as the centres of the shadow blobs.
+
+  * D_80AFA16C -> sBodyPartToSlot
+    deduced, confidence HIGH: maps each player body-part index to its slot
+    in sBodyPartPos, with -1 for the parts that are not used.
+
+  * D_80AFA13C -> sBodyPartLinks
+    deduced, confidence HIGH: for each slot, the slot it is joined to; the
+    stamping pass interpolates between the pair so limbs cast a continuous
+    shadow.
+
+  * D_80AFA15C -> sBlobSizeClass
+    deduced, confidence HIGH: which of the five brush-width tables each
+    body-part slot stamps with.
+
+  * D_80AFA0E8 -> sBlobRowsClass0
+    deduced, confidence HIGH: the per-row half-widths of the brush used for
+    size class 0.
+
+  * D_80AFA0F8 -> sBlobRowsClass1
+    deduced, confidence HIGH: the per-row half-widths of the brush used for
+    size class 1.
+
+  * D_80AFA108 -> sBlobRowsClass2
+    deduced, confidence HIGH: the per-row half-widths of the brush used for
+    size class 2.
+
+  * D_80AFA0DC -> sBlobRowsClass3
+    deduced, confidence HIGH: the per-row half-widths of the smallest brush,
+    used for size class 3.
+
+  * D_80AFA120 -> sBlobRowsClass4
+    deduced, confidence HIGH: the per-row half-widths of the largest brush,
+    used for size class 4.
+
+  * D_80AFA0D0 -> sZeroVec
+    deduced, confidence HIGH: a zero Vec3f transformed by the current matrix
+    to get the shadow's origin.
+
+  * D_80AFA180 -> sBlobOffsets
+    deduced, confidence HIGH: the twenty-two offsets the second stamping
+    pass smears the shadow across, each with its own depth weight.
+
+  * D_80AFA288 -> sUnusedBlobOffsets
+    deduced, confidence HIGH: the in-tree comment above it reads "Unused,
+    identical to D_80AFA180".
+
+  * D_80AFA390 -> sUnusedValues
+    deduced, confidence HIGH: two zeroed u32 words with no reader anywhere
+    in the tree.
+
+  * func_80AF8F60 -> EnSda_StampBodyShadow
+    deduced, confidence HIGH: stamps the player's sixteen body-part
+    positions into the shadow texture, interpolating each along its link by
+    the caller's weight and picking the brush from its size class.
+
+  * func_80AF95C4 -> EnSda_BuildShadowTexture
+    deduced, confidence HIGH: fills sBodyPartPos from the player, stretches
+    the head slot outward and then runs several stamping passes at
+    increasing weights to build the soft shadow.
+
+  * func_80AF9C70 -> EnSda_DrawShadow
+    deduced, confidence HIGH: draws the finished shadow texture flat on the
+    floor under the player, tinted by the debug REGs.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Sda/z_en_sda.c | 112 ++++++++++--------
+ 1 file changed, 64 insertions(+), 48 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Sda/z_en_sda.c b/soh/src/overlays/actors/ovl_En_Sda/z_en_sda.c
+index 496447d49..0b923762e 100644
+--- a/soh/src/overlays/actors/ovl_En_Sda/z_en_sda.c
++++ b/soh/src/overlays/actors/ovl_En_Sda/z_en_sda.c
+@@ -13,9 +13,12 @@ void EnSda_Destroy(Actor* thisx, PlayState* play);
+ void EnSda_Update(Actor* thisx, PlayState* play);
+ void EnSda_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80AF95C4(EnSda* this, u8* shadowTexture, Player* player, PlayState* play);
+-void func_80AF9C70(u8* shadowTexture, Player* player, PlayState* play);
+-void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2);
++// LLM generated name (HIGH), was func_80AF95C4: fills sBodyPartPos from the player, stretches the head slot outward and then runs several stamping passes at increasing weights to build the soft shadow.
++void EnSda_BuildShadowTexture(EnSda* this, u8* shadowTexture, Player* player, PlayState* play);  // was func_80AF95C4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AF9C70: draws the finished shadow texture flat on the floor under the player, tinted by the debug REGs.
++void EnSda_DrawShadow(u8* shadowTexture, Player* player, PlayState* play);  // was func_80AF9C70 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80AF8F60: stamps the player's sixteen body-part positions into the shadow texture, interpolating each along its link by the caller's weight and picking the brush from its size class.
++void EnSda_StampBodyShadow(Player* player, u8* shadowTexture, f32 arg2);  // was func_80AF8F60 [LLM:HIGH]
+ 
+ const ActorInit En_Sda_InitVars = {
+     ACTOR_EN_SDA,
+@@ -30,41 +33,51 @@ const ActorInit En_Sda_InitVars = {
+     NULL,
+ };
+ 
+-static Vec3f D_80AFA0D0 = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80AFA0D0: a zero Vec3f transformed by the current matrix to get the shadow's origin.
++static Vec3f sZeroVec = { 0.0f, 0.0f, 0.0f };  // was D_80AFA0D0 [LLM:HIGH]
+ 
+-static s16 D_80AFA0DC[] = {
++// LLM generated name (HIGH), was D_80AFA0DC: the per-row half-widths of the smallest brush, used for size class 3.
++static s16 sBlobRowsClass3[] = {  // was D_80AFA0DC [LLM:HIGH]
+     1, 2, 3, 3, 2, 1,
+ };
+ 
+-static s16 D_80AFA0E8[] = {
++// LLM generated name (HIGH), was D_80AFA0E8: the per-row half-widths of the brush used for size class 0.
++static s16 sBlobRowsClass0[] = {  // was D_80AFA0E8 [LLM:HIGH]
+     2, 3, 4, 4, 4, 3, 2, 0,
+ };
+ 
+-static s16 D_80AFA0F8[] = {
++// LLM generated name (HIGH), was D_80AFA0F8: the per-row half-widths of the brush used for size class 1.
++static s16 sBlobRowsClass1[] = {  // was D_80AFA0F8 [LLM:HIGH]
+     2, 3, 4, 4, 4, 4, 3, 2,
+ };
+ 
+-static s16 D_80AFA108[] = {
++// LLM generated name (HIGH), was D_80AFA108: the per-row half-widths of the brush used for size class 2.
++static s16 sBlobRowsClass2[] = {  // was D_80AFA108 [LLM:HIGH]
+     2, 4, 5, 5, 6, 6, 6, 6, 5, 5, 4, 2,
+ };
+ 
+-static s16 D_80AFA120[] = {
++// LLM generated name (HIGH), was D_80AFA120: the per-row half-widths of the largest brush, used for size class 4.
++static s16 sBlobRowsClass4[] = {  // was D_80AFA120 [LLM:HIGH]
+     2, 4, 5, 6, 7, 8, 8, 8, 8, 7, 6, 5, 4, 2,
+ };
+ 
+-static s16 D_80AFA13C[] = {
++// LLM generated name (HIGH), was D_80AFA13C: for each slot, the slot it is joined to; the stamping pass interpolates between the pair so limbs cast a continuous shadow.
++static s16 sBodyPartLinks[] = {  // was D_80AFA13C [LLM:HIGH]
+     1, -1, 1, 1, 3, 4, 1, 6, 7, 2, 9, 10, 2, 12, 13, 0,
+ };
+ 
+-static u8 D_80AFA15C[] = {
++// LLM generated name (HIGH), was D_80AFA15C: which of the five brush-width tables each body-part slot stamps with.
++static u8 sBlobSizeClass[] = {  // was D_80AFA15C [LLM:HIGH]
+     2, 2, 2, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 3,
+ };
+ 
+-static s8 D_80AFA16C[] = {
++// LLM generated name (HIGH), was D_80AFA16C: maps each player body-part index to its slot in sBodyPartPos, with -1 for the parts that are not used.
++static s8 sBodyPartToSlot[] = {  // was D_80AFA16C [LLM:HIGH]
+     2, 9, 10, 11, 12, 13, 14, 0, 15, -1, 3, 4, 5, 6, 7, 8, -1, 1, 0, 0,
+ };
+ 
+-static Vec3f D_80AFA180[] = {
++// LLM generated name (HIGH), was D_80AFA180: the twenty-two offsets the second stamping pass smears the shadow across, each with its own depth weight.
++static Vec3f sBlobOffsets[] = {  // was D_80AFA180 [LLM:HIGH]
+     { -1.0f, 2.0f, -0.2f }, { 0.0f, 2.0f, -0.5f },   { 1.0f, 2.0f, -0.2f },   { -2.0f, 1.0f, -0.5f },
+     { -1.0f, 1.0f, -0.2f }, { 0.0f, 1.0f, -0.2f },   { 1.0f, 1.0f, -0.2f },   { 2.0f, 1.0f, -0.5f },
+     { -2.0f, 0.0f, -0.5f }, { -1.0f, 0.0f, -0.2f },  { 0.0f, 0.0f, 0.0f },    { 1.0f, 0.0f, -0.2f },
+@@ -73,8 +86,9 @@ static Vec3f D_80AFA180[] = {
+     { 1.0f, -2.0f, -0.2f }, { 0.0f, -3.0f, -0.5f },
+ };
+ 
+-// Unused, identical to D_80AFA180
+-static Vec3f D_80AFA288[] = {
++// Unused, identical to sBlobOffsets, was D_80AFA180 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80AFA288: the in-tree comment above it reads "Unused, identical to D_80AFA180".
++static Vec3f sUnusedBlobOffsets[] = {  // was D_80AFA288 [LLM:HIGH]
+     { -1.0f, 2.0f, -0.2f }, { 0.0f, 2.0f, -0.5f },   { 1.0f, 2.0f, -0.2f },   { -2.0f, 1.0f, -0.5f },
+     { -1.0f, 1.0f, -0.2f }, { 0.0f, 1.0f, -0.2f },   { 1.0f, 1.0f, -0.2f },   { 2.0f, 1.0f, -0.5f },
+     { -2.0f, 0.0f, -0.5f }, { -1.0f, 0.0f, -0.2f },  { 0.0f, 0.0f, 0.0f },    { 1.0f, 0.0f, -0.2f },
+@@ -83,11 +97,13 @@ static Vec3f D_80AFA288[] = {
+     { 1.0f, -2.0f, -0.2f }, { 0.0f, -3.0f, -0.5f },
+ };
+ 
+-static u32 D_80AFA390[] = { 0, 0 };
++// LLM generated name (HIGH), was D_80AFA390: two zeroed u32 words with no reader anywhere in the tree.
++static u32 sUnusedValues[] = { 0, 0 };  // was D_80AFA390 [LLM:HIGH]
+ 
+ #include "overlays/ovl_En_Sda/ovl_En_Sda.h"
+ 
+-static Vec3f D_80AFA660[16];
++// LLM generated name (HIGH), was D_80AFA660: the sixteen body-part positions copied out of the player each frame and used as the centres of the shadow blobs.
++static Vec3f sBodyPartPos[16];  // was D_80AFA660 [LLM:HIGH]
+ 
+ void EnSda_Init(Actor* thisx, PlayState* play) {
+ }
+@@ -127,16 +143,16 @@ void EnSda_Draw(Actor* thisx, PlayState* play) {
+     }
+ 
+     player->actor.shape.shadowAlpha = 0;
+-    func_80AF95C4(this, shadowTexture, player, play);
++    EnSda_BuildShadowTexture(this, shadowTexture, player, play);  // was func_80AF95C4 [LLM:HIGH]
+ 
+     if (KREG(0) < 5) {
+-        func_80AF9C70(shadowTexture, player, play);
++        EnSda_DrawShadow(shadowTexture, player, play);  // was func_80AF9C70 [LLM:HIGH]
+     }
+ 
+     osSyncPrintf("SDA DRAW END\n");
+ }
+ 
+-void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2) {
++void EnSda_StampBodyShadow(Player* player, u8* shadowTexture, f32 arg2) {
+     s16 temp_t0;
+     s16 temp_t1;
+     s16 temp_v1;
+@@ -150,19 +166,19 @@ void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2) {
+     Vec3f sp7C;
+ 
+     for (i = 0; i < 16; i++) {
+-        if ((arg2 == 0.0f) || ((j = D_80AFA13C[i]) >= 0)) {
++        if ((arg2 == 0.0f) || ((j = sBodyPartLinks[i]) >= 0)) {  // was D_80AFA13C [LLM:HIGH]
+             if (arg2 > 0.0f) {
+-                lerp.x = D_80AFA660[i].x + (D_80AFA660[j].x - D_80AFA660[i].x) * arg2;
+-                lerp.y = D_80AFA660[i].y + (D_80AFA660[j].y - D_80AFA660[i].y) * arg2;
+-                lerp.z = D_80AFA660[i].z + (D_80AFA660[j].z - D_80AFA660[i].z) * arg2;
++                lerp.x = sBodyPartPos[i].x + (sBodyPartPos[j].x - sBodyPartPos[i].x) * arg2;  // was D_80AFA660 [LLM:HIGH]
++                lerp.y = sBodyPartPos[i].y + (sBodyPartPos[j].y - sBodyPartPos[i].y) * arg2;  // was D_80AFA660 [LLM:HIGH]
++                lerp.z = sBodyPartPos[i].z + (sBodyPartPos[j].z - sBodyPartPos[i].z) * arg2;  // was D_80AFA660 [LLM:HIGH]
+ 
+                 sp88.x = lerp.x - player->actor.world.pos.x;
+                 sp88.y = lerp.y - player->actor.world.pos.y + BREG(48) + 76.0f + 30.0f - 105.0f + 15.0f;
+                 sp88.z = lerp.z - player->actor.world.pos.z;
+             } else {
+-                sp88.x = D_80AFA660[i].x - player->actor.world.pos.x;
+-                sp88.y = D_80AFA660[i].y - player->actor.world.pos.y + BREG(48) + 76.0f + 30.0f - 105.0f + 15.0f;
+-                sp88.z = D_80AFA660[i].z - player->actor.world.pos.z;
++                sp88.x = sBodyPartPos[i].x - player->actor.world.pos.x;  // was D_80AFA660 [LLM:HIGH]
++                sp88.y = sBodyPartPos[i].y - player->actor.world.pos.y + BREG(48) + 76.0f + 30.0f - 105.0f + 15.0f;  // was D_80AFA660 [LLM:HIGH]
++                sp88.z = sBodyPartPos[i].z - player->actor.world.pos.z;  // was D_80AFA660 [LLM:HIGH]
+             }
+             Matrix_MultVec3f(&sp88, &sp7C);
+             sp7C.x *= (1.0f + (BREG(49) / 100.0f));
+@@ -170,9 +186,9 @@ void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2) {
+             temp_t0 = sp7C.x + 32.0f;
+             temp_t1 = (s16)sp7C.y << 6;
+ 
+-            if (D_80AFA15C[i] == 2) {
++            if (sBlobSizeClass[i] == 2) {  // was D_80AFA15C [LLM:HIGH]
+                 for (j = 0, phi_a3 = -0x180; j < 12; j++, phi_a3 += 0x40) {
+-                    for (phi_a0 = -D_80AFA108[j]; phi_a0 < D_80AFA108[j]; phi_a0++) {
++                    for (phi_a0 = -sBlobRowsClass2[j]; phi_a0 < sBlobRowsClass2[j]; phi_a0++) {  // was D_80AFA108 [LLM:HIGH]
+                         temp_v1 = temp_t0 + phi_a0;
+                         if ((temp_v1 >= 0) && (temp_v1 < 0x40)) {
+                             temp_v0 = temp_t1 + phi_a3;
+@@ -182,9 +198,9 @@ void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2) {
+                         }
+                     }
+                 }
+-            } else if (D_80AFA15C[i] == 1) {
++            } else if (sBlobSizeClass[i] == 1) {  // was D_80AFA15C [LLM:HIGH]
+                 for (j = 0, phi_a3 = -0x100; j < 8; j++, phi_a3 += 0x40) {
+-                    for (phi_a0 = -D_80AFA0F8[j]; phi_a0 < D_80AFA0F8[j]; phi_a0++) {
++                    for (phi_a0 = -sBlobRowsClass1[j]; phi_a0 < sBlobRowsClass1[j]; phi_a0++) {  // was D_80AFA0F8 [LLM:HIGH]
+                         temp_v1 = temp_t0 + phi_a0;
+                         if ((temp_v1 >= 0) && (temp_v1 < 0x40)) {
+                             temp_v0 = temp_t1 + phi_a3;
+@@ -194,9 +210,9 @@ void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2) {
+                         }
+                     }
+                 }
+-            } else if (D_80AFA15C[i] == 0) {
++            } else if (sBlobSizeClass[i] == 0) {  // was D_80AFA15C [LLM:HIGH]
+                 for (j = 0, phi_a3 = -0xC0; j < 7; j++, phi_a3 += 0x40) {
+-                    for (phi_a0 = -D_80AFA0E8[j]; phi_a0 < D_80AFA0E8[j] - 1; phi_a0++) {
++                    for (phi_a0 = -sBlobRowsClass0[j]; phi_a0 < sBlobRowsClass0[j] - 1; phi_a0++) {  // was D_80AFA0E8 [LLM:HIGH]
+                         temp_v1 = temp_t0 + phi_a0;
+                         if ((temp_v1 >= 0) && (temp_v1 < 0x40)) {
+                             temp_v0 = temp_t1 + phi_a3;
+@@ -206,9 +222,9 @@ void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2) {
+                         }
+                     }
+                 }
+-            } else if (D_80AFA15C[i] == 4) {
++            } else if (sBlobSizeClass[i] == 4) {  // was D_80AFA15C [LLM:HIGH]
+                 for (j = 0, phi_a3 = -0x1C0; j < 14; j++, phi_a3 += 0x40) {
+-                    for (phi_a0 = -D_80AFA120[j]; phi_a0 < D_80AFA120[j]; phi_a0++) {
++                    for (phi_a0 = -sBlobRowsClass4[j]; phi_a0 < sBlobRowsClass4[j]; phi_a0++) {  // was D_80AFA120 [LLM:HIGH]
+                         temp_v1 = temp_t0 + phi_a0;
+                         if ((temp_v1 >= 0) && (temp_v1 < 0x40)) {
+                             temp_v0 = temp_t1 + phi_a3;
+@@ -220,7 +236,7 @@ void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2) {
+                 }
+             } else {
+                 for (j = 0, phi_a3 = -0x80; j < 6; j++, phi_a3 += 0x40) {
+-                    for (phi_a0 = -D_80AFA0DC[j]; phi_a0 < D_80AFA0DC[j] - 1; phi_a0++) {
++                    for (phi_a0 = -sBlobRowsClass3[j]; phi_a0 < sBlobRowsClass3[j] - 1; phi_a0++) {  // was D_80AFA0DC [LLM:HIGH]
+                         temp_v1 = temp_t0 + phi_a0;
+                         if ((temp_v1 >= 0) && (temp_v1 < 0x40)) {
+                             temp_v0 = temp_t1 + phi_a3;
+@@ -235,7 +251,7 @@ void func_80AF8F60(Player* player, u8* shadowTexture, f32 arg2) {
+     }
+ }
+ 
+-void func_80AF95C4(EnSda* this, u8* shadowTexture, Player* player, PlayState* play) {
++void EnSda_BuildShadowTexture(EnSda* this, u8* shadowTexture, Player* player, PlayState* play) {
+     s16 temp_t0;
+     s16 temp_t1;
+     s16 temp_v0;
+@@ -268,17 +284,17 @@ void func_80AF95C4(EnSda* this, u8* shadowTexture, Player* player, PlayState* pl
+     }
+     Matrix_RotateX((BREG(50) + 70) / 100.0f, MTXMODE_NEW);
+     for (i = 0; i < 18; i++) {
+-        if (D_80AFA16C[i] >= 0) {
+-            D_80AFA660[D_80AFA16C[i]] = player->bodyPartsPos[i];
++        if (sBodyPartToSlot[i] >= 0) {  // was D_80AFA16C [LLM:HIGH]
++            sBodyPartPos[sBodyPartToSlot[i]] = player->bodyPartsPos[i];  // was D_80AFA660 [LLM:HIGH]
+         }
+     }
+     osSyncPrintf("SDA CONT 2\n");
+-    D_80AFA660[0].y += 3.0f;
+-    D_80AFA660[15].x = D_80AFA660[0].x + ((D_80AFA660[15].x - D_80AFA660[0].x) * 1.2f);
+-    D_80AFA660[15].y = D_80AFA660[0].y + ((D_80AFA660[15].y - D_80AFA660[0].y) * -1.2f);
+-    D_80AFA660[15].z = D_80AFA660[0].z + ((D_80AFA660[15].z - D_80AFA660[0].z) * 1.2f);
++    sBodyPartPos[0].y += 3.0f;  // was D_80AFA660 [LLM:HIGH]
++    sBodyPartPos[15].x = sBodyPartPos[0].x + ((sBodyPartPos[15].x - sBodyPartPos[0].x) * 1.2f);  // was D_80AFA660 [LLM:HIGH]
++    sBodyPartPos[15].y = sBodyPartPos[0].y + ((sBodyPartPos[15].y - sBodyPartPos[0].y) * -1.2f);  // was D_80AFA660 [LLM:HIGH]
++    sBodyPartPos[15].z = sBodyPartPos[0].z + ((sBodyPartPos[15].z - sBodyPartPos[0].z) * 1.2f);  // was D_80AFA660 [LLM:HIGH]
+     for (i = 0; i < 6; i++) {
+-        func_80AF8F60(player, shadowTexture, i / 5.0f);
++        EnSda_StampBodyShadow(player, shadowTexture, i / 5.0f);  // was func_80AF8F60 [LLM:HIGH]
+     }
+     osSyncPrintf("SDA CONT 3\n");
+     if (this->actor.params != 1) {
+@@ -286,11 +302,11 @@ void func_80AF95C4(EnSda* this, u8* shadowTexture, Player* player, PlayState* pl
+         sp178.y += (KREG(87) << 0xF) + 0x8000;
+         sp178.x *= (KREG(88) - 1);
+         Matrix_Mult(&player->shieldMf, MTXMODE_NEW);
+-        Matrix_MultVec3f(&D_80AFA0D0, &sp16C);
++        Matrix_MultVec3f(&sZeroVec, &sp16C);  // was D_80AFA0D0 [LLM:HIGH]
+         Matrix_RotateY((sp178.y / 32768.0f) * M_PI, MTXMODE_NEW);
+         Matrix_RotateX((sp178.x / 32768.0f) * M_PI, MTXMODE_APPLY);
+         for (i = 0; i < 22; i++) {
+-            Matrix_MultVec3f(&D_80AFA180[i], &sp188);
++            Matrix_MultVec3f(&sBlobOffsets[i], &sp188);  // was D_80AFA180 [LLM:HIGH]
+             sp64[i].x = (((KREG(82) / 100.0f) + 4.0f) * sp188.x) + sp16C.x;
+             sp64[i].y = (((KREG(82) / 100.0f) + 4.0f) * sp188.y) + sp16C.y;
+             sp64[i].z = (((KREG(82) / 100.0f) + 4.0f) * sp188.z) + sp16C.z;
+@@ -308,7 +324,7 @@ void func_80AF95C4(EnSda* this, u8* shadowTexture, Player* player, PlayState* pl
+ 
+             do {
+                 for (j = 0, phi_a3 = -0xC0; j < 7; j++, phi_a3 += 0x40) {
+-                    for (phi_a0 = -D_80AFA0E8[j]; phi_a0 < D_80AFA0E8[j] - 1; phi_a0++) {
++                    for (phi_a0 = -sBlobRowsClass0[j]; phi_a0 < sBlobRowsClass0[j] - 1; phi_a0++) {  // was D_80AFA0E8 [LLM:HIGH]
+                         temp_v0 = temp_t0 + phi_a0;
+                         if ((temp_v0 >= 0) && (temp_v0 < 0x40)) {
+                             temp_v1 = temp_t1 + phi_a3;
+@@ -332,7 +348,7 @@ void func_80AF95C4(EnSda* this, u8* shadowTexture, Player* player, PlayState* pl
+     osSyncPrintf("SDA CONT 4\n");
+ }
+ 
+-void func_80AF9C70(u8* shadowTexture, Player* player, PlayState* play) {
++void EnSda_DrawShadow(u8* shadowTexture, Player* player, PlayState* play) {
+     s32 pad;
+     f32 tempx;
+     f32 tempz;
+-- 
+2.55.0
+

@@ -1,0 +1,702 @@
+From d5314c95d24149fe425a7d548613afb924fed6bd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 337/488] soh: name the 13 address-named symbols defined in
+ z_demo_ec.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 13 are defined in soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c.
+
+  * func_8096D594 -> DemoEc_MoveActor
+    deduced, confidence HIGH: enables root-motion on the skeleton and queues
+    the animation system's actor move; the most-used of the three
+    near-identical movement helpers.
+
+  * func_8096D5D4 -> DemoEc_MoveActorRebased
+    deduced, confidence HIGH: the same move, but first rebases the
+    skeleton's translation onto the current root joint so the actor does not
+    jump when the animation is swapped.
+
+  * func_8096D64C -> DemoEc_MoveActor2
+    deduced, confidence HIGH: a third copy of DemoEc_MoveActor at its own
+    address, byte-identical to it and used by five of the update modes.
+
+  * func_8096F1D4 -> DemoEc_UpdateEyesAfterFrame32
+    deduced, confidence HIGH: holds eye texture 3 for the first 32 frames of
+    the animation and runs the ordinary blink afterwards.
+
+  * func_8096F224 -> DemoEc_SetupUpdate17
+    deduced, confidence HIGH: loads the animation object, starts
+    gDemoEcAnim_006930 and switches this Carpenter to update mode
+    EC_UPDATE_17.
+
+  * func_8096F26C -> DemoEc_AdvanceToUpdate18
+    deduced, confidence HIGH: when the current animation has finished it
+    starts gDemoEcAnim_006220 and moves on to EC_UPDATE_18.
+
+  * func_8096F2B0 -> DemoEc_CheckCueForUpdate17
+    deduced, confidence HIGH: watches this Carpenter's actor cue and, on cue
+    2, enters update mode 17.
+
+  * func_8096F378 -> DemoEc_Update17
+    deduced, confidence HIGH: the EC_UPDATE_17 body: steps the animation,
+    moves the actor, holds the eyes for the first 32 frames and advances to
+    mode 18 when the animation ends.
+
+  * func_8096F3D4 -> DemoEc_Update18
+    deduced, confidence HIGH: the EC_UPDATE_18 body: steps the animation,
+    moves the actor and runs the ordinary blink.
+
+  * func_8096F4FC -> DemoEc_SetupUpdate20
+    deduced, confidence HIGH: loads the animation object, starts
+    gDemoEcAnim_008D1C and switches to update mode EC_UPDATE_20.
+
+  * func_8096F544 -> DemoEc_AdvanceAnimAfterUpdate20
+    deduced, confidence HIGH: starts gDemoEcAnim_009234 once the mode 20
+    animation has finished, staying in the same update mode.
+
+  * func_8096F578 -> DemoEc_CheckCueForUpdate20
+    deduced, confidence HIGH: the cue watcher for that Carpenter, entering
+    update mode 20 on cue 2.
+
+  * func_8096F640 -> DemoEc_Update20
+    deduced, confidence HIGH: the EC_UPDATE_20 body: steps the animation,
+    moves the actor, blinks, and swaps to the follow-up animation when the
+    first one ends.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Demo_Ec/z_demo_ec.c   | 161 ++++++++++--------
+ 1 file changed, 87 insertions(+), 74 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c b/soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c
+index 29debf9d6..554407330 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c
++++ b/soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c
+@@ -174,19 +174,22 @@ void DemoEc_UpdateBgFlags(DemoEc* this, PlayState* play) {
+     Actor_UpdateBgCheckInfo(play, &this->actor, 30.0f, 25.0f, 30.0f, 7);
+ }
+ 
+-void func_8096D594(DemoEc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096D594: enables root-motion on the skeleton and queues the animation system's actor move; the most-used of the three near-identical movement helpers.
++void DemoEc_MoveActor(DemoEc* this, PlayState* play) {
+     this->skelAnime.movementFlags |= 3;
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+ 
+-void func_8096D5D4(DemoEc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096D5D4: the same move, but first rebases the skeleton's translation onto the current root joint so the actor does not jump when the animation is swapped.
++void DemoEc_MoveActorRebased(DemoEc* this, PlayState* play) {
+     this->skelAnime.baseTransl = this->skelAnime.jointTable[0];
+     this->skelAnime.prevTransl = this->skelAnime.jointTable[0];
+     this->skelAnime.movementFlags |= 3;
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+ 
+-void func_8096D64C(DemoEc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096D64C: a third copy of DemoEc_MoveActor at its own address, byte-identical to it and used by five of the update modes.
++void DemoEc_MoveActor2(DemoEc* this, PlayState* play) {
+     this->skelAnime.movementFlags |= 3;
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+@@ -356,7 +359,7 @@ void DemoEc_InitIngo(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gIngoSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcIngoAnim, 0, 0.0f, false);
+-    func_8096D64C(this, play);
++    DemoEc_MoveActor2(this, play);  // was func_8096D64C [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_INGO;
+     this->drawConfig = EC_DRAW_INGO;
+@@ -364,7 +367,7 @@ void DemoEc_InitIngo(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateIngo(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -377,7 +380,7 @@ void DemoEc_InitTalon(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gTalonSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcTalonAnim, 0, 0.0f, false);
+-    func_8096D64C(this, play);
++    DemoEc_MoveActor2(this, play);  // was func_8096D64C [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_TALON;
+     this->drawConfig = EC_DRAW_TALON;
+@@ -385,7 +388,7 @@ void DemoEc_InitTalon(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateTalon(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -398,7 +401,7 @@ void DemoEc_InitWindmillMan(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gWindmillManSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcWindmillManAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_WINDMILL_MAN;
+     this->drawConfig = EC_DRAW_WINDMILL_MAN;
+@@ -406,7 +409,7 @@ void DemoEc_InitWindmillMan(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateWindmillMan(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -419,7 +422,7 @@ void DemoEc_InitKokiriBoy(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gKm1Skel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcKokiriAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_KOKIRI_BOY;
+     this->drawConfig = EC_DRAW_KOKIRI_BOY;
+@@ -430,7 +433,7 @@ void DemoEc_InitDancingKokiriBoy(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gKm1Skel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcDancingKokiriAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_DANCING_KOKIRI_BOY;
+     this->drawConfig = EC_DRAW_KOKIRI_BOY;
+@@ -438,7 +441,7 @@ void DemoEc_InitDancingKokiriBoy(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateKokiriBoy(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -458,7 +461,7 @@ void DemoEc_InitKokiriGirl(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gKw1Skel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcKokiriAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_KOKIRI_GIRL;
+     this->drawConfig = EC_DRAW_KOKIRI_GIRL;
+@@ -469,7 +472,7 @@ void DemoEc_InitDancingKokiriGirl(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gKw1Skel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcDancingKokiriAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_DANCING_KOKIRI_GIRL;
+     this->drawConfig = EC_DRAW_KOKIRI_GIRL;
+@@ -477,7 +480,7 @@ void DemoEc_InitDancingKokiriGirl(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateKokiriGirl(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -500,7 +503,7 @@ void DemoEc_InitOldMan(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &object_bji_Skel_0000F0);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcOldManAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_OLD_MAN;
+     this->drawConfig = EC_DRAW_OLD_MAN;
+@@ -508,7 +511,7 @@ void DemoEc_InitOldMan(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateOldMan(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -532,7 +535,7 @@ void DemoEc_InitBeardedMan(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &object_ahg_Skel_0000F0);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcOldManAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_BEARDED_MAN;
+     this->drawConfig = EC_DRAW_BEARDED_MAN;
+@@ -540,7 +543,7 @@ void DemoEc_InitBeardedMan(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateBeardedMan(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -564,7 +567,7 @@ void DemoEc_InitWoman(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &object_bob_Skel_0000F0);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcOldManAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_WOMAN;
+     this->drawConfig = EC_DRAW_WOMAN;
+@@ -572,7 +575,7 @@ void DemoEc_InitWoman(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateWoman(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -594,7 +597,7 @@ void DemoEc_InitOldWoman(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &object_bba_Skel_0000F0);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcOldManAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_OLD_WOMAN;
+     this->drawConfig = EC_DRAW_OLD_WOMAN;
+@@ -602,7 +605,7 @@ void DemoEc_InitOldWoman(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateOldWoman(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -615,7 +618,7 @@ void DemoEc_InitBossCarpenter(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &object_toryo_Skel_007150);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcCarpenterAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_BOSS_CARPENTER;
+     this->drawConfig = EC_DRAW_BOSS_CARPENTER;
+@@ -623,7 +626,7 @@ void DemoEc_InitBossCarpenter(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateBossCarpenter(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -636,7 +639,7 @@ void DemoEc_InitCarpenter(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &object_daiku_Skel_007958);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcCarpenterAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_CARPENTER;
+     this->drawConfig = EC_DRAW_CARPENTER;
+@@ -644,7 +647,7 @@ void DemoEc_InitCarpenter(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateCarpenter(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -708,7 +711,7 @@ void DemoEc_InitGerudo(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gGerudoWhiteSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcGerudoAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_GERUDO;
+     this->drawConfig = EC_DRAW_GERUDO;
+@@ -716,7 +719,7 @@ void DemoEc_InitGerudo(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateGerudo(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -762,7 +765,7 @@ void DemoEc_InitDancingZora(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gZoraSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcDancingZoraAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_DANCING_ZORA;
+     this->drawConfig = EC_DRAW_DANCING_ZORA;
+@@ -770,7 +773,7 @@ void DemoEc_InitDancingZora(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateDancingZora(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -788,14 +791,15 @@ void DemoEc_InitKingZora(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gKzSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcKingZoraAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_KING_ZORA;
+     this->drawConfig = EC_DRAW_KING_ZORA;
+     DemoEc_SetEyeTexIndex(this, 3);
+ }
+ 
+-void func_8096F1D4(DemoEc* this) {
++// LLM generated name (HIGH), was func_8096F1D4: holds eye texture 3 for the first 32 frames of the animation and runs the ordinary blink afterwards.
++void DemoEc_UpdateEyesAfterFrame32(DemoEc* this) {
+     f32 currentFrame = this->skelAnime.curFrame;
+ 
+     if (currentFrame <= 32.0f) {
+@@ -805,20 +809,23 @@ void func_8096F1D4(DemoEc* this) {
+     }
+ }
+ 
+-void func_8096F224(DemoEc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096F224: loads the animation object, starts gDemoEcAnim_006930 and switches this Carpenter to update mode EC_UPDATE_17.
++void DemoEc_SetupUpdate17(DemoEc* this, PlayState* play) {
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcAnim_006930, 2, -8.0f, false);
+     this->updateMode = EC_UPDATE_17;
+ }
+ 
+-void func_8096F26C(DemoEc* this, s32 arg1) {
++// LLM generated name (HIGH), was func_8096F26C: when the current animation has finished it starts gDemoEcAnim_006220 and moves on to EC_UPDATE_18.
++void DemoEc_AdvanceToUpdate18(DemoEc* this, s32 arg1) {
+     if (arg1 != 0) {
+         DemoEc_ChangeAnimation(this, &gDemoEcAnim_006220, 0, 0.0f, false);
+         this->updateMode = EC_UPDATE_18;
+     }
+ }
+ 
+-void func_8096F2B0(DemoEc* this, PlayState* play, s32 arg2) {
++// LLM generated name (HIGH), was func_8096F2B0: watches this Carpenter's actor cue and, on cue 2, enters update mode 17.
++void DemoEc_CheckCueForUpdate17(DemoEc* this, PlayState* play, s32 arg2) {
+     CsCmdActorCue* npcAction;
+     s32 sp18;
+ 
+@@ -829,7 +836,7 @@ void func_8096F2B0(DemoEc* this, PlayState* play, s32 arg2) {
+         if ((sp18 != this->npcAction)) {
+             if (this->npcAction) {}
+             if (sp18 == 2) {
+-                func_8096F224(this, play);
++                DemoEc_SetupUpdate17(this, play);  // was func_8096F224 [LLM:HIGH]
+             }
+             this->npcAction = sp18;
+         }
+@@ -838,24 +845,26 @@ void func_8096F2B0(DemoEc* this, PlayState* play, s32 arg2) {
+ 
+ void DemoEc_UpdateKingZora(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_SetNpcActionPosRot(this, play, 6);
+     DemoEc_UpdateBgFlags(this, play);
+-    func_8096F2B0(this, play, 6);
++    DemoEc_CheckCueForUpdate17(this, play, 6);  // was func_8096F2B0 [LLM:HIGH]
+ }
+ 
+-void func_8096F378(DemoEc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096F378: the EC_UPDATE_17 body: steps the animation, moves the actor, holds the eyes for the first 32 frames and advances to mode 18 when the animation ends.
++void DemoEc_Update17(DemoEc* this, PlayState* play) {
+     s32 animDone = DemoEc_UpdateSkelAnime(this);
+ 
+-    func_8096D594(this, play);
+-    func_8096F1D4(this);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
++    DemoEc_UpdateEyesAfterFrame32(this);  // was func_8096F1D4 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+-    func_8096F26C(this, animDone);
++    DemoEc_AdvanceToUpdate18(this, animDone);  // was func_8096F26C [LLM:HIGH]
+ }
+ 
+-void func_8096F3D4(DemoEc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096F3D4: the EC_UPDATE_18 body: steps the animation, moves the actor and runs the ordinary blink.
++void DemoEc_Update18(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -873,26 +882,29 @@ void DemoEc_InitMido(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gMidoSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcMidoAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_MIDO;
+     this->drawConfig = EC_DRAW_MIDO;
+     DemoEc_SetEyeTexIndex(this, 3);
+ }
+ 
+-void func_8096F4FC(DemoEc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096F4FC: loads the animation object, starts gDemoEcAnim_008D1C and switches to update mode EC_UPDATE_20.
++void DemoEc_SetupUpdate20(DemoEc* this, PlayState* play) {
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcAnim_008D1C, 2, -8.0f, false);
+     this->updateMode = EC_UPDATE_20;
+ }
+ 
+-void func_8096F544(DemoEc* this, s32 changeAnim) {
++// LLM generated name (HIGH), was func_8096F544: starts gDemoEcAnim_009234 once the mode 20 animation has finished, staying in the same update mode.
++void DemoEc_AdvanceAnimAfterUpdate20(DemoEc* this, s32 changeAnim) {
+     if (changeAnim) {
+         DemoEc_ChangeAnimation(this, &gDemoEcAnim_009234, 0, 0.0f, false);
+     }
+ }
+ 
+-void func_8096F578(DemoEc* this, PlayState* play, s32 arg2) {
++// LLM generated name (HIGH), was func_8096F578: the cue watcher for that Carpenter, entering update mode 20 on cue 2.
++void DemoEc_CheckCueForUpdate20(DemoEc* this, PlayState* play, s32 arg2) {
+     CsCmdActorCue* npcAction;
+     s32 sp18;
+ 
+@@ -902,7 +914,7 @@ void func_8096F578(DemoEc* this, PlayState* play, s32 arg2) {
+         if ((sp18 != this->npcAction)) {
+             if (this->npcAction) {}
+             if (sp18 == 2) {
+-                func_8096F4FC(this, play);
++                DemoEc_SetupUpdate20(this, play);  // was func_8096F4FC [LLM:HIGH]
+             }
+             this->npcAction = sp18;
+         }
+@@ -911,19 +923,20 @@ void func_8096F578(DemoEc* this, PlayState* play, s32 arg2) {
+ 
+ void DemoEc_UpdateMido(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_SetNpcActionPosRot(this, play, 7);
+     DemoEc_UpdateBgFlags(this, play);
+-    func_8096F578(this, play, 7);
++    DemoEc_CheckCueForUpdate20(this, play, 7);  // was func_8096F578 [LLM:HIGH]
+ }
+ 
+-void func_8096F640(DemoEc* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8096F640: the EC_UPDATE_20 body: steps the animation, moves the actor, blinks, and swaps to the follow-up animation when the first one ends.
++void DemoEc_Update20(DemoEc* this, PlayState* play) {
+     s32 animDone = DemoEc_UpdateSkelAnime(this);
+ 
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+-    func_8096F544(this, animDone);
++    DemoEc_AdvanceAnimAfterUpdate20(this, animDone);  // was func_8096F544 [LLM:HIGH]
+ }
+ 
+ void DemoEc_DrawMido(DemoEc* this, PlayState* play) {
+@@ -955,7 +968,7 @@ void DemoEc_InitCucco(DemoEc* this, PlayState* play) {
+     }
+ 
+     DemoEc_ChangeAnimation(this, animation, 0, 0.0f, false);
+-    func_8096D64C(this, play);
++    DemoEc_MoveActor2(this, play);  // was func_8096D64C [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_CUCCO;
+     this->drawConfig = EC_DRAW_CUCCO;
+@@ -963,7 +976,7 @@ void DemoEc_InitCucco(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateCucco(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -976,7 +989,7 @@ void DemoEc_InitCuccoLady(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gCuccoLadySkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcCuccoLadyAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_CUCCO_LADY;
+     this->drawConfig = EC_DRAW_CUCCO_LADY;
+@@ -984,7 +997,7 @@ void DemoEc_InitCuccoLady(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateCuccoLady(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -1006,7 +1019,7 @@ void DemoEc_InitPotionShopOwner(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &object_ds2_Skel_004258);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcPotionShopOwnerAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_POTION_SHOP_OWNER;
+     this->drawConfig = EC_DRAW_POTION_SHOP_OWNER;
+@@ -1014,7 +1027,7 @@ void DemoEc_InitPotionShopOwner(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdatePotionShopOwner(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -1036,7 +1049,7 @@ void DemoEc_InitMaskShopOwner(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gHappyMaskSalesmanSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcPotionShopOwnerAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_MASK_SHOP_OWNER;
+     this->drawConfig = EC_DRAW_MASK_SHOP_OWNER;
+@@ -1044,7 +1057,7 @@ void DemoEc_InitMaskShopOwner(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateMaskShopOwner(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateBgFlags(this, play);
+ }
+ 
+@@ -1057,7 +1070,7 @@ void DemoEc_InitFishingOwner(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gFishingOwnerSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcPotionShopOwnerAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_FISHING_MAN;
+     this->drawConfig = EC_DRAW_FISHING_MAN;
+@@ -1065,7 +1078,7 @@ void DemoEc_InitFishingOwner(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateFishingOwner(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -1095,7 +1108,7 @@ void DemoEc_InitBombchuShopOwner(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gBombchuShopkeeperSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gDemoEcPotionShopOwnerAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_BOMBCHU_SHOP_OWNER;
+     this->drawConfig = EC_DRAW_BOMBCHU_SHOP_OWNER;
+@@ -1103,7 +1116,7 @@ void DemoEc_InitBombchuShopOwner(DemoEc* this, PlayState* play) {
+ 
+ void DempEc_UpdateBombchuShopOwner(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -1147,7 +1160,7 @@ void DemoEc_InitGorons(DemoEc* this, PlayState* play) {
+     scale->y *= goronScale;
+     scale->z *= goronScale;
+ 
+-    func_8096D64C(this, play);
++    DemoEc_MoveActor2(this, play);  // was func_8096D64C [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_GORON;
+     this->drawConfig = EC_DRAW_GORON;
+@@ -1155,7 +1168,7 @@ void DemoEc_InitGorons(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateGorons(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -1173,7 +1186,7 @@ void DemoEc_InitMalon(DemoEc* this, PlayState* play) {
+     DemoEc_InitSkelAnime(this, play, &gMalonAdultSkel);
+     DemoEc_UseAnimationObject(this, play);
+     DemoEc_ChangeAnimation(this, &gMalonAdultSingAnim, 0, 0.0f, false);
+-    func_8096D5D4(this, play);
++    DemoEc_MoveActorRebased(this, play);  // was func_8096D5D4 [LLM:HIGH]
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, 30.0f);
+     this->updateMode = EC_UPDATE_MALON;
+     this->drawConfig = EC_DRAW_MALON;
+@@ -1181,7 +1194,7 @@ void DemoEc_InitMalon(DemoEc* this, PlayState* play) {
+ 
+ void DemoEc_UpdateMalon(DemoEc* this, PlayState* play) {
+     DemoEc_UpdateSkelAnime(this);
+-    func_8096D594(this, play);
++    DemoEc_MoveActor(this, play);  // was func_8096D594 [LLM:HIGH]
+     DemoEc_UpdateEyes(this);
+     DemoEc_UpdateBgFlags(this, play);
+ }
+@@ -1294,10 +1307,10 @@ static DemoEcUpdateFunc sUpdateFuncs[] = {
+     DemoEc_UpdateGerudo,
+     DemoEc_UpdateDancingZora,
+     DemoEc_UpdateKingZora,
+-    func_8096F378,
+-    func_8096F3D4,
++    DemoEc_Update17,  // was func_8096F378 [LLM:HIGH]
++    DemoEc_Update18,  // was func_8096F3D4 [LLM:HIGH]
+     DemoEc_UpdateMido,
+-    func_8096F640,
++    DemoEc_Update20,  // was func_8096F640 [LLM:HIGH]
+     DemoEc_UpdateCucco,
+     DemoEc_UpdateCuccoLady,
+     DemoEc_UpdatePotionShopOwner,
+-- 
+2.55.0
+

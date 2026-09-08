@@ -1,0 +1,2273 @@
+From 839798814d6cfeb38d993e697d6648c37823f945 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:32 +0000
+Subject: [PATCH 387/488] soh: name the 97 address-named symbols defined in
+ z_onepointdemo_data.inc
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 97 are defined in soh/src/code/z_onepointdemo_data.inc; updating their references touches 2 files in total.
+
+  * D_8012013C -> sCs3050AtPoints
+    deduced, confidence HIGH: the at points OnePointCutscene_SetCsCamPoints
+    passes for one-point cutscene 3050
+
+  * D_8012021C -> sCs3050EyePoints
+    deduced, confidence HIGH: the eye points of that same call
+
+  * D_801202FC -> sCs3050PointCount
+    deduced, confidence HIGH: the number of points in those arrays, indexed
+    from as count minus two and three
+
+  * D_80120300 -> sCs3050Duration
+    deduced, confidence HIGH: the duration argument of that same call
+
+  * D_80120304 -> sCs3050Flags
+    deduced, confidence HIGH: the flags argument, ORed with 0x2000 at the
+    call
+
+  * D_80120308 -> sCs9601AtPoints
+    deduced, confidence HIGH: the at points for one-point cutscenes 9601 and
+    9602
+
+  * D_80120398 -> sCs9601EyePoints
+    deduced, confidence HIGH: the eye points for 9601
+
+  * D_80120428 -> sCs9601PointCount
+    deduced, confidence HIGH: the number of points in those arrays
+
+  * D_8012042C -> sCs9601Duration
+    deduced, confidence HIGH: the duration argument for 9601 and 9602
+
+  * D_80120430 -> sCs9601Flags
+    deduced, confidence HIGH: the flags argument for 9601 and 9602, ORed
+    with 0x1000 at the call
+
+  * D_80120434 -> sCs9602EyePoints
+    deduced, confidence HIGH: the eye points for 9602, which shares 9601's
+    at points
+
+  * D_801204D4 -> sCs3400AtPoints
+    deduced, confidence HIGH: the at points for one-point cutscene 3400
+
+  * D_801205B4 -> sCs3400EyePoints
+    deduced, confidence HIGH: the eye points for 3400
+
+  * D_80120694 -> sCs3400PointCount
+    deduced, confidence HIGH: the number of points in those arrays
+
+  * D_80120698 -> sCs3400Duration
+    deduced, confidence HIGH: the duration argument for 3400
+
+  * D_8012069C -> sCs3400Flags
+    deduced, confidence HIGH: the flags argument for 3400, ORed with 0x2000
+    at the call
+
+  * D_801206A0 -> sCs6001AtPoints
+    deduced, confidence HIGH: the at points for one-point cutscene 6001
+
+  * D_80120760 -> sCs6001EyePointsAlt
+    deduced, confidence HIGH: the second eye point set 6001 chooses between
+
+  * D_80120820 -> sCs6001EyePoints
+    deduced, confidence HIGH: the first eye point set 6001 chooses between
+
+  * D_801208E0 -> sCs6001PointCount
+    deduced, confidence HIGH: the number of points in those arrays
+
+  * D_801208E4 -> sCs6001Duration
+    deduced, confidence HIGH: the duration argument for 6001
+
+  * D_801208E8 -> sCs6001Flags
+    deduced, confidence HIGH: the flags argument for 6001
+
+  * D_801208EC -> sCs1020KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 1020
+    installs
+
+  * D_80120964 -> sCs1030KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 1030
+    installs
+
+  * D_801209B4 -> sCs5000KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 5000
+    installs
+
+  * D_80120A54 -> sCs9500KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 9500
+    installs
+
+  * D_80120ACC -> sCs2260KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2260
+    installs
+
+  * D_80120B94 -> sCs2270KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2270
+    installs
+
+  * D_80120D4C -> sCs2280KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2280
+    installs
+
+  * D_80120E64 -> sCs2220KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2220
+    installs
+
+  * D_80120FA4 -> sCs2230KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2230
+    installs
+
+  * D_80121094 -> sCs2340KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2340
+    installs
+
+  * D_8012110C -> sCs2350KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2350
+    installs
+
+  * D_80121224 -> sCs2290KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2290
+    installs
+
+  * D_80121314 -> sCs5120KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 5120
+    installs
+
+  * D_8012133C -> sCs4510KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4510
+    installs
+
+  * D_801213B4 -> sCs2210KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 2210
+    installs
+
+  * D_8012147C -> sCs4175KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4175
+    installs
+
+  * D_8012151C -> sCs3040KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3040
+    installs
+
+  * D_8012156C -> sCs3020KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3020
+    installs
+
+  * D_801215BC -> sCs3010KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3010
+    installs
+
+  * D_801215E4 -> sCs3070KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3070
+    installs
+
+  * D_80121774 -> sCs3080KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3080
+    installs
+
+  * D_80121814 -> sCs3090KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3090
+    installs
+
+  * D_801218B4 -> sCs3065KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3065
+    installs
+
+  * D_80121904 -> sCs3060KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3060
+    installs
+
+  * D_80121954 -> sCs3120KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3120
+    installs
+
+  * D_80121A44 -> sCs3130KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3130
+    installs
+
+  * D_80121C24 -> sCs3140KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3140
+    installs
+
+  * D_80121D3C -> sCs3240KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3240
+    installs
+
+  * D_80121DB4 -> sCs3390KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3390
+    installs
+
+  * D_80121F1C -> sCs3290KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3290
+    installs
+
+  * D_80121FBC -> sCs3340KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3340
+    installs
+
+  * D_8012205C -> sCs3360KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3360
+    installs
+
+  * D_801220D4 -> sCs3350KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3350
+    installs
+
+  * D_8012219C -> sCs3330KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3330
+    installs
+
+  * D_801222B4 -> sCs3410KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3410
+    installs
+
+  * D_8012237C -> sCs3450KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3450
+    installs
+
+  * D_801223CC -> sCs3440KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3440
+    installs
+
+  * D_801224BC -> sCs3430KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3430
+    installs
+
+  * D_801225D4 -> sCs4100KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4100
+    installs
+
+  * D_8012269C -> sCs4110KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4110
+    installs
+
+  * D_80122714 -> sCs4120KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4120
+    installs
+
+  * D_801227B4 -> sCs4140KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4140
+    installs
+
+  * D_801228A4 -> sCs4150KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4150
+    installs
+
+  * D_8012296C -> sCs4160KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4160
+    installs
+
+  * D_80122A0C -> sCs4170KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4170
+    installs
+
+  * D_80122A5C -> sCs4190KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4190
+    installs
+
+  * D_80122B9C -> sCs4200KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4200
+    installs
+
+  * D_80122C14 -> sCs4210KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4210
+    installs
+
+  * D_80122C8C -> sCs4221KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4221
+    installs
+
+  * D_80122CB4 -> sCs3260KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3260
+    installs
+
+  * D_80122D04 -> sCs3261KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 3261
+    installs
+
+  * D_80122D54 -> sCs8010KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 8010
+    installs
+
+  * D_80122DCC -> sCs8002KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 8002
+    installs
+
+  * D_80122E44 -> sCs8700KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 8700
+    installs
+
+  * D_801232A4 -> sCs1000KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 1000
+    installs
+
+  * D_801232CC -> sCs8603KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 8603
+    installs
+
+  * D_80123394 -> sCs8604KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 8604
+    installs
+
+  * D_8012345C -> sCs4000KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4000
+    installs
+
+  * D_801234FC -> sCs4010KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4010
+    installs
+
+  * D_801235C4 -> sCs4011KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4011
+    installs
+
+  * D_8012368C -> sCs4020KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4020
+    installs
+
+  * D_8012372C -> sCs4021KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4021
+    installs
+
+  * D_801237CC -> sCs4022KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 4022
+    installs
+
+  * D_80123894 -> sCs9703KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 9703
+    installs
+
+  * D_8012390C -> sCs9704KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 9704
+    installs
+
+  * D_8012395C -> sCs9705KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 9705
+    installs
+
+  * D_801239D4 -> sCs5110KeyFrames
+    deduced, confidence HIGH: the keyframe set one-point cutscene 5110
+    installs
+
+  * D_80121184 -> sCs2200KeyFramesA
+    deduced, confidence HIGH: the first of the two keyframe sets cutscene
+    2200 chooses between
+
+  * D_801211D4 -> sCs2200KeyFramesB
+    deduced, confidence HIGH: the second of those two sets
+
+  * D_80122C3C -> sCs4220KeyFramesA
+    deduced, confidence HIGH: the set cutscene 4220 uses when the player is
+    south of z -15
+
+  * D_80122C64 -> sCs4220KeyFramesB
+    deduced, confidence HIGH: the set it uses otherwise
+
+  * D_80123074 -> sCs1100KeyFramesA
+    deduced, confidence HIGH: the first keyframe set cutscene 1100 installs
+
+  * D_8012313C -> sCs1100KeyFramesB
+    deduced, confidence HIGH: the second, whose roll it mirrors
+
+  * D_801231B4 -> sCs9908KeyFramesA
+    deduced, confidence HIGH: the first keyframe set cutscene 9908 installs,
+    whose eye depth varies with age
+
+  * D_80123254 -> sCs9908KeyFramesB
+    deduced, confidence HIGH: the second, whose timer follows the caller's
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_onepointdemo.c        | 508 +++++++++++++--------------
+ soh/src/code/z_onepointdemo_data.inc | 291 ++++++++++-----
+ 2 files changed, 448 insertions(+), 351 deletions(-)
+
+diff --git a/soh/src/code/z_onepointdemo.c b/soh/src/code/z_onepointdemo.c
+index f109d121a..74c7974ad 100644
+--- a/soh/src/code/z_onepointdemo.c
++++ b/soh/src/code/z_onepointdemo.c
+@@ -12,41 +12,41 @@ static s32 sPrevFrameCs1100 = -4096;
+ 
+ #define ONE_POINT_CUTSCENE_SHIP_SAVESTATE_FIELDS(F) \
+     F(sPrevFrameCs1100)                             \
+-    F(D_8012013C)                                   \
+-    F(D_8012021C)                                   \
+-    F(D_801204D4)                                   \
+-    F(D_801205B4)                                   \
+-    F(D_801208EC)                                   \
+-    F(D_80120964)                                   \
+-    F(D_801209B4)                                   \
+-    F(D_80120ACC)                                   \
+-    F(D_80120B94)                                   \
+-    F(D_80120D4C)                                   \
+-    F(D_80120FA4)                                   \
+-    F(D_80121184)                                   \
+-    F(D_801211D4)                                   \
+-    F(D_8012133C)                                   \
+-    F(D_801213B4)                                   \
+-    F(D_8012151C)                                   \
+-    F(D_8012156C)                                   \
+-    F(D_801215BC)                                   \
+-    F(D_80121C24)                                   \
+-    F(D_80121D3C)                                   \
+-    F(D_80121F1C)                                   \
+-    F(D_80121FBC)                                   \
+-    F(D_801220D4)                                   \
+-    F(D_80122714)                                   \
+-    F(D_80122CB4)                                   \
+-    F(D_80122D04)                                   \
+-    F(D_80122E44)                                   \
+-    F(D_8012313C)                                   \
+-    F(D_801231B4)                                   \
+-    F(D_80123254)                                   \
+-    F(D_801232A4)                                   \
+-    F(D_80123894)                                   \
+-    F(D_8012390C)                                   \
+-    F(D_8012395C)                                   \
+-    F(D_801239D4)
++    F(sCs3050AtPoints)                                   \
++    F(sCs3050EyePoints)                                   \
++    F(sCs3400AtPoints)                                   \
++    F(sCs3400EyePoints)                                   \
++    F(sCs1020KeyFrames)                                   \
++    F(sCs1030KeyFrames)                                   \
++    F(sCs5000KeyFrames)                                   \
++    F(sCs2260KeyFrames)                                   \
++    F(sCs2270KeyFrames)                                   \
++    F(sCs2280KeyFrames)                                   \
++    F(sCs2230KeyFrames)                                   \
++    F(sCs2200KeyFramesA)                                   \
++    F(sCs2200KeyFramesB)                                   \
++    F(sCs4510KeyFrames)                                   \
++    F(sCs2210KeyFrames)                                   \
++    F(sCs3040KeyFrames)                                   \
++    F(sCs3020KeyFrames)                                   \
++    F(sCs3010KeyFrames)                                   \
++    F(sCs3140KeyFrames)                                   \
++    F(sCs3240KeyFrames)                                   \
++    F(sCs3290KeyFrames)                                   \
++    F(sCs3340KeyFrames)                                   \
++    F(sCs3350KeyFrames)                                   \
++    F(sCs4120KeyFrames)                                   \
++    F(sCs3260KeyFrames)                                   \
++    F(sCs3261KeyFrames)                                   \
++    F(sCs8700KeyFrames)                                   \
++    F(sCs1100KeyFramesB)                                   \
++    F(sCs9908KeyFramesA)                                   \
++    F(sCs9908KeyFramesB)                                   \
++    F(sCs1000KeyFrames)                                   \
++    F(sCs9703KeyFrames)                                   \
++    F(sCs9704KeyFrames)                                   \
++    F(sCs9705KeyFrames)                                   \
++    F(sCs5110KeyFrames)  // was D_801239D4 [LLM:HIGH]
+ SHIP_SAVESTATE_DEFINE(OnePointCutscene, ONE_POINT_CUTSCENE_SHIP_SAVESTATE_FIELDS)
+ 
+ void OnePointCutscene_AddVecSphToVec3f(Vec3f* dst, Vec3f* src, VecSph* vecSph) {
+@@ -116,44 +116,44 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             if (timer < 20) {
+                 timer = 20;
+             }
+-            D_801208EC[0].atTargetInit = play->view.lookAt;
+-            D_801208EC[0].eyeTargetInit = play->view.eye;
+-            D_801208EC[0].fovTargetInit = play->view.fovy;
+-            D_801208EC[1].atTargetInit = mainCam->at;
+-            D_801208EC[1].eyeTargetInit = mainCam->eye;
+-            D_801208EC[1].fovTargetInit = mainCam->fov;
+-            D_801208EC[1].timerInit = timer - 1;
++            sCs1020KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_801208EC [LLM:HIGH]
++            sCs1020KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_801208EC [LLM:HIGH]
++            sCs1020KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_801208EC [LLM:HIGH]
++            sCs1020KeyFrames[1].atTargetInit = mainCam->at;  // was D_801208EC [LLM:HIGH]
++            sCs1020KeyFrames[1].eyeTargetInit = mainCam->eye;  // was D_801208EC [LLM:HIGH]
++            sCs1020KeyFrames[1].fovTargetInit = mainCam->fov;  // was D_801208EC [LLM:HIGH]
++            sCs1020KeyFrames[1].timerInit = timer - 1;  // was D_801208EC [LLM:HIGH]
+             csCam->timer = timer + 1;
+-            D_801208EC[1].lerpStepScale = 1.0f / (0.5f * timer);
++            sCs1020KeyFrames[1].lerpStepScale = 1.0f / (0.5f * timer);  // was D_801208EC [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_801208EC;
++            csInfo->keyFrames = sCs1020KeyFrames;  // was D_801208EC [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 1030:
+-            D_80120964[0].atTargetInit = play->view.lookAt;
+-            D_80120964[0].eyeTargetInit = play->view.eye;
+-            D_80120964[0].fovTargetInit = play->view.fovy;
++            sCs1030KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_80120964 [LLM:HIGH]
++            sCs1030KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_80120964 [LLM:HIGH]
++            sCs1030KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_80120964 [LLM:HIGH]
+             OLib_Vec3fDiffToVecSphGeo(&spD0, &mainCam->at, &mainCam->eye);
+-            D_80120964[1].eyeTargetInit.y = BINANG_TO_DEGF(spD0.yaw);
+-            D_80120964[1].timerInit = timer - 1;
++            sCs1030KeyFrames[1].eyeTargetInit.y = BINANG_TO_DEGF(spD0.yaw);  // was D_80120964 [LLM:HIGH]
++            sCs1030KeyFrames[1].timerInit = timer - 1;  // was D_80120964 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80120964;
++            csInfo->keyFrames = sCs1030KeyFrames;  // was D_80120964 [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 5000:
+-            D_801209B4[0].atTargetInit = D_801209B4[1].atTargetInit = play->view.lookAt;
+-            D_801209B4[0].eyeTargetInit = play->view.eye;
+-            D_801209B4[0].fovTargetInit = D_801209B4[2].fovTargetInit = play->view.fovy;
++            sCs5000KeyFrames[0].atTargetInit = sCs5000KeyFrames[1].atTargetInit = play->view.lookAt;  // was D_801209B4 [LLM:HIGH]
++            sCs5000KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_801209B4 [LLM:HIGH]
++            sCs5000KeyFrames[0].fovTargetInit = sCs5000KeyFrames[2].fovTargetInit = play->view.fovy;  // was D_801209B4 [LLM:HIGH]
+             OLib_Vec3fDiffToVecSphGeo(&spD0, &actor->focus.pos, &mainCam->at);
+             spD0.r = mainCam->dist;
+-            OnePointCutscene_AddVecSphToVec3f(&D_801209B4[1].eyeTargetInit, &D_801209B4[1].atTargetInit, &spD0);
+-            D_801209B4[1].atTargetInit.y += 20.0f;
++            OnePointCutscene_AddVecSphToVec3f(&sCs5000KeyFrames[1].eyeTargetInit, &sCs5000KeyFrames[1].atTargetInit, &spD0);  // was D_801209B4 [LLM:HIGH]
++            sCs5000KeyFrames[1].atTargetInit.y += 20.0f;  // was D_801209B4 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_801209B4;
++            csInfo->keyFrames = sCs5000KeyFrames;  // was D_801209B4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -164,36 +164,36 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             csCam->roll = 0;
+             break;
+         case 9500:
+-            csInfo->keyFrames = D_80120A54;
++            csInfo->keyFrames = sCs9500KeyFrames;  // was D_80120A54 [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 2260:
+-            D_80120ACC[0].atTargetInit.x = D_80120ACC[2].atTargetInit.x =
++            sCs2260KeyFrames[0].atTargetInit.x = sCs2260KeyFrames[2].atTargetInit.x =  // was D_80120ACC [LLM:HIGH]
+                 ((mainCam->play->state.frames & 1) ? -10.0f : 10.0f) + (Rand_ZeroOne() * 8.0f);
+ 
+-            D_80120ACC[0].eyeTargetInit.x = D_80120ACC[2].eyeTargetInit.x =
++            sCs2260KeyFrames[0].eyeTargetInit.x = sCs2260KeyFrames[2].eyeTargetInit.x =  // was D_80120ACC [LLM:HIGH]
+                 ((mainCam->play->state.frames & 1) ? 20.0f : -20.0f) + (Rand_ZeroOne() * 5.0f);
+ 
+-            csInfo->keyFrames = D_80120ACC;
++            csInfo->keyFrames = sCs2260KeyFrames;  // was D_80120ACC [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 2270:
+-            csInfo->keyFrames = D_80120B94;
++            csInfo->keyFrames = sCs2270KeyFrames;  // was D_80120B94 [LLM:HIGH]
+             csInfo->keyFrameCnt = 11;
+ 
+             for (i = 0; i < csInfo->keyFrameCnt - 3; i++) {
+-                if (D_80120B94[i].actionFlags != 0x8F) {
+-                    D_80120B94[i].atTargetInit.x = Rand_ZeroOne() * 5.0f;
+-                    D_80120B94[i].atTargetInit.z = (Rand_ZeroOne() * 30.0f) + 10.0f;
+-                    D_80120B94[i].eyeTargetInit.x = (Rand_ZeroOne() * 100.0f) + 20.0f;
+-                    D_80120B94[i].eyeTargetInit.z = (Rand_ZeroOne() * 80.0f) + 50.0f;
++                if (sCs2270KeyFrames[i].actionFlags != 0x8F) {  // was D_80120B94 [LLM:HIGH]
++                    sCs2270KeyFrames[i].atTargetInit.x = Rand_ZeroOne() * 5.0f;  // was D_80120B94 [LLM:HIGH]
++                    sCs2270KeyFrames[i].atTargetInit.z = (Rand_ZeroOne() * 30.0f) + 10.0f;  // was D_80120B94 [LLM:HIGH]
++                    sCs2270KeyFrames[i].eyeTargetInit.x = (Rand_ZeroOne() * 100.0f) + 20.0f;  // was D_80120B94 [LLM:HIGH]
++                    sCs2270KeyFrames[i].eyeTargetInit.z = (Rand_ZeroOne() * 80.0f) + 50.0f;  // was D_80120B94 [LLM:HIGH]
+                 }
+             }
+ 
+-            D_80120B94[camIdx - 1].eyeTargetInit.y =
++            sCs2270KeyFrames[camIdx - 1].eyeTargetInit.y =  // was D_80120B94 [LLM:HIGH]
+                 ((mainCam->play->state.frames & 1) ? 3.0f : -3.0f) + Rand_ZeroOne();
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+ 
+@@ -203,18 +203,18 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 1600);
+             break;
+         case 2280:
+-            csInfo->keyFrames = D_80120D4C;
++            csInfo->keyFrames = sCs2280KeyFrames;  // was D_80120D4C [LLM:HIGH]
+             csInfo->keyFrameCnt = 7;
+ 
+             for (i = 0; i < csInfo->keyFrameCnt - 3; i++) {
+-                if (D_80120D4C[i].actionFlags != 0x8F) {
+-                    D_80120D4C[i].atTargetInit.x = Rand_ZeroOne() * 20.0f;
+-                    D_80120D4C[i].atTargetInit.z = (Rand_ZeroOne() * 40.0f) + 10.0f;
+-                    D_80120D4C[i].eyeTargetInit.x = (Rand_ZeroOne() * 40.0f) + 60.0f;
+-                    D_80120D4C[i].eyeTargetInit.z = (Rand_ZeroOne() * 40.0f) + 80.0f;
++                if (sCs2280KeyFrames[i].actionFlags != 0x8F) {  // was D_80120D4C [LLM:HIGH]
++                    sCs2280KeyFrames[i].atTargetInit.x = Rand_ZeroOne() * 20.0f;  // was D_80120D4C [LLM:HIGH]
++                    sCs2280KeyFrames[i].atTargetInit.z = (Rand_ZeroOne() * 40.0f) + 10.0f;  // was D_80120D4C [LLM:HIGH]
++                    sCs2280KeyFrames[i].eyeTargetInit.x = (Rand_ZeroOne() * 40.0f) + 60.0f;  // was D_80120D4C [LLM:HIGH]
++                    sCs2280KeyFrames[i].eyeTargetInit.z = (Rand_ZeroOne() * 40.0f) + 80.0f;  // was D_80120D4C [LLM:HIGH]
+                 }
+             }
+-            D_80120D4C[camIdx - 1].eyeTargetInit.y =
++            sCs2280KeyFrames[camIdx - 1].eyeTargetInit.y =  // was D_80120D4C [LLM:HIGH]
+                 ((mainCam->play->state.frames & 1) ? 3.0f : -3.0f) + Rand_ZeroOne();
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+ 
+@@ -224,7 +224,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 9999);
+             break;
+         case 2220:
+-            csInfo->keyFrames = D_80120E64;
++            csInfo->keyFrames = sCs2220KeyFrames;  // was D_80120E64 [LLM:HIGH]
+             csInfo->keyFrameCnt = 8;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -236,17 +236,17 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             break;
+         case 2230:
+             if (player->actor.world.pos.z < 1000.0f) {
+-                D_80120FA4[0].eyeTargetInit.x = -D_80120FA4[0].eyeTargetInit.x;
+-                D_80120FA4[2].eyeTargetInit.x = -D_80120FA4[2].eyeTargetInit.x;
++                sCs2230KeyFrames[0].eyeTargetInit.x = -sCs2230KeyFrames[0].eyeTargetInit.x;  // was D_80120FA4 [LLM:HIGH]
++                sCs2230KeyFrames[2].eyeTargetInit.x = -sCs2230KeyFrames[2].eyeTargetInit.x;  // was D_80120FA4 [LLM:HIGH]
+             }
+ 
+-            csInfo->keyFrames = D_80120FA4;
++            csInfo->keyFrames = sCs2230KeyFrames;  // was D_80120FA4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 6;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 2340:
+-            csInfo->keyFrames = D_80121094;
++            csInfo->keyFrames = sCs2340KeyFrames;  // was D_80121094 [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -257,7 +257,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 60);
+             break;
+         case 2350:
+-            csInfo->keyFrames = D_8012110C;
++            csInfo->keyFrames = sCs2350KeyFrames;  // was D_8012110C [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -273,26 +273,26 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             if ((sp82 > 0) && (sp82 < 320) && (sp7E > 0) && (sp7E < 240) && (sp80 > 0) && (sp80 < 320) && (sp7C > 0) &&
+                 (sp7C < 240) &&
+                 !OnePointCutscene_BgCheckLineTest(&play->colCtx, &actor->focus.pos, &player->actor.focus.pos)) {
+-                D_80121184[0].atTargetInit.x = (play->view.lookAt.x + actor->focus.pos.x) * 0.5f;
+-                D_80121184[0].atTargetInit.y = (play->view.lookAt.y + actor->focus.pos.y) * 0.5f;
+-                D_80121184[0].atTargetInit.z = (play->view.lookAt.z + actor->focus.pos.z) * 0.5f;
+-                D_80121184[0].eyeTargetInit = play->view.eye;
+-                D_80121184[0].eyeTargetInit.y = player->actor.focus.pos.y + 20.0f;
+-                D_80121184[0].fovTargetInit = mainCam->fov * 0.75f;
+-
+-                csInfo->keyFrames = D_80121184;
++                sCs2200KeyFramesA[0].atTargetInit.x = (play->view.lookAt.x + actor->focus.pos.x) * 0.5f;  // was D_80121184 [LLM:HIGH]
++                sCs2200KeyFramesA[0].atTargetInit.y = (play->view.lookAt.y + actor->focus.pos.y) * 0.5f;  // was D_80121184 [LLM:HIGH]
++                sCs2200KeyFramesA[0].atTargetInit.z = (play->view.lookAt.z + actor->focus.pos.z) * 0.5f;  // was D_80121184 [LLM:HIGH]
++                sCs2200KeyFramesA[0].eyeTargetInit = play->view.eye;  // was D_80121184 [LLM:HIGH]
++                sCs2200KeyFramesA[0].eyeTargetInit.y = player->actor.focus.pos.y + 20.0f;  // was D_80121184 [LLM:HIGH]
++                sCs2200KeyFramesA[0].fovTargetInit = mainCam->fov * 0.75f;  // was D_80121184 [LLM:HIGH]
++
++                csInfo->keyFrames = sCs2200KeyFramesA;  // was D_80121184 [LLM:HIGH]
+                 csInfo->keyFrameCnt = 2;
+             } else {
+-                D_801211D4[0].atTargetInit.x = actor->focus.pos.x;
+-                D_801211D4[0].atTargetInit.y = actor->focus.pos.y - 5.0f;
+-                D_801211D4[0].atTargetInit.z = actor->focus.pos.z;
++                sCs2200KeyFramesB[0].atTargetInit.x = actor->focus.pos.x;  // was D_801211D4 [LLM:HIGH]
++                sCs2200KeyFramesB[0].atTargetInit.y = actor->focus.pos.y - 5.0f;  // was D_801211D4 [LLM:HIGH]
++                sCs2200KeyFramesB[0].atTargetInit.z = actor->focus.pos.z;  // was D_801211D4 [LLM:HIGH]
+                 spC0 = ((EnSw*)actor)->unk_364;
+                 osSyncPrintf("%s(%d): xyz_t: %s (%f %f %f)\n", __FILE__, __LINE__, "&cp", spC0.x, spC0.y, spC0.z);
+-                D_801211D4[0].eyeTargetInit.x = (actor->focus.pos.x + (120.0f * spC0.x)) - (Rand_ZeroOne() * 20.0f);
+-                D_801211D4[0].eyeTargetInit.y = actor->focus.pos.y + (120.0f * spC0.y) + 20.0f;
+-                D_801211D4[0].eyeTargetInit.z = (actor->focus.pos.z + (120.0f * spC0.z)) - (Rand_ZeroOne() * 20.0f);
++                sCs2200KeyFramesB[0].eyeTargetInit.x = (actor->focus.pos.x + (120.0f * spC0.x)) - (Rand_ZeroOne() * 20.0f);  // was D_801211D4 [LLM:HIGH]
++                sCs2200KeyFramesB[0].eyeTargetInit.y = actor->focus.pos.y + (120.0f * spC0.y) + 20.0f;  // was D_801211D4 [LLM:HIGH]
++                sCs2200KeyFramesB[0].eyeTargetInit.z = (actor->focus.pos.z + (120.0f * spC0.z)) - (Rand_ZeroOne() * 20.0f);  // was D_801211D4 [LLM:HIGH]
+ 
+-                csInfo->keyFrames = D_801211D4;
++                csInfo->keyFrames = sCs2200KeyFramesB;  // was D_801211D4 [LLM:HIGH]
+                 csInfo->keyFrameCnt = 2;
+             }
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_UNK3);
+@@ -306,7 +306,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+                 rideActor->freezeTimer = 180;
+             }
+ 
+-            csInfo->keyFrames = D_80121224;
++            csInfo->keyFrames = sCs2290KeyFrames;  // was D_80121224 [LLM:HIGH]
+             csInfo->keyFrameCnt = 6;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -314,17 +314,17 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+         case 5120:
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+ 
+-            csInfo->keyFrames = D_80121314;
++            csInfo->keyFrames = sCs5120KeyFrames;  // was D_80121314 [LLM:HIGH]
+             csInfo->keyFrameCnt = 1;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4510:
+-            D_8012133C[0].eyeTargetInit = actor->world.pos;
+-            D_8012133C[0].eyeTargetInit.y = player->actor.world.pos.y + 40.0f;
++            sCs4510KeyFrames[0].eyeTargetInit = actor->world.pos;  // was D_8012133C [LLM:HIGH]
++            sCs4510KeyFrames[0].eyeTargetInit.y = player->actor.world.pos.y + 40.0f;  // was D_8012133C [LLM:HIGH]
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+ 
+-            csInfo->keyFrames = D_8012133C;
++            csInfo->keyFrames = sCs4510KeyFrames;  // was D_8012133C [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -349,14 +349,14 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             break;
+         case 2210:
+             OLib_Vec3fDiffToVecSphGeo(&spD0, &player->actor.world.pos, &actor->world.pos);
+-            D_801213B4[0].eyeTargetInit.y = D_801213B4[1].eyeTargetInit.y = D_801213B4[2].eyeTargetInit.y =
+-                D_801213B4[2].atTargetInit.y = BINANG_TO_DEGF(spD0.yaw);
++            sCs2210KeyFrames[0].eyeTargetInit.y = sCs2210KeyFrames[1].eyeTargetInit.y = sCs2210KeyFrames[2].eyeTargetInit.y =  // was D_801213B4 [LLM:HIGH]
++                sCs2210KeyFrames[2].atTargetInit.y = BINANG_TO_DEGF(spD0.yaw);  // was D_801213B4 [LLM:HIGH]
+             if (Rand_ZeroOne() < 0.0f) {
+-                D_801213B4[3].eyeTargetInit.x = -D_801213B4[3].eyeTargetInit.x;
++                sCs2210KeyFrames[3].eyeTargetInit.x = -sCs2210KeyFrames[3].eyeTargetInit.x;  // was D_801213B4 [LLM:HIGH]
+             }
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+ 
+-            csInfo->keyFrames = D_801213B4;
++            csInfo->keyFrames = sCs2210KeyFrames;  // was D_801213B4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -370,21 +370,21 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+         case 9601:
+             Play_CameraChangeSetting(play, camIdx, CAM_SET_CS_3);
+             Play_CameraChangeSetting(play, CAM_ID_MAIN, mainCam->prevSetting);
+-            if (GameInteractor_Should(VB_CRAWL_SPEED_EXIT_CS, true, csCam, csId, D_80120430, D_8012042C, D_80120308,
+-                                      D_80120398)) {
+-                OnePointCutscene_SetCsCamPoints(csCam, D_80120430 | 0x1000, D_8012042C, D_80120308, D_80120398);
++            if (GameInteractor_Should(VB_CRAWL_SPEED_EXIT_CS, true, csCam, csId, sCs9601Flags, sCs9601Duration, sCs9601AtPoints,  // was D_80120308 [LLM:HIGH]
++                                      sCs9601EyePoints)) {  // was D_80120398 [LLM:HIGH]
++                OnePointCutscene_SetCsCamPoints(csCam, sCs9601Flags | 0x1000, sCs9601Duration, sCs9601AtPoints, sCs9601EyePoints);  // was D_80120308 [LLM:HIGH]
+             }
+             break;
+         case 9602:
+             Play_CameraChangeSetting(play, camIdx, CAM_SET_CS_3);
+             Play_CameraChangeSetting(play, CAM_ID_MAIN, mainCam->prevSetting);
+-            if (GameInteractor_Should(VB_CRAWL_SPEED_EXIT_CS, true, csCam, csId, D_80120430, D_8012042C, D_80120308,
+-                                      D_80120434)) {
+-                OnePointCutscene_SetCsCamPoints(csCam, D_80120430 | 0x1000, D_8012042C, D_80120308, D_80120434);
++            if (GameInteractor_Should(VB_CRAWL_SPEED_EXIT_CS, true, csCam, csId, sCs9601Flags, sCs9601Duration, sCs9601AtPoints,  // was D_80120308 [LLM:HIGH]
++                                      sCs9602EyePoints)) {  // was D_80120434 [LLM:HIGH]
++                OnePointCutscene_SetCsCamPoints(csCam, sCs9601Flags | 0x1000, sCs9601Duration, sCs9601AtPoints, sCs9602EyePoints);  // was D_80120308 [LLM:HIGH]
+             }
+             break;
+         case 4175:
+-            csInfo->keyFrames = D_8012147C;
++            csInfo->keyFrames = sCs4175KeyFrames;  // was D_8012147C [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -404,41 +404,41 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             break;
+         case 3040:
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-            D_8012151C[0].timerInit = timer - 1;
++            sCs3040KeyFrames[0].timerInit = timer - 1;  // was D_8012151C [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_8012151C;
++            csInfo->keyFrames = sCs3040KeyFrames;  // was D_8012151C [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 3020:
+-            D_8012156C[1].timerInit = timer - 1;
++            sCs3020KeyFrames[1].timerInit = timer - 1;  // was D_8012156C [LLM:HIGH]
+             if (mainCam->play->state.frames & 1) {
+-                D_8012156C[0].atTargetInit.x = -D_8012156C[0].atTargetInit.x;
+-                D_8012156C[0].eyeTargetInit.x = -D_8012156C[0].eyeTargetInit.x;
+-                D_8012156C[1].atTargetInit.x = -D_8012156C[1].atTargetInit.x;
+-                D_8012156C[1].eyeTargetInit.x = -D_8012156C[1].eyeTargetInit.x;
++                sCs3020KeyFrames[0].atTargetInit.x = -sCs3020KeyFrames[0].atTargetInit.x;  // was D_8012156C [LLM:HIGH]
++                sCs3020KeyFrames[0].eyeTargetInit.x = -sCs3020KeyFrames[0].eyeTargetInit.x;  // was D_8012156C [LLM:HIGH]
++                sCs3020KeyFrames[1].atTargetInit.x = -sCs3020KeyFrames[1].atTargetInit.x;  // was D_8012156C [LLM:HIGH]
++                sCs3020KeyFrames[1].eyeTargetInit.x = -sCs3020KeyFrames[1].eyeTargetInit.x;  // was D_8012156C [LLM:HIGH]
+             }
+             tempRand = Rand_ZeroOne() * 15.0f;
+-            D_8012156C[0].eyeTargetInit.x += tempRand;
+-            D_8012156C[1].eyeTargetInit.x += tempRand;
++            sCs3020KeyFrames[0].eyeTargetInit.x += tempRand;  // was D_8012156C [LLM:HIGH]
++            sCs3020KeyFrames[1].eyeTargetInit.x += tempRand;  // was D_8012156C [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_8012156C;
++            csInfo->keyFrames = sCs3020KeyFrames;  // was D_8012156C [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+             break;
+         case 3010:
+-            D_801215BC[0].timerInit = timer;
++            sCs3010KeyFrames[0].timerInit = timer;  // was D_801215BC [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_801215BC;
++            csInfo->keyFrames = sCs3010KeyFrames;  // was D_801215BC [LLM:HIGH]
+             csInfo->keyFrameCnt = 1;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 3070:
+-            csInfo->keyFrames = D_801215E4;
++            csInfo->keyFrames = sCs3070KeyFrames;  // was D_801215E4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 10;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -449,7 +449,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 10);
+             break;
+         case 3080:
+-            csInfo->keyFrames = D_80121774;
++            csInfo->keyFrames = sCs3080KeyFrames;  // was D_80121774 [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -457,7 +457,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+         case 3090:
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+ 
+-            csInfo->keyFrames = D_80121814;
++            csInfo->keyFrames = sCs3090KeyFrames;  // was D_80121814 [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -475,7 +475,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             break;
+         case 3380:
+         case 3065:
+-            csInfo->keyFrames = D_801218B4;
++            csInfo->keyFrames = sCs3065KeyFrames;  // was D_801218B4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -487,7 +487,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 160);
+             break;
+         case 3060:
+-            csInfo->keyFrames = D_80121904;
++            csInfo->keyFrames = sCs3060KeyFrames;  // was D_80121904 [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -496,22 +496,22 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+         case 3050:
+             Play_CameraChangeSetting(play, camIdx, CAM_SET_CS_3);
+             Player_SetCsActionWithHaltedActors(play, &player->actor, 5);
+-            OnePointCutscene_SetCsCamPoints(csCam, D_80120304 | 0x2000, D_80120300, D_8012013C, D_8012021C);
++            OnePointCutscene_SetCsCamPoints(csCam, sCs3050Flags | 0x2000, sCs3050Duration, sCs3050AtPoints, sCs3050EyePoints);  // was D_8012013C [LLM:HIGH]
+             Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+-            OnePointCutscene_Vec3sToVec3f(&mainCam->at, &D_8012013C[D_801202FC - 2].pos);
+-            OnePointCutscene_Vec3sToVec3f(&mainCam->eye, &D_8012021C[D_801202FC - 2].pos);
+-            D_8012013C[D_801202FC - 3].pos.x +=
+-                (D_8012013C[D_801202FC - 2].pos.x - D_8012013C[D_801202FC - 3].pos.x) / 2;
+-            D_8012013C[D_801202FC - 3].pos.y +=
+-                (D_8012013C[D_801202FC - 2].pos.y - D_8012013C[D_801202FC - 3].pos.y) / 2;
+-            D_8012013C[D_801202FC - 3].pos.z +=
+-                (D_8012013C[D_801202FC - 2].pos.z - D_8012013C[D_801202FC - 3].pos.z) / 2;
+-            D_8012021C[D_801202FC - 3].pos.x +=
+-                (D_8012021C[D_801202FC - 2].pos.x - D_8012021C[D_801202FC - 3].pos.x) / 2;
+-            D_8012021C[D_801202FC - 3].pos.y +=
+-                (D_8012021C[D_801202FC - 2].pos.y - D_8012021C[D_801202FC - 3].pos.y) / 2;
+-            D_8012021C[D_801202FC - 3].pos.z +=
+-                (D_8012021C[D_801202FC - 2].pos.z - D_8012021C[D_801202FC - 3].pos.z) / 2;
++            OnePointCutscene_Vec3sToVec3f(&mainCam->at, &sCs3050AtPoints[sCs3050PointCount - 2].pos);  // was D_8012013C [LLM:HIGH]
++            OnePointCutscene_Vec3sToVec3f(&mainCam->eye, &sCs3050EyePoints[sCs3050PointCount - 2].pos);  // was D_8012021C [LLM:HIGH]
++            sCs3050AtPoints[sCs3050PointCount - 3].pos.x +=  // was D_8012013C [LLM:HIGH]
++                (sCs3050AtPoints[sCs3050PointCount - 2].pos.x - sCs3050AtPoints[sCs3050PointCount - 3].pos.x) / 2;  // was D_8012013C [LLM:HIGH]
++            sCs3050AtPoints[sCs3050PointCount - 3].pos.y +=  // was D_8012013C [LLM:HIGH]
++                (sCs3050AtPoints[sCs3050PointCount - 2].pos.y - sCs3050AtPoints[sCs3050PointCount - 3].pos.y) / 2;  // was D_8012013C [LLM:HIGH]
++            sCs3050AtPoints[sCs3050PointCount - 3].pos.z +=  // was D_8012013C [LLM:HIGH]
++                (sCs3050AtPoints[sCs3050PointCount - 2].pos.z - sCs3050AtPoints[sCs3050PointCount - 3].pos.z) / 2;  // was D_8012013C [LLM:HIGH]
++            sCs3050EyePoints[sCs3050PointCount - 3].pos.x +=  // was D_8012021C [LLM:HIGH]
++                (sCs3050EyePoints[sCs3050PointCount - 2].pos.x - sCs3050EyePoints[sCs3050PointCount - 3].pos.x) / 2;  // was D_8012021C [LLM:HIGH]
++            sCs3050EyePoints[sCs3050PointCount - 3].pos.y +=  // was D_8012021C [LLM:HIGH]
++                (sCs3050EyePoints[sCs3050PointCount - 2].pos.y - sCs3050EyePoints[sCs3050PointCount - 3].pos.y) / 2;  // was D_8012021C [LLM:HIGH]
++            sCs3050EyePoints[sCs3050PointCount - 3].pos.z +=  // was D_8012021C [LLM:HIGH]
++                (sCs3050EyePoints[sCs3050PointCount - 2].pos.z - sCs3050EyePoints[sCs3050PointCount - 3].pos.z) / 2;  // was D_8012021C [LLM:HIGH]
+ 
+             i = Quake_Add(mainCam, 3);
+             Quake_SetSpeed(i, 30000);
+@@ -519,7 +519,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 200);
+             break;
+         case 3120:
+-            csInfo->keyFrames = D_80121954[-(timer + 101)];
++            csInfo->keyFrames = sCs3120KeyFrames[-(timer + 101)];  // was D_80121954 [LLM:HIGH]
+             csCam->timer = 100;
+             csCam->unk_14C |= 2;
+             csInfo->keyFrameCnt = 2;
+@@ -528,7 +528,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 3130:
+-            csInfo->keyFrames = D_80121A44;
++            csInfo->keyFrames = sCs3130KeyFrames;  // was D_80121A44 [LLM:HIGH]
+             csInfo->keyFrameCnt = 12;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -536,11 +536,11 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             csCam->unk_14C |= 2;
+             break;
+         case 3140:
+-            D_80121C24[0].atTargetInit = play->view.lookAt;
+-            D_80121C24[0].eyeTargetInit = play->view.eye;
+-            D_80121C24[0].fovTargetInit = play->view.fovy;
++            sCs3140KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_80121C24 [LLM:HIGH]
++            sCs3140KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_80121C24 [LLM:HIGH]
++            sCs3140KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_80121C24 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80121C24;
++            csInfo->keyFrames = sCs3140KeyFrames;  // was D_80121C24 [LLM:HIGH]
+             csInfo->keyFrameCnt = 7;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -665,9 +665,9 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+             break;
+         case 3240:
+-            D_80121D3C[2].timerInit = timer - 5;
++            sCs3240KeyFrames[2].timerInit = timer - 5;  // was D_80121D3C [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80121D3C;
++            csInfo->keyFrames = sCs3240KeyFrames;  // was D_80121D3C [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -678,32 +678,32 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+             Actor_GetWorld(&spA0, actor);
+             if (spA0.pos.z > -750.0f) {
+-                OnePointCutscene_SetCsCamPoints(csCam, D_801208E8, D_801208E4, D_801206A0, D_80120820);
++                OnePointCutscene_SetCsCamPoints(csCam, sCs6001Flags, sCs6001Duration, sCs6001AtPoints, sCs6001EyePoints);  // was D_801206A0 [LLM:HIGH]
+             } else {
+-                OnePointCutscene_SetCsCamPoints(csCam, D_801208E8, D_801208E4, D_801206A0, D_80120760);
++                OnePointCutscene_SetCsCamPoints(csCam, sCs6001Flags, sCs6001Duration, sCs6001AtPoints, sCs6001EyePointsAlt);  // was D_801206A0 [LLM:HIGH]
+             }
+ 
+             i = Quake_Add(csCam, 1);
+             Quake_SetSpeed(i, 32000);
+             Quake_SetQuakeValues(i, 0, 0, 20, 0);
+-            Quake_SetCountdown(i, D_801208E4 - 10);
++            Quake_SetCountdown(i, sCs6001Duration - 10);  // was D_801208E4 [LLM:HIGH]
+             break;
+         case 3400:
+             Play_CameraChangeSetting(play, camIdx, CAM_SET_CS_3);
+             Player_SetCsAction(play, &player->actor, 8);
+-            OnePointCutscene_SetCsCamPoints(csCam, D_8012069C | 0x2000, D_80120698, D_801204D4, D_801205B4);
+-            OnePointCutscene_Vec3sToVec3f(&mainCam->eye, &D_801205B4[D_80120694 - 2].pos);
+-            OnePointCutscene_Vec3sToVec3f(&mainCam->at, &D_801204D4[D_80120694 - 2].pos);
++            OnePointCutscene_SetCsCamPoints(csCam, sCs3400Flags | 0x2000, sCs3400Duration, sCs3400AtPoints, sCs3400EyePoints);  // was D_801204D4 [LLM:HIGH]
++            OnePointCutscene_Vec3sToVec3f(&mainCam->eye, &sCs3400EyePoints[sCs3400PointCount - 2].pos);  // was D_801205B4 [LLM:HIGH]
++            OnePointCutscene_Vec3sToVec3f(&mainCam->at, &sCs3400AtPoints[sCs3400PointCount - 2].pos);  // was D_801204D4 [LLM:HIGH]
+ 
+             i = Quake_Add(csCam, 1);
+             Quake_SetSpeed(i, 0x4E20);
+             Quake_SetQuakeValues(i, 1, 0, 50, 0);
+-            Quake_SetCountdown(i, D_80120698 - 20);
++            Quake_SetCountdown(i, sCs3400Duration - 20);  // was D_80120698 [LLM:HIGH]
+             break;
+         case 3390:
+             player->actor.shape.rot.y = player->actor.world.rot.y = player->yaw = -0x3FD9;
+ 
+-            csInfo->keyFrames = D_80121DB4;
++            csInfo->keyFrames = sCs3390KeyFrames;  // was D_80121DB4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 9;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -720,13 +720,13 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, timer);
+             break;
+         case 3290:
+-            D_80121F1C[0].atTargetInit = play->view.lookAt;
+-            D_80121F1C[0].eyeTargetInit = play->view.eye;
+-            D_80121F1C[0].fovTargetInit = play->view.fovy;
++            sCs3290KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_80121F1C [LLM:HIGH]
++            sCs3290KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_80121F1C [LLM:HIGH]
++            sCs3290KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_80121F1C [LLM:HIGH]
+             Actor_GetFocus(&spA0, actor);
+             player->actor.shape.rot.y = player->actor.world.rot.y = player->yaw = spA0.rot.y;
+ 
+-            csInfo->keyFrames = D_80121F1C;
++            csInfo->keyFrames = sCs3290KeyFrames;  // was D_80121F1C [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -737,11 +737,11 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 5);
+             break;
+         case 3340:
+-            D_80121FBC[0].atTargetInit = play->view.lookAt;
+-            D_80121FBC[0].eyeTargetInit = play->view.eye;
+-            D_80121FBC[0].fovTargetInit = play->view.fovy;
++            sCs3340KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_80121FBC [LLM:HIGH]
++            sCs3340KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_80121FBC [LLM:HIGH]
++            sCs3340KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_80121FBC [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80121FBC;
++            csInfo->keyFrames = sCs3340KeyFrames;  // was D_80121FBC [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -753,40 +753,40 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 5);
+             break;
+         case 3360:
+-            csInfo->keyFrames = D_8012205C;
++            csInfo->keyFrames = sCs3360KeyFrames;  // was D_8012205C [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Player_SetCsAction(play, &player->actor, 8);
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 3350:
+-            D_801220D4[0].atTargetInit = play->view.lookAt;
+-            D_801220D4[0].eyeTargetInit = play->view.eye;
+-            D_801220D4[0].fovTargetInit = play->view.fovy;
++            sCs3350KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_801220D4 [LLM:HIGH]
++            sCs3350KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_801220D4 [LLM:HIGH]
++            sCs3350KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_801220D4 [LLM:HIGH]
+             if (actor->world.pos.x > 0.0f) {
+-                D_801220D4[1].rollTargetInit = -D_801220D4[1].rollTargetInit;
+-                D_801220D4[2].rollTargetInit = -D_801220D4[2].rollTargetInit;
+-                D_801220D4[1].atTargetInit.x = -D_801220D4[1].atTargetInit.x;
+-                D_801220D4[1].atTargetInit.y = 50.0f;
+-                D_801220D4[1].eyeTargetInit.y = 80.0f;
+-                D_801220D4[1].eyeTargetInit.x = -D_801220D4[1].eyeTargetInit.x;
++                sCs3350KeyFrames[1].rollTargetInit = -sCs3350KeyFrames[1].rollTargetInit;  // was D_801220D4 [LLM:HIGH]
++                sCs3350KeyFrames[2].rollTargetInit = -sCs3350KeyFrames[2].rollTargetInit;  // was D_801220D4 [LLM:HIGH]
++                sCs3350KeyFrames[1].atTargetInit.x = -sCs3350KeyFrames[1].atTargetInit.x;  // was D_801220D4 [LLM:HIGH]
++                sCs3350KeyFrames[1].atTargetInit.y = 50.0f;  // was D_801220D4 [LLM:HIGH]
++                sCs3350KeyFrames[1].eyeTargetInit.y = 80.0f;  // was D_801220D4 [LLM:HIGH]
++                sCs3350KeyFrames[1].eyeTargetInit.x = -sCs3350KeyFrames[1].eyeTargetInit.x;  // was D_801220D4 [LLM:HIGH]
+             }
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+ 
+-            csInfo->keyFrames = D_801220D4;
++            csInfo->keyFrames = sCs3350KeyFrames;  // was D_801220D4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 3330:
+-            csInfo->keyFrames = D_8012219C;
++            csInfo->keyFrames = sCs3330KeyFrames;  // was D_8012219C [LLM:HIGH]
+             csInfo->keyFrameCnt = 7;
+ 
+             Player_SetCsAction(play, &player->actor, 8);
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 3410:
+-            csInfo->keyFrames = D_801222B4;
++            csInfo->keyFrames = sCs3410KeyFrames;  // was D_801222B4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -798,7 +798,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 20);
+             break;
+         case 3450:
+-            csInfo->keyFrames = D_8012237C;
++            csInfo->keyFrames = sCs3450KeyFrames;  // was D_8012237C [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Player_SetCsAction(play, &player->actor, 8);
+@@ -810,7 +810,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 10);
+             break;
+         case 3440:
+-            csInfo->keyFrames = D_801223CC;
++            csInfo->keyFrames = sCs3440KeyFrames;  // was D_801223CC [LLM:HIGH]
+             csInfo->keyFrameCnt = 6;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -824,7 +824,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 10);
+             break;
+         case 3430:
+-            csInfo->keyFrames = D_801224BC;
++            csInfo->keyFrames = sCs3430KeyFrames;  // was D_801224BC [LLM:HIGH]
+             csInfo->keyFrameCnt = 7;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -836,15 +836,15 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, 20);
+             break;
+         case 4100:
+-            csInfo->keyFrames = D_801225D4;
+-            csInfo->keyFrameCnt = ARRAY_COUNT(D_801225D4);
++            csInfo->keyFrames = sCs4100KeyFrames;  // was D_801225D4 [LLM:HIGH]
++            csInfo->keyFrameCnt = ARRAY_COUNT(sCs4100KeyFrames);  // was D_801225D4 [LLM:HIGH]
+ 
+             player->actor.shape.rot.y = player->actor.world.rot.y = player->yaw = 0x3FFC;
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+             break;
+         case 4110:
+-            csInfo->keyFrames = D_8012269C;
++            csInfo->keyFrames = sCs4110KeyFrames;  // was D_8012269C [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Player_SetCsAction(play, &player->actor, 8);
+@@ -852,21 +852,21 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             break;
+         case 4120:
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-            D_80122714[1].timerInit = 80;
+-            csInfo->keyFrames = D_80122714;
++            sCs4120KeyFrames[1].timerInit = 80;  // was D_80122714 [LLM:HIGH]
++            csInfo->keyFrames = sCs4120KeyFrames;  // was D_80122714 [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4140:
+-            csInfo->keyFrames = D_801227B4;
++            csInfo->keyFrames = sCs4140KeyFrames;  // was D_801227B4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 6;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             Camera_RequestMode(mainCam, CAM_MODE_NORMAL);
+             break;
+         case 4150:
+-            csInfo->keyFrames = D_801228A4;
++            csInfo->keyFrames = sCs4150KeyFrames;  // was D_801228A4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -874,7 +874,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4160:
+-            csInfo->keyFrames = D_8012296C;
++            csInfo->keyFrames = sCs4160KeyFrames;  // was D_8012296C [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -882,7 +882,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4170:
+-            csInfo->keyFrames = D_80122A0C;
++            csInfo->keyFrames = sCs4170KeyFrames;  // was D_80122A0C [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -890,7 +890,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4190:
+-            csInfo->keyFrames = D_80122A5C;
++            csInfo->keyFrames = sCs4190KeyFrames;  // was D_80122A5C [LLM:HIGH]
+             csInfo->keyFrameCnt = 8;
+ 
+             Player_SetCsAction(play, &player->actor, 8);
+@@ -898,7 +898,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4200:
+-            csInfo->keyFrames = D_80122B9C;
++            csInfo->keyFrames = sCs4200KeyFrames;  // was D_80122B9C [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Player_SetCsAction(play, &player->actor, 8);
+@@ -908,7 +908,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+         case 4210:
+             player->actor.freezeTimer = timer;
+ 
+-            csInfo->keyFrames = D_80122C14;
++            csInfo->keyFrames = sCs4210KeyFrames;  // was D_80122C14 [LLM:HIGH]
+             csInfo->keyFrameCnt = 1;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -919,7 +919,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, timer - 80);
+             break;
+         case 4220:
+-            csInfo->keyFrames = (player->actor.world.pos.z < -15.0f) ? D_80122C3C : D_80122C64;
++            csInfo->keyFrames = (player->actor.world.pos.z < -15.0f) ? sCs4220KeyFramesA : sCs4220KeyFramesB;  // was D_80122C3C [LLM:HIGH]
+             csInfo->keyFrameCnt = 1;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -933,7 +933,7 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             Quake_SetCountdown(i, timer - 10);
+             break;
+         case 4221:
+-            csInfo->keyFrames = D_80122C8C;
++            csInfo->keyFrames = sCs4221KeyFrames;  // was D_80122C8C [LLM:HIGH]
+             csInfo->keyFrameCnt = 1;
+ 
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+@@ -941,30 +941,30 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             break;
+         case 3260:
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-            D_80122CB4[1].timerInit = timer - 5;
++            sCs3260KeyFrames[1].timerInit = timer - 5;  // was D_80122CB4 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80122CB4;
++            csInfo->keyFrames = sCs3260KeyFrames;  // was D_80122CB4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 3261:
+             Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-            D_80122D04[1].timerInit = timer - 10;
++            sCs3261KeyFrames[1].timerInit = timer - 10;  // was D_80122D04 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80122D04;
++            csInfo->keyFrames = sCs3261KeyFrames;  // was D_80122D04 [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 8010:
+-            csInfo->keyFrames = D_80122D54;
++            csInfo->keyFrames = sCs8010KeyFrames;  // was D_80122D54 [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 8002:
+-            csInfo->keyFrames = D_80122DCC;
++            csInfo->keyFrames = sCs8002KeyFrames;  // was D_80122DCC [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -972,10 +972,10 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+         case 8700:
+             Actor_GetFocus(&spA0, actor);
+             Actor_GetFocus(&sp8C, &player->actor);
+-            D_80122E44[timer & 1][0].atTargetInit.y = ((spA0.pos.y - sp8C.pos.y) / 10.0f) + 90.0f;
+-            D_80122E44[timer & 1][5].atTargetInit = mainCam->at;
++            sCs8700KeyFrames[timer & 1][0].atTargetInit.y = ((spA0.pos.y - sp8C.pos.y) / 10.0f) + 90.0f;  // was D_80122E44 [LLM:HIGH]
++            sCs8700KeyFrames[timer & 1][5].atTargetInit = mainCam->at;  // was D_80122E44 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_80122E44[timer & 1];
++            csInfo->keyFrames = sCs8700KeyFrames[timer & 1];  // was D_80122E44 [LLM:HIGH]
+             csInfo->keyFrameCnt = 7;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -984,16 +984,16 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             s32 tempDiff = play->state.frames - sPrevFrameCs1100;
+ 
+             if ((tempDiff > 3600) || (tempDiff < -3600)) {
+-                csInfo->keyFrames = D_80123074;
++                csInfo->keyFrames = sCs1100KeyFramesA;  // was D_80123074 [LLM:HIGH]
+                 csInfo->keyFrameCnt = 5;
+             } else {
+                 if (play->state.frames & 1) {
+-                    D_8012313C[0].rollTargetInit = -D_8012313C[0].rollTargetInit;
+-                    D_8012313C[0].atTargetInit.y = -D_8012313C[0].atTargetInit.y;
+-                    D_8012313C[0].eyeTargetInit.y = -D_8012313C[0].eyeTargetInit.y;
+-                    D_8012313C[1].atTargetInit.y = -D_8012313C[1].atTargetInit.y;
++                    sCs1100KeyFramesB[0].rollTargetInit = -sCs1100KeyFramesB[0].rollTargetInit;  // was D_8012313C [LLM:HIGH]
++                    sCs1100KeyFramesB[0].atTargetInit.y = -sCs1100KeyFramesB[0].atTargetInit.y;  // was D_8012313C [LLM:HIGH]
++                    sCs1100KeyFramesB[0].eyeTargetInit.y = -sCs1100KeyFramesB[0].eyeTargetInit.y;  // was D_8012313C [LLM:HIGH]
++                    sCs1100KeyFramesB[1].atTargetInit.y = -sCs1100KeyFramesB[1].atTargetInit.y;  // was D_8012313C [LLM:HIGH]
+                 }
+-                csInfo->keyFrames = D_8012313C;
++                csInfo->keyFrames = sCs1100KeyFramesB;  // was D_8012313C [LLM:HIGH]
+                 csInfo->keyFrameCnt = 3;
+             }
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+@@ -1012,136 +1012,136 @@ s32 OnePointCutscene_SetInfo(PlayState* play, s16 camIdx, s16 csId, Actor* actor
+             break;
+         case 9908:
+             if (Play_CamIsNotFixed(play)) {
+-                D_801231B4[0].eyeTargetInit.z = D_801231B4[1].eyeTargetInit.z = !LINK_IS_ADULT ? 100.0f : 120.0f;
++                sCs9908KeyFramesA[0].eyeTargetInit.z = sCs9908KeyFramesA[1].eyeTargetInit.z = !LINK_IS_ADULT ? 100.0f : 120.0f;  // was D_801231B4 [LLM:HIGH]
+ 
+                 if (player->stateFlags1 & PLAYER_STATE1_IN_WATER) {
+-                    D_801231B4[2].atTargetInit.z = 0.0f;
++                    sCs9908KeyFramesA[2].atTargetInit.z = 0.0f;  // was D_801231B4 [LLM:HIGH]
+                 }
+                 Actor_GetWorldPosShapeRot(&spA0, &player->actor);
+                 OLib_Vec3fDiffToVecSphGeo(&spD0, &spA0.pos, &mainCam->at);
+                 spD0.yaw -= spA0.rot.y;
+-                OLib_VecSphGeoToVec3f(&D_801231B4[3].atTargetInit, &spD0);
++                OLib_VecSphGeoToVec3f(&sCs9908KeyFramesA[3].atTargetInit, &spD0);  // was D_801231B4 [LLM:HIGH]
+                 OLib_Vec3fDiffToVecSphGeo(&spD0, &spA0.pos, &mainCam->eye);
+                 spD0.yaw -= spA0.rot.y;
+-                OLib_VecSphGeoToVec3f(&D_801231B4[3].eyeTargetInit, &spD0);
+-                D_801231B4[3].fovTargetInit = mainCam->fov;
+-                D_801231B4[3].timerInit = timer - 50;
++                OLib_VecSphGeoToVec3f(&sCs9908KeyFramesA[3].eyeTargetInit, &spD0);  // was D_801231B4 [LLM:HIGH]
++                sCs9908KeyFramesA[3].fovTargetInit = mainCam->fov;  // was D_801231B4 [LLM:HIGH]
++                sCs9908KeyFramesA[3].timerInit = timer - 50;  // was D_801231B4 [LLM:HIGH]
+ 
+-                csInfo->keyFrames = D_801231B4;
++                csInfo->keyFrames = sCs9908KeyFramesA;  // was D_801231B4 [LLM:HIGH]
+                 csInfo->keyFrameCnt = 4;
+ 
+                 Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             } else {
+-                D_80123254[1].timerInit = timer - 1;
+-                D_80123254[0].fovTargetInit = mainCam->fov;
+-                D_80123254[0].atTargetInit = D_80123254[1].atTargetInit = mainCam->at;
+-                D_80123254[0].eyeTargetInit = D_80123254[1].eyeTargetInit = mainCam->eye;
++                sCs9908KeyFramesB[1].timerInit = timer - 1;  // was D_80123254 [LLM:HIGH]
++                sCs9908KeyFramesB[0].fovTargetInit = mainCam->fov;  // was D_80123254 [LLM:HIGH]
++                sCs9908KeyFramesB[0].atTargetInit = sCs9908KeyFramesB[1].atTargetInit = mainCam->at;  // was D_80123254 [LLM:HIGH]
++                sCs9908KeyFramesB[0].eyeTargetInit = sCs9908KeyFramesB[1].eyeTargetInit = mainCam->eye;  // was D_80123254 [LLM:HIGH]
+ 
+-                csInfo->keyFrames = D_80123254;
++                csInfo->keyFrames = sCs9908KeyFramesB;  // was D_80123254 [LLM:HIGH]
+                 csInfo->keyFrameCnt = 2;
+ 
+                 Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             }
+             break;
+         case 1000:
+-            D_801232A4[0].atTargetInit = play->view.lookAt;
+-            D_801232A4[0].eyeTargetInit = play->view.eye;
+-            D_801232A4[0].fovTargetInit = play->view.fovy;
++            sCs1000KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_801232A4 [LLM:HIGH]
++            sCs1000KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_801232A4 [LLM:HIGH]
++            sCs1000KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_801232A4 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_801232A4;
++            csInfo->keyFrames = sCs1000KeyFrames;  // was D_801232A4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 1;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 8603:
+-            csInfo->keyFrames = D_801232CC;
++            csInfo->keyFrames = sCs8603KeyFrames;  // was D_801232CC [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 8604:
+-            csInfo->keyFrames = D_80123394;
++            csInfo->keyFrames = sCs8604KeyFrames;  // was D_80123394 [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4000:
+-            csInfo->keyFrames = D_8012345C;
++            csInfo->keyFrames = sCs4000KeyFrames;  // was D_8012345C [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4010:
+-            csInfo->keyFrames = D_801234FC;
++            csInfo->keyFrames = sCs4010KeyFrames;  // was D_801234FC [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4011:
+-            csInfo->keyFrames = D_801235C4;
++            csInfo->keyFrames = sCs4011KeyFrames;  // was D_801235C4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4020:
+-            csInfo->keyFrames = D_8012368C;
++            csInfo->keyFrames = sCs4020KeyFrames;  // was D_8012368C [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4021:
+-            csInfo->keyFrames = D_8012372C;
++            csInfo->keyFrames = sCs4021KeyFrames;  // was D_8012372C [LLM:HIGH]
+             csInfo->keyFrameCnt = 4;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 4022:
+-            csCam->timer = D_801237CC[0].timerInit + D_801237CC[3].timerInit + D_801237CC[1].timerInit +
+-                           D_801237CC[2].timerInit + D_801237CC[4].timerInit;
++            csCam->timer = sCs4022KeyFrames[0].timerInit + sCs4022KeyFrames[3].timerInit + sCs4022KeyFrames[1].timerInit +  // was D_801237CC [LLM:HIGH]
++                           sCs4022KeyFrames[2].timerInit + sCs4022KeyFrames[4].timerInit;  // was D_801237CC [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_801237CC;
++            csInfo->keyFrames = sCs4022KeyFrames;  // was D_801237CC [LLM:HIGH]
+             csInfo->keyFrameCnt = 5;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 9703:
+-            D_80123894[0].atTargetInit = play->view.lookAt;
+-            D_80123894[0].eyeTargetInit = play->view.eye;
+-            D_80123894[0].fovTargetInit = play->view.fovy;
++            sCs9703KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_80123894 [LLM:HIGH]
++            sCs9703KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_80123894 [LLM:HIGH]
++            sCs9703KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_80123894 [LLM:HIGH]
+             if (LINK_IS_ADULT) {
+-                D_80123894[1].atTargetInit.y = 60.0f;
+-                D_80123894[1].eyeTargetInit.y = 52.0f;
++                sCs9703KeyFrames[1].atTargetInit.y = 60.0f;  // was D_80123894 [LLM:HIGH]
++                sCs9703KeyFrames[1].eyeTargetInit.y = 52.0f;  // was D_80123894 [LLM:HIGH]
+             }
+ 
+-            csInfo->keyFrames = D_80123894;
++            csInfo->keyFrames = sCs9703KeyFrames;  // was D_80123894 [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 9704:
+-            D_8012390C[0].atTargetInit = play->view.lookAt;
+-            D_8012390C[0].eyeTargetInit = play->view.eye;
+-            D_8012390C[0].fovTargetInit = play->view.fovy;
++            sCs9704KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_8012390C [LLM:HIGH]
++            sCs9704KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_8012390C [LLM:HIGH]
++            sCs9704KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_8012390C [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_8012390C;
++            csInfo->keyFrames = sCs9704KeyFrames;  // was D_8012390C [LLM:HIGH]
+             csInfo->keyFrameCnt = 2;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 9705:
+-            D_8012395C[0].atTargetInit = play->view.lookAt;
+-            D_8012395C[0].eyeTargetInit = play->view.eye;
+-            D_8012395C[0].fovTargetInit = play->view.fovy;
++            sCs9705KeyFrames[0].atTargetInit = play->view.lookAt;  // was D_8012395C [LLM:HIGH]
++            sCs9705KeyFrames[0].eyeTargetInit = play->view.eye;  // was D_8012395C [LLM:HIGH]
++            sCs9705KeyFrames[0].fovTargetInit = play->view.fovy;  // was D_8012395C [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_8012395C;
++            csInfo->keyFrames = sCs9705KeyFrames;  // was D_8012395C [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, player, CAM_SET_CS_C);
+             break;
+         case 5110:
+-            D_801239D4[1].timerInit = 10;
++            sCs5110KeyFrames[1].timerInit = 10;  // was D_801239D4 [LLM:HIGH]
+ 
+-            csInfo->keyFrames = D_801239D4;
++            csInfo->keyFrames = sCs5110KeyFrames;  // was D_801239D4 [LLM:HIGH]
+             csInfo->keyFrameCnt = 3;
+ 
+             Play_InitCameraDataUsingPlayer(play, camIdx, (Player*)actor, CAM_SET_CS_C);
+diff --git a/soh/src/code/z_onepointdemo_data.inc b/soh/src/code/z_onepointdemo_data.inc
+index 1d1838b05..167537452 100644
+--- a/soh/src/code/z_onepointdemo_data.inc
++++ b/soh/src/code/z_onepointdemo_data.inc
+@@ -1,6 +1,7 @@
+ #include "global.h"
+ 
+-static CutsceneCameraPoint D_8012013C[14] = {
++// LLM generated name (HIGH), was D_8012013C: the at points OnePointCutscene_SetCsCamPoints passes for one-point cutscene 3050
++static CutsceneCameraPoint sCs3050AtPoints[14] = {  // was D_8012013C [LLM:HIGH]
+     { CS_CMD_CONTINUE, 25, 40, 70.79991f, { -1814, 533, -1297 } },
+     { CS_CMD_CONTINUE, 20, 40, 70.99991f, { -1805, 434, -1293 } },
+     { CS_CMD_CONTINUE, 10, 30, 60.0f, { -1794, 323, -1280 } },
+@@ -16,7 +17,8 @@ static CutsceneCameraPoint D_8012013C[14] = {
+     { CS_CMD_STOP, 0, 50, 60.0f, { -1974, 12, -1179 } },
+     { CS_CMD_STOP, 0, 30, 60.0f, { -1974, 12, -1179 } },
+ };
+-static CutsceneCameraPoint D_8012021C[14] = {
++// LLM generated name (HIGH), was D_8012021C: the eye points of that same call
++static CutsceneCameraPoint sCs3050EyePoints[14] = {  // was D_8012021C [LLM:HIGH]
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { -1751, 604, -1233 } }, { CS_CMD_CONTINUE, 0, 0, 60.0f, { -1752, 516, -1233 } },
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { -1751, 417, -1233 } }, { CS_CMD_CONTINUE, 0, 0, 60.0f, { -1767, 306, -1219 } },
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { -1776, 257, -1205 } }, { CS_CMD_CONTINUE, 0, 0, 60.0f, { -1881, 147, -1149 } },
+@@ -25,28 +27,37 @@ static CutsceneCameraPoint D_8012021C[14] = {
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { -2007, 10, -1004 } },  { CS_CMD_CONTINUE, 0, 0, 60.0f, { -2007, 10, -1004 } },
+     { CS_CMD_STOP, 0, 0, 60.0f, { -2007, 10, -1004 } },      { CS_CMD_STOP, 0, 0, 60.0f, { -2007, 10, -1004 } },
+ };
+-static s16 D_801202FC = 13;
+-static s16 D_80120300 = 210;
+-static s16 D_80120304 = 0;
++// LLM generated name (HIGH), was D_801202FC: the number of points in those arrays, indexed from as count minus two and three
++static s16 sCs3050PointCount = 13;  // was D_801202FC [LLM:HIGH]
++// LLM generated name (HIGH), was D_80120300: the duration argument of that same call
++static s16 sCs3050Duration = 210;  // was D_80120300 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80120304: the flags argument, ORed with 0x2000 at the call
++static s16 sCs3050Flags = 0;  // was D_80120304 [LLM:HIGH]
+ 
+-static CutsceneCameraPoint D_80120308[9] = {
++// LLM generated name (HIGH), was D_80120308: the at points for one-point cutscenes 9601 and 9602
++static CutsceneCameraPoint sCs9601AtPoints[9] = {  // was D_80120308 [LLM:HIGH]
+     { CS_CMD_CONTINUE, 0, 10, 40.0f, { 0, 4, 0 } },  { CS_CMD_CONTINUE, 0, 10, 40.000004f, { 0, 4, 0 } },
+     { CS_CMD_CONTINUE, 0, 10, 50.0f, { 0, 9, 0 } },  { CS_CMD_CONTINUE, 0, 12, 55.0f, { 0, 12, 0 } },
+     { CS_CMD_CONTINUE, 0, 15, 61.0f, { 0, 18, 0 } }, { CS_CMD_CONTINUE, 0, 20, 65.0f, { 0, 29, 0 } },
+     { CS_CMD_CONTINUE, 0, 40, 60.0f, { 0, 34, 0 } }, { CS_CMD_STOP, 0, 40, 60.0f, { 0, 34, 0 } },
+     { CS_CMD_STOP, 0, 10, 60.0f, { 0, 34, 0 } },
+ };
+-static CutsceneCameraPoint D_80120398[9] = {
++// LLM generated name (HIGH), was D_80120398: the eye points for 9601
++static CutsceneCameraPoint sCs9601EyePoints[9] = {  // was D_80120398 [LLM:HIGH]
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 9, 45 } },   { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 8, 50 } },
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 17, 58 } },  { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 21, 78 } },
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 46, 109 } }, { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 58, 118 } },
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 63, 119 } }, { CS_CMD_STOP, 0, 0, 60.0f, { 0, 62, 119 } },
+     { CS_CMD_STOP, 0, 0, 60.0f, { 0, 62, 119 } },
+ };
+-static s16 D_80120428 = 9;
+-static s16 D_8012042C = 90;
+-static s16 D_80120430 = 1;
+-static CutsceneCameraPoint D_80120434[10] = {
++// LLM generated name (HIGH), was D_80120428: the number of points in those arrays
++static s16 sCs9601PointCount = 9;  // was D_80120428 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8012042C: the duration argument for 9601 and 9602
++static s16 sCs9601Duration = 90;  // was D_8012042C [LLM:HIGH]
++// LLM generated name (HIGH), was D_80120430: the flags argument for 9601 and 9602, ORed with 0x1000 at the call
++static s16 sCs9601Flags = 1;  // was D_80120430 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80120434: the eye points for 9602, which shares 9601's at points
++static CutsceneCameraPoint sCs9602EyePoints[10] = {  // was D_80120434 [LLM:HIGH]
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 9, -45 } },   { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 9, -45 } },
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 8, -50 } },   { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 17, -58 } },
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 21, -78 } },  { CS_CMD_CONTINUE, 0, 0, 60.0f, { 0, 46, -109 } },
+@@ -54,7 +65,8 @@ static CutsceneCameraPoint D_80120434[10] = {
+     { CS_CMD_STOP, 0, 0, 60.0f, { 0, 62, -119 } },     { CS_CMD_STOP, 0, 0, 60.0f, { 0, 62, -119 } },
+ };
+ 
+-static CutsceneCameraPoint D_801204D4[14] = {
++// LLM generated name (HIGH), was D_801204D4: the at points for one-point cutscene 3400
++static CutsceneCameraPoint sCs3400AtPoints[14] = {  // was D_801204D4 [LLM:HIGH]
+     { CS_CMD_CONTINUE, -15, 40, 80.600006f, { -60, 332, 183 } },
+     { CS_CMD_CONTINUE, -22, 30, 80.600006f, { -60, 332, 183 } },
+     { CS_CMD_CONTINUE, -20, 38, 80.600006f, { -118, 344, 41 } },
+@@ -70,7 +82,8 @@ static CutsceneCameraPoint D_801204D4[14] = {
+     { CS_CMD_STOP, 6, 30, 85.199936f, { 25, 127, -950 } },
+     { CS_CMD_STOP, 0, 30, 85.199936f, { 25, 127, -950 } },
+ };
+-static CutsceneCameraPoint D_801205B4[14] = {
++// LLM generated name (HIGH), was D_801205B4: the eye points for 3400
++static CutsceneCameraPoint sCs3400EyePoints[14] = {  // was D_801205B4 [LLM:HIGH]
+     { CS_CMD_CONTINUE, 0, 0, 60.0f, { -225, 785, -242 } },
+     { CS_CMD_CONTINUE, -21, 0, 80.600006f, { -245, 784, -242 } },
+     { CS_CMD_CONTINUE, -21, 0, 80.600006f, { -288, 485, -379 } },
+@@ -86,11 +99,15 @@ static CutsceneCameraPoint D_801205B4[14] = {
+     { CS_CMD_STOP, 0, 0, 85.199936f, { 48, 124, -1502 } },
+     { CS_CMD_STOP, 0, 0, 85.199936f, { 48, 124, -1262 } },
+ };
+-static s16 D_80120694 = 14;
+-static s16 D_80120698 = 190;
+-static s16 D_8012069C = 8;
++// LLM generated name (HIGH), was D_80120694: the number of points in those arrays
++static s16 sCs3400PointCount = 14;  // was D_80120694 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80120698: the duration argument for 3400
++static s16 sCs3400Duration = 190;  // was D_80120698 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8012069C: the flags argument for 3400, ORed with 0x2000 at the call
++static s16 sCs3400Flags = 8;  // was D_8012069C [LLM:HIGH]
+ 
+-static CutsceneCameraPoint D_801206A0[12] = {
++// LLM generated name (HIGH), was D_801206A0: the at points for one-point cutscene 6001
++static CutsceneCameraPoint sCs6001AtPoints[12] = {  // was D_801206A0 [LLM:HIGH]
+     { CS_CMD_CONTINUE, 6, 20, 80.0f, { -96, 40, 170 } }, { CS_CMD_CONTINUE, 6, 20, 80.0f, { -96, 40, 170 } },
+     { CS_CMD_CONTINUE, 6, 20, 70.0f, { -70, 35, 150 } }, { CS_CMD_CONTINUE, 5, 10, 60.0f, { -57, 34, 133 } },
+     { CS_CMD_CONTINUE, 4, 25, 65.0f, { -22, 32, 110 } }, { CS_CMD_CONTINUE, 3, 12, 60.0f, { -9, 33, 98 } },
+@@ -98,7 +115,8 @@ static CutsceneCameraPoint D_801206A0[12] = {
+     { CS_CMD_CONTINUE, 1, 200, 65.0f, { 0, 17, 82 } },   { CS_CMD_CONTINUE, 1, 500, 65.0f, { 0, 18, 82 } },
+     { CS_CMD_STOP, 8, 50, 65.0f, { 0, 18, 82 } },        { CS_CMD_STOP, 11, 60, 65.0f, { 0, 18, 82 } },
+ };
+-static CutsceneCameraPoint D_80120760[12] = {
++// LLM generated name (HIGH), was D_80120760: the second eye point set 6001 chooses between
++static CutsceneCameraPoint sCs6001EyePointsAlt[12] = {  // was D_80120760 [LLM:HIGH]
+     { CS_CMD_CONTINUE, 6, 0, 80.0f, { -50, 10, 180 } }, { CS_CMD_CONTINUE, 6, 0, 80.0f, { -50, 20, 180 } },
+     { CS_CMD_CONTINUE, 6, 0, 70.0f, { -40, 30, 177 } }, { CS_CMD_CONTINUE, 5, 0, 65.0f, { 0, 35, 172 } },
+     { CS_CMD_CONTINUE, 4, 0, 65.0f, { 34, 35, 162 } },  { CS_CMD_CONTINUE, 3, 0, 65.0f, { 61, 32, 147 } },
+@@ -106,7 +124,8 @@ static CutsceneCameraPoint D_80120760[12] = {
+     { CS_CMD_CONTINUE, 1, 0, 65.0f, { 75, 18, 123 } },  { CS_CMD_CONTINUE, 1, 0, 65.0f, { 75, 10, 123 } },
+     { CS_CMD_STOP, 0, 0, 65.0f, { 75, 10, 122 } },      { CS_CMD_STOP, 0, 0, 65.0f, { 75, 10, 122 } },
+ };
+-static CutsceneCameraPoint D_80120820[12] = {
++// LLM generated name (HIGH), was D_80120820: the first eye point set 6001 chooses between
++static CutsceneCameraPoint sCs6001EyePoints[12] = {  // was D_80120820 [LLM:HIGH]
+     { CS_CMD_CONTINUE, 6, 0, 80.0f, { 85, 5, 170 } },  { CS_CMD_CONTINUE, 6, 0, 80.0f, { 85, 10, 170 } },
+     { CS_CMD_CONTINUE, 6, 0, 70.0f, { 80, 20, 167 } }, { CS_CMD_CONTINUE, 5, 0, 65.0f, { 74, 25, 165 } },
+     { CS_CMD_CONTINUE, 4, 0, 65.0f, { 63, 30, 162 } }, { CS_CMD_CONTINUE, 3, 0, 65.0f, { 66, 34, 147 } },
+@@ -114,35 +133,43 @@ static CutsceneCameraPoint D_80120820[12] = {
+     { CS_CMD_CONTINUE, 1, 0, 65.0f, { 75, 18, 123 } }, { CS_CMD_CONTINUE, 1, 0, 65.0f, { 75, 10, 123 } },
+     { CS_CMD_STOP, 0, 0, 65.0f, { 75, 10, 122 } },     { CS_CMD_STOP, 0, 0, 65.0f, { 75, 10, 122 } },
+ };
+-static s16 D_801208E0 = 12;
+-static s16 D_801208E4 = 90;
+-static s16 D_801208E8 = 8;
++// LLM generated name (HIGH), was D_801208E0: the number of points in those arrays
++static s16 sCs6001PointCount = 12;  // was D_801208E0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_801208E4: the duration argument for 6001
++static s16 sCs6001Duration = 90;  // was D_801208E4 [LLM:HIGH]
++// LLM generated name (HIGH), was D_801208E8: the flags argument for 6001
++static s16 sCs6001Flags = 8;  // was D_801208E8 [LLM:HIGH]
+ 
+-static OnePointCsFull D_801208EC[3] = {
++// LLM generated name (HIGH), was D_801208EC: the keyframe set one-point cutscene 1020 installs
++static OnePointCsFull sCs1020KeyFrames[3] = {  // was D_801208EC [LLM:HIGH]
+     { 0x0F, 0x08, 0x0101, 1, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x81, 0xFF, 0x0101, 1, 0, 60.0f, 1.0f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80120964[2] = {
++// LLM generated name (HIGH), was D_80120964: the keyframe set one-point cutscene 1030 installs
++static OnePointCsFull sCs1030KeyFrames[2] = {  // was D_80120964 [LLM:HIGH]
+     { 0x8F, 0xFF, 0x0101, 1, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x81, 0xFF, 0xA121, 1, 0, 75.0f, 0.6f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+ };
+ 
+-static OnePointCsFull D_801209B4[4] = {
++// LLM generated name (HIGH), was D_801209B4: the keyframe set one-point cutscene 5000 installs
++static OnePointCsFull sCs5000KeyFrames[4] = {  // was D_801209B4 [LLM:HIGH]
+     { 0x8F, 0x08, 0x0101, 1, 0, 60.0f, 0.9f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x84, 0x01, 0x0100, 29, 0, 45.0f, 0.1f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+     { 0x83, 0xFF, 0x0000, 10, 0, 60.0f, 0.2f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80120A54[3] = {
++// LLM generated name (HIGH), was D_80120A54: the keyframe set one-point cutscene 9500 installs
++static OnePointCsFull sCs9500KeyFrames[3] = {  // was D_80120A54 [LLM:HIGH]
+     { 0x8F, 0xFF, 0x2525, 1, 0, 75.0f, 0.1f, { 0.0f, 20.0f, -10.0f }, { 0.0f, 10.0f, -40.0f } },
+     { 0x8F, 0xFF, 0x0000, 9, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x8B, 0xFF, 0x0022, 5000, 0, 75.0f, 0.005f, { 0.0f, 0.0f, -10.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80120ACC[5] = {
++// LLM generated name (HIGH), was D_80120ACC: the keyframe set one-point cutscene 2260 installs
++static OnePointCsFull sCs2260KeyFrames[5] = {  // was D_80120ACC [LLM:HIGH]
+     { 0x8F, 0xFF, 0x0442, 10, 0, 40.0f, 1.0f, { -10.0f, 45.0f, 20.0f }, { 20.0f, 30.0f, 160.0f } },
+     { 0x95, 0xFF, 0x0000, 1, 0, 40.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x8F, 0x01, 0x0442, 10, 0, 40.0f, 1.0f, { -10.0f, 45.0f, 20.0f }, { 20.0f, 30.0f, 160.0f } },
+@@ -150,7 +177,8 @@ static OnePointCsFull D_80120ACC[5] = {
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80120B94[11] = {
++// LLM generated name (HIGH), was D_80120B94: the keyframe set one-point cutscene 2270 installs
++static OnePointCsFull sCs2270KeyFrames[11] = {  // was D_80120B94 [LLM:HIGH]
+     { 0x8F, 0x01, 0x2142, 1, 0, 40.0f, 1.0f, { 20.0f, 40.0f, 20.0f }, { -20.0f, 0.0f, -30.0f } },
+     { 0x84, 0xFF, 0x0404, 19, 5, 70.0f, 0.01f, { 0.0f, 30.0f, 20.0f }, { 120.0f, 60.0f, 120.0f } },
+     { 0x84, 0xFF, 0x0404, 20, 0, 60.0f, 0.01f, { 0.0f, 20.0f, 20.0f }, { 120.0f, 60.0f, 120.0f } },
+@@ -164,7 +192,8 @@ static OnePointCsFull D_80120B94[11] = {
+     { 0x98, 0xFF, 0x0000, 1, 0, 50.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80120D4C[7] = {
++// LLM generated name (HIGH), was D_80120D4C: the keyframe set one-point cutscene 2280 installs
++static OnePointCsFull sCs2280KeyFrames[7] = {  // was D_80120D4C [LLM:HIGH]
+     { 0x8F, 0x01, 0x2142, 1, 0, 40.0f, 1.0f, { 20.0f, 40.0f, 20.0f }, { -20.0f, 0.0f, -30.0f } },
+     { 0x84, 0xFF, 0x0404, 19, 5, 70.0f, 0.01f, { 0.0f, 30.0f, 20.0f }, { 120.0f, 60.0f, 120.0f } },
+     { 0x84, 0xFF, 0x0404, 20, 0, 60.0f, 0.01f, { 0.0f, 20.0f, 20.0f }, { 120.0f, 60.0f, 120.0f } },
+@@ -174,7 +203,8 @@ static OnePointCsFull D_80120D4C[7] = {
+     { 0x98, 0xFF, 0x0000, 1, 0, 50.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80120E64[8] = {
++// LLM generated name (HIGH), was D_80120E64: the keyframe set one-point cutscene 2220 installs
++static OnePointCsFull sCs2220KeyFrames[8] = {  // was D_80120E64 [LLM:HIGH]
+     { 0x41, 0x01, 0x2142, 20, 0, 50.0f, 1.0f, { -25.0f, 20.0f, 0.0f }, { 0.0f, 0.0f, 5.0f } },
+     { 0x4F, 0xFF, 0x0000, 80, 0, 50.0f, 1.0f, { -25.0f, 20.0f, 0.0f }, { 0.0f, 0.0f, 5.0f } },
+     { 0x4B, 0xFF, 0x4242, 8, 0, 60.0f, 0.1f, { -25.0f, 20.0f, 0.0f }, { 0.0f, 0.0f, 5.0f } },
+@@ -185,7 +215,8 @@ static OnePointCsFull D_80120E64[8] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80120FA4[6] = {
++// LLM generated name (HIGH), was D_80120FA4: the keyframe set one-point cutscene 2230 installs
++static OnePointCsFull sCs2230KeyFrames[6] = {  // was D_80120FA4 [LLM:HIGH]
+     { 0x8F, 0x01, 0x2143, 30, 0, 70.0f, 0.4f, { 0.0f, 40.0f, 50.0f }, { 30.0f, 10.0f, -50.0f } },
+     { 0x95, 0xFF, 0x0000, 1, 0, 50.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x8F, 0xFF, 0x2222, 10, 0, 42.0f, 1.0f, { 0.0f, 40.0f, 0.0f }, { 0.0f, 85.0f, 45.0f } },
+@@ -194,29 +225,34 @@ static OnePointCsFull D_80120FA4[6] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121094[3] = {
++// LLM generated name (HIGH), was D_80121094: the keyframe set one-point cutscene 2340 installs
++static OnePointCsFull sCs2340KeyFrames[3] = {  // was D_80121094 [LLM:HIGH]
+     { 0x0F, 0x08, 0x2101, 20, 0, 50.0f, 1.0f, { 3840.0f, 10.0f, 950.0f }, { 0.0f, 0.0f, 5.0f } },
+     { 0x01, 0x01, 0x2101, 50, 0, 55.0f, 1.0f, { 4000.0f, 50.0f, 1000.0f }, { 0.0f, 0.0f, 5.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012110C[3] = {
++// LLM generated name (HIGH), was D_8012110C: the keyframe set one-point cutscene 2350 installs
++static OnePointCsFull sCs2350KeyFrames[3] = {  // was D_8012110C [LLM:HIGH]
+     { 0x4F, 0x05, 0x2142, 1, 0, 50.0f, 1.0f, { -25.0f, 20.0f, 0.0f }, { 0.0f, 0.0f, 5.0f } },
+     { 0x41, 0xFF, 0x2121, 10, 0, 60.0f, 1.0f, { 0.0f, 10.0f, 0.0f }, { 0.0f, 10.0f, -80.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121184[2] = {
++// LLM generated name (HIGH), was D_80121184: the first of the two keyframe sets cutscene 2200 chooses between
++static OnePointCsFull sCs2200KeyFramesA[2] = {  // was D_80121184 [LLM:HIGH]
+     { 0x83, 0x01, 0x0101, 40, 0, -1.0f, 0.1f, { 0.0f, 10.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801211D4[2] = {
++// LLM generated name (HIGH), was D_801211D4: the second of those two sets
++static OnePointCsFull sCs2200KeyFramesB[2] = {  // was D_801211D4 [LLM:HIGH]
+     { 0x8F, 0x08, 0x0101, 50, 0, 60.0f, 1.0f, { 0.0f, 10.0f, 0.0f }, { -10.0f, 85.0f, 0.0f } },
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121224[6] = {
++// LLM generated name (HIGH), was D_80121224: the keyframe set one-point cutscene 2290 installs
++static OnePointCsFull sCs2290KeyFrames[6] = {  // was D_80121224 [LLM:HIGH]
+     { 0x8F, 0x01, 0x4141, 2, 0, 60.0f, 1.0f, { 0.0f, 5.0f, 10.0f }, { 0.0f, 0.0f, 45.0f } },
+     { 0x81, 0xFF, 0x4141, 18, 0, 45.0f, 1.0f, { 0.0f, 5.0f, 10.0f }, { 0.0f, -10.0f, 50.0f } },
+     { 0x84, 0x34, 0x4104, 80, 0, 70.0f, 0.05f, { 0.0f, 0.0f, 60.0f }, { 0.0f, 250.0f, -50.0f } },
+@@ -225,17 +261,20 @@ static OnePointCsFull D_80121224[6] = {
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121314[1] = {
++// LLM generated name (HIGH), was D_80121314: the keyframe set one-point cutscene 5120 installs
++static OnePointCsFull sCs5120KeyFrames[1] = {  // was D_80121314 [LLM:HIGH]
+     { 0x8F, 0x08, 0x4141, 1000, 0, 75.0f, 0.6f, { 0.0f, 0.0f, 10.0f }, { 0.0f, 0.0f, 100.0f } },
+ };
+ 
+-static OnePointCsFull D_8012133C[3] = {
++// LLM generated name (HIGH), was D_8012133C: the keyframe set one-point cutscene 4510 installs
++static OnePointCsFull sCs4510KeyFrames[3] = {  // was D_8012133C [LLM:HIGH]
+     { 0x8F, 0x01, 0x0141, 40, 0, 75.0f, 1.0f, { 0.0f, 60.0f, 0.0f }, { 0.0f, 0.0f, 100.0f } },
+     { 0x83, 0xFF, 0x2121, 20, 0, 60.0f, 0.2f, { 0.0f, -10.0f, -10.0f }, { 0.0f, 10.0f, -100.0f } },
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801213B4[5] = {
++// LLM generated name (HIGH), was D_801213B4: the keyframe set one-point cutscene 2210 installs
++static OnePointCsFull sCs2210KeyFrames[5] = {  // was D_801213B4 [LLM:HIGH]
+     { 0x8F, 0x08, 0xC2C2, 40, 0, 70.0f, 1.0f, { 80.0f, 0.0f, 20.0f }, { 20.0f, 0.0f, 80.0f } },
+     { 0x8B, 0x01, 0xC2C2, 120, 0, 70.0f, 0.1f, { 80.0f, 0.0f, 20.0f }, { 20.0f, 0.0f, 80.0f } },
+     { 0x8F, 0x53, 0xC2C2, 30, 0, 50.0f, 1.0f, { 60.0f, 0.0f, 20.0f }, { 60.0f, 0.0f, 60.0f } },
+@@ -243,28 +282,33 @@ static OnePointCsFull D_801213B4[5] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 75.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012147C[4] = {
++// LLM generated name (HIGH), was D_8012147C: the keyframe set one-point cutscene 4175 installs
++static OnePointCsFull sCs4175KeyFrames[4] = {  // was D_8012147C [LLM:HIGH]
+     { 0x8F, 0x01, 0x0101, 40, 0, 45.0f, 1.0f, { 820.0f, 1600.0f, -400.0f }, { 777.0f, 1577.0f, -577.0f } },
+     { 0x8F, 0x01, 0x0142, 1, 0, 50.0f, 1.0f, { -50.0f, 80.0f, 0.0f }, { 900.0f, 1575.0f, 850.0f } },
+     { 0x83, 0x08, 0x0142, 89, -4, 80.0f, 0.07f, { -50.0f, 70.0f, 0.0f }, { 975.0f, 1575.0f, 770.0f } },
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012151C[2] = {
++// LLM generated name (HIGH), was D_8012151C: the keyframe set one-point cutscene 3040 installs
++static OnePointCsFull sCs3040KeyFrames[2] = {  // was D_8012151C [LLM:HIGH]
+     { 0x0F, 0x01, 0x0101, 29, 0, 60.0f, 1.0f, { -700.0f, 875.0f, -100.0f }, { -550.0f, 920.0f, -150.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012156C[2] = {
++// LLM generated name (HIGH), was D_8012156C: the keyframe set one-point cutscene 3020 installs
++static OnePointCsFull sCs3020KeyFrames[2] = {  // was D_8012156C [LLM:HIGH]
+     { 0x8F, 0x4D, 0x4242, 1, 0, 65.0f, 1.0f, { 60.0f, 30.0f, 0.0f }, { 50.0f, 20.0f, 150.0f } },
+     { 0x81, 0xFF, 0x4242, -1, 0, 65.0f, 1.0f, { -50.0f, 60.0f, 0.0f }, { -60.0f, 40.0f, 150.0f } },
+ };
+ 
+-static OnePointCsFull D_801215BC[1] = {
++// LLM generated name (HIGH), was D_801215BC: the keyframe set one-point cutscene 3010 installs
++static OnePointCsFull sCs3010KeyFrames[1] = {  // was D_801215BC [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 5, 0, 65.0f, 1.0f, { -1185.0f, 655.0f, 1185.0f }, { -1255.0f, 735.0f, 1255.0f } },
+ };
+ 
+-static OnePointCsFull D_801215E4[10] = {
++// LLM generated name (HIGH), was D_801215E4: the keyframe set one-point cutscene 3070 installs
++static OnePointCsFull sCs3070KeyFrames[10] = {  // was D_801215E4 [LLM:HIGH]
+     { 0x0F, 0x08, 0x4141, 20, 0, 30.0f, 1.0f, { 0.0f, 120.0f, 0.0f }, { -10.0f, 140.0f, -90.0f } },
+     { 0x0F, 0x01, 0x0101, 1, 4, 75.0f, 1.0f, { -1360.0f, -940.0f, -3343.0f }, { -1060.0f, -980.0f, -3325.0f } },
+     { 0x0B, 0xFF, 0x4141, 129, 0, 75.0f, 0.5f, { 0.0f, 50.0f, 0.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -277,31 +321,36 @@ static OnePointCsFull D_801215E4[10] = {
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121774[4] = {
++// LLM generated name (HIGH), was D_80121774: the keyframe set one-point cutscene 3080 installs
++static OnePointCsFull sCs3080KeyFrames[4] = {  // was D_80121774 [LLM:HIGH]
+     { 0x0F, 0x08, 0x0101, 1, -2, 75.0f, 1.0f, { -1340.0f, -860.0f, -3345.0f }, { -1415.0f, -940.0f, -3520.0f } },
+     { 0x01, 0x01, 0x0142, 39, 2, 70.0f, 1.0f, { 0.0f, -20.0f, 10.0f }, { -1140.0f, -1010.0f, -3560.0f } },
+     { 0x01, 0x05, 0x0121, 20, 0, 60.0f, 1.0f, { 0.0f, -20.0f, 20.0f }, { -1220.0f, -1005.0f, -3660.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121814[4] = {
++// LLM generated name (HIGH), was D_80121814: the keyframe set one-point cutscene 3090 installs
++static OnePointCsFull sCs3090KeyFrames[4] = {  // was D_80121814 [LLM:HIGH]
+     { 0x0F, 0x4C, 0x0101, 5, 0, 40.0f, 1.0f, { -1400.0f, -540.0f, -3327.0f }, { -1254.0f, -20.0f, -3357.0f } },
+     { 0x01, 0xFF, 0x0101, 70, 0, 75.0f, 0.75f, { -1327.0f, 100.0f, -3342.0f }, { -1320.0f, 350.0f, -3540.0f } },
+     { 0x01, 0xFF, 0x2121, 10, 0, 60.0f, 0.75f, { 0.0f, 10.0f, 0.0f }, { 0.0f, 20.0f, -150.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801218B4[2] = {
++// LLM generated name (HIGH), was D_801218B4: the keyframe set one-point cutscene 3065 installs
++static OnePointCsFull sCs3065KeyFrames[2] = {  // was D_801218B4 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 60, 0, 65.0f, 1.0f, { 0.0f, 350.0f, -1520.0f }, { 0.0f, 715.0f, -885.0f } },
+     { 0x03, 0xFF, 0x0101, 100, 0, 70.0f, 0.02f, { 0.0f, 75.0f, -1335.0f }, { 0.0f, 20.0f, -1190.0f } },
+ };
+ 
+-static OnePointCsFull D_80121904[2] = {
++// LLM generated name (HIGH), was D_80121904: the keyframe set one-point cutscene 3060 installs
++static OnePointCsFull sCs3060KeyFrames[2] = {  // was D_80121904 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 50, 10, 65.0f, 1.0f, { 165.0f, 85.0f, -920.0f }, { 65.0f, -30.0f, -720.0f } },
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121954[3][2] = {
++// LLM generated name (HIGH), was D_80121954: the keyframe set one-point cutscene 3120 installs
++static OnePointCsFull sCs3120KeyFrames[3][2] = {  // was D_80121954 [LLM:HIGH]
+     {
+         { 0x0F, 0xFF, 0x0101, 20, 5, 60.0f, 1.0f, { -700.0f, 940.0f, 300.0f }, { -765.0f, 1000.0f, 335.0f } },
+         { 0x03, 0xFF, 0x0101, 80, -10, 70.0f, 0.1f, { -540.0f, 875.0f, 245.0f }, { -585.0f, 900.0f, 335.0f } },
+@@ -316,7 +365,8 @@ static OnePointCsFull D_80121954[3][2] = {
+     },
+ };
+ 
+-static OnePointCsFull D_80121A44[12] = {
++// LLM generated name (HIGH), was D_80121A44: the keyframe set one-point cutscene 3130 installs
++static OnePointCsFull sCs3130KeyFrames[12] = {  // was D_80121A44 [LLM:HIGH]
+     { 0x4F, 0x05, 0x2121, 10, 0, 60.0f, 1.0f, { 0.0f, -5.0f, 0.0f }, { 0.0f, 0.0f, -80.0f } },
+     { 0x42, 0x01, 0x4242, 30, 0, 50.0f, 1.0f, { 0.0f, 45.0f, 0.0f }, { 0.0f, 45.0f, 50.0f } },
+     { 0x55, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -331,7 +381,8 @@ static OnePointCsFull D_80121A44[12] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121C24[7] = {
++// LLM generated name (HIGH), was D_80121C24: the keyframe set one-point cutscene 3140 installs
++static OnePointCsFull sCs3140KeyFrames[7] = {  // was D_80121C24 [LLM:HIGH]
+     { 0x0F, 0x05, 0x0101, 1, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x03, 0xFF, 0x0101, 89, 0, 50.0f, 0.4f, { 125.0f, 320.0f, -1500.0f }, { 125.0f, 500.0f, -1150.0f } },
+     { 0x0F, 0x08, 0x0101, 40, 4, 55.0f, 1.0f, { 0.0f, 375.0f, -1440.0f }, { 5.0f, 365.0f, -1315.0f } },
+@@ -341,13 +392,15 @@ static OnePointCsFull D_80121C24[7] = {
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121D3C[3] = {
++// LLM generated name (HIGH), was D_80121D3C: the keyframe set one-point cutscene 3240 installs
++static OnePointCsFull sCs3240KeyFrames[3] = {  // was D_80121D3C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 1, 0, 60.0f, 1.0f, { 1023.0f, 738.0f, -2628.0f }, { 993.0f, 770.0f, -2740.0f } },
+     { 0x02, 0xFF, 0x0101, 4, 0, 50.0f, 1.0f, { 1255.0f, 350.0f, -1870.0f }, { 1240.0f, 575.0f, -2100.0f } },
+     { 0x0F, 0xFF, 0x0000, -1, 0, 75.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121DB4[9] = {
++// LLM generated name (HIGH), was D_80121DB4: the keyframe set one-point cutscene 3390 installs
++static OnePointCsFull sCs3390KeyFrames[9] = {  // was D_80121DB4 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 40, 0, 70.0f, 1.0f, { 4290.0f, -1332.0f, -1900.0f }, { 4155.0f, -1360.0f, -1840.0f } },
+     { 0x02, 0xFF, 0x0101, 60, 0, 70.0f, 1.0f, { 4215.0f, -975.0f, -2095.0f }, { 4070.0f, -1000.0f, -2025.0f } },
+     { 0x0F, 0xFF, 0x0101, 5, 0, 70.0f, 1.0f, { 4215.0f, -975.0f, -2095.0f }, { 4070.0f, -1000.0f, -2025.0f } },
+@@ -359,27 +412,31 @@ static OnePointCsFull D_80121DB4[9] = {
+     { 0x12, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121F1C[4] = {
++// LLM generated name (HIGH), was D_80121F1C: the keyframe set one-point cutscene 3290 installs
++static OnePointCsFull sCs3290KeyFrames[4] = {  // was D_80121F1C [LLM:HIGH]
+     { 0x0F, 0x08, 0x0101, 10, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x01, 0xFF, 0x2121, 10, 0, 50.0f, 0.5f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+     { 0x01, 0x02, 0x2121, 23, 0, 50.0f, 0.5f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 150.0f } },
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80121FBC[4] = {
++// LLM generated name (HIGH), was D_80121FBC: the keyframe set one-point cutscene 3340 installs
++static OnePointCsFull sCs3340KeyFrames[4] = {  // was D_80121FBC [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 5, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x01, 0xFF, 0x0101, 10, 0, 30.0f, 1.0f, { -2130.0f, 2885.0f, -1055.0f }, { -2085.0f, 2875.0f, -1145.0f } },
+     { 0x0F, 0xFF, 0x0000, 30, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x12, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012205C[3] = {
++// LLM generated name (HIGH), was D_8012205C: the keyframe set one-point cutscene 3360 installs
++static OnePointCsFull sCs3360KeyFrames[3] = {  // was D_8012205C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x42C2, 1, 0, 50.0f, 1.0f, { 0.0f, 220.0f, 0.0f }, { 0.0f, 220.0f, 240.0f } },
+     { 0x0F, 0xFF, 0x0080, 29, 0, 50.0f, 1.0f, { 0.0f, 220.0f, 0.0f }, { 0.0f, 220.0f, 240.0f } },
+     { 0x01, 0x01, 0x21A1, 10, 0, 60.0f, 1.0f, { 0.0f, -10.0f, 0.0f }, { 0.0f, 10.0f, -200.0f } },
+ };
+ 
+-static OnePointCsFull D_801220D4[5] = {
++// LLM generated name (HIGH), was D_801220D4: the keyframe set one-point cutscene 3350 installs
++static OnePointCsFull sCs3350KeyFrames[5] = {  // was D_801220D4 [LLM:HIGH]
+     { 0x0F, 0x01, 0x0101, 5, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x01, 0xFF, 0x4141, 10, 5, 55.0f, 0.75f, { 400.0f, -50.0f, 800.0f }, { 600.0f, -60.0f, 800.0f } },
+     { 0x01, 0xFF, 0x4141, 15, 10, 40.0f, 0.75f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 10.0f, 200.0f } },
+@@ -387,7 +444,8 @@ static OnePointCsFull D_801220D4[5] = {
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012219C[7] = {
++// LLM generated name (HIGH), was D_8012219C: the keyframe set one-point cutscene 3330 installs
++static OnePointCsFull sCs3330KeyFrames[7] = {  // was D_8012219C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x2121, 5, 0, 60.0f, 1.0f, { 0.0f, -5.0f, 0.0f }, { 0.0f, 0.0f, -80.0f } },
+     { 0x02, 0xFF, 0x4242, 15, 0, 40.0f, 0.4f, { 0.0f, 60.0f, -20.0f }, { 0.0f, 60.0f, 100.0f } },
+     { 0x0F, 0xFF, 0x0000, 20, 0, 40.0f, 1.0f, { 0.0f, 60.0f, -20.0f }, { 0.0f, 60.0f, 100.0f } },
+@@ -397,7 +455,8 @@ static OnePointCsFull D_8012219C[7] = {
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801222B4[5] = {
++// LLM generated name (HIGH), was D_801222B4: the keyframe set one-point cutscene 3410 installs
++static OnePointCsFull sCs3410KeyFrames[5] = {  // was D_801222B4 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 20, 10, 45.0f, 1.0f, { -1200.0f, 730.0f, -860.0f }, { -1100.0f, 500.0f, -1025.0f } },
+     { 0x0B, 0xFF, 0x0101, 20, 10, 45.0f, 0.1f, { -880.0f, 480.0f, -860.0f }, { -1100.0f, 500.0f, -1025.0f } },
+     { 0x0B, 0x81, 0x0101, 20, 10, 45.0f, 0.1f, { -880.0f, 500.0f, -860.0f }, { -1100.0f, 500.0f, -1025.0f } },
+@@ -405,12 +464,14 @@ static OnePointCsFull D_801222B4[5] = {
+     { 0x12, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012237C[2] = {
++// LLM generated name (HIGH), was D_8012237C: the keyframe set one-point cutscene 3450 installs
++static OnePointCsFull sCs3450KeyFrames[2] = {  // was D_8012237C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 20, -2, 65.0f, 1.0f, { -625.0f, 185.0f, -685.0f }, { -692.0f, 226.0f, -515.0f } },
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801223CC[6] = {
++// LLM generated name (HIGH), was D_801223CC: the keyframe set one-point cutscene 3440 installs
++static OnePointCsFull sCs3440KeyFrames[6] = {  // was D_801223CC [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 20, 0, 55.0f, 1.0f, { 60.0f, 1130.0f, -1430.0f }, { 60.0f, 1130.0f, -1190.0f } },
+     { 0x0F, 0xFF, 0x0101, 18, -13, 68.0f, 1.0f, { 60.0f, 1130.0f, -1445.0f }, { 180.0f, 1170.0f, -1240.0f } },
+     { 0x0F, 0xFF, 0x0101, 16, 18, 75.0f, 1.0f, { 42.0f, 1040.0f, -1400.0f }, { -20.0f, 940.0f, -1280.0f } },
+@@ -419,7 +480,8 @@ static OnePointCsFull D_801223CC[6] = {
+     { 0x12, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801224BC[7] = {
++// LLM generated name (HIGH), was D_801224BC: the keyframe set one-point cutscene 3430 installs
++static OnePointCsFull sCs3430KeyFrames[7] = {  // was D_801224BC [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 5, 0, 70.0f, 1.0f, { 60.0f, 1800.0f, -920.0f }, { 60.0f, 1860.0f, -800.0f } },
+     { 0x03, 0xFF, 0x0101, 20, 0, 70.0f, 0.1f, { 60.0f, 1720.0f, -920.0f }, { 60.0f, 1780.0f, -800.0f } },
+     { 0x10, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -429,7 +491,8 @@ static OnePointCsFull D_801224BC[7] = {
+     { 0x12, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801225D4[5] = {
++// LLM generated name (HIGH), was D_801225D4: the keyframe set one-point cutscene 4100 installs
++static OnePointCsFull sCs4100KeyFrames[5] = {  // was D_801225D4 [LLM:HIGH]
+     { 0x0F, 0x08, 0x0101, 1, 0, 50.0f, 1.0f, { 4100.0f, 1200.0f, -1400.0f }, { 3900.0f, 1100.0f, -1400.0f } },
+     { 0x01, 0x3B, 0x0101, 60, 4, 50.0f, 0.94f, { 4100.0f, 965.0f, -1385.0f }, { 3790.0f, 825.0f, -1325.0f } },
+     { 0x03, 0xFF, 0x0101, 90, -5, 130.0f, 0.02f, { 4100.0f, 975.0f, -1375.0f }, { 3735.0f, 715.0f, -1325.0f } },
+@@ -437,20 +500,23 @@ static OnePointCsFull D_801225D4[5] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012269C[3] = {
++// LLM generated name (HIGH), was D_8012269C: the keyframe set one-point cutscene 4110 installs
++static OnePointCsFull sCs4110KeyFrames[3] = {  // was D_8012269C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 20, 2, 45.0f, 1.0f, { 975.0f, 225.0f, -1195.0f }, { 918.0f, 228.0f, -1228.0f } },
+     { 0x10, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80122714[4] = {
++// LLM generated name (HIGH), was D_80122714: the keyframe set one-point cutscene 4120 installs
++static OnePointCsFull sCs4120KeyFrames[4] = {  // was D_80122714 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 20, 0, 45.0f, 1.0f, { -915.0f, -2185.0f, 6335.0f }, { -915.0f, -2290.0f, 6165.0f } },
+     { 0x02, 0xFF, 0x0101, -1, 0, 80.0f, 0.8f, { -920.0f, -2270.0f, 6140.0f }, { -920.0f, -2280.0f, 6070.0f } },
+     { 0x02, 0xFF, 0x0101, 20, 0, 80.0f, 0.9f, { -920.0f, -2300.0f, 6140.0f }, { -920.0f, -2300.0f, 6070.0f } },
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801227B4[6] = {
++// LLM generated name (HIGH), was D_801227B4: the keyframe set one-point cutscene 4140 installs
++static OnePointCsFull sCs4140KeyFrames[6] = {  // was D_801227B4 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 30, 0, 60.0f, 1.0f, { 1400.0f, 100.0f, -170.0f }, { 1250.0f, 100.0f, -170.0f } },
+     { 0x03, 0xFF, 0x4242, 130, 0, 60.0f, 0.2f, { 0.0f, -5.0f, 0.0f }, { -150.0f, -5.0f, 0.0f } },
+     { 0x10, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -459,7 +525,8 @@ static OnePointCsFull D_801227B4[6] = {
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801228A4[5] = {
++// LLM generated name (HIGH), was D_801228A4: the keyframe set one-point cutscene 4150 installs
++static OnePointCsFull sCs4150KeyFrames[5] = {  // was D_801228A4 [LLM:HIGH]
+     { 0x0F, 0x01, 0x0101, 20, 5, 30.0f, 1.0f, { 800.0f, -40.0f, 2170.0f }, { 512.0f, 142.0f, 2020.0f } },
+     { 0x02, 0xFF, 0x0101, 20, -2, 70.0f, 0.8f, { 800.0f, -40.0f, 2170.0f }, { 512.0f, 142.0f, 2020.0f } },
+     { 0x0F, 0x08, 0x0101, 90, 2, 62.0f, 1.0f, { 1140.0f, 125.0f, 1920.0f }, { 1255.0f, 150.0f, 1785.0f } },
+@@ -467,19 +534,22 @@ static OnePointCsFull D_801228A4[5] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012296C[4] = {
++// LLM generated name (HIGH), was D_8012296C: the keyframe set one-point cutscene 4160 installs
++static OnePointCsFull sCs4160KeyFrames[4] = {  // was D_8012296C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 20, -10, 70.0f, 1.0f, { -930.0f, 765.0f, -3075.0f }, { -700.0f, 700.0f, -3075.0f } },
+     { 0x03, 0xFF, 0x0101, 80, -10, 70.0f, 0.05f, { -930.0f, 205.0f, -3075.0f }, { -700.0f, 140.0f, -3075.0f } },
+     { 0x0F, 0xFF, 0x0000, 120, 0, 70.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80122A0C[2] = {
++// LLM generated name (HIGH), was D_80122A0C: the keyframe set one-point cutscene 4170 installs
++static OnePointCsFull sCs4170KeyFrames[2] = {  // was D_80122A0C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 60, 4, 50.0f, 1.0f, { 0.0f, 400.0f, -1000.0f }, { -200.0f, 500.0f, -850.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 50.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80122A5C[8] = {
++// LLM generated name (HIGH), was D_80122A5C: the keyframe set one-point cutscene 4190 installs
++static OnePointCsFull sCs4190KeyFrames[8] = {  // was D_80122A5C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 1, -15, 70.0f, 1.0f, { 230.0f, 3675.0f, -4230.0f }, { -45.0f, 3650.0f, -4415.0f } },
+     { 0x15, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x0F, 0xFF, 0x0101, 1, 0, 60.0f, 1.0f, { -120.0f, 2187.0f, -3286.0f }, { -110.0f, 2162.0f, -3262.0f } },
+@@ -490,51 +560,61 @@ static OnePointCsFull D_80122A5C[8] = {
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80122B9C[3] = {
++// LLM generated name (HIGH), was D_80122B9C: the keyframe set one-point cutscene 4200 installs
++static OnePointCsFull sCs4200KeyFrames[3] = {  // was D_80122B9C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 60, 0, 65.0f, 1.0f, { 1095.0f, 2890.0f, -2980.0f }, { 1166.0f, 2695.0f, -2710.0f } },
+     { 0x0F, 0xFF, 0x0101, 60, 15, 65.0f, 1.0f, { 566.0f, 4654.0f, -4550.0f }, { 606.0f, 5160.0f, -4740.0f } },
+     { 0x11, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80122C14[1] = {
++// LLM generated name (HIGH), was D_80122C14: the keyframe set one-point cutscene 4210 installs
++static OnePointCsFull sCs4210KeyFrames[1] = {  // was D_80122C14 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 999, 0, 85.0f, 1.0f, { -15.0f, 185.0f, 160.0f }, { -15.0f, 210.0f, 250.0f } },
+ };
+ 
+-static OnePointCsFull D_80122C3C[1] = {
++// LLM generated name (HIGH), was D_80122C3C: the set cutscene 4220 uses when the player is south of z -15
++static OnePointCsFull sCs4220KeyFramesA[1] = {  // was D_80122C3C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 999, -2, 70.0f, 1.0f, { -62.0f, 60.0f, -315.0f }, { -115.0f, 30.0f, -445.0f } },
+ };
+ 
+-static OnePointCsFull D_80122C64[1] = {
++// LLM generated name (HIGH), was D_80122C64: the set it uses otherwise
++static OnePointCsFull sCs4220KeyFramesB[1] = {  // was D_80122C64 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 999, 3, 70.0f, 1.0f, { -40.0f, 80.0f, 375.0f }, { -85.0f, 45.0f, 485.0f } },
+ };
+ 
+-static OnePointCsFull D_80122C8C[1] = {
++// LLM generated name (HIGH), was D_80122C8C: the keyframe set one-point cutscene 4221 installs
++static OnePointCsFull sCs4221KeyFrames[1] = {  // was D_80122C8C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 999, 5, 60.0f, 1.0f, { -70.0f, 140.0f, 25.0f }, { 10.0f, 180.0f, 195.0f } },
+ };
+ 
+-static OnePointCsFull D_80122CB4[2] = {
++// LLM generated name (HIGH), was D_80122CB4: the keyframe set one-point cutscene 3260 installs
++static OnePointCsFull sCs3260KeyFrames[2] = {  // was D_80122CB4 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x4242, 5, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 1000.0f }, { 0.0f, 0.0f, 1100.0f } },
+     { 0x02, 0xFF, 0x4242, -1, 0, 60.0f, 1.0f, { 0.0f, 0.0f, -100.0f }, { 0.0f, 0.0f, 0.0f } },
+ };
+ 
+-static OnePointCsFull D_80122D04[2] = {
++// LLM generated name (HIGH), was D_80122D04: the keyframe set one-point cutscene 3261 installs
++static OnePointCsFull sCs3261KeyFrames[2] = {  // was D_80122D04 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x4242, 10, 0, 60.0f, 1.0f, { 0.0f, 0.0f, -100.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x02, 0xFF, 0x4242, -1, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 1000.0f }, { 0.0f, 0.0f, 1100.0f } },
+ };
+ 
+-static OnePointCsFull D_80122D54[3] = {
++// LLM generated name (HIGH), was D_80122D54: the keyframe set one-point cutscene 8010 installs
++static OnePointCsFull sCs8010KeyFrames[3] = {  // was D_80122D54 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 1, -4, 50.0f, 1.0f, { 230.0f, 65.0f, 300.0f }, { 50.0f, 50.0f, 225.0f } },
+     { 0x10, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80122DCC[3] = {
++// LLM generated name (HIGH), was D_80122DCC: the keyframe set one-point cutscene 8002 installs
++static OnePointCsFull sCs8002KeyFrames[3] = {  // was D_80122DCC [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 1, 0, 50.0f, 1.0f, { 0.0f, 5.0f, -145.0f }, { 0.0f, 55.0f, 55.0f } },
+     { 0x10, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x11, 0xFF, 0x0000, 1, -1, -1.0f, -1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80122E44[2][7] = {
++// LLM generated name (HIGH), was D_80122E44: the keyframe set one-point cutscene 8700 installs
++static OnePointCsFull sCs8700KeyFrames[2][7] = {  // was D_80122E44 [LLM:HIGH]
+     {
+         { 0x83, 0xFF, 0x2222, 10, 5, 90.0f, 0.2f, { 50.0f, 100.0f, 140.0f }, { -30.0f, 10.0f, -20.0f } },
+         { 0x8F, 0xFF, 0x0000, 20, 0, 90.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -555,7 +635,8 @@ static OnePointCsFull D_80122E44[2][7] = {
+     },
+ };
+ 
+-static OnePointCsFull D_80123074[5] = {
++// LLM generated name (HIGH), was D_80123074: the first keyframe set cutscene 1100 installs
++static OnePointCsFull sCs1100KeyFramesA[5] = {  // was D_80123074 [LLM:HIGH]
+     { 0x8F, 0xFF, 0xA2A2, 2, 8, 70.0f, 1.0f, { -27.0f, -96.0f, 25.0f }, { 37.0f, -5.0f, 100.0f } },
+     { 0x81, 0xFF, 0xA2A2, 38, 4, 60.0f, 1.0f, { 64.0f, -109.0f, 55.0f }, { 37.0f, 150.0f, 155.0f } },
+     { 0x8F, 0xFF, 0xA2A2, 2, 8, 70.0f, 1.0f, { 45.0f, 123.0f, 45.0f }, { 70.0f, 5.0f, 125.0f } },
+@@ -563,29 +644,34 @@ static OnePointCsFull D_80123074[5] = {
+     { 0x92, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012313C[3] = {
++// LLM generated name (HIGH), was D_8012313C: the second, whose roll it mirrors
++static OnePointCsFull sCs1100KeyFramesB[3] = {  // was D_8012313C [LLM:HIGH]
+     { 0x8F, 0xFF, 0xA2A2, 20, 8, 70.0f, 1.0f, { 65.0f, -150.0f, 50.0f }, { 30.0f, 10.0f, 90.0f } },
+     { 0x81, 0xFF, 0xA2A2, 100, 0, 60.0f, 1.0f, { 70.0f, -160.0f, 50.0f }, { 25.0f, 180.0f, 180.0f } },
+     { 0x92, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801231B4[4] = {
++// LLM generated name (HIGH), was D_801231B4: the first keyframe set cutscene 9908 installs, whose eye depth varies with age
++static OnePointCsFull sCs9908KeyFramesA[4] = {  // was D_801231B4 [LLM:HIGH]
+     { 0x8F, 0xC5, 0x4343, 1, 0, 50.0f, 1.0f, { 0.0f, 20.0f, 0.0f }, { 0.0f, 5.0f, -1.0f } },
+     { 0x81, 0xC5, 0x4343, 48, 0, 50.0f, 0.75f, { 0.0f, 80.0f, 0.0f }, { 0.0f, 15.0f, -1.0f } },
+     { 0x8F, 0xC5, 0x4343, 1, 5, 45.0f, 1.0f, { 0.0f, 0.0f, 30.0f }, { 30.0f, 120.0f, 60.0f } },
+     { 0x81, 0xC5, 0x4343, -1, 0, -1.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80123254[2] = {
++// LLM generated name (HIGH), was D_80123254: the second, whose timer follows the caller's
++static OnePointCsFull sCs9908KeyFramesB[2] = {  // was D_80123254 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 1, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x03, 0xC5, 0x0101, 49, 0, 50.0f, 0.05f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+ };
+ 
+-static OnePointCsFull D_801232A4[1] = {
++// LLM generated name (HIGH), was D_801232A4: the keyframe set one-point cutscene 1000 installs
++static OnePointCsFull sCs1000KeyFrames[1] = {  // was D_801232A4 [LLM:HIGH]
+     { 0x0F, 0x45, 0x0101, 9999, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+ };
+ 
+-static OnePointCsFull D_801232CC[5] = {
++// LLM generated name (HIGH), was D_801232CC: the keyframe set one-point cutscene 8603 installs
++static OnePointCsFull sCs8603KeyFrames[5] = {  // was D_801232CC [LLM:HIGH]
+     { 0x01, 0xFF, 0x0101, 45, -3, 65.0f, 1.0f, { -52.0f, 84.0f, -846.0f }, { -159.0f, 33.0f, -729.0f } },
+     { 0x10, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x0F, 0xFF, 0x0000, 10, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -593,7 +679,8 @@ static OnePointCsFull D_801232CC[5] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80123394[5] = {
++// LLM generated name (HIGH), was D_80123394: the keyframe set one-point cutscene 8604 installs
++static OnePointCsFull sCs8604KeyFrames[5] = {  // was D_80123394 [LLM:HIGH]
+     { 0x01, 0xFF, 0x0101, 45, 3, 65.0f, 1.0f, { -16.0f, 87.0f, -829.0f }, { 98.0f, 24.0f, -714.0f } },
+     { 0x10, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x0F, 0xFF, 0x0000, 10, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -601,14 +688,16 @@ static OnePointCsFull D_80123394[5] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012345C[4] = {
++// LLM generated name (HIGH), was D_8012345C: the keyframe set one-point cutscene 4000 installs
++static OnePointCsFull sCs4000KeyFrames[4] = {  // was D_8012345C [LLM:HIGH]
+     { 0x01, 0x01, 0x4242, 40, 0, 40.0f, 1.0f, { 0.0f, 50.0f, -40.0f }, { 0.0f, 60.0f, -160.0f } },
+     { 0x04, 0x4D, 0x4242, 40, 0, 60.0f, 0.3f, { 0.0f, 90.0f, -40.0f }, { 0.0f, 60.0f, -160.0f } },
+     { 0x04, 0x01, 0x2121, 10, 0, 60.0f, 0.2f, { 0.0f, -10.0f, 10.0f }, { 0.0f, 10.0f, -80.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801234FC[5] = {
++// LLM generated name (HIGH), was D_801234FC: the keyframe set one-point cutscene 4010 installs
++static OnePointCsFull sCs4010KeyFrames[5] = {  // was D_801234FC [LLM:HIGH]
+     { 0x01, 0x05, 0x0441, 10, 0, 70.0f, 1.0f, { 0.0f, -10.0f, 20.0f }, { 0.0f, 0.0f, 120.0f } },
+     { 0x03, 0xFF, 0x4141, 30, 0, 50.0f, 0.1f, { 0.0f, -10.0f, 20.0f }, { 0.0f, 10.0f, 80.0f } },
+     { 0x10, 0x01, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -616,7 +705,8 @@ static OnePointCsFull D_801234FC[5] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_801235C4[5] = {
++// LLM generated name (HIGH), was D_801235C4: the keyframe set one-point cutscene 4011 installs
++static OnePointCsFull sCs4011KeyFrames[5] = {  // was D_801235C4 [LLM:HIGH]
+     { 0x0F, 0x01, 0x4141, 1, 0, 50.0f, 1.0f, { 0.0f, -10.0f, 20.0f }, { 0.0f, 10.0f, 60.0f } },
+     { 0x83, 0xFF, 0x0441, 39, 0, 70.0f, 0.1f, { 0.0f, -10.0f, 20.0f }, { 0.0f, 0.0f, 100.0f } },
+     { 0x10, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -624,21 +714,24 @@ static OnePointCsFull D_801235C4[5] = {
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_8012368C[4] = {
++// LLM generated name (HIGH), was D_8012368C: the keyframe set one-point cutscene 4020 installs
++static OnePointCsFull sCs4020KeyFrames[4] = {  // was D_8012368C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 10, 0, 60.0f, 1.0f, { -1110.0f, -180.0f, -840.0f }, { -985.0f, -220.0f, -840.0f } },
+     { 0x02, 0xFF, 0x0101, 70, -45, 75.0f, 1.0f, { -1060.0f, -160.0f, -840.0f }, { -1005.0f, -230.0f, -840.0f } },
+     { 0x0F, 0xFF, 0x0000, 10, -45, 75.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x0F, 0xFF, 0x0101, 180, 9, 80.0f, 1.0f, { -1205.0f, -175.0f, -840.0f }, { -1305.0f, -230.0f, -828.0f } },
+ };
+ 
+-static OnePointCsFull D_8012372C[4] = {
++// LLM generated name (HIGH), was D_8012372C: the keyframe set one-point cutscene 4021 installs
++static OnePointCsFull sCs4021KeyFrames[4] = {  // was D_8012372C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0142, 10, 0, 70.0f, 1.0f, { 0.0f, 80.0f, 0.0f }, { -1650.0f, 200.0f, -2920.0f } },
+     { 0x02, 0xFF, 0x0142, 110, -2, 50.0f, 0.5f, { 0.0f, 150.0f, 0.0f }, { -1320.0f, 170.0f, -2900.0f } },
+     { 0x0B, 0xFF, 0x4242, 100, 2, 70.0f, 0.1f, { 0.0f, 150.0f, 50.0f }, { -1.0f, -1.0f, -1.0f } },
+     { 0x03, 0xFF, 0x4242, 60, 2, 45.0f, 0.01f, { 0.0f, 150.0f, 50.0f }, { 0.0f, 200.0f, -80.0f } },
+ };
+ 
+-static OnePointCsFull D_801237CC[5] = {
++// LLM generated name (HIGH), was D_801237CC: the keyframe set one-point cutscene 4022 installs
++static OnePointCsFull sCs4022KeyFrames[5] = {  // was D_801237CC [LLM:HIGH]
+     { 0x8F, 0xFF, 0x4242, 20, 0, 50.0f, 1.0f, { 0.0f, 50.0f, -10.0f }, { 0.0f, 0.0f, 100.0f } },
+     { 0x0A, 0xFF, 0x0101, 80, 0, 75.0f, 1.0f, { 2900.0f, 1300.0f, 530.0f }, { 2800.0f, 1190.0f, 540.0f } },
+     { 0x0F, 0xFF, 0x0000, 10, 0, 75.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+@@ -646,24 +739,28 @@ static OnePointCsFull D_801237CC[5] = {
+     { 0x0F, 0xFF, 0x0000, 100, -45, 75.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+ };
+ 
+-static OnePointCsFull D_80123894[3] = {
++// LLM generated name (HIGH), was D_80123894: the keyframe set one-point cutscene 9703 installs
++static OnePointCsFull sCs9703KeyFrames[3] = {  // was D_80123894 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 60, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x0F, 0xFF, 0x4242, 30, 0, 50.0f, 1.0f, { 0.0f, 28.0f, 0.0f }, { 0.0f, 20.0f, 40.0f } },
+     { 0x0D, 0xFF, 0x0000, 120, 0, 180.0f, 0.4f, { 0.0f, -5.0f, 0.0f }, { 0.0f, 2.0f, 40.0f } },
+ };
+ 
+-static OnePointCsFull D_8012390C[2] = {
++// LLM generated name (HIGH), was D_8012390C: the keyframe set one-point cutscene 9704 installs
++static OnePointCsFull sCs9704KeyFrames[2] = {  // was D_8012390C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 30, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x0F, 0xFF, 0x4242, 180, 0, 60.0f, 1.0f, { 0.0f, 78.0f, 0.0f }, { 0.0f, 78.0f, 200.0f } },
+ };
+ 
+-static OnePointCsFull D_8012395C[3] = {
++// LLM generated name (HIGH), was D_8012395C: the keyframe set one-point cutscene 9705 installs
++static OnePointCsFull sCs9705KeyFrames[3] = {  // was D_8012395C [LLM:HIGH]
+     { 0x0F, 0xFF, 0x0101, 60, 0, 60.0f, 1.0f, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x0F, 0xFF, 0x4242, 30, 0, 50.0f, 1.0f, { 0.0f, 28.0f, 0.0f }, { 0.0f, 20.0f, -45.0f } },
+     { 0x0D, 0xFF, 0x0000, 120, 0, 180.0f, 0.4f, { 0.0f, -5.0f, 0.0f }, { 0.0f, 2.0f, 45.0f } },
+ };
+ 
+-static OnePointCsFull D_801239D4[3] = {
++// LLM generated name (HIGH), was D_801239D4: the keyframe set one-point cutscene 5110 installs
++static OnePointCsFull sCs5110KeyFrames[3] = {  // was D_801239D4 [LLM:HIGH]
+     { 0x0F, 0xFF, 0x4242, 5, 0, 60.0f, 1.0f, { 0.0f, 20.0f, 0.0f }, { 0.0f, 40.0f, -120.0f } },
+     { 0x09, 0xFF, 0x4242, 0, 0, 60.0f, 1.0f, { 0.0f, 20.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
+     { 0x12, 0xFF, 0x0000, 1, 0, 60.0f, 1.0f, { -1.0f, -1.0f, -1.0f }, { -1.0f, -1.0f, -1.0f } },
+-- 
+2.55.0
+

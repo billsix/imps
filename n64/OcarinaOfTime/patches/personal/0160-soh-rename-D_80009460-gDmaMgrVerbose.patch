@@ -1,0 +1,110 @@
+From a40704457a8d90d983a6a301410913fef0d709a4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:12 +0000
+Subject: [PATCH 160/488] soh: rename D_80009460 -> gDmaMgrVerbose
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Structure verified against upstream at 1.00.
+Defined in soh/src/boot/z_std_dma.c.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/variables.h  |  2 +-
+ soh/src/boot/z_std_dma.c | 15 ++++++++-------
+ soh/src/code/game.c      |  2 +-
+ 3 files changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 5d7314831..85b7b16a2 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -18,7 +18,7 @@ extern "C"
+ 	extern u8 D_80009320[];
+ 	extern u8 D_800093F0[];
+ 	extern s8 D_80009430;
+-	extern u32 D_80009460;
++	extern u32 gDmaMgrVerbose;  // was D_80009460 [oot]
+ 	extern u32 gDmaMgrDmaBuffSize;
+ 	extern vu8 gViConfigUseDefault;
+ 	extern u8 gViConfigAdditionalScanLines;
+diff --git a/soh/src/boot/z_std_dma.c b/soh/src/boot/z_std_dma.c
+index 6393ae270..11e37c0d8 100644
+--- a/soh/src/boot/z_std_dma.c
++++ b/soh/src/boot/z_std_dma.c
+@@ -11,7 +11,8 @@ u8 sDmaMgrStack[0x500];
+ const char* sDmaMgrCurFileName;
+ s32 sDmaMgrCurFileLine;
+ 
+-u32 D_80009460 = 0;
++// Name from zeldaret/oot (was D_80009460): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/boot/z_std_dma.c]
++u32 gDmaMgrVerbose = 0;
+ u32 gDmaMgrDmaBuffSize = 0x2000;
+ u32 sDmaMgrIsRomCompressed = false;
+ 
+@@ -69,7 +70,7 @@ s32 DmaMgr_DmaRomToRam(uintptr_t rom, uintptr_t ram, size_t size) {
+         ioMsg.dramAddr = (void*)ram;
+         ioMsg.size = buffSize;
+ 
+-        if (D_80009460 == 10) {
++        if (gDmaMgrVerbose == 10) {
+             osSyncPrintf("%10lld ノーマルＤＭＡ %08x %08x %08x (%d)\n", OS_CYCLES_TO_USEC(osGetTime()), ioMsg.dramAddr,
+                          ioMsg.devAddr, ioMsg.size, gPiMgrCmdQ.validCount);
+         }
+@@ -79,12 +80,12 @@ s32 DmaMgr_DmaRomToRam(uintptr_t rom, uintptr_t ram, size_t size) {
+             goto end;
+         }
+ 
+-        if (D_80009460 == 10) {
++        if (gDmaMgrVerbose == 10) {
+             osSyncPrintf("%10lld ノーマルＤＭＡ START (%d)\n", OS_CYCLES_TO_USEC(osGetTime()), gPiMgrCmdQ.validCount);
+         }
+ 
+         osRecvMesg(&queue, NULL, OS_MESG_BLOCK);
+-        if (D_80009460 == 10) {
++        if (gDmaMgrVerbose == 10) {
+             osSyncPrintf("%10lld ノーマルＤＭＡ END (%d)\n", OS_CYCLES_TO_USEC(osGetTime()), gPiMgrCmdQ.validCount);
+         }
+ 
+@@ -99,7 +100,7 @@ s32 DmaMgr_DmaRomToRam(uintptr_t rom, uintptr_t ram, size_t size) {
+     ioMsg.dramAddr = (void*)ram;
+     ioMsg.size = size;
+ 
+-    if (D_80009460 == 10) {
++    if (gDmaMgrVerbose == 10) {
+         osSyncPrintf("%10lld ノーマルＤＭＡ %08x %08x %08x (%d)\n", OS_CYCLES_TO_USEC(osGetTime()), ioMsg.dramAddr,
+                      ioMsg.devAddr, ioMsg.size, gPiMgrCmdQ.validCount);
+     }
+@@ -110,7 +111,7 @@ s32 DmaMgr_DmaRomToRam(uintptr_t rom, uintptr_t ram, size_t size) {
+     }
+ 
+     osRecvMesg(&queue, NULL, OS_MESG_BLOCK);
+-    if (D_80009460 == 10) {
++    if (gDmaMgrVerbose == 10) {
+         osSyncPrintf("%10lld ノーマルＤＭＡ END (%d)\n", OS_CYCLES_TO_USEC(osGetTime()), gPiMgrCmdQ.validCount);
+     }
+ 
+@@ -128,7 +129,7 @@ s32 DmaMgr_DmaHandler(OSPiHandle* pihandle, OSIoMesg* mb, s32 direction) {
+     assert(direction == OS_READ);
+     assert(mb != NULL);
+ 
+-    if (D_80009460 == 10) {
++    if (gDmaMgrVerbose == 10) {
+         osSyncPrintf("%10lld サウンドＤＭＡ %08x %08x %08x (%d)\n", OS_CYCLES_TO_USEC(osGetTime()), mb->dramAddr,
+                      mb->devAddr, mb->size, gPiMgrCmdQ.validCount);
+     }
+diff --git a/soh/src/code/game.c b/soh/src/code/game.c
+index 77bb64022..529377567 100644
+--- a/soh/src/code/game.c
++++ b/soh/src/code/game.c
+@@ -112,7 +112,7 @@ void GameState_UpdateDebugRegisters(GameState* gameState) {
+         func_8006390C(&gameState->input[1]);
+     }
+ 
+-    D_80009460 = HREG(60);
++    gDmaMgrVerbose = HREG(60);
+     gDmaMgrDmaBuffSize = SREG(21) != 0 ? ALIGN16(SREG(21)) : 0x2000;
+     gSystemArenaLogSeverity = HREG(61);
+     gZeldaArenaLogSeverity = HREG(62);
+-- 
+2.55.0
+

@@ -233,6 +233,30 @@ builds/runs separately; our renames are grep-complete, not build-verified).
   C. The rumble pair resolved via oot: high-level `z_rumble.c` owns bare `Rumble_Update/Init/Destroy`;
   low-level `sys_rumble.c` owns `RumbleMgr_Update/Init/Destroy`.
 
+## SoH adds its own derivatives of an address name — and `ADDR_RE` cannot see them
+
+`renames_common.ADDR_RE` matches `\bfunc_[0-9A-Fa-f]{6,8}\b`, so a symbol whose
+name is an address plus a **suffix** does not match: the trailing `_` is a word
+character, which kills the closing `\b`. SoH has such symbols, because the port
+sometimes forks an upstream function and names the fork after the same address:
+
+- `func_808C1554_Raw` (`z_boss_dodongo.c`) → `BossDodongo_UpdateLavaTextureRaw`
+- `func_80AB70A0_nocutscene` (`z_en_niw.c`) → `EnNiw_SetupSwarmNoCutscene`
+
+They are real symbols and they do get renamed, but **any check that derives
+"which symbols disappeared" from `ADDR_RE` will never see them go.** So a gate
+must not compare its full set of *claimed* old names against an `ADDR_RE`-derived
+*observed* set — filter the claimed set through `ADDR_RE` first, and hold the
+suffixed names to account some other way (`check_renames.py` uses the totality
+scan, which greps for the literal old name and so is unaffected).
+
+This bit the 2026-09-08 squash: the regrouped `series` check reported two false
+failures, on exactly these two files, in the two units that happen to contain
+both the address-named symbol and its suffixed derivative. The tell is a failure
+whose "claimed" list is longer than its "retires" list by precisely the suffixed
+names. **A false failure here looks exactly like a dropped rename**, which is why
+it is worth recording rather than re-deriving.
+
 ## Cross-TU callers to remember (renames ripple here)
 Actor funcs are referenced from SoH's C++ enhancement layer (`soh/soh/**.cpp`): the Anchor multiplayer
 `HookHandlers.cpp`, randomizer `hook_handlers.cpp`, `BetterSaveMenu.cpp`, `AudioEditor.cpp`, TimeSavers skip

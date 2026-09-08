@@ -1,0 +1,237 @@
+From 390004159bafd7df9009b052e10e85d11aa837cb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:25 +0000
+Subject: [PATCH 306/488] soh: name the 8 address-named symbols defined in
+ z_demo_ik.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 8 are defined in soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c.
+
+  * func_8098393C -> DemoIk_Type1SetupHidden
+    deduced, confidence HIGH: the type 1 cue-1 handler: puts the actor in
+    action mode 0 with the invisible draw mode and no shadow.
+
+  * func_8098394C -> DemoIk_Type1SetupAppear
+    deduced, confidence HIGH: the type 1 cue-2 handler: ends any movement,
+    snaps to the cue's start position, restores the shadow and switches to
+    action mode 1 with the animation rewound.
+
+  * func_809839AC -> DemoIk_Type1SetupAnimate
+    deduced, confidence HIGH: the type 1 cue-3 handler: switches to action
+    mode 2 with the shadow on and the animation rewound.
+
+  * func_809839D0 -> DemoIk_Type1CheckCue
+    deduced, confidence HIGH: reads this actor's cutscene cue each frame
+    and, when it changes, dispatches to the type 1 setup for cue 1, 2 or 3,
+    or kills the actor on cue 4. Its osSyncPrintf on an unknown cue names it
+    "Demo_Ik_Check_DemoMode".
+
+  * func_80983FDC -> DemoIk_Type2SetupHidden
+    deduced, confidence HIGH: the type 2 cue-1 handler: action mode 3 with
+    the invisible draw mode.
+
+  * func_80983FEC -> DemoIk_Type2SetupAppear
+    deduced, confidence HIGH: the type 2 cue-5 handler: snaps to cue 4's
+    start position and switches to action mode 4 with the animation rewound.
+
+  * func_8098402C -> DemoIk_Type2SetupAnimate
+    deduced, confidence HIGH: the type 2 cue-6 handler: action mode 5 with
+    the animation rewound.
+
+  * func_80984048 -> DemoIk_Type2CheckCue
+    deduced, confidence HIGH: the type 2 twin of DemoIk_Type1CheckCue,
+    reading cue 4 and dispatching cues 1, 5 and 6 or killing the actor on
+    cue 7; its osSyncPrintf names it "Demo_Ik_inFace_Check_DemoMode".
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Demo_Ik/z_demo_ik.c   | 48 +++++++++++--------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c b/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
+index 6a2ef521f..529dfd9a2 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
++++ b/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
+@@ -182,13 +182,15 @@ void DemoIk_Type1Init(DemoIk* this, PlayState* play) {
+     Animation_Change(&this->skelAnime, animation, 1.0f, 0.0f, Animation_GetLastFrame(animation), ANIMMODE_ONCE, 0.0f);
+ }
+ 
+-void func_8098393C(DemoIk* this) {
++// LLM generated name (HIGH), was func_8098393C: the type 1 cue-1 handler: puts the actor in action mode 0 with the invisible draw mode and no shadow.
++void DemoIk_Type1SetupHidden(DemoIk* this) {
+     this->actionMode = 0;
+     this->drawMode = 0;
+     this->actor.shape.shadowAlpha = 0;
+ }
+ 
+-void func_8098394C(DemoIk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8098394C: the type 1 cue-2 handler: ends any movement, snaps to the cue's start position, restores the shadow and switches to action mode 1 with the animation rewound.
++void DemoIk_Type1SetupAppear(DemoIk* this, PlayState* play) {
+     DemoIk_EndMove(this);
+     DemoIk_MoveToStartPos(this, play, DemoIk_GetIndexFromParams(this->actor.params));
+     this->actionMode = 1;
+@@ -197,14 +199,16 @@ void func_8098394C(DemoIk* this, PlayState* play) {
+     this->skelAnime.curFrame = 0.0f;
+ }
+ 
+-void func_809839AC(DemoIk* this) {
++// LLM generated name (HIGH), was func_809839AC: the type 1 cue-3 handler: switches to action mode 2 with the shadow on and the animation rewound.
++void DemoIk_Type1SetupAnimate(DemoIk* this) {
+     this->actionMode = 2;
+     this->drawMode = 1;
+     this->actor.shape.shadowAlpha = 255;
+     this->skelAnime.curFrame = 0.0f;
+ }
+ 
+-void func_809839D0(DemoIk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_809839D0: reads this actor's cutscene cue each frame and, when it changes, dispatches to the type 1 setup for cue 1, 2 or 3, or kills the actor on cue 4. Its osSyncPrintf on an unknown cue names it "Demo_Ik_Check_DemoMode".
++void DemoIk_Type1CheckCue(DemoIk* this, PlayState* play) {
+     CsCmdActorCue* cue = DemoIk_GetCue(play, DemoIk_GetIndexFromParams(this->actor.params));
+ 
+     if (cue != NULL) {
+@@ -214,13 +218,13 @@ void func_809839D0(DemoIk* this, PlayState* play) {
+         if (nextCsAction != csAction) {
+             switch (nextCsAction) {
+                 case 1:
+-                    func_8098393C(this);
++                    DemoIk_Type1SetupHidden(this);  // was func_8098393C [LLM:HIGH]
+                     break;
+                 case 2:
+-                    func_8098394C(this, play);
++                    DemoIk_Type1SetupAppear(this, play);  // was func_8098394C [LLM:HIGH]
+                     break;
+                 case 3:
+-                    func_809839AC(this);
++                    DemoIk_Type1SetupAnimate(this);  // was func_809839AC [LLM:HIGH]
+                     break;
+                 case 4:
+                     Actor_Kill(&this->actor);
+@@ -238,12 +242,12 @@ void func_809839D0(DemoIk* this, PlayState* play) {
+ }
+ 
+ void DemoIk_Type1Action0(DemoIk* this, PlayState* play) {
+-    func_809839D0(this, play);
++    DemoIk_Type1CheckCue(this, play);  // was func_809839D0 [LLM:HIGH]
+ }
+ 
+ void DemoIk_Type1Action1(DemoIk* this, PlayState* play) {
+     DemoIk_BgCheck(this, play);
+-    func_809839D0(this, play);
++    DemoIk_Type1CheckCue(this, play);  // was func_809839D0 [LLM:HIGH]
+ }
+ 
+ void DemoIk_Type1Action2(DemoIk* this, PlayState* play) {
+@@ -252,7 +256,7 @@ void DemoIk_Type1Action2(DemoIk* this, PlayState* play) {
+     DemoIk_SetMove(this, play);
+     DemoIk_BgCheck(this, play);
+     DemoIk_SpawnDeadDb(this, play);
+-    func_809839D0(this, play);
++    DemoIk_Type1CheckCue(this, play);  // was func_809839D0 [LLM:HIGH]
+ }
+ 
+ void DemoIk_Type1PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx) {
+@@ -338,25 +342,29 @@ void DemoIk_Type2PlaySound(DemoIk* this) {
+     }
+ }
+ 
+-void func_80983FDC(DemoIk* this) {
++// LLM generated name (HIGH), was func_80983FDC: the type 2 cue-1 handler: action mode 3 with the invisible draw mode.
++void DemoIk_Type2SetupHidden(DemoIk* this) {
+     this->actionMode = 3;
+     this->drawMode = 0;
+ }
+ 
+-void func_80983FEC(DemoIk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80983FEC: the type 2 cue-5 handler: snaps to cue 4's start position and switches to action mode 4 with the animation rewound.
++void DemoIk_Type2SetupAppear(DemoIk* this, PlayState* play) {
+     DemoIk_MoveToStartPos(this, play, 4);
+     this->actionMode = 4;
+     this->drawMode = 2;
+     this->skelAnime.curFrame = 0.0f;
+ }
+ 
+-void func_8098402C(DemoIk* this) {
++// LLM generated name (HIGH), was func_8098402C: the type 2 cue-6 handler: action mode 5 with the animation rewound.
++void DemoIk_Type2SetupAnimate(DemoIk* this) {
+     this->actionMode = 5;
+     this->drawMode = 2;
+     this->skelAnime.curFrame = 0.0f;
+ }
+ 
+-void func_80984048(DemoIk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80984048: the type 2 twin of DemoIk_Type1CheckCue, reading cue 4 and dispatching cues 1, 5 and 6 or killing the actor on cue 7; its osSyncPrintf names it "Demo_Ik_inFace_Check_DemoMode".
++void DemoIk_Type2CheckCue(DemoIk* this, PlayState* play) {
+     CsCmdActorCue* cue = DemoIk_GetCue(play, 4);
+ 
+     if (cue != NULL) {
+@@ -366,13 +374,13 @@ void func_80984048(DemoIk* this, PlayState* play) {
+         if (nextCsAction != csAction) {
+             switch (nextCsAction) {
+                 case 1:
+-                    func_80983FDC(this);
++                    DemoIk_Type2SetupHidden(this);  // was func_80983FDC [LLM:HIGH]
+                     break;
+                 case 5:
+-                    func_80983FEC(this, play);
++                    DemoIk_Type2SetupAppear(this, play);  // was func_80983FEC [LLM:HIGH]
+                     break;
+                 case 6:
+-                    func_8098402C(this);
++                    DemoIk_Type2SetupAnimate(this);  // was func_8098402C [LLM:HIGH]
+                     break;
+                 case 7:
+                     Actor_Kill(&this->actor);
+@@ -387,17 +395,17 @@ void func_80984048(DemoIk* this, PlayState* play) {
+ }
+ 
+ void DemoIk_Type2Action0(DemoIk* this, PlayState* play) {
+-    func_80984048(this, play);
++    DemoIk_Type2CheckCue(this, play);  // was func_80984048 [LLM:HIGH]
+ }
+ 
+ void DemoIk_Type2Action1(DemoIk* this, PlayState* play) {
+-    func_80984048(this, play);
++    DemoIk_Type2CheckCue(this, play);  // was func_80984048 [LLM:HIGH]
+ }
+ 
+ void DemoIk_Type2Action2(DemoIk* this, PlayState* play) {
+     DemoIk_UpdateSkelAnime(this);
+     DemoIk_Type2PlaySound(this);
+-    func_80984048(this, play);
++    DemoIk_Type2CheckCue(this, play);  // was func_80984048 [LLM:HIGH]
+ }
+ 
+ s32 DemoIk_Type2OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* pos, Vec3s* rot, void* thisx) {
+-- 
+2.55.0
+

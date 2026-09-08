@@ -1,0 +1,150 @@
+From 32c51f49a9cfd2eee37bfbaf619227b6593c5098 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:02 +0000
+Subject: [PATCH 060/488] soh: name the 3 address-named symbols defined in
+ z_en_jsjutan.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c.
+
+  * D_80A8EE10 -> sBaseVtxPos
+    deduced, confidence HIGH
+
+  * func_80A89860 -> EnJsjutan_InitVtxPos
+    deduced, confidence HIGH
+
+  * func_80A89A6C -> EnJsjutan_UpdateCarpetVtx
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Jsjutan/z_en_jsjutan.c      | 31 ++++++++++---------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c b/soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c
+index 85f415dc9..5c8f38a57 100644
+--- a/soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c
++++ b/soh/src/overlays/actors/ovl_En_Jsjutan/z_en_jsjutan.c
+@@ -32,7 +32,8 @@ const ActorInit En_Jsjutan_InitVars = {
+ // Shadow texture. 32x64 I8.
+ static u8 sShadowTex[0x800];
+ 
+-static Vec3s D_80A8EE10[0x90];
++// LLM generated name (HIGH), was D_80A8EE10: stores base x/z of each carpet vertex, later wave-displaced for animation.
++static Vec3s sBaseVtxPos[0x90];
+ 
+ static s32 sUnused[2] = { 0, 0 };
+ 
+@@ -58,7 +59,8 @@ void EnJsjutan_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80A89860(EnJsjutan* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A89860: loads carpet vertices and records their base positions into sBaseVtxPos.
++void EnJsjutan_InitVtxPos(EnJsjutan* this, PlayState* play) {
+     s16 i;
+     Vtx* oddVtx;
+     Vtx* evenVtx;
+@@ -67,9 +69,9 @@ void func_80A89860(EnJsjutan* this, PlayState* play) {
+     oddVtx = ResourceMgr_LoadVtxByName(SEGMENTED_TO_VIRTUAL(gShadowOddVtx));
+     evenVtx = ResourceMgr_LoadVtxByName(SEGMENTED_TO_VIRTUAL(sShadowEvenVtx));
+ 
+-    for (i = 0; i < ARRAY_COUNT(D_80A8EE10); i++, oddVtx++, evenVtx++) {
+-        D_80A8EE10[i].x = oddVtx->v.ob[0];
+-        D_80A8EE10[i].z = oddVtx->v.ob[2];
++    for (i = 0; i < ARRAY_COUNT(sBaseVtxPos); i++, oddVtx++, evenVtx++) {
++        sBaseVtxPos[i].x = oddVtx->v.ob[0];
++        sBaseVtxPos[i].z = oddVtx->v.ob[2];
+         if (this->dyna.actor.params == ENJSJUTAN_TYPE_01) {
+             oddVtx->v.ob[1] = evenVtx->v.ob[1] = 0x585;
+         } else {
+@@ -82,7 +84,8 @@ void func_80A89860(EnJsjutan* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A89A6C(EnJsjutan* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A89A6C: applies waveform displacement to carpet and shadow vertices each frame.
++void EnJsjutan_UpdateCarpetVtx(EnJsjutan* this, PlayState* play) {
+     u8 isPlayerOnTop = false; // sp127
+     s16 i;
+     s16 j;
+@@ -204,7 +207,7 @@ void func_80A89A6C(EnJsjutan* this, PlayState* play) {
+     }
+ 
+     // Fancy math to make a woobly and reactive carpet.
+-    for (i = 0; i < ARRAY_COUNT(D_80A8EE10); i++, carpetVtx++, shadowVtx++) {
++    for (i = 0; i < ARRAY_COUNT(sBaseVtxPos); i++, carpetVtx++, shadowVtx++) {
+         if (isPlayerOnTop) {
+             // Linear distance from j-th wave to player, in XZ plane.
+             dxVtx = carpetVtx->n.ob[0] - spB8;
+@@ -289,11 +292,11 @@ void func_80A89A6C(EnJsjutan* this, PlayState* play) {
+         } else {
+             carpetVtx->n.ob[1] = offset + waveform;
+ 
+-            carpetVtx->n.ob[0] = D_80A8EE10[i].x + (s16)(waveform * 0.5f);
+-            carpetVtx->n.ob[2] = D_80A8EE10[i].z + (s16)(waveform * 0.5f);
++            carpetVtx->n.ob[0] = sBaseVtxPos[i].x + (s16)(waveform * 0.5f);
++            carpetVtx->n.ob[2] = sBaseVtxPos[i].z + (s16)(waveform * 0.5f);
+ 
+-            shadowVtx->n.ob[0] = D_80A8EE10[i].x + (s16)waveform;
+-            shadowVtx->n.ob[2] = D_80A8EE10[i].z + (s16)waveform;
++            shadowVtx->n.ob[0] = sBaseVtxPos[i].x + (s16)waveform;
++            shadowVtx->n.ob[2] = sBaseVtxPos[i].z + (s16)waveform;
+         }
+     }
+ 
+@@ -384,7 +387,7 @@ void EnJsjutan_Draw(Actor* thisx, PlayState* play2) {
+         this->unk_168 = thisx->world.pos.y;
+         if (!this->unk_175) {
+             this->unk_175 = true;
+-            func_80A89860(this, play);
++            EnJsjutan_InitVtxPos(this, play);
+         }
+     } else if (!this->unk_175) {
+         this->unk_175 = true;
+@@ -392,10 +395,10 @@ void EnJsjutan_Draw(Actor* thisx, PlayState* play2) {
+         thisx->world.pos.y = (parent->world.pos.y + 5.0f) - 10.0f;
+         thisx->world.pos.z = Math_CosS(parent->shape.rot.y) * 60.0f + parent->world.pos.z;
+         this->unk_168 = thisx->world.pos.y;
+-        func_80A89860(this, play);
++        EnJsjutan_InitVtxPos(this, play);
+     }
+ 
+-    func_80A89A6C(this, play);
++    EnJsjutan_UpdateCarpetVtx(this, play);
+ 
+     if (this->unk_164) {
+         this->unk_164 = false;
+-- 
+2.55.0
+

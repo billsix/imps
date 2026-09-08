@@ -1,0 +1,139 @@
+From 9511604b2ec9f0ce14948e01290784a3b0dd1d2f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:18 +0000
+Subject: [PATCH 237/488] soh: name the 3 address-named symbols defined in
+ z_item_etcetera.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c.
+
+  * func_80B85824 -> ItemEtcetera_OfferItem
+    deduced, confidence HIGH: offers the get-item every frame; once the
+    player takes it, sets the Ruto's-letter flags for params 1 and kills the
+    actor.
+
+  * func_80B858B4 -> ItemEtcetera_OfferItemUnderwater
+    deduced, confidence HIGH: same offer-and-kill loop as
+    ItemEtcetera_OfferItem, plus a periodic EffectSsBubble_Spawn.
+
+  * func_80B85B28 -> ItemEtcetera_KillOnTreasureFlag
+    deduced, confidence HIGH: the action installed for the chest-game item
+    params; it only kills the actor once the matching treasure flag is set.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Item_Etcetera/z_item_etcetera.c       | 23 +++++++++++--------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c b/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
+index bb29d5170..214d61f6c 100644
+--- a/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
++++ b/soh/src/overlays/actors/ovl_Item_Etcetera/z_item_etcetera.c
+@@ -16,11 +16,14 @@ void ItemEtcetera_DrawThroughLens(Actor* thisx, PlayState* play);
+ void ItemEtcetera_Draw(Actor* thisx, PlayState* play);
+ 
+ void ItemEtcetera_WaitForObject(ItemEtcetera* this, PlayState* play);
+-void func_80B85824(ItemEtcetera* this, PlayState* play);
+-void func_80B858B4(ItemEtcetera* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B85824: offers the get-item every frame; once the player takes it, sets the Ruto's-letter flags for params 1 and kills the actor.
++void ItemEtcetera_OfferItem(ItemEtcetera* this, PlayState* play);  // was func_80B85824 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B858B4: same offer-and-kill loop as ItemEtcetera_OfferItem, plus a periodic EffectSsBubble_Spawn.
++void ItemEtcetera_OfferItemUnderwater(ItemEtcetera* this, PlayState* play);  // was func_80B858B4 [LLM:HIGH]
+ void ItemEtcetera_SpawnSparkles(ItemEtcetera* this, PlayState* play);
+ void ItemEtcetera_MoveFireArrowDown(ItemEtcetera* this, PlayState* play);
+-void func_80B85B28(ItemEtcetera* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B85B28: the action installed for the chest-game item params; it only kills the actor once the matching treasure flag is set.
++void ItemEtcetera_KillOnTreasureFlag(ItemEtcetera* this, PlayState* play);  // was func_80B85B28 [LLM:HIGH]
+ void ItemEtcetera_UpdateFireArrow(ItemEtcetera* this, PlayState* play);
+ 
+ const ActorInit Item_Etcetera_InitVars = {
+@@ -75,14 +78,14 @@ void ItemEtcetera_Init(Actor* thisx, PlayState* play) {
+     }
+     this->giDrawId = sDrawItemIndexes[type];
+     this->getItemId = sGetItemIds[type];
+-    this->futureActionFunc = func_80B85824;
++    this->futureActionFunc = ItemEtcetera_OfferItem;  // was func_80B85824 [LLM:HIGH]
+     this->drawFunc = ItemEtcetera_Draw;
+     Actor_SetScale(&this->actor, 0.25f);
+     ItemEtcetera_SetupAction(this, ItemEtcetera_WaitForObject);
+     switch (type) {
+         case ITEM_ETC_LETTER:
+             Actor_SetScale(&this->actor, 0.5f);
+-            this->futureActionFunc = func_80B858B4;
++            this->futureActionFunc = ItemEtcetera_OfferItemUnderwater;  // was func_80B858B4 [LLM:HIGH]
+             if (Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_RUTOS_LETTER)) {
+                 Actor_Kill(&this->actor);
+             }
+@@ -100,7 +103,7 @@ void ItemEtcetera_Init(Actor* thisx, PlayState* play) {
+         case ITEM_ETC_HEART_PIECE_CHEST_GAME:
+         case ITEM_ETC_KEY_SMALL_CHEST_GAME:
+             Actor_SetScale(&this->actor, 0.5f);
+-            this->futureActionFunc = func_80B85B28;
++            this->futureActionFunc = ItemEtcetera_KillOnTreasureFlag;  // was func_80B85B28 [LLM:HIGH]
+             this->drawFunc = ItemEtcetera_DrawThroughLens;
+             this->actor.world.pos.y += 15.0f;
+             break;
+@@ -118,7 +121,7 @@ void ItemEtcetera_WaitForObject(ItemEtcetera* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B85824(ItemEtcetera* this, PlayState* play) {
++void ItemEtcetera_OfferItem(ItemEtcetera* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         if ((this->actor.params & 0xFF) == 1) {
+             Flags_SetEventChkInf(EVENTCHKINF_OBTAINED_RUTOS_LETTER);
+@@ -130,7 +133,7 @@ void func_80B85824(ItemEtcetera* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B858B4(ItemEtcetera* this, PlayState* play) {
++void ItemEtcetera_OfferItemUnderwater(ItemEtcetera* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play)) {
+         if ((this->actor.params & 0xFF) == 1) {
+             Flags_SetEventChkInf(EVENTCHKINF_OBTAINED_RUTOS_LETTER);
+@@ -171,10 +174,10 @@ void ItemEtcetera_MoveFireArrowDown(ItemEtcetera* this, PlayState* play) {
+         ItemEtcetera_SpawnSparkles(this, play);
+     }
+     this->actor.shape.rot.y += 0x400;
+-    func_80B85824(this, play);
++    ItemEtcetera_OfferItem(this, play);  // was func_80B85824 [LLM:HIGH]
+ }
+ 
+-void func_80B85B28(ItemEtcetera* this, PlayState* play) {
++void ItemEtcetera_KillOnTreasureFlag(ItemEtcetera* this, PlayState* play) {
+     if (Flags_GetTreasure(play, (this->actor.params >> 8) & 0x1F)) {
+         Actor_Kill(&this->actor);
+     }
+-- 
+2.55.0
+

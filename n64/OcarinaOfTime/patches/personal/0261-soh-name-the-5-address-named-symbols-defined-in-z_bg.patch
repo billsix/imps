@@ -1,0 +1,163 @@
+From 639dab00cc4e0db581e9308666d0a9a95286ea35 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:20 +0000
+Subject: [PATCH 261/488] soh: name the 5 address-named symbols defined in
+ z_bg_toki_hikari.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_Bg_Toki_Hikari/z_bg_toki_hikari.c.
+
+  * func_808BA018 -> BgTokiHikari_DrawTempleLight
+    deduced, confidence GUESS: the params 0 draw path, picking an adult or
+    child display list and scrolling two texture segments for the child
+    version. The object_toki_objects display lists are unnamed, so "temple
+    light" comes from the actor's role rather than from anything the code
+    states.
+
+  * func_808BA204 -> BgTokiHikari_WaitToFadeIn
+    deduced, confidence HIGH: the params 1 idle: waits for the room's
+    cutscene state to become non-zero before starting the fade-in.
+
+  * func_808BA22C -> BgTokiHikari_FadeIn
+    deduced, confidence HIGH: ramps the intensity up by 0.05 per frame to
+    1.0, then hands off to the fade-out.
+
+  * func_808BA274 -> BgTokiHikari_FadeOut
+    deduced, confidence HIGH: ramps the intensity back down by 0.025 per
+    frame and kills the actor once it drops past 0.2.
+
+  * func_808BA2CC -> BgTokiHikari_DrawBeam
+    deduced, confidence GUESS: the params 1 draw path: draws a beam at a
+    fixed point in front of the Door of Time, stretched and coloured by the
+    fading intensity. Named for its shape and placement; the display lists
+    it uses are unnamed.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Toki_Hikari/z_bg_toki_hikari.c     | 35 +++++++++++--------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Toki_Hikari/z_bg_toki_hikari.c b/soh/src/overlays/actors/ovl_Bg_Toki_Hikari/z_bg_toki_hikari.c
+index d7fea8555..ee216c4e8 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Toki_Hikari/z_bg_toki_hikari.c
++++ b/soh/src/overlays/actors/ovl_Bg_Toki_Hikari/z_bg_toki_hikari.c
+@@ -15,11 +15,16 @@ void BgTokiHikari_Update(Actor* thisx, PlayState* play);
+ void BgTokiHikari_Draw(Actor* thisx, PlayState* play);
+ 
+ void BgTokiHikari_DoNothing(BgTokiHikari* this, PlayState* play);
+-void func_808BA018(BgTokiHikari* this, PlayState* play);
+-void func_808BA204(BgTokiHikari* this, PlayState* play);
+-void func_808BA22C(BgTokiHikari* this, PlayState* play);
+-void func_808BA274(BgTokiHikari* this, PlayState* play);
+-void func_808BA2CC(BgTokiHikari* this, PlayState* play);
++// LLM generated name (GUESS), was func_808BA018: the params 0 draw path, picking an adult or child display list and scrolling two texture segments for the child version. The object_toki_objects display lists are unnamed, so "temple light" comes from the actor's role rather than from anything the code states.
++void BgTokiHikari_DrawTempleLight(BgTokiHikari* this, PlayState* play);  // was func_808BA018 [LLM:GUESS]
++// LLM generated name (HIGH), was func_808BA204: the params 1 idle: waits for the room's cutscene state to become non-zero before starting the fade-in.
++void BgTokiHikari_WaitToFadeIn(BgTokiHikari* this, PlayState* play);  // was func_808BA204 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808BA22C: ramps the intensity up by 0.05 per frame to 1.0, then hands off to the fade-out.
++void BgTokiHikari_FadeIn(BgTokiHikari* this, PlayState* play);  // was func_808BA22C [LLM:HIGH]
++// LLM generated name (HIGH), was func_808BA274: ramps the intensity back down by 0.025 per frame and kills the actor once it drops past 0.2.
++void BgTokiHikari_FadeOut(BgTokiHikari* this, PlayState* play);  // was func_808BA274 [LLM:HIGH]
++// LLM generated name (GUESS), was func_808BA2CC: the params 1 draw path: draws a beam at a fixed point in front of the Door of Time, stretched and coloured by the fading intensity. Named for its shape and placement; the display lists it uses are unnamed.
++void BgTokiHikari_DrawBeam(BgTokiHikari* this, PlayState* play);  // was func_808BA2CC [LLM:GUESS]
+ 
+ const ActorInit Bg_Toki_Hikari_InitVars = {
+     ACTOR_BG_TOKI_HIKARI,
+@@ -48,7 +53,7 @@ void BgTokiHikari_Init(Actor* thisx, PlayState* play) {
+             break;
+         case 1:
+             if (!Flags_GetEventChkInf(EVENTCHKINF_OPENED_THE_DOOR_OF_TIME)) {
+-                this->actionFunc = func_808BA204;
++                this->actionFunc = BgTokiHikari_WaitToFadeIn;  // was func_808BA204 [LLM:HIGH]
+                 this->unk_14C = 0.0f;
+             } else {
+                 Actor_Kill(&this->actor);
+@@ -74,15 +79,15 @@ void BgTokiHikari_Draw(Actor* thisx, PlayState* play) {
+ 
+     switch (this->actor.params) {
+         case 0:
+-            func_808BA018(this, play);
++            BgTokiHikari_DrawTempleLight(this, play);  // was func_808BA018 [LLM:GUESS]
+             break;
+         case 1:
+-            func_808BA2CC(this, play);
++            BgTokiHikari_DrawBeam(this, play);  // was func_808BA2CC [LLM:GUESS]
+             break;
+     }
+ }
+ 
+-void func_808BA018(BgTokiHikari* this, PlayState* play) {
++void BgTokiHikari_DrawTempleLight(BgTokiHikari* this, PlayState* play) {
+     s32 pad;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -107,22 +112,22 @@ void func_808BA018(BgTokiHikari* this, PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-void func_808BA204(BgTokiHikari* this, PlayState* play) {
++void BgTokiHikari_WaitToFadeIn(BgTokiHikari* this, PlayState* play) {
+     if (play->roomCtx.unk_74[1] != 0) {
+-        this->actionFunc = func_808BA22C;
++        this->actionFunc = BgTokiHikari_FadeIn;  // was func_808BA22C [LLM:HIGH]
+     }
+ }
+ 
+-void func_808BA22C(BgTokiHikari* this, PlayState* play) {
++void BgTokiHikari_FadeIn(BgTokiHikari* this, PlayState* play) {
+     if (this->unk_14C < 1.0f) {
+         this->unk_14C += 0.05f;
+     } else {
+         this->unk_14C = 1.0f;
+-        this->actionFunc = func_808BA274;
++        this->actionFunc = BgTokiHikari_FadeOut;  // was func_808BA274 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808BA274(BgTokiHikari* this, PlayState* play) {
++void BgTokiHikari_FadeOut(BgTokiHikari* this, PlayState* play) {
+     if (this->unk_14C > 0.2f) {
+         this->unk_14C -= 0.025f;
+     } else {
+@@ -131,7 +136,7 @@ void func_808BA274(BgTokiHikari* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808BA2CC(BgTokiHikari* this, PlayState* play) {
++void BgTokiHikari_DrawBeam(BgTokiHikari* this, PlayState* play) {
+     s32 pad[2];
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+-- 
+2.55.0
+

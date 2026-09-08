@@ -1,0 +1,129 @@
+From c26978acd850994cde7a0f973720bdedf035671b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:11 +0000
+Subject: [PATCH 150/488] soh: name the 2 address-named symbols defined in
+ sched.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/sched.c; updating their references touches 2 files in total.
+
+  * func_800C84E4 -> Sched_SwapFrameBufferImpl
+    deduced, confidence HIGH: clears the pending-VI-reset flag and restores
+    the VI config when no reset is in progress, then delegates to
+    Sched_SwapFrameBuffer. Both call sites are Sched internals.
+
+  * func_800C89D4 -> Sched_GetTaskIfFramebufferFree
+    deduced, confidence HIGH: returns the task unless its target framebuffer
+    already has a swap pending or is the one currently displayed, in which
+    case NULL. The single caller uses the result as a go/no-go for running
+    the gfx task.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h |  4 ++--
+ soh/src/code/sched.c    | 12 +++++++-----
+ 2 files changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index ec7dd5bd9..2dc05bcd4 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1694,12 +1694,12 @@ void PadMgr_HandlePreNMI(PadMgr* padmgr);
+ void PadMgr_RequestPadData(PadMgr* padmgr, Input* inputs, s32 mode);
+ void PadMgr_Init(PadMgr* padmgr, OSMesgQueue* siIntMsgQ, IrqMgr* irqMgr, OSId id, OSPri priority, void* stack);
+ void Sched_SwapFrameBuffer(CfbInfo* cfbInfo);
+-void func_800C84E4(SchedContext* sc, CfbInfo* cfbInfo);
++void Sched_SwapFrameBufferImpl(SchedContext* sc, CfbInfo* cfbInfo);  // was func_800C84E4 [LLM:HIGH]
+ void Sched_HandleReset(SchedContext* sc);
+ void Sched_HandleStart(SchedContext* sc);
+ void Sched_QueueTask(SchedContext* sc, OSScTask* task);
+ void Sched_Yield(SchedContext* sc);
+-OSScTask* func_800C89D4(SchedContext* sc, OSScTask* task);
++OSScTask* Sched_GetTaskIfFramebufferFree(SchedContext* sc, OSScTask* task);  // was func_800C89D4 [LLM:HIGH]
+ s32 Sched_Schedule(SchedContext* sc, OSScTask** sp, OSScTask** dp, s32 state);
+ void Sched_SetNextFramebufferFromTask(SchedContext* sc, OSScTask* task);  // was func_800C8BC4 [oot]
+ u32 Sched_IsComplete(SchedContext* sc, OSScTask* task);
+diff --git a/soh/src/code/sched.c b/soh/src/code/sched.c
+index be815445b..c621abc47 100644
+--- a/soh/src/code/sched.c
++++ b/soh/src/code/sched.c
+@@ -58,7 +58,8 @@ void Sched_SwapFrameBuffer(CfbInfo* cfbInfo) {
+     cfbInfo->unk_10 = 0;
+ }
+ 
+-void func_800C84E4(SchedContext* sc, CfbInfo* cfbInfo) {
++// LLM generated name (HIGH), was func_800C84E4: clears the pending-VI-reset flag and restores the VI config when no reset is in progress, then delegates to Sched_SwapFrameBuffer. Both call sites are Sched internals.
++void Sched_SwapFrameBufferImpl(SchedContext* sc, CfbInfo* cfbInfo) {
+     if (sc->unk_24C != 0) {
+         sc->unk_24C = 0;
+ 
+@@ -147,7 +148,8 @@ void Sched_Yield(SchedContext* sc) {
+     }
+ }
+ 
+-OSScTask* func_800C89D4(SchedContext* sc, OSScTask* task) {
++// LLM generated name (HIGH), was func_800C89D4: returns the task unless its target framebuffer already has a swap pending or is the one currently displayed, in which case NULL. The single caller uses the result as a go/no-go for running the gfx task.
++OSScTask* Sched_GetTaskIfFramebufferFree(SchedContext* sc, OSScTask* task) {
+     if (task == NULL) {
+         return NULL;
+     }
+@@ -205,7 +207,7 @@ s32 Sched_Schedule(SchedContext* sc, OSScTask** sp, OSScTask** dp, s32 state) {
+                 }
+             }
+         } else if (ret == (OS_SC_SP | OS_SC_DP)) {
+-            if (gfxTask->framebuffer == NULL || func_800C89D4(sc, gfxTask) != NULL) {
++            if (gfxTask->framebuffer == NULL || Sched_GetTaskIfFramebufferFree(sc, gfxTask) != NULL) {  // was func_800C89D4 [LLM:HIGH]
+                 *sp = *dp = gfxTask;
+                 ret &= ~(OS_SC_SP | OS_SC_DP);
+                 sc->gfxListHead = sc->gfxListHead->next;
+@@ -226,7 +228,7 @@ void Sched_SetNextFramebufferFromTask(SchedContext* sc, OSScTask* task) {
+         LOG_CHECK_VALID_POINTER("sc->pending_swapbuffer1", sc->pendingSwapBuf1);
+ 
+         if ((sc->curBuf == NULL) || (sc->curBuf->updateRate2 < 1)) {
+-            func_800C84E4(sc, task->framebuffer);
++            Sched_SwapFrameBufferImpl(sc, task->framebuffer);  // was func_800C84E4 [LLM:HIGH]
+         }
+     }
+ }
+@@ -341,7 +343,7 @@ void Sched_HandleRetrace(SchedContext* sc) {
+             sc->curBuf->updateRate2--;
+         }
+         if ((sc->curBuf->updateRate2 <= 0) && (sc->pendingSwapBuf1 != NULL)) {
+-            func_800C84E4(sc, sc->pendingSwapBuf1);
++            Sched_SwapFrameBufferImpl(sc, sc->pendingSwapBuf1);  // was func_800C84E4 [LLM:HIGH]
+         }
+     }
+     if (sLogScheduler) {
+-- 
+2.55.0
+

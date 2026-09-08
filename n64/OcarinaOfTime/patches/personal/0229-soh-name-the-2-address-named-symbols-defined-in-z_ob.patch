@@ -1,0 +1,94 @@
+From f879f2f414d2ed10f0f1b52686e234f8ff15f533 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:18 +0000
+Subject: [PATCH 229/488] soh: name the 2 address-named symbols defined in
+ z_obj_lightswitch.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c.
+
+  * D_80B97F68 -> sFlagSetPos
+    deduced, confidence GUESS: fixed world position the params bit-0
+    lightswitch is snapped to in Init when its switch flag is already set;
+    why that particular coordinate is hardcoded is not recoverable from the
+    file.
+
+  * D_80B97F74 -> sZeroVec
+    deduced, confidence HIGH: Vec3f { 0, 0, 0 } passed as both the velocity
+    and the acceleration argument of EffectSsDeadDb_Spawn.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c   | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c b/soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c
+index 6f99ff87e..24f457c6b 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c
++++ b/soh/src/overlays/actors/ovl_Obj_Lightswitch/z_obj_lightswitch.c
+@@ -80,8 +80,10 @@ static CollisionCheckInfoInit sColChkInfoInit = { 0, 12, 60, MASS_IMMOVABLE };
+ static void* sFaceTextures[] = { object_lightswitch_Tex_000C20, object_lightswitch_Tex_000420,
+                                  object_lightswitch_Tex_001420 };
+ 
+-static Vec3f D_80B97F68 = { -1707.0f, 843.0f, -180.0f };
+-static Vec3f D_80B97F74 = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (GUESS), was D_80B97F68: fixed world position the params bit-0 lightswitch is snapped to in Init when its switch flag is already set; why that particular coordinate is hardcoded is not recoverable from the file.
++static Vec3f sFlagSetPos = { -1707.0f, 843.0f, -180.0f };  // was D_80B97F68 [LLM:GUESS]
++// LLM generated name (HIGH), was D_80B97F74: Vec3f { 0, 0, 0 } passed as both the velocity and the acceleration argument of EffectSsDeadDb_Spawn.
++static Vec3f sZeroVec = { 0.0f, 0.0f, 0.0f };  // was D_80B97F74 [LLM:HIGH]
+ 
+ static InitChainEntry sInitChain[] = {
+     ICHAIN_VEC3F_DIV1000(scale, 100, ICHAIN_CONTINUE),
+@@ -157,7 +159,7 @@ void ObjLightswitch_SpawnDisappearEffects(ObjLightswitch* this, PlayState* play)
+         pos.x = this->actor.world.pos.x + ((z * s) + (x * c));
+         pos.y = this->actor.world.pos.y + y + 10.0f;
+         pos.z = this->actor.world.pos.z + ((z * c) - (x * s));
+-        EffectSsDeadDb_Spawn(play, &pos, &D_80B97F74, &D_80B97F74, 100, 0, 255, 255, 160, 160, 255, 0, 0, 1, 9, true);
++        EffectSsDeadDb_Spawn(play, &pos, &sZeroVec, &sZeroVec, 100, 0, 255, 255, 160, 160, 255, 0, 0, 1, 9, true);  // was D_80B97F74 [LLM:HIGH]
+     }
+ }
+ 
+@@ -179,8 +181,8 @@ void ObjLightswitch_Init(Actor* thisx, PlayState* play) {
+     }
+     if ((this->actor.params & 1) == 1) {
+         if (switchFlagSet) {
+-            Math_Vec3f_Copy(&this->actor.world.pos, &D_80B97F68);
+-            Math_Vec3f_Copy(&this->actor.home.pos, &D_80B97F68);
++            Math_Vec3f_Copy(&this->actor.world.pos, &sFlagSetPos);  // was D_80B97F68 [LLM:GUESS]
++            Math_Vec3f_Copy(&this->actor.home.pos, &sFlagSetPos);  // was D_80B97F68 [LLM:GUESS]
+         }
+         this->actor.shape.rot.x = -0x4000;
+         this->actor.shape.rot.z = 0;
+-- 
+2.55.0
+

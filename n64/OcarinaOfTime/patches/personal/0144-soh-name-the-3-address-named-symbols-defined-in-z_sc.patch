@@ -1,0 +1,104 @@
+From 9f89bbe62391be5003eb32b9600d590eb7d79a8e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:10 +0000
+Subject: [PATCH 144/488] soh: name the 3 address-named symbols defined in
+ z_scene_table.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/code/z_scene_table.c.
+
+  * func_800995DC -> Scene_DrawConfigYdan
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.80
+
+  * func_8009EE44 -> Scene_DrawConfigSpot10
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.82
+
+  * func_8009F1B4 -> Scene_DrawConfigSpot12
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.81
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_scene_table.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_scene_table.c b/soh/src/code/z_scene_table.c
+index 09e9261bf..c83bac329 100644
+--- a/soh/src/code/z_scene_table.c
++++ b/soh/src/code/z_scene_table.c
+@@ -124,7 +124,8 @@ void* D_8012A2F8[] = {
+ };
+ 
+ // Scene Draw Config 19
+-void func_800995DC(PlayState* play) {
++// Name from zeldaret/oot (was func_800995DC): adopted upstream's name for this address; body verified to match upstream at 0.80. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_scene_table.c]
++void Scene_DrawConfigYdan(PlayState* play) {
+     u32 gameplayFrames = play->gameplayFrames;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -1325,7 +1326,8 @@ void Scene_DrawConfigGerudoValley(PlayState* play) {
+ }
+ 
+ // Scene Draw Config 9
+-void func_8009EE44(PlayState* play) {
++// Name from zeldaret/oot (was func_8009EE44): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_scene_table.c]
++void Scene_DrawConfigSpot10(PlayState* play) {
+     u32 gameplayFrames;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -1387,7 +1389,8 @@ void* D_8012A380[] = {
+ };
+ 
+ // Scene Draw Config 11
+-void func_8009F1B4(PlayState* play) {
++// Name from zeldaret/oot (was func_8009F1B4): adopted upstream's name for this address; body verified to match upstream at 0.81. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_scene_table.c]
++void Scene_DrawConfigSpot12(PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     { s32 pad[2]; }
+@@ -1735,8 +1738,8 @@ void Scene_DrawConfigBesitu(PlayState* play) {
+ 
+ void (*sSceneDrawHandlers[])(PlayState*) = {
+     Scene_DrawConfigDefault, Scene_DrawConfigHyruleField, Scene_DrawConfigKakarikoVillage, Scene_DrawConfigZorasRiver, Scene_DrawConfigKokiriForest, Scene_DrawConfigLakeHylia, Scene_DrawConfigZorasDomain,
+-    Scene_DrawConfigZorasFountain, Scene_DrawConfigGerudoValley, func_8009EE44, Scene_DrawConfigDesertColossus, func_8009F1B4, Scene_DrawConfigHauntedWasteland, Scene_DrawConfigHyruleCastle,
+-    Scene_DrawConfigDeathMountainTrail, Scene_DrawConfigDeathMountainCrater, Scene_DrawConfigGoronCity, Scene_DrawConfigLonLonRanch, Scene_DrawConfigFireTemple, func_800995DC, Scene_DrawConfigDodongosCavern,
++    Scene_DrawConfigZorasFountain, Scene_DrawConfigGerudoValley, Scene_DrawConfigSpot10, Scene_DrawConfigDesertColossus, Scene_DrawConfigSpot12, Scene_DrawConfigHauntedWasteland, Scene_DrawConfigHyruleCastle,
++    Scene_DrawConfigDeathMountainTrail, Scene_DrawConfigDeathMountainCrater, Scene_DrawConfigGoronCity, Scene_DrawConfigLonLonRanch, Scene_DrawConfigFireTemple, Scene_DrawConfigYdan, Scene_DrawConfigDodongosCavern,
+     Scene_DrawConfigJabuJabu, Scene_DrawConfigForestTemple, Scene_DrawConfigWaterTemple, Scene_DrawConfigShadowTempleAndWell, func_8009D974, Scene_DrawConfigInsideGanonsCastle, Scene_DrawConfigGerudoTrainingGround,
+     Scene_DrawConfigDekuTreeBoss, Scene_DrawConfigWaterTempleBoss, Scene_DrawConfigTempleOfTime, Scene_DrawConfigGrottos, Scene_DrawConfigChamberOfTheSages, Scene_DrawConfigGreatFairyFountain, Scene_DrawConfigShootingGallery,
+     Scene_DrawConfigCastleCourtyardGuards, Scene_DrawConfigOutsideGanonsCastle, Scene_DrawConfigIceCavern, Scene_DrawConfigGanonsTowerCollapseExterior, Scene_DrawConfigFairysFountain, Scene_DrawConfigThievesHideout, Scene_DrawConfigBombchuBowlingAlley,
+-- 
+2.55.0
+

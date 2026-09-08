@@ -1,0 +1,107 @@
+From e99c3e31550cdd187f51c63847eee116d3c913a1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:35 +0000
+Subject: [PATCH 412/488] soh: name the 4 address-named symbols defined in
+ functions.h
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/include/functions.h.
+
+  * func_800635D0 -> Unused_Func800635D0
+    deduced, confidence GUESS: declared in functions.h with no definition
+    and no caller anywhere in the tree
+
+  * func_800C55D0 -> GameAlloc_Unused
+    deduced, confidence GUESS: declared taking a GameAlloc with no
+    definition and no caller in the tree
+
+  * func_800F94FC -> Audio_UnusedFunc800F94FC
+    deduced, confidence GUESS: declared beside the audio entry points with
+    no definition and no caller in the tree
+
+  * func_800FF334 -> Arena_Unused
+    deduced, confidence GUESS: declared taking an Arena with no definition
+    and no caller in the tree
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 3b8a14240..aa1b29fe7 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -849,7 +849,8 @@ s32 CollisionCheck_CylSideVsLineSeg(f32 radius, f32 height, f32 offset, Vec3f* a
+                                     Vec3f* itemProjPos, Vec3f* out1, Vec3f* out2);
+ u8 CollisionCheck_GetSwordDamage(s32 dmgFlags, PlayState* play);
+ void SaveContext_Init(void);
+-s32 func_800635D0(s32);
++// LLM generated name (GUESS), was func_800635D0: declared in functions.h with no definition and no caller anywhere in the tree
++s32 Unused_Func800635D0(s32);  // was func_800635D0 [LLM:GUESS]
+ void Regs_Init(void);  // was func_800636C0 [oot]
+ void DebugCamera_ScreenText(s32 arg0, s32 arg1, const char* text);  // was func_8006375C [oot]
+ void DebugCamera_CopyText(u8 x, u8 y, u8 colorId, const char* text);  // was func_8006376C [LLM:HIGH]
+@@ -1649,7 +1650,8 @@ void GameState_Destroy(GameState* gameState);
+ GameStateFunc GameState_GetInit(GameState* gameState);
+ u32 GameState_IsRunning(GameState* gameState);
+ void* GameState_Alloc(GameState* gameState, size_t size, char* file, s32 line);
+-void func_800C55D0(GameAlloc* this);
++// LLM generated name (GUESS), was func_800C55D0: declared taking a GameAlloc with no definition and no caller in the tree
++void GameAlloc_Unused(GameAlloc* this);  // was func_800C55D0 [LLM:GUESS]
+ void* GameAlloc_MallocDebug(GameAlloc* this, size_t size, const char* file, s32 line);
+ void* GameAlloc_Malloc(GameAlloc* this, size_t size);
+ void GameAlloc_Free(GameAlloc* this, void* data);
+@@ -2160,7 +2162,8 @@ void Audio_UpdateActiveSounds(void);  // was func_800F8F88 [LLM:HIGH]
+ u8 Audio_IsSfxPlaying(u32 sfxId);
+ void Audio_ResetSounds(void);
+ void Audio_StopSequence(u8, u16);  // was func_800F9474 [oot]
+-void func_800F94FC(u32);
++// LLM generated name (GUESS), was func_800F94FC: declared beside the audio entry points with no definition and no caller in the tree
++void Audio_UnusedFunc800F94FC(u32);  // was func_800F94FC [LLM:GUESS]
+ void Audio_ProcessSeqCmd(u32);
+ void Audio_ProcessSeqCmds(void);
+ u16 Audio_GetActiveSeqId(u8 a0);  // was func_800FA0B4 [oot]
+@@ -2294,7 +2297,8 @@ void ArenaImpl_GetSizes(Arena* arena, u32* outMaxFree, u32* outFree, u32* outAll
+ void __osDisplayArena(Arena* arena);
+ void ArenaImpl_FaultClient(Arena* arena);
+ s32 __osCheckArena(Arena* arena);
+-u8 func_800FF334(Arena* arena);
++// LLM generated name (GUESS), was func_800FF334: declared taking an Arena with no definition and no caller in the tree
++u8 Arena_Unused(Arena* arena);  // was func_800FF334 [LLM:GUESS]
+ s32 PrintUtils_VPrintf(PrintCallback* pfn, const char* fmt, va_list args);
+ s32 PrintUtils_Printf(PrintCallback* pfn, const char* fmt, ...);
+ void Sleep_Cycles(OSTime cycles);
+-- 
+2.55.0
+

@@ -1,0 +1,352 @@
+From 3fbe50b4c4da7abe14dc78b06d4239d28f91b2f0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 334/488] soh: name the 12 address-named symbols defined in
+ z_en_gs.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 12 are defined in soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c.
+
+  * func_80A4E3EC -> EnGs_UpdateTalkState
+    deduced, confidence HIGH: steps the Gossip Stone conversation by message
+    state, switching from the Mask of Truth intro line to the stone's own
+    hint text and reporting whether the conversation should continue,
+    restart or end.
+
+  * func_80A4E470 -> EnGs_CheckOcarinaSong
+    deduced, confidence HIGH: while the player is within 100 units it opens
+    free ocarina play and, on a recognised song, spawns the matching fairy
+    with its transform sfx and sets the stone's switch flag.
+
+  * func_80A4E648 -> EnGs_UpdateTalking
+    deduced, confidence HIGH: offers talk while the stone is on screen,
+    picking the Mask of Truth line or the plain one, and drives the
+    resulting conversation through EnGs_UpdateTalkState.
+
+  * func_80A4E754 -> EnGs_StepWobble
+    deduced, confidence HIGH: steps an amplitude toward its target and turns
+    it into a squash-and-stretch scale by a sine over a fixed period,
+    returning the remaining distance; the three hit reactions share it.
+
+  * func_80A4E910 -> EnGs_HitWobble
+    deduced, confidence HIGH: the reaction to one damage type: it plays the
+    impact sfx and wobbles the stone until it settles, then opens the "it
+    hurts" line and returns to the idle.
+
+  * func_80A4EA08 -> EnGs_HitSpin
+    deduced, confidence HIGH: a second hit reaction: the same settling
+    wobble plus a rocking rotation on the stone's two halves.
+
+  * func_80A4EB3C -> EnGs_HitSquash
+    deduced, confidence HIGH: the heaviest hit reaction: the stone is
+    squashed flat, held for 100 frames, springs back and then wobbles out.
+
+  * func_80A4ED34 -> EnGs_Explode
+    deduced, confidence HIGH: the destruction reaction: it flashes the stone
+    red and blue, throws dust and spawns the bomb effect.
+
+  * func_80A4F13C -> EnGs_SpinAndRise
+    deduced, confidence HIGH: spins the stone up to speed about its own axis
+    and then stretches it, the multi-stage reaction used when it is
+    launched.
+
+  * func_80A4F700 -> EnGs_CountdownToDeath
+    deduced, confidence HIGH: counts its timer down and kills the actor at
+    zero.
+
+  * func_80A4F734 -> EnGs_Idle
+    deduced, confidence HIGH: the resting action: it listens for an ocarina
+    song while the stone's switch flag is still clear.
+
+  * func_80A4F77C -> EnGs_ResetTransform
+    deduced, confidence HIGH: zeroes the stone's three rotations and returns
+    both scale pairs to 1.0 before a hit reaction starts deforming them.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c | 86 ++++++++++++---------
+ 1 file changed, 49 insertions(+), 37 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c b/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
+index 178cf14b4..41212ba1e 100644
+--- a/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
++++ b/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
+@@ -17,10 +17,13 @@ void EnGs_Destroy(Actor* thisx, PlayState* play);
+ void EnGs_Update(Actor* thisx, PlayState* play);
+ void EnGs_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A4F734(EnGs* this, PlayState* play);
+-void func_80A4F700(EnGs* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A4F734: the resting action: it listens for an ocarina song while the stone's switch flag is still clear.
++void EnGs_Idle(EnGs* this, PlayState* play);  // was func_80A4F734 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A4F700: counts its timer down and kills the actor at zero.
++void EnGs_CountdownToDeath(EnGs* this, PlayState* play);  // was func_80A4F700 [LLM:HIGH]
+ 
+-void func_80A4F77C(EnGs* this);
++// LLM generated name (HIGH), was func_80A4F77C: zeroes the stone's three rotations and returns both scale pairs to 1.0 before a hit reaction starts deforming them.
++void EnGs_ResetTransform(EnGs* this);  // was func_80A4F77C [LLM:HIGH]
+ 
+ const ActorInit En_Gs_InitVars = {
+     ACTOR_EN_GS,
+@@ -106,7 +109,7 @@ void EnGs_Init(Actor* thisx, PlayState* play) {
+ 
+     thisx->targetMode = 6;
+     this->unk_1D8 = thisx->world.pos;
+-    this->actionFunc = func_80A4F734;
++    this->actionFunc = EnGs_Idle;  // was func_80A4F734 [LLM:HIGH]
+     this->unk_1B4[0].x = 1.0f;
+     this->unk_1B4[0].y = 1.0f;
+     this->unk_1B4[0].z = 1.0f;
+@@ -118,7 +121,8 @@ void EnGs_Init(Actor* thisx, PlayState* play) {
+ void EnGs_Destroy(Actor* thisx, PlayState* play) {
+ }
+ 
+-s32 func_80A4E3EC(EnGs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A4E3EC: steps the Gossip Stone conversation by message state, switching from the Mask of Truth intro line to the stone's own hint text and reporting whether the conversation should continue, restart or end.
++s32 EnGs_UpdateTalkState(EnGs* this, PlayState* play) {
+     s32 ret = 2;
+     switch (Message_GetState(&play->msgCtx)) {
+         case TEXT_STATE_DONE:
+@@ -138,7 +142,8 @@ s32 func_80A4E3EC(EnGs* this, PlayState* play) {
+     return ret;
+ }
+ 
+-void func_80A4E470(EnGs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A4E470: while the player is within 100 units it opens free ocarina play and, on a recognised song, spawns the matching fairy with its transform sfx and sets the stone's switch flag.
++void EnGs_CheckOcarinaSong(EnGs* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     bREG(15) = 0;
+@@ -172,7 +177,8 @@ void func_80A4E470(EnGs* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A4E648(EnGs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A4E648: offers talk while the stone is on screen, picking the Mask of Truth line or the plain one, and drives the resulting conversation through EnGs_UpdateTalkState.
++void EnGs_UpdateTalking(EnGs* this, PlayState* play) {
+     s16 sp26;
+     s16 sp24;
+ 
+@@ -180,7 +186,7 @@ void func_80A4E648(EnGs* this, PlayState* play) {
+         Message_ContinueTextbox(play, this->actor.textId);
+         this->unk_19C = 2;
+     } else if (this->unk_19C == 2) {
+-        this->unk_19C = func_80A4E3EC(this, play);
++        this->unk_19C = EnGs_UpdateTalkState(this, play);  // was func_80A4E3EC [LLM:HIGH]
+     } else if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         this->unk_19C = 2;
+     } else {
+@@ -202,7 +208,8 @@ void func_80A4E648(EnGs* this, PlayState* play) {
+     }
+ }
+ 
+-f32 func_80A4E754(EnGs* this, PlayState* play, f32* arg2, f32* arg3, u16* arg4, f32 arg5, f32 arg6, f32 arg7, s32 arg8,
++// LLM generated name (HIGH), was func_80A4E754: steps an amplitude toward its target and turns it into a squash-and-stretch scale by a sine over a fixed period, returning the remaining distance; the three hit reactions share it.
++f32 EnGs_StepWobble(EnGs* this, PlayState* play, f32* arg2, f32* arg3, u16* arg4, f32 arg5, f32 arg6, f32 arg7, s32 arg8,
+                   s32 arg9) {
+     f32 sp2C = Math_SmoothStepToF(arg2, *arg3, arg5, arg6, arg7);
+ 
+@@ -215,24 +222,26 @@ f32 func_80A4E754(EnGs* this, PlayState* play, f32* arg2, f32* arg3, u16* arg4,
+     return sp2C;
+ }
+ 
+-void func_80A4E910(EnGs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A4E910: the reaction to one damage type: it plays the impact sfx and wobbles the stone until it settles, then opens the "it hurts" line and returns to the idle.
++void EnGs_HitWobble(EnGs* this, PlayState* play) {
+     if (this->unk_19F == 0) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_STALKID_ATTACK);
+         this->unk_200 = 0;
+         this->unk_19F = 1;
+         this->unk_1E8 = 0.5f;
+         this->unk_1EC = 0.0f;
+-    } else if ((this->unk_19F == 1) && (func_80A4E754(this, play, &this->unk_1E8, &this->unk_1EC, &this->unk_200, 0.8f,
++    } else if ((this->unk_19F == 1) && (EnGs_StepWobble(this, play, &this->unk_1E8, &this->unk_1EC, &this->unk_200, 0.8f,  // was func_80A4E754 [LLM:HIGH]
+                                                       0.007f, 0.001f, 7, 0) == 0.0f)) {
+         if (!Play_InCsMode(play)) {
+             Message_StartTextbox(play, 0x71B1, NULL);
+         }
+         this->unk_19C = 0;
+-        this->actionFunc = func_80A4F734;
++        this->actionFunc = EnGs_Idle;  // was func_80A4F734 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A4EA08(EnGs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A4EA08: a second hit reaction: the same settling wobble plus a rocking rotation on the stone's two halves.
++void EnGs_HitSpin(EnGs* this, PlayState* play) {
+     if (this->unk_19F == 0) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_STALKID_ATTACK);
+         this->unk_1E8 = 0.3f;
+@@ -242,15 +251,16 @@ void func_80A4EA08(EnGs* this, PlayState* play) {
+     } else if (this->unk_19F == 1) {
+         this->unk_1A0[0].z = (((this->unk_200 % 8) / 8.0f) * 360.0f) * (0x10000 / 360.0f);
+         this->unk_1A0[1].z = -this->unk_1A0[0].z;
+-        if (func_80A4E754(this, play, &this->unk_1E8, &this->unk_1EC, &this->unk_200, 0.8f, 0.005f, 0.001f, 7, 0) ==
++        if (EnGs_StepWobble(this, play, &this->unk_1E8, &this->unk_1EC, &this->unk_200, 0.8f, 0.005f, 0.001f, 7, 0) ==  // was func_80A4E754 [LLM:HIGH]
+             0.0f) {
+             this->unk_19C = 0;
+-            this->actionFunc = func_80A4F734;
++            this->actionFunc = EnGs_Idle;  // was func_80A4F734 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A4EB3C(EnGs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A4EB3C: the heaviest hit reaction: the stone is squashed flat, held for 100 frames, springs back and then wobbles out.
++void EnGs_HitSquash(EnGs* this, PlayState* play) {
+     f32 ret;
+ 
+     if (this->unk_19F == 0) {
+@@ -282,15 +292,16 @@ void func_80A4EB3C(EnGs* this, PlayState* play) {
+             this->unk_19F++;
+         }
+     } else if (this->unk_19F == 4) {
+-        if (func_80A4E754(this, play, &this->unk_1E8, &this->unk_1EC, &this->unk_200, 1.0f, 0.03f, 0.001f, 5, 0) ==
++        if (EnGs_StepWobble(this, play, &this->unk_1E8, &this->unk_1EC, &this->unk_200, 1.0f, 0.03f, 0.001f, 5, 0) ==  // was func_80A4E754 [LLM:HIGH]
+             0.0f) {
+             this->unk_19C = 0;
+-            this->actionFunc = func_80A4F734;
++            this->actionFunc = EnGs_Idle;  // was func_80A4F734 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_80A4ED34(EnGs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A4ED34: the destruction reaction: it flashes the stone red and blue, throws dust and spawns the bomb effect.
++void EnGs_Explode(EnGs* this, PlayState* play) {
+     static Color_RGBA8 flashRed = { 255, 50, 50, 0 };
+     static Color_RGBA8 flashBlue = { 50, 50, 255, 0 };
+     static Color_RGBA8 baseWhite = { 255, 255, 255, 0 };
+@@ -375,7 +386,7 @@ void func_80A4ED34(EnGs* this, PlayState* play) {
+             EffectSsBomb2_SpawnLayered(play, &bomb2Pos, &bomb2Velocity, &bomb2Accel, 100, 20);
+             this->unk_200 = 10;
+             this->unk_19E |= 8;
+-            this->actionFunc = func_80A4F700;
++            this->actionFunc = EnGs_CountdownToDeath;  // was func_80A4F700 [LLM:HIGH]
+         } else {
+             Actor_PlaySfx_Flagged(&this->actor, NA_SE_EV_STONE_LAUNCH - SFX_FLAG);
+         }
+@@ -387,7 +398,8 @@ void func_80A4ED34(EnGs* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A4F13C(EnGs* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A4F13C: spins the stone up to speed about its own axis and then stretches it, the multi-stage reaction used when it is launched.
++void EnGs_SpinAndRise(EnGs* this, PlayState* play) {
+     f32 tmpf1;
+     f32 tmpf2;
+     f32 tmpf3;
+@@ -481,7 +493,7 @@ void func_80A4F13C(EnGs* this, PlayState* play) {
+         this->unk_200++;
+         if ((tmpf1 == 0.0f) && (tmpf2 == 0.0f) && (tmpf3 == 0.0f)) {
+             this->unk_19C = 0;
+-            this->actionFunc = func_80A4F734;
++            this->actionFunc = EnGs_Idle;  // was func_80A4F734 [LLM:HIGH]
+         }
+     }
+     if ((u16)this->unk_1A0[0].y < (u16)tmp2) {
+@@ -489,19 +501,19 @@ void func_80A4F13C(EnGs* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A4F700(EnGs* this, PlayState* play) {
++void EnGs_CountdownToDeath(EnGs* this, PlayState* play) {
+     if (this->unk_200-- <= 0) {
+         Actor_Kill(&this->actor);
+     }
+ }
+ 
+-void func_80A4F734(EnGs* this, PlayState* play) {
++void EnGs_Idle(EnGs* this, PlayState* play) {
+     if (!Flags_GetSwitch(play, (this->actor.params >> 8) & 0x3F)) {
+-        func_80A4E470(this, play);
++        EnGs_CheckOcarinaSong(this, play);  // was func_80A4E470 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A4F77C(EnGs* this) {
++void EnGs_ResetTransform(EnGs* this) {
+     static Vec3s D_80A4FE34 = { 0, 0, 0 };
+     static Vec3f D_80A4FE3C = { 1.0f, 1.0f, 1.0f };
+     s32 i;
+@@ -530,28 +542,28 @@ void EnGs_Update(Actor* thisx, PlayState* play2) {
+             switch (this->actor.colChkInfo.damageEffect) {
+                 case 15:
+                     this->unk_19E |= 1;
+-                    func_80A4F77C(this);
+-                    this->actionFunc = func_80A4E910;
++                    EnGs_ResetTransform(this);  // was func_80A4F77C [LLM:HIGH]
++                    this->actionFunc = EnGs_HitWobble;  // was func_80A4E910 [LLM:HIGH]
+                     break;
+                 case 14:
+                     this->unk_19E |= 1;
+-                    func_80A4F77C(this);
+-                    this->actionFunc = func_80A4EA08;
++                    EnGs_ResetTransform(this);  // was func_80A4F77C [LLM:HIGH]
++                    this->actionFunc = EnGs_HitSpin;  // was func_80A4EA08 [LLM:HIGH]
+                     break;
+                 case 13:
+                     this->unk_19E |= 1;
+-                    func_80A4F77C(this);
+-                    this->actionFunc = func_80A4EB3C;
++                    EnGs_ResetTransform(this);  // was func_80A4F77C [LLM:HIGH]
++                    this->actionFunc = EnGs_HitSquash;  // was func_80A4EB3C [LLM:HIGH]
+                     break;
+                 case 12:
+                     this->unk_19E |= 2;
+-                    func_80A4F77C(this);
+-                    this->actionFunc = func_80A4ED34;
++                    EnGs_ResetTransform(this);  // was func_80A4F77C [LLM:HIGH]
++                    this->actionFunc = EnGs_Explode;  // was func_80A4ED34 [LLM:HIGH]
+                     break;
+                 case 11:
+                     this->unk_19E |= 1;
+-                    func_80A4F77C(this);
+-                    this->actionFunc = func_80A4F13C;
++                    EnGs_ResetTransform(this);  // was func_80A4F77C [LLM:HIGH]
++                    this->actionFunc = EnGs_SpinAndRise;  // was func_80A4F13C [LLM:HIGH]
+                     break;
+             }
+         }
+@@ -560,7 +572,7 @@ void EnGs_Update(Actor* thisx, PlayState* play2) {
+         CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+     }
+     this->actionFunc(this, play);
+-    func_80A4E648(this, play);
++    EnGs_UpdateTalking(this, play);  // was func_80A4E648 [LLM:HIGH]
+ }
+ 
+ void EnGs_Draw(Actor* thisx, PlayState* play) {
+-- 
+2.55.0
+

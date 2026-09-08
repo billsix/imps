@@ -1,0 +1,176 @@
+From 88844c08da1657616a71597da2ceffdac2c7a959 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:33 +0000
+Subject: [PATCH 396/488] soh: name the 9 address-named symbols defined in
+ z_en_rd.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 9 are defined in soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c.
+
+  * D_80AE4918 -> sUnusedWalkPos
+    deduced, confidence GUESS: copied into a local EnRd_WalkToPlayer never
+    reads; the copy is all that survives of whatever effect it fed
+
+  * D_80AE4924 -> sUnusedWalkPrimColor
+    deduced, confidence GUESS: copied into an equally unread local beside it
+
+  * D_80AE4928 -> sUnusedWalkEnvColor
+    deduced, confidence GUESS: the third of that unread group
+
+  * D_80AE492C -> sUnusedFreezePos
+    deduced, confidence GUESS: the same dead copy pattern in
+    EnRd_AttemptPlayerFreeze
+
+  * D_80AE4938 -> sUnusedFreezePrimColor
+    deduced, confidence GUESS: copied into an unread local beside it
+
+  * D_80AE493C -> sUnusedFreezeEnvColor
+    deduced, confidence GUESS: the third of that unread group
+
+  * D_80AE4940 -> sLimbFlameOffset
+    deduced, confidence HIGH: the limb-space point EnRd_PostLimbDraw
+    transforms to place each burning limb's flame
+
+  * D_80AE494C -> sUnusedLimbOffset
+    deduced, confidence GUESS: an identical copy of sLimbFlameOffset that
+    nothing in the overlay reads
+
+  * D_80AE4958 -> sShadowScale
+    deduced, confidence HIGH: the scale passed to Actor_DrawShadowAtPos for
+    the redead's shadow
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c | 49 ++++++++++++---------
+ 1 file changed, 29 insertions(+), 20 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c b/soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c
+index 81bceb6bc..5c5ff4deb 100644
+--- a/soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c
++++ b/soh/src/overlays/actors/ovl_En_Rd/z_en_rd.c
+@@ -106,19 +106,28 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32_DIV1000(gravity, -3500, ICHAIN_STOP),
+ };
+ 
+-static Vec3f D_80AE4918 = { 0.0f, 0.0f, 0.0f };
++// LLM generated name (GUESS), was D_80AE4918: copied into a local EnRd_WalkToPlayer never reads; the copy is all that survives of whatever effect it fed
++static Vec3f sUnusedWalkPos = { 0.0f, 0.0f, 0.0f };  // was D_80AE4918 [LLM:GUESS]
+ 
+ // I'm guessing these are primitive and environment colors that go unused
+-static Color_RGBA8 D_80AE4924 = { 200, 200, 255, 255 };
+-static Color_RGBA8 D_80AE4928 = { 0, 0, 255, 0 };
+-
+-static Vec3f D_80AE492C = { 0.0f, 0.0f, 0.0f };
+-static Color_RGBA8 D_80AE4938 = { 200, 200, 255, 255 };
+-static Color_RGBA8 D_80AE493C = { 0, 0, 255, 0 };
+-
+-static Vec3f D_80AE4940 = { 300.0f, 0.0f, 0.0f };
+-static Vec3f D_80AE494C = { 300.0f, 0.0f, 0.0f };
+-static Vec3f D_80AE4958 = { 0.25f, 0.25f, 0.25f };
++// LLM generated name (GUESS), was D_80AE4924: copied into an equally unread local beside it
++static Color_RGBA8 sUnusedWalkPrimColor = { 200, 200, 255, 255 };  // was D_80AE4924 [LLM:GUESS]
++// LLM generated name (GUESS), was D_80AE4928: the third of that unread group
++static Color_RGBA8 sUnusedWalkEnvColor = { 0, 0, 255, 0 };  // was D_80AE4928 [LLM:GUESS]
++
++// LLM generated name (GUESS), was D_80AE492C: the same dead copy pattern in EnRd_AttemptPlayerFreeze
++static Vec3f sUnusedFreezePos = { 0.0f, 0.0f, 0.0f };  // was D_80AE492C [LLM:GUESS]
++// LLM generated name (GUESS), was D_80AE4938: copied into an unread local beside it
++static Color_RGBA8 sUnusedFreezePrimColor = { 200, 200, 255, 255 };  // was D_80AE4938 [LLM:GUESS]
++// LLM generated name (GUESS), was D_80AE493C: the third of that unread group
++static Color_RGBA8 sUnusedFreezeEnvColor = { 0, 0, 255, 0 };  // was D_80AE493C [LLM:GUESS]
++
++// LLM generated name (HIGH), was D_80AE4940: the limb-space point EnRd_PostLimbDraw transforms to place each burning limb's flame
++static Vec3f sLimbFlameOffset = { 300.0f, 0.0f, 0.0f };  // was D_80AE4940 [LLM:HIGH]
++// LLM generated name (GUESS), was D_80AE494C: an identical copy of sLimbFlameOffset that nothing in the overlay reads
++static Vec3f sUnusedLimbOffset = { 300.0f, 0.0f, 0.0f };  // was D_80AE494C [LLM:GUESS]
++// LLM generated name (HIGH), was D_80AE4958: the scale passed to Actor_DrawShadowAtPos for the redead's shadow
++static Vec3f sShadowScale = { 0.25f, 0.25f, 0.25f };  // was D_80AE4958 [LLM:HIGH]
+ 
+ void EnRd_SetupAction(EnRd* this, EnRdActionFunc actionFunc) {
+     this->actionFunc = actionFunc;
+@@ -316,9 +325,9 @@ void EnRd_SetupWalkToPlayer(EnRd* this, PlayState* play) {
+ }
+ 
+ void EnRd_WalkToPlayer(EnRd* this, PlayState* play) {
+-    Vec3f sp44 = D_80AE4918;
+-    Color_RGBA8 sp40 = D_80AE4924;
+-    Color_RGBA8 sp3C = D_80AE4928;
++    Vec3f sp44 = sUnusedWalkPos;  // was D_80AE4918 [LLM:GUESS]
++    Color_RGBA8 sp40 = sUnusedWalkPrimColor;  // was D_80AE4924 [LLM:GUESS]
++    Color_RGBA8 sp3C = sUnusedWalkEnvColor;  // was D_80AE4928 [LLM:GUESS]
+     Player* player = GET_PLAYER(play);
+     s32 pad;
+     s16 sp32 = this->actor.yawTowardsPlayer - this->actor.shape.rot.y - this->headYRotation - this->upperBodyYRotation;
+@@ -565,9 +574,9 @@ void EnRd_SetupAttemptPlayerFreeze(EnRd* this) {
+ }
+ 
+ void EnRd_AttemptPlayerFreeze(EnRd* this, PlayState* play) {
+-    Vec3f sp34 = D_80AE492C;
+-    Color_RGBA8 sp30 = D_80AE4938;
+-    Color_RGBA8 sp2C = D_80AE493C;
++    Vec3f sp34 = sUnusedFreezePos;  // was D_80AE492C [LLM:GUESS]
++    Color_RGBA8 sp30 = sUnusedFreezePrimColor;  // was D_80AE4938 [LLM:GUESS]
++    Color_RGBA8 sp2C = sUnusedFreezeEnvColor;  // was D_80AE493C [LLM:GUESS]
+     Player* player = GET_PLAYER(play);
+     s16 temp_v0 =
+         this->actor.yawTowardsPlayer - this->actor.shape.rot.y - this->headYRotation - this->upperBodyYRotation;
+@@ -863,7 +872,7 @@ s32 EnRd_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
+ }
+ 
+ void EnRd_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx, Gfx** gfx) {
+-    Vec3f sp2C = D_80AE4940;
++    Vec3f sp2C = sLimbFlameOffset;  // was D_80AE4940 [LLM:HIGH]
+     EnRd* this = (EnRd*)thisx;
+     s32 idx = -1;
+     Vec3f destPos;
+@@ -925,7 +934,7 @@ void EnRd_Draw(Actor* thisx, PlayState* play) {
+         POLY_OPA_DISP =
+             SkelAnime_DrawFlex(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
+                                EnRd_OverrideLimbDraw, EnRd_PostLimbDraw, this, POLY_OPA_DISP);
+-        Actor_DrawShadowAtPos(&thisPos, &D_80AE4958, 255, play);  // was func_80033C30 [LLM:HIGH]
++        Actor_DrawShadowAtPos(&thisPos, &sShadowScale, 255, play);  // was func_80033C30 [LLM:HIGH]
+         if (this->fireTimer != 0) {
+             thisx->colorFilterTimer++;
+             this->fireTimer--;
+@@ -942,7 +951,7 @@ void EnRd_Draw(Actor* thisx, PlayState* play) {
+             SkelAnime_DrawFlex(play, this->skelAnime.skeleton, this->skelAnime.jointTable, this->skelAnime.dListCount,
+                                EnRd_OverrideLimbDraw, NULL, this, POLY_XLU_DISP);
+ 
+-        Actor_DrawShadowAtPos(&thisPos, &D_80AE4958, this->alpha, play);  // was func_80033C30 [LLM:HIGH]
++        Actor_DrawShadowAtPos(&thisPos, &sShadowScale, this->alpha, play);  // was func_80033C30 [LLM:HIGH]
+     }
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+-- 
+2.55.0
+

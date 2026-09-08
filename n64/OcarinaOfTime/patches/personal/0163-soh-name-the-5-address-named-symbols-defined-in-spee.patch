@@ -1,0 +1,162 @@
+From d661adefb5c808b9efb56ec7d1feac31f15029ad Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:12 +0000
+Subject: [PATCH 163/488] soh: name the 5 address-named symbols defined in
+ speed_meter.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/code/speed_meter.c; updating their references touches 3 files in total.
+
+  * D_8016A528 -> gGfxTaskSentToNextReadyMinusAudioThreadUpdateTime
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8016A530 -> gRSPAudioTimeTotal
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8016A538 -> gRSPGfxTimeTotal
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8016A540 -> gRDPTimeTotal
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_8016A548 -> gGraphUpdatePeriod
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/variables.h    | 10 +++++-----
+ soh/src/code/graph.c       | 10 +++++-----
+ soh/src/code/speed_meter.c | 21 +++++++++++++--------
+ 3 files changed, 23 insertions(+), 18 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index 85b7b16a2..ca818b33f 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -209,11 +209,11 @@ extern "C"
+ 	extern PadMgr gPadMgr;
+ 	extern uintptr_t gSegments[NUM_SEGMENTS];
+ 	extern volatile OSTime gAudioThreadUpdateTimeTotalPerGfxTask;  // was D_8016A520 [oot]
+-	extern volatile OSTime D_8016A528;
+-	extern volatile OSTime D_8016A530;
+-	extern volatile OSTime D_8016A538;
+-	extern volatile OSTime D_8016A540;
+-	extern volatile OSTime D_8016A548;
++	extern volatile OSTime gGfxTaskSentToNextReadyMinusAudioThreadUpdateTime;  // was D_8016A528 [oot]
++	extern volatile OSTime gRSPAudioTimeTotal;  // was D_8016A530 [oot]
++	extern volatile OSTime gRSPGfxTimeTotal;  // was D_8016A538 [oot]
++	extern volatile OSTime gRDPTimeTotal;  // was D_8016A540 [oot]
++	extern volatile OSTime gGraphUpdatePeriod;  // was D_8016A548 [oot]
+ 	extern volatile OSTime gAudioThreadUpdateTimeStart;  // was D_8016A550 [oot]
+ 	extern volatile OSTime gAudioThreadUpdateTimeAcc;  // was D_8016A558 [oot]
+ 	extern volatile OSTime gRSPAudioTotalTime;
+diff --git a/soh/src/code/graph.c b/soh/src/code/graph.c
+index 4ce999e56..662e4a946 100644
+--- a/soh/src/code/graph.c
++++ b/soh/src/code/graph.c
+@@ -178,7 +178,7 @@ void Graph_TaskSet00(GraphicsContext* gfxCtx) {
+     CfbInfo* cfb;
+     s32 pad1;
+ 
+-    D_8016A528 = osGetTime() - sGraphSetTaskTime - gAudioThreadUpdateTimeAcc;
++    gGfxTaskSentToNextReadyMinusAudioThreadUpdateTime = osGetTime() - sGraphSetTaskTime - gAudioThreadUpdateTimeAcc;
+ 
+     osSetTimer(&timer, OS_USEC_TO_CYCLES(3000000), 0, &gfxCtx->queue, OS_MESG_32(666));
+ 
+@@ -395,15 +395,15 @@ void Graph_Update(GraphicsContext* gfxCtx, GameState* gameState) {
+         OSTime time = osGetTime();
+         s32 pad[4];
+ 
+-        D_8016A538 = gRSPGFXTotalTime;
+-        D_8016A530 = gRSPAudioTotalTime;
+-        D_8016A540 = gRDPTotalTime;
++        gRSPGfxTimeTotal = gRSPGFXTotalTime;
++        gRSPAudioTimeTotal = gRSPAudioTotalTime;
++        gRDPTimeTotal = gRDPTotalTime;
+         gRSPGFXTotalTime = 0;
+         gRSPAudioTotalTime = 0;
+         gRDPTotalTime = 0;
+ 
+         if (sGraphUpdateTime != 0) {
+-            D_8016A548 = time - sGraphUpdateTime;
++            gGraphUpdatePeriod = time - sGraphUpdateTime;
+         }
+         sGraphUpdateTime = time;
+     }
+diff --git a/soh/src/code/speed_meter.c b/soh/src/code/speed_meter.c
+index d6f80bc72..b2f491502 100644
+--- a/soh/src/code/speed_meter.c
++++ b/soh/src/code/speed_meter.c
+@@ -4,11 +4,16 @@
+ // Name from zeldaret/oot, was D_8016A520: OSTime measuring audio thread update duration; drawn as [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
+ // speed-meter red bar
+ volatile OSTime gAudioThreadUpdateTimeTotalPerGfxTask;
+-volatile OSTime D_8016A528;
+-volatile OSTime D_8016A530;
+-volatile OSTime D_8016A538;
+-volatile OSTime D_8016A540;
+-volatile OSTime D_8016A548;
++// Name from zeldaret/oot (was D_8016A528): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
++volatile OSTime gGfxTaskSentToNextReadyMinusAudioThreadUpdateTime;
++// Name from zeldaret/oot (was D_8016A530): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
++volatile OSTime gRSPAudioTimeTotal;
++// Name from zeldaret/oot (was D_8016A538): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
++volatile OSTime gRSPGfxTimeTotal;
++// Name from zeldaret/oot (was D_8016A540): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
++volatile OSTime gRDPTimeTotal;
++// Name from zeldaret/oot (was D_8016A548): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
++volatile OSTime gGraphUpdatePeriod;
+ // Name from zeldaret/oot, was D_8016A550: OSTime start timestamp for audio thread update timing [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
+ volatile OSTime gAudioThreadUpdateTimeStart;
+ // Name from zeldaret/oot, was D_8016A558: OSTime accumulator for audio thread update timing [oot: https://github.com/zeldaret/oot/blob/main/src/code/speed_meter.c]
+@@ -21,9 +26,9 @@ volatile OSTime gRDPTotalTime;
+ SpeedMeterTimeEntry* sSpeedMeterTimeEntryPtr;
+ 
+ SpeedMeterTimeEntry sSpeedMeterTimeEntryArray[] = {
+-    { &gAudioThreadUpdateTimeTotalPerGfxTask, 0, 0, GPACK_RGBA5551(255, 0, 0, 1) }, { &D_8016A528, 0, 2, GPACK_RGBA5551(255, 255, 0, 1) },
+-    { &D_8016A530, 0, 4, GPACK_RGBA5551(0, 0, 255, 1) }, { &D_8016A538, 0, 6, GPACK_RGBA5551(255, 128, 128, 1) },
+-    { &D_8016A540, 0, 8, GPACK_RGBA5551(0, 255, 0, 1) }, { &D_8016A548, 0, 10, GPACK_RGBA5551(255, 0, 255, 1) },
++    { &gAudioThreadUpdateTimeTotalPerGfxTask, 0, 0, GPACK_RGBA5551(255, 0, 0, 1) }, { &gGfxTaskSentToNextReadyMinusAudioThreadUpdateTime, 0, 2, GPACK_RGBA5551(255, 255, 0, 1) },
++    { &gRSPAudioTimeTotal, 0, 4, GPACK_RGBA5551(0, 0, 255, 1) }, { &gRSPGfxTimeTotal, 0, 6, GPACK_RGBA5551(255, 128, 128, 1) },
++    { &gRDPTimeTotal, 0, 8, GPACK_RGBA5551(0, 255, 0, 1) }, { &gGraphUpdatePeriod, 0, 10, GPACK_RGBA5551(255, 0, 255, 1) },
+ };
+ 
+ #define DrawRec(gfx, color, ulx, uly, lrx, lry)        \
+-- 
+2.55.0
+

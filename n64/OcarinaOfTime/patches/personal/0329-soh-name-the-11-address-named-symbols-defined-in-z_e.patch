@@ -1,0 +1,362 @@
+From 3fe0afaac9e73c6d4fd9a18198d5f128f9e12f76 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 329/488] soh: name the 11 address-named symbols defined in
+ z_en_ik.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 11 are defined in soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c.
+
+  * D_80A78470 -> sUnusedOffset
+    deduced, confidence HIGH: the in-tree comment above it reads "//
+    unused"; the Vec3f has no reference anywhere.
+
+  * D_80A7847C -> sAxeQuadOffsets
+    deduced, confidence HIGH: the four local-space corners of the axe's quad
+    collider, transformed by the limb matrix each frame; the first two are
+    also the tip and base of the blade trail.
+
+  * D_80A784AC -> sShieldTri0Offsets
+    deduced, confidence HIGH: the three local-space corners of the shield
+    collider's first triangle.
+
+  * D_80A784D0 -> sShieldTri1Offsets
+    deduced, confidence HIGH: the three corners of the shield collider's
+    second triangle, completing the quad.
+
+  * func_80A761B0 -> EnIk_AllocColorDList
+    deduced, confidence HIGH: allocates a small display list holding a prim
+    and an env colour, bound to segments 8, 9 and 0x0A by the draw function.
+
+  * func_80A76C14 -> EnIk_PlayIntroSfx
+    deduced, confidence HIGH: fires the Iron Knuckle's wake-up, footstep,
+    armour, finger and axe-wave sounds on their fixed frames of the
+    introduction animation.
+
+  * func_80A76DDC -> EnIk_PlayAxeSummonSfx
+    deduced, confidence HIGH: plays the transform sfx that accompanies the
+    axe appearing; EnIk_SpawnAxeSmoke calls it once the smoke has been
+    thrown.
+
+  * func_80A772A4 -> EnIk_PlayStaggerSfx
+    deduced, confidence HIGH: plays the stagger sound for the Nabooru defeat
+    cutscene; EnIk_SetupCsAction4 calls it.
+
+  * func_80A772EC -> EnIk_PlayDeathSfx
+    deduced, confidence HIGH: projects the actor's position through the view
+    matrix and plays the death sound at that screen position;
+    EnIk_SetupCsAction3 calls it.
+
+  * func_80A774F8 -> EnIk_CsAction5
+    deduced, confidence HIGH: the sixth entry of the cutscene action table:
+    it kills the actor as soon as cue 4 goes away.
+
+  * func_80A781CC -> EnIk_UpdateDefeated
+    deduced, confidence HIGH: the update installed when the Iron Knuckle is
+    beaten: once the player leaves cutscene mode it restores the normal
+    update and draw, starts the Nabooru defeat cutscene, sets the
+    battle-finished flag and enters cutscene action 3.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c | 101 +++++++++++---------
+ 1 file changed, 56 insertions(+), 45 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+index 15ec2644f..d88104d74 100644
+--- a/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
++++ b/soh/src/overlays/actors/ovl_En_Ik/z_en_ik.c
+@@ -65,7 +65,8 @@ void EnIk_DrawEnemy(Actor* thisx, PlayState* play);
+ void EnIk_CsAction3(EnIk* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A774BC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+ void EnIk_CsAction4(EnIk* this, PlayState* play);
+-void func_80A774F8(EnIk* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A774F8: the sixth entry of the cutscene action table: it kills the actor as soon as cue 4 goes away.
++void EnIk_CsAction5(EnIk* this, PlayState* play);  // was func_80A774F8 [LLM:HIGH]
+ // Name from zeldaret/oot (was func_80A77844): adopted upstream's name for this address; body verified to match upstream at 0.82. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+ void EnIk_CsDrawDefeat(EnIk* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A779DC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+@@ -82,7 +83,8 @@ void EnIk_CsDrawNothing(EnIk* this, PlayState* play);
+ void EnIk_CsDrawIntro(EnIk* this, PlayState* play);
+ // Name from zeldaret/oot (was func_80A78160): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Ik/z_en_ik.c]
+ void EnIk_ChangeToEnemy(EnIk* this, PlayState* play);
+-void func_80A781CC(Actor* thisx, PlayState* play);
++// LLM generated name (HIGH), was func_80A781CC: the update installed when the Iron Knuckle is beaten: once the player leaves cutscene mode it restores the normal update and draw, starts the Nabooru defeat cutscene, sets the battle-finished flag and enters cutscene action 3.
++void EnIk_UpdateDefeated(Actor* thisx, PlayState* play);  // was func_80A781CC [LLM:HIGH]
+ 
+ static ColliderCylinderInit sCylinderInit = {
+     {
+@@ -808,7 +810,7 @@ void EnIk_UpdateEnemy(Actor* thisx, PlayState* play) {
+     this->drawArmorFlag = this->armorStatusFlag;
+     EnIk_UpdateDamage(this, play);
+     if ((this->actor.params == 0) && (this->actor.colChkInfo.health <= 10)) {
+-        func_80A781CC(&this->actor, play);
++        EnIk_UpdateDefeated(&this->actor, play);  // was func_80A781CC [LLM:HIGH]
+         return;
+     }
+     this->actionFunc(this, play);
+@@ -846,7 +848,8 @@ void EnIk_UpdateEnemy(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-Gfx* func_80A761B0(GraphicsContext* gfxCtx, u8 primR, u8 primG, u8 primB, u8 envR, u8 envG, u8 envB) {
++// LLM generated name (HIGH), was func_80A761B0: allocates a small display list holding a prim and an env colour, bound to segments 8, 9 and 0x0A by the draw function.
++Gfx* EnIk_AllocColorDList(GraphicsContext* gfxCtx, u8 primR, u8 primG, u8 primB, u8 envR, u8 envG, u8 envB) {
+     Gfx* displayList;
+     Gfx* displayListHead;
+ 
+@@ -890,22 +893,26 @@ s32 EnIk_OverrideLimbDraw3(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* p
+ }
+ 
+ // unused
+-static Vec3f D_80A78470 = { 300.0f, 0.0f, 0.0f };
++// LLM generated name (HIGH), was D_80A78470: the in-tree comment above it reads "// unused"; the Vec3f has no reference anywhere.
++static Vec3f sUnusedOffset = { 300.0f, 0.0f, 0.0f };  // was D_80A78470 [LLM:HIGH]
+ 
+-static Vec3f D_80A7847C[] = {
++// LLM generated name (HIGH), was D_80A7847C: the four local-space corners of the axe's quad collider, transformed by the limb matrix each frame; the first two are also the tip and base of the blade trail.
++static Vec3f sAxeQuadOffsets[] = {  // was D_80A7847C [LLM:HIGH]
+     { 800.0f, -200.0f, -5200.0f },
+     { 0.0f, 0.0f, 0.0f },
+     { -200.0f, -2200.0f, -200.0f },
+     { -6000.0f, 2000.0f, -3000.0f },
+ };
+ 
+-static Vec3f D_80A784AC[] = {
++// LLM generated name (HIGH), was D_80A784AC: the three local-space corners of the shield collider's first triangle.
++static Vec3f sShieldTri0Offsets[] = {  // was D_80A784AC [LLM:HIGH]
+     { -3000.0, -700.0, -5000.0 },
+     { -3000.0, -700.0, 2000.0 },
+     { 4000.0, -700.0, 2000.0 },
+ };
+ 
+-static Vec3f D_80A784D0[] = {
++// LLM generated name (HIGH), was D_80A784D0: the three corners of the shield collider's second triangle, completing the quad.
++static Vec3f sShieldTri1Offsets[] = {  // was D_80A784D0 [LLM:HIGH]
+     { 4000.0, -700.0, 2000.0 },
+     { 4000.0, -700.0, -5000.0 },
+     { -3000.0, -700.0, -5000.0 },
+@@ -933,14 +940,14 @@ void EnIk_PostLimbDraw3(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+         Vec3f sp9C[3];
+         Vec3f sp78[3];
+ 
+-        Matrix_MultVec3f(&D_80A7847C[0], &this->axeCollider.dim.quad[1]);
+-        Matrix_MultVec3f(&D_80A7847C[1], &this->axeCollider.dim.quad[0]);
+-        Matrix_MultVec3f(&D_80A7847C[2], &this->axeCollider.dim.quad[3]);
+-        Matrix_MultVec3f(&D_80A7847C[3], &this->axeCollider.dim.quad[2]);
++        Matrix_MultVec3f(&sAxeQuadOffsets[0], &this->axeCollider.dim.quad[1]);  // was D_80A7847C [LLM:HIGH]
++        Matrix_MultVec3f(&sAxeQuadOffsets[1], &this->axeCollider.dim.quad[0]);  // was D_80A7847C [LLM:HIGH]
++        Matrix_MultVec3f(&sAxeQuadOffsets[2], &this->axeCollider.dim.quad[3]);  // was D_80A7847C [LLM:HIGH]
++        Matrix_MultVec3f(&sAxeQuadOffsets[3], &this->axeCollider.dim.quad[2]);  // was D_80A7847C [LLM:HIGH]
+         Collider_SetQuadVertices(&this->axeCollider, &this->axeCollider.dim.quad[0], &this->axeCollider.dim.quad[1],
+                                  &this->axeCollider.dim.quad[2], &this->axeCollider.dim.quad[3]);
+-        Matrix_MultVec3f(&D_80A7847C[0], &spF4);
+-        Matrix_MultVec3f(&D_80A7847C[1], &spE8);
++        Matrix_MultVec3f(&sAxeQuadOffsets[0], &spF4);  // was D_80A7847C [LLM:HIGH]
++        Matrix_MultVec3f(&sAxeQuadOffsets[1], &spE8);  // was D_80A7847C [LLM:HIGH]
+         if (this->unk_2FE > 0) {
+             EffectBlure_AddVertex(Effect_GetByIndex(this->blureIdx), &spF4, &spE8);
+         } else if (this->unk_2FE == 0) {
+@@ -949,8 +956,8 @@ void EnIk_PostLimbDraw3(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+         }
+         if (this->unk_2F8 == 9) {
+             for (i = 0; i < ARRAY_COUNT(sp78); i++) {
+-                Matrix_MultVec3f(&D_80A784AC[i], &sp9C[i]);
+-                Matrix_MultVec3f(&D_80A784D0[i], &sp78[i]);
++                Matrix_MultVec3f(&sShieldTri0Offsets[i], &sp9C[i]);  // was D_80A784AC [LLM:HIGH]
++                Matrix_MultVec3f(&sShieldTri1Offsets[i], &sp78[i]);  // was D_80A784D0 [LLM:HIGH]
+             }
+ 
+             Collider_SetTrisVertices(&this->shieldCollider, 0, &sp9C[0], &sp9C[1], &sp9C[2]);
+@@ -995,21 +1002,21 @@ void EnIk_DrawEnemy(Actor* thisx, PlayState* play) {
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+ 
+     if (this->actor.params == 0) {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, func_80A761B0(play->state.gfxCtx, 245, 225, 155, 30, 30, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x09, func_80A761B0(play->state.gfxCtx, 255, 40, 0, 40, 0, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x0A, func_80A761B0(play->state.gfxCtx, 255, 255, 255, 20, 40, 30));
++        gSPSegment(POLY_OPA_DISP++, 0x08, EnIk_AllocColorDList(play->state.gfxCtx, 245, 225, 155, 30, 30, 0));  // was func_80A761B0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x09, EnIk_AllocColorDList(play->state.gfxCtx, 255, 40, 0, 40, 0, 0));  // was func_80A761B0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x0A, EnIk_AllocColorDList(play->state.gfxCtx, 255, 255, 255, 20, 40, 30));  // was func_80A761B0 [LLM:HIGH]
+     } else if (this->actor.params == 1) {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, func_80A761B0(play->state.gfxCtx, 245, 255, 205, 30, 35, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x09, func_80A761B0(play->state.gfxCtx, 185, 135, 25, 20, 20, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x0A, func_80A761B0(play->state.gfxCtx, 255, 255, 255, 30, 40, 20));
++        gSPSegment(POLY_OPA_DISP++, 0x08, EnIk_AllocColorDList(play->state.gfxCtx, 245, 255, 205, 30, 35, 0));  // was func_80A761B0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x09, EnIk_AllocColorDList(play->state.gfxCtx, 185, 135, 25, 20, 20, 0));  // was func_80A761B0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x0A, EnIk_AllocColorDList(play->state.gfxCtx, 255, 255, 255, 30, 40, 20));  // was func_80A761B0 [LLM:HIGH]
+     } else if (this->actor.params == 2) {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, func_80A761B0(play->state.gfxCtx, 55, 65, 55, 0, 0, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x09, func_80A761B0(play->state.gfxCtx, 205, 165, 75, 25, 20, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x0A, func_80A761B0(play->state.gfxCtx, 205, 165, 75, 25, 20, 0));
++        gSPSegment(POLY_OPA_DISP++, 0x08, EnIk_AllocColorDList(play->state.gfxCtx, 55, 65, 55, 0, 0, 0));  // was func_80A761B0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x09, EnIk_AllocColorDList(play->state.gfxCtx, 205, 165, 75, 25, 20, 0));  // was func_80A761B0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x0A, EnIk_AllocColorDList(play->state.gfxCtx, 205, 165, 75, 25, 20, 0));  // was func_80A761B0 [LLM:HIGH]
+     } else {
+-        gSPSegment(POLY_OPA_DISP++, 0x08, func_80A761B0(play->state.gfxCtx, 255, 255, 255, 180, 180, 180));
+-        gSPSegment(POLY_OPA_DISP++, 0x09, func_80A761B0(play->state.gfxCtx, 225, 205, 115, 25, 20, 0));
+-        gSPSegment(POLY_OPA_DISP++, 0x0A, func_80A761B0(play->state.gfxCtx, 225, 205, 115, 25, 20, 0));
++        gSPSegment(POLY_OPA_DISP++, 0x08, EnIk_AllocColorDList(play->state.gfxCtx, 255, 255, 255, 180, 180, 180));  // was func_80A761B0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x09, EnIk_AllocColorDList(play->state.gfxCtx, 225, 205, 115, 25, 20, 0));  // was func_80A761B0 [LLM:HIGH]
++        gSPSegment(POLY_OPA_DISP++, 0x0A, EnIk_AllocColorDList(play->state.gfxCtx, 225, 205, 115, 25, 20, 0));  // was func_80A761B0 [LLM:HIGH]
+     }
+     SkelAnime_DrawSkeletonOpa(play, &this->skelAnime, EnIk_OverrideLimbDraw3, EnIk_PostLimbDraw3, this);
+ 
+@@ -1020,7 +1027,8 @@ void EnIk_StartMusic(void) {
+     func_800F5ACC(NA_BGM_MINI_BOSS);
+ }
+ 
+-void func_80A76C14(EnIk* this) {
++// LLM generated name (HIGH), was func_80A76C14: fires the Iron Knuckle's wake-up, footstep, armour, finger and axe-wave sounds on their fixed frames of the introduction animation.
++void EnIk_PlayIntroSfx(EnIk* this) {
+     if (Animation_OnFrame(&this->skelAnime, 1.0f)) {
+         Audio_PlaySfxGeneral(NA_SE_EN_IRONNACK_WAKEUP, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+@@ -1042,7 +1050,8 @@ void func_80A76C14(EnIk* this) {
+     }
+ }
+ 
+-void func_80A76DDC(EnIk* this, PlayState* play, Vec3f* pos) {
++// LLM generated name (HIGH), was func_80A76DDC: plays the transform sfx that accompanies the axe appearing; EnIk_SpawnAxeSmoke calls it once the smoke has been thrown.
++void EnIk_PlayAxeSummonSfx(EnIk* this, PlayState* play, Vec3f* pos) {
+     Audio_PlaySfxGeneral(NA_SE_EN_TWINROBA_TRANSFORM, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ }
+@@ -1084,7 +1093,7 @@ void EnIk_SpawnAxeSmoke(EnIk* this, PlayState* play, Vec3f* pos) {
+         }
+ 
+         this->isAxeSummoned = 1;
+-        func_80A76DDC(this, play, pos);
++        EnIk_PlayAxeSummonSfx(this, play, pos);  // was func_80A76DDC [LLM:HIGH]
+     }
+ }
+ 
+@@ -1158,12 +1167,14 @@ void EnIk_HandleEnemyChange(EnIk* this, PlayState* play, s32 arg2) {
+     }
+ }
+ 
+-void func_80A772A4(EnIk* this) {
++// LLM generated name (HIGH), was func_80A772A4: plays the stagger sound for the Nabooru defeat cutscene; EnIk_SetupCsAction4 calls it.
++void EnIk_PlayStaggerSfx(EnIk* this) {
+     Audio_PlaySfxGeneral(NA_SE_EN_IRONNACK_STAGGER_DEMO, &this->actor.projectedPos, 4, &gSfxDefaultFreqAndVolScale,
+                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+ }
+ 
+-void func_80A772EC(EnIk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A772EC: projects the actor's position through the view matrix and plays the death sound at that screen position; EnIk_SetupCsAction3 calls it.
++void EnIk_PlayDeathSfx(EnIk* this, PlayState* play) {
+     static Vec3f D_80A78FA0;
+     s32 pad[2];
+     f32 wDest;
+@@ -1183,7 +1194,7 @@ void EnIk_SetupCsAction3(EnIk* this, PlayState* play) {
+     this->action = 3;
+     this->drawMode = 2;
+     EnIk_SetStartPosRotFromCue(this, play, 4);
+-    func_80A772EC(this, play);
++    EnIk_PlayDeathSfx(this, play);  // was func_80A772EC [LLM:HIGH]
+     this->actor.shape.shadowAlpha = 0xFF;
+ }
+ 
+@@ -1191,7 +1202,7 @@ void EnIk_SetupCsAction3(EnIk* this, PlayState* play) {
+ void EnIk_SetupCsAction4(EnIk* this, PlayState* play) {
+     this->action = 4;
+     this->drawMode = 2;
+-    func_80A772A4(this);
++    EnIk_PlayStaggerSfx(this);  // was func_80A772A4 [LLM:HIGH]
+     this->actor.shape.shadowAlpha = 0xFF;
+ }
+ 
+@@ -1213,7 +1224,7 @@ void EnIk_CsAction4(EnIk* this, PlayState* play) {
+     EnIk_HandleCsCues(this, play);
+ }
+ 
+-void func_80A774F8(EnIk* this, PlayState* play) {
++void EnIk_CsAction5(EnIk* this, PlayState* play) {
+     if (EnIk_GetNpcAction(play, 4) == NULL) {
+         Actor_Kill(&this->actor);
+     }
+@@ -1283,9 +1294,9 @@ void EnIk_CsDrawDefeat(EnIk* this, PlayState* play) {
+     func_8002EBCC(&this->actor, play, 0);
+     Gfx_SetupDL_25Opa(gfxCtx);
+     Gfx_SetupDL_25Xlu(gfxCtx);
+-    gSPSegment(POLY_OPA_DISP++, 0x08, func_80A761B0(gfxCtx, 245, 225, 155, 30, 30, 0));
+-    gSPSegment(POLY_OPA_DISP++, 0x09, func_80A761B0(gfxCtx, 255, 40, 0, 40, 0, 0));
+-    gSPSegment(POLY_OPA_DISP++, 0x0A, func_80A761B0(gfxCtx, 255, 255, 255, 20, 40, 30));
++    gSPSegment(POLY_OPA_DISP++, 0x08, EnIk_AllocColorDList(gfxCtx, 245, 225, 155, 30, 30, 0));  // was func_80A761B0 [LLM:HIGH]
++    gSPSegment(POLY_OPA_DISP++, 0x09, EnIk_AllocColorDList(gfxCtx, 255, 40, 0, 40, 0, 0));  // was func_80A761B0 [LLM:HIGH]
++    gSPSegment(POLY_OPA_DISP++, 0x0A, EnIk_AllocColorDList(gfxCtx, 255, 255, 255, 20, 40, 30));  // was func_80A761B0 [LLM:HIGH]
+     SkelAnime_DrawSkeletonOpa(play, skelAnime, EnIk_OverrideLimbDraw2, EnIk_PostLimbDraw2, this);
+ 
+     CLOSE_DISPS(gfxCtx);
+@@ -1344,14 +1355,14 @@ void EnIk_CsAction2(EnIk* this, PlayState* play) {
+     s32 sp24;
+ 
+     sp24 = EnIk_UpdateSkelAnime(this);
+-    func_80A76C14(this);
++    EnIk_PlayIntroSfx(this);  // was func_80A76C14 [LLM:HIGH]
+     EnIk_UpdateBgCheckInfo(this, play);
+     EnIk_HandleCsCues(this, play);
+     EnIk_HandleEnemyChange(this, play, sp24);
+ }
+ 
+ static EnIkActionFunc sActionFuncs[] = {
+-    EnIk_CsAction0, EnIk_CsAction1, EnIk_CsAction2, EnIk_CsAction3, EnIk_CsAction4, func_80A774F8,
++    EnIk_CsAction0, EnIk_CsAction1, EnIk_CsAction2, EnIk_CsAction3, EnIk_CsAction4, EnIk_CsAction5,  // was func_80A774F8 [LLM:HIGH]
+ };
+ 
+ void EnIk_Update(Actor* thisx, PlayState* play) {
+@@ -1431,9 +1442,9 @@ void EnIk_CsDrawIntro(EnIk* this, PlayState* play) {
+     func_8002EBCC(&this->actor, play, 0);
+     Gfx_SetupDL_25Opa(gfxCtx);
+     Gfx_SetupDL_25Xlu(gfxCtx);
+-    gSPSegment(POLY_OPA_DISP++, 0x08, func_80A761B0(gfxCtx, 245, 225, 155, 30, 30, 0));
+-    gSPSegment(POLY_OPA_DISP++, 0x09, func_80A761B0(gfxCtx, 255, 40, 0, 40, 0, 0));
+-    gSPSegment(POLY_OPA_DISP++, 0x0A, func_80A761B0(gfxCtx, 255, 255, 255, 20, 40, 30));
++    gSPSegment(POLY_OPA_DISP++, 0x08, EnIk_AllocColorDList(gfxCtx, 245, 225, 155, 30, 30, 0));  // was func_80A761B0 [LLM:HIGH]
++    gSPSegment(POLY_OPA_DISP++, 0x09, EnIk_AllocColorDList(gfxCtx, 255, 40, 0, 40, 0, 0));  // was func_80A761B0 [LLM:HIGH]
++    gSPSegment(POLY_OPA_DISP++, 0x0A, EnIk_AllocColorDList(gfxCtx, 255, 255, 255, 20, 40, 30));  // was func_80A761B0 [LLM:HIGH]
+     SkelAnime_DrawSkeletonOpa(play, skelAnime, EnIk_OverrideLimbDraw1, EnIk_PostLimbDraw1, this);
+ 
+     CLOSE_DISPS(gfxCtx);
+@@ -1476,7 +1487,7 @@ void EnIk_ChangeToEnemy(EnIk* this, PlayState* play) {
+     EnIk_SetupIdle(this);
+ }
+ 
+-void func_80A781CC(Actor* thisx, PlayState* play) {
++void EnIk_UpdateDefeated(Actor* thisx, PlayState* play) {
+     EnIk* this = (EnIk*)thisx;
+ 
+     if (!Play_InCsMode(play)) {
+-- 
+2.55.0
+

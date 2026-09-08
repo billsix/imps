@@ -1,0 +1,165 @@
+From 45d67ac67e6fa189b838b2b747e09979c96c7e53 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 250/488] soh: name the 4 address-named symbols defined in
+ z_en_yukabyun.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_En_Yukabyun/z_en_yukabyun.c.
+
+  * func_80B43A94 -> EnYukabyun_WaitToLaunch
+    deduced, confidence HIGH: counts the per-params delay down, then enables
+    targeting and hostility and starts the spin-up.
+
+  * func_80B43AD4 -> EnYukabyun_SpinUp
+    deduced, confidence HIGH: accelerates the tile's yaw spin while rising
+    30 units above home; once the spin passes 0x2000 it aims at the player,
+    sets speed 10 and starts flying.
+
+  * func_80B43B6C -> EnYukabyun_Fly
+    deduced, confidence HIGH: keeps the tile spinning as it flies and kills
+    it once the player is more than 5000 units away.
+
+  * D_80B43F64 -> sTextures
+    deduced, confidence HIGH: the top and bottom floor-tile textures, bound
+    to segment 0x08 by the draw function.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Yukabyun/z_en_yukabyun.c    | 30 +++++++++++--------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Yukabyun/z_en_yukabyun.c b/soh/src/overlays/actors/ovl_En_Yukabyun/z_en_yukabyun.c
+index 587f4f764..8701cf2e5 100644
+--- a/soh/src/overlays/actors/ovl_En_Yukabyun/z_en_yukabyun.c
++++ b/soh/src/overlays/actors/ovl_En_Yukabyun/z_en_yukabyun.c
+@@ -15,9 +15,12 @@ void EnYukabyun_Destroy(Actor* thisx, PlayState* play);
+ void EnYukabyun_Update(Actor* thisx, PlayState* play);
+ void EnYukabyun_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80B43A94(EnYukabyun* this, PlayState* play);
+-void func_80B43AD4(EnYukabyun* this, PlayState* play);
+-void func_80B43B6C(EnYukabyun* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B43A94: counts the per-params delay down, then enables targeting and hostility and starts the spin-up.
++void EnYukabyun_WaitToLaunch(EnYukabyun* this, PlayState* play);  // was func_80B43A94 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B43AD4: accelerates the tile's yaw spin while rising 30 units above home; once the spin passes 0x2000 it aims at the player, sets speed 10 and starts flying.
++void EnYukabyun_SpinUp(EnYukabyun* this, PlayState* play);  // was func_80B43AD4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B43B6C: keeps the tile spinning as it flies and kills it once the player is more than 5000 units away.
++void EnYukabyun_Fly(EnYukabyun* this, PlayState* play);  // was func_80B43B6C [LLM:HIGH]
+ 
+ const ActorInit En_Yukabyun_InitVars = {
+     ACTOR_EN_YUKABYUN,
+@@ -57,7 +60,8 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(targetArrowOffset, 16, ICHAIN_STOP),
+ };
+ 
+-static void* D_80B43F64[] = { gFloorTileEnemyTopTex, gFloorTileEnemyBottomTex };
++// LLM generated name (HIGH), was D_80B43F64: the top and bottom floor-tile textures, bound to segment 0x08 by the draw function.
++static void* sTextures[] = { gFloorTileEnemyTopTex, gFloorTileEnemyBottomTex };  // was D_80B43F64 [LLM:HIGH]
+ 
+ void EnYukabyun_Init(Actor* thisx, PlayState* play) {
+     EnYukabyun* this = (EnYukabyun*)thisx;
+@@ -69,7 +73,7 @@ void EnYukabyun_Init(Actor* thisx, PlayState* play) {
+     this->actor.params++;
+     this->unk_152 = 0;
+     this->unk_150 = (u8)(this->actor.params) * 0xA + 0x14;
+-    this->actionfunc = func_80B43A94;
++    this->actionfunc = EnYukabyun_WaitToLaunch;  // was func_80B43A94 [LLM:HIGH]
+ }
+ 
+ void EnYukabyun_Destroy(Actor* thisx, PlayState* play) {
+@@ -77,29 +81,29 @@ void EnYukabyun_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80B43A94(EnYukabyun* this, PlayState* play) {
++void EnYukabyun_WaitToLaunch(EnYukabyun* this, PlayState* play) {
+     if (this->unk_150 != 0) {
+         this->unk_150--;
+     }
+     if (this->unk_150 == 0) {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_HOSTILE | ACTOR_FLAG_IGNORE_QUAKE;
+-        this->actionfunc = func_80B43AD4;
++        this->actionfunc = EnYukabyun_SpinUp;  // was func_80B43AD4 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B43AD4(EnYukabyun* this, PlayState* play) {
++void EnYukabyun_SpinUp(EnYukabyun* this, PlayState* play) {
+     this->unk_150 += 0xA0;
+     this->actor.shape.rot.y += this->unk_150;
+     if (this->unk_150 >= 0x2000) {
+         this->actor.world.rot.y = this->actor.yawTowardsPlayer;
+         this->actor.speedXZ = 10.0f;
+-        this->actionfunc = func_80B43B6C;
++        this->actionfunc = EnYukabyun_Fly;  // was func_80B43B6C [LLM:HIGH]
+     }
+     Math_StepToF(&this->actor.world.pos.y, this->actor.home.pos.y + 30.0f, 1.0f);
+     Actor_PlaySfx_Flagged(&this->actor, NA_SE_EN_YUKABYUN_FLY - SFX_FLAG);
+ }
+ 
+-void func_80B43B6C(EnYukabyun* this, PlayState* play) {
++void EnYukabyun_Fly(EnYukabyun* this, PlayState* play) {
+     this->actor.shape.rot.y += this->unk_150;
+     if (this->actor.xzDistToPlayer > 5000.0f) {
+         Actor_Kill(&this->actor);
+@@ -121,7 +125,7 @@ void EnYukabyun_Update(Actor* thisx, PlayState* play) {
+ 
+     if (((this->collider.base.atFlags & AT_HIT) || (this->collider.base.acFlags & AC_HIT) ||
+          ((this->collider.base.ocFlags1 & OC1_HIT) && !(this->collider.base.oc->id == ACTOR_EN_YUKABYUN))) ||
+-        ((this->actionfunc == func_80B43B6C) && (this->actor.bgCheckFlags & BGCHECKFLAG_WALL))) {
++        ((this->actionfunc == EnYukabyun_Fly) && (this->actor.bgCheckFlags & BGCHECKFLAG_WALL))) {  // was func_80B43B6C [LLM:HIGH]
+         this->collider.base.atFlags &= ~AT_HIT;
+         this->collider.base.acFlags &= ~AC_HIT;
+         this->collider.base.ocFlags1 &= ~OC1_HIT;
+@@ -133,7 +137,7 @@ void EnYukabyun_Update(Actor* thisx, PlayState* play) {
+     this->actionfunc(this, play);
+     Actor_MoveXZGravity(&this->actor);
+ 
+-    if (!(this->actionfunc == func_80B43A94 || this->actionfunc == EnYukabyun_Break)) {
++    if (!(this->actionfunc == EnYukabyun_WaitToLaunch || this->actionfunc == EnYukabyun_Break)) {  // was func_80B43A94 [LLM:HIGH]
+         Actor_UpdateBgCheckInfo(play, &this->actor, 5.0f, 20.0f, 8.0f, 5);
+         Collider_UpdateCylinder(&this->actor, &this->collider);
+ 
+@@ -152,7 +156,7 @@ void EnYukabyun_Draw(Actor* thisx, PlayState* play) {
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+     Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-    gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_80B43F64[this->unk_152]));
++    gSPSegment(POLY_OPA_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(sTextures[this->unk_152]));  // was D_80B43F64 [LLM:HIGH]
+     gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+     gSPDisplayList(POLY_OPA_DISP++, gFloorTileEnemyDL);
+ 
+-- 
+2.55.0
+

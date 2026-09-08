@@ -1,0 +1,533 @@
+From e4e55250eb0c804419262e6a0c15961a0250eb10 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:57 +0000
+Subject: [PATCH 009/488] soh: name the 20 address-named symbols defined in
+ audio_thread.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 20 are defined in soh/src/code/audio_thread.c; updating their references touches 5 files in total.
+
+  * func_800E4FE0 -> AudioThread_Update
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E5000 -> AudioThread_UpdateImpl
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E5584 -> AudioThread_ProcessGlobalCmd
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E5958 -> AudioThread_SetFadeOutTimer
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E59AC -> AudioThread_SetFadeInTimer
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_801304E8 -> sMaxProcessCmdQueueDepth
+    deduced, confidence HIGH
+
+  * func_800E5E20 -> AudioThread_GetExternalLoadQueueMsg
+    deduced, confidence HIGH
+
+  * func_800E5E84 -> AudioThread_GetFontsForSequence
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E5EA4 -> Audio_GetSampleBankIdsOfFont
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E5EDC -> AudioThread_ResetComplete
+    deduced, confidence HIGH
+
+  * func_800E5F34 -> AudioThread_ClearResetQueue
+    deduced, confidence HIGH
+
+  * func_800E5F88 -> AudioThread_ResetAudioHeap
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E6070 -> AudioThread_GetChannelIO
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E60C4 -> AudioThread_GetSeqPlayerIO
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E6128 -> AudioThread_ProcessSeqPlayerCmd
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E6300 -> AudioThread_ProcessChannelCmd
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800E6590 -> AudioThread_GetLayerSamplesRemaining
+    deduced, confidence HIGH
+
+  * func_800E6680 -> AudioThread_GetActiveNoteCount
+    deduced, confidence HIGH
+
+  * func_800E66A0 -> AudioThread_ReleaseNonRamNotes
+    deduced, confidence HIGH
+
+  * func_800E66C0 -> AudioThread_CountAndReleaseNotes
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h      |  12 ++--
+ soh/src/code/audioMgr.c      |   2 +-
+ soh/src/code/audio_general.c |   6 +-
+ soh/src/code/audio_seq.c     |   8 +--
+ soh/src/code/audio_thread.c  | 117 ++++++++++++++++++++++-------------
+ 5 files changed, 88 insertions(+), 57 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index af005e1aa..ed9092f93 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1988,18 +1988,18 @@ void AudioLoad_LoadPermanentSamples(void);
+ void AudioLoad_ScriptLoad(s32 tableType, s32 arg1, s8* arg2);
+ void AudioLoad_ProcessScriptLoads(void);
+ void AudioLoad_InitScriptLoads(void);
+-AudioTask* func_800E4FE0(void);
++AudioTask* AudioThread_Update(void);  // was func_800E4FE0 [oot]
+ void Audio_QueueCmdF32(u32 arg0, f32 arg1);
+ void Audio_QueueCmdS32(u32 arg0, s32 arg1);
+ void Audio_QueueCmdS8(u32 arg0, s8 arg1);
+ void Audio_QueueCmdU16(u32 arg0, u16 arg1);
+ s32 Audio_ScheduleProcessCmds(void);
+-u32 func_800E5E20(u32* arg0);
+-u8* func_800E5E84(s32 arg0, u32* arg1);
+-s32 func_800E5EDC(void);
+-s32 func_800E5F88(s32 arg0);
++u32 AudioThread_GetExternalLoadQueueMsg(u32* arg0);  // was func_800E5E20 [LLM:HIGH]
++u8* AudioThread_GetFontsForSequence(s32 arg0, u32* arg1);  // was func_800E5E84 [oot]
++s32 AudioThread_ResetComplete(void);  // was func_800E5EDC [LLM:HIGH]
++s32 AudioThread_ResetAudioHeap(s32 arg0);  // was func_800E5F88 [oot]
+ void Audio_PreNMIInternal(void);
+-s32 func_800E6680(void);
++s32 AudioThread_GetActiveNoteCount(void);  // was func_800E6680 [LLM:HIGH]
+ u32 Audio_NextRandom(void);
+ void Audio_InitMesgQueues(void);
+ void Audio_InvalDCache(void* buf, size_t size);
+diff --git a/soh/src/code/audioMgr.c b/soh/src/code/audioMgr.c
+index 4c4c5b5a2..e7b3c9916 100644
+--- a/soh/src/code/audioMgr.c
++++ b/soh/src/code/audioMgr.c
+@@ -34,7 +34,7 @@ void AudioMgr_HandleRetrace(AudioMgr* audioMgr) {
+     if (SREG(20) >= 2) {
+         rspTask = NULL;
+     } else {
+-        rspTask = func_800E4FE0();
++        rspTask = AudioThread_Update();
+     }
+     D_8016A558 += osGetTime() - D_8016A550;
+     D_8016A550 = 0;
+diff --git a/soh/src/code/audio_general.c b/soh/src/code/audio_general.c
+index 925f2adf9..cbf1530c7 100644
+--- a/soh/src/code/audio_general.c
++++ b/soh/src/code/audio_general.c
+@@ -5030,8 +5030,8 @@ void Audio_PlayFanfare(u16 seqId) {
+     // Sometimes the game will add 0x900 to a requested fanfare ID
+     // The `& 0xFF` here is to strip off this 0x900 and get the original fanfare ID
+     // when getting the sound font data for the sequence
+-    curFontId = func_800E5E84(curSeqId & 0xFF, &outNumFonts);
+-    requestedFontId = func_800E5E84(seqId & 0xFF, &outNumFonts);
++    curFontId = AudioThread_GetFontsForSequence(curSeqId & 0xFF, &outNumFonts);
++    requestedFontId = AudioThread_GetFontsForSequence(seqId & 0xFF, &outNumFonts);
+ 
+     if (!curFontId || !requestedFontId) {
+         // disable BGM, we're about to null deref!
+@@ -5417,7 +5417,7 @@ void Audio_DisableAllSeq(void) {
+ }
+ 
+ s8 func_800F6BB8(void) {
+-    return func_800E6680();
++    return AudioThread_GetActiveNoteCount();
+ }
+ 
+ void func_800F6BDC(void) {
+diff --git a/soh/src/code/audio_seq.c b/soh/src/code/audio_seq.c
+index a677be2ca..ea82bd04d 100644
+--- a/soh/src/code/audio_seq.c
++++ b/soh/src/code/audio_seq.c
+@@ -381,7 +381,7 @@ void Audio_ProcessSeqCmd(u32 cmd) {
+             gSfxChannelLayout = (cmd & 0xFF00) >> 8;
+             oldSpec = gAudioSpecId;
+             gAudioSpecId = spec;
+-            func_800E5F88(spec);
++            AudioThread_ResetAudioHeap(spec);
+             func_800F71BC(oldSpec);
+             Audio_QueueCmdS32(0xF8000000, 0);
+             break;
+@@ -483,7 +483,7 @@ void Audio_UpdateActiveSequences(void) {
+ 
+     for (playerIdx = 0; playerIdx < 4; playerIdx++) {
+         if (gActiveSeqs[playerIdx].isWaitingForFonts != 0) {
+-            switch (func_800E5E20(&dummy)) {
++            switch (AudioThread_GetExternalLoadQueueMsg(&dummy)) {
+                 case 1:
+                 case 2:
+                 case 3:
+@@ -697,13 +697,13 @@ void Audio_UpdateActiveSequences(void) {
+ u8 Audio_UpdateResetState(void) {
+     if (sAudioResetState != 0) {
+         if (sAudioResetState == 1) {
+-            if (func_800E5EDC() == 1) {
++            if (AudioThread_ResetComplete() == 1) {
+                 sAudioResetState = 0;
+                 Audio_QueueCmdS8(0x46020000, gSfxChannelLayout);
+                 func_800F7170();
+             }
+         } else if (sAudioResetState == 2) {
+-            while (func_800E5EDC() != 1) {}
++            while (AudioThread_ResetComplete() != 1) {}
+             sAudioResetState = 0;
+             Audio_QueueCmdS8(0x46020000, gSfxChannelLayout);
+             func_800F7170();
+diff --git a/soh/src/code/audio_thread.c b/soh/src/code/audio_thread.c
+index 3d6c9c571..b6cb25cf8 100644
+--- a/soh/src/code/audio_thread.c
++++ b/soh/src/code/audio_thread.c
+@@ -21,18 +21,20 @@ typedef enum {
+     CHAN_UPD_STEREO           // 14
+ } ChannelUpdateType;
+ 
+-void func_800E6300(SequenceChannel* channel, AudioCmd* arg1);
+-void func_800E59AC(s32 playerIdx, s32 fadeTimer);
++void AudioThread_ProcessChannelCmd(SequenceChannel* channel, AudioCmd* arg1);
++void AudioThread_SetFadeInTimer(s32 playerIdx, s32 fadeTimer);
+ void Audio_InitMesgQueues(void);
+-AudioTask* func_800E5000(void);
++AudioTask* AudioThread_UpdateImpl(void);
+ void Audio_ProcessCmds(u32);
+-void func_800E6128(SequencePlayer* seqPlayer, AudioCmd* arg1);
+-void func_800E5958(s32 playerIdx, s32 fadeTimer);
+-s32 func_800E66C0(s32 arg0);
++void AudioThread_ProcessSeqPlayerCmd(SequencePlayer* seqPlayer, AudioCmd* arg1);
++void AudioThread_SetFadeOutTimer(s32 playerIdx, s32 fadeTimer);
++s32 AudioThread_CountAndReleaseNotes(s32 arg0);
+ 
+ // AudioMgr_Retrace
+-AudioTask* func_800E4FE0(void) {
+-    return func_800E5000();
++// Name from zeldaret/oot, was func_800E4FE0: thin wrapper returning AudioThread_UpdateImpl(); audio thread [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// frame entry
++AudioTask* AudioThread_Update(void) {
++    return AudioThread_UpdateImpl();
+ }
+ 
+ extern u64 rspAspMainDataStart[];
+@@ -71,7 +73,9 @@ void AudioMgr_CreateNextAudioBuffer(s16* samples, u32 num_samples) {
+     gAudioContext.audioRandom = (gAudioContext.audioRandom + gAudioContext.totalTaskCnt) * osGetCount();
+ }
+ 
+-AudioTask* func_800E5000(void) {
++// Name from zeldaret/oot, was func_800E5000: builds and returns the per-frame AudioTask; called by [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// AudioThread_Update
++AudioTask* AudioThread_UpdateImpl(void) {
+     return NULL;
+ 
+     static s32 sMaxAbiCmdCnt = 0x80;
+@@ -200,7 +204,7 @@ AudioTask* func_800E5000(void) {
+     gAudioContext.audioRandom = (gAudioContext.audioRandom + gAudioContext.totalTaskCnt) * osGetCount();
+     gAudioContext.audioRandom =
+         gAudioContext.aiBuffers[index][gAudioContext.totalTaskCnt & 0xFF] + gAudioContext.audioRandom;
+-    gWaveSamples[8] = (s16*)(((u8*)func_800E4FE0) + (gAudioContext.audioRandom & 0xFFF0));
++    gWaveSamples[8] = (s16*)(((u8*)AudioThread_Update) + (gAudioContext.audioRandom & 0xFFF0));
+ 
+     index = gAudioContext.rspTaskIdx;
+     gAudioContext.currTask->taskQueue = NULL;
+@@ -235,7 +239,9 @@ AudioTask* func_800E5000(void) {
+ #define ACMD_SND_MDE ((u32)0xF0000000)
+ #define ACMD_MUTE ((u32)0xF1000000)
+ 
+-void func_800E5584(AudioCmd* cmd) {
++// Name from zeldaret/oot, was func_800E5584: handles global AudioCmds (sound mode, fade timers, reset) [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// drained from cmd queue
++void AudioThread_ProcessGlobalCmd(AudioCmd* cmd) {
+     s32 i;
+     s32 pad;
+     s32 pad2;
+@@ -249,7 +255,7 @@ void func_800E5584(AudioCmd* cmd) {
+         case 0x82:
+             // 16-bit seqId packed in opArgs bits 0-15. See Audio_StartSequence().
+             AudioLoad_SyncInitSeqPlayer(cmd->arg0, cmd->opArgs & 0xFFFF, 0);
+-            func_800E59AC(cmd->arg0, cmd->data);
++            AudioThread_SetFadeInTimer(cmd->arg0, cmd->data);
+             return;
+         case 0x85:
+             AudioLoad_SyncInitSeqPlayerSkipTicks(cmd->arg0, cmd->opArgs & 0xFFFF, cmd->data);
+@@ -259,7 +265,7 @@ void func_800E5584(AudioCmd* cmd) {
+                 if (cmd->asInt == 0) {
+                     AudioSeq_SequencePlayerDisableAsFinished(&gAudioContext.seqPlayers[cmd->arg0]);
+                 } else {
+-                    func_800E5958(cmd->arg0, cmd->asInt);
++                    AudioThread_SetFadeOutTimer(cmd->arg0, cmd->asInt);
+                 }
+             }
+             return;
+@@ -333,7 +339,7 @@ void func_800E5584(AudioCmd* cmd) {
+                     }
+                 }
+             }
+-            func_800E66C0(temp_t7);
++            AudioThread_CountAndReleaseNotes(temp_t7);
+             return;
+         case 0xE3:
+             AudioHeap_PopCache(cmd->asInt);
+@@ -344,7 +350,9 @@ void func_800E5584(AudioCmd* cmd) {
+ }
+ 
+ // SetFadeOutTimer
+-void func_800E5958(s32 playerIdx, s32 fadeTimer) {
++// Name from zeldaret/oot, was func_800E5958: sets seqPlayer fadeVelocity/state to fade volume out over [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// fadeTimer
++void AudioThread_SetFadeOutTimer(s32 playerIdx, s32 fadeTimer) {
+     SequencePlayer* seqPlayer = &gAudioContext.seqPlayers[playerIdx];
+ 
+     if (fadeTimer == 0) {
+@@ -357,7 +365,9 @@ void func_800E5958(s32 playerIdx, s32 fadeTimer) {
+ }
+ 
+ // SetFadeInTimer
+-void func_800E59AC(s32 playerIdx, s32 fadeTimer) {
++// Name from zeldaret/oot, was func_800E59AC: mirror of fade-out; ramps seqPlayer fade volume in over [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// fadeTimer
++void AudioThread_SetFadeInTimer(s32 playerIdx, s32 fadeTimer) {
+     SequencePlayer* seqPlayer;
+     if (fadeTimer != 0) {
+         seqPlayer = &gAudioContext.seqPlayers[playerIdx];
+@@ -421,11 +431,12 @@ void Audio_QueueCmdU16(u32 opArgs, u16 data) {
+ }
+ 
+ s32 Audio_ScheduleProcessCmds(void) {
+-    static s32 D_801304E8 = 0;
++    // LLM generated name (HIGH), was D_801304E8: static tracking peak cmd queue depth (cmdWrPos - cmdRdPos)
++    static s32 sMaxProcessCmdQueueDepth = 0;
+     s32 ret;
+ 
+-    if (D_801304E8 < (u8)((gAudioContext.cmdWrPos - gAudioContext.cmdRdPos) + 0x100)) {
+-        D_801304E8 = (u8)((gAudioContext.cmdWrPos - gAudioContext.cmdRdPos) + 0x100);
++    if (sMaxProcessCmdQueueDepth < (u8)((gAudioContext.cmdWrPos - gAudioContext.cmdRdPos) + 0x100)) {
++        sMaxProcessCmdQueueDepth = (u8)((gAudioContext.cmdWrPos - gAudioContext.cmdRdPos) + 0x100);
+     }
+ 
+     ret = osSendMesg32(gAudioContext.cmdProcQueueP,
+@@ -451,30 +462,30 @@ void Audio_ProcessCmd(AudioCmd* cmd) {
+     s32 i;
+ 
+     if ((cmd->op & 0xF0) == 0xF0) {
+-        func_800E5584(cmd);
++        AudioThread_ProcessGlobalCmd(cmd);
+         return;
+     }
+ 
+     if (cmd->arg0 < gAudioContext.audioBufferParameters.numSequencePlayers) {
+         seqPlayer = &gAudioContext.seqPlayers[cmd->arg0];
+         if (cmd->op & 0x80) {
+-            func_800E5584(cmd);
++            AudioThread_ProcessGlobalCmd(cmd);
+             return;
+         }
+         if (cmd->op & 0x40) {
+-            func_800E6128(seqPlayer, cmd);
++            AudioThread_ProcessSeqPlayerCmd(seqPlayer, cmd);
+             return;
+         }
+ 
+         if (cmd->arg1 < 0x10) {
+-            func_800E6300(seqPlayer->channels[cmd->arg1], cmd);
++            AudioThread_ProcessChannelCmd(seqPlayer->channels[cmd->arg1], cmd);
+             return;
+         }
+         if (cmd->arg1 == 0xFF) {
+             phi_v0 = gAudioContext.unk_5BDC[cmd->arg0];
+             for (i = 0; i < 0x10; i++) {
+                 if (phi_v0 & 1) {
+-                    func_800E6300(seqPlayer->channels[i], cmd);
++                    AudioThread_ProcessChannelCmd(seqPlayer->channels[i], cmd);
+                 }
+                 phi_v0 = phi_v0 >> 1;
+             }
+@@ -509,7 +520,9 @@ void Audio_ProcessCmds(u32 msg) {
+     }
+ }
+ 
+-u32 func_800E5E20(u32* out) {
++// LLM generated name (HIGH), was func_800E5E20: dequeues externalLoadQueue msg, splits into id and count out
++// param
++u32 AudioThread_GetExternalLoadQueueMsg(u32* out) {
+     u32 sp1C;
+ 
+     if (osRecvMesg(&gAudioContext.externalLoadQueue, (OSMesg*)&sp1C, OS_MESG_NOBLOCK) == -1) {
+@@ -520,16 +533,19 @@ u32 func_800E5E20(u32* out) {
+     return sp1C >> 0x18;
+ }
+ 
+-u8* func_800E5E84(s32 arg0, u32* arg1) {
++// Name from zeldaret/oot, was func_800E5E84: forwards to AudioLoad_GetFontsForSequence [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++u8* AudioThread_GetFontsForSequence(s32 arg0, u32* arg1) {
+     return AudioLoad_GetFontsForSequence(arg0, arg1);
+ }
+ 
+-void func_800E5EA4(s32 arg0, u32* arg1, u32* arg2) {
++// Name from zeldaret/oot, was func_800E5EA4: returns the soundFont's two sampleBankId fields [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++void Audio_GetSampleBankIdsOfFont(s32 arg0, u32* arg1, u32* arg2) {
+     *arg1 = gAudioContext.soundFonts[arg0].sampleBankId1;
+     *arg2 = gAudioContext.soundFonts[arg0].sampleBankId2;
+ }
+ 
+-s32 func_800E5EDC(void) {
++// LLM generated name (HIGH), was func_800E5EDC: polls audioResetQueue and returns reset-complete status
++s32 AudioThread_ResetComplete(void) {
+     s32 pad;
+     OSMesg sp18;
+ 
+@@ -542,19 +558,22 @@ s32 func_800E5EDC(void) {
+     }
+ }
+ 
+-void func_800E5F34(void) {
++// LLM generated name (HIGH), was func_800E5F34: drains all messages from audioResetQueue
++void AudioThread_ClearResetQueue(void) {
+     // macro?
+     // clang-format off
+     s32 chk = -1; OSMesg sp28; do {} while (osRecvMesg(gAudioContext.audioResetQueueP, &sp28, OS_MESG_NOBLOCK) != chk);
+     // clang-format on
+ }
+ 
+-s32 func_800E5F88(s32 resetPreloadID) {
++// Name from zeldaret/oot, was func_800E5F88: clears reset queue and queues an audio-heap reset cmd for the [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// preload id
++s32 AudioThread_ResetAudioHeap(s32 resetPreloadID) {
+     s32 resetStatus;
+     OSMesg msg;
+     s32 pad;
+ 
+-    func_800E5F34();
++    AudioThread_ClearResetQueue();
+     resetStatus = gAudioContext.resetStatus;
+     if (resetStatus != 0) {
+         Audio_ResetCmdQueue();
+@@ -568,7 +587,7 @@ s32 func_800E5F88(s32 resetPreloadID) {
+         }
+     }
+ 
+-    func_800E5F34();
++    AudioThread_ClearResetQueue();
+     Audio_QueueCmdS32(0xF9000000, resetPreloadID);
+ 
+     return Audio_ScheduleProcessCmds();
+@@ -577,12 +596,14 @@ s32 func_800E5F88(s32 resetPreloadID) {
+ void Audio_PreNMIInternal(void) {
+     gAudioContext.resetTimer = 1;
+     if (gAudioContextInitalized) {
+-        func_800E5F88(0);
++        AudioThread_ResetAudioHeap(0);
+         gAudioContext.resetStatus = 0;
+     }
+ }
+ 
+-s8 func_800E6070(s32 playerIdx, s32 channelIdx, s32 scriptIdx) {
++// Name from zeldaret/oot, was func_800E6070: reads a channel's soundScriptIO[scriptIdx] for the given seq [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// player
++s8 AudioThread_GetChannelIO(s32 playerIdx, s32 channelIdx, s32 scriptIdx) {
+     SequencePlayer* seqPlayer = &gAudioContext.seqPlayers[playerIdx];
+     SequenceChannel* channel;
+     if (seqPlayer->enabled) {
+@@ -593,7 +614,8 @@ s8 func_800E6070(s32 playerIdx, s32 channelIdx, s32 scriptIdx) {
+     }
+ }
+ 
+-s8 func_800E60C4(s32 playerIdx, s32 arg1) {
++// Name from zeldaret/oot, was func_800E60C4: reads seqPlayer soundScriptIO[arg1] [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++s8 AudioThread_GetSeqPlayerIO(s32 playerIdx, s32 arg1) {
+     return gAudioContext.seqPlayers[playerIdx].soundScriptIO[arg1];
+ }
+ 
+@@ -614,7 +636,9 @@ float Audio_GetGameVolume(int player_id) {
+     return gAudioContext.seqPlayers[player_id].gameVolume;
+ }
+ 
+-void func_800E6128(SequencePlayer* seqPlayer, AudioCmd* cmd) {
++// Name from zeldaret/oot, was func_800E6128: switches on cmd->op applying tempo/transpose/fade updates to [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++// the SequencePlayer
++void AudioThread_ProcessSeqPlayerCmd(SequencePlayer* seqPlayer, AudioCmd* cmd) {
+     f32 fadeVolume;
+     switch (cmd->op) {
+         case 0x41:
+@@ -678,7 +702,8 @@ void func_800E6128(SequencePlayer* seqPlayer, AudioCmd* cmd) {
+     }
+ }
+ 
+-void func_800E6300(SequenceChannel* channel, AudioCmd* cmd) {
++// Name from zeldaret/oot, was func_800E6300: switches on CHAN_UPD_* ops updating SequenceChannel fields [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++void AudioThread_ProcessChannelCmd(SequenceChannel* channel, AudioCmd* cmd) {
+     switch (cmd->op) {
+         case CHAN_UPD_VOL_SCALE:
+             if (channel->volumeScale != cmd->asFloat) {
+@@ -763,7 +788,8 @@ void Audio_WaitForAudioTask(void) {
+     osRecvMesg(gAudioContext.taskStartQueueP, NULL, OS_MESG_BLOCK);
+ }
+ 
+-s32 func_800E6590(s32 playerIdx, s32 arg1, s32 arg2) {
++// LLM generated name (HIGH), was func_800E6590: returns loopEnd minus samplePos for a layer's playing note
++s32 AudioThread_GetLayerSamplesRemaining(s32 playerIdx, s32 arg1, s32 arg2) {
+     SequencePlayer* seqPlayer;
+     SequenceLayer* layer;
+     Note* note;
+@@ -803,15 +829,20 @@ s32 func_800E6590(s32 playerIdx, s32 arg1, s32 arg2) {
+     return 0;
+ }
+ 
+-s32 func_800E6680(void) {
+-    return func_800E66C0(0);
++// LLM generated name (HIGH), was func_800E6680: returns CountAndReleaseNotes(0), i.e. count active notes only
++s32 AudioThread_GetActiveNoteCount(void) {
++    return AudioThread_CountAndReleaseNotes(0);
+ }
+ 
+-void func_800E66A0(void) {
+-    func_800E66C0(2);
++// LLM generated name (HIGH), was func_800E66A0: calls CountAndReleaseNotes(2) to release notes not backed by
++// RAM samples
++void AudioThread_ReleaseNonRamNotes(void) {
++    AudioThread_CountAndReleaseNotes(2);
+ }
+ 
+-s32 func_800E66C0(s32 arg0) {
++// LLM generated name (HIGH), was func_800E66C0: iterates notes counting active ones and releasing per the
++// arg0 flag
++s32 AudioThread_CountAndReleaseNotes(s32 arg0) {
+     s32 phi_v1;
+     NotePlaybackState* temp_a2;
+     NoteSubEu* temp_a3;
+-- 
+2.55.0
+

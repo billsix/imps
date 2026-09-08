@@ -1,0 +1,120 @@
+From 4427b45f2e82faf7085f287d7c54f0bd8a44ef4b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:03 +0000
+Subject: [PATCH 066/488] soh: name the 2 address-named symbols defined in
+ z_en_zl4.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c; updating their references touches 3 files in total.
+
+  * func_80B5B9B0 -> EnZl4_UpdateTalkState
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_80B5BB78 -> EnZl4_TrackPlayer
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../SkipCutscene/Story/SkipToGivingZeldasLetter.cpp    |  4 ++--
+ soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c          | 10 ++++++----
+ soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.h          |  4 ++--
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/SkipCutscene/Story/SkipToGivingZeldasLetter.cpp b/soh/soh/Enhancements/TimeSavers/SkipCutscene/Story/SkipToGivingZeldasLetter.cpp
+index 1acd6dabe..b82906e84 100644
+--- a/soh/soh/Enhancements/TimeSavers/SkipCutscene/Story/SkipToGivingZeldasLetter.cpp
++++ b/soh/soh/Enhancements/TimeSavers/SkipCutscene/Story/SkipToGivingZeldasLetter.cpp
+@@ -21,8 +21,8 @@ void EnZl4_SkipToGivingZeldasLetter(EnZl4* enZl4, PlayState* play) {
+         enZl4->csState = 8; // ZL4_CS_PLAN
+     } else {
+         Npc_UpdateTalking(play, &enZl4->actor, &enZl4->interactInfo.talkState, enZl4->collider.dim.radius + 60.0f,
+-                          EnZl4_GiveItemTextId, func_80B5B9B0);
+-        func_80B5BB78(enZl4, play);
++                          EnZl4_GiveItemTextId, EnZl4_UpdateTalkState);
++        EnZl4_TrackPlayer(enZl4, play);
+ 
+         if (enZl4->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+             enZl4->talkState = 6;
+diff --git a/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c b/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c
+index a57bdfa52..1dd75ebbc 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c
++++ b/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c
+@@ -228,7 +228,8 @@ u16 EnZl4_GetText(PlayState* play, Actor* thisx) {
+     return ret;
+ }
+ 
+-s16 func_80B5B9B0(PlayState* play, Actor* thisx) {
++// Name from zeldaret/oot, was func_80B5B9B0: NpcInteract callback returning next talk state from message state. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c]
++s16 EnZl4_UpdateTalkState(PlayState* play, Actor* thisx) {
+     EnZl4* this = (EnZl4*)thisx;
+ 
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+@@ -307,7 +308,8 @@ void EnZl4_SetMove(EnZl4* this, PlayState* play) {
+     AnimationContext_SetMoveActor(play, &this->actor, &this->skelAnime, 1.0f);
+ }
+ 
+-void func_80B5BB78(EnZl4* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80B5BB78: aims interactInfo.trackPos/head at the player for tracking.
++void EnZl4_TrackPlayer(EnZl4* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->interactInfo.trackPos = player->actor.world.pos;
+@@ -1204,8 +1206,8 @@ void EnZl4_Cutscene(EnZl4* this, PlayState* play) {
+ 
+ void EnZl4_Idle(EnZl4* this, PlayState* play) {
+     Npc_UpdateTalking(play, &this->actor, &this->interactInfo.talkState, this->collider.dim.radius + 60.0f,
+-                      EnZl4_GetText, func_80B5B9B0);
+-    func_80B5BB78(this, play);
++                      EnZl4_GetText, EnZl4_UpdateTalkState);
++    EnZl4_TrackPlayer(this, play);
+ }
+ 
+ void EnZl4_TheEnd(EnZl4* this, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.h b/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.h
+index 4b14121c6..24afede78 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.h
++++ b/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.h
+@@ -31,8 +31,8 @@ typedef struct EnZl4 {
+     /* 0x0284 */ Vec3s morphTable[18];
+ } EnZl4; // size = 0x02F0
+ 
+-s16 func_80B5B9B0(PlayState* play, Actor* actor);
+-void func_80B5BB78(EnZl4* enZl4, PlayState* play);
++s16 EnZl4_UpdateTalkState(PlayState* play, Actor* actor);  // was func_80B5B9B0 [oot]
++void EnZl4_TrackPlayer(EnZl4* enZl4, PlayState* play);  // was func_80B5BB78 [LLM:HIGH]
+ void EnZl4_Cutscene(EnZl4* enZl4, PlayState* play);
+ s32 EnZl4_SetNextAnim(EnZl4* enZl4, s32 nextAnim);
+ 
+-- 
+2.55.0
+

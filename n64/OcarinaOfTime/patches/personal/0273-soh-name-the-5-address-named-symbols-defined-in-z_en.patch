@@ -1,0 +1,182 @@
+From 6e6c9a0495391384fd527429045df436edd2bb3c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:21 +0000
+Subject: [PATCH 273/488] soh: name the 5 address-named symbols defined in
+ z_en_wonder_talk2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c.
+
+  * D_80B3A8E0 -> sTargetModes
+    deduced, confidence HIGH: s16 table indexed by the range index decoded
+    from world.rot.z and assigned straight to actor.targetMode.
+
+  * func_80B3A10C -> EnWonderTalk2_SetupTextId
+    deduced, confidence HIGH: builds actor.textId from 0x200 plus baseMsgId,
+    then routes to the proximity-triggered or the talk-offer waiting state
+    according to talkMode.
+
+  * func_80B3A15C -> EnWonderTalk2_WaitForTalk
+    deduced, confidence HIGH: the talk-offer variant: offers talk inside the
+    configured range and, when the player accepts, sets the switch flag and
+    returns to the setup state.
+
+  * func_80B3A3D4 -> EnWonderTalk2_WaitForMessageDone
+    deduced, confidence HIGH: waits for the forced textbox to finish, then
+    sets the switch flag, drops the attention and culling flags and hands
+    control back to the player.
+
+  * func_80B3A4F8 -> EnWonderTalk2_WaitForProximity
+    deduced, confidence HIGH: the forced variant: starts the textbox on its
+    own the moment the player is inside the configured XZ range and within
+    100 units vertically, outside a cutscene.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_En_Wonder_Talk2/z_en_wonder_talk2.c   | 37 +++++++++++--------
+ 1 file changed, 21 insertions(+), 16 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c b/soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c
+index 67736d5b3..56c7c9bee 100644
+--- a/soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c
++++ b/soh/src/overlays/actors/ovl_En_Wonder_Talk2/z_en_wonder_talk2.c
+@@ -14,10 +14,14 @@ void EnWonderTalk2_Init(Actor* thisx, PlayState* play);
+ void EnWonderTalk2_Destroy(Actor* thisx, PlayState* play);
+ void EnWonderTalk2_Update(Actor* thisx, PlayState* play);
+ 
+-void func_80B3A10C(EnWonderTalk2* this, PlayState* play);
+-void func_80B3A4F8(EnWonderTalk2* this, PlayState* play);
+-void func_80B3A15C(EnWonderTalk2* this, PlayState* play);
+-void func_80B3A3D4(EnWonderTalk2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B3A10C: builds actor.textId from 0x200 plus baseMsgId, then routes to the proximity-triggered or the talk-offer waiting state according to talkMode.
++void EnWonderTalk2_SetupTextId(EnWonderTalk2* this, PlayState* play);  // was func_80B3A10C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B3A4F8: the forced variant: starts the textbox on its own the moment the player is inside the configured XZ range and within 100 units vertically, outside a cutscene.
++void EnWonderTalk2_WaitForProximity(EnWonderTalk2* this, PlayState* play);  // was func_80B3A4F8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B3A15C: the talk-offer variant: offers talk inside the configured range and, when the player accepts, sets the switch flag and returns to the setup state.
++void EnWonderTalk2_WaitForTalk(EnWonderTalk2* this, PlayState* play);  // was func_80B3A15C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B3A3D4: waits for the forced textbox to finish, then sets the switch flag, drops the attention and culling flags and hands control back to the player.
++void EnWonderTalk2_WaitForMessageDone(EnWonderTalk2* this, PlayState* play);  // was func_80B3A3D4 [LLM:HIGH]
+ void EnWonderTalk2_DoNothing(EnWonderTalk2* this, PlayState* play);
+ 
+ const ActorInit En_Wonder_Talk2_InitVars = {
+@@ -33,7 +37,8 @@ const ActorInit En_Wonder_Talk2_InitVars = {
+     NULL,
+ };
+ 
+-static s16 D_80B3A8E0[] = { 6, 0, 1, 2, 3, 4, 5 };
++// LLM generated name (HIGH), was D_80B3A8E0: s16 table indexed by the range index decoded from world.rot.z and assigned straight to actor.targetMode.
++static s16 sTargetModes[] = { 6, 0, 1, 2, 3, 4, 5 };  // was D_80B3A8E0 [LLM:HIGH]
+ 
+ void EnWonderTalk2_Destroy(Actor* thisx, PlayState* play) {
+ }
+@@ -60,7 +65,7 @@ void EnWonderTalk2_Init(Actor* thisx, PlayState* play) {
+             rangeIndex = 0;
+         }
+ 
+-        this->actor.targetMode = D_80B3A8E0[rangeIndex];
++        this->actor.targetMode = sTargetModes[rangeIndex];  // was D_80B3A8E0 [LLM:HIGH]
+ 
+         osSyncPrintf("\n\n");
+         // "originally?"
+@@ -96,21 +101,21 @@ void EnWonderTalk2_Init(Actor* thisx, PlayState* play) {
+         this->actor.flags &= ~ACTOR_FLAG_LOCK_ON_DISABLED;
+         this->actionFunc = EnWonderTalk2_DoNothing;
+     } else {
+-        this->actionFunc = func_80B3A10C;
++        this->actionFunc = EnWonderTalk2_SetupTextId;  // was func_80B3A10C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B3A10C(EnWonderTalk2* this, PlayState* play) {
++void EnWonderTalk2_SetupTextId(EnWonderTalk2* this, PlayState* play) {
+     this->actor.textId = 0x200;
+     this->actor.textId |= this->baseMsgId;
+     if (this->talkMode == 1 || this->talkMode == 4) {
+-        this->actionFunc = func_80B3A4F8;
++        this->actionFunc = EnWonderTalk2_WaitForProximity;  // was func_80B3A4F8 [LLM:HIGH]
+     } else {
+-        this->actionFunc = func_80B3A15C;
++        this->actionFunc = EnWonderTalk2_WaitForTalk;  // was func_80B3A15C [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B3A15C(EnWonderTalk2* this, PlayState* play) {
++void EnWonderTalk2_WaitForTalk(EnWonderTalk2* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->unk_158++;
+@@ -126,7 +131,7 @@ void func_80B3A15C(EnWonderTalk2* this, PlayState* play) {
+             osSyncPrintf(VT_FGCOL(PURPLE) "☆☆☆☆☆ セーブしたよ！おもいっきり！ %x\n" VT_RST, this->switchFlag);
+         }
+ 
+-        this->actionFunc = func_80B3A10C;
++        this->actionFunc = EnWonderTalk2_SetupTextId;  // was func_80B3A10C [LLM:HIGH]
+     } else {
+         s16 yawDiff = ABS((s16)(this->actor.yawTowardsPlayer - this->actor.world.rot.y));
+ 
+@@ -168,7 +173,7 @@ void func_80B3A15C(EnWonderTalk2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B3A3D4(EnWonderTalk2* this, PlayState* play) {
++void EnWonderTalk2_WaitForMessageDone(EnWonderTalk2* this, PlayState* play) {
+     if (BREG(2) != 0) {
+         // "Oh"
+         osSyncPrintf(VT_FGCOL(PURPLE) "☆☆☆☆☆ わー %d\n" VT_RST, Message_GetState(&play->msgCtx));
+@@ -199,12 +204,12 @@ void func_80B3A3D4(EnWonderTalk2* this, PlayState* play) {
+                 Player_SetCsActionWithHaltedActors(play, NULL, 7);
+             }
+             this->unk_156 = true;
+-            this->actionFunc = func_80B3A4F8;
++            this->actionFunc = EnWonderTalk2_WaitForProximity;  // was func_80B3A4F8 [LLM:HIGH]
+             break;
+     }
+ }
+ 
+-void func_80B3A4F8(EnWonderTalk2* this, PlayState* play) {
++void EnWonderTalk2_WaitForProximity(EnWonderTalk2* this, PlayState* play) {
+     Player* player;
+ 
+     player = GET_PLAYER(play);
+@@ -260,7 +265,7 @@ void func_80B3A4F8(EnWonderTalk2* this, PlayState* play) {
+                     Player_SetCsActionWithHaltedActors(play, NULL, 8);
+                 }
+                 this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED | ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+-                this->actionFunc = func_80B3A3D4;
++                this->actionFunc = EnWonderTalk2_WaitForMessageDone;  // was func_80B3A3D4 [LLM:HIGH]
+             }
+ 
+         } else {
+-- 
+2.55.0
+

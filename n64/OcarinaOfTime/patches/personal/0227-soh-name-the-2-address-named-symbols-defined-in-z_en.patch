@@ -1,0 +1,99 @@
+From 373acb920f72c51b56774f35a7248a1b37c248eb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:17 +0000
+Subject: [PATCH 227/488] soh: name the 2 address-named symbols defined in
+ z_en_goma.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c.
+
+  * D_80A4B7A0 -> sAttackCylinderInit
+    deduced, confidence HIGH: ColliderCylinderInit for colCyl1, with AT_ON |
+    AT_TYPE_ENEMY and AC_NONE, so it is the collider that deals damage.
+
+  * D_80A4B7CC -> sHurtCylinderInit
+    deduced, confidence HIGH: ColliderCylinderInit for colCyl2, with AT_NONE
+    and AC_ON | AC_TYPE_PLAYER, so it is the collider that receives the
+    player's attacks.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c b/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
+index 089d6a563..fde161f82 100644
+--- a/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
++++ b/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
+@@ -60,7 +60,8 @@ const ActorInit En_Goma_InitVars = {
+     (ActorResetFunc)EnGoma_Reset,
+ };
+ 
+-static ColliderCylinderInit D_80A4B7A0 = {
++// LLM generated name (HIGH), was D_80A4B7A0: ColliderCylinderInit for colCyl1, with AT_ON | AT_TYPE_ENEMY and AC_NONE, so it is the collider that deals damage.
++static ColliderCylinderInit sAttackCylinderInit = {  // was D_80A4B7A0 [LLM:HIGH]
+     {
+         COLTYPE_HIT3,
+         AT_ON | AT_TYPE_ENEMY,
+@@ -80,7 +81,8 @@ static ColliderCylinderInit D_80A4B7A0 = {
+     { 15, 30, 10, { 0, 0, 0 } },
+ };
+ 
+-static ColliderCylinderInit D_80A4B7CC = {
++// LLM generated name (HIGH), was D_80A4B7CC: ColliderCylinderInit for colCyl2, with AT_NONE and AC_ON | AC_TYPE_PLAYER, so it is the collider that receives the player's attacks.
++static ColliderCylinderInit sHurtCylinderInit = {  // was D_80A4B7CC [LLM:HIGH]
+     {
+         COLTYPE_HIT3,
+         AT_NONE,
+@@ -173,9 +175,9 @@ void EnGoma_Init(Actor* thisx, PlayState* play) {
+         this->eggSquishAngle = Rand_ZeroOne() * 1000.0f;
+         this->actionTimer = 50;
+         Collider_InitCylinder(play, &this->colCyl1);
+-        Collider_SetCylinder(play, &this->colCyl1, &this->actor, &D_80A4B7A0);
++        Collider_SetCylinder(play, &this->colCyl1, &this->actor, &sAttackCylinderInit);  // was D_80A4B7A0 [LLM:HIGH]
+         Collider_InitCylinder(play, &this->colCyl2);
+-        Collider_SetCylinder(play, &this->colCyl2, &this->actor, &D_80A4B7CC);
++        Collider_SetCylinder(play, &this->colCyl2, &this->actor, &sHurtCylinderInit);  // was D_80A4B7CC [LLM:HIGH]
+     }
+ }
+ 
+@@ -914,4 +916,4 @@ void EnGoma_BossLimb(EnGoma* this, PlayState* play) {
+ 
+ void EnGoma_Reset(void) {
+     sSpawnNum = 0;
+-}
+\ No newline at end of file
++}
+-- 
+2.55.0
+

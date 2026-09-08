@@ -1,0 +1,104 @@
+From c3bfe4ef764b07c55b98057c5e76bf39ac625681 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:17 +0000
+Subject: [PATCH 220/488] soh: name the 2 address-named symbols defined in
+ audio_data.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/audio_data.c; updating their references touches 3 files in total.
+
+  * D_8012FBA4 -> gUnusedAudioValue
+    deduced, confidence GUESS: s32 initialised to 0 in audio_data.c with no
+    reader anywhere in the tree.
+
+  * D_8012FBA8 -> gDefaultAdpcmBook
+    deduced, confidence GUESS: s16 codebook installed as
+    gAudioContext.curLoadedBook when bookOffset is 1, in place of the
+    sample's own book; mostly zeroes with 500 in every fourth slot. Called
+    "default" from that substitution, its actual derivation is unknown.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/variables.h        | 2 +-
+ soh/src/code/audio_data.c      | 6 ++++--
+ soh/src/code/audio_synthesis.c | 2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/soh/include/variables.h b/soh/include/variables.h
+index c2f63580c..b620e1a74 100644
+--- a/soh/include/variables.h
++++ b/soh/include/variables.h
+@@ -138,7 +138,7 @@ extern "C"
+ 	extern NoteSubEu gZeroNoteSub;
+ 	extern NoteSubEu gDefaultNoteSub;
+ 	extern u16 gHeadsetPanQuantization[64];
+-	extern s16 D_8012FBA8[];
++	extern s16 gDefaultAdpcmBook[];  // was D_8012FBA8 [LLM:GUESS]
+ 	extern f32 gHeadsetPanVolume[128];
+ 	extern f32 gStereoPanVolume[128];
+ 	extern f32 gDefaultPanVolume[128];
+diff --git a/soh/src/code/audio_data.c b/soh/src/code/audio_data.c
+index ab083145c..1f2255a4e 100644
+--- a/soh/src/code/audio_data.c
++++ b/soh/src/code/audio_data.c
+@@ -562,10 +562,12 @@ u16 gHeadsetPanQuantization[64] = {
+     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+ };
+ 
+-s32 D_8012FBA4 = 0;
++// LLM generated name (GUESS), was D_8012FBA4: s32 initialised to 0 in audio_data.c with no reader anywhere in the tree.
++s32 gUnusedAudioValue = 0;  // was D_8012FBA4 [LLM:GUESS]
+ 
+ // clang-format off
+-s16 D_8012FBA8[] = {
++// LLM generated name (GUESS), was D_8012FBA8: s16 codebook installed as gAudioContext.curLoadedBook when bookOffset is 1, in place of the sample's own book; mostly zeroes with 500 in every fourth slot. Called "default" from that substitution, its actual derivation is unknown.
++s16 gDefaultAdpcmBook[] = {  // was D_8012FBA8 [LLM:GUESS]
+     0, 0, 0, 0,   0, 0, 0, 0,
+     0, 0, 0, 0,   0, 0, 0, 0,
+     0, 0, 0, 0,   0, 0, 0, 0,
+diff --git a/soh/src/code/audio_synthesis.c b/soh/src/code/audio_synthesis.c
+index 114a6d0d0..b61e9050f 100644
+--- a/soh/src/code/audio_synthesis.c
++++ b/soh/src/code/audio_synthesis.c
+@@ -805,7 +805,7 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSubEu, NoteSynthesisS
+                     u32 nEntries;
+                     switch (bookOffset) {
+                         case 1:
+-                            gAudioContext.curLoadedBook = &D_8012FBA8[1];
++                            gAudioContext.curLoadedBook = &gDefaultAdpcmBook[1];  // was D_8012FBA8 [LLM:GUESS]
+                             break;
+                         case 2:
+                         case 3:
+-- 
+2.55.0
+

@@ -1,0 +1,113 @@
+From 0f0bcb67ceceae020ab0b1a9a47a7071c0991483 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:40 +0000
+Subject: [PATCH 476/488] soh: name the 3 address-named symbols defined in
+ z_en_ko.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c.
+
+  * D_80A9A62C -> sTrackYOffsets
+    deduced, confidence HIGH: the per-type, per-quest-state head-tracking
+    offset EnKo_GetTrackYOffset returns
+
+  * D_80A9A730 -> sUsesGravityTable
+    deduced, confidence HIGH: the per-type, per-quest-state flag
+    EnKo_UsesGravity returns
+
+  * D_80A9A774 -> sKoFocusOffset
+    deduced, confidence HIGH: the zero vector EnKo_PostLimbDraw records the
+    focus position from
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+index b726979af..5cbdeafaf 100644
+--- a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
++++ b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+@@ -635,7 +635,7 @@ s32 EnKo_GetForestQuestState(EnKo* this) {
+ 
+ // LLM generated name (HIGH), was func_80A97BC0: returns the head-tracking yOffset for this Kokiri's type and forest quest state; Fado as adult is a fixed -20
+ f32 EnKo_GetTrackYOffset(EnKo* this) {
+-    f32 D_80A9A62C[13][5] = {
++    f32 sTrackYOffsets[13][5] = {  // was D_80A9A62C [LLM:HIGH]
+         /* ENKO_TYPE_CHILD_0    */ { 0.0f, 0.0f, 0.0f, -30.0f, -20.0f },
+         /* ENKO_TYPE_CHILD_1    */ { 0.0f, 0.0f, 0.0f, -20.0f, -10.0f },
+         /* ENKO_TYPE_CHILD_2    */ { 0.0f, 0.0f, 0.0f, -30.0f, -20.0f },
+@@ -654,12 +654,12 @@ f32 EnKo_GetTrackYOffset(EnKo* this) {
+     if (LINK_IS_ADULT && ENKO_TYPE == ENKO_TYPE_CHILD_FADO) {
+         return -20.0f;
+     }
+-    return D_80A9A62C[ENKO_TYPE][EnKo_GetForestQuestState(this)];
++    return sTrackYOffsets[ENKO_TYPE][EnKo_GetForestQuestState(this)];  // was D_80A9A62C [LLM:HIGH]
+ }
+ 
+ // LLM generated name (HIGH), was func_80A97C7C: the caller runs Actor_UpdateBgCheckInfo and sets gravity -1 when this is true, gravity 0 when false
+ u8 EnKo_UsesGravity(EnKo* this) {
+-    u8 D_80A9A730[13][5] = {
++    u8 sUsesGravityTable[13][5] = {  // was D_80A9A730 [LLM:HIGH]
+         /* ENKO_TYPE_CHILD_0    */ { 1, 1, 1, 0, 1 },
+         /* ENKO_TYPE_CHILD_1    */ { 1, 1, 1, 1, 1 },
+         /* ENKO_TYPE_CHILD_2    */ { 1, 1, 1, 0, 1 },
+@@ -675,7 +675,7 @@ u8 EnKo_UsesGravity(EnKo* this) {
+         /* ENKO_TYPE_CHILD_FADO */ { 1, 1, 1, 1, 1 },
+     };
+ 
+-    return D_80A9A730[ENKO_TYPE][EnKo_GetForestQuestState(this)];
++    return sUsesGravityTable[ENKO_TYPE][EnKo_GetForestQuestState(this)];  // was D_80A9A730 [LLM:HIGH]
+ }
+ 
+ s32 EnKo_IsWithinTalkAngle(EnKo* this) {
+@@ -1364,14 +1364,14 @@ s32 EnKo_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
+ void EnKo_PostLimbDraw(PlayState* play2, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx, Gfx** gfx) {
+     PlayState* play = play2;
+     EnKo* this = (EnKo*)thisx;
+-    Vec3f D_80A9A774 = { 0.0f, 0.0f, 0.0f };
++    Vec3f sKoFocusOffset = { 0.0f, 0.0f, 0.0f };  // was D_80A9A774 [LLM:HIGH]
+ 
+     if (limbIndex == 7) {
+         gSPSegment((*gfx)++, 0x06, play->objectCtx.status[this->bodyObjectBankIdx].segment);
+         gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->bodyObjectBankIdx].segment);
+     }
+     if (limbIndex == 15) {
+-        Matrix_MultVec3f(&D_80A9A774, &this->actor.focus.pos);
++        Matrix_MultVec3f(&sKoFocusOffset, &this->actor.focus.pos);  // was D_80A9A774 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

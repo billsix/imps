@@ -1,0 +1,487 @@
+From 29bb16e90e636614547517e72269734e14b9823d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:59 +0000
+Subject: [PATCH 023/488] soh: name the 5 address-named symbols defined in
+ z_message_PAL.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/code/z_message_PAL.c; updating their references touches 19 files in total.
+
+  * func_8010BD58 -> Message_StartOcarinaSunsSongEnabled
+    deduced, confidence HIGH
+
+  * func_8010BD88 -> Message_StartOcarinaSunsSongDisabled
+    zeldaret/oot (same decomp, same ROM address)
+
+  * D_80153D3C -> sUnusedMsgData
+    deduced, confidence HIGH
+
+  * D_80153D74 -> sTextboxInstantDisplay
+    deduced, confidence HIGH
+
+  * D_80153D78 -> sMessageDebuggerTextboxCount
+    zeldaret/oot (same decomp, same ROM address)
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  4 +--
+ soh/src/code/z_demo.c                         |  4 +--
+ soh/src/code/z_message_PAL.c                  | 29 ++++++++++++-------
+ soh/src/overlays/actors/ovl_En_Box/z_en_box.c |  2 +-
+ soh/src/overlays/actors/ovl_En_Du/z_en_du.c   |  2 +-
+ soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c   |  4 +--
+ soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c   |  4 +--
+ soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c   |  2 +-
+ .../actors/ovl_En_Kakasi/z_en_kakasi.c        |  4 +--
+ .../actors/ovl_En_Kakasi3/z_en_kakasi3.c      |  6 ++--
+ soh/src/overlays/actors/ovl_En_Ma1/z_en_ma1.c |  4 +--
+ soh/src/overlays/actors/ovl_En_Ma2/z_en_ma2.c |  2 +-
+ soh/src/overlays/actors/ovl_En_Md/z_en_md.c   |  2 +-
+ .../ovl_En_Okarina_Tag/z_en_okarina_tag.c     | 10 +++----
+ soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c |  4 +--
+ .../ovl_Obj_Timeblock/z_obj_timeblock.c       |  2 +-
+ .../ovl_Obj_Warp2block/z_obj_warp2block.c     |  2 +-
+ .../overlays/actors/ovl_Shot_Sun/z_shot_sun.c |  2 +-
+ .../actors/ovl_player_actor/z_player.c        |  2 +-
+ 19 files changed, 50 insertions(+), 41 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 53a773b4d..c47f9b48a 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2424,8 +2424,8 @@ u8 Message_ShouldAdvanceSilent(PlayState* play);
+ void Message_CloseTextbox(PlayState*);
+ void Message_StartTextbox(PlayState* play, u16 textId, Actor* actor);
+ void Message_ContinueTextbox(PlayState* play, u16 textId);
+-void func_8010BD58(PlayState* play, u16 arg1);
+-void func_8010BD88(PlayState* play, u16 arg1);
++void Message_StartOcarinaSunsSongEnabled(PlayState* play, u16 arg1);  // was func_8010BD58 [LLM:HIGH]
++void Message_StartOcarinaSunsSongDisabled(PlayState* play, u16 arg1);  // was func_8010BD88 [oot]
+ u8 Message_GetState(MessageContext* msgCtx);
+ void Message_Draw(PlayState* play);
+ void Message_Update(PlayState* play);
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 74429c237..9d96715ca 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -1647,7 +1647,7 @@ void Cutscene_Command_Textbox(PlayState* play, CutsceneContext* csCtx, CsCmdText
+         } else {
+             if (D_8011E1C4 != cmd->base) {
+                 D_8011E1C4 = cmd->base;
+-                func_8010BD58(play, cmd->base);
++                Message_StartOcarinaSunsSongEnabled(play, cmd->base);
+                 return;
+             }
+         }
+@@ -1692,7 +1692,7 @@ void Cutscene_Command_Textbox(PlayState* play, CutsceneContext* csCtx, CsCmdText
+ 
+                 if (dialogState == TEXT_STATE_EVENT) {
+                     if (Message_ShouldAdvance(play)) {
+-                        func_8010BD58(play, cmd->base);
++                        Message_StartOcarinaSunsSongEnabled(play, cmd->base);
+                     }
+                 }
+             }
+diff --git a/soh/src/code/z_message_PAL.c b/soh/src/code/z_message_PAL.c
+index 66a7baae2..8b71f75a7 100644
+--- a/soh/src/code/z_message_PAL.c
++++ b/soh/src/code/z_message_PAL.c
+@@ -3030,12 +3030,18 @@ void Message_StartOcarina(PlayState* play, u16 ocarinaActionId) {
+     }
+ }
+ 
+-void func_8010BD58(PlayState* play, u16 ocarinaActionId) {
++// LLM generated name (HIGH), was func_8010BD58: sets disableSunsSong=false (unk_E40E), then starts the ocarina
++// prompt. (oot names it Message_StartOcarina, but that clashes with SoH's existing symbol = oot's
++// Message_StartOcarinaImpl; full oot alignment deferred: https://github.com/zeldaret/oot/blob/main/src/code/z_message.c)
++// action.
++void Message_StartOcarinaSunsSongEnabled(PlayState* play, u16 ocarinaActionId) {
+     play->msgCtx.unk_E40E = 0;
+     Message_StartOcarina(play, ocarinaActionId);
+ }
+ 
+-void func_8010BD88(PlayState* play, u16 ocarinaActionId) {
++// Name from zeldaret/oot, was func_8010BD88: sets disableSunsSong=true (unk_E40E) then starts the ocarina
++// prompt — used where Sun's Song must be blocked. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_message.c]
++void Message_StartOcarinaSunsSongDisabled(PlayState* play, u16 ocarinaActionId) {
+     play->msgCtx.unk_E40E = 1;
+     Message_StartOcarina(play, ocarinaActionId);
+ }
+@@ -3873,7 +3879,7 @@ void Message_DrawMain(PlayState* play, Gfx** p) {
+                     Message_DrawText(play, &gfx);
+                 }
+                 if (Message_ShouldAdvance(play)) {
+-                    func_8010BD58(play, msgCtx->ocarinaAction);
++                    Message_StartOcarinaSunsSongEnabled(play, msgCtx->ocarinaAction);
+                 }
+                 break;
+             case MSGMODE_SCARECROW_LONG_RECORDING_START:
+@@ -4387,13 +4393,16 @@ void Message_Update(PlayState* play) {
+     static s16 sTextboxEndIconYOffset[] = {
+         59, 59, 59, 59, 34, 59,
+     };
+-    static s16 D_80153D3C[] = {
++    // LLM generated name (HIGH), was D_80153D3C: array never read; inline comment calls it additional unreferenced data.
++    static s16 sUnusedMsgData[] = {
+         // additional unreferenced data
+         0x0400, 0x0400, 0x0200, 0x0000, 0x1038, 0x0008, 0x200A, 0x088B, 0x0007, 0x0009, 0x000A, 0x107E, 0x2008, 0x2007,
+         0x0015, 0x0016, 0x0017, 0x0003, 0x0000, 0x270B, 0x00C8, 0x012C, 0x012D, 0xFFDA, 0x0014, 0x0016, 0x0014, 0x0016,
+     };
+-    static u8 D_80153D74 = 0;
+-    static u16 D_80153D78 = 0;
++    // LLM generated name (HIGH), was D_80153D74: when set, snaps textDrawPos to decodedTextLen for instant full display.
++    static u8 sTextboxInstantDisplay = 0;
++    // Name from zeldaret/oot, was D_80153D78: debug message counter printed as "msgno" and cycled 0..9. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_message.c]
++    static u16 sMessageDebuggerTextboxCount = 0;
+     MessageContext* msgCtx = &play->msgCtx;
+     InterfaceContext* interfaceCtx = &play->interfaceCtx;
+     Player* player = GET_PLAYER(play);
+@@ -4406,9 +4415,9 @@ void Message_Update(PlayState* play) {
+ 
+     if (BREG(0) != 0) {
+         if (CHECK_BTN_ALL(input->press.button, BTN_DDOWN) && CHECK_BTN_ALL(input->cur.button, BTN_L)) {
+-            osSyncPrintf("msgno=%d\n", D_80153D78);
++            osSyncPrintf("msgno=%d\n", sMessageDebuggerTextboxCount);
+             Message_StartTextbox(play, R_MESSAGE_DEBUGGER_TEXTID, NULL);
+-            D_80153D78 = (D_80153D78 + 1) % 10;
++            sMessageDebuggerTextboxCount = (sMessageDebuggerTextboxCount + 1) % 10;
+         }
+         if (R_MESSAGE_DEBUGGER_SELECT != 0) {
+             while (R_MESSAGE_DEBUGGER_TEXTID != 0x8000) {
+@@ -4548,9 +4557,9 @@ void Message_Update(PlayState* play) {
+             if (sTextFade) {
+                 Interface_ChangeHudVisibilityMode(1);
+             }
+-            if (D_80153D74 != 0) {
++            if (sTextboxInstantDisplay != 0) {
+                 msgCtx->textDrawPos = msgCtx->decodedTextLen;
+-                D_80153D74 = 0;
++                sTextboxInstantDisplay = 0;
+             }
+             break;
+         case MSGMODE_TEXT_CONTINUING:
+diff --git a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+index 1012932c4..5e612a8f9 100644
+--- a/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
++++ b/soh/src/overlays/actors/ovl_En_Box/z_en_box.c
+@@ -324,7 +324,7 @@ void func_809C9700(EnBox* this, PlayState* play) {
+         }
+ 
+         if (this->unk_1FB == ENBOX_STATE_1) {
+-            func_8010BD58(play, OCARINA_ACTION_FREE_PLAY);
++            Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_FREE_PLAY);
+             this->unk_1FB = ENBOX_STATE_2;
+         } else if (this->unk_1FB == ENBOX_STATE_2 && play->msgCtx.ocarinaMode == OCARINA_MODE_04) {
+             if ((play->msgCtx.lastPlayedSong == OCARINA_SONG_LULLABY && this->type == ENBOX_TYPE_9) ||
+diff --git a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+index 831dd806d..c3c142eb2 100644
+--- a/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
++++ b/soh/src/overlays/actors/ovl_En_Du/z_en_du.c
+@@ -356,7 +356,7 @@ void func_809FE3C0(EnDu* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+-        func_8010BD88(play, OCARINA_ACTION_CHECK_SARIA);
++        Message_StartOcarinaSunsSongDisabled(play, OCARINA_ACTION_CHECK_SARIA);
+         player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+         player->unk_6A8 = &this->actor;
+         EnDu_SetupAction(this, func_809FE4A4);
+diff --git a/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c b/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
+index 46fae5962..1966b0441 100644
+--- a/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
++++ b/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
+@@ -669,7 +669,7 @@ void func_80A1BE98(EnFr* this, PlayState* play) {
+         }
+     }
+ 
+-    func_8010BD58(play, OCARINA_ACTION_CHECK_NOWARP);
++    Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_NOWARP);
+     this->actionFunc = EnFr_ListeningToOcarinaNotes;
+ }
+ 
+@@ -825,7 +825,7 @@ void EnFr_SetupFrogSong(EnFr* this, PlayState* play) {
+         }
+         if (GameInteractor_Should(VB_PLAY_FROG_OCARINA_GAME, true, this)) {
+             this->ocarinaNoteIndex = 0;
+-            func_8010BD58(play, OCARINA_ACTION_FROGS);
++            Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_FROGS);
+             this->ocarinaNote = EnFr_GetNextNoteFrogSong(this->ocarinaNoteIndex);
+             EnFr_CheckOcarinaInputFrogSong(this->ocarinaNote);
+             this->actionFunc = EnFr_ContinueFrogSong;
+diff --git a/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c b/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
+index 9539f2ae0..89c83f9ff 100644
+--- a/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
++++ b/soh/src/overlays/actors/ovl_En_Fu/z_en_fu.c
+@@ -199,7 +199,7 @@ void EnFu_WaitForPlayback(EnFu* this, PlayState* play) {
+     player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+     // if dialog state is 7, player has played back the song
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_SONG_DEMO_DONE) {
+-        func_8010BD58(play, OCARINA_ACTION_PLAYBACK_STORMS);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_PLAYBACK_STORMS);
+         this->actionFunc = func_80A1DBD4;
+     }
+ }
+@@ -212,7 +212,7 @@ void EnFu_TeachSong(EnFu* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_CLOSING) {
+         this->behaviorFlags &= ~FU_WAIT;
+         AudioOcarina_SetInstrument(4); // seems to be related to setting instrument type
+-        func_8010BD58(play, OCARINA_ACTION_TEACH_STORMS);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_TEACH_STORMS);
+         this->actionFunc = EnFu_WaitForPlayback;
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c b/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
+index 6b27bd16d..178cf14b4 100644
+--- a/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
++++ b/soh/src/overlays/actors/ovl_En_Gs/z_en_gs.c
+@@ -147,7 +147,7 @@ void func_80A4E470(EnGs* this, PlayState* play) {
+         if (this->unk_19D == 0) {
+             player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+             if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+-                func_8010BD58(play, OCARINA_ACTION_FREE_PLAY);
++                Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_FREE_PLAY);
+                 this->unk_19D |= 1;
+             }
+         } else if (GameInteractor_Should(VB_SPAWN_GOSSIP_STONE_FAIRY, this->unk_19D & 1, this)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c b/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
+index 26dc6e8d1..19b8714dd 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi/z_en_kakasi.c
+@@ -216,7 +216,7 @@ void func_80A8F75C(EnKakasi* this, PlayState* play) {
+                     if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+                         this->camId = OnePointCutscene_Init(play, 2260, -99, &this->actor, CAM_ID_MAIN);
+ 
+-                        func_8010BD58(play, OCARINA_ACTION_SCARECROW_LONG_RECORDING);
++                        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_SCARECROW_LONG_RECORDING);
+                         this->unk_19A = 0;
+                         this->unk_1B8 = 0.0;
+                         player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+@@ -270,7 +270,7 @@ void func_80A8F9C8(EnKakasi* this, PlayState* play) {
+         this->camId = OnePointCutscene_Init(play, 2270, -99, &this->actor, CAM_ID_MAIN);
+         play->msgCtx.msgMode = MSGMODE_PAUSED;
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        func_8010BD58(play, OCARINA_ACTION_SCARECROW_LONG_PLAYBACK);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_SCARECROW_LONG_PLAYBACK);
+         this->actionFunc = func_80A8FAA4;
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c b/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
+index 2f088e5f6..ee84e1c44 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
+@@ -270,7 +270,7 @@ void func_80A91348(EnKakasi3* this, PlayState* play) {
+ void func_80A915B8(EnKakasi3* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+-        func_8010BD58(play, OCARINA_ACTION_SCARECROW_RECORDING);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_SCARECROW_RECORDING);
+         this->actionFunc = func_80A91620;
+     }
+ }
+@@ -313,7 +313,7 @@ void func_80A91760(EnKakasi3* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+     if (this->dialogState == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         play->msgCtx.msgMode = MSGMODE_PAUSED;
+-        func_8010BD58(play, OCARINA_ACTION_SCARECROW_PLAYBACK);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_SCARECROW_PLAYBACK);
+         this->actionFunc = func_80A917FC;
+         this->camId = OnePointCutscene_Init(play, 2280, -99, &this->actor, CAM_ID_MAIN);
+     }
+@@ -334,7 +334,7 @@ void func_80A917FC(EnKakasi3* this, PlayState* play) {
+ void func_80A9187C(EnKakasi3* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+-        func_8010BD58(play, OCARINA_ACTION_CHECK_SCARECROW);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_SCARECROW);
+         this->actionFunc = func_80A918E4;
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Ma1/z_en_ma1.c b/soh/src/overlays/actors/ovl_En_Ma1/z_en_ma1.c
+index 68ce9076a..0ede49646 100644
+--- a/soh/src/overlays/actors/ovl_En_Ma1/z_en_ma1.c
++++ b/soh/src/overlays/actors/ovl_En_Ma1/z_en_ma1.c
+@@ -392,7 +392,7 @@ void EnMa1_StartTeachSong(EnMa1* this, PlayState* play) {
+     GET_PLAYER(play)->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         AudioOcarina_SetInstrument(2);
+-        func_8010BD58(play, OCARINA_ACTION_TEACH_EPONA);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_TEACH_EPONA);
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+         this->actionFunc = EnMa1_TeachSong;
+     }
+@@ -401,7 +401,7 @@ void EnMa1_StartTeachSong(EnMa1* this, PlayState* play) {
+ void EnMa1_TeachSong(EnMa1* this, PlayState* play) {
+     GET_PLAYER(play)->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_SONG_DEMO_DONE) {
+-        func_8010BD58(play, OCARINA_ACTION_PLAYBACK_EPONA);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_PLAYBACK_EPONA);
+         this->actionFunc = EnMa1_WaitForPlayback;
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Ma2/z_en_ma2.c b/soh/src/overlays/actors/ovl_En_Ma2/z_en_ma2.c
+index d372fd222..a6bb224a7 100644
+--- a/soh/src/overlays/actors/ovl_En_Ma2/z_en_ma2.c
++++ b/soh/src/overlays/actors/ovl_En_Ma2/z_en_ma2.c
+@@ -270,7 +270,7 @@ void EnMa2_WaitForOcarina(EnMa2* this, PlayState* play) {
+     if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+         player->unk_6A8 = &this->actor;
+         player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+-        func_8010BD58(play, OCARINA_ACTION_CHECK_EPONA);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_EPONA);
+         this->actionFunc = EnMa2_WaitForEponasSong;
+     } else if (this->actor.xzDistToPlayer < 30.0f + (f32)this->collider.dim.radius) {
+         player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+diff --git a/soh/src/overlays/actors/ovl_En_Md/z_en_md.c b/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
+index 1f000b53c..1b110fda3 100644
+--- a/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
++++ b/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
+@@ -752,7 +752,7 @@ void EnMd_BlockPath(EnMd* this, PlayState* play) {
+         if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+             player->stateFlags2 |= PLAYER_STATE2_PLAY_FOR_ACTOR;
+             player->unk_6A8 = &this->actor;
+-            func_8010BD58(play, OCARINA_ACTION_CHECK_SARIA);
++            Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_SARIA);
+             this->actionFunc = EnMd_ListenToOcarina;
+             return;
+         }
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
+index 801bcf69f..11d82c23b 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
+@@ -130,7 +130,7 @@ void func_80ABEF2C(EnOkarinaTag* this, PlayState* play) {
+                         ocarinaSong = 0xA;
+                     }
+                     player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+-                    func_8010BD58(play, ocarinaSong + OCARINA_ACTION_CHECK_SARIA);
++                    Message_StartOcarinaSunsSongEnabled(play, ocarinaSong + OCARINA_ACTION_CHECK_SARIA);
+                     this->actionFunc = func_80ABF0CC;
+                 } else if ((this->actor.xzDistToPlayer < (50.0f + this->interactRange) &&
+                             ((fabsf(player->actor.world.pos.y - this->actor.world.pos.y) < 40.0f)))) {
+@@ -203,16 +203,16 @@ void func_80ABF28C(EnOkarinaTag* this, PlayState* play) {
+             if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+                 switch (this->type) {
+                     case 1:
+-                        func_8010BD58(play, OCARINA_ACTION_CHECK_LULLABY);
++                        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_LULLABY);
+                         break;
+                     case 2:
+-                        func_8010BD58(play, OCARINA_ACTION_CHECK_STORMS);
++                        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_STORMS);
+                         break;
+                     case 4:
+-                        func_8010BD58(play, OCARINA_ACTION_CHECK_TIME);
++                        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_TIME);
+                         break;
+                     case 6:
+-                        func_8010BD58(play, OCARINA_ACTION_CHECK_LULLABY);
++                        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_LULLABY);
+                         break;
+                     default:
+                         // "Ocarina Invisible-kun demo start check error source"
+diff --git a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+index d39bd708c..37812b7d6 100644
+--- a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
++++ b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+@@ -915,7 +915,7 @@ void EnSkj_WaitInRange(EnSkj* this, PlayState* play) {
+         player->actor.world.pos.y = sSmallStumpSkullKid.skullkid->actor.world.pos.y;
+         player->actor.world.pos.z = sSmallStumpSkullKid.skullkid->actor.world.pos.z;
+         EnSkj_TurnPlayer(sSmallStumpSkullKid.skullkid, player);
+-        func_8010BD88(play, OCARINA_ACTION_CHECK_SARIA);
++        Message_StartOcarinaSunsSongDisabled(play, OCARINA_ACTION_CHECK_SARIA);
+         EnSkj_SetupWaitForSong(this);
+     } else if (D_80B01EA0 != 0) {
+         player->actor.world.pos.x = sSmallStumpSkullKid.skullkid->actor.world.pos.x;
+@@ -1412,7 +1412,7 @@ void EnSkj_StartOcarinaMinigame(EnSkj* this, PlayState* play) {
+     EnSkj_TurnPlayer(this, player);
+ 
+     if (dialogState == TEXT_STATE_CLOSING && GameInteractor_Should(VB_PLAY_LOST_WOODS_OCARINA_GAME, true, this)) {
+-        func_8010BD58(play, OCARINA_ACTION_MEMORY_GAME);
++        Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_MEMORY_GAME);
+         if (sOcarinaMinigameSkullKids[SKULL_KID_LEFT].skullkid != NULL) {
+             sOcarinaMinigameSkullKids[SKULL_KID_LEFT].skullkid->minigameState = SKULL_KID_OCARINA_PLAY_NOTES;
+             this->songFailTimer = 160;
+diff --git a/soh/src/overlays/actors/ovl_Obj_Timeblock/z_obj_timeblock.c b/soh/src/overlays/actors/ovl_Obj_Timeblock/z_obj_timeblock.c
+index b158a6861..0259db6aa 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Timeblock/z_obj_timeblock.c
++++ b/soh/src/overlays/actors/ovl_Obj_Timeblock/z_obj_timeblock.c
+@@ -175,7 +175,7 @@ s32 ObjTimeblock_WaitForOcarina(ObjTimeblock* this, PlayState* play) {
+ 
+     if (ObjTimeblock_PlayerIsInRange(this, play)) {
+         if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+-            func_8010BD58(play, OCARINA_ACTION_FREE_PLAY);
++            Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_FREE_PLAY);
+             this->songObserverFunc = ObjTimeblock_WaitForSong;
+         } else {
+             player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+diff --git a/soh/src/overlays/actors/ovl_Obj_Warp2block/z_obj_warp2block.c b/soh/src/overlays/actors/ovl_Obj_Warp2block/z_obj_warp2block.c
+index 435063d9f..6db8ed9d0 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Warp2block/z_obj_warp2block.c
++++ b/soh/src/overlays/actors/ovl_Obj_Warp2block/z_obj_warp2block.c
+@@ -162,7 +162,7 @@ s32 func_80BA2218(ObjWarp2block* this, PlayState* play) {
+ 
+     if (func_80BA1ECC(this, play)) {
+         if (player->stateFlags2 & PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR) {
+-            func_8010BD58(play, OCARINA_ACTION_FREE_PLAY);
++            Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_FREE_PLAY);
+             this->func_168 = func_80BA228C;
+         } else {
+             player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+diff --git a/soh/src/overlays/actors/ovl_Shot_Sun/z_shot_sun.c b/soh/src/overlays/actors/ovl_Shot_Sun/z_shot_sun.c
+index 9d37bea71..d57458da1 100644
+--- a/soh/src/overlays/actors/ovl_Shot_Sun/z_shot_sun.c
++++ b/soh/src/overlays/actors/ovl_Shot_Sun/z_shot_sun.c
+@@ -139,7 +139,7 @@ void ShotSun_UpdateFairySpawner(ShotSun* this, PlayState* play) {
+             }
+         }
+         if (this->fairySpawnerState == 1) {
+-            func_8010BD58(play, OCARINA_ACTION_FREE_PLAY);
++            Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_FREE_PLAY);
+             this->fairySpawnerState = 2;
+         } else if (this->fairySpawnerState == 2 && play->msgCtx.ocarinaMode == OCARINA_MODE_04) {
+             if ((params == 0x40 && play->msgCtx.lastPlayedSong == OCARINA_SONG_SUNS) ||
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 904b39c63..53c977e2d 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -14201,7 +14201,7 @@ void Player_Action_8084E3C4(Player* this, PlayState* play) {
+         if (this->stateFlags2 & (PLAYER_STATE2_NEAR_OCARINA_ACTOR | PLAYER_STATE2_PLAY_FOR_ACTOR)) {
+             this->stateFlags2 |= PLAYER_STATE2_ATTEMPT_PLAY_FOR_ACTOR;
+         } else {
+-            func_8010BD58(play, OCARINA_ACTION_FREE_PLAY);
++            Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_FREE_PLAY);
+         }
+         return;
+     }
+-- 
+2.55.0
+

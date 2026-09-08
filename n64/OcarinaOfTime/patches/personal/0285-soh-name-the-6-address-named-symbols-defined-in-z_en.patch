@@ -1,0 +1,265 @@
+From 4253053af47c01996af99d01d01068c6e2ff844a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:23 +0000
+Subject: [PATCH 285/488] soh: name the 6 address-named symbols defined in
+ z_en_okarina_tag.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c.
+
+  * func_80ABEF2C -> EnOkarinaTag_WaitForConfiguredSong
+    deduced, confidence HIGH: the type 7 idle: when the player plays for the
+    actor inside the configured range, it starts the ocarina check for the
+    song number packed into params.
+
+  * func_80ABF0CC -> EnOkarinaTag_CheckConfiguredSong
+    deduced, confidence HIGH: reads msgCtx.ocarinaMode after that check; a
+    correct song sets the switch flag and plays the chime, anything else
+    just returns to the idle state.
+
+  * func_80ABF28C -> EnOkarinaTag_WaitForFixedSong
+    deduced, confidence HIGH: the idle for the types whose song is fixed by
+    the type itself (Zora's River, the windmill, the Door of Time, the royal
+    tomb); it starts the matching OCARINA_ACTION_CHECK when the player plays
+    nearby.
+
+  * func_80ABF4C8 -> EnOkarinaTag_CheckFixedSong
+    deduced, confidence HIGH: on a correct song it sets the switch flag and
+    runs the per-type consequence: opening Zora's Domain, speeding the
+    windmill, the Door of Time cutscene, or blowing open the royal family's
+    tomb.
+
+  * func_80ABF708 -> EnOkarinaTag_WaitForTalk
+    deduced, confidence HIGH: the type 5 idle: offers talk within 120 units
+    and roughly in front, using the Sun's Song grave text.
+
+  * func_80ABF7CC -> EnOkarinaTag_Talk
+    deduced, confidence HIGH: closes the textbox and, if the player does not
+    yet have the Sun's Song, triggers gSunSongGraveSunSongTeachCs.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_En_Okarina_Tag/z_en_okarina_tag.c     | 58 ++++++++++---------
+ 1 file changed, 32 insertions(+), 26 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
+index 5c6f0d52c..6dabd43f6 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
+@@ -16,12 +16,18 @@ void EnOkarinaTag_Init(Actor* thisx, PlayState* play);
+ void EnOkarinaTag_Destroy(Actor* thisx, PlayState* play);
+ void EnOkarinaTag_Update(Actor* thisx, PlayState* play);
+ 
+-void func_80ABEF2C(EnOkarinaTag* this, PlayState* play);
+-void func_80ABF708(EnOkarinaTag* this, PlayState* play);
+-void func_80ABF28C(EnOkarinaTag* this, PlayState* play);
+-void func_80ABF0CC(EnOkarinaTag* this, PlayState* play);
+-void func_80ABF4C8(EnOkarinaTag* this, PlayState* play);
+-void func_80ABF7CC(EnOkarinaTag* this, PlayState* play);
++// LLM generated name (HIGH), was func_80ABEF2C: the type 7 idle: when the player plays for the actor inside the configured range, it starts the ocarina check for the song number packed into params.
++void EnOkarinaTag_WaitForConfiguredSong(EnOkarinaTag* this, PlayState* play);  // was func_80ABEF2C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABF708: the type 5 idle: offers talk within 120 units and roughly in front, using the Sun's Song grave text.
++void EnOkarinaTag_WaitForTalk(EnOkarinaTag* this, PlayState* play);  // was func_80ABF708 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABF28C: the idle for the types whose song is fixed by the type itself (Zora's River, the windmill, the Door of Time, the royal tomb); it starts the matching OCARINA_ACTION_CHECK when the player plays nearby.
++void EnOkarinaTag_WaitForFixedSong(EnOkarinaTag* this, PlayState* play);  // was func_80ABF28C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABF0CC: reads msgCtx.ocarinaMode after that check; a correct song sets the switch flag and plays the chime, anything else just returns to the idle state.
++void EnOkarinaTag_CheckConfiguredSong(EnOkarinaTag* this, PlayState* play);  // was func_80ABF0CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABF4C8: on a correct song it sets the switch flag and runs the per-type consequence: opening Zora's Domain, speeding the windmill, the Door of Time cutscene, or blowing open the royal family's tomb.
++void EnOkarinaTag_CheckFixedSong(EnOkarinaTag* this, PlayState* play);  // was func_80ABF4C8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80ABF7CC: closes the textbox and, if the player does not yet have the Sun's Song, triggers gSunSongGraveSunSongTeachCs.
++void EnOkarinaTag_Talk(EnOkarinaTag* this, PlayState* play);  // was func_80ABF7CC [LLM:HIGH]
+ 
+ const ActorInit En_Okarina_Tag_InitVars = {
+     ACTOR_EN_OKARINA_TAG,
+@@ -86,7 +92,7 @@ void EnOkarinaTag_Init(Actor* thisx, PlayState* play) {
+     } else {
+         switch (this->type) {
+             case 7:
+-                this->actionFunc = func_80ABEF2C;
++                this->actionFunc = EnOkarinaTag_WaitForConfiguredSong;  // was func_80ABEF2C [LLM:HIGH]
+                 break;
+             case 2:
+                 if (LINK_IS_ADULT) {
+@@ -96,11 +102,11 @@ void EnOkarinaTag_Init(Actor* thisx, PlayState* play) {
+             case 1:
+             case 4:
+             case 6:
+-                this->actionFunc = func_80ABF28C;
++                this->actionFunc = EnOkarinaTag_WaitForFixedSong;  // was func_80ABF28C [LLM:HIGH]
+                 break;
+             case 5:
+                 this->actor.textId = 0x5021;
+-                this->actionFunc = func_80ABF708;
++                this->actionFunc = EnOkarinaTag_WaitForTalk;  // was func_80ABF708 [LLM:HIGH]
+                 break;
+             default:
+                 Actor_Kill(&this->actor);
+@@ -109,7 +115,7 @@ void EnOkarinaTag_Init(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_80ABEF2C(EnOkarinaTag* this, PlayState* play) {
++void EnOkarinaTag_WaitForConfiguredSong(EnOkarinaTag* this, PlayState* play) {
+     Player* player;
+     u16 ocarinaSong;
+ 
+@@ -133,7 +139,7 @@ void func_80ABEF2C(EnOkarinaTag* this, PlayState* play) {
+                     }
+                     player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+                     Message_StartOcarinaSunsSongEnabled(play, ocarinaSong + OCARINA_ACTION_CHECK_SARIA);
+-                    this->actionFunc = func_80ABF0CC;
++                    this->actionFunc = EnOkarinaTag_CheckConfiguredSong;  // was func_80ABF0CC [LLM:HIGH]
+                 } else if ((this->actor.xzDistToPlayer < (50.0f + this->interactRange) &&
+                             ((fabsf(player->actor.world.pos.y - this->actor.world.pos.y) < 40.0f)))) {
+                     this->unk_15A = 0;
+@@ -144,11 +150,11 @@ void func_80ABEF2C(EnOkarinaTag* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ABF0CC(EnOkarinaTag* this, PlayState* play) {
++void EnOkarinaTag_CheckConfiguredSong(EnOkarinaTag* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (play->msgCtx.ocarinaMode == OCARINA_MODE_04) {
+-        this->actionFunc = func_80ABEF2C;
++        this->actionFunc = EnOkarinaTag_WaitForConfiguredSong;  // was func_80ABEF2C [LLM:HIGH]
+     } else {
+         if (play->msgCtx.ocarinaMode == OCARINA_MODE_03) {
+             if (GameInteractor_Should(VB_OKARINA_TAG_COMPLETE, this->switchFlag >= 0, this)) {
+@@ -162,7 +168,7 @@ void func_80ABF0CC(EnOkarinaTag* this, PlayState* play) {
+                 play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+             }
+             Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+-            this->actionFunc = func_80ABEF2C;
++            this->actionFunc = EnOkarinaTag_WaitForConfiguredSong;  // was func_80ABEF2C [LLM:HIGH]
+             return;
+         }
+         if (this->unk_158 != 0) {
+@@ -175,20 +181,20 @@ void func_80ABF0CC(EnOkarinaTag* this, PlayState* play) {
+                 }
+                 play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+                 Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+-                this->actionFunc = func_80ABEF2C;
++                this->actionFunc = EnOkarinaTag_WaitForConfiguredSong;  // was func_80ABEF2C [LLM:HIGH]
+                 return;
+             }
+         }
+         if ((play->msgCtx.ocarinaMode >= OCARINA_MODE_05) && (play->msgCtx.ocarinaMode < OCARINA_MODE_0E)) {
+             play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+-            this->actionFunc = func_80ABEF2C;
++            this->actionFunc = EnOkarinaTag_WaitForConfiguredSong;  // was func_80ABEF2C [LLM:HIGH]
+         } else if (play->msgCtx.ocarinaMode == OCARINA_MODE_01) {
+             player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+         }
+     }
+ }
+ 
+-void func_80ABF28C(EnOkarinaTag* this, PlayState* play) {
++void EnOkarinaTag_WaitForFixedSong(EnOkarinaTag* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     this->unk_15A++;
+@@ -224,7 +230,7 @@ void func_80ABF28C(EnOkarinaTag* this, PlayState* play) {
+                         break;
+                 }
+                 player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+-                this->actionFunc = func_80ABF4C8;
++                this->actionFunc = EnOkarinaTag_CheckFixedSong;  // was func_80ABF4C8 [LLM:HIGH]
+             } else if ((this->actor.xzDistToPlayer < (50.0f + this->interactRange)) &&
+                        (fabsf(player->actor.world.pos.y - this->actor.world.pos.y) < 40.0f)) {
+                 this->unk_15A = 0;
+@@ -234,11 +240,11 @@ void func_80ABF28C(EnOkarinaTag* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ABF4C8(EnOkarinaTag* this, PlayState* play) {
++void EnOkarinaTag_CheckFixedSong(EnOkarinaTag* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (play->msgCtx.ocarinaMode == OCARINA_MODE_04) {
+-        this->actionFunc = func_80ABF28C;
++        this->actionFunc = EnOkarinaTag_WaitForFixedSong;  // was func_80ABF28C [LLM:HIGH]
+     } else if (play->msgCtx.ocarinaMode == OCARINA_MODE_03) {
+         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+         if (GameInteractor_Should(VB_OKARINA_TAG_COMPLETE, this->switchFlag >= 0, this)) {
+@@ -275,12 +281,12 @@ void func_80ABF4C8(EnOkarinaTag* this, PlayState* play) {
+                 break;
+         }
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+-        this->actionFunc = func_80ABF28C;
++        this->actionFunc = EnOkarinaTag_WaitForFixedSong;  // was func_80ABF28C [LLM:HIGH]
+     } else {
+         if (play->msgCtx.ocarinaMode >= OCARINA_MODE_05) {
+             if (play->msgCtx.ocarinaMode < OCARINA_MODE_0E) {
+                 play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+-                this->actionFunc = func_80ABF28C;
++                this->actionFunc = EnOkarinaTag_WaitForFixedSong;  // was func_80ABF28C [LLM:HIGH]
+                 return;
+             }
+         }
+@@ -290,12 +296,12 @@ void func_80ABF4C8(EnOkarinaTag* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ABF708(EnOkarinaTag* this, PlayState* play) {
++void EnOkarinaTag_WaitForTalk(EnOkarinaTag* this, PlayState* play) {
+     s16 yawDiff;
+     s16 yawDiffNew;
+ 
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+-        this->actionFunc = func_80ABF7CC;
++        this->actionFunc = EnOkarinaTag_Talk;  // was func_80ABF7CC [LLM:HIGH]
+     } else {
+         yawDiff = this->actor.yawTowardsPlayer - this->actor.world.rot.y;
+         this->unk_15A++;
+@@ -312,7 +318,7 @@ void func_80ABF708(EnOkarinaTag* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80ABF7CC(EnOkarinaTag* this, PlayState* play) {
++void EnOkarinaTag_Talk(EnOkarinaTag* this, PlayState* play) {
+     // "Open sesame sesame!"
+     osSyncPrintf(VT_FGCOL(PURPLE) "☆☆☆☆☆ 開けゴマゴマゴマ！ ☆☆☆☆☆ %d\n" VT_RST, Message_GetState(&play->msgCtx));
+ 
+@@ -322,7 +328,7 @@ void func_80ABF7CC(EnOkarinaTag* this, PlayState* play) {
+             play->csCtx.segment = SEGMENTED_TO_VIRTUAL(&gSunSongGraveSunSongTeachCs);
+             gSaveContext.cutsceneTrigger = 1;
+         }
+-        this->actionFunc = func_80ABF708;
++        this->actionFunc = EnOkarinaTag_WaitForTalk;  // was func_80ABF708 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

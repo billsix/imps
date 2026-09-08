@@ -1,0 +1,110 @@
+From 5861cc32e20b9426dec73985ed77dc965bbb9c7e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:17 +0000
+Subject: [PATCH 228/488] soh: name the 2 address-named symbols defined in
+ z_en_zf.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c.
+
+  * D_80B4AB30 -> sUnusedHopCounter
+    deduced, confidence HIGH: the in-tree comment on its declaration reads
+    "Set to 0 and incremented in EnZf_HopAway, but not actually used".
+
+  * D_80B4A2F8 -> sTextureSettingDList
+    deduced, confidence HIGH: two-instruction display list holding a
+    gsSPTexture scale, patched with IREG(0)/IREG(1) and bound to segment
+    0x08 in EnZf_Draw.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c | 14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+index de92a338a..df4c97825 100644
+--- a/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
++++ b/soh/src/overlays/actors/ovl_En_Zf/z_en_zf.c
+@@ -221,7 +221,8 @@ static InitChainEntry sInitChain[] = {
+ 
+ static AnimationHeader* sHoppingAnims[] = { &gZfHopCrouchingAnim, &gZfHopLeapingAnim, &gZfHopLandingAnim };
+ 
+-static s32 D_80B4AB30; // Set to 0 and incremented in EnZf_HopAway, but not actually used
++// LLM generated name (HIGH), was D_80B4AB30: the in-tree comment on its declaration reads "Set to 0 and incremented in EnZf_HopAway, but not actually used".
++static s32 sUnusedHopCounter; // Set to 0 and incremented in EnZf_HopAway, but not actually used, was D_80B4AB30 [LLM:HIGH]
+ 
+ void EnZf_SetupAction(EnZf* this, EnZfActionFunc actionFunc) {
+     this->actionFunc = actionFunc;
+@@ -1512,7 +1513,7 @@ void EnZf_HopAway(EnZf* this, PlayState* play) {
+         case 0:
+             this->actor.world.rot.y = sp5A;
+             this->actor.shape.rot.y = sp5A + 0x8000;
+-            D_80B4AB30 = 0;
++            sUnusedHopCounter = 0;  // was D_80B4AB30 [LLM:HIGH]
+             this->homePlatform = this->curPlatform;
+             temp_v1_2 = !EnZf_PrimaryFloorCheck(this, play, 107.0f);
+             temp_v1_2 |= !EnZf_PrimaryFloorCheck(this, play, 220.0f) << 1;
+@@ -1577,7 +1578,7 @@ void EnZf_HopAway(EnZf* this, PlayState* play) {
+             } else {
+                 Math_SmoothStepToS(&this->actor.world.rot.y, sp5A, 1, 0xFA0, 0);
+                 this->actor.shape.rot.y = this->actor.world.rot.y + 0x8000;
+-                D_80B4AB30++;
++                sUnusedHopCounter++;  // was D_80B4AB30 [LLM:HIGH]
+             }
+             break;
+ 
+@@ -2250,7 +2251,8 @@ void EnZf_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot,
+     }
+ }
+ 
+-static Gfx D_80B4A2F8[] = {
++// LLM generated name (HIGH), was D_80B4A2F8: two-instruction display list holding a gsSPTexture scale, patched with IREG(0)/IREG(1) and bound to segment 0x08 in EnZf_Draw.
++static Gfx sTextureSettingDList[] = {  // was D_80B4A2F8 [LLM:HIGH]
+     gsSPTexture(0x0A00, 0x0A00, 0, G_TX_RENDERTILE, G_ON),
+     gsSPEndDisplayList(),
+ };
+@@ -2263,9 +2265,9 @@ void EnZf_Draw(Actor* thisx, PlayState* play) {
+ 
+     func_8002EBCC(thisx, play, 1);
+ 
+-    gSPTexture(D_80B4A2F8, IREG(0), IREG(1), 0, G_TX_RENDERTILE, G_ON);
++    gSPTexture(sTextureSettingDList, IREG(0), IREG(1), 0, G_TX_RENDERTILE, G_ON);  // was D_80B4A2F8 [LLM:HIGH]
+ 
+-    gSPSegment(POLY_OPA_DISP++, 0x08, D_80B4A2F8);
++    gSPSegment(POLY_OPA_DISP++, 0x08, sTextureSettingDList);  // was D_80B4A2F8 [LLM:HIGH]
+ 
+     if (this->alpha == 255) {
+         Gfx_SetupDL_25Opa(play->state.gfxCtx);
+-- 
+2.55.0
+

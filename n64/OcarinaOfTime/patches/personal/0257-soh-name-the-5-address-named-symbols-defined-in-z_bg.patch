@@ -1,0 +1,188 @@
+From 8a643471a7746f5bb6cb408239b5be88adb35c17 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:20 +0000
+Subject: [PATCH 257/488] soh: name the 5 address-named symbols defined in
+ z_bg_relay_objects.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c.
+
+  * func_808A90F4 -> BgRelayObjects_OpenDoor
+    deduced, confidence HIGH: once the switch flag is set, raises the Dampe
+    race door 120 units, plays the sliding-door sfx and arms the run's time
+    limit.
+
+  * func_808A91AC -> BgRelayObjects_WaitToClose
+    deduced, confidence HIGH: ticks the race timer with its warning sfx and
+    closes the door when the time runs out or the player reaches this door's
+    room.
+
+  * func_808A9234 -> BgRelayObjects_CloseDoor
+    deduced, confidence HIGH: drops the door back to home.pos.y under
+    gravity with rumble and the stone-bound sfx, then either ends the race
+    or starts the failure countdown.
+
+  * func_808A932C -> BgRelayObjects_TriggerRespawn
+    deduced, confidence HIGH: after the five-frame failure delay, plays the
+    abyss sfx and calls Play_TriggerRespawn to boot the player out of the
+    race.
+
+  * func_808A939C -> BgRelayObjects_RotateWindmill
+    deduced, confidence HIGH: the WINDMILL_ROTATING_GEAR action: eases
+    world.rot.y toward the slow or fast rate depending on whether the Song
+    of Storms has been played, spins the gear and pitches the wooden-gear
+    sfx with it.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Relay_Objects/z_bg_relay_objects.c | 37 +++++++++++--------
+ 1 file changed, 21 insertions(+), 16 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c b/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
+index ed285417e..c176dee6a 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Relay_Objects/z_bg_relay_objects.c
+@@ -22,12 +22,17 @@ void BgRelayObjects_Update(Actor* thisx, PlayState* play);
+ void BgRelayObjects_Draw(Actor* thisx, PlayState* play);
+ void BgRelayObjects_Reset(void);
+ 
+-void func_808A90F4(BgRelayObjects* this, PlayState* play);
+-void func_808A91AC(BgRelayObjects* this, PlayState* play);
+-void func_808A9234(BgRelayObjects* this, PlayState* play);
++// LLM generated name (HIGH), was func_808A90F4: once the switch flag is set, raises the Dampe race door 120 units, plays the sliding-door sfx and arms the run's time limit.
++void BgRelayObjects_OpenDoor(BgRelayObjects* this, PlayState* play);  // was func_808A90F4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808A91AC: ticks the race timer with its warning sfx and closes the door when the time runs out or the player reaches this door's room.
++void BgRelayObjects_WaitToClose(BgRelayObjects* this, PlayState* play);  // was func_808A91AC [LLM:HIGH]
++// LLM generated name (HIGH), was func_808A9234: drops the door back to home.pos.y under gravity with rumble and the stone-bound sfx, then either ends the race or starts the failure countdown.
++void BgRelayObjects_CloseDoor(BgRelayObjects* this, PlayState* play);  // was func_808A9234 [LLM:HIGH]
+ void BgRelayObjects_DoNothing(BgRelayObjects* this, PlayState* play);
+-void func_808A932C(BgRelayObjects* this, PlayState* play);
+-void func_808A939C(BgRelayObjects* this, PlayState* play);
++// LLM generated name (HIGH), was func_808A932C: after the five-frame failure delay, plays the abyss sfx and calls Play_TriggerRespawn to boot the player out of the race.
++void BgRelayObjects_TriggerRespawn(BgRelayObjects* this, PlayState* play);  // was func_808A932C [LLM:HIGH]
++// LLM generated name (HIGH), was func_808A939C: the WINDMILL_ROTATING_GEAR action: eases world.rot.y toward the slow or fast rate depending on whether the Song of Storms has been played, spins the gear and pitches the wooden-gear sfx with it.
++void BgRelayObjects_RotateWindmill(BgRelayObjects* this, PlayState* play);  // was func_808A939C [LLM:HIGH]
+ 
+ const ActorInit Bg_Relay_Objects_InitVars = {
+     ACTOR_BG_RELAY_OBJECTS,
+@@ -77,7 +82,7 @@ void BgRelayObjects_Init(Actor* thisx, PlayState* play) {
+             Actor_Kill(thisx);
+         } else {
+             D_808A9508 |= 2;
+-            this->actionFunc = func_808A939C;
++            this->actionFunc = BgRelayObjects_RotateWindmill;  // was func_808A939C [LLM:HIGH]
+         }
+     } else {
+         CollisionHeader_GetVirtual(&gDampeRaceDoorCol, &colHeader);
+@@ -101,11 +106,11 @@ void BgRelayObjects_Init(Actor* thisx, PlayState* play) {
+                 Actor_Kill(thisx);
+             } else {
+                 D_808A9508 |= (1 << this->unk_169);
+-                this->actionFunc = func_808A90F4;
++                this->actionFunc = BgRelayObjects_OpenDoor;  // was func_808A90F4 [LLM:HIGH]
+             }
+         } else {
+             Flags_SetSwitch(play, this->switchFlag);
+-            this->actionFunc = func_808A91AC;
++            this->actionFunc = BgRelayObjects_WaitToClose;  // was func_808A91AC [LLM:HIGH]
+             thisx->world.pos.y += 120.0f;
+             D_808A9508 |= 1;
+         }
+@@ -122,7 +127,7 @@ void BgRelayObjects_Destroy(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_808A90F4(BgRelayObjects* this, PlayState* play) {
++void BgRelayObjects_OpenDoor(BgRelayObjects* this, PlayState* play) {
+     if (Flags_GetSwitch(play, this->switchFlag)) {
+         if (this->timer != 0) {
+             Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_SLIDE_DOOR_OPEN);
+@@ -133,12 +138,12 @@ void func_808A90F4(BgRelayObjects* this, PlayState* play) {
+             }
+         }
+         if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y + 120.0f, 12.0f)) {
+-            this->actionFunc = func_808A91AC;
++            this->actionFunc = BgRelayObjects_WaitToClose;  // was func_808A91AC [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_808A91AC(BgRelayObjects* this, PlayState* play) {
++void BgRelayObjects_WaitToClose(BgRelayObjects* this, PlayState* play) {
+     if (this->unk_169 != 5) {
+         if (GameInteractor_Should(VB_SWITCH_TIMER_TICK, this->timer != 0, this, &this->timer)) {
+             this->timer--;
+@@ -147,11 +152,11 @@ void func_808A91AC(BgRelayObjects* this, PlayState* play) {
+     }
+     if ((this->timer == 0) || (this->unk_169 == play->roomCtx.curRoom.num)) {
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_SLIDE_DOOR_CLOSE);
+-        this->actionFunc = func_808A9234;
++        this->actionFunc = BgRelayObjects_CloseDoor;  // was func_808A9234 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808A9234(BgRelayObjects* this, PlayState* play) {
++void BgRelayObjects_CloseDoor(BgRelayObjects* this, PlayState* play) {
+     this->dyna.actor.velocity.y += this->dyna.actor.gravity;
+     if (Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y, this->dyna.actor.velocity.y)) {
+         Rumble_Request(this->dyna.actor.xyzDistToPlayerSq, 180, 20, 100);
+@@ -159,7 +164,7 @@ void func_808A9234(BgRelayObjects* this, PlayState* play) {
+         if (this->unk_169 != play->roomCtx.curRoom.num) {
+             Sfx_PlaySfxCentered2(NA_SE_EN_PO_LAUGH);
+             this->timer = 5;
+-            this->actionFunc = func_808A932C;
++            this->actionFunc = BgRelayObjects_TriggerRespawn;  // was func_808A932C [LLM:HIGH]
+             return;
+         }
+         Flags_UnsetSwitch(play, this->switchFlag);
+@@ -174,7 +179,7 @@ void func_808A9234(BgRelayObjects* this, PlayState* play) {
+ void BgRelayObjects_DoNothing(BgRelayObjects* this, PlayState* play) {
+ }
+ 
+-void func_808A932C(BgRelayObjects* this, PlayState* play) {
++void BgRelayObjects_TriggerRespawn(BgRelayObjects* this, PlayState* play) {
+     if (GameInteractor_Should(VB_SWITCH_TIMER_TICK, this->timer != 0, this, &this->timer)) {
+         this->timer--;
+     }
+@@ -187,7 +192,7 @@ void func_808A932C(BgRelayObjects* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808A939C(BgRelayObjects* this, PlayState* play) {
++void BgRelayObjects_RotateWindmill(BgRelayObjects* this, PlayState* play) {
+     if (Flags_GetEnv(play, 5)) {
+         Flags_SetEventChkInf(EVENTCHKINF_PLAYED_SONG_OF_STORMS_IN_WINDMILL);
+     }
+-- 
+2.55.0
+

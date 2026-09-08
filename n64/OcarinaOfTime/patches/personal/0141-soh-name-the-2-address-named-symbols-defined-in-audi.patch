@@ -1,0 +1,110 @@
+From c9a7be05d701c56155ed3604cf39b5b0c096b732 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:10 +0000
+Subject: [PATCH 141/488] soh: name the 2 address-named symbols defined in
+ audio_heap.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/audio_heap.c.
+
+  * func_800DDE20 -> AudioHeap_CalculateAdsrDecay
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 0.94
+
+  * func_800DDE3C -> AudioHeap_InitAdsrDecayTable
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/audio_heap.c | 24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/code/audio_heap.c b/soh/src/code/audio_heap.c
+index a6f2dae1e..759d2dac4 100644
+--- a/soh/src/code/audio_heap.c
++++ b/soh/src/code/audio_heap.c
+@@ -10,29 +10,31 @@ void AudioHeap_DiscardSampleCaches(void);
+ void AudioHeap_DiscardSampleBank(s32 sampleBankId);
+ void AudioHeap_DiscardSampleBanks(void);
+ 
+-f32 func_800DDE20(f32 arg0) {
++// Name from zeldaret/oot (was func_800DDE20): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.94. [oot: https://github.com/zeldaret/oot/blob/main/src/code/audio_heap.c]
++f32 AudioHeap_CalculateAdsrDecay(f32 arg0) {
+     return 256.0f * gAudioContext.audioBufferParameters.unkUpdatesPerFrameScaled / arg0;
+ }
+ 
+-void func_800DDE3C(void) {
++// Name from zeldaret/oot (was func_800DDE3C): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/audio_heap.c]
++void AudioHeap_InitAdsrDecayTable(void) {
+     s32 i;
+ 
+-    gAudioContext.unk_3520[255] = func_800DDE20(0.25f);
+-    gAudioContext.unk_3520[254] = func_800DDE20(0.33f);
+-    gAudioContext.unk_3520[253] = func_800DDE20(0.5f);
+-    gAudioContext.unk_3520[252] = func_800DDE20(0.66f);
+-    gAudioContext.unk_3520[251] = func_800DDE20(0.75f);
++    gAudioContext.unk_3520[255] = AudioHeap_CalculateAdsrDecay(0.25f);
++    gAudioContext.unk_3520[254] = AudioHeap_CalculateAdsrDecay(0.33f);
++    gAudioContext.unk_3520[253] = AudioHeap_CalculateAdsrDecay(0.5f);
++    gAudioContext.unk_3520[252] = AudioHeap_CalculateAdsrDecay(0.66f);
++    gAudioContext.unk_3520[251] = AudioHeap_CalculateAdsrDecay(0.75f);
+ 
+     for (i = 128; i < 251; i++) {
+-        gAudioContext.unk_3520[i] = func_800DDE20(251 - i);
++        gAudioContext.unk_3520[i] = AudioHeap_CalculateAdsrDecay(251 - i);
+     }
+ 
+     for (i = 16; i < 128; i++) {
+-        gAudioContext.unk_3520[i] = func_800DDE20(4 * (143 - i));
++        gAudioContext.unk_3520[i] = AudioHeap_CalculateAdsrDecay(4 * (143 - i));
+     }
+ 
+     for (i = 1; i < 16; i++) {
+-        gAudioContext.unk_3520[i] = func_800DDE20(60 * (23 - i));
++        gAudioContext.unk_3520[i] = AudioHeap_CalculateAdsrDecay(60 * (23 - i));
+     }
+ 
+     gAudioContext.unk_3520[0] = 0.0f;
+@@ -907,7 +909,7 @@ void AudioHeap_Init(void) {
+     }
+ 
+     gAudioContext.unk_3520 = AudioHeap_Alloc(&gAudioContext.notesAndBuffersPool, 0x100 * sizeof(f32));
+-    func_800DDE3C();
++    AudioHeap_InitAdsrDecayTable();
+     for (i = 0; i < 4; i++) {
+         gAudioContext.synthesisReverbs[i].useReverb = 0;
+     }
+-- 
+2.55.0
+

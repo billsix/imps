@@ -1,0 +1,326 @@
+From 25a4ee4302f8a5c7486073cdf8e509d659c824df Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:23 +0000
+Subject: [PATCH 295/488] soh: name the 7 address-named symbols defined in
+ z_rcp.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 7 are defined in soh/src/code/z_rcp.c; updating their references touches 11 files in total.
+
+  * func_80093C80 -> Gfx_SetupDL_25OpaForRoom
+    deduced, confidence HIGH: calls Gfx_SetupDL_25Opa and then disables
+    colour dither when the current room's behaviorType1 is
+    ROOM_BEHAVIOR_TYPE1_3; the room draw handlers and a few actors use it in
+    place of the plain setup.
+
+  * func_800947AC -> Gfx_SetupDL_65NoCD
+    deduced, confidence HIGH: emits sSetupDL[SETUPDL_65] followed by a
+    colour-dither disable, matching the neighbouring Gfx_SetupDL_69NoCD; it
+    also applies the HREG(21) and HREG(22) debug dither overrides.
+
+  * func_80094E54 -> Gfx_BranchTexScrollNoSize
+    deduced, confidence HIGH: forwards to Gfx_BranchTexScroll with width and
+    height 0, so only the tile's scroll origin is set.
+
+  * func_80094E78 -> Gfx_TexScrollNoSize
+    deduced, confidence HIGH: the non-branching twin: forwards to
+    Gfx_TexScroll with width and height 0.
+
+  * func_80095974 -> Gfx_SetupFramebuffer
+    deduced, confidence HIGH: emits the fill setup display list and points
+    the RDP at the screen-sized scissor, gZBuffer as the depth image and the
+    context's current frame buffer as the colour image.
+
+  * D_80127030 -> sUnusedWhiteFillDL
+    deduced, confidence HIGH: the in-tree comment above it reads "//
+    unused?"; it fills the whole screen with a near-white colour and
+    restores the pixel depth source.
+
+  * D_80127060 -> sUnusedBlackFillDL
+    deduced, confidence HIGH: the same shape immediately below it, likewise
+    marked "// unused?", filling the screen black in fill-cycle mode.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       |  8 +++----
+ soh/src/code/z_kankyo.c                       |  2 +-
+ soh/src/code/z_lights.c                       |  2 +-
+ soh/src/code/z_player_lib.c                   |  2 +-
+ soh/src/code/z_rcp.c                          | 21 ++++++++++++-------
+ soh/src/code/z_room.c                         |  4 ++--
+ .../overlays/actors/ovl_En_Goma/z_en_goma.c   |  2 +-
+ soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c |  2 +-
+ .../actors/ovl_En_Torch2/z_en_torch2.c        |  2 +-
+ soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c   |  2 +-
+ .../actors/ovl_player_actor/z_player.c        |  2 +-
+ 11 files changed, 28 insertions(+), 21 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index c6e63c168..51da2ede9 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1195,7 +1195,7 @@ void Gfx_SetupDL_51Opa(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_54Opa(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_26Opa(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_25Xlu2(GraphicsContext* gfxCtx);
+-void func_80093C80(PlayState* play);
++void Gfx_SetupDL_25OpaForRoom(PlayState* play);  // was func_80093C80 [LLM:HIGH]
+ void Gfx_SetupDL_25Opa(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_25Xlu(GraphicsContext* gfxCtx);
+ Gfx* Gfx_SetupDL_64(Gfx* gfx);
+@@ -1216,7 +1216,7 @@ void Gfx_SetupDL_41Opa(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_47Xlu(GraphicsContext* gfxCtx);
+ Gfx* Gfx_SetupDL_20NoCD(Gfx* gfx);
+ Gfx* Gfx_SetupDL_66(Gfx* gfx);
+-Gfx* func_800947AC(Gfx* gfx);
++Gfx* Gfx_SetupDL_65NoCD(Gfx* gfx);  // was func_800947AC [LLM:HIGH]
+ void Gfx_SetupDL_42Opa(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_42Overlay(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_27Xlu(GraphicsContext* gfxCtx);
+@@ -1224,7 +1224,7 @@ void Gfx_SetupDL_60NoCDXlu(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_61Xlu(GraphicsContext* gfxCtx);
+ void Gfx_SetupDL_56Ptr(Gfx** gfxp);
+ Gfx* Gfx_BranchTexScroll(Gfx** gfxp, u32 x, u32 y, s32 width, s32 height);
+-Gfx* func_80094E78(GraphicsContext* gfxCtx, u32 x, u32 y);
++Gfx* Gfx_TexScrollNoSize(GraphicsContext* gfxCtx, u32 x, u32 y);  // was func_80094E78 [LLM:HIGH]
+ Gfx* Gfx_TexScroll(GraphicsContext* gfxCtx, u32 x, u32 y, s32 width, s32 height);
+ Gfx* Gfx_TexScrollEx(GraphicsContext* gfxCtx, u32 x, u32 y, s32 width, s32 height, s32 xStep, s32 yStep);
+ Gfx* Gfx_TwoTexScroll(GraphicsContext* gfxCtx, s32 tile1, u32 x1, u32 y1, s32 width1, s32 height1, s32 tile2, u32 x2,
+@@ -1237,7 +1237,7 @@ Gfx* Gfx_TwoTexScrollEnvColorEx(GraphicsContext* gfxCtx, s32 tile1, u32 x1, u32
+                               u32 x2, u32 y2, s32 width2, s32 height2, s32 r, s32 g, s32 b, s32 a, s32 xStep1, s32 yStep1, s32 xStep2, s32 yStep2);
+ Gfx* Gfx_EnvColor(GraphicsContext* gfxCtx, s32 r, s32 g, s32 b, s32 a);
+ void Gfx_SetupFrame(GraphicsContext* gfxCtx, u8 r, u8 g, u8 b);
+-void func_80095974(GraphicsContext* gfxCtx);
++void Gfx_SetupFramebuffer(GraphicsContext* gfxCtx);  // was func_80095974 [LLM:HIGH]
+ void Room_HandleDebugInput(PlayState* play, Room* room, Input* arg2, UNK_TYPE arg3);  // was func_80095AA0 [LLM:GUESS]
+ void Room_DrawBackground2D(Gfx** gfxP, void* tex, void* tlut, u16 width, u16 height, u8 fmt, u8 siz, u16 tlutMode,
+                            u16 tlutCount, f32 offsetX, f32 offsetY);
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 9240a6c7d..0613e4366 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -1572,7 +1572,7 @@ void Environment_DrawLensFlare(PlayState* play, EnvironmentContext* envCtx, View
+                 Math_SmoothStepToF(&envCtx->unk_88, 0.0f, 0.5f, 0.05f, 0.001f);
+             }
+ 
+-            POLY_XLU_DISP = func_800947AC(POLY_XLU_DISP++);
++            POLY_XLU_DISP = Gfx_SetupDL_65NoCD(POLY_XLU_DISP++);  // was func_800947AC [LLM:HIGH]
+             gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, lensFlareColors[i].r, lensFlareColors[i].g, lensFlareColors[i].b,
+                             alpha * envCtx->unk_88);
+             gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+diff --git a/soh/src/code/z_lights.c b/soh/src/code/z_lights.c
+index da5e0e905..f4489159a 100644
+--- a/soh/src/code/z_lights.c
++++ b/soh/src/code/z_lights.c
+@@ -419,7 +419,7 @@ void Lights_DrawGlow(PlayState* play) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-    POLY_XLU_DISP = func_800947AC(POLY_XLU_DISP++);
++    POLY_XLU_DISP = Gfx_SetupDL_65NoCD(POLY_XLU_DISP++);  // was func_800947AC [LLM:HIGH]
+     gDPSetAlphaDither(POLY_XLU_DISP++, G_AD_NOISE);
+     gDPSetColorDither(POLY_XLU_DISP++, G_CD_MAGICSQ);
+     gSPDisplayList(POLY_XLU_DISP++, gGlowCircleTextureLoadDL);
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index e5e6d9fda..b4b5a4a73 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -2201,7 +2201,7 @@ void Player_DrawPauseImpl(PlayState* play, void* gameplayKeep, void* linkObject,
+ 
+     gSPSetLights1(POLY_OPA_DISP++, lights1);
+ 
+-    func_80093C80(play);
++    Gfx_SetupDL_25OpaForRoom(play);  // was func_80093C80 [LLM:HIGH]
+ 
+     POLY_OPA_DISP = Gfx_SetFog2(POLY_OPA_DISP++, 0, 0, 0, 0, 997, 1000);
+ 
+diff --git a/soh/src/code/z_rcp.c b/soh/src/code/z_rcp.c
+index 799f61cff..b0199fb6e 100644
+--- a/soh/src/code/z_rcp.c
++++ b/soh/src/code/z_rcp.c
+@@ -825,7 +825,8 @@ Gfx sFillSetupDL[] = {
+ };
+ 
+ // unused?
+-Gfx D_80127030[] = {
++// LLM generated name (HIGH), was D_80127030: the in-tree comment above it reads "// unused?"; it fills the whole screen with a near-white colour and restores the pixel depth source.
++Gfx sUnusedWhiteFillDL[] = {  // was D_80127030 [LLM:HIGH]
+     gsDPPipeSync(),
+     gsDPSetFillColor((GPACK_RGBA5551(255, 255, 240, 0) << 16) | GPACK_RGBA5551(255, 255, 240, 0)),
+     gsDPFillRectangle(0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1),
+@@ -835,7 +836,8 @@ Gfx D_80127030[] = {
+ };
+ 
+ // unused?
+-Gfx D_80127060[] = {
++// LLM generated name (HIGH), was D_80127060: the same shape immediately below it, likewise marked "// unused?", filling the screen black in fill-cycle mode.
++Gfx sUnusedBlackFillDL[] = {  // was D_80127060 [LLM:HIGH]
+     gsDPPipeSync(),
+     gsDPSetCycleType(G_CYC_FILL),
+     gsDPSetRenderMode(G_RM_NOOP, G_RM_NOOP2),
+@@ -1009,7 +1011,8 @@ void Gfx_SetupDL_25Xlu2(GraphicsContext* gfxCtx) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_80093C80(PlayState* play) {
++// LLM generated name (HIGH), was func_80093C80: calls Gfx_SetupDL_25Opa and then disables colour dither when the current room's behaviorType1 is ROOM_BEHAVIOR_TYPE1_3; the room draw handlers and a few actors use it in place of the plain setup.
++void Gfx_SetupDL_25OpaForRoom(PlayState* play) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+ 
+     Gfx_SetupDL_25Opa(gfxCtx);
+@@ -1248,7 +1251,8 @@ Gfx* Gfx_SetupDL_69NoCD(Gfx* gfx) {
+     return gfx;
+ }
+ 
+-Gfx* func_800947AC(Gfx* gfx) {
++// LLM generated name (HIGH), was func_800947AC: emits sSetupDL[SETUPDL_65] followed by a colour-dither disable, matching the neighbouring Gfx_SetupDL_69NoCD; it also applies the HREG(21) and HREG(22) debug dither overrides.
++Gfx* Gfx_SetupDL_65NoCD(Gfx* gfx) {
+     gSPDisplayList(gfx++, sSetupDL[SETUPDL_65]);
+     gDPSetColorDither(gfx++, G_CD_DISABLE);
+ 
+@@ -1373,11 +1377,13 @@ Gfx* Gfx_BranchTexScroll(Gfx** gfxp, u32 x, u32 y, s32 width, s32 height) {
+     return displayList;
+ }
+ 
+-Gfx* func_80094E54(Gfx** gfxp, u32 x, u32 y) {
++// LLM generated name (HIGH), was func_80094E54: forwards to Gfx_BranchTexScroll with width and height 0, so only the tile's scroll origin is set.
++Gfx* Gfx_BranchTexScrollNoSize(Gfx** gfxp, u32 x, u32 y) {
+     return Gfx_BranchTexScroll(gfxp, x, y, 0, 0);
+ }
+ 
+-Gfx* func_80094E78(GraphicsContext* gfxCtx, u32 x, u32 y) {
++// LLM generated name (HIGH), was func_80094E78: the non-branching twin: forwards to Gfx_TexScroll with width and height 0.
++Gfx* Gfx_TexScrollNoSize(GraphicsContext* gfxCtx, u32 x, u32 y) {
+     return Gfx_TexScroll(gfxCtx, x, y, 0, 0);
+ }
+ 
+@@ -1618,7 +1624,8 @@ void Gfx_SetupFrame(GraphicsContext* gfxCtx, u8 r, u8 g, u8 b) {
+     CLOSE_DISPS(gfxCtx);
+ }
+ 
+-void func_80095974(GraphicsContext* gfxCtx) {
++// LLM generated name (HIGH), was func_80095974: emits the fill setup display list and points the RDP at the screen-sized scissor, gZBuffer as the depth image and the context's current frame buffer as the colour image.
++void Gfx_SetupFramebuffer(GraphicsContext* gfxCtx) {
+     OPEN_DISPS(gfxCtx);
+ 
+     gSPDisplayList(POLY_OPA_DISP++, sFillSetupDL);
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index 9d868e7e9..2be731b91 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -63,7 +63,7 @@ void Room_DrawNormal(PlayState* play, Room* room, u32 flags) {
+     if (flags & 1) {
+         func_800342EC(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
+         gSPSegment(POLY_OPA_DISP++, 0x03, room->segment);
+-        func_80093C80(play);
++        Gfx_SetupDL_25OpaForRoom(play);  // was func_80093C80 [LLM:HIGH]
+         gSPMatrix(POLY_OPA_DISP++, &gMtxClear, G_MTX_MODELVIEW | G_MTX_LOAD);
+     }
+ 
+@@ -124,7 +124,7 @@ void Room_DrawCullable(PlayState* play, Room* room, u32 flags) {
+     if (flags & 1) {
+         func_800342EC(&sRoomZeroVec, play);  // was D_801270A0 [LLM:HIGH]
+         // gSPSegment(POLY_OPA_DISP++, 0x03, room->segment);
+-        func_80093C80(play);
++        Gfx_SetupDL_25OpaForRoom(play);  // was func_80093C80 [LLM:HIGH]
+         gSPMatrix(POLY_OPA_DISP++, &gMtxClear, G_MTX_MODELVIEW | G_MTX_LOAD);
+     }
+     if (flags & 2) {
+diff --git a/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c b/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
+index fde161f82..f93ab068f 100644
+--- a/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
++++ b/soh/src/overlays/actors/ovl_En_Goma/z_en_goma.c
+@@ -819,7 +819,7 @@ void EnGoma_Draw(Actor* thisx, PlayState* play) {
+             this->actor.naviEnemyId = 0x02;
+             y = (s16)(sinf((this->eggTimer * 5.0f * 3.1415f) / 180.0f) * 31.9f);
+             y = (s16)(y + 31);
+-            gSPSegment(POLY_OPA_DISP++, 0x08, func_80094E78(play->state.gfxCtx, 0, y));
++            gSPSegment(POLY_OPA_DISP++, 0x08, Gfx_TexScrollNoSize(play->state.gfxCtx, 0, y));  // was func_80094E78 [LLM:HIGH]
+             Matrix_Push();
+             Matrix_Scale(this->eggScale, 1.0f / this->eggScale, this->eggScale, MTXMODE_APPLY);
+             Matrix_RotateY(this->eggSquishAngle * 0.15f, MTXMODE_APPLY);
+diff --git a/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c b/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
+index bfc10a6d7..f42dbc36e 100644
+--- a/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
++++ b/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
+@@ -156,7 +156,7 @@ void EnNwc_DrawChicks(EnNwc* this, PlayState* play) {
+     EnNwcChick* chick;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+-    func_80093C80(play);
++    Gfx_SetupDL_25OpaForRoom(play);  // was func_80093C80 [LLM:HIGH]
+ 
+     dList1 = POLY_XLU_DISP;
+     dList2 = dList1 + 3 * this->count + 1;
+diff --git a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+index 2027f60b1..6555458cb 100644
+--- a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
++++ b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+@@ -795,7 +795,7 @@ void EnTorch2_Draw(Actor* thisx, PlayState* play2) {
+     s32 pad;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+-    func_80093C80(play);
++    Gfx_SetupDL_25OpaForRoom(play);  // was func_80093C80 [LLM:HIGH]
+     Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+     if (sAlpha == 255) {
+         gDPSetEnvColor(POLY_OPA_DISP++, 255, 0, 0, sAlpha);
+diff --git a/soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c b/soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c
+index 5a66cf5c3..6601334c7 100644
+--- a/soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c
++++ b/soh/src/overlays/actors/ovl_En_Vm/z_en_vm.c
+@@ -544,7 +544,7 @@ void EnVm_Draw(Actor* thisx, PlayState* play2) {
+         gSPSegment(POLY_XLU_DISP++, 0x08, SEGMENTED_TO_VIRTUAL(D_80B2EB88[(play->gameplayFrames + 4) % 8]));
+         gSPDisplayList(POLY_XLU_DISP++, gEffEnemyDeathFlameDL);
+     }
+-    gSPSegment(POLY_OPA_DISP++, 0x08, func_80094E78(play->state.gfxCtx, 0, this->beamTexScroll));
++    gSPSegment(POLY_OPA_DISP++, 0x08, Gfx_TexScrollNoSize(play->state.gfxCtx, 0, this->beamTexScroll));  // was func_80094E78 [LLM:HIGH]
+     Matrix_Translate(this->beamPos1.x, this->beamPos1.y, this->beamPos1.z, MTXMODE_NEW);
+     Matrix_RotateZYX(this->beamRot.x, this->beamRot.y, this->beamRot.z, MTXMODE_APPLY);
+     Matrix_Scale(this->beamScale.x * 0.1f, this->beamScale.x * 0.1f, this->beamScale.z * 0.0015f, MTXMODE_APPLY);
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index e6b021bb4..2f260aa0c 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -12473,7 +12473,7 @@ void Player_Draw(Actor* thisx, PlayState* play2) {
+             lod = 0;
+         }
+ 
+-        func_80093C80(play);
++        Gfx_SetupDL_25OpaForRoom(play);  // was func_80093C80 [LLM:HIGH]
+         Gfx_SetupDL_25Xlu(play->state.gfxCtx);
+ 
+         if (this->invincibilityTimer > 0) {
+-- 
+2.55.0
+

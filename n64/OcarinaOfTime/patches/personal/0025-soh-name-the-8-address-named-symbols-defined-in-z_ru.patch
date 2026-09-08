@@ -1,0 +1,505 @@
+From a01e3254772b8565cc255aab0a71824f5dd41bc0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:59 +0000
+Subject: [PATCH 025/488] soh: name the 8 address-named symbols defined in
+ z_rumble.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 8 are defined in soh/src/code/z_rumble.c; updating their references touches 11 files in total.
+
+  * D_80160FD0 -> sRumbleMgr
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800A9F30 -> Rumble_Update
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800A9F6C -> Rumble_Override
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800AA0B4 -> Rumble_Init
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800AA0F0 -> Rumble_Destroy
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800AA148 -> Rumble_Controller1HasRumblePak
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800AA15C -> Rumble_Reset
+    zeldaret/oot (same decomp, same ROM address)
+
+  * func_800AA178 -> Rumble_SetUpdateEnabled
+    zeldaret/oot (same decomp, same ROM address)
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                       | 14 ++---
+ soh/src/code/game.c                           |  4 +-
+ soh/src/code/z_game_over.c                    |  2 +-
+ soh/src/code/z_kankyo.c                       |  2 +-
+ soh/src/code/z_play.c                         |  4 +-
+ soh/src/code/z_rumble.c                       | 56 +++++++++++--------
+ .../actors/ovl_Boss_Dodongo/z_boss_dodongo.c  |  2 +-
+ .../actors/ovl_Boss_Ganon2/z_boss_ganon2.c    |  8 +--
+ .../actors/ovl_Boss_Goma/z_boss_goma.c        |  4 +-
+ .../actors/ovl_Door_Shutter/z_door_shutter.c  |  2 +-
+ .../overlays/actors/ovl_Fishing/z_fishing.c   | 28 +++++-----
+ 11 files changed, 67 insertions(+), 59 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index c47f9b48a..d894182dd 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1382,15 +1382,15 @@ void Sram_OpenSave();
+ void Sram_InitSave(FileChooseContext* fileChoose);
+ void Sram_InitSram(GameState* gameState);
+ void SsSram_ReadWrite(uintptr_t addr, void* dramAddr, size_t size, s32 direction);
+-void func_800A9F30(PadMgr*, s32);
+-void func_800A9F6C(f32, u8, u8, u8);
++void Rumble_Update(PadMgr*, s32);  // was func_800A9F30 [oot]
++void Rumble_Override(f32, u8, u8, u8);  // was func_800A9F6C [oot]
+ void Rumble_Request(f32, u8, u8, u8);
+-void func_800AA0B4();
+-void func_800AA0F0(void);
+-u32 func_800AA148();
+-void func_800AA15C();
++void Rumble_Init();  // was func_800AA0B4 [oot]
++void Rumble_Destroy(void);  // was func_800AA0F0 [oot]
++u32 Rumble_Controller1HasRumblePak();  // was func_800AA148 [oot]
++void Rumble_Reset();  // was func_800AA15C [oot]
+ void Rumble_ClearRequests();
+-void func_800AA178(u32);
++void Rumble_SetUpdateEnabled(u32);  // was func_800AA178 [oot]
+ View* View_New(GraphicsContext* gfxCtx);
+ void View_Free(View* view);
+ void View_Init(View*, GraphicsContext*);
+diff --git a/soh/src/code/game.c b/soh/src/code/game.c
+index 1ffbfcaa0..77bb64022 100644
+--- a/soh/src/code/game.c
++++ b/soh/src/code/game.c
+@@ -453,7 +453,7 @@ void GameState_Init(GameState* gameState, GameStateFunc init, GraphicsContext* g
+         ViMode_Init(&sViMode);
+     }
+     SpeedMeter_Init(&sGameStateSpeedMeter);
+-    func_800AA0B4();
++    Rumble_Init();
+     osSendMesgPtr(&gameState->gfxCtx->queue, NULL, OS_MESG_BLOCK);
+ 
+     endTime = osGetTime();
+@@ -474,7 +474,7 @@ void GameState_Destroy(GameState* gameState) {
+     if (gameState->destroy != NULL) {
+         gameState->destroy(gameState);
+     }
+-    func_800AA0F0();
++    Rumble_Destroy();
+     SpeedMeter_Destroy(&sGameStateSpeedMeter);
+     VisCvg_Destroy(&sVisCvg);
+     VisZBuf_Destroy(&sVisZBuf);
+diff --git a/soh/src/code/z_game_over.c b/soh/src/code/z_game_over.c
+index 1bc700967..d2fe71fd0 100644
+--- a/soh/src/code/z_game_over.c
++++ b/soh/src/code/z_game_over.c
+@@ -101,7 +101,7 @@ void GameOver_Update(PlayState* play) {
+             if (gGameOverTimer == 0) {
+                 play->pauseCtx.state = 8;
+                 gameOverCtx->state++;
+-                func_800AA15C();
++                Rumble_Reset();
+             }
+             break;
+ 
+diff --git a/soh/src/code/z_kankyo.c b/soh/src/code/z_kankyo.c
+index 82dd05b86..daa3947ff 100644
+--- a/soh/src/code/z_kankyo.c
++++ b/soh/src/code/z_kankyo.c
+@@ -423,7 +423,7 @@ void Environment_Init(PlayState* play2, EnvironmentContext* envCtx, s32 unused)
+     }
+ 
+     gCustomLensFlareOn = false;
+-    func_800AA15C();
++    Rumble_Reset();
+ }
+ 
+ u8 Environment_SmoothStepToU8(u8* pvalue, u8 target, u8 scale, u8 step, u8 minStep) {
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index c13d6dcbf..55e947eff 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1127,7 +1127,7 @@ void Play_Update(PlayState* play) {
+                 PLAY_LOG(3580);
+ 
+                 play->gameplayFrames++;
+-                func_800AA178(true);
++                Rumble_SetUpdateEnabled(true);
+ 
+                 // Gameplay stat tracking
+                 if (!gSaveContext.ship.stats.gameComplete &&
+@@ -1187,7 +1187,7 @@ void Play_Update(PlayState* play) {
+                     PLAY_LOG(3662);
+                 }
+             } else {
+-                func_800AA178(false);
++                Rumble_SetUpdateEnabled(false);
+             }
+ 
+             PLAY_LOG(3672);
+diff --git a/soh/src/code/z_rumble.c b/soh/src/code/z_rumble.c
+index 3708ecb29..6b7a6f334 100644
+--- a/soh/src/code/z_rumble.c
++++ b/soh/src/code/z_rumble.c
+@@ -1,17 +1,20 @@
+ #include "global.h"
+ 
+-RumbleMgr D_80160FD0;
++// Name from zeldaret/oot src/code/z_rumble.c (was D_80160FD0): file-scope RumbleMgr the rumble API operates on. Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++RumbleMgr sRumbleMgr;
+ 
+-void func_800A9F30(PadMgr* a, s32 b) {
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800A9F30): retrace callback ticking RumbleMgr_Update and pushing state to PadMgr. Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++void Rumble_Update(PadMgr* a, s32 b) {
+     // TODO: Workaround for rumble being too long. Implement os thread functions.
+     // Game logic runs at 20hz but input thread runs at 60 hertz, so we call this 3 times
+     for (int i = 0; i < 3; i++) {
+-        RumbleMgr_Update(&D_80160FD0);
+-        PadMgr_RumbleSet(a, D_80160FD0.rumbleEnable);
++        RumbleMgr_Update(&sRumbleMgr);
++        PadMgr_RumbleSet(a, sRumbleMgr.rumbleEnable);
+     }
+ }
+ 
+-void func_800A9F6C(f32 a, u8 b, u8 c, u8 d) {
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800A9F6C): writes the single override rumble slot (unk_10A-C). Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++void Rumble_Override(f32 a, u8 b, u8 c, u8 d) {
+     s32 temp1;
+     s32 temp2;
+ 
+@@ -24,9 +27,9 @@ void func_800A9F6C(f32 a, u8 b, u8 c, u8 d) {
+     if ((temp1 < 1000) && (b != 0) && (d != 0)) {
+         temp2 = b - (temp1 * 255) / 1000;
+         if (temp2 > 0) {
+-            D_80160FD0.unk_10A = temp2;
+-            D_80160FD0.unk_10B = c;
+-            D_80160FD0.unk_10C = d;
++            sRumbleMgr.unk_10A = temp2;
++            sRumbleMgr.unk_10B = c;
++            sRumbleMgr.unk_10C = d;
+         }
+     }
+ }
+@@ -46,11 +49,11 @@ void Rumble_Request(f32 a, u8 b, u8 c, u8 d) {
+         temp2 = b - (temp1 * 255) / 1000;
+ 
+         for (i = 0; i < 0x40; i++) {
+-            if (D_80160FD0.unk_04[i] == 0) {
++            if (sRumbleMgr.unk_04[i] == 0) {
+                 if (temp2 > 0) {
+-                    D_80160FD0.unk_04[i] = temp2;
+-                    D_80160FD0.unk_44[i] = c;
+-                    D_80160FD0.unk_84[i] = d;
++                    sRumbleMgr.unk_04[i] = temp2;
++                    sRumbleMgr.unk_44[i] = c;
++                    sRumbleMgr.unk_84[i] = d;
+                 }
+                 break;
+             }
+@@ -58,36 +61,41 @@ void Rumble_Request(f32 a, u8 b, u8 c, u8 d) {
+     }
+ }
+ 
+-void func_800AA0B4(void) {
+-    RumbleMgr_Init(&D_80160FD0);
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800AA0B4): inits the manager and registers Rumble_Update retrace callback. Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++void Rumble_Init(void) {
++    RumbleMgr_Init(&sRumbleMgr);
+ 
+-    gPadMgr.retraceCallback = func_800A9F30;
++    gPadMgr.retraceCallback = Rumble_Update;
+     gPadMgr.retraceCallbackValue = 0;
+ }
+ 
+-void func_800AA0F0(void) {
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800AA0F0): unregisters the retrace callback and destroys the manager. Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++void Rumble_Destroy(void) {
+     PadMgr* padmgr = &gPadMgr;
+ 
+-    if ((padmgr->retraceCallback == func_800A9F30) && (padmgr->retraceCallbackValue == 0)) {
++    if ((padmgr->retraceCallback == Rumble_Update) && (padmgr->retraceCallbackValue == 0)) {
+         padmgr->retraceCallback = NULL;
+         padmgr->retraceCallbackValue = 0;
+     }
+ 
+-    RumbleMgr_Destroy(&D_80160FD0);
++    RumbleMgr_Destroy(&sRumbleMgr);
+ }
+ 
+-u32 func_800AA148(void) {
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800AA148): returns whether controller 1's pak is a Rumble Pak. Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++u32 Rumble_Controller1HasRumblePak(void) {
+     return gPadMgr.pakType[0] == 1;
+ }
+ 
+-void func_800AA15C(void) {
+-    D_80160FD0.unk_104 = 2;
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800AA15C): requests a manager reset by setting unk_104 to 2. Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++void Rumble_Reset(void) {
++    sRumbleMgr.unk_104 = 2;
+ }
+ 
+ void Rumble_ClearRequests(void) {
+-    D_80160FD0.unk_104 = 0;
++    sRumbleMgr.unk_104 = 0;
+ }
+ 
+-void func_800AA178(u32 a) {
+-    D_80160FD0.unk_105 = !!a;
++// Name from zeldaret/oot src/code/z_rumble.c (was func_800AA178): toggles the manager's enabled flag (unk_105). Source: https://github.com/zeldaret/oot/blob/main/src/code/z_rumble.c
++void Rumble_SetUpdateEnabled(u32 a) {
++    sRumbleMgr.unk_105 = !!a;
+ }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index a0ee1c5a7..273947476 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -861,7 +861,7 @@ void BossDodongo_Walk(BossDodongo* this, PlayState* play) {
+                 Actor_RequestQuakeAndRumble(&this->actor, play, 4, 10);
+             } else {
+                 this->unk_1B6 = 10;
+-                func_800A9F6C(0.0f, 180, 20, 100);
++                Rumble_Override(0.0f, 180, 20, 100);
+             }
+         }
+     }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index 218d261ff..4f01f6534 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -486,7 +486,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+             if (this->csTimer == 30) {
+                 D_80906D78 = 1;
+                 this->unk_314 = 1;
+-                func_800A9F6C(0.0f, 0xC8, 0x14, 0x14);
++                Rumble_Override(0.0f, 0xC8, 0x14, 0x14);
+             }
+             if (this->csTimer == 30) {
+                 Sfx_PlaySfxCentered(NA_SE_EV_GRAVE_EXPLOSION);
+@@ -704,7 +704,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+                 this->actor.velocity.y = 0.0f;
+                 Animation_MorphToPlayOnce(&this->skelAnime, &gGanonUncurlAndFlailAnim, 0.0f);
+                 func_808FD4D4(this, play, 0, 3);
+-                func_800A9F6C(0.0f, 0xC8, 0x14, 0x14);
++                Rumble_Override(0.0f, 0xC8, 0x14, 0x14);
+             }
+             break;
+         case 21:
+@@ -781,7 +781,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+             if (this->csTimer == 228) {
+                 Sfx_PlaySfxCentered(NA_SE_IT_SHIELD_REFLECT_SW);
+                 Player_SetCsActionWithHaltedActors(play, &this->actor, 0x56);
+-                func_800A9F6C(0.0f, 0xFF, 0xA, 0x32);
++                Rumble_Override(0.0f, 0xFF, 0xA, 0x32);
+             }
+             if (this->csTimer >= 229) {
+                 play->envCtx.fillScreen = true;
+@@ -983,7 +983,7 @@ void func_808FF898(BossGanon2* this, PlayState* play) {
+                         sp28.z = 1.0f;
+                         Matrix_MultVec3f(&sp28, &gj->unk_26C);
+                         gj->killFlag = true;
+-                        func_800A9F6C(0.0f, 0x96, 0x14, 0x32);
++                        Rumble_Override(0.0f, 0x96, 0x14, 0x32);
+                         this->unk_392 = 6;
+                         return;
+                     }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c b/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
+index eb02d7632..900ef028d 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
++++ b/soh/src/overlays/actors/ovl_Boss_Goma/z_boss_goma.c
+@@ -897,7 +897,7 @@ void BossGoma_Encounter(BossGoma* this, PlayState* play) {
+                 this->currentAnimFrameCount = Animation_GetLastFrame(&gGohmaInitialLandingAnim);
+                 BossGoma_PlayEffectsAndSfx(this, play, 0, 5);
+                 this->framesUntilNextAction = 15;
+-                func_800A9F6C(0.0f, 0xC8, 0x14, 0x14);
++                Rumble_Override(0.0f, 0xC8, 0x14, 0x14);
+             }
+             break;
+ 
+@@ -1007,7 +1007,7 @@ void BossGoma_Defeated(BossGoma* this, PlayState* play) {
+ 
+     if (Animation_OnFrame(&this->skelanime, 107.0f)) {
+         BossGoma_PlayEffectsAndSfx(this, play, 0, 8);
+-        func_800A9F6C(0.0f, 0x96, 0x14, 0x14);
++        Rumble_Override(0.0f, 0x96, 0x14, 0x14);
+     }
+ 
+     this->visualState = VISUALSTATE_DEFEATED;
+diff --git a/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c b/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
+index a92f7bb09..9f6ffbd19 100644
+--- a/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
++++ b/soh/src/overlays/actors/ovl_Door_Shutter/z_door_shutter.c
+@@ -790,7 +790,7 @@ void DoorShutter_Draw(Actor* thisx, PlayState* play) {
+ void DoorShutter_RequestQuakeAndRumble(PlayState* play, s16 y, s16 countdown, s16 camId) {
+     s16 quakeId = Quake_Add(Play_GetCamera(play, camId), 3);
+ 
+-    func_800A9F6C(0.0f, 180, 20, 100);
++    Rumble_Override(0.0f, 180, 20, 100);
+     Quake_SetSpeed(quakeId, 20000);
+     Quake_SetQuakeValues(quakeId, y, 0, 0, 0);
+     Quake_SetCountdown(quakeId, countdown);
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index b6829f235..7808a650b 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -3520,7 +3520,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                     }
+                     sLureBitTimer = timer;
+                     sRumbleDelay = timer;
+-                    func_800A9F6C(0.0f, 60, timer * 3, 10);
++                    Rumble_Override(0.0f, 60, timer * 3, 10);
+                 } else {
+                     if (this->fishLength > 70.0f) {
+                         timer = (s16)Rand_ZeroFloat(5.0f) + 10;
+@@ -3533,7 +3533,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                     }
+                     sLureBitTimer = timer;
+                     sRumbleDelay = timer;
+-                    func_800A9F6C(0.0f, 180, timer * 3, 10);
++                    Rumble_Override(0.0f, 180, timer * 3, 10);
+                 }
+ 
+                 sLineHooked = 0;
+@@ -3575,11 +3575,11 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                 if (sLureEquipped == FS_LURE_SINKING) {
+                     sLureBitTimer = 30;
+                     sRumbleDelay = 100;
+-                    func_800A9F6C(0.0f, 60, 90, 10);
++                    Rumble_Override(0.0f, 60, 90, 10);
+                 } else {
+                     sLureBitTimer = 30;
+                     sRumbleDelay = 40;
+-                    func_800A9F6C(0.0f, 180, 90, 10);
++                    Rumble_Override(0.0f, 180, 90, 10);
+                 }
+ 
+                 sLineHooked = false;
+@@ -3632,7 +3632,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                         rumbleStrength = 255.0f;
+                     }
+ 
+-                    func_800A9F6C(0.0f, rumbleStrength, 120, 5);
++                    Rumble_Override(0.0f, rumbleStrength, 120, 5);
+                     sRumbleDelay = 40;
+                     sRodHitTimer = 10;
+                     Sfx_PlaySfxCentered(NA_SE_IT_FISHING_HIT);
+@@ -3663,7 +3663,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                         rumbleStrength *= 3.0f / 4.0f;
+                     }
+ 
+-                    func_800A9F6C(0.0f, rumbleStrength, (s16)Rand_ZeroFloat(5.0f) + 10, 5);
++                    Rumble_Override(0.0f, rumbleStrength, (s16)Rand_ZeroFloat(5.0f) + 10, 5);
+                 }
+ 
+                 if (this->timerArray[1] > 30) {
+@@ -3694,7 +3694,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                             } else {
+                                 rumbleStrength8 = 180;
+                             }
+-                            func_800A9F6C(0.0f, rumbleStrength8, 90, 2);
++                            Rumble_Override(0.0f, rumbleStrength8, 90, 2);
+                             this->timerArray[0] = 20;
+                             this->timerArray[1] = 100;
+                             this->timerArray[2] = 20;
+@@ -3826,7 +3826,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                     }
+                 } else {
+                     sFishingCaughtTextId = 0x4082;
+-                    func_800A9F6C(0.0f, 1, 3, 1);
++                    Rumble_Override(0.0f, 1, 3, 1);
+                     Audio_QueueSeqCmd(0x1 << 28 | SEQ_PLAYER_BGM_MAIN << 24 | 0x0A00FF);
+                 }
+ 
+@@ -3849,7 +3849,7 @@ void Fishing_UpdateFish(Actor* thisx, PlayState* play2) {
+                 this->fishState = 6;
+                 this->timerArray[0] = 100;
+                 player->unk_860 = 3;
+-                func_800A9F6C(0.0f, 1, 3, 1);
++                Rumble_Override(0.0f, 1, 3, 1);
+                 sFishesCaught++;
+                 func_80064520(play, &play->csCtx);
+                 sFishingPlayerCinematicState = 100;
+@@ -4806,7 +4806,7 @@ void Fishing_HandleOwnerDialog(Fishing* this, PlayState* play) {
+                     case 0:
+                         if (gSaveContext.rupees >= 20) {
+                             Rupees_ChangeBy(-20);
+-                            if (func_800AA148() == 0) {
++                            if (Rumble_Controller1HasRumblePak() == 0) {
+                                 this->actor.textId = 0x407C;
+                             } else {
+                                 this->actor.textId = 0x407D;
+@@ -5179,7 +5179,7 @@ void Fishing_QuitAtDoor(Fishing* this, PlayState* play) {
+                 }
+                 break;
+             case 1:
+-                func_800A9F6C(0.0f, 150, 10, 10);
++                Rumble_Override(0.0f, 150, 10, 10);
+                 break;
+         }
+     }
+@@ -5319,7 +5319,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+         (fabsf(player->actor.world.pos.z - sSinkingLureLocationPos[sSinkingLureLocation - 1].z) < 25.0f)) {
+         sSinkingLureLocation = 0;
+         sFishingPlayerCinematicState = 20;
+-        func_800A9F6C(0.0f, 150, 10, 10);
++        Rumble_Override(0.0f, 150, 10, 10);
+         Sfx_PlaySfxCentered(NA_SE_SY_TRE_BOX_APPEAR);
+         Audio_QueueSeqCmd(0x1 << 28 | SEQ_PLAYER_BGM_MAIN << 24 | 0x1400FF);
+     }
+@@ -5328,7 +5328,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+         KREG(0) = 0;
+         sLureEquipped = FS_LURE_STOCK;
+         sFishingPlayerCinematicState = 20;
+-        func_800A9F6C(0.0f, 150, 10, 10);
++        Rumble_Override(0.0f, 150, 10, 10);
+         Sfx_PlaySfxCentered(NA_SE_SY_TRE_BOX_APPEAR);
+         Audio_QueueSeqCmd(0x1 << 28 | SEQ_PLAYER_BGM_MAIN << 24 | 0x1400FF);
+     }
+@@ -5488,7 +5488,7 @@ void Fishing_UpdateOwner(Actor* thisx, PlayState* play2) {
+             sCameraAt.z = mainCam->at.z;
+             Message_StartTextbox(play, 0x409E, NULL);
+             sFishingPlayerCinematicState = 11;
+-            func_800A9F6C(0.0f, 150, 10, 10);
++            Rumble_Override(0.0f, 150, 10, 10);
+             // fallthrough
+         }
+ 
+-- 
+2.55.0
+

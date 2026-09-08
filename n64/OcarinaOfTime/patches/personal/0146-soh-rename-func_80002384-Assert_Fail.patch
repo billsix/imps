@@ -1,0 +1,49 @@
+From 1ba4928fb3f42d4d8fddff4f6057215701f50723 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:10 +0000
+Subject: [PATCH 146/488] soh: rename func_80002384 -> Assert_Fail
+
+Name source: DEDUCED from the code (confidence HIGH) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: prints the failed expression with its file and line, then spins forever -- the assert-failure handler. Not named __assert: that would clash with libc in a PC port (cf. Math_FMod).
+Defined in soh/src/boot/is_debug.c.
+
+Tagged [LLM:HIGH] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h | 2 +-
+ soh/src/boot/is_debug.c | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 7b6d23b3f..6904e8d39 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -74,7 +74,7 @@ void osSyncPrintfUnused(const char* fmt, ...);
+ //void osSyncPrintf(const char* fmt, ...);
+ void rmonPrintf(const char* fmt, ...);
+ void* is_proutSyncPrintf(void* arg, const char* str, u32 count);
+-void func_80002384(const char* exp, const char* file, u32 line);
++void Assert_Fail(const char* exp, const char* file, u32 line);  // was func_80002384 [LLM:HIGH]
+ OSPiHandle* osDriveRomInit(void);
+ void StackCheck_Init(StackEntry* entry, void* stackTop, void* stackBottom, u32 initValue, s32 minSpace,
+                      const char* name);
+diff --git a/soh/src/boot/is_debug.c b/soh/src/boot/is_debug.c
+index 2bc5e2d21..e84cd2be4 100644
+--- a/soh/src/boot/is_debug.c
++++ b/soh/src/boot/is_debug.c
+@@ -82,7 +82,8 @@ void* is_proutSyncPrintf(void* arg, const char* str, u32 count) {
+     return 1;
+ }
+ 
+-void func_80002384(const char* exp, const char* file, u32 line) {
++// LLM generated name (HIGH), was func_80002384: prints the failed expression with its file and line, then spins forever -- the assert-failure handler. Not named __assert: that would clash with libc in a PC port (cf. Math_FMod).
++void Assert_Fail(const char* exp, const char* file, u32 line) {
+     osSyncPrintf("File:%s Line:%d  %s \n", file, line, exp);
+     while (true) {
+         ;
+-- 
+2.55.0
+

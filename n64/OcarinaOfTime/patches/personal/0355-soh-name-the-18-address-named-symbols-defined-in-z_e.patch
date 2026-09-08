@@ -1,0 +1,586 @@
+From e3d53ec0be92a9bbca3b2fe8be0ffd73f8a8673b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 355/488] soh: name the 18 address-named symbols defined in
+ z_en_test.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 18 are defined in soh/src/overlays/actors/ovl_En_Test/z_en_test.c.
+
+  * func_80860BDC -> EnTest_SetupTurnToPlayer
+    deduced, confidence HIGH: loops gStalfosSidestepAnim and hands off to
+    the action that swings shape.rot.y onto yawTowardsPlayer with
+    NA_SE_EN_STAL_WALK footsteps
+
+  * func_80860C24 -> EnTest_TurnToPlayer
+    deduced, confidence HIGH: rotates shape.rot.y toward yawTowardsPlayer,
+    scaling anim playSpeed with the turn rate, until Actor_IsFacingPlayer
+
+  * func_80860EC0 -> EnTest_SetupSidestep
+    deduced, confidence GUESS: same gStalfosSidestepAnim as the circling
+    pair; distinguished only by starting from rest at +/-0.5 speed and by
+    being the variant taken when another actor is targeted
+
+  * func_80860F84 -> EnTest_Sidestep
+    deduced, confidence GUESS: strafes at shape.rot.y + 0x3E80 while
+    smooth-turning to face the player, bouncing off walls; the untargeted
+    counterpart of EnTest_CircleAroundPlayer
+
+  * func_80862154 -> EnTest_SetupFlinchFront
+    deduced, confidence HIGH: plays gStalfosFlinchFromHitFrontAnim with
+    NA_SE_EN_STAL_DAMAGE and a knockback of -2
+
+  * func_808621D4 -> EnTest_FlinchFront
+    deduced, confidence HIGH: decays the knockback, then blocks, jumps back
+    or jumps up depending on the wall and the player's swing
+
+  * func_80862398 -> EnTest_SetupFlinchBehind
+    deduced, confidence HIGH: plays gStalfosFlinchFromHitBehindAnim with
+    NA_SE_EN_STAL_DAMAGE and a knockback of -2
+
+  * func_80862418 -> EnTest_FlinchBehind
+    deduced, confidence HIGH: the behind-hit twin of EnTest_FlinchFront,
+    minus its jump-up-at-a-wall escape
+
+  * func_808627C4 -> EnTest_SetupCircleAroundPlayer
+    deduced, confidence HIGH: morphs to gStalfosSidestepAnim at +/-4 speed
+    with world.rot.y a quarter-turn off shape.rot.y -- the AI's usual dodge
+
+  * func_808628C8 -> EnTest_CircleAroundPlayer
+    deduced, confidence HIGH: strafes sideways around the player, reversing
+    off walls and off missing floor for the ceiling type
+
+  * func_80862DBC -> EnTest_SetupBreakApart
+    deduced, confidence HIGH: allocates the BodyBreak parts, drops targeting
+    and the sword blur, and hands off to the action that scatters them
+
+  * func_80862E6C -> EnTest_BreakApart
+    deduced, confidence HIGH: spawns the BodyBreak parts, then either
+    reassembles at 10 health or drops its collectible and dies
+
+  * func_80862FA8 -> EnTest_SetupDeathFallBackwards
+    deduced, confidence HIGH: plays gStalfosFallOverBackwardsAnim with
+    NA_SE_EN_STAL_DEAD; the higher params fall through to
+    EnTest_SetupBreakApart instead
+
+  * func_80863044 -> EnTest_DeathFallBackwards
+    deduced, confidence HIGH: waits out the backwards death animation,
+    thumping at frame 15, then allocates the body break
+
+  * func_808630F0 -> EnTest_SetupDeathFallForwards
+    deduced, confidence HIGH: plays gStalfosFallOverForwardsAnim with
+    NA_SE_EN_STAL_DEAD; the forwards twin of EnTest_SetupDeathFallBackwards
+
+  * func_8086318C -> EnTest_DeathFallForwards
+    deduced, confidence HIGH: waits out the forwards death animation,
+    thumping at frames 10 and 25, then allocates the body break
+
+  * func_808633E8 -> EnTest_DeathBodyBreak
+    deduced, confidence HIGH: scatters the body-break parts, drops a random
+    collectible, decrements the parent's count and kills the actor
+
+  * func_80864158 -> EnTest_SetupCircleAroundPlayerWithSpeed
+    deduced, confidence HIGH: the same circling setup as
+    EnTest_SetupCircleAroundPlayer but taking the strafe speed from the
+    caller
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_En_Test/z_en_test.c   | 156 ++++++++++--------
+ 1 file changed, 87 insertions(+), 69 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+index 9fb3c456c..7295aad7e 100644
+--- a/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
++++ b/soh/src/overlays/actors/ovl_En_Test/z_en_test.c
+@@ -22,15 +22,20 @@ void EnTest_SetupSlashDownEnd(EnTest* this);
+ void EnTest_SetupSlashUp(EnTest* this);
+ void EnTest_SetupJumpslash(EnTest* this);
+ void EnTest_SetupWalkAndBlock(EnTest* this);
+-void func_80860EC0(EnTest* this);
++// LLM generated name (GUESS), was func_80860EC0: same gStalfosSidestepAnim as the circling pair; distinguished only by starting from rest at +/-0.5 speed and by being the variant taken when another actor is targeted
++void EnTest_SetupSidestep(EnTest* this);  // was func_80860EC0 [LLM:GUESS]
+ void EnTest_SetupSlashDown(EnTest* this);
+-void func_80860BDC(EnTest* this);
++// LLM generated name (HIGH), was func_80860BDC: loops gStalfosSidestepAnim and hands off to the action that swings shape.rot.y onto yawTowardsPlayer with NA_SE_EN_STAL_WALK footsteps
++void EnTest_SetupTurnToPlayer(EnTest* this);  // was func_80860BDC [LLM:HIGH]
+ void EnTest_SetupIdleFromBlock(EnTest* this);
+ void EnTest_SetupRecoil(EnTest* this);
+-void func_80862398(EnTest* this);
+-void func_80862154(EnTest* this);
++// LLM generated name (HIGH), was func_80862398: plays gStalfosFlinchFromHitBehindAnim with NA_SE_EN_STAL_DAMAGE and a knockback of -2
++void EnTest_SetupFlinchBehind(EnTest* this);  // was func_80862398 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80862154: plays gStalfosFlinchFromHitFrontAnim with NA_SE_EN_STAL_DAMAGE and a knockback of -2
++void EnTest_SetupFlinchFront(EnTest* this);  // was func_80862154 [LLM:HIGH]
+ void EnTest_SetupStopAndBlock(EnTest* this);
+-void func_808627C4(EnTest* this, PlayState* play);
++// LLM generated name (HIGH), was func_808627C4: morphs to gStalfosSidestepAnim at +/-4 speed with world.rot.y a quarter-turn off shape.rot.y -- the AI's usual dodge
++void EnTest_SetupCircleAroundPlayer(EnTest* this, PlayState* play);  // was func_808627C4 [LLM:HIGH]
+ 
+ void EnTest_WaitGround(EnTest* this, PlayState* play);
+ void EnTest_WaitAbove(EnTest* this, PlayState* play);
+@@ -39,8 +44,10 @@ void EnTest_Land(EnTest* this, PlayState* play);
+ void EnTest_Rise(EnTest* this, PlayState* play);
+ void EnTest_Idle(EnTest* this, PlayState* play);
+ void EnTest_WalkAndBlock(EnTest* this, PlayState* play);
+-void func_80860C24(EnTest* this, PlayState* play);
+-void func_80860F84(EnTest* this, PlayState* play);
++// LLM generated name (HIGH), was func_80860C24: rotates shape.rot.y toward yawTowardsPlayer, scaling anim playSpeed with the turn rate, until Actor_IsFacingPlayer
++void EnTest_TurnToPlayer(EnTest* this, PlayState* play);  // was func_80860C24 [LLM:HIGH]
++// LLM generated name (GUESS), was func_80860F84: strafes at shape.rot.y + 0x3E80 while smooth-turning to face the player, bouncing off walls; the untargeted counterpart of EnTest_CircleAroundPlayer
++void EnTest_Sidestep(EnTest* this, PlayState* play);  // was func_80860F84 [LLM:GUESS]
+ void EnTest_SlashDown(EnTest* this, PlayState* play);
+ void EnTest_SlashDownEnd(EnTest* this, PlayState* play);
+ void EnTest_SlashUp(EnTest* this, PlayState* play);
+@@ -49,16 +56,24 @@ void EnTest_Jumpslash(EnTest* this, PlayState* play);
+ void EnTest_JumpUp(EnTest* this, PlayState* play);
+ void EnTest_StopAndBlock(EnTest* this, PlayState* play);
+ void EnTest_IdleFromBlock(EnTest* this, PlayState* play);
+-void func_808621D4(EnTest* this, PlayState* play);
+-void func_80862418(EnTest* this, PlayState* play);
++// LLM generated name (HIGH), was func_808621D4: decays the knockback, then blocks, jumps back or jumps up depending on the wall and the player's swing
++void EnTest_FlinchFront(EnTest* this, PlayState* play);  // was func_808621D4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80862418: the behind-hit twin of EnTest_FlinchFront, minus its jump-up-at-a-wall escape
++void EnTest_FlinchBehind(EnTest* this, PlayState* play);  // was func_80862418 [LLM:HIGH]
+ void EnTest_Stunned(EnTest* this, PlayState* play);
+-void func_808628C8(EnTest* this, PlayState* play);
+-void func_80862E6C(EnTest* this, PlayState* play);
+-void func_80863044(EnTest* this, PlayState* play);
+-void func_8086318C(EnTest* this, PlayState* play);
++// LLM generated name (HIGH), was func_808628C8: strafes sideways around the player, reversing off walls and off missing floor for the ceiling type
++void EnTest_CircleAroundPlayer(EnTest* this, PlayState* play);  // was func_808628C8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80862E6C: spawns the BodyBreak parts, then either reassembles at 10 health or drops its collectible and dies
++void EnTest_BreakApart(EnTest* this, PlayState* play);  // was func_80862E6C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80863044: waits out the backwards death animation, thumping at frame 15, then allocates the body break
++void EnTest_DeathFallBackwards(EnTest* this, PlayState* play);  // was func_80863044 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086318C: waits out the forwards death animation, thumping at frames 10 and 25, then allocates the body break
++void EnTest_DeathFallForwards(EnTest* this, PlayState* play);  // was func_8086318C [LLM:HIGH]
+ void EnTest_Recoil(EnTest* this, PlayState* play);
+-void func_808633E8(EnTest* this, PlayState* play);
+-void func_80862FA8(EnTest* this, PlayState* play);
++// LLM generated name (HIGH), was func_808633E8: scatters the body-break parts, drops a random collectible, decrements the parent's count and kills the actor
++void EnTest_DeathBodyBreak(EnTest* this, PlayState* play);  // was func_808633E8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80862FA8: plays gStalfosFallOverBackwardsAnim with NA_SE_EN_STAL_DEAD; the higher params fall through to EnTest_SetupBreakApart instead
++void EnTest_SetupDeathFallBackwards(EnTest* this, PlayState* play);  // was func_80862FA8 [LLM:HIGH]
+ 
+ s32 EnTest_ReactToProjectile(PlayState* play, EnTest* this);
+ 
+@@ -347,7 +362,7 @@ void EnTest_ChooseRandomAction(EnTest* this, PlayState* play) {
+         case 3:
+         case 4:
+         case 7:
+-            func_808627C4(this, play);
++            EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+             break;
+ 
+         case 2:
+@@ -377,7 +392,7 @@ void EnTest_ChooseAction(EnTest* this, PlayState* play) {
+             case 5:
+             case 6:
+             case 8:
+-                func_808627C4(this, play);
++                EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+                 break;
+ 
+             case 2:
+@@ -408,7 +423,7 @@ void EnTest_ChooseAction(EnTest* this, PlayState* play) {
+                         if (this->actor.isTargeted) {
+                             EnTest_SetupSlashDown(this);
+                         } else {
+-                            func_808627C4(this, play);
++                            EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+                         }
+                     } else {
+                         EnTest_SetupSlashDown(this);
+@@ -500,7 +515,7 @@ void EnTest_Idle(EnTest* this, PlayState* play) {
+                 if (Rand_ZeroOne() > 0.7f && player->meleeWeaponAnimation != 0x11) {
+                     EnTest_SetupJumpBack(this);
+                 } else {
+-                    func_808627C4(this, play);
++                    EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+                 }
+                 return;
+             }
+@@ -515,18 +530,18 @@ void EnTest_Idle(EnTest* this, PlayState* play) {
+                     if (Actor_IsTargeted(play, &this->actor)) {
+                         EnTest_SetupJumpslash(this);
+                     } else {
+-                        func_808627C4(this, play);
++                        EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+                     }
+                 } else {
+                     if (Rand_ZeroOne() > 0.3f) {
+                         EnTest_SetupWalkAndBlock(this);
+                     } else {
+-                        func_808627C4(this, play);
++                        EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+                     }
+                 }
+             } else {
+                 if (Rand_ZeroOne() > 0.7f) {
+-                    func_80860BDC(this);
++                    EnTest_SetupTurnToPlayer(this);  // was func_80860BDC [LLM:HIGH]
+                 } else {
+                     EnTest_ChooseAction(this, play);
+                 }
+@@ -667,13 +682,13 @@ void EnTest_WalkAndBlock(EnTest* this, PlayState* play) {
+             } else if (player->heldItemAction != PLAYER_IA_NONE) {
+                 if (this->actor.isTargeted) {
+                     if ((play->gameplayFrames % 2) != 0) {
+-                        func_808627C4(this, play);
++                        EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+                         return;
+                     }
+ 
+                     EnTest_ChooseAction(this, play);
+                 } else {
+-                    func_80860EC0(this);
++                    EnTest_SetupSidestep(this);  // was func_80860EC0 [LLM:GUESS]
+                 }
+             }
+         }
+@@ -694,7 +709,7 @@ void EnTest_WalkAndBlock(EnTest* this, PlayState* play) {
+                     if (this->actor.isTargeted) {
+                         EnTest_SetupSlashDown(this);
+                     } else {
+-                        func_808627C4(this, play);
++                        EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+                     }
+                 } else {
+                     EnTest_SetupSlashDown(this);
+@@ -709,14 +724,14 @@ void EnTest_WalkAndBlock(EnTest* this, PlayState* play) {
+ }
+ 
+ // a variation of sidestep
+-void func_80860BDC(EnTest* this) {
++void EnTest_SetupTurnToPlayer(EnTest* this) {
+     Animation_PlayLoop(&this->skelAnime, &gStalfosSidestepAnim);
+     this->unk_7C8 = 0xE;
+-    EnTest_SetupAction(this, func_80860C24);
++    EnTest_SetupAction(this, EnTest_TurnToPlayer);  // was func_80860C24 [LLM:HIGH]
+ }
+ 
+ // a variation of sidestep
+-void func_80860C24(EnTest* this, PlayState* play) {
++void EnTest_TurnToPlayer(EnTest* this, PlayState* play) {
+     s16 yawDiff;
+     s16 yawChange;
+     f32 playSpeed;
+@@ -765,7 +780,7 @@ void func_80860C24(EnTest* this, PlayState* play) {
+         if (Actor_IsFacingPlayer(&this->actor, 0x71C)) {
+             if (Rand_ZeroOne() > 0.8f) {
+                 if ((Rand_ZeroOne() > 0.7f)) {
+-                    func_80860EC0(this);
++                    EnTest_SetupSidestep(this);  // was func_80860EC0 [LLM:GUESS]
+                 } else {
+                     EnTest_ChooseAction(this, play);
+                 }
+@@ -777,18 +792,18 @@ void func_80860C24(EnTest* this, PlayState* play) {
+ }
+ 
+ // a variation of sidestep
+-void func_80860EC0(EnTest* this) {
++void EnTest_SetupSidestep(EnTest* this) {
+     Animation_PlayLoop(&this->skelAnime, &gStalfosSidestepAnim);
+     this->unk_7C8 = 0xF;
+     this->actor.speedXZ = (Rand_ZeroOne() > 0.5f) ? -0.5f : 0.5f;
+     this->timer = (s16)((Rand_ZeroOne() * 15.0f) + 25.0f);
+     this->unk_7EC = 0.0f;
+     this->actor.world.rot.y = this->actor.shape.rot.y;
+-    EnTest_SetupAction(this, func_80860F84);
++    EnTest_SetupAction(this, EnTest_Sidestep);  // was func_80860F84 [LLM:GUESS]
+ }
+ 
+ // a variation of sidestep
+-void func_80860F84(EnTest* this, PlayState* play) {
++void EnTest_Sidestep(EnTest* this, PlayState* play) {
+     s16 playerYaw180;
+     s32 pad;
+     s32 prevFrame;
+@@ -979,7 +994,7 @@ void EnTest_SlashDownEnd(EnTest* this, PlayState* play) {
+                 if (this->actor.isTargeted) {
+                     EnTest_SetupSlashDown(this);
+                 } else if ((play->gameplayFrames % 2) != 0) {
+-                    func_808627C4(this, play);
++                    EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+                 } else {
+                     EnTest_SetupJumpBack(this);
+                 }
+@@ -987,7 +1002,7 @@ void EnTest_SlashDownEnd(EnTest* this, PlayState* play) {
+                 EnTest_SetupSlashDown(this);
+             }
+         } else {
+-            func_808627C4(this, play);
++            EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+         }
+     }
+ }
+@@ -1201,22 +1216,22 @@ void EnTest_IdleFromBlock(EnTest* this, PlayState* play) {
+             if (this->actor.xzDistToPlayer < 500.0f) {
+                 EnTest_ChooseAction(this, play);
+             } else {
+-                func_808627C4(this, play);
++                EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+             }
+         }
+     }
+ }
+ 
+-void func_80862154(EnTest* this) {
++void EnTest_SetupFlinchFront(EnTest* this) {
+     Animation_PlayOnce(&this->skelAnime, &gStalfosFlinchFromHitFrontAnim);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_STAL_DAMAGE);
+     this->unk_7C8 = 8;
+     this->actor.speedXZ = -2.0f;
+     Actor_SetColorFilter(&this->actor, 0x4000, 0xFF, 0, 8);
+-    EnTest_SetupAction(this, func_808621D4);
++    EnTest_SetupAction(this, EnTest_FlinchFront);  // was func_808621D4 [LLM:HIGH]
+ }
+ 
+-void func_808621D4(EnTest* this, PlayState* play) {
++void EnTest_FlinchFront(EnTest* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     Math_SmoothStepToF(&this->actor.speedXZ, 0.0f, 1.0f, 0.1f, 0.0f);
+@@ -1251,16 +1266,16 @@ void func_808621D4(EnTest* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80862398(EnTest* this) {
++void EnTest_SetupFlinchBehind(EnTest* this) {
+     Animation_PlayOnce(&this->skelAnime, &gStalfosFlinchFromHitBehindAnim);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_STAL_DAMAGE);
+     this->unk_7C8 = 9;
+     this->actor.speedXZ = -2.0f;
+     Actor_SetColorFilter(&this->actor, 0x4000, 0xFF, 0, 8);
+-    EnTest_SetupAction(this, func_80862418);
++    EnTest_SetupAction(this, EnTest_FlinchBehind);  // was func_80862418 [LLM:HIGH]
+ }
+ 
+-void func_80862418(EnTest* this, PlayState* play) {
++void EnTest_FlinchBehind(EnTest* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     Math_SmoothStepToF(&this->actor.speedXZ, 0.0f, 1.0f, 0.1f, 0.0f);
+@@ -1321,7 +1336,7 @@ void EnTest_Stunned(EnTest* this, PlayState* play) {
+ 
+     if (this->actor.colorFilterTimer == 0) {
+         if (this->actor.colChkInfo.health == 0) {
+-            func_80862FA8(this, play);
++            EnTest_SetupDeathFallBackwards(this, play);  // was func_80862FA8 [LLM:HIGH]
+         } else if (player->meleeWeaponState != 0) {
+             if ((this->actor.bgCheckFlags & BGCHECKFLAG_WALL) &&
+                 ((ABS((s16)(this->actor.wallYaw - this->actor.shape.rot.y)) < 0x38A4) &&
+@@ -1344,9 +1359,9 @@ void EnTest_Stunned(EnTest* this, PlayState* play) {
+ }
+ 
+ // a variation of sidestep
+-void func_808627C4(EnTest* this, PlayState* play) {
++void EnTest_SetupCircleAroundPlayer(EnTest* this, PlayState* play) {
+     if (Actor_OtherIsTargeted(play, &this->actor)) {
+-        func_80860EC0(this);
++        EnTest_SetupSidestep(this);  // was func_80860EC0 [LLM:GUESS]
+         return;
+     }
+ 
+@@ -1356,12 +1371,12 @@ void func_808627C4(EnTest* this, PlayState* play) {
+     this->actor.world.rot.y = this->actor.shape.rot.y + 0x3FFF;
+     this->timer = (Rand_ZeroOne() * 20.0f) + 20.0f;
+     this->unk_7C8 = 0x18;
+-    EnTest_SetupAction(this, func_808628C8);
++    EnTest_SetupAction(this, EnTest_CircleAroundPlayer);  // was func_808628C8 [LLM:HIGH]
+     this->unk_7EC = 0.0f;
+ }
+ 
+ // a variation of sidestep
+-void func_808628C8(EnTest* this, PlayState* play) {
++void EnTest_CircleAroundPlayer(EnTest* this, PlayState* play) {
+     s32 pad;
+     Player* player = GET_PLAYER(play);
+     s32 pad1;
+@@ -1478,7 +1493,8 @@ void func_808628C8(EnTest* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80862DBC(EnTest* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80862DBC: allocates the BodyBreak parts, drops targeting and the sword blur, and hands off to the action that scatters them
++void EnTest_SetupBreakApart(EnTest* this, PlayState* play) {
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_STAL_DAMAGE);
+     this->unk_7C8 = 2;
+     BodyBreak_Alloc(&this->bodyBreak, 60, play);
+@@ -1495,10 +1511,10 @@ void func_80862DBC(EnTest* this, PlayState* play) {
+         Actor_ChangeCategory(play, &play->actorCtx, &this->actor, ACTORCAT_PROP);
+     }
+ 
+-    EnTest_SetupAction(this, func_80862E6C);
++    EnTest_SetupAction(this, EnTest_BreakApart);  // was func_80862E6C [LLM:HIGH]
+ }
+ 
+-void func_80862E6C(EnTest* this, PlayState* play) {
++void EnTest_BreakApart(EnTest* this, PlayState* play) {
+     if (this->actor.child == NULL) {
+         if (this->actor.home.rot.x == 0) {
+             this->actor.home.rot.x = this->bodyBreak.count;
+@@ -1534,7 +1550,7 @@ void func_80862E6C(EnTest* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80862FA8(EnTest* this, PlayState* play) {
++void EnTest_SetupDeathFallBackwards(EnTest* this, PlayState* play) {
+     Animation_PlayOnce(&this->skelAnime, &gStalfosFallOverBackwardsAnim);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_STAL_DEAD);
+     this->unk_7DE = 0;
+@@ -1544,17 +1560,17 @@ void func_80862FA8(EnTest* this, PlayState* play) {
+ 
+     if (this->actor.params <= STALFOS_TYPE_CEILING) {
+         this->unk_7C8 = 5;
+-        EnTest_SetupAction(this, func_80863044);
++        EnTest_SetupAction(this, EnTest_DeathFallBackwards);  // was func_80863044 [LLM:HIGH]
+     } else {
+-        func_80862DBC(this, play);
++        EnTest_SetupBreakApart(this, play);  // was func_80862DBC [LLM:HIGH]
+     }
+ }
+ 
+-void func_80863044(EnTest* this, PlayState* play) {
++void EnTest_DeathFallBackwards(EnTest* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->timer = (Rand_ZeroOne() * 10.0f) + 10.0f;
+         this->unk_7C8 = 7;
+-        EnTest_SetupAction(this, func_808633E8);
++        EnTest_SetupAction(this, EnTest_DeathBodyBreak);  // was func_808633E8 [LLM:HIGH]
+         BodyBreak_Alloc(&this->bodyBreak, 60, play);
+     }
+ 
+@@ -1563,7 +1579,8 @@ void func_80863044(EnTest* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808630F0(EnTest* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808630F0: plays gStalfosFallOverForwardsAnim with NA_SE_EN_STAL_DEAD; the forwards twin of EnTest_SetupDeathFallBackwards
++void EnTest_SetupDeathFallForwards(EnTest* this, PlayState* play) {
+     Animation_PlayOnce(&this->skelAnime, &gStalfosFallOverForwardsAnim);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_STAL_DEAD);
+     this->unk_7C8 = 6;
+@@ -1573,17 +1590,17 @@ void func_808630F0(EnTest* this, PlayState* play) {
+ 
+     if (this->actor.params <= STALFOS_TYPE_CEILING) {
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+-        EnTest_SetupAction(this, func_8086318C);
++        EnTest_SetupAction(this, EnTest_DeathFallForwards);  // was func_8086318C [LLM:HIGH]
+     } else {
+-        func_80862DBC(this, play);
++        EnTest_SetupBreakApart(this, play);  // was func_80862DBC [LLM:HIGH]
+     }
+ }
+ 
+-void func_8086318C(EnTest* this, PlayState* play) {
++void EnTest_DeathFallForwards(EnTest* this, PlayState* play) {
+     if (SkelAnime_Update(&this->skelAnime)) {
+         this->timer = (Rand_ZeroOne() * 10.0f) + 10.0f;
+         this->unk_7C8 = 7;
+-        EnTest_SetupAction(this, func_808633E8);
++        EnTest_SetupAction(this, EnTest_DeathBodyBreak);  // was func_808633E8 [LLM:HIGH]
+         BodyBreak_Alloc(&this->bodyBreak, 60, play);
+     }
+ 
+@@ -1610,7 +1627,7 @@ void EnTest_Recoil(EnTest* this, PlayState* play) {
+         } else if (((play->gameplayFrames % 2) != 0) && (this->actor.params != STALFOS_TYPE_CEILING)) {
+             EnTest_SetupJumpBack(this);
+         } else {
+-            func_808627C4(this, play);
++            EnTest_SetupCircleAroundPlayer(this, play);  // was func_808627C4 [LLM:HIGH]
+         }
+     }
+ }
+@@ -1627,7 +1644,7 @@ void EnTest_Rise(EnTest* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808633E8(EnTest* this, PlayState* play) {
++void EnTest_DeathBodyBreak(EnTest* this, PlayState* play) {
+     this->actor.params = STALFOS_TYPE_1;
+ 
+     if (BodyBreak_SpawnParts(&this->actor, &this->bodyBreak, play, this->actor.params)) {
+@@ -1687,15 +1704,15 @@ void EnTest_UpdateDamage(EnTest* this, PlayState* play) {
+                 if (Actor_IsFacingPlayer(&this->actor, 0x4000)) {
+                     if (Actor_ApplyDamage(&this->actor) == 0) {
+                         Enemy_StartFinishingBlow(play, &this->actor);
+-                        func_80862FA8(this, play);
++                        EnTest_SetupDeathFallBackwards(this, play);  // was func_80862FA8 [LLM:HIGH]
+                     } else {
+-                        func_80862154(this);
++                        EnTest_SetupFlinchFront(this);  // was func_80862154 [LLM:HIGH]
+                     }
+                 } else if (Actor_ApplyDamage(&this->actor) == 0) {
+-                    func_808630F0(this, play);
++                    EnTest_SetupDeathFallForwards(this, play);  // was func_808630F0 [LLM:HIGH]
+                     Enemy_StartFinishingBlow(play, &this->actor);
+                 } else {
+-                    func_80862398(this);
++                    EnTest_SetupFlinchBehind(this);  // was func_80862398 [LLM:HIGH]
+                 }
+             }
+         }
+@@ -1975,13 +1992,14 @@ void EnTest_Draw(Actor* thisx, PlayState* play) {
+ }
+ 
+ // a variation of sidestep
+-void func_80864158(EnTest* this, f32 xzSpeed) {
++// LLM generated name (HIGH), was func_80864158: the same circling setup as EnTest_SetupCircleAroundPlayer but taking the strafe speed from the caller
++void EnTest_SetupCircleAroundPlayerWithSpeed(EnTest* this, f32 xzSpeed) {
+     Animation_MorphToLoop(&this->skelAnime, &gStalfosSidestepAnim, -2.0f);
+     this->actor.speedXZ = xzSpeed;
+     this->actor.world.rot.y = this->actor.shape.rot.y + 0x3FFF;
+     this->timer = (Rand_ZeroOne() * 20.0f) + 15.0f;
+     this->unk_7C8 = 0x18;
+-    EnTest_SetupAction(this, func_808628C8);
++    EnTest_SetupAction(this, EnTest_CircleAroundPlayer);  // was func_808628C8 [LLM:HIGH]
+ }
+ 
+ /**
+@@ -2036,9 +2054,9 @@ s32 EnTest_ReactToProjectile(PlayState* play, EnTest* this) {
+             }
+ 
+             if (directionFlag) {
+-                func_80864158(this, 4.0f);
++                EnTest_SetupCircleAroundPlayerWithSpeed(this, 4.0f);  // was func_80864158 [LLM:HIGH]
+             } else {
+-                func_80864158(this, -4.0f);
++                EnTest_SetupCircleAroundPlayerWithSpeed(this, -4.0f);  // was func_80864158 [LLM:HIGH]
+             }
+         } else if (ABS(yawToProjectile) < 0x6000) {
+             directionFlag = play->gameplayFrames % 2;
+-- 
+2.55.0
+

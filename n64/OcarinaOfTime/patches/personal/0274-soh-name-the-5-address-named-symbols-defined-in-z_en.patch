@@ -1,0 +1,145 @@
+From 8a1f9c6c5a7965a16d4c76d69888fb83f984c909 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 274/488] soh: name the 5 address-named symbols defined in
+ z_en_ru1_cutscene_data.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 5 are defined in soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1_cutscene_data.c; updating their references touches 2 files in total.
+
+  * D_80AF0880 -> sFirstEncounterCs
+    deduced, confidence HIGH: CutsceneData installed into csCtx.segment by
+    the VB_PLAY_CHILD_RUTO_INTRO branch, which fires when the player first
+    comes within range of child Ruto.
+
+  * D_80AF10A0 -> sUnusedCsValue1
+    deduced, confidence GUESS: a zero u32 sitting between two CutsceneData
+    arrays with no reader anywhere; it reads as padding between them, but
+    nothing confirms that.
+
+  * D_80AF10A4 -> sRunToSapphireCs
+    deduced, confidence HIGH: CutsceneData installed by the
+    VB_RUTO_RUN_TO_SAPPHIRE branch, when Ruto is standing on the right
+    Bg_Bdan_Objects platform.
+
+  * D_80AF1724 -> sUnusedCsValue2
+    deduced, confidence GUESS: the second zero u32 between CutsceneData
+    arrays, same shape and same absence of any reader as the first.
+
+  * D_80AF1728 -> sSeesSapphireCs
+    deduced, confidence HIGH: CutsceneData installed alongside
+    gRutoChildSeesSapphireAnim when Ruto first catches sight of the Zora's
+    Sapphire.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c     |  6 +++---
+ .../actors/ovl_En_Ru1/z_en_ru1_cutscene_data.c    | 15 ++++++++++-----
+ 2 files changed, 13 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
+index a82e0260d..f7d737ce4 100644
+--- a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
++++ b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1.c
+@@ -970,7 +970,7 @@ void EnRu1_CheckStartFirstEncounter(EnRu1* this, PlayState* play) {
+                 (player->actor.bgCheckFlags & 1),
+             this)) {
+ 
+-        play->csCtx.segment = &D_80AF0880;
++        play->csCtx.segment = &sFirstEncounterCs;  // was D_80AF0880 [LLM:HIGH]
+         gSaveContext.cutsceneTrigger = 1;
+         player->linearVelocity = 0.0f;
+         this->action = 8;
+@@ -1692,7 +1692,7 @@ s32 EnRu1_IsOnSapphirePlatform(EnRu1* this, PlayState* play) {
+                                       play->msgCtx.msgLength == 0,
+                                   this, dynaPolyActor)) {
+             EnRu1_StopMoving(this);
+-            play->csCtx.segment = &D_80AF10A4;
++            play->csCtx.segment = &sRunToSapphireCs;  // was D_80AF10A4 [LLM:HIGH]
+             gSaveContext.cutsceneTrigger = 1;
+             this->action = 36;
+             this->drawConfig = 0;
+@@ -1764,7 +1764,7 @@ s32 func_80AEE6D0(EnRu1* this, PlayState* play) {
+             func_80AED600(this);
+             this->action = 34;
+             this->walkingFrame = 0.0f;
+-            play->csCtx.segment = &D_80AF1728;
++            play->csCtx.segment = &sSeesSapphireCs;  // was D_80AF1728 [LLM:HIGH]
+             gSaveContext.cutsceneTrigger = 1;
+         }
+         this->roomNum3 = curRoomNum;
+diff --git a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1_cutscene_data.c b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1_cutscene_data.c
+index 2ca6c77bb..e171a685e 100644
+--- a/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1_cutscene_data.c
++++ b/soh/src/overlays/actors/ovl_En_Ru1/z_en_ru1_cutscene_data.c
+@@ -2,7 +2,8 @@
+ #include "z64cutscene_commands.h"
+ 
+ // clang-format off
+-static CutsceneData D_80AF0880[] = {
++// LLM generated name (HIGH), was D_80AF0880: CutsceneData installed into csCtx.segment by the VB_PLAY_CHILD_RUTO_INTRO branch, which fires when the player first comes within range of child Ruto.
++static CutsceneData sFirstEncounterCs[] = {  // was D_80AF0880 [LLM:HIGH]
+     CS_BEGIN_CUTSCENE(15, 1306),
+     CS_PLAYER_ACTION_LIST(10),
+         CS_PLAYER_ACTION(0x0027, 0, 50, 0x0000, 0x6C16, 0x0000, 12, -340, -2810, 12, -340, -2810, 1.1393037E-29f, 0.0f, 1.4E-45f),
+@@ -110,9 +111,11 @@ static CutsceneData D_80AF0880[] = {
+     CS_END(),
+ };
+ 
+-static u32 D_80AF10A0 = 0;
++// LLM generated name (GUESS), was D_80AF10A0: a zero u32 sitting between two CutsceneData arrays with no reader anywhere; it reads as padding between them, but nothing confirms that.
++static u32 sUnusedCsValue1 = 0;  // was D_80AF10A0 [LLM:GUESS]
+ 
+-static CutsceneData D_80AF10A4[] = {
++// LLM generated name (HIGH), was D_80AF10A4: CutsceneData installed by the VB_RUTO_RUN_TO_SAPPHIRE branch, when Ruto is standing on the right Bg_Bdan_Objects platform.
++static CutsceneData sRunToSapphireCs[] = {  // was D_80AF10A4 [LLM:HIGH]
+     CS_BEGIN_CUTSCENE(14, 1299),
+     CS_PLAYER_ACTION_LIST(3),
+         CS_PLAYER_ACTION(0x0005, 0, 272, 0x0000, 0xC000, 0x0000, -1085, -1025, -3347, -1085, -1025, -3347, 1.1393037E-29f, 0.0f, 1.4E-45f),
+@@ -199,9 +202,11 @@ static CutsceneData D_80AF10A4[] = {
+     CS_END(),
+ };
+ 
+-static u32 D_80AF1724 = 0;
++// LLM generated name (GUESS), was D_80AF1724: the second zero u32 between CutsceneData arrays, same shape and same absence of any reader as the first.
++static u32 sUnusedCsValue2 = 0;  // was D_80AF1724 [LLM:GUESS]
+ 
+-static CutsceneData D_80AF1728[] = {
++// LLM generated name (HIGH), was D_80AF1728: CutsceneData installed alongside gRutoChildSeesSapphireAnim when Ruto first catches sight of the Zora's Sapphire.
++static CutsceneData sSeesSapphireCs[] = {  // was D_80AF1728 [LLM:HIGH]
+     CS_BEGIN_CUTSCENE(7, 1160),
+     CS_MISC_LIST(1),
+         CS_MISC(0x000C, 75, 627, 0x0000, 0x00000000, 0x00000000, 0xFFFFFFC0, 0x00000032, 0x00000000, 0xFFFFFFC0, 0x00000032, 0x00000000, 0x00000000, 0x00000000),
+-- 
+2.55.0
+

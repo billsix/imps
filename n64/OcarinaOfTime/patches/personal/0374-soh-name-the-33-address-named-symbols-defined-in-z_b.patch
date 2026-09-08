@@ -1,0 +1,689 @@
+From ccf13a0c667dd8a285c27977b346560762b27849 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:31 +0000
+Subject: [PATCH 374/488] soh: name the 33 address-named symbols defined in
+ z_bg_bdan_switch.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 33 are defined in soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c.
+
+  * func_8086D0EC -> BgBdanSwitch_UpdateShape
+    deduced, confidence HIGH: advances the wobble phase and derives the
+    switch's draw radius, height and yOffset from it and the current press
+    amount
+
+  * func_8086D4B4 -> BgBdanSwitch_SetSwitchFlag
+    deduced, confidence HIGH: sets this switch's flag once and plays the
+    chest or chime attention sound
+
+  * func_8086D548 -> BgBdanSwitch_ClearSwitchFlag
+    deduced, confidence HIGH: clears this switch's flag, playing the chest
+    sound for the YELLOW_TALL_2 type
+
+  * func_8086D5C4 -> BgBdanSwitch_SetupIdle
+    deduced, confidence HIGH: installs the unpressed idle and restores the
+    full press amount
+
+  * func_8086D5E0 -> BgBdanSwitch_Idle
+    deduced, confidence HIGH: waits for the blue switch to be weighed down
+    or for the player to stand on the yellow one
+
+  * func_8086D67C -> BgBdanSwitch_SetupPress
+    deduced, confidence HIGH: installs the pressing action and arms the
+    100-frame camera wait
+
+  * func_8086D694 -> BgBdanSwitch_Press
+    deduced, confidence HIGH: sinks the switch by 0.2 a frame once the
+    camera looks at it or the wait expires, then locks it down with a rumble
+
+  * func_8086D730 -> BgBdanSwitch_SetupPressed
+    deduced, confidence HIGH: snaps the switch fully down and installs the
+    pressed action with a six-frame debounce
+
+  * func_8086D754 -> BgBdanSwitch_Pressed
+    deduced, confidence HIGH: releases the blue switch once nothing weighs
+    it down, or the yellow one once its flag is cleared elsewhere
+
+  * func_8086D7FC -> BgBdanSwitch_SetupRelease
+    deduced, confidence HIGH: installs the rising action
+
+  * func_8086D80C -> BgBdanSwitch_Release
+    deduced, confidence HIGH: raises the switch by 0.2 a frame back to the
+    idle
+
+  * func_8086D86C -> BgBdanSwitch_SetupHeavyIdle
+    deduced, confidence HIGH: the YELLOW_HEAVY idle: installs the waiting
+    action at full height
+
+  * func_8086D888 -> BgBdanSwitch_HeavyIdle
+    deduced, confidence HIGH: waits for the player to stand on the heavy
+    switch
+
+  * func_8086D8BC -> BgBdanSwitch_SetupHeavyHalfPress
+    deduced, confidence HIGH: installs the half-press action
+
+  * func_8086D8CC -> BgBdanSwitch_HeavyHalfPress
+    deduced, confidence HIGH: sinks the heavy switch to 0.6 under the
+    player's weight alone, with a rumble
+
+  * func_8086D944 -> BgBdanSwitch_SetupHeavyFullPress
+    deduced, confidence HIGH: installs the full-press action and arms the
+    100-frame camera wait
+
+  * func_8086D95C -> BgBdanSwitch_HeavyFullPress
+    deduced, confidence HIGH: sinks the heavy switch the rest of the way
+    once the camera looks at it or the wait expires
+
+  * func_8086D9F8 -> BgBdanSwitch_SetupHeavyHalfPressed
+    deduced, confidence HIGH: holds the switch at 0.6 and installs the
+    action that watches what the player is carrying
+
+  * func_8086DA1C -> BgBdanSwitch_HeavyHalfPressed
+    deduced, confidence HIGH: drives the switch fully down only while the
+    player stands on it carrying Ruto, and lets it rise otherwise
+
+  * func_8086DAB4 -> BgBdanSwitch_SetupHeavyRelease
+    deduced, confidence HIGH: installs the heavy switch's rising action
+
+  * func_8086DAC4 -> BgBdanSwitch_HeavyRelease
+    deduced, confidence HIGH: raises the heavy switch back to its idle
+    height
+
+  * func_8086DB24 -> BgBdanSwitch_SetupHeavyDone
+    deduced, confidence HIGH: locks the heavy switch fully down and installs
+    the empty action
+
+  * func_8086DB40 -> BgBdanSwitch_HeavyDone
+    deduced, confidence HIGH: empty action: the heavy switch stays down for
+    good
+
+  * func_8086DB4C -> BgBdanSwitch_SetupTallIdle
+    deduced, confidence HIGH: the tall switch idle: installs the waiting
+    action at double height
+
+  * func_8086DB68 -> BgBdanSwitch_TallIdle
+    deduced, confidence HIGH: waits for the tall switch to be hit, debounced
+    by ten frames
+
+  * func_8086DC30 -> BgBdanSwitch_SetupTallPress
+    deduced, confidence HIGH: installs the tall switch's sinking action and
+    arms the camera wait
+
+  * func_8086DC48 -> BgBdanSwitch_TallPress
+    deduced, confidence HIGH: sinks the tall switch by 0.3 a frame down to
+    single height
+
+  * func_8086DCCC -> BgBdanSwitch_SetupTallPressed
+    deduced, confidence HIGH: holds the tall switch at single height and
+    installs its pressed action
+
+  * func_8086DCE8 -> BgBdanSwitch_TallPressed
+    deduced, confidence HIGH: releases the YELLOW_TALL_1 switch when its
+    flag is cleared, and the YELLOW_TALL_2 one when it is hit again
+
+  * func_8086DDA8 -> BgBdanSwitch_SetupTallRelease
+    deduced, confidence HIGH: installs the tall switch's rising action and
+    arms the camera wait
+
+  * func_8086DDC0 -> BgBdanSwitch_TallRelease
+    deduced, confidence HIGH: raises the tall switch back to double height
+
+  * func_8086DF58 -> BgBdanSwitch_DrawDList
+    deduced, confidence HIGH: places and scales the switch from its wobble
+    values and draws the caller's display list
+
+  * D_8086E0E0 -> sTallFocusOffset
+    deduced, confidence HIGH: the 140-unit-high point transformed into the
+    tall switch's focus position
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c     | 253 ++++++++++--------
+ 1 file changed, 143 insertions(+), 110 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c b/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
+index f65939d39..39ae9c31d 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bdan_Switch/z_bg_bdan_switch.c
+@@ -15,33 +15,60 @@ void BgBdanSwitch_Destroy(Actor* thisx, PlayState* play);
+ void BgBdanSwitch_Update(Actor* thisx, PlayState* play);
+ void BgBdanSwitch_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8086D5C4(BgBdanSwitch* this);
+-void func_8086D5E0(BgBdanSwitch* this, PlayState* play);
+-void func_8086D67C(BgBdanSwitch* this);
+-void func_8086D694(BgBdanSwitch* this, PlayState* play);
+-void func_8086D730(BgBdanSwitch* this);
+-void func_8086D754(BgBdanSwitch* this, PlayState* play);
+-void func_8086D7FC(BgBdanSwitch* this);
+-void func_8086D80C(BgBdanSwitch* this, PlayState* play);
+-void func_8086D86C(BgBdanSwitch* this);
+-void func_8086D888(BgBdanSwitch* this, PlayState* play);
+-void func_8086D8BC(BgBdanSwitch* this);
+-void func_8086D8CC(BgBdanSwitch* this, PlayState* play);
+-void func_8086D95C(BgBdanSwitch* this, PlayState* play);
+-void func_8086D9F8(BgBdanSwitch* this);
+-void func_8086DA1C(BgBdanSwitch* this, PlayState* play);
+-void func_8086DAB4(BgBdanSwitch* this);
+-void func_8086DAC4(BgBdanSwitch* this, PlayState* play);
+-void func_8086DB24(BgBdanSwitch* this);
+-void func_8086DB40(BgBdanSwitch* this, PlayState* play);
+-void func_8086DB4C(BgBdanSwitch* this);
+-void func_8086DB68(BgBdanSwitch* this, PlayState* play);
+-void func_8086DC30(BgBdanSwitch* this);
+-void func_8086DC48(BgBdanSwitch* this, PlayState* play);
+-void func_8086DCCC(BgBdanSwitch* this);
+-void func_8086DCE8(BgBdanSwitch* this, PlayState* play);
+-void func_8086DDA8(BgBdanSwitch* this);
+-void func_8086DDC0(BgBdanSwitch* this, PlayState* play);
++// LLM generated name (HIGH), was func_8086D5C4: installs the unpressed idle and restores the full press amount
++void BgBdanSwitch_SetupIdle(BgBdanSwitch* this);  // was func_8086D5C4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D5E0: waits for the blue switch to be weighed down or for the player to stand on the yellow one
++void BgBdanSwitch_Idle(BgBdanSwitch* this, PlayState* play);  // was func_8086D5E0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D67C: installs the pressing action and arms the 100-frame camera wait
++void BgBdanSwitch_SetupPress(BgBdanSwitch* this);  // was func_8086D67C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D694: sinks the switch by 0.2 a frame once the camera looks at it or the wait expires, then locks it down with a rumble
++void BgBdanSwitch_Press(BgBdanSwitch* this, PlayState* play);  // was func_8086D694 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D730: snaps the switch fully down and installs the pressed action with a six-frame debounce
++void BgBdanSwitch_SetupPressed(BgBdanSwitch* this);  // was func_8086D730 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D754: releases the blue switch once nothing weighs it down, or the yellow one once its flag is cleared elsewhere
++void BgBdanSwitch_Pressed(BgBdanSwitch* this, PlayState* play);  // was func_8086D754 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D7FC: installs the rising action
++void BgBdanSwitch_SetupRelease(BgBdanSwitch* this);  // was func_8086D7FC [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D80C: raises the switch by 0.2 a frame back to the idle
++void BgBdanSwitch_Release(BgBdanSwitch* this, PlayState* play);  // was func_8086D80C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D86C: the YELLOW_HEAVY idle: installs the waiting action at full height
++void BgBdanSwitch_SetupHeavyIdle(BgBdanSwitch* this);  // was func_8086D86C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D888: waits for the player to stand on the heavy switch
++void BgBdanSwitch_HeavyIdle(BgBdanSwitch* this, PlayState* play);  // was func_8086D888 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D8BC: installs the half-press action
++void BgBdanSwitch_SetupHeavyHalfPress(BgBdanSwitch* this);  // was func_8086D8BC [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D8CC: sinks the heavy switch to 0.6 under the player's weight alone, with a rumble
++void BgBdanSwitch_HeavyHalfPress(BgBdanSwitch* this, PlayState* play);  // was func_8086D8CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D95C: sinks the heavy switch the rest of the way once the camera looks at it or the wait expires
++void BgBdanSwitch_HeavyFullPress(BgBdanSwitch* this, PlayState* play);  // was func_8086D95C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086D9F8: holds the switch at 0.6 and installs the action that watches what the player is carrying
++void BgBdanSwitch_SetupHeavyHalfPressed(BgBdanSwitch* this);  // was func_8086D9F8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DA1C: drives the switch fully down only while the player stands on it carrying Ruto, and lets it rise otherwise
++void BgBdanSwitch_HeavyHalfPressed(BgBdanSwitch* this, PlayState* play);  // was func_8086DA1C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DAB4: installs the heavy switch's rising action
++void BgBdanSwitch_SetupHeavyRelease(BgBdanSwitch* this);  // was func_8086DAB4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DAC4: raises the heavy switch back to its idle height
++void BgBdanSwitch_HeavyRelease(BgBdanSwitch* this, PlayState* play);  // was func_8086DAC4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DB24: locks the heavy switch fully down and installs the empty action
++void BgBdanSwitch_SetupHeavyDone(BgBdanSwitch* this);  // was func_8086DB24 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DB40: empty action: the heavy switch stays down for good
++void BgBdanSwitch_HeavyDone(BgBdanSwitch* this, PlayState* play);  // was func_8086DB40 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DB4C: the tall switch idle: installs the waiting action at double height
++void BgBdanSwitch_SetupTallIdle(BgBdanSwitch* this);  // was func_8086DB4C [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DB68: waits for the tall switch to be hit, debounced by ten frames
++void BgBdanSwitch_TallIdle(BgBdanSwitch* this, PlayState* play);  // was func_8086DB68 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DC30: installs the tall switch's sinking action and arms the camera wait
++void BgBdanSwitch_SetupTallPress(BgBdanSwitch* this);  // was func_8086DC30 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DC48: sinks the tall switch by 0.3 a frame down to single height
++void BgBdanSwitch_TallPress(BgBdanSwitch* this, PlayState* play);  // was func_8086DC48 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DCCC: holds the tall switch at single height and installs its pressed action
++void BgBdanSwitch_SetupTallPressed(BgBdanSwitch* this);  // was func_8086DCCC [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DCE8: releases the YELLOW_TALL_1 switch when its flag is cleared, and the YELLOW_TALL_2 one when it is hit again
++void BgBdanSwitch_TallPressed(BgBdanSwitch* this, PlayState* play);  // was func_8086DCE8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DDA8: installs the tall switch's rising action and arms the camera wait
++void BgBdanSwitch_SetupTallRelease(BgBdanSwitch* this);  // was func_8086DDA8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8086DDC0: raises the tall switch back to double height
++void BgBdanSwitch_TallRelease(BgBdanSwitch* this, PlayState* play);  // was func_8086DDC0 [LLM:HIGH]
+ 
+ const ActorInit Bg_Bdan_Switch_InitVars = {
+     ACTOR_BG_BDAN_SWITCH,
+@@ -89,7 +116,8 @@ static InitChainEntry sInitChain[] = {
+     ICHAIN_F32(uncullZoneDownward, 1200, ICHAIN_STOP),
+ };
+ 
+-static Vec3f D_8086E0E0 = { 0.0f, 140.0f, 0.0f };
++// LLM generated name (HIGH), was D_8086E0E0: the 140-unit-high point transformed into the tall switch's focus position
++static Vec3f sTallFocusOffset = { 0.0f, 140.0f, 0.0f };  // was D_8086E0E0 [LLM:HIGH]
+ 
+ void BgBdanSwitch_InitDynaPoly(BgBdanSwitch* this, PlayState* play, CollisionHeader* collision, s32 flag) {
+     s16 pad1;
+@@ -111,7 +139,8 @@ void BgBdanSwitch_InitCollision(BgBdanSwitch* this, PlayState* play) {
+     Collider_SetJntSph(play, &this->collider, actor, &sJntSphInit, this->colliderItems);
+ }
+ 
+-void func_8086D0EC(BgBdanSwitch* this) {
++// LLM generated name (HIGH), was func_8086D0EC: advances the wobble phase and derives the switch's draw radius, height and yOffset from it and the current press amount
++void BgBdanSwitch_UpdateShape(BgBdanSwitch* this) {
+     if (this->unk_1CC > 0) {
+         this->unk_1CC += 0x5DC;
+     } else {
+@@ -173,24 +202,24 @@ void BgBdanSwitch_Init(Actor* thisx, PlayState* play) {
+         case BLUE:
+         case YELLOW:
+             if (flag) {
+-                func_8086D730(this);
++                BgBdanSwitch_SetupPressed(this);  // was func_8086D730 [LLM:HIGH]
+             } else {
+-                func_8086D5C4(this);
++                BgBdanSwitch_SetupIdle(this);  // was func_8086D5C4 [LLM:HIGH]
+             }
+             break;
+         case YELLOW_HEAVY:
+             if (flag) {
+-                func_8086DB24(this);
++                BgBdanSwitch_SetupHeavyDone(this);  // was func_8086DB24 [LLM:HIGH]
+             } else {
+-                func_8086D86C(this);
++                BgBdanSwitch_SetupHeavyIdle(this);  // was func_8086D86C [LLM:HIGH]
+             }
+             break;
+         case YELLOW_TALL_1:
+         case YELLOW_TALL_2:
+             if (flag) {
+-                func_8086DCCC(this);
++                BgBdanSwitch_SetupTallPressed(this);  // was func_8086DCCC [LLM:HIGH]
+             } else {
+-                func_8086DB4C(this);
++                BgBdanSwitch_SetupTallIdle(this);  // was func_8086DB4C [LLM:HIGH]
+             }
+             break;
+         default:
+@@ -217,7 +246,8 @@ void BgBdanSwitch_Destroy(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_8086D4B4(BgBdanSwitch* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8086D4B4: sets this switch's flag once and plays the chest or chime attention sound
++void BgBdanSwitch_SetSwitchFlag(BgBdanSwitch* this, PlayState* play) {
+     s32 pad;
+     s32 type;
+ 
+@@ -234,7 +264,8 @@ void func_8086D4B4(BgBdanSwitch* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8086D548(BgBdanSwitch* this, PlayState* play) {
++// LLM generated name (HIGH), was func_8086D548: clears this switch's flag, playing the chest sound for the YELLOW_TALL_2 type
++void BgBdanSwitch_ClearSwitchFlag(BgBdanSwitch* this, PlayState* play) {
+     if (Flags_GetSwitch(play, (this->dyna.actor.params >> 8) & 0x3F)) {
+         Flags_UnsetSwitch(play, (this->dyna.actor.params >> 8) & 0x3F);
+         if ((this->dyna.actor.params & 0xFF) == YELLOW_TALL_2) {
+@@ -245,57 +276,57 @@ void func_8086D548(BgBdanSwitch* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8086D5C4(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086D5E0;
++void BgBdanSwitch_SetupIdle(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_Idle;  // was func_8086D5E0 [LLM:HIGH]
+     this->unk_1C8 = 1.0f;
+ }
+ 
+-void func_8086D5E0(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_Idle(BgBdanSwitch* this, PlayState* play) {
+     switch (this->dyna.actor.params & 0xFF) {
+         case BLUE:
+             if (DynaPolyActor_IsSwitchPressed(&this->dyna)) {
+-                func_8086D67C(this);
+-                func_8086D4B4(this, play);
++                BgBdanSwitch_SetupPress(this);  // was func_8086D67C [LLM:HIGH]
++                BgBdanSwitch_SetSwitchFlag(this, play);  // was func_8086D4B4 [LLM:HIGH]
+             }
+             break;
+         case YELLOW:
+             if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+-                func_8086D67C(this);
+-                func_8086D4B4(this, play);
++                BgBdanSwitch_SetupPress(this);  // was func_8086D67C [LLM:HIGH]
++                BgBdanSwitch_SetSwitchFlag(this, play);  // was func_8086D4B4 [LLM:HIGH]
+             }
+             break;
+     }
+ }
+ 
+-void func_8086D67C(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086D694;
++void BgBdanSwitch_SetupPress(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_Press;  // was func_8086D694 [LLM:HIGH]
+     this->unk_1DA = 0x64;
+ }
+ 
+-void func_8086D694(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_Press(BgBdanSwitch* this, PlayState* play) {
+     if ((Camera_GetTargetCategory() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {  // was func_8005B198 [LLM:HIGH]
+         this->unk_1C8 -= 0.2f;
+         if (this->unk_1C8 <= 0.1f) {
+-            func_8086D730(this);
++            BgBdanSwitch_SetupPressed(this);  // was func_8086D730 [LLM:HIGH]
+             Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_FOOT_SWITCH);
+             Rumble_Request(this->dyna.actor.xyzDistToPlayerSq, 0x78, 0x14, 0xA);
+         }
+     }
+ }
+ 
+-void func_8086D730(BgBdanSwitch* this) {
++void BgBdanSwitch_SetupPressed(BgBdanSwitch* this) {
+     this->unk_1C8 = 0.1f;
+-    this->actionFunc = func_8086D754;
++    this->actionFunc = BgBdanSwitch_Pressed;  // was func_8086D754 [LLM:HIGH]
+     this->unk_1D8 = 6;
+ }
+ 
+-void func_8086D754(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_Pressed(BgBdanSwitch* this, PlayState* play) {
+     switch (this->dyna.actor.params & 0xFF) {
+         case BLUE:
+             if (!DynaPolyActor_IsSwitchPressed(&this->dyna)) {
+                 if (this->unk_1D8 <= 0) {
+-                    func_8086D7FC(this);
+-                    func_8086D548(this, play);
++                    BgBdanSwitch_SetupRelease(this);  // was func_8086D7FC [LLM:HIGH]
++                    BgBdanSwitch_ClearSwitchFlag(this, play);  // was func_8086D548 [LLM:HIGH]
+                 }
+             } else {
+                 this->unk_1D8 = 6;
+@@ -303,183 +334,184 @@ void func_8086D754(BgBdanSwitch* this, PlayState* play) {
+             break;
+         case YELLOW:
+             if (!Flags_GetSwitch(play, (this->dyna.actor.params >> 8) & 0x3F)) {
+-                func_8086D7FC(this);
++                BgBdanSwitch_SetupRelease(this);  // was func_8086D7FC [LLM:HIGH]
+             }
+             break;
+     }
+ }
+ 
+-void func_8086D7FC(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086D80C;
++void BgBdanSwitch_SetupRelease(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_Release;  // was func_8086D80C [LLM:HIGH]
+ }
+ 
+-void func_8086D80C(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_Release(BgBdanSwitch* this, PlayState* play) {
+     this->unk_1C8 += 0.2f;
+     if (this->unk_1C8 >= 1.0f) {
+-        func_8086D5C4(this);
++        BgBdanSwitch_SetupIdle(this);  // was func_8086D5C4 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_FOOT_SWITCH);
+     }
+ }
+ 
+-void func_8086D86C(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086D888;
++void BgBdanSwitch_SetupHeavyIdle(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_HeavyIdle;  // was func_8086D888 [LLM:HIGH]
+     this->unk_1C8 = 1.0f;
+ }
+ 
+-void func_8086D888(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_HeavyIdle(BgBdanSwitch* this, PlayState* play) {
+     if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+-        func_8086D8BC(this);
++        BgBdanSwitch_SetupHeavyHalfPress(this);  // was func_8086D8BC [LLM:HIGH]
+     }
+ }
+ 
+-void func_8086D8BC(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086D8CC;
++void BgBdanSwitch_SetupHeavyHalfPress(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_HeavyHalfPress;  // was func_8086D8CC [LLM:HIGH]
+ }
+ 
+-void func_8086D8CC(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_HeavyHalfPress(BgBdanSwitch* this, PlayState* play) {
+     this->unk_1C8 -= 0.2f;
+     if (this->unk_1C8 <= 0.6f) {
+-        func_8086D9F8(this);
++        BgBdanSwitch_SetupHeavyHalfPressed(this);  // was func_8086D9F8 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_FOOT_SWITCH);
+         Rumble_Request(this->dyna.actor.xyzDistToPlayerSq, 0x78, 0x14, 0xA);
+     }
+ }
+ 
+-void func_8086D944(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086D95C;
++// LLM generated name (HIGH), was func_8086D944: installs the full-press action and arms the 100-frame camera wait
++void BgBdanSwitch_SetupHeavyFullPress(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_HeavyFullPress;  // was func_8086D95C [LLM:HIGH]
+     this->unk_1DA = 0x64;
+ }
+ 
+-void func_8086D95C(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_HeavyFullPress(BgBdanSwitch* this, PlayState* play) {
+     if ((Camera_GetTargetCategory() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {  // was func_8005B198 [LLM:HIGH]
+         this->unk_1C8 -= 0.2f;
+         if (this->unk_1C8 <= 0.1f) {
+-            func_8086DB24(this);
++            BgBdanSwitch_SetupHeavyDone(this);  // was func_8086DB24 [LLM:HIGH]
+             Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_FOOT_SWITCH);
+             Rumble_Request(this->dyna.actor.xyzDistToPlayerSq, 0x78, 0x14, 0xA);
+         }
+     }
+ }
+ 
+-void func_8086D9F8(BgBdanSwitch* this) {
++void BgBdanSwitch_SetupHeavyHalfPressed(BgBdanSwitch* this) {
+     this->unk_1C8 = 0.6f;
+-    this->actionFunc = func_8086DA1C;
++    this->actionFunc = BgBdanSwitch_HeavyHalfPressed;  // was func_8086DA1C [LLM:HIGH]
+     this->unk_1D8 = 6;
+ }
+ 
+-void func_8086DA1C(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_HeavyHalfPressed(BgBdanSwitch* this, PlayState* play) {
+     Actor* heldActor = GET_PLAYER(play)->heldActor;
+ 
+     if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+         if (heldActor != NULL && heldActor->id == ACTOR_EN_RU1) {
+             if (this->unk_1D8 <= 0) {
+-                func_8086D944(this);
+-                func_8086D4B4(this, play);
++                BgBdanSwitch_SetupHeavyFullPress(this);  // was func_8086D944 [LLM:HIGH]
++                BgBdanSwitch_SetSwitchFlag(this, play);  // was func_8086D4B4 [LLM:HIGH]
+             }
+         } else {
+             this->unk_1D8 = 6;
+         }
+     } else {
+         if (this->unk_1D8 <= 0) {
+-            func_8086DAB4(this);
++            BgBdanSwitch_SetupHeavyRelease(this);  // was func_8086DAB4 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_8086DAB4(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086DAC4;
++void BgBdanSwitch_SetupHeavyRelease(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_HeavyRelease;  // was func_8086DAC4 [LLM:HIGH]
+ }
+ 
+-void func_8086DAC4(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_HeavyRelease(BgBdanSwitch* this, PlayState* play) {
+     this->unk_1C8 += 0.2f;
+     if (this->unk_1C8 >= 1.0f) {
+-        func_8086D86C(this);
++        BgBdanSwitch_SetupHeavyIdle(this);  // was func_8086D86C [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_FOOT_SWITCH);
+     }
+ }
+ 
+-void func_8086DB24(BgBdanSwitch* this) {
++void BgBdanSwitch_SetupHeavyDone(BgBdanSwitch* this) {
+     this->unk_1C8 = 0.1f;
+-    this->actionFunc = func_8086DB40;
++    this->actionFunc = BgBdanSwitch_HeavyDone;  // was func_8086DB40 [LLM:HIGH]
+ }
+ 
+-void func_8086DB40(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_HeavyDone(BgBdanSwitch* this, PlayState* play) {
+ }
+ 
+-void func_8086DB4C(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086DB68;
++void BgBdanSwitch_SetupTallIdle(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_TallIdle;  // was func_8086DB68 [LLM:HIGH]
+     this->unk_1C8 = 2.0f;
+ }
+ 
+-void func_8086DB68(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_TallIdle(BgBdanSwitch* this, PlayState* play) {
+     switch (this->dyna.actor.params & 0xFF) {
+         default:
+             return;
+         case YELLOW_TALL_1:
+             if (((this->collider.base.acFlags & AC_HIT) != 0) && this->unk_1D8 <= 0) {
+                 this->unk_1D8 = 0xA;
+-                func_8086DC30(this);
+-                func_8086D4B4(this, play);
++                BgBdanSwitch_SetupTallPress(this);  // was func_8086DC30 [LLM:HIGH]
++                BgBdanSwitch_SetSwitchFlag(this, play);  // was func_8086D4B4 [LLM:HIGH]
+             }
+             break;
+         case YELLOW_TALL_2:
+             if (((this->collider.base.acFlags & AC_HIT) != 0) && ((this->unk_1DC & 2) == 0) && this->unk_1D8 <= 0) {
+                 this->unk_1D8 = 0xA;
+-                func_8086DC30(this);
+-                func_8086D4B4(this, play);
++                BgBdanSwitch_SetupTallPress(this);  // was func_8086DC30 [LLM:HIGH]
++                BgBdanSwitch_SetSwitchFlag(this, play);  // was func_8086D4B4 [LLM:HIGH]
+             }
+             break;
+     }
+ }
+ 
+-void func_8086DC30(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086DC48;
++void BgBdanSwitch_SetupTallPress(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_TallPress;  // was func_8086DC48 [LLM:HIGH]
+     this->unk_1DA = 0x64;
+ }
+ 
+-void func_8086DC48(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_TallPress(BgBdanSwitch* this, PlayState* play) {
+     if ((Camera_GetTargetCategory() == this->dyna.actor.category) || (this->unk_1DA <= 0)) {  // was func_8005B198 [LLM:HIGH]
+         this->unk_1C8 -= 0.3f;
+         if (this->unk_1C8 <= 1.0f) {
+-            func_8086DCCC(this);
++            BgBdanSwitch_SetupTallPressed(this);  // was func_8086DCCC [LLM:HIGH]
+             Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_FOOT_SWITCH);
+         }
+     }
+ }
+ 
+-void func_8086DCCC(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086DCE8;
++void BgBdanSwitch_SetupTallPressed(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_TallPressed;  // was func_8086DCE8 [LLM:HIGH]
+     this->unk_1C8 = 1.0f;
+ }
+ 
+-void func_8086DCE8(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_TallPressed(BgBdanSwitch* this, PlayState* play) {
+     switch (this->dyna.actor.params & 0xFF) {
+         case YELLOW_TALL_1:
+             if (!Flags_GetSwitch(play, (this->dyna.actor.params >> 8) & 0x3F)) {
+-                func_8086DDA8(this);
++                BgBdanSwitch_SetupTallRelease(this);  // was func_8086DDA8 [LLM:HIGH]
+             }
+             break;
+         case YELLOW_TALL_2:
+             if (((this->collider.base.acFlags & AC_HIT) != 0) && ((this->unk_1DC & 2) == 0) && (this->unk_1D8 <= 0)) {
+                 this->unk_1D8 = 0xA;
+-                func_8086DDA8(this);
+-                func_8086D548(this, play);
++                BgBdanSwitch_SetupTallRelease(this);  // was func_8086DDA8 [LLM:HIGH]
++                BgBdanSwitch_ClearSwitchFlag(this, play);  // was func_8086D548 [LLM:HIGH]
+             }
+             break;
+     }
+ }
+ 
+-void func_8086DDA8(BgBdanSwitch* this) {
+-    this->actionFunc = func_8086DDC0;
++void BgBdanSwitch_SetupTallRelease(BgBdanSwitch* this) {
++    this->actionFunc = BgBdanSwitch_TallRelease;  // was func_8086DDC0 [LLM:HIGH]
+     this->unk_1DA = 0x64;
+ }
+ 
+-void func_8086DDC0(BgBdanSwitch* this, PlayState* play) {
++void BgBdanSwitch_TallRelease(BgBdanSwitch* this, PlayState* play) {
+     if ((((this->dyna.actor.params & 0xFF) != YELLOW_TALL_2) || (Camera_GetTargetCategory() == this->dyna.actor.category)) ||  // was func_8005B198 [LLM:HIGH]
+         (this->unk_1DA <= 0)) {
+         this->unk_1C8 += 0.3f;
+         if (this->unk_1C8 >= 2.0f) {
+-            func_8086DB4C(this);
++            BgBdanSwitch_SetupTallIdle(this);  // was func_8086DB4C [LLM:HIGH]
+             Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_FOOT_SWITCH);
+         }
+     }
+@@ -494,7 +526,7 @@ void BgBdanSwitch_Update(Actor* thisx, PlayState* play) {
+         this->unk_1DA--;
+     }
+     this->actionFunc(this, play);
+-    func_8086D0EC(this);
++    BgBdanSwitch_UpdateShape(this);  // was func_8086D0EC [LLM:HIGH]
+     type = this->dyna.actor.params & 0xFF;
+     if (type != 3 && type != 4) {
+         this->unk_1D8--;
+@@ -510,7 +542,8 @@ void BgBdanSwitch_Update(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_8086DF58(BgBdanSwitch* this, PlayState* play, Gfx* dlist) {
++// LLM generated name (HIGH), was func_8086DF58: places and scales the switch from its wobble values and draws the caller's display list
++void BgBdanSwitch_DrawDList(BgBdanSwitch* this, PlayState* play, Gfx* dlist) {
+     Matrix_SetTranslateRotateYXZ(this->dyna.actor.world.pos.x,
+                                  this->dyna.actor.world.pos.y + (this->dyna.actor.shape.yOffset * this->unk_1D0),
+                                  this->dyna.actor.world.pos.z, &this->dyna.actor.shape.rot);
+@@ -524,16 +557,16 @@ void BgBdanSwitch_Draw(Actor* thisx, PlayState* play) {
+     switch (this->dyna.actor.params & 0xFF) {
+         case YELLOW_HEAVY:
+         case YELLOW:
+-            func_8086DF58(this, play, gJabuYellowFloorSwitchDL);
++            BgBdanSwitch_DrawDList(this, play, gJabuYellowFloorSwitchDL);  // was func_8086DF58 [LLM:HIGH]
+             break;
+         case YELLOW_TALL_1:
+         case YELLOW_TALL_2:
+-            func_8086DF58(this, play, gJabuYellowFloorSwitchDL);
++            BgBdanSwitch_DrawDList(this, play, gJabuYellowFloorSwitchDL);  // was func_8086DF58 [LLM:HIGH]
+             Collider_UpdateSpheres(0, &this->collider);
+-            Matrix_MultVec3f(&D_8086E0E0, &this->dyna.actor.focus.pos);
++            Matrix_MultVec3f(&sTallFocusOffset, &this->dyna.actor.focus.pos);  // was D_8086E0E0 [LLM:HIGH]
+             break;
+         case BLUE:
+-            func_8086DF58(this, play, gJabuBlueFloorSwitchDL);
++            BgBdanSwitch_DrawDList(this, play, gJabuBlueFloorSwitchDL);  // was func_8086DF58 [LLM:HIGH]
+             break;
+     }
+ }
+-- 
+2.55.0
+

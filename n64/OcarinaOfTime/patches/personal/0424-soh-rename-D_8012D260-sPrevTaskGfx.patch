@@ -1,0 +1,58 @@
+From 316fcd6da765e25dd54cb61f7c4c333a3e4a2278 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:36 +0000
+Subject: [PATCH 424/488] soh: rename D_8012D260 -> sPrevTaskGfx
+
+Name source: DEDUCED from the code (confidence GUESS) -- zeldaret/oot
+leaves this symbol address-named too, so there is no upstream name to adopt.
+Reason: a display list pointer Graph_TaskSet00 keeps between frames; read as the previous task's list
+Defined in soh/src/code/graph.c.
+
+Tagged [LLM:GUESS] at the definition, every declaration and every call site, so a
+reader meeting the name anywhere knows it is inferred.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/graph.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/graph.c b/soh/src/code/graph.c
+index a308464b2..bf683e972 100644
+--- a/soh/src/code/graph.c
++++ b/soh/src/code/graph.c
+@@ -169,7 +169,7 @@ void Graph_Destroy(GraphicsContext* gfxCtx) {
+ }
+ 
+ void Graph_TaskSet00(GraphicsContext* gfxCtx) {
+-    static Gfx* D_8012D260 = NULL;
++    static Gfx* sPrevTaskGfx = NULL;  // was D_8012D260 [LLM:GUESS]
+     static s32 sGraphCfbInfoIdx = 0;
+ 
+     OSTime time;
+@@ -197,19 +197,19 @@ void Graph_TaskSet00(GraphicsContext* gfxCtx) {
+         LogUtils_LogHexDump(gGfxSPTaskYieldBuffer, sizeof(gGfxSPTaskYieldBuffer));
+ 
+         SREG(6) = -1;
+-        if (D_8012D260 != NULL) {
++        if (sPrevTaskGfx != NULL) {  // was D_8012D260 [LLM:GUESS]
+             HREG(80) = 7;
+             HREG(81) = 1;
+             HREG(83) = 2;
+-            D_8012D260 = D_8012D260;
+-            Graph_DisassembleUCode(D_8012D260);
++            sPrevTaskGfx = sPrevTaskGfx;  // was D_8012D260 [LLM:GUESS]
++            Graph_DisassembleUCode(sPrevTaskGfx);  // was D_8012D260 [LLM:GUESS]
+         }
+         Fault_AddHungupAndCrashImpl("RCP is HUNG UP!!", "Oh! MY GOD!!");
+     }
+ #endif
+     osRecvMesg(&gfxCtx->queue, &msg, OS_MESG_NOBLOCK);
+ 
+-    D_8012D260 = gfxCtx->workBuffer;
++    sPrevTaskGfx = gfxCtx->workBuffer;  // was D_8012D260 [LLM:GUESS]
+     if (gfxCtx->callback != NULL) {
+         gfxCtx->callback(gfxCtx, gfxCtx->callbackParam);
+     }
+-- 
+2.55.0
+

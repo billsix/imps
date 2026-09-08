@@ -1,0 +1,317 @@
+From 0738d71598ba0262ec0c5f8ae828890a24515d12 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 335/488] soh: name the 12 address-named symbols defined in
+ z_en_mk.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 12 are defined in soh/src/overlays/actors/ovl_En_Mk/z_en_mk.c.
+
+  * func_80AACA40 -> EnMk_Talk
+    deduced, confidence HIGH: the shared conversation state: it waits for
+    the textbox to close, clears the auto-accept flag and returns the
+    researcher to EnMk_Wait.
+
+  * func_80AACEE8 -> EnMk_FrogsIntro
+    deduced, confidence HIGH: the first line of the eye-drops sequence: it
+    advances into the next line and starts the looping working animation.
+
+  * func_80AACE2C -> EnMk_FrogsAccepted
+    deduced, confidence HIGH: the second line: it advances again and
+    switches to the one-shot animation before the mixing begins.
+
+  * func_80AACD48 -> EnMk_StartMixing
+    deduced, confidence HIGH: closes the textbox, takes the trade item off
+    the player and starts the eye-drops mixing sequence.
+
+  * func_80AACCA0 -> EnMk_TurnAway
+    deduced, confidence HIGH: spins the researcher away over the mixing
+    timer, then switches to the next animation and stage.
+
+  * func_80AACC04 -> EnMk_Mixing
+    deduced, confidence HIGH: holds the working animation for the mixing
+    delay, then moves to the turn-back stage.
+
+  * func_80AACBAC -> EnMk_TurnBack
+    deduced, confidence HIGH: spins the researcher back to face the player
+    and opens the finished-eye-drops line.
+
+  * func_80AACB6C -> EnMk_WaitForEyedropsTalk
+    deduced, confidence HIGH: waits for the player to accept that
+    conversation.
+
+  * func_80AACB14 -> EnMk_OfferEyedrops
+    deduced, confidence HIGH: once the line closes it offers GI_EYEDROPS.
+
+  * func_80AACA94 -> EnMk_GiveEyedrops
+    deduced, confidence HIGH: re-offers the eye drops until the player takes
+    them, then starts the 240-frame trade sub-timer.
+
+  * func_80AAD014 -> EnMk_OfferHeartPiece
+    deduced, confidence HIGH: once the diving-reward line closes it offers
+    GI_HEART_PIECE.
+
+  * func_80AACFA0 -> EnMk_GiveHeartPiece
+    deduced, confidence HIGH: re-offers that heart piece until the player
+    takes it, then sets ITEMGETINF_10.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Mk/z_en_mk.c | 74 ++++++++++++---------
+ 1 file changed, 43 insertions(+), 31 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Mk/z_en_mk.c b/soh/src/overlays/actors/ovl_En_Mk/z_en_mk.c
+index ba3cd6617..71ace8a9e 100644
+--- a/soh/src/overlays/actors/ovl_En_Mk/z_en_mk.c
++++ b/soh/src/overlays/actors/ovl_En_Mk/z_en_mk.c
+@@ -81,7 +81,8 @@ void EnMk_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80AACA40(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACA40: the shared conversation state: it waits for the textbox to close, clears the auto-accept flag and returns the researcher to EnMk_Wait.
++void EnMk_Talk(EnMk* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+         this->actor.flags &= ~ACTOR_FLAG_TALK_OFFER_AUTO_ACCEPTED;
+         this->actionFunc = EnMk_Wait;
+@@ -90,11 +91,12 @@ void func_80AACA40(EnMk* this, PlayState* play) {
+     this->flags |= 1;
+ }
+ 
+-void func_80AACA94(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACA94: re-offers the eye drops until the player takes them, then starts the 240-frame trade sub-timer.
++void EnMk_GiveEyedrops(EnMk* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play) != 0 || !GameInteractor_Should(VB_TRADE_FROG, true, this)) {
+         this->actor.parent = NULL;
+         if (GameInteractor_Should(VB_TRADE_TIMER_EYEDROPS, true, this)) {
+-            this->actionFunc = func_80AACA40;
++            this->actionFunc = EnMk_Talk;  // was func_80AACA40 [LLM:HIGH]
+             Interface_SetSubTimer(240);
+             gSaveContext.eventInf[1] &= ~1;
+         }
+@@ -103,64 +105,70 @@ void func_80AACA94(EnMk* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80AACB14(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACB14: once the line closes it offers GI_EYEDROPS.
++void EnMk_OfferEyedrops(EnMk* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+-        this->actionFunc = func_80AACA94;
++        this->actionFunc = EnMk_GiveEyedrops;  // was func_80AACA94 [LLM:HIGH]
+         if (GameInteractor_Should(VB_TRADE_FROG, true, this)) {
+             Actor_OfferGetItem(&this->actor, play, GI_EYEDROPS, 10000.0f, 50.0f);
+         }
+     }
+ }
+ 
+-void func_80AACB6C(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACB6C: waits for the player to accept that conversation.
++void EnMk_WaitForEyedropsTalk(EnMk* this, PlayState* play) {
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+-        this->actionFunc = func_80AACB14;
++        this->actionFunc = EnMk_OfferEyedrops;  // was func_80AACB14 [LLM:HIGH]
+     }
+ 
+     this->flags |= 1;
+ }
+ 
+-void func_80AACBAC(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACBAC: spins the researcher back to face the player and opens the finished-eye-drops line.
++void EnMk_TurnBack(EnMk* this, PlayState* play) {
+     if (this->timer > 0) {
+         this->timer--;
+         this->actor.shape.rot.y -= 0x800;
+     } else {
+-        this->actionFunc = func_80AACB6C;
++        this->actionFunc = EnMk_WaitForEyedropsTalk;  // was func_80AACB6C [LLM:HIGH]
+         Message_ContinueTextbox(play, 0x4030);
+     }
+ }
+ 
+-void func_80AACC04(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACC04: holds the working animation for the mixing delay, then moves to the turn-back stage.
++void EnMk_Mixing(EnMk* this, PlayState* play) {
+     if (this->timer > 0) {
+         this->timer--;
+     } else {
+         this->timer = GameInteractor_Should(VB_PLAY_EYEDROP_CREATION_ANIM, true, this) ? 16 : 0;
+-        this->actionFunc = func_80AACBAC;
++        this->actionFunc = EnMk_TurnBack;  // was func_80AACBAC [LLM:HIGH]
+         Animation_Change(&this->skelAnime, &object_mk_Anim_000D88, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&object_mk_Anim_000D88), ANIMMODE_LOOP, -4.0f);
+         this->flags &= ~2;
+     }
+ }
+ 
+-void func_80AACCA0(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACCA0: spins the researcher away over the mixing timer, then switches to the next animation and stage.
++void EnMk_TurnAway(EnMk* this, PlayState* play) {
+     if (this->timer > 0) {
+         this->timer--;
+         this->actor.shape.rot.y += 0x800;
+     } else {
+         this->timer = GameInteractor_Should(VB_PLAY_EYEDROP_CREATION_ANIM, true, this) ? 120 : 0;
+-        this->actionFunc = func_80AACC04;
++        this->actionFunc = EnMk_Mixing;  // was func_80AACC04 [LLM:HIGH]
+         Animation_Change(&this->skelAnime, &object_mk_Anim_000724, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&object_mk_Anim_000724), ANIMMODE_LOOP, -4.0f);
+         this->flags &= ~2;
+     }
+ }
+ 
+-void func_80AACD48(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACD48: closes the textbox, takes the trade item off the player and starts the eye-drops mixing sequence.
++void EnMk_StartMixing(EnMk* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+-        this->actionFunc = func_80AACCA0;
++        this->actionFunc = EnMk_TurnAway;  // was func_80AACCA0 [LLM:HIGH]
+         play->msgCtx.msgMode = MSGMODE_PAUSED;
+         player->exchangeItemId = EXCH_ITEM_NONE;
+         this->timer = GameInteractor_Should(VB_PLAY_EYEDROP_CREATION_ANIM, true, this) ? 16 : 0;
+@@ -172,43 +180,47 @@ void func_80AACD48(EnMk* this, PlayState* play) {
+     this->flags |= 1;
+ }
+ 
+-void func_80AACE2C(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACE2C: the second line: it advances again and switches to the one-shot animation before the mixing begins.
++void EnMk_FrogsAccepted(EnMk* this, PlayState* play) {
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         Message_ContinueTextbox(play, 0x4001);
+         Animation_Change(&this->skelAnime, &object_mk_Anim_000AC0, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&object_mk_Anim_000AC0), ANIMMODE_ONCE, -4.0f);
+         this->flags &= ~2;
+-        this->actionFunc = func_80AACD48;
++        this->actionFunc = EnMk_StartMixing;  // was func_80AACD48 [LLM:HIGH]
+     }
+ 
+     this->flags |= 1;
+ }
+ 
+-void func_80AACEE8(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACEE8: the first line of the eye-drops sequence: it advances into the next line and starts the looping working animation.
++void EnMk_FrogsIntro(EnMk* this, PlayState* play) {
+     if ((Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT) && Message_ShouldAdvance(play)) {
+         Message_ContinueTextbox(play, 0x4000);
+         Animation_Change(&this->skelAnime, &object_mk_Anim_000AC0, 1.0f, 0.0f,
+                          Animation_GetLastFrame(&object_mk_Anim_000AC0), ANIMMODE_LOOP, -4.0f);
+         this->flags &= ~2;
+-        this->actionFunc = func_80AACE2C;
++        this->actionFunc = EnMk_FrogsAccepted;  // was func_80AACE2C [LLM:HIGH]
+     }
+ 
+     this->flags |= 1;
+ }
+ 
+-void func_80AACFA0(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AACFA0: re-offers that heart piece until the player takes it, then sets ITEMGETINF_10.
++void EnMk_GiveHeartPiece(EnMk* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play) || !GameInteractor_Should(VB_GIVE_ITEM_FROM_LAB_DIVE, true, this)) {
+         this->actor.parent = NULL;
+-        this->actionFunc = func_80AACA40;
++        this->actionFunc = EnMk_Talk;  // was func_80AACA40 [LLM:HIGH]
+         Flags_SetItemGetInf(ITEMGETINF_10);
+     } else {
+         Actor_OfferGetItem(&this->actor, play, GI_HEART_PIECE, 10000.0f, 50.0f);
+     }
+ }
+ 
+-void func_80AAD014(EnMk* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80AAD014: once the diving-reward line closes it offers GI_HEART_PIECE.
++void EnMk_OfferHeartPiece(EnMk* this, PlayState* play) {
+     if (Actor_TextboxIsClosing(&this->actor, play)) {
+-        this->actionFunc = func_80AACFA0;
++        this->actionFunc = EnMk_GiveHeartPiece;  // was func_80AACFA0 [LLM:HIGH]
+         if (GameInteractor_Should(VB_GIVE_ITEM_FROM_LAB_DIVE, true, this)) {
+             Actor_OfferGetItem(&this->actor, play, GI_HEART_PIECE, 10000.0f, 50.0f);
+         }
+@@ -228,37 +240,37 @@ void EnMk_Wait(EnMk* this, PlayState* play) {
+ 
+         if (this->actor.textId != 0x4018) {
+             player->actor.textId = this->actor.textId;
+-            this->actionFunc = func_80AACA40;
++            this->actionFunc = EnMk_Talk;  // was func_80AACA40 [LLM:HIGH]
+         } else {
+             if (GameInteractor_Should(VB_USE_EYEDROP_DIALOGUE, (INV_CONTENT(ITEM_ODD_MUSHROOM) == ITEM_EYEDROPS),
+                                       this)) {
+                 player->actor.textId = 0x4032;
+-                this->actionFunc = func_80AACA40;
++                this->actionFunc = EnMk_Talk;  // was func_80AACA40 [LLM:HIGH]
+             } else {
+                 switch (playerExchangeItem) {
+                     case EXCH_ITEM_NONE:
+                         if (this->swimFlag >= 8) {
+                             if (Flags_GetItemGetInf(ITEMGETINF_10)) {
+                                 player->actor.textId = 0x4075;
+-                                this->actionFunc = func_80AACA40;
++                                this->actionFunc = EnMk_Talk;  // was func_80AACA40 [LLM:HIGH]
+                             } else {
+                                 player->actor.textId = 0x4074;
+-                                this->actionFunc = func_80AAD014;
++                                this->actionFunc = EnMk_OfferHeartPiece;  // was func_80AAD014 [LLM:HIGH]
+                                 this->swimFlag = 0;
+                             }
+                         } else {
+                             if (this->swimFlag == 0) {
+                                 player->actor.textId = 0x4018;
+-                                this->actionFunc = func_80AACA40;
++                                this->actionFunc = EnMk_Talk;  // was func_80AACA40 [LLM:HIGH]
+                             } else {
+                                 player->actor.textId = 0x406C + this->swimFlag;
+-                                this->actionFunc = func_80AACA40;
++                                this->actionFunc = EnMk_Talk;  // was func_80AACA40 [LLM:HIGH]
+                             }
+                         }
+                         break;
+                     case EXCH_ITEM_FROG:
+                         player->actor.textId = 0x4019;
+-                        this->actionFunc = func_80AACEE8;
++                        this->actionFunc = EnMk_FrogsIntro;  // was func_80AACEE8 [LLM:HIGH]
+                         Animation_Change(&this->skelAnime, &object_mk_Anim_000368, 1.0f, 0.0f,
+                                          Animation_GetLastFrame(&object_mk_Anim_000368), ANIMMODE_ONCE, -4.0f);
+                         this->flags &= ~2;
+@@ -267,7 +279,7 @@ void EnMk_Wait(EnMk* this, PlayState* play) {
+                         break;
+                     default:
+                         player->actor.textId = 0x4018;
+-                        this->actionFunc = func_80AACA40;
++                        this->actionFunc = EnMk_Talk;  // was func_80AACA40 [LLM:HIGH]
+                         break;
+                 }
+             }
+-- 
+2.55.0
+

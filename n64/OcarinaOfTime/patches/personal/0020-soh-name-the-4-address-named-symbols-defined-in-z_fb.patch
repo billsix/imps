@@ -1,0 +1,143 @@
+From 93a8d1d8cd8a1842d1514a2067ed8cd7a5419093 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:24:59 +0000
+Subject: [PATCH 020/488] soh: name the 4 address-named symbols defined in
+ z_fbdemo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/code/z_fbdemo.c; updating their references touches 3 files in total.
+
+  * D_8012AFB0 -> sTransUnkBackgroundDL
+    deduced, confidence HIGH
+
+  * D_8012B000 -> sTransUnkSetupDList
+    deduced, confidence HIGH
+
+  * func_800B23E8 -> TransitionUnk_Start
+    deduced, confidence GUESS
+
+  * func_800B23F0 -> TransitionUnk_IsDone
+    deduced, confidence GUESS
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h |  2 +-
+ soh/src/code/z_fbdemo.c | 18 ++++++++++++------
+ soh/src/code/z_play.c   |  2 +-
+ 3 files changed, 14 insertions(+), 8 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 7d0ba32cf..c3f7fff4f 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1439,7 +1439,7 @@ void TransitionUnk_Destroy(TransitionUnk* this);
+ TransitionUnk* TransitionUnk_Init(TransitionUnk* this, s32 row, s32 col);
+ void TransitionUnk_SetData(TransitionUnk* this);
+ void TransitionUnk_Draw(TransitionUnk* this, Gfx**);
+-void func_800B23E8(TransitionUnk* this);
++void TransitionUnk_Start(TransitionUnk* this);  // was func_800B23E8 [LLM:GUESS]
+ void TransitionTriforce_Start(void* this);
+ void* TransitionTriforce_Init(void* this);
+ void TransitionTriforce_Destroy(void* this);
+diff --git a/soh/src/code/z_fbdemo.c b/soh/src/code/z_fbdemo.c
+index 4930ddfb4..ae9ea9831 100644
+--- a/soh/src/code/z_fbdemo.c
++++ b/soh/src/code/z_fbdemo.c
+@@ -1,7 +1,10 @@
+ #include "global.h"
+ #include <string.h>
+ 
+-Gfx D_8012AFB0[] = {
++// LLM generated name (HIGH), was D_8012AFB0: Gfx display list for the transition background (blue rect);
++// defined but unreferenced. (oot names this subsystem's equivalent sTransTileBackgroundDL — SoH keeps the
++// TransitionUnk prefix: https://github.com/zeldaret/oot/blob/main/src/code/z_fbdemo.c)
++Gfx sTransUnkBackgroundDL[] = {
+     gsDPPipeSync(),
+     gsDPSetCycleType(G_CYC_FILL),
+     gsDPSetColorImage(G_IM_FMT_RGBA, G_IM_SIZ_16b, 320, 0x0F000000),
+@@ -14,7 +17,8 @@ Gfx D_8012AFB0[] = {
+     gsSPEndDisplayList(),
+ };
+ 
+-Gfx D_8012B000[] = {
++// LLM generated name (HIGH), was D_8012B000: Gfx display list run via gSPDisplayList before drawing TransitionUnk
++Gfx sTransUnkSetupDList[] = {
+     gsDPPipeSync(),
+     gsSPTexture(0x8000, 0x8000, 0, G_TX_RENDERTILE, G_ON),
+     gsSPClearGeometryMode(G_ZBUFFER | G_SHADE | G_CULL_BOTH | G_FOG | G_LIGHTING | G_TEXTURE_GEN |
+@@ -184,13 +188,13 @@ void TransitionUnk_SetData(TransitionUnk* this) {
+ void TransitionUnk_Draw(TransitionUnk* this, Gfx** gfxP) {
+     Gfx* gfx = *gfxP;
+ 
+-    gSPDisplayList(gfx++, D_8012B000);
++    gSPDisplayList(gfx++, sTransUnkSetupDList);
+     TransitionUnk_SetData(this);
+     gSPMatrix(gfx++, &this->projection, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+     gSPMatrix(gfx++, &this->modelView, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+     gSPSegment(gfx++, 0xA, this->frame == 0 ? this->vtxFrame1 : this->vtxFrame2);
+     gSPSegment(gfx++, 0xB, this->zBuffer);
+-    gSPDisplayList(gfx++, D_8012B000);
++    gSPDisplayList(gfx++, sTransUnkSetupDList);
+     gSPDisplayList(gfx++, this->gfx);
+     gDPPipeSync(gfx++);
+     this->frame ^= 1;
+@@ -222,9 +226,11 @@ void TransitionUnk_Update(TransitionUnk* this) {
+     }
+ }
+ 
+-void func_800B23E8(TransitionUnk* this) {
++// LLM generated name (GUESS), was func_800B23E8: empty TransitionUnk method, stub paired with IsDone
++void TransitionUnk_Start(TransitionUnk* this) {
+ }
+ 
+-s32 func_800B23F0(TransitionUnk* this) {
++// LLM generated name (GUESS), was func_800B23F0: TransitionUnk predicate returning 0 (stub); matches done-check convention
++s32 TransitionUnk_IsDone(TransitionUnk* this) {
+     return 0;
+ }
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index ea9d501da..c13d6dcbf 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -767,7 +767,7 @@ void Play_Update(PlayState* play) {
+                     }
+                     break;
+                 case 3:
+-                    func_800B23E8(&sTrnsnUnk);
++                    TransitionUnk_Start(&sTrnsnUnk);
+                     break;
+             }
+         }
+-- 
+2.55.0
+

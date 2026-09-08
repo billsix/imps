@@ -1,0 +1,192 @@
+From 4eca322aff10c24d978a759bf8dc7b70813a395f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:23 +0000
+Subject: [PATCH 287/488] soh: name the 7 address-named symbols defined in
+ z_demo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 7 are defined in soh/src/code/z_demo.c.
+
+  * func_80065134 -> Cutscene_Command_SetTime
+    deduced, confidence HIGH: the in-tree comment above it reads "Command
+    0x8C: Set Time of Day & Environment Time"; it writes
+    gSaveContext.dayTime and skyboxTime from the command's hour and minute.
+    Named to match the file's other Cutscene_Command_* handlers.
+
+  * func_80068C3C -> CutsceneHandler_RunScript
+    deduced, confidence HIGH: the handler installed for the running states
+    in the same table as CutsceneHandler_DoNothing,
+    CutsceneHandler_StartScript and CutsceneHandler_StopScript; it draws the
+    debug overlay and steps the cutscene script.
+
+  * func_80069048 -> Cutscene_InitUnusedState
+    deduced, confidence GUESS: zeroes the two write-only cutscene globals
+    around an empty twenty-iteration loop; nothing anywhere calls it, so
+    "init" is inferred from the shape alone.
+
+  * func_8006907C -> Cutscene_ClearUnusedFlag
+    deduced, confidence GUESS: clears gUnusedCsFlag when it is set, and
+    nothing else; nothing anywhere calls it.
+
+  * D_8015FCCC -> gUnusedCsFlag
+    deduced, confidence HIGH: the in-tree comment on its declaration reads
+    "only written to, never read".
+
+  * D_8015FCD0 -> gUnusedCsBuffer
+    deduced, confidence HIGH: the in-tree comment on its declaration reads
+    "unreferenced"; it is a 20-byte char array.
+
+  * D_8015FCE4 -> gUnusedCsValue
+    deduced, confidence HIGH: the in-tree comment on its declaration reads
+    "only written to, never read".
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_demo.c | 39 +++++++++++++++++++++++----------------
+ 1 file changed, 23 insertions(+), 16 deletions(-)
+
+diff --git a/soh/src/code/z_demo.c b/soh/src/code/z_demo.c
+index 886f85936..76c45f697 100644
+--- a/soh/src/code/z_demo.c
++++ b/soh/src/code/z_demo.c
+@@ -49,7 +49,8 @@ void CutsceneHandler_DoNothing(PlayState* play, CutsceneContext* csCtx);
+ void CutsceneHandler_StartManual(PlayState* play, CutsceneContext* csCtx);
+ // Name from zeldaret/oot (was func_800647C0): adopted upstream's name for this address; body verified to match upstream at 0.85. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ void CutsceneHandler_StartScript(PlayState* play, CutsceneContext* csCtx);
+-void func_80068C3C(PlayState* play, CutsceneContext* csCtx);
++// LLM generated name (HIGH), was func_80068C3C: the handler installed for the running states in the same table as CutsceneHandler_DoNothing, CutsceneHandler_StartScript and CutsceneHandler_StopScript; it draws the debug overlay and steps the cutscene script.
++void CutsceneHandler_RunScript(PlayState* play, CutsceneContext* csCtx);  // was func_80068C3C [LLM:HIGH]
+ // Name from zeldaret/oot (was func_80068D84): adopted upstream's name for this address; body verified to match upstream at 0.86. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ void CutsceneHandler_StopManual(PlayState* play, CutsceneContext* csCtx);
+ // Name from zeldaret/oot (was func_80068DC0): adopted upstream's name for this address; body verified to match upstream at 0.88. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+@@ -60,7 +61,7 @@ CutsceneStateHandler sCsStateHandlers1[] = {
+ };
+ 
+ CutsceneStateHandler sCsStateHandlers2[] = {
+-    CutsceneHandler_DoNothing, CutsceneHandler_StartScript, func_80068C3C, CutsceneHandler_StopScript, func_80068C3C,
++    CutsceneHandler_DoNothing, CutsceneHandler_StartScript, CutsceneHandler_RunScript, CutsceneHandler_StopScript, CutsceneHandler_RunScript,  // was func_80068C3C [LLM:HIGH]
+ };
+ 
+ u8 sTitleCsState = 0;
+@@ -118,9 +119,12 @@ s16 sReturnToCamId;
+ // Name from zeldaret/oot (was D_8015FCC8): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ u8 gUseCutsceneCam;
+ s16 sQuakeIndex;
+-u16 D_8015FCCC;      // only written to, never read
+-char D_8015FCD0[20]; // unreferenced
+-u8 D_8015FCE4;       // only written to, never read
++// LLM generated name (HIGH), was D_8015FCCC: the in-tree comment on its declaration reads "only written to, never read".
++u16 gUnusedCsFlag;      // only written to, never read, was D_8015FCCC [LLM:HIGH]
++// LLM generated name (HIGH), was D_8015FCD0: the in-tree comment on its declaration reads "unreferenced"; it is a 20-byte char array.
++char gUnusedCsBuffer[20]; // unreferenced, was D_8015FCD0 [LLM:HIGH]
++// LLM generated name (HIGH), was D_8015FCE4: the in-tree comment on its declaration reads "only written to, never read".
++u8 gUnusedCsValue;       // only written to, never read, was D_8015FCE4 [LLM:HIGH]
+ 
+ // Name from zeldaret/oot (was func_80068ECC): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 0.98. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_demo.c]
+ void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx);
+@@ -224,7 +228,7 @@ void CutsceneHandler_StartManual(PlayState* play, CutsceneContext* csCtx) {
+ }
+ 
+ void CutsceneHandler_StartScript(PlayState* play, CutsceneContext* csCtx) {
+-    func_80068C3C(play, csCtx);
++    CutsceneHandler_RunScript(play, csCtx);  // was func_80068C3C [LLM:HIGH]
+     Interface_ChangeHudVisibilityMode(1);
+     Letterbox_SetSizeTarget(0x20);
+ 
+@@ -498,7 +502,8 @@ void Cutscene_Command_09(PlayState* play, CutsceneContext* csCtx, CsCmdUnknown9*
+ }
+ 
+ // Command 0x8C: Set Time of Day & Environment Time
+-void func_80065134(PlayState* play, CutsceneContext* csCtx, CsCmdDayTime* cmd) {
++// LLM generated name (HIGH), was func_80065134: the in-tree comment above it reads "Command 0x8C: Set Time of Day & Environment Time"; it writes gSaveContext.dayTime and skyboxTime from the command's hour and minute. Named to match the file's other Cutscene_Command_* handlers.
++void Cutscene_Command_SetTime(PlayState* play, CutsceneContext* csCtx, CsCmdDayTime* cmd) {
+     s16 temp1;
+     s16 temp2;
+ 
+@@ -1817,7 +1822,7 @@ void Cutscene_ProcessCommands(PlayState* play, CutsceneContext* csCtx, u8* cutsc
+                 memcpy(&cmdEntries, cutscenePtr, sizeof(CutsceneData));
+                 cutscenePtr += sizeof(CutsceneData);
+                 for (j = 0; j < cmdEntries; j++) {
+-                    func_80065134(play, csCtx, (void*)cutscenePtr);
++                    Cutscene_Command_SetTime(play, csCtx, (void*)cutscenePtr);  // was func_80065134 [LLM:HIGH]
+                     cutscenePtr += sizeof(CutsceneData) * 3;
+                 }
+                 break;
+@@ -2078,7 +2083,7 @@ void Cutscene_ProcessCommands(PlayState* play, CutsceneContext* csCtx, u8* cutsc
+     }
+ }
+ 
+-void func_80068C3C(PlayState* play, CutsceneContext* csCtx) {
++void CutsceneHandler_RunScript(PlayState* play, CutsceneContext* csCtx) {
+     Gfx* displayList;
+     Gfx* prevDisplayList;
+ 
+@@ -2191,26 +2196,28 @@ void Cutscene_SetupScripted(PlayState* play, CutsceneContext* csCtx) {
+                 csCtx->state++;
+             }
+ 
+-            func_80068C3C(play, csCtx);
++            CutsceneHandler_RunScript(play, csCtx);  // was func_80068C3C [LLM:HIGH]
+         }
+ 
+         gSaveContext.cutsceneTrigger = 0;
+     }
+ }
+ 
+-void func_80069048(PlayState* play) {
++// LLM generated name (GUESS), was func_80069048: zeroes the two write-only cutscene globals around an empty twenty-iteration loop; nothing anywhere calls it, so "init" is inferred from the shape alone.
++void Cutscene_InitUnusedState(PlayState* play) {
+     s16 i;
+ 
+-    D_8015FCCC = 0;
++    gUnusedCsFlag = 0;  // was D_8015FCCC [LLM:HIGH]
+     for (i = 0; i < 20; i++) {
+         ; // Empty Loop
+     }
+-    D_8015FCE4 = 0;
++    gUnusedCsValue = 0;  // was D_8015FCE4 [LLM:HIGH]
+ }
+ 
+-void func_8006907C(PlayState* play) {
+-    if (D_8015FCCC != 0) {
+-        D_8015FCCC = 0;
++// LLM generated name (GUESS), was func_8006907C: clears gUnusedCsFlag when it is set, and nothing else; nothing anywhere calls it.
++void Cutscene_ClearUnusedFlag(PlayState* play) {
++    if (gUnusedCsFlag != 0) {  // was D_8015FCCC [LLM:HIGH]
++        gUnusedCsFlag = 0;  // was D_8015FCCC [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

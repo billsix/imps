@@ -1,0 +1,89 @@
+From 6494466d9dfe35c8e7ef6624c8119751cd943b70 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:40 +0000
+Subject: [PATCH 470/488] soh: name the 2 address-named symbols defined in
+ z_en_sa.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c.
+
+  * D_80AF7448 -> sSaCsOrigin
+    deduced, confidence HIGH: the zero vector EnSa_HandleCutscene transforms
+
+  * D_80AF7454 -> sSaFocusOffset
+    deduced, confidence HIGH: the head-space point EnSa_PostLimbDraw records
+    the focus position from
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
+index 18218d8f1..c8a2dc862 100644
+--- a/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
++++ b/soh/src/overlays/actors/ovl_En_Sa/z_en_sa.c
+@@ -665,7 +665,7 @@ void EnSa_HandleCutscene(EnSa* this, PlayState* play) {
+     s16 phi_v0;
+     Vec3f startPos;
+     Vec3f endPos;
+-    Vec3f D_80AF7448 = { 0.0f, 0.0f, 0.0f };
++    Vec3f sSaCsOrigin = { 0.0f, 0.0f, 0.0f };  // was D_80AF7448 [LLM:HIGH]
+     CsCmdActorCue* csAction;
+     f32 temp_f0;
+     f32 gravity;
+@@ -714,7 +714,7 @@ void EnSa_HandleCutscene(EnSa* this, PlayState* play) {
+         this->actor.shape.rot.x = csAction->urot.x;
+         this->actor.shape.rot.y = csAction->urot.y;
+         this->actor.shape.rot.z = csAction->urot.z;
+-        this->actor.velocity = D_80AF7448;
++        this->actor.velocity = sSaCsOrigin;  // was D_80AF7448 [LLM:HIGH]
+ 
+         if (play->csCtx.frames < csAction->endFrame) {
+             temp_f0 = csAction->endFrame - csAction->startFrame;
+@@ -819,10 +819,10 @@ s32 EnSa_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
+ 
+ void EnSa_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s* rot, void* thisx, Gfx** gfx) {
+     EnSa* this = (EnSa*)thisx;
+-    Vec3f D_80AF7454 = { 400.0, 0.0f, 0.0f };
++    Vec3f sSaFocusOffset = { 400.0, 0.0f, 0.0f };  // was D_80AF7454 [LLM:HIGH]
+ 
+     if (limbIndex == 16) {
+-        Matrix_MultVec3f(&D_80AF7454, &this->actor.focus.pos);
++        Matrix_MultVec3f(&sSaFocusOffset, &this->actor.focus.pos);  // was D_80AF7454 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

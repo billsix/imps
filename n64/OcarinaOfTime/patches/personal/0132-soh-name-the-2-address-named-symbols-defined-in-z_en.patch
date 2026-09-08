@@ -1,0 +1,112 @@
+From c1d760c871a4642be08ecd9a5d1c25488d9477f6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:09 +0000
+Subject: [PATCH 132/488] soh: name the 2 address-named symbols defined in
+ z_en_okarina_tag.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c; updating their references touches 2 files in total.
+
+  * D_80ABF9D0 -> gWindmillSpinningFasterCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_80ABFB40 -> gDoorOfTimeOpeningCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c       | 10 ++++++----
+ .../z_en_okarina_tag_cutscene_data.c                   |  4 ++--
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
+index 11d82c23b..5c6f0d52c 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c
+@@ -36,8 +36,10 @@ const ActorInit En_Okarina_Tag_InitVars = {
+     NULL,
+ };
+ 
+-extern CutsceneData D_80ABF9D0[];
+-extern CutsceneData D_80ABFB40[];
++// Name from zeldaret/oot (was D_80ABF9D0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c]
++extern CutsceneData gWindmillSpinningFasterCs[];
++// Name from zeldaret/oot (was D_80ABFB40): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.c]
++extern CutsceneData gDoorOfTimeOpeningCs[];
+ 
+ void EnOkarinaTag_Destroy(Actor* thisx, PlayState* play) {
+ }
+@@ -249,14 +251,14 @@ void func_80ABF4C8(EnOkarinaTag* this, PlayState* play) {
+                 break;
+             case 2: // Kakariko Windmill
+                 if (GameInteractor_Should(VB_PLAY_DRAIN_WELL_CS, true, this)) {
+-                    play->csCtx.segment = D_80ABF9D0;
++                    play->csCtx.segment = gWindmillSpinningFasterCs;
+                     gSaveContext.cutsceneTrigger = 1;
+                 }
+                 Audio_SetMainBgmTempoFreqAfterFanfare(1.18921f, 0x5A);
+                 break;
+             case 4: // Door of Time
+                 if (GameInteractor_Should(VB_PLAY_DOOR_OF_TIME_CS, true, this)) {
+-                    play->csCtx.segment = D_80ABFB40;
++                    play->csCtx.segment = gDoorOfTimeOpeningCs;
+                     gSaveContext.cutsceneTrigger = 1;
+                 }
+                 break;
+diff --git a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag_cutscene_data.c b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag_cutscene_data.c
+index f25593c4b..0545a8502 100644
+--- a/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag_cutscene_data.c
++++ b/soh/src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag_cutscene_data.c
+@@ -2,7 +2,7 @@
+ #include "z64cutscene_commands.h"
+ 
+ // clang-format off
+-CutsceneData D_80ABF9D0[] = {
++CutsceneData gWindmillSpinningFasterCs[] = {
+     CS_BEGIN_CUTSCENE(4, 360),
+     CS_TERMINATOR(KAKARIKO_VILLAGE_DRAIN_WELL, 200, 201),
+     CS_CAM_EYE_LIST(0, 331),
+@@ -28,7 +28,7 @@ CutsceneData D_80ABF9D0[] = {
+     CS_END(),
+ };
+ 
+-CutsceneData D_80ABFB40[] = {
++CutsceneData gDoorOfTimeOpeningCs[] = {
+     CS_BEGIN_CUTSCENE(18, 3000),
+     CS_UNK_DATA_LIST(0x00000021, 1),
+         CS_UNK_DATA(0x00010000, 0x0BB80000, 0x00000000, 0x00000000, 0xFFFFFFAA, 0xFFFFFFAE, 0x00000000, 0xFFFFFFAA, 0xFFFFFFAE, 0x00000000, 0x00000000, 0x00000000),
+-- 
+2.55.0
+

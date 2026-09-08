@@ -1,0 +1,125 @@
+From d61e3b7a96204635ef611719a56c9632c1436017 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:17 +0000
+Subject: [PATCH 223/488] soh: name the 2 address-named symbols defined in
+ z_scene_table.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 2 are defined in soh/src/code/z_scene_table.c.
+
+  * func_8009BEEC -> Scene_AddGanonsTowerCollapseQuake
+    deduced, confidence HIGH: the in-tree comment above it reads "Screen
+    Shake for Ganon's Tower Collapse"; it periodically adds two Quake
+    instances to the active camera, and its three callers are the collapse
+    draw configs.
+
+  * D_8012A398 -> sJabuJabuWobblePhase
+    deduced, confidence HIGH: f32 phase advanced by 0.15 plus a room-state
+    term under the VB_JABU_WOBBLE hook and fed to sinf to scale Jabu-Jabu's
+    interior vertically.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_scene_table.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/code/z_scene_table.c b/soh/src/code/z_scene_table.c
+index c83bac329..5a865b92e 100644
+--- a/soh/src/code/z_scene_table.c
++++ b/soh/src/code/z_scene_table.c
+@@ -641,7 +641,8 @@ void Scene_DrawConfigOutsideGanonsCastle(PlayState* play) {
+ }
+ 
+ // Screen Shake for Ganon's Tower Collapse
+-void func_8009BEEC(PlayState* play) {
++// LLM generated name (HIGH), was func_8009BEEC: the in-tree comment above it reads "Screen Shake for Ganon's Tower Collapse"; it periodically adds two Quake instances to the active camera, and its three callers are the collapse draw configs.
++void Scene_AddGanonsTowerCollapseQuake(PlayState* play) {
+     s32 var;
+ 
+     if (play->gameplayFrames % 128 == 13) {
+@@ -696,7 +697,7 @@ void Scene_DrawConfigGanonsTowerCollapseExterior(PlayState* play) {
+         if ((play->sceneNum == SCENE_GANON_BOSS) || (play->sceneNum == SCENE_GANONS_TOWER_COLLAPSE_EXTERIOR) ||
+             (play->sceneNum == SCENE_GANONS_TOWER_COLLAPSE_INTERIOR) ||
+             (play->sceneNum == SCENE_INSIDE_GANONS_CASTLE_COLLAPSE)) {
+-            func_8009BEEC(play);
++            Scene_AddGanonsTowerCollapseQuake(play);  // was func_8009BEEC [LLM:HIGH]
+         }
+     }
+ }
+@@ -1588,7 +1589,8 @@ void Scene_DrawConfigFireTemple(PlayState* play) {
+     CLOSE_DISPS(play->state.gfxCtx);
+ }
+ 
+-f32 D_8012A398 = 0.0f;
++// LLM generated name (HIGH), was D_8012A398: f32 phase advanced by 0.15 plus a room-state term under the VB_JABU_WOBBLE hook and fed to sinf to scale Jabu-Jabu's interior vertically.
++f32 sJabuJabuWobblePhase = 0.0f;  // was D_8012A398 [LLM:HIGH]
+ 
+ // Name from zeldaret/oot (was func_8009FE58): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_scene_table.c]
+ void Scene_DrawConfigJabuJabu(PlayState* play) {
+@@ -1660,14 +1662,14 @@ void Scene_DrawConfigJabuJabu(PlayState* play) {
+         }
+ 
+         if (GameInteractor_Should(VB_JABU_WOBBLE, play->pauseCtx.state == 0)) {
+-            D_8012A398 += 0.15f + (play->roomCtx.unk_74[1] * 0.001f);
++            sJabuJabuWobblePhase += 0.15f + (play->roomCtx.unk_74[1] * 0.001f);  // was D_8012A398 [LLM:HIGH]
+         }
+     }
+ 
+     if (play->roomCtx.curRoom.num == 2) {
+-        Matrix_Scale(1.0f, sinf(D_8012A398) * 0.8f, 1.0f, MTXMODE_NEW);
++        Matrix_Scale(1.0f, sinf(sJabuJabuWobblePhase) * 0.8f, 1.0f, MTXMODE_NEW);  // was D_8012A398 [LLM:HIGH]
+     } else {
+-        Matrix_Scale(1.005f, sinf(D_8012A398) * 0.8f, 1.005f, MTXMODE_NEW);
++        Matrix_Scale(1.005f, sinf(sJabuJabuWobblePhase) * 0.8f, 1.005f, MTXMODE_NEW);  // was D_8012A398 [LLM:HIGH]
+     }
+ 
+     gSPSegment(POLY_OPA_DISP++, 0x0D, MATRIX_NEWMTX(play->state.gfxCtx));
+@@ -1705,13 +1707,13 @@ void Scene_DrawConfigInsideGanonsCastle(PlayState* play) {
+ // Scene Draw Config 52
+ // Name from zeldaret/oot (was func_800A055C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_scene_table.c]
+ void Scene_DrawConfigInsideGanonsCastleCollapse(PlayState* play) {
+-    func_8009BEEC(play);
++    Scene_AddGanonsTowerCollapseQuake(play);  // was func_8009BEEC [LLM:HIGH]
+ }
+ 
+ // Scene Draw Config 51
+ // Name from zeldaret/oot (was func_800A057C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_scene_table.c]
+ void Scene_DrawConfigGanonsTowerCollapseInterior(PlayState* play) {
+-    func_8009BEEC(play);
++    Scene_AddGanonsTowerCollapseQuake(play);  // was func_8009BEEC [LLM:HIGH]
+ }
+ 
+ // Scene Draw Config 49
+-- 
+2.55.0
+

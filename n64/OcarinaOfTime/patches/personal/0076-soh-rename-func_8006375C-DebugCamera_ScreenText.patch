@@ -1,0 +1,59 @@
+From eadec133233e93491a6888e40cbd9b03d32a61a4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:04 +0000
+Subject: [PATCH 076/488] soh: rename func_8006375C -> DebugCamera_ScreenText
+
+Name source: zeldaret/oot (same decomp, same ROM address).
+Body verified against upstream at 1.00.
+Defined in soh/src/code/z_debug.c.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h                             | 2 +-
+ soh/src/code/z_debug.c                              | 3 ++-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index cbca62efe..5e641cdb0 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -851,7 +851,7 @@ u8 CollisionCheck_GetSwordDamage(s32 dmgFlags, PlayState* play);
+ void SaveContext_Init(void);
+ s32 func_800635D0(s32);
+ void func_800636C0(void);
+-void func_8006375C(s32 arg0, s32 arg1, const char* text);
++void DebugCamera_ScreenText(s32 arg0, s32 arg1, const char* text);  // was func_8006375C [oot]
+ void func_8006376C(u8 x, u8 y, u8 colorId, const char* text);
+ // ? func_80063828(?);
+ void func_8006390C(Input* input);
+diff --git a/soh/src/code/z_debug.c b/soh/src/code/z_debug.c
+index aa762a08b..71100ab8e 100644
+--- a/soh/src/code/z_debug.c
++++ b/soh/src/code/z_debug.c
+@@ -74,7 +74,8 @@ void func_800636C0(void) {
+ 
+ // Called when free movement is active.
+ // 8011D394 to enable camera debugger
+-void func_8006375C(s32 arg0, s32 arg1, const char* text) {
++// Name from zeldaret/oot (was func_8006375C): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/code/z_debug.c]
++void DebugCamera_ScreenText(s32 arg0, s32 arg1, const char* text) {
+ }
+ 
+ // Copy Camera Debugger Text
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 5e05c59ec..59952f929 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -14930,7 +14930,7 @@ s32 Player_UpdateNoclip(Player* this, PlayState* play) {
+             speed = 20.0f;
+         }
+ 
+-        func_8006375C(3, 2, "DEBUG MODE");
++        DebugCamera_ScreenText(3, 2, "DEBUG MODE");
+ 
+         if (!CHECK_BTN_ALL(sControlInput->cur.button, BTN_L)) {
+             if (CHECK_BTN_ALL(sControlInput->cur.button, BTN_B)) {
+-- 
+2.55.0
+

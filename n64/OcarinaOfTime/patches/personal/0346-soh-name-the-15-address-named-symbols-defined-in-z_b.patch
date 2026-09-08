@@ -1,0 +1,338 @@
+From 78f61672310a223d144213f39450242be7426cb1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:28 +0000
+Subject: [PATCH 346/488] soh: name the 15 address-named symbols defined in
+ z_bg_spot01_idohashira.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 15 are defined in soh/src/overlays/actors/ovl_Bg_Spot01_Idohashira/z_bg_spot01_idohashira.c.
+
+  * func_808AAD3C -> BgSpot01Idohashira_SpawnSpark
+    deduced, confidence HIGH: fills in an EffectSparkInit at the given point
+    with black start colours and the caller's UV division, and adds it.
+
+  * func_808AAE6C -> BgSpot01Idohashira_SpawnBreakEffects
+    deduced, confidence HIGH: throws the large dust cloud and spark burst at
+    the arch's position and plays the breaking sfx.
+
+  * func_808AAF34 -> BgSpot01Idohashira_SpawnPostEffects
+    deduced, confidence HIGH: while the arch is falling, throws a smaller
+    dust cloud and spark burst at each of its two posts, transformed into
+    world space by the current matrix.
+
+  * func_808AB18C -> BgSpot01Idohashira_Tumble
+    deduced, confidence HIGH: adds the per-axis tumble rates to the arch's
+    rotation each frame while it falls.
+
+  * func_808AB1DC -> BgSpot01Idohashira_GetFreeFallY
+    deduced, confidence HIGH: the osSyncPrintf in its divide-by-zero guard
+    names it "Bg_Spot01_Idohashira_Get_FreeFall"; it returns the height
+    along a parabola between the start and end heights for the given frame.
+
+  * func_808AB29C -> BgSpot01Idohashira_FollowFallPath
+    deduced, confidence HIGH: interpolates the arch along the cue's start
+    and end positions with that free-fall curve for the height, and returns
+    true once it lands.
+
+  * func_808AB3E8 -> BgSpot01Idohashira_SetupStanding
+    deduced, confidence HIGH: the cue-1 handler: sets the standing action
+    and draw config.
+
+  * func_808AB3F8 -> BgSpot01Idohashira_SetupFalling
+    deduced, confidence HIGH: the cue-2 handler: sets the falling action and
+    turns the post effects on.
+
+  * func_808AB414 -> BgSpot01Idohashira_SetupLanded
+    deduced, confidence HIGH: throws the break effects and switches to the
+    landed action.
+
+  * func_808AB444 -> BgSpot01Idohashira_CheckCue
+    deduced, confidence HIGH: watches actor cue 2 and, when it changes,
+    dispatches to the standing or falling setup.
+
+  * func_808AB504 -> BgSpot01Idohashira_DoNothing
+    deduced, confidence HIGH: the empty action used before the cutscene
+    starts and after the arch has landed.
+
+  * func_808AB510 -> BgSpot01Idohashira_Standing
+    deduced, confidence HIGH: the standing action: it does nothing but watch
+    for the next cue.
+
+  * func_808AB530 -> BgSpot01Idohashira_Falling
+    deduced, confidence HIGH: tumbles the arch along its fall path and
+    switches to the landed setup on arrival.
+
+  * func_808AB570 -> BgSpot01Idohashira_Landed
+    deduced, confidence HIGH: the settled action: it keeps watching the cue
+    in case the cutscene resets it.
+
+  * func_808AB700 -> BgSpot01Idohashira_DrawArch
+    deduced, confidence HIGH: draws gKakarikoWellArchDL, spawning the
+    falling post effects from inside the same matrix.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../z_bg_spot01_idohashira.c                  | 91 +++++++++++--------
+ 1 file changed, 53 insertions(+), 38 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot01_Idohashira/z_bg_spot01_idohashira.c b/soh/src/overlays/actors/ovl_Bg_Spot01_Idohashira/z_bg_spot01_idohashira.c
+index d07f9688d..77124935f 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot01_Idohashira/z_bg_spot01_idohashira.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot01_Idohashira/z_bg_spot01_idohashira.c
+@@ -15,17 +15,22 @@ void BgSpot01Idohashira_Destroy(Actor* thisx, PlayState* play);
+ void BgSpot01Idohashira_Update(Actor* thisx, PlayState* play);
+ void BgSpot01Idohashira_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_808AB504(BgSpot01Idohashira* this, PlayState* play);
+-void func_808AB510(BgSpot01Idohashira* this, PlayState* play);
+-void func_808AB530(BgSpot01Idohashira* this, PlayState* play);
+-void func_808AB570(BgSpot01Idohashira* this, PlayState* play);
+-void func_808AB700(BgSpot01Idohashira* this, PlayState* play);
++// LLM generated name (HIGH), was func_808AB504: the empty action used before the cutscene starts and after the arch has landed.
++void BgSpot01Idohashira_DoNothing(BgSpot01Idohashira* this, PlayState* play);  // was func_808AB504 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808AB510: the standing action: it does nothing but watch for the next cue.
++void BgSpot01Idohashira_Standing(BgSpot01Idohashira* this, PlayState* play);  // was func_808AB510 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808AB530: tumbles the arch along its fall path and switches to the landed setup on arrival.
++void BgSpot01Idohashira_Falling(BgSpot01Idohashira* this, PlayState* play);  // was func_808AB530 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808AB570: the settled action: it keeps watching the cue in case the cutscene resets it.
++void BgSpot01Idohashira_Landed(BgSpot01Idohashira* this, PlayState* play);  // was func_808AB570 [LLM:HIGH]
++// LLM generated name (HIGH), was func_808AB700: draws gKakarikoWellArchDL, spawning the falling post effects from inside the same matrix.
++void BgSpot01Idohashira_DrawArch(BgSpot01Idohashira* this, PlayState* play);  // was func_808AB700 [LLM:HIGH]
+ 
+ static BgSpot01IdohashiraActionFunc sActionFuncs[] = {
+-    func_808AB504,
+-    func_808AB510,
+-    func_808AB530,
+-    func_808AB570,
++    BgSpot01Idohashira_DoNothing,  // was func_808AB504 [LLM:HIGH]
++    BgSpot01Idohashira_Standing,  // was func_808AB510 [LLM:HIGH]
++    BgSpot01Idohashira_Falling,  // was func_808AB530 [LLM:HIGH]
++    BgSpot01Idohashira_Landed,  // was func_808AB570 [LLM:HIGH]
+ };
+ 
+ static InitChainEntry sInitChain[] = {
+@@ -33,7 +38,7 @@ static InitChainEntry sInitChain[] = {
+ };
+ 
+ static BgSpot01IdohashiraDrawFunc sDrawFuncs[] = {
+-    func_808AB700,
++    BgSpot01Idohashira_DrawArch,  // was func_808AB700 [LLM:HIGH]
+ };
+ 
+ const ActorInit Bg_Spot01_Idohashira_InitVars = {
+@@ -57,7 +62,8 @@ void BgSpot01Idohashira_PlayBreakSfx2(BgSpot01Idohashira* this, PlayState* play)
+     SoundSource_PlaySfxAtFixedWorldPos(play, &this->dyna.actor.world.pos, 60, NA_SE_EV_WOODBOX_BREAK);
+ }
+ 
+-void func_808AAD3C(PlayState* play, Vec3f* vec, u32 arg2) {
++// LLM generated name (HIGH), was func_808AAD3C: fills in an EffectSparkInit at the given point with black start colours and the caller's UV division, and adds it.
++void BgSpot01Idohashira_SpawnSpark(PlayState* play, Vec3f* vec, u32 arg2) {
+     EffectSparkInit effect;
+     s32 sp24;
+ 
+@@ -106,17 +112,19 @@ void func_808AAD3C(PlayState* play, Vec3f* vec, u32 arg2) {
+     Effect_Add(play, &sp24, EFFECT_SPARK, 0, 1, &effect);
+ }
+ 
+-void func_808AAE6C(BgSpot01Idohashira* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808AAE6C: throws the large dust cloud and spark burst at the arch's position and plays the breaking sfx.
++void BgSpot01Idohashira_SpawnBreakEffects(BgSpot01Idohashira* this, PlayState* play) {
+     s32 pad;
+     Vec3f sp30 = this->dyna.actor.world.pos;
+ 
+     sp30.y += kREG(15);
+     func_80033480(play, &sp30, kREG(11) + 350.0f, kREG(12) + 5, kREG(13) + 0x7D0, kREG(14) + 0x320, 0);
+-    func_808AAD3C(play, &sp30, 5);
++    BgSpot01Idohashira_SpawnSpark(play, &sp30, 5);  // was func_808AAD3C [LLM:HIGH]
+     BgSpot01Idohashira_PlayBreakSfx2(this, play);
+ }
+ 
+-void func_808AAF34(BgSpot01Idohashira* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808AAF34: while the arch is falling, throws a smaller dust cloud and spark burst at each of its two posts, transformed into world space by the current matrix.
++void BgSpot01Idohashira_SpawnPostEffects(BgSpot01Idohashira* this, PlayState* play) {
+     s32 pad[2];
+     Vec3f dest;
+     Vec3f src;
+@@ -127,13 +135,13 @@ void func_808AAF34(BgSpot01Idohashira* this, PlayState* play) {
+         src.z = 0.0f;
+         Matrix_MultVec3f(&src, &dest);
+         func_80033480(play, &dest, kREG(16) + 80.0f, kREG(17) + 10, kREG(18) + 1000, kREG(19), 0);
+-        func_808AAD3C(play, &dest, 3);
++        BgSpot01Idohashira_SpawnSpark(play, &dest, 3);  // was func_808AAD3C [LLM:HIGH]
+         src.x = -(kREG(20) + 1300.0f);
+         src.y = kREG(21) + 200.0f;
+         src.z = 0.0f;
+         Matrix_MultVec3f(&src, &dest);
+         func_80033480(play, &dest, kREG(16) + 80.0f, kREG(17) + 10, kREG(18) + 1000, kREG(19), 0);
+-        func_808AAD3C(play, &dest, 3);
++        BgSpot01Idohashira_SpawnSpark(play, &dest, 3);  // was func_808AAD3C [LLM:HIGH]
+         this->unk_170 = 0;
+         BgSpot01Idohashira_PlayBreakSfx1(this);
+     }
+@@ -162,13 +170,15 @@ CsCmdActorCue* BgSpot01Idohashira_GetNpcAction(PlayState* play, s32 actionIdx) {
+     return npcAction;
+ }
+ 
+-void func_808AB18C(BgSpot01Idohashira* this) {
++// LLM generated name (HIGH), was func_808AB18C: adds the per-axis tumble rates to the arch's rotation each frame while it falls.
++void BgSpot01Idohashira_Tumble(BgSpot01Idohashira* this) {
+     this->dyna.actor.shape.rot.x += kREG(6);
+     this->dyna.actor.shape.rot.y += (s16)(kREG(7) + 0x3E8);
+     this->dyna.actor.shape.rot.z += (s16)(kREG(8) + 0x7D0);
+ }
+ 
+-f32 func_808AB1DC(f32 arg0, f32 arg1, u16 arg2, u16 arg3, u16 arg4) {
++// LLM generated name (HIGH), was func_808AB1DC: the osSyncPrintf in its divide-by-zero guard names it "Bg_Spot01_Idohashira_Get_FreeFall"; it returns the height along a parabola between the start and end heights for the given frame.
++f32 BgSpot01Idohashira_GetFreeFallY(f32 arg0, f32 arg1, u16 arg2, u16 arg3, u16 arg4) {
+     f32 temp_f12;
+     f32 regFloat;
+     f32 diff23;
+@@ -185,7 +195,8 @@ f32 func_808AB1DC(f32 arg0, f32 arg1, u16 arg2, u16 arg3, u16 arg4) {
+     return 0.0f;
+ }
+ 
+-s32 func_808AB29C(BgSpot01Idohashira* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808AB29C: interpolates the arch along the cue's start and end positions with that free-fall curve for the height, and returns true once it lands.
++s32 BgSpot01Idohashira_FollowFallPath(BgSpot01Idohashira* this, PlayState* play) {
+     CsCmdActorCue* npcAction;
+     Vec3f* thisPos;
+     f32 endX;
+@@ -206,7 +217,7 @@ s32 func_808AB29C(BgSpot01Idohashira* this, PlayState* play) {
+         thisPos = &this->dyna.actor.world.pos;
+         thisPos->x = ((endX - initPos.x) * temp_f0) + initPos.x;
+         thisPos->y =
+-            func_808AB1DC(initPos.y, tempY, npcAction->endFrame, npcAction->startFrame, play->csCtx.frames) + initPos.y;
++            BgSpot01Idohashira_GetFreeFallY(initPos.y, tempY, npcAction->endFrame, npcAction->startFrame, play->csCtx.frames) + initPos.y;  // was func_808AB1DC [LLM:HIGH]
+         thisPos->z = ((endZ - initPos.z) * temp_f0) + initPos.z;
+ 
+         if (temp_f0 >= 1.0f) {
+@@ -218,24 +229,28 @@ s32 func_808AB29C(BgSpot01Idohashira* this, PlayState* play) {
+     return false;
+ }
+ 
+-void func_808AB3E8(BgSpot01Idohashira* this) {
++// LLM generated name (HIGH), was func_808AB3E8: the cue-1 handler: sets the standing action and draw config.
++void BgSpot01Idohashira_SetupStanding(BgSpot01Idohashira* this) {
+     this->action = 1;
+     this->drawConfig = 0;
+ }
+ 
+-void func_808AB3F8(BgSpot01Idohashira* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808AB3F8: the cue-2 handler: sets the falling action and turns the post effects on.
++void BgSpot01Idohashira_SetupFalling(BgSpot01Idohashira* this, PlayState* play) {
+     this->action = 2;
+     this->drawConfig = 0;
+     this->unk_170 = 1;
+ }
+ 
+-void func_808AB414(BgSpot01Idohashira* this, PlayState* play) {
+-    func_808AAE6C(this, play);
++// LLM generated name (HIGH), was func_808AB414: throws the break effects and switches to the landed action.
++void BgSpot01Idohashira_SetupLanded(BgSpot01Idohashira* this, PlayState* play) {
++    BgSpot01Idohashira_SpawnBreakEffects(this, play);  // was func_808AAE6C [LLM:HIGH]
+     this->action = 3;
+     this->drawConfig = 0;
+ }
+ 
+-void func_808AB444(BgSpot01Idohashira* this, PlayState* play) {
++// LLM generated name (HIGH), was func_808AB444: watches actor cue 2 and, when it changes, dispatches to the standing or falling setup.
++void BgSpot01Idohashira_CheckCue(BgSpot01Idohashira* this, PlayState* play) {
+     CsCmdActorCue* npcAction = BgSpot01Idohashira_GetNpcAction(play, 2);
+     u32 action;
+     u32 currentNpcAction;
+@@ -246,10 +261,10 @@ void func_808AB444(BgSpot01Idohashira* this, PlayState* play) {
+         if (action != currentNpcAction) {
+             switch (action) {
+                 case 1:
+-                    func_808AB3E8(this);
++                    BgSpot01Idohashira_SetupStanding(this);  // was func_808AB3E8 [LLM:HIGH]
+                     break;
+                 case 2:
+-                    func_808AB3F8(this, play);
++                    BgSpot01Idohashira_SetupFalling(this, play);  // was func_808AB3F8 [LLM:HIGH]
+                     break;
+                 case 3:
+                     Actor_Kill(&this->dyna.actor);
+@@ -262,22 +277,22 @@ void func_808AB444(BgSpot01Idohashira* this, PlayState* play) {
+     }
+ }
+ 
+-void func_808AB504(BgSpot01Idohashira* this, PlayState* play) {
++void BgSpot01Idohashira_DoNothing(BgSpot01Idohashira* this, PlayState* play) {
+ }
+ 
+-void func_808AB510(BgSpot01Idohashira* this, PlayState* play) {
+-    func_808AB444(this, play);
++void BgSpot01Idohashira_Standing(BgSpot01Idohashira* this, PlayState* play) {
++    BgSpot01Idohashira_CheckCue(this, play);  // was func_808AB444 [LLM:HIGH]
+ }
+ 
+-void func_808AB530(BgSpot01Idohashira* this, PlayState* play) {
+-    func_808AB18C(this);
+-    if (func_808AB29C(this, play)) {
+-        func_808AB414(this, play);
++void BgSpot01Idohashira_Falling(BgSpot01Idohashira* this, PlayState* play) {
++    BgSpot01Idohashira_Tumble(this);  // was func_808AB18C [LLM:HIGH]
++    if (BgSpot01Idohashira_FollowFallPath(this, play)) {  // was func_808AB29C [LLM:HIGH]
++        BgSpot01Idohashira_SetupLanded(this, play);  // was func_808AB414 [LLM:HIGH]
+     }
+ }
+ 
+-void func_808AB570(BgSpot01Idohashira* this, PlayState* play) {
+-    func_808AB444(this, play);
++void BgSpot01Idohashira_Landed(BgSpot01Idohashira* this, PlayState* play) {
++    BgSpot01Idohashira_CheckCue(this, play);  // was func_808AB444 [LLM:HIGH]
+ }
+ 
+ void BgSpot01Idohashira_Update(Actor* thisx, PlayState* play) {
+@@ -317,7 +332,7 @@ void BgSpot01Idohashira_Init(Actor* thisx, PlayState* play) {
+     }
+ }
+ 
+-void func_808AB700(BgSpot01Idohashira* this, PlayState* play) {
++void BgSpot01Idohashira_DrawArch(BgSpot01Idohashira* this, PlayState* play) {
+     GraphicsContext* localGfxCtx = play->state.gfxCtx;
+ 
+     OPEN_DISPS(localGfxCtx);
+@@ -325,7 +340,7 @@ void func_808AB700(BgSpot01Idohashira* this, PlayState* play) {
+     Gfx_SetupDL_25Opa(localGfxCtx);
+ 
+     gSPMatrix(POLY_OPA_DISP++, MATRIX_NEWMTX(localGfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+-    func_808AAF34(this, play);
++    BgSpot01Idohashira_SpawnPostEffects(this, play);  // was func_808AAF34 [LLM:HIGH]
+     gSPDisplayList(POLY_OPA_DISP++, gKakarikoWellArchDL);
+ 
+     CLOSE_DISPS(localGfxCtx);
+-- 
+2.55.0
+

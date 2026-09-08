@@ -1,0 +1,116 @@
+From d4be18db3fdce2ba3f1c075665b62f78a957df98 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 241/488] soh: name the 4 address-named symbols defined in
+ z_bg_jya_megami.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Bg_Jya_Megami/z_bg_jya_megami.c.
+
+  * D_8089B14C -> sDebrisScales
+    deduced, confidence HIGH: feeds the scale parameter (10th argument) of
+    EffectSsKakera_Spawn in BgJyaMegami_SpawnEffect, and also sizes the dust
+    cloud passed to func_80033480.
+
+  * D_8089B15C -> sDebrisLifetimes
+    deduced, confidence HIGH: feeds the life parameter (13th argument) of
+    the same EffectSsKakera_Spawn call.
+
+  * D_8089B16C -> sDebrisArg6
+    deduced, confidence GUESS: feeds the still-unidentified arg6 parameter
+    (7th argument) of the same call; named for the parameter it fills.
+
+  * D_8089B17C -> sIndexMasks
+    deduced, confidence HIGH: indexed by the caller's size selector and
+    ANDed with a random 0-7 to bound which debris entry is picked, so 1, 3
+    and 7 give two, four and eight choices.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Jya_Megami/z_bg_jya_megami.c       | 20 +++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Megami/z_bg_jya_megami.c b/soh/src/overlays/actors/ovl_Bg_Jya_Megami/z_bg_jya_megami.c
+index 41f04c61b..1af396c26 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Megami/z_bg_jya_megami.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Megami/z_bg_jya_megami.c
+@@ -79,19 +79,23 @@ static BgJyaMegamiPieceInit sPiecesInit[] = {
+     { { 14.759999f, -125.8f, -44.16f }, 0.2f, 0x0320, 0x0258, 20 },
+ };
+ 
+-static s16 D_8089B14C[] = {
++// LLM generated name (HIGH), was D_8089B14C: feeds the scale parameter (10th argument) of EffectSsKakera_Spawn in BgJyaMegami_SpawnEffect, and also sizes the dust cloud passed to func_80033480.
++static s16 sDebrisScales[] = {  // was D_8089B14C [LLM:HIGH]
+     0x0005, 0x0008, 0x000B, 0x000E, 0x0011, 0x0014, 0x0017, 0x001A,
+ };
+ 
+-static s16 D_8089B15C[] = {
++// LLM generated name (HIGH), was D_8089B15C: feeds the life parameter (13th argument) of the same EffectSsKakera_Spawn call.
++static s16 sDebrisLifetimes[] = {  // was D_8089B15C [LLM:HIGH]
+     0x0012, 0x001A, 0x0022, 0x002A, 0x0032, 0x003C, 0x0046, 0x0050,
+ };
+ 
+-static s16 D_8089B16C[] = {
++// LLM generated name (GUESS), was D_8089B16C: feeds the still-unidentified arg6 parameter (7th argument) of the same call; named for the parameter it fills.
++static s16 sDebrisArg6[] = {  // was D_8089B16C [LLM:GUESS]
+     0x0030, 0x002A, 0x0024, 0x0020, 0x001C, 0x0018, 0x0014, 0x0010,
+ };
+ 
+-static s16 D_8089B17C[] = {
++// LLM generated name (HIGH), was D_8089B17C: indexed by the caller's size selector and ANDed with a random 0-7 to bound which debris entry is picked, so 1, 3 and 7 give two, four and eight choices.
++static s16 sIndexMasks[] = {  // was D_8089B17C [LLM:HIGH]
+     0x0001,
+     0x0003,
+     0x0007,
+@@ -127,14 +131,14 @@ void BgJyaMegami_SpawnEffect(PlayState* play, Vec3f* pos, Vec3f* velocity, s32 n
+     s32 i;
+ 
+     for (i = 0; i < num; i++) {
+-        s32 idx = ((s16)(Rand_ZeroOne() * 8.0f)) & D_8089B17C[arg4];
++        s32 idx = ((s16)(Rand_ZeroOne() * 8.0f)) & sIndexMasks[arg4];  // was D_8089B17C [LLM:HIGH]
+         s16 arg5 = ((idx < 5) && (Rand_ZeroOne() < 0.7f)) ? 0x40 : 0x20;
+-        EffectSsKakera_Spawn(play, pos, velocity, pos, -90, arg5, D_8089B16C[idx], 4, 0, D_8089B14C[idx], 0, 5,
+-                             D_8089B15C[idx], KAKERA_COLOR_NONE, OBJECT_JYA_OBJ, gMegami2DL);
++        EffectSsKakera_Spawn(play, pos, velocity, pos, -90, arg5, sDebrisArg6[idx], 4, 0, sDebrisScales[idx], 0, 5,  // was D_8089B14C [LLM:HIGH]
++                             sDebrisLifetimes[idx], KAKERA_COLOR_NONE, OBJECT_JYA_OBJ, gMegami2DL);  // was D_8089B15C [LLM:HIGH]
+         if (Rand_ZeroOne() < 0.45f) {
+             Math_Vec3f_Copy(&spB4, pos);
+             spB4.z += 25.0f;
+-            func_80033480(play, &spB4, 60.0f, 0, D_8089B14C[idx] * 4 + 50, D_8089B14C[idx] * 4 + 70, 1);
++            func_80033480(play, &spB4, 60.0f, 0, sDebrisScales[idx] * 4 + 50, sDebrisScales[idx] * 4 + 70, 1);  // was D_8089B14C [LLM:HIGH]
+         }
+     }
+ }
+-- 
+2.55.0
+

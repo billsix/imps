@@ -1,0 +1,212 @@
+From cf652d8705790a110a755729f23cd3ebb892ac80 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 281/488] soh: name the 6 address-named symbols defined in
+ z_obj_mure2.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_Obj_Mure2/z_obj_mure2.c.
+
+  * D_80B9A818 -> sSpawnCounts
+    deduced, confidence HIGH: the number of child actors each params variant
+    manages; every loop over actorSpawnPtrList is bounded by it.
+
+  * func_80B9A534 -> ObjMure2_MarkDespawnedActors
+    deduced, confidence HIGH: walks the spawned-actor list and, for any
+    entry whose update has become NULL, records it in currentActorNum and
+    clears the pointer.
+
+  * func_80B9A658 -> ObjMure2_SetupWaitForPlayerInRange
+    deduced, confidence HIGH: installs the action that watches for the
+    player approaching.
+
+  * func_80B9A668 -> ObjMure2_WaitForPlayerInRange
+    deduced, confidence HIGH: spawns the whole group and disables update
+    culling once the player's screen-space distance drops below the
+    per-variant threshold.
+
+  * func_80B9A6E8 -> ObjMure2_SetupSpawned
+    deduced, confidence HIGH: installs the action that runs while the group
+    exists.
+
+  * func_80B9A6F8 -> ObjMure2_Spawned
+    deduced, confidence HIGH: prunes despawned members each frame and, once
+    the player passes the farther threshold, kills the group and returns to
+    waiting.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Obj_Mure2/z_obj_mure2.c        | 50 +++++++++++--------
+ 1 file changed, 28 insertions(+), 22 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Mure2/z_obj_mure2.c b/soh/src/overlays/actors/ovl_Obj_Mure2/z_obj_mure2.c
+index 4823f99d8..0adfe37d2 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Mure2/z_obj_mure2.c
++++ b/soh/src/overlays/actors/ovl_Obj_Mure2/z_obj_mure2.c
+@@ -23,11 +23,15 @@ void ObjMure2_SetPosShrubCircle(Vec3f* vec, ObjMure2* this);
+ void ObjMure2_SetPosShrubScattered(Vec3f* vec, ObjMure2* this);
+ void ObjMure2_SetPosRockCircle(Vec3f* vec, ObjMure2* this);
+ void ObjMure2_Wait(ObjMure2* this, PlayState* play);
+-void func_80B9A668(ObjMure2* this, PlayState* play);
+-void func_80B9A6F8(ObjMure2* this, PlayState* play);
++// LLM generated name (HIGH), was func_80B9A668: spawns the whole group and disables update culling once the player's screen-space distance drops below the per-variant threshold.
++void ObjMure2_WaitForPlayerInRange(ObjMure2* this, PlayState* play);  // was func_80B9A668 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B9A6F8: prunes despawned members each frame and, once the player passes the farther threshold, kills the group and returns to waiting.
++void ObjMure2_Spawned(ObjMure2* this, PlayState* play);  // was func_80B9A6F8 [LLM:HIGH]
+ void ObjMure2_SetupWait(ObjMure2* this);
+-void func_80B9A658(ObjMure2* this);
+-void func_80B9A6E8(ObjMure2* this);
++// LLM generated name (HIGH), was func_80B9A658: installs the action that watches for the player approaching.
++void ObjMure2_SetupWaitForPlayerInRange(ObjMure2* this);  // was func_80B9A658 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80B9A6E8: installs the action that runs while the group exists.
++void ObjMure2_SetupSpawned(ObjMure2* this);  // was func_80B9A6E8 [LLM:HIGH]
+ 
+ const ActorInit Obj_Mure2_InitVars = {
+     ACTOR_OBJ_MURE2,
+@@ -46,7 +50,8 @@ static f32 sDistSquared1[] = { SQ(1600.0f), SQ(1600.0f), SQ(1600.0f) };
+ 
+ static f32 sDistSquared2[] = { SQ(1705.0f), SQ(1705.0f), SQ(1705.0f) };
+ 
+-static s16 D_80B9A818[] = { 9, 12, 8 };
++// LLM generated name (HIGH), was D_80B9A818: the number of child actors each params variant manages; every loop over actorSpawnPtrList is bounded by it.
++static s16 sSpawnCounts[] = { 9, 12, 8 };  // was D_80B9A818 [LLM:HIGH]
+ 
+ static s16 sActorSpawnIDs[] = { ACTOR_EN_KUSA, ACTOR_EN_KUSA, ACTOR_EN_ISHI };
+ 
+@@ -54,7 +59,7 @@ void ObjMure2_SetPosShrubCircle(Vec3f* vec, ObjMure2* this) {
+     s32 i;
+ 
+     Math_Vec3f_Copy(vec, &this->actor.world.pos);
+-    for (i = 1; i < D_80B9A818[this->actor.params & 3]; i++) {
++    for (i = 1; i < sSpawnCounts[this->actor.params & 3]; i++) {  // was D_80B9A818 [LLM:HIGH]
+         Math_Vec3f_Copy(vec + i, &this->actor.world.pos);
+         (vec + i)->x += (80.0f * Math_SinS((i - 1) * 0x2000));
+         (vec + i)->z += (80.0f * Math_CosS((i - 1) * 0x2000));
+@@ -69,7 +74,7 @@ static Mure2sScatteredShrubInfo sScatteredShrubInfo[] = {
+ void ObjMure2_SetPosShrubScattered(Vec3f* vec, ObjMure2* this) {
+     s32 i;
+ 
+-    for (i = 0; i < D_80B9A818[this->actor.params & 3]; i++) {
++    for (i = 0; i < sSpawnCounts[this->actor.params & 3]; i++) {  // was D_80B9A818 [LLM:HIGH]
+         Math_Vec3f_Copy(vec + i, &this->actor.world.pos);
+         (vec + i)->x += (sScatteredShrubInfo[i].radius * Math_CosS(sScatteredShrubInfo[i].angle));
+         (vec + i)->z -= (sScatteredShrubInfo[i].radius * Math_SinS(sScatteredShrubInfo[i].angle));
+@@ -79,7 +84,7 @@ void ObjMure2_SetPosShrubScattered(Vec3f* vec, ObjMure2* this) {
+ void ObjMure2_SetPosRockCircle(Vec3f* vec, ObjMure2* this) {
+     s32 i;
+ 
+-    for (i = 0; i < D_80B9A818[this->actor.params & 3]; i++) {
++    for (i = 0; i < sSpawnCounts[this->actor.params & 3]; i++) {  // was D_80B9A818 [LLM:HIGH]
+         Math_Vec3f_Copy(vec + i, &this->actor.world.pos);
+         (vec + i)->x += (80.0f * Math_SinS(i * 0x2000));
+         (vec + i)->z += (80.0f * Math_CosS(i * 0x2000));
+@@ -111,7 +116,7 @@ void ObjMure2_SpawnActors(ObjMure2* this, PlayState* play) {
+     setPosFunc[actorNum](spawnPos, this);
+     ObjMure2_SetActorSpawnParams(&params, this);
+ 
+-    for (i = 0; i < D_80B9A818[actorNum]; i++) {
++    for (i = 0; i < sSpawnCounts[actorNum]; i++) {  // was D_80B9A818 [LLM:HIGH]
+         if (this->actorSpawnPtrList[i] != NULL) {
+             // "Warning : I already have a child (%s %d)(arg_data 0x%04x)"
+             osSyncPrintf("Warning : 既に子供がいる(%s %d)(arg_data 0x%04x)\n", __FILE__, __LINE__, this->actor.params);
+@@ -132,7 +137,7 @@ void ObjMure2_SpawnActors(ObjMure2* this, PlayState* play) {
+ void ObjMure2_CleanupAndDie(ObjMure2* this, PlayState* play) {
+     s32 i;
+ 
+-    for (i = 0; i < D_80B9A818[this->actor.params & 3]; i++) {
++    for (i = 0; i < sSpawnCounts[this->actor.params & 3]; i++) {  // was D_80B9A818 [LLM:HIGH]
+         if (((this->currentActorNum >> i) & 1) == 0) {
+             if (this->actorSpawnPtrList[i] != NULL) {
+                 if (Actor_HasParent(this->actorSpawnPtrList[i], play)) {
+@@ -148,10 +153,11 @@ void ObjMure2_CleanupAndDie(ObjMure2* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80B9A534(ObjMure2* this) {
++// LLM generated name (HIGH), was func_80B9A534: walks the spawned-actor list and, for any entry whose update has become NULL, records it in currentActorNum and clears the pointer.
++void ObjMure2_MarkDespawnedActors(ObjMure2* this) {
+     s32 i;
+ 
+-    for (i = 0; i < D_80B9A818[this->actor.params & 3]; i++) {
++    for (i = 0; i < sSpawnCounts[this->actor.params & 3]; i++) {  // was D_80B9A818 [LLM:HIGH]
+         if (this->actorSpawnPtrList[i] != NULL && (((this->currentActorNum >> i) & 1) == 0) &&
+             (this->actorSpawnPtrList[i]->update == NULL)) {
+             this->currentActorNum |= (1 << i);
+@@ -181,34 +187,34 @@ void ObjMure2_SetupWait(ObjMure2* this) {
+ }
+ 
+ void ObjMure2_Wait(ObjMure2* this, PlayState* play) {
+-    func_80B9A658(this);
++    ObjMure2_SetupWaitForPlayerInRange(this);  // was func_80B9A658 [LLM:HIGH]
+ }
+ 
+-void func_80B9A658(ObjMure2* this) {
+-    this->actionFunc = func_80B9A668;
++void ObjMure2_SetupWaitForPlayerInRange(ObjMure2* this) {
++    this->actionFunc = ObjMure2_WaitForPlayerInRange;  // was func_80B9A668 [LLM:HIGH]
+ }
+ 
+-void func_80B9A668(ObjMure2* this, PlayState* play) {
++void ObjMure2_WaitForPlayerInRange(ObjMure2* this, PlayState* play) {
+     if (Math3D_Dist1DSq(this->actor.projectedPos.x, this->actor.projectedPos.z) <
+         (sDistSquared1[this->actor.params & 3] * this->unk_184)) {
+         this->actor.flags |= ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+         ObjMure2_SpawnActors(this, play);
+-        func_80B9A6E8(this);
++        ObjMure2_SetupSpawned(this);  // was func_80B9A6E8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80B9A6E8(ObjMure2* this) {
+-    this->actionFunc = func_80B9A6F8;
++void ObjMure2_SetupSpawned(ObjMure2* this) {
++    this->actionFunc = ObjMure2_Spawned;  // was func_80B9A6F8 [LLM:HIGH]
+ }
+ 
+-void func_80B9A6F8(ObjMure2* this, PlayState* play) {
+-    func_80B9A534(this);
++void ObjMure2_Spawned(ObjMure2* this, PlayState* play) {
++    ObjMure2_MarkDespawnedActors(this);  // was func_80B9A534 [LLM:HIGH]
+ 
+     if ((sDistSquared2[this->actor.params & 3] * this->unk_184) <=
+         Math3D_Dist1DSq(this->actor.projectedPos.x, this->actor.projectedPos.z)) {
+         this->actor.flags &= ~ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+         ObjMure2_CleanupAndDie(this, play);
+-        func_80B9A658(this);
++        ObjMure2_SetupWaitForPlayerInRange(this);  // was func_80B9A658 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

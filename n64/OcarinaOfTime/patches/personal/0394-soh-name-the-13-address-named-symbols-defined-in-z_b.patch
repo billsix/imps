@@ -1,0 +1,247 @@
+From 6dfefec5b5403d272d5164b535acd711e048ad5d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:33 +0000
+Subject: [PATCH 394/488] soh: name the 13 address-named symbols defined in
+ z_boss_ganon.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 13 are defined in soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c.
+
+  * D_808E4DA0 -> sLeftHandBaseOffset
+    deduced, confidence HIGH: the hand-space point limb 4 records, shifted
+    further out for the two raised poses
+
+  * D_808E4DAC -> sRightHandBaseOffset
+    deduced, confidence HIGH: the mirrored point limb 8 records under the
+    same poses
+
+  * D_808E4DB8 -> sLimbOrigin
+    deduced, confidence HIGH: the zero vector pushed through the current
+    matrix to read a limb's world position back out
+
+  * D_808E4DC4 -> sLimb6Offset
+    deduced, confidence HIGH: the offset limb 6 records its transformed
+    position from
+
+  * D_808E4DD0 -> sLimb10Offset
+    deduced, confidence HIGH: the offset limb 10 records its transformed
+    position from
+
+  * D_808E4DDC -> sLimb10FarOffset
+    deduced, confidence HIGH: the 1300-unit reach limb 10 also records while
+    its guard flag is clear
+
+  * D_808E4DE8 -> sTriforceOffset
+    deduced, confidence HIGH: the point the triforce mark is placed at when
+    Ganondorf carries it
+
+  * D_808E4DF4 -> sMaskStripeWidths6
+    deduced, confidence HIGH: the six row half-widths of the narrowest limb
+    stripe stamped into the mask texture
+
+  * D_808E4E00 -> sMaskStripeWidths7
+    deduced, confidence HIGH: the seven row half-widths of the next stripe
+
+  * D_808E4E10 -> sMaskStripeWidths8
+    deduced, confidence HIGH: the eight row half-widths of the next stripe
+
+  * D_808E4E20 -> sMaskStripeWidths12
+    deduced, confidence HIGH: the twelve row half-widths of the widest
+    stripe
+
+  * D_808E4E38 -> sMaskLimbParents
+    deduced, confidence HIGH: per-limb index of the limb its mask position
+    is interpolated toward, -1 where there is none
+
+  * D_808E4E58 -> sMaskStripeKinds
+    deduced, confidence HIGH: per-limb selector, 0-3, choosing which of the
+    four stripe width tables stamps that limb
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Boss_Ganon/z_boss_ganon.c      | 62 +++++++++----------
+ 1 file changed, 31 insertions(+), 31 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+index 984c59855..399972184 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+@@ -3327,49 +3327,49 @@ void BossGanon_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+     static s8 bodyPartLimbMap[] = {
+         -1, -1, 1, -1, 3, 4, 5, -1, 6, 7, 8, -1, -1, -1, -1, -1, -1, -1, -1, 2, 12, 13, 14, 9, 10, 11, -1, -1, -1, -1,
+     };
+-    static Vec3f D_808E4DA0 = { -500.0f, 200.0f, -300.0f };
+-    static Vec3f D_808E4DAC = { -500.0f, 200.0f, 300.0f };
+-    static Vec3f D_808E4DB8 = { 0.0f, 0.0f, 0.0f };
+-    static Vec3f D_808E4DC4 = { 0.0f, 0.0f, 0.0f };
+-    static Vec3f D_808E4DD0 = { 0.0f, 0.0f, 0.0f };
+-    static Vec3f D_808E4DDC = { 1300.0f, 0.0f, 0.0f };
+-    static Vec3f D_808E4DE8 = { 600.0f, 420.0f, 100.0f };
++    static Vec3f sLeftHandBaseOffset = { -500.0f, 200.0f, -300.0f };  // was D_808E4DA0 [LLM:HIGH]
++    static Vec3f sRightHandBaseOffset = { -500.0f, 200.0f, 300.0f };  // was D_808E4DAC [LLM:HIGH]
++    static Vec3f sLimbOrigin = { 0.0f, 0.0f, 0.0f };  // was D_808E4DB8 [LLM:HIGH]
++    static Vec3f sLimb6Offset = { 0.0f, 0.0f, 0.0f };  // was D_808E4DC4 [LLM:HIGH]
++    static Vec3f sLimb10Offset = { 0.0f, 0.0f, 0.0f };  // was D_808E4DD0 [LLM:HIGH]
++    static Vec3f sLimb10FarOffset = { 1300.0f, 0.0f, 0.0f };  // was D_808E4DDC [LLM:HIGH]
++    static Vec3f sTriforceOffset = { 600.0f, 420.0f, 100.0f };  // was D_808E4DE8 [LLM:HIGH]
+     s8 bodyPart;
+     BossGanon* this = (BossGanon*)thisx;
+ 
+     bodyPart = bodyPartLimbMap[limbIndex];
+     if (bodyPart >= 0) {
+-        Matrix_MultVec3f(&D_808E4DB8, &this->unk_2EC[bodyPart]);
++        Matrix_MultVec3f(&sLimbOrigin, &this->unk_2EC[bodyPart]);  // was D_808E4DB8 [LLM:HIGH]
+     }
+ 
+     if (limbIndex == 2) {
+-        Matrix_MultVec3f(&D_808E4DB8, &this->unk_1FC);
++        Matrix_MultVec3f(&sLimbOrigin, &this->unk_1FC);  // was D_808E4DB8 [LLM:HIGH]
+     } else if (limbIndex == 19) {
+-        Matrix_MultVec3f(&D_808E4DB8, &this->actor.focus.pos);
++        Matrix_MultVec3f(&sLimbOrigin, &this->actor.focus.pos);  // was D_808E4DB8 [LLM:HIGH]
+     } else if (limbIndex == 11) {
+         OPEN_DISPS(play->state.gfxCtx);
+ 
+-        Matrix_MultVec3f(&D_808E4DB8, &this->unk_208);
++        Matrix_MultVec3f(&sLimbOrigin, &this->unk_208);  // was D_808E4DB8 [LLM:HIGH]
+         gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+         gSPDisplayList(POLY_XLU_DISP++, SEGMENTED_TO_VIRTUAL(gGanondorfEyesDL));
+ 
+         CLOSE_DISPS(play->state.gfxCtx);
+     } else if (limbIndex == 6) {
+-        Matrix_MultVec3f(&D_808E4DC4, &this->unk_238);
++        Matrix_MultVec3f(&sLimb6Offset, &this->unk_238);  // was D_808E4DC4 [LLM:HIGH]
+     } else if (limbIndex == 10) {
+-        Matrix_MultVec3f(&D_808E4DD0, &this->unk_22C);
++        Matrix_MultVec3f(&sLimb10Offset, &this->unk_22C);  // was D_808E4DD0 [LLM:HIGH]
+ 
+         if (this->unk_25C == 0) {
+-            Matrix_MultVec3f(&D_808E4DDC, &this->unk_260);
++            Matrix_MultVec3f(&sLimb10FarOffset, &this->unk_260);  // was D_808E4DDC [LLM:HIGH]
+         }
+ 
+         this->unk_25C = 0;
+ 
+         if (this->triforceType == GDF_TRIFORCE_DORF) {
+-            Matrix_MultVec3f(&D_808E4DE8, &this->triforcePos);
++            Matrix_MultVec3f(&sTriforceOffset, &this->triforcePos);  // was D_808E4DE8 [LLM:HIGH]
+         }
+     } else if (limbIndex == 4) {
+-        Vec3f sp28 = D_808E4DA0;
++        Vec3f sp28 = sLeftHandBaseOffset;  // was D_808E4DA0 [LLM:HIGH]
+ 
+         if (this->unk_198 == 1) {
+             sp28.x += -300.0f;
+@@ -3382,7 +3382,7 @@ void BossGanon_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+ 
+         Matrix_MultVec3f(&sp28, &this->unk_220);
+     } else if (limbIndex == 8) {
+-        Vec3f sp1C = D_808E4DAC;
++        Vec3f sp1C = sRightHandBaseOffset;  // was D_808E4DAC [LLM:HIGH]
+ 
+         if (this->unk_198 == 1) {
+             sp1C.x += -300.0f;
+@@ -3693,12 +3693,12 @@ void BossGanon_DrawDarkVortex(BossGanon* this, PlayState* play) {
+ 
+ // LLM generated name (GUESS), was func_808E0254: stamps one shape into the caller's texture buffer using a set of local row-width tables, with the caller's float selecting how far through the pattern to draw; it is called from a loop that steps that value in fifths. What the resulting mask is used for is not visible from here.
+ void BossGanon_DrawMaskTexPattern(BossGanon* this, u8* tex, f32 arg2) {
+-    static s16 D_808E4DF4[] = { 1, 2, 3, 3, 2, 1 };
+-    static s16 D_808E4E00[] = { 2, 3, 4, 4, 4, 3, 2 };
+-    static s16 D_808E4E10[] = { 2, 3, 4, 4, 4, 4, 3, 2 };
+-    static s16 D_808E4E20[] = { 2, 4, 5, 5, 6, 6, 6, 6, 5, 5, 4, 2 };
+-    static s16 D_808E4E38[] = { 1, -1, 1, 1, 3, 4, 1, 6, 7, 2, 9, 10, 2, 12, 13 };
+-    static u8 D_808E4E58[] = { 3, 2, 2, 1, 3, 3, 1, 3, 3, 1, 0, 3, 1, 0, 3 };
++    static s16 sMaskStripeWidths6[] = { 1, 2, 3, 3, 2, 1 };  // was D_808E4DF4 [LLM:HIGH]
++    static s16 sMaskStripeWidths7[] = { 2, 3, 4, 4, 4, 3, 2 };  // was D_808E4E00 [LLM:HIGH]
++    static s16 sMaskStripeWidths8[] = { 2, 3, 4, 4, 4, 4, 3, 2 };  // was D_808E4E10 [LLM:HIGH]
++    static s16 sMaskStripeWidths12[] = { 2, 4, 5, 5, 6, 6, 6, 6, 5, 5, 4, 2 };  // was D_808E4E20 [LLM:HIGH]
++    static s16 sMaskLimbParents[] = { 1, -1, 1, 1, 3, 4, 1, 6, 7, 2, 9, 10, 2, 12, 13 };  // was D_808E4E38 [LLM:HIGH]
++    static u8 sMaskStripeKinds[] = { 3, 2, 2, 1, 3, 3, 1, 3, 3, 1, 0, 3, 1, 0, 3 };  // was D_808E4E58 [LLM:HIGH]
+     s16 baseX;
+     s16 index;
+     s16 i;
+@@ -3713,7 +3713,7 @@ void BossGanon_DrawMaskTexPattern(BossGanon* this, u8* tex, f32 arg2) {
+     Vec3f sp5C;
+ 
+     for (i = 0; i < 15; i++) {
+-        if (arg2 == 0.0f || (y = D_808E4E38[i]) >= 0) {
++        if (arg2 == 0.0f || (y = sMaskLimbParents[i]) >= 0) {  // was D_808E4E38 [LLM:HIGH]
+             if (arg2 > 0.0f) {
+                 lerpX = this->unk_2EC[i].x + (this->unk_2EC[y].x - this->unk_2EC[i].x) * arg2;
+                 lerpY = this->unk_2EC[i].y + (this->unk_2EC[y].y - this->unk_2EC[i].y) * arg2;
+@@ -3736,27 +3736,27 @@ void BossGanon_DrawMaskTexPattern(BossGanon* this, u8* tex, f32 arg2) {
+             baseX = (s16)(sp5C.x + 32.0f);
+             baseY = (s16)sp5C.y * 64;
+ 
+-            if (D_808E4E58[i] == 2) {
++            if (sMaskStripeKinds[i] == 2) {  // was D_808E4E58 [LLM:HIGH]
+                 for (y = 0, addY = -0x180; y < 12; y++, addY += 0x40) {
+-                    for (x = -D_808E4E20[y]; x < D_808E4E20[y]; x++) {
++                    for (x = -sMaskStripeWidths12[y]; x < sMaskStripeWidths12[y]; x++) {  // was D_808E4E20 [LLM:HIGH]
+                         index = baseX + x + baseY + addY;
+                         if ((index >= 0) && (index < 0x1000)) {
+                             tex[index] = 255;
+                         }
+                     }
+                 }
+-            } else if (D_808E4E58[i] == 1) {
++            } else if (sMaskStripeKinds[i] == 1) {  // was D_808E4E58 [LLM:HIGH]
+                 for (y = 0, addY = -0x100; y < 8; y++, addY += 0x40) {
+-                    for (x = -D_808E4E10[y]; x < D_808E4E10[y]; x++) {
++                    for (x = -sMaskStripeWidths8[y]; x < sMaskStripeWidths8[y]; x++) {  // was D_808E4E10 [LLM:HIGH]
+                         index = baseX + x + baseY + addY;
+                         if ((index >= 0) && (index < 0x1000)) {
+                             tex[index] = 255;
+                         }
+                     }
+                 }
+-            } else if (D_808E4E58[i] == 0) {
++            } else if (sMaskStripeKinds[i] == 0) {  // was D_808E4E58 [LLM:HIGH]
+                 for (y = 0, addY = -0xC0; y < 7; y++, addY += 0x40) {
+-                    for (x = -D_808E4E00[y]; x < D_808E4E00[y] - 1; x++) {
++                    for (x = -sMaskStripeWidths7[y]; x < sMaskStripeWidths7[y] - 1; x++) {  // was D_808E4E00 [LLM:HIGH]
+                         index = baseX + x + baseY + addY;
+                         if ((index >= 0) && (index < 0x1000)) {
+                             tex[index] = 255;
+@@ -3765,7 +3765,7 @@ void BossGanon_DrawMaskTexPattern(BossGanon* this, u8* tex, f32 arg2) {
+                 }
+             } else {
+                 for (y = 0, addY = -0x80; y < 6; y++, addY += 0x40) {
+-                    for (x = -D_808E4DF4[y]; x < D_808E4DF4[y] - 1; x++) {
++                    for (x = -sMaskStripeWidths6[y]; x < sMaskStripeWidths6[y] - 1; x++) {  // was D_808E4DF4 [LLM:HIGH]
+                         index = baseX + x + baseY + addY;
+                         if ((index >= 0) && (index < 0x1000)) {
+                             tex[index] = 255;
+-- 
+2.55.0
+

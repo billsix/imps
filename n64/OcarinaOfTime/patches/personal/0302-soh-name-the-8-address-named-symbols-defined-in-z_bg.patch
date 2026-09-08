@@ -1,0 +1,239 @@
+From 99c0ec4edc8fdd1c86dfc2c21478e99221fd6b78 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:24 +0000
+Subject: [PATCH 302/488] soh: name the 8 address-named symbols defined in
+ z_bg_hidan_kousi.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 8 are defined in soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c; updating their references touches 3 files in total.
+
+  * D_80889E40 -> sTravelDistances
+    deduced, confidence HIGH: how far each fence variant slides from home;
+    used to place it at its final position and as the arrival test while it
+    moves.
+
+  * D_80889E7C -> sTravelYaws
+    deduced, confidence HIGH: the binary angle added to each variant's
+    shape.rot.y to give the direction it slides in.
+
+  * func_80889ACC -> BgHidanKousi_SnapToOpen
+    deduced, confidence HIGH: places the fence at its per-variant travel
+    distance from home along its slide direction; used both at Init when the
+    switch is already set and on arrival.
+
+  * func_80889B5C -> BgHidanKousi_WaitForSwitch
+    deduced, confidence HIGH: waits for the fence's switch flag, then aims
+    the attention camera at it and arms the 200-frame delay.
+
+  * func_80889BC0 -> BgHidanKousi_Delay
+    deduced, confidence HIGH: counts that delay down, cutting it short once
+    the camera is done with the actor, then starts the slide.
+
+  * func_80889C18 -> BgHidanKousi_Accelerate
+    deduced, confidence HIGH: ramps speedXZ up to 2.0 while sliding with the
+    metal-door sfx, then hands off to the constant-speed travel.
+
+  * func_80889C90 -> BgHidanKousi_Slide
+    deduced, confidence HIGH: keeps moving until the fence has covered its
+    variant's travel distance, then snaps it to the exact open position and
+    plays the stop sfx.
+
+  * func_80889D28 -> BgHidanKousi_DoNothing
+    deduced, confidence HIGH: the empty terminal action installed once the
+    fence is open.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../TimeSavers/timesaver_hook_handlers.cpp    |  2 +-
+ .../ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c     | 62 +++++++++++--------
+ .../ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h     |  2 +-
+ 3 files changed, 37 insertions(+), 29 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+index f7698c9ac..0b1470818 100644
+--- a/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
++++ b/soh/soh/Enhancements/TimeSavers/timesaver_hook_handlers.cpp
+@@ -326,7 +326,7 @@ void TimeSaverOnVanillaBehaviorHandler(GIVanillaBehavior id, bool* should, va_li
+                     }
+                     case ACTOR_BG_HIDAN_KOUSI: {
+                         BgHidanKousi* switchActor = (BgHidanKousi*)actor;
+-                        BgHidanKousi_SetupAction(switchActor, func_80889C18);
++                        BgHidanKousi_SetupAction(switchActor, BgHidanKousi_Accelerate);  // was func_80889C18 [LLM:HIGH]
+                         *should = false;
+                         RateLimitedSuccessChime();
+                         break;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+index e992b1a8b..051c4da78 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+@@ -14,14 +14,21 @@ void BgHidanKousi_Destroy(Actor* thisx, PlayState* play);
+ void BgHidanKousi_Update(Actor* thisx, PlayState* play);
+ void BgHidanKousi_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80889ACC(BgHidanKousi* this);
+-void func_80889B5C(BgHidanKousi* this, PlayState* play);
+-void func_80889BC0(BgHidanKousi* this, PlayState* play);
+-void func_80889C18(BgHidanKousi* this, PlayState* play);
+-void func_80889C90(BgHidanKousi* this, PlayState* play);
+-void func_80889D28(BgHidanKousi* this, PlayState* play);
+-
+-static f32 D_80889E40[] = { 120.0f, 150.0f, 150.0f };
++// LLM generated name (HIGH), was func_80889ACC: places the fence at its per-variant travel distance from home along its slide direction; used both at Init when the switch is already set and on arrival.
++void BgHidanKousi_SnapToOpen(BgHidanKousi* this);  // was func_80889ACC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80889B5C: waits for the fence's switch flag, then aims the attention camera at it and arms the 200-frame delay.
++void BgHidanKousi_WaitForSwitch(BgHidanKousi* this, PlayState* play);  // was func_80889B5C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80889BC0: counts that delay down, cutting it short once the camera is done with the actor, then starts the slide.
++void BgHidanKousi_Delay(BgHidanKousi* this, PlayState* play);  // was func_80889BC0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80889C18: ramps speedXZ up to 2.0 while sliding with the metal-door sfx, then hands off to the constant-speed travel.
++void BgHidanKousi_Accelerate(BgHidanKousi* this, PlayState* play);  // was func_80889C18 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80889C90: keeps moving until the fence has covered its variant's travel distance, then snaps it to the exact open position and plays the stop sfx.
++void BgHidanKousi_Slide(BgHidanKousi* this, PlayState* play);  // was func_80889C90 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80889D28: the empty terminal action installed once the fence is open.
++void BgHidanKousi_DoNothing(BgHidanKousi* this, PlayState* play);  // was func_80889D28 [LLM:HIGH]
++
++// LLM generated name (HIGH), was D_80889E40: how far each fence variant slides from home; used to place it at its final position and as the arrival test while it moves.
++static f32 sTravelDistances[] = { 120.0f, 150.0f, 150.0f };  // was D_80889E40 [LLM:HIGH]
+ 
+ const ActorInit Bg_Hidan_Kousi_InitVars = {
+     ACTOR_BG_HIDAN_KOUSI,
+@@ -46,7 +53,8 @@ static CollisionHeader* sMetalFencesCollisions[] = {
+     &gFireTempleMetalFence2Col,
+ };
+ 
+-static s16 D_80889E7C[] = {
++// LLM generated name (HIGH), was D_80889E7C: the binary angle added to each variant's shape.rot.y to give the direction it slides in.
++static s16 sTravelYaws[] = {  // was D_80889E7C [LLM:HIGH]
+     0x4000,
+     0xC000,
+     0xC000,
+@@ -80,12 +88,12 @@ void BgHidanKousi_Init(Actor* thisx, PlayState* play) {
+ 
+     CollisionHeader_GetVirtual(sMetalFencesCollisions[thisx->params & 0xFF], &colHeader);
+     this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, thisx, colHeader);
+-    thisx->world.rot.y = D_80889E7C[this->dyna.actor.params & 0xFF] + thisx->shape.rot.y;
++    thisx->world.rot.y = sTravelYaws[this->dyna.actor.params & 0xFF] + thisx->shape.rot.y;  // was D_80889E7C [LLM:HIGH]
+     if (Flags_GetSwitch(play, (thisx->params >> 8) & 0xFF)) {
+-        func_80889ACC(this);
+-        BgHidanKousi_SetupAction(this, func_80889D28);
++        BgHidanKousi_SnapToOpen(this);  // was func_80889ACC [LLM:HIGH]
++        BgHidanKousi_SetupAction(this, BgHidanKousi_DoNothing);  // was func_80889D28 [LLM:HIGH]
+     } else {
+-        BgHidanKousi_SetupAction(this, func_80889B5C);
++        BgHidanKousi_SetupAction(this, BgHidanKousi_WaitForSwitch);  // was func_80889B5C [LLM:HIGH]
+     }
+ }
+ 
+@@ -94,54 +102,54 @@ void BgHidanKousi_Destroy(Actor* thisx, PlayState* play) {
+     DynaPoly_DeleteBgActor(play, &play->colCtx.dyna, this->dyna.bgId);
+ }
+ 
+-void func_80889ACC(BgHidanKousi* this) {
++void BgHidanKousi_SnapToOpen(BgHidanKousi* this) {
+     s32 pad[2];
+     Vec3s* rot = &this->dyna.actor.world.rot;
+-    f32 temp1 = D_80889E40[this->dyna.actor.params & 0xFF] * Math_SinS(rot->y);
+-    f32 temp2 = D_80889E40[this->dyna.actor.params & 0xFF] * Math_CosS(rot->y);
++    f32 temp1 = sTravelDistances[this->dyna.actor.params & 0xFF] * Math_SinS(rot->y);  // was D_80889E40 [LLM:HIGH]
++    f32 temp2 = sTravelDistances[this->dyna.actor.params & 0xFF] * Math_CosS(rot->y);  // was D_80889E40 [LLM:HIGH]
+ 
+     this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x + temp1;
+     this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z + temp2;
+ }
+ 
+-void func_80889B5C(BgHidanKousi* this, PlayState* play) {
++void BgHidanKousi_WaitForSwitch(BgHidanKousi* this, PlayState* play) {
+     if (Flags_GetSwitch(play, (this->dyna.actor.params >> 8) & 0xFF)) {
+-        BgHidanKousi_SetupAction(this, func_80889BC0);
++        BgHidanKousi_SetupAction(this, BgHidanKousi_Delay);  // was func_80889BC0 [LLM:HIGH]
+         OnePointCutscene_Attention(play, &this->dyna.actor);
+         this->unk_168 = 0xC8;
+     }
+ }
+ 
+-void func_80889BC0(BgHidanKousi* this, PlayState* play) {
++void BgHidanKousi_Delay(BgHidanKousi* this, PlayState* play) {
+     this->unk_168 -= 1;
+     if (this->dyna.actor.category == func_8005B198() || (this->unk_168 <= 0)) {
+-        BgHidanKousi_SetupAction(this, func_80889C18);
++        BgHidanKousi_SetupAction(this, BgHidanKousi_Accelerate);  // was func_80889C18 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80889C18(BgHidanKousi* this, PlayState* play) {
++void BgHidanKousi_Accelerate(BgHidanKousi* this, PlayState* play) {
+     this->dyna.actor.speedXZ += 0.2f;
+     if (this->dyna.actor.speedXZ > 2.0f) {
+         this->dyna.actor.speedXZ = 2.0f;
+-        BgHidanKousi_SetupAction(this, func_80889C90);
++        BgHidanKousi_SetupAction(this, BgHidanKousi_Slide);  // was func_80889C90 [LLM:HIGH]
+     }
+     Actor_MoveXZGravity(&this->dyna.actor);
+     Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_METALDOOR_SLIDE - SFX_FLAG);
+ }
+ 
+-void func_80889C90(BgHidanKousi* this, PlayState* play) {
++void BgHidanKousi_Slide(BgHidanKousi* this, PlayState* play) {
+     Actor_UpdatePos(&this->dyna.actor);
+-    if (D_80889E40[this->dyna.actor.params & 0xFF] <
++    if (sTravelDistances[this->dyna.actor.params & 0xFF] <  // was D_80889E40 [LLM:HIGH]
+         Math_Vec3f_DistXYZ(&this->dyna.actor.home.pos, &this->dyna.actor.world.pos)) {
+-        func_80889ACC(this);
+-        BgHidanKousi_SetupAction(this, func_80889D28);
++        BgHidanKousi_SnapToOpen(this);  // was func_80889ACC [LLM:HIGH]
++        BgHidanKousi_SetupAction(this, BgHidanKousi_DoNothing);  // was func_80889D28 [LLM:HIGH]
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_METALDOOR_STOP);
+     } else {
+         Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_METALDOOR_SLIDE - SFX_FLAG);
+     }
+ }
+ 
+-void func_80889D28(BgHidanKousi* this, PlayState* play) {
++void BgHidanKousi_DoNothing(BgHidanKousi* this, PlayState* play) {
+ }
+ 
+ void BgHidanKousi_Update(Actor* thisx, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h
+index 1f3eb4161..1e8e1a477 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.h
+@@ -15,6 +15,6 @@ typedef struct BgHidanKousi {
+ } BgHidanKousi; // size = 0x016C
+ 
+ void BgHidanKousi_SetupAction(BgHidanKousi* bgHidanKousi, BgHidanKousiActionFunc actionFunc);
+-void func_80889C18(BgHidanKousi* bgHidanKousi, PlayState* play);
++void BgHidanKousi_Accelerate(BgHidanKousi* bgHidanKousi, PlayState* play);  // was func_80889C18 [LLM:HIGH]
+ 
+ #endif
+-- 
+2.55.0
+

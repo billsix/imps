@@ -1,0 +1,367 @@
+From 62b04c0f88ec176fc9fcc4c967e921765e3d9328 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:27 +0000
+Subject: [PATCH 333/488] soh: name the 12 address-named symbols defined in
+ z_en_kakasi3.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 12 are defined in soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c.
+
+  * func_80A90E28 -> EnKakasi3_ReturnToRest
+    deduced, confidence HIGH: stops the dance animation and eases the
+    scarecrow's three rotation axes back to the pose it was spawned with;
+    every non-dancing action calls it each frame. The twin of
+    EnKakasi_ReturnToRest.
+
+  * func_80A90EBC -> EnKakasi3_Dance
+    deduced, confidence HIGH: turns each ocarina note into a dance move
+    exactly as EnKakasi_Dance does, ramping up to a jump after eight notes;
+    its argument makes it pick random notes instead, for the playback.
+
+  * func_80A911F0 -> EnKakasi3_SetupIdle
+    deduced, confidence HIGH: restarts the looping animation and installs
+    the text-picking state.
+
+  * func_80A91284 -> EnKakasi3_PickTextId
+    deduced, confidence HIGH: chooses Pierre's line from Link's age and
+    whether the scarecrow's song has been recorded and replayed, then
+    installs the idle.
+
+  * func_80A91348 -> EnKakasi3_Idle
+    deduced, confidence HIGH: holds the rest pose and, when the player takes
+    the ocarina out nearby, opens the recording or replay prompt with its
+    one-point cutscene; an accepted conversation routes to the playback
+    state.
+
+  * func_80A915B8 -> EnKakasi3_StartRecording
+    deduced, confidence HIGH: closes the prompt and opens the
+    scarecrow's-song recording input.
+
+  * func_80A91620 -> EnKakasi3_WaitForRecording
+    deduced, confidence HIGH: dances to the notes while the song is being
+    recorded, opens the confirmation line on success and otherwise ends the
+    camera shot and returns to the idle.
+
+  * func_80A91760 -> EnKakasi3_StartPlayback
+    deduced, confidence HIGH: waits out the current line, then opens the
+    scarecrow's-song playback prompt and its one-point cutscene.
+
+  * func_80A917FC -> EnKakasi3_WaitForPlayback
+    deduced, confidence HIGH: dances through the playback and, once it
+    finishes, closes the textbox, ends the camera shot and returns to the
+    idle.
+
+  * func_80A9187C -> EnKakasi3_StartSongCheck
+    deduced, confidence HIGH: closes the current line and opens the input
+    that checks whether the player can play the recorded scarecrow's song.
+
+  * func_80A918E4 -> EnKakasi3_WaitForSongCheck
+    deduced, confidence HIGH: dances to the notes during that check and
+    opens either the success or the failure line when it ends, recording the
+    success so the scarecrow can be summoned elsewhere.
+
+  * func_80A91A90 -> EnKakasi3_FinishTalk
+    deduced, confidence HIGH: holds the rest pose until the closing line is
+    advanced, sets the played-for-scarecrow event flag when the song was
+    learned, ends the camera shot and hands control back to the player.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_En_Kakasi3/z_en_kakasi3.c      | 102 ++++++++++--------
+ 1 file changed, 57 insertions(+), 45 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c b/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
+index eb4162da7..7af95be5e 100644
+--- a/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
++++ b/soh/src/overlays/actors/ovl_En_Kakasi3/z_en_kakasi3.c
+@@ -15,16 +15,26 @@ void EnKakasi3_Destroy(Actor* thisx, PlayState* play);
+ void EnKakasi3_Update(Actor* thisx, PlayState* play);
+ void EnKakasi3_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A911F0(EnKakasi3* this, PlayState* play);
+-void func_80A91284(EnKakasi3* this, PlayState* play);
+-void func_80A91348(EnKakasi3* this, PlayState* play);
+-void func_80A915B8(EnKakasi3* this, PlayState* play);
+-void func_80A91620(EnKakasi3* this, PlayState* play);
+-void func_80A91760(EnKakasi3* this, PlayState* play);
+-void func_80A917FC(EnKakasi3* this, PlayState* play);
+-void func_80A9187C(EnKakasi3* this, PlayState* play);
+-void func_80A918E4(EnKakasi3* this, PlayState* play);
+-void func_80A91A90(EnKakasi3* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A911F0: restarts the looping animation and installs the text-picking state.
++void EnKakasi3_SetupIdle(EnKakasi3* this, PlayState* play);  // was func_80A911F0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A91284: chooses Pierre's line from Link's age and whether the scarecrow's song has been recorded and replayed, then installs the idle.
++void EnKakasi3_PickTextId(EnKakasi3* this, PlayState* play);  // was func_80A91284 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A91348: holds the rest pose and, when the player takes the ocarina out nearby, opens the recording or replay prompt with its one-point cutscene; an accepted conversation routes to the playback state.
++void EnKakasi3_Idle(EnKakasi3* this, PlayState* play);  // was func_80A91348 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A915B8: closes the prompt and opens the scarecrow's-song recording input.
++void EnKakasi3_StartRecording(EnKakasi3* this, PlayState* play);  // was func_80A915B8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A91620: dances to the notes while the song is being recorded, opens the confirmation line on success and otherwise ends the camera shot and returns to the idle.
++void EnKakasi3_WaitForRecording(EnKakasi3* this, PlayState* play);  // was func_80A91620 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A91760: waits out the current line, then opens the scarecrow's-song playback prompt and its one-point cutscene.
++void EnKakasi3_StartPlayback(EnKakasi3* this, PlayState* play);  // was func_80A91760 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A917FC: dances through the playback and, once it finishes, closes the textbox, ends the camera shot and returns to the idle.
++void EnKakasi3_WaitForPlayback(EnKakasi3* this, PlayState* play);  // was func_80A917FC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A9187C: closes the current line and opens the input that checks whether the player can play the recorded scarecrow's song.
++void EnKakasi3_StartSongCheck(EnKakasi3* this, PlayState* play);  // was func_80A9187C [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A918E4: dances to the notes during that check and opens either the success or the failure line when it ends, recording the success so the scarecrow can be summoned elsewhere.
++void EnKakasi3_WaitForSongCheck(EnKakasi3* this, PlayState* play);  // was func_80A918E4 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A91A90: holds the rest pose until the closing line is advanced, sets the played-for-scarecrow event flag when the song was learned, ends the camera shot and hands control back to the player.
++void EnKakasi3_FinishTalk(EnKakasi3* this, PlayState* play);  // was func_80A91A90 [LLM:HIGH]
+ 
+ static ColliderCylinderInit sCylinderInit = {
+     {
+@@ -81,10 +91,11 @@ void EnKakasi3_Init(Actor* thisx, PlayState* play) {
+     this->rot = this->actor.world.rot;
+     this->actor.colChkInfo.mass = MASS_IMMOVABLE;
+     Actor_SetScale(&this->actor, 0.01f);
+-    this->actionFunc = func_80A911F0;
++    this->actionFunc = EnKakasi3_SetupIdle;  // was func_80A911F0 [LLM:HIGH]
+ }
+ 
+-void func_80A90E28(EnKakasi3* this) {
++// LLM generated name (HIGH), was func_80A90E28: stops the dance animation and eases the scarecrow's three rotation axes back to the pose it was spawned with; every non-dancing action calls it each frame. The twin of EnKakasi_ReturnToRest.
++void EnKakasi3_ReturnToRest(EnKakasi3* this) {
+     this->unk_1A4 = 0;
+     this->skelAnime.playSpeed = 0.0f;
+     this->unk_1AA = this->unk_1AE = 0x0;
+@@ -95,7 +106,8 @@ void func_80A90E28(EnKakasi3* this) {
+     Math_SmoothStepToS(&this->actor.shape.rot.z, this->rot.z, 5, 0x2710, 0);
+ }
+ 
+-void func_80A90EBC(EnKakasi3* this, PlayState* play, s32 arg) {
++// LLM generated name (HIGH), was func_80A90EBC: turns each ocarina note into a dance move exactly as EnKakasi_Dance does, ramping up to a jump after eight notes; its argument makes it pick random notes instead, for the playback.
++void EnKakasi3_Dance(EnKakasi3* this, PlayState* play, s32 arg) {
+     s16 currentFrame;
+     s16 ocarinaNote = play->msgCtx.lastOcaNoteIdx;
+ 
+@@ -173,14 +185,14 @@ void func_80A90EBC(EnKakasi3* this, PlayState* play, s32 arg) {
+     }
+ }
+ 
+-void func_80A911F0(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_SetupIdle(EnKakasi3* this, PlayState* play) {
+     f32 frameCount = Animation_GetLastFrame(&object_ka_Anim_000214);
+ 
+     Animation_Change(&this->skelAnime, &object_ka_Anim_000214, 1.0f, 0.0f, (s16)frameCount, ANIMMODE_LOOP, -10.0f);
+-    this->actionFunc = func_80A91284;
++    this->actionFunc = EnKakasi3_PickTextId;  // was func_80A91284 [LLM:HIGH]
+ }
+ 
+-void func_80A91284(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_PickTextId(EnKakasi3* this, PlayState* play) {
+     SkelAnime_Update(&this->skelAnime);
+ 
+     this->actor.textId = 0x40A1;
+@@ -204,24 +216,24 @@ void func_80A91284(EnKakasi3* this, PlayState* play) {
+             }
+         }
+     }
+-    this->actionFunc = func_80A91348;
++    this->actionFunc = EnKakasi3_Idle;  // was func_80A91348 [LLM:HIGH]
+ }
+ 
+-void func_80A91348(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_Idle(EnKakasi3* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+-    func_80A90E28(this);
++    EnKakasi3_ReturnToRest(this);  // was func_80A90E28 [LLM:HIGH]
+     SkelAnime_Update(&this->skelAnime);
+     this->camId = SUBCAM_NONE;
+     if (Actor_ProcessTalkRequest(&this->actor, play)) {
+         if (!this->unk_194) {
+             if (this->unk_1A8 == 0) {
+-                this->actionFunc = func_80A91284;
++                this->actionFunc = EnKakasi3_PickTextId;  // was func_80A91284 [LLM:HIGH]
+             } else {
+-                this->actionFunc = func_80A91760;
++                this->actionFunc = EnKakasi3_StartPlayback;  // was func_80A91760 [LLM:HIGH]
+             }
+         } else {
+-            this->actionFunc = func_80A91284;
++            this->actionFunc = EnKakasi3_PickTextId;  // was func_80A91284 [LLM:HIGH]
+         }
+     } else {
+         s16 angleTowardsLink = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+@@ -239,7 +251,7 @@ void func_80A91348(EnKakasi3* this, PlayState* play) {
+                         this->unk_1B8 = 0.0f;
+                         Message_StartTextbox(play, 0x40A4, NULL);
+                         player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+-                        this->actionFunc = func_80A915B8;
++                        this->actionFunc = EnKakasi3_StartRecording;  // was func_80A915B8 [LLM:HIGH]
+                         return;
+                     }
+                     if (this->actor.xzDistToPlayer < 80.0f) {
+@@ -254,7 +266,7 @@ void func_80A91348(EnKakasi3* this, PlayState* play) {
+                         this->unk_1B8 = 0.0f;
+                         Message_StartTextbox(play, 0x40A8, NULL);
+                         player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+-                        this->actionFunc = func_80A9187C;
++                        this->actionFunc = EnKakasi3_StartSongCheck;  // was func_80A9187C [LLM:HIGH]
+                         return;
+                     }
+                     if (this->actor.xzDistToPlayer < 80.0f) {
+@@ -267,15 +279,15 @@ void func_80A91348(EnKakasi3* this, PlayState* play) {
+     }
+ }
+ 
+-void func_80A915B8(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_StartRecording(EnKakasi3* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+         Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_SCARECROW_RECORDING);
+-        this->actionFunc = func_80A91620;
++        this->actionFunc = EnKakasi3_WaitForRecording;  // was func_80A91620 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A91620(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_WaitForRecording(EnKakasi3* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if ((play->msgCtx.ocarinaMode == OCARINA_MODE_04 ||
+@@ -289,7 +301,7 @@ void func_80A91620(EnKakasi3* this, PlayState* play) {
+         if (this->camId != SUBCAM_NONE) {
+             Camera_SetFinishedFlag(play->cameraPtrs[this->camId]);
+         }
+-        this->actionFunc = func_80A911F0;
++        this->actionFunc = EnKakasi3_SetupIdle;  // was func_80A911F0 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -297,49 +309,49 @@ void func_80A91620(EnKakasi3* this, PlayState* play) {
+         this->dialogState = TEXT_STATE_EVENT;
+         Message_StartTextbox(play, 0x40A5, NULL);
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        this->actionFunc = func_80A91A90;
++        this->actionFunc = EnKakasi3_FinishTalk;  // was func_80A91A90 [LLM:HIGH]
+         return;
+     }
+ 
+     if (play->msgCtx.ocarinaMode == OCARINA_MODE_01) {
+-        func_80A90EBC(this, play, 0);
++        EnKakasi3_Dance(this, play, 0);  // was func_80A90EBC [LLM:HIGH]
+         player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+     }
+ }
+ 
+-void func_80A91760(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_StartPlayback(EnKakasi3* this, PlayState* play) {
+ 
+-    func_80A90E28(this);
++    EnKakasi3_ReturnToRest(this);  // was func_80A90E28 [LLM:HIGH]
+     SkelAnime_Update(&this->skelAnime);
+     if (this->dialogState == Message_GetState(&play->msgCtx) && Message_ShouldAdvance(play)) {
+         play->msgCtx.msgMode = MSGMODE_PAUSED;
+         Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_SCARECROW_PLAYBACK);
+-        this->actionFunc = func_80A917FC;
++        this->actionFunc = EnKakasi3_WaitForPlayback;  // was func_80A917FC [LLM:HIGH]
+         this->camId = OnePointCutscene_Init(play, 2280, -99, &this->actor, CAM_ID_MAIN);
+     }
+ }
+ 
+-void func_80A917FC(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_WaitForPlayback(EnKakasi3* this, PlayState* play) {
+ 
+     if (play->msgCtx.ocarinaMode != OCARINA_MODE_0F) {
+-        func_80A90EBC(this, play, 1);
++        EnKakasi3_Dance(this, play, 1);  // was func_80A90EBC [LLM:HIGH]
+     } else {
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+         Message_CloseTextbox(play);
+         OnePointCutscene_EndCutscene(play, this->camId);
+-        this->actionFunc = func_80A911F0;
++        this->actionFunc = EnKakasi3_SetupIdle;  // was func_80A911F0 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A9187C(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_StartSongCheck(EnKakasi3* this, PlayState* play) {
+     if (Message_GetState(&play->msgCtx) == TEXT_STATE_EVENT && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+         Message_StartOcarinaSunsSongEnabled(play, OCARINA_ACTION_CHECK_SCARECROW);
+-        this->actionFunc = func_80A918E4;
++        this->actionFunc = EnKakasi3_WaitForSongCheck;  // was func_80A918E4 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A918E4(EnKakasi3* this, PlayState* play) {
++void EnKakasi3_WaitForSongCheck(EnKakasi3* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if (BREG(3) != 0) {
+@@ -355,7 +367,7 @@ void func_80A918E4(EnKakasi3* this, PlayState* play) {
+         OnePointCutscene_EndCutscene(play, this->camId);
+         this->camId = SUBCAM_NONE;
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        this->actionFunc = func_80A91A90;
++        this->actionFunc = EnKakasi3_FinishTalk;  // was func_80A91A90 [LLM:HIGH]
+         return;
+     }
+ 
+@@ -370,18 +382,18 @@ void func_80A918E4(EnKakasi3* this, PlayState* play) {
+         Message_StartTextbox(play, 0x40A7, NULL);
+         this->dialogState = TEXT_STATE_EVENT;
+         Player_SetCsActionWithHaltedActors(play, NULL, 8);
+-        this->actionFunc = func_80A91A90;
++        this->actionFunc = EnKakasi3_FinishTalk;  // was func_80A91A90 [LLM:HIGH]
+         return;
+     }
+ 
+     if (play->msgCtx.ocarinaMode == OCARINA_MODE_01) {
+-        func_80A90EBC(this, play, 0);
++        EnKakasi3_Dance(this, play, 0);  // was func_80A90EBC [LLM:HIGH]
+         player->stateFlags2 |= PLAYER_STATE2_NEAR_OCARINA_ACTOR;
+     }
+ }
+ 
+-void func_80A91A90(EnKakasi3* this, PlayState* play) {
+-    func_80A90E28(this);
++void EnKakasi3_FinishTalk(EnKakasi3* this, PlayState* play) {
++    EnKakasi3_ReturnToRest(this);  // was func_80A90E28 [LLM:HIGH]
+     SkelAnime_Update(&this->skelAnime);
+     Player_SetCsActionWithHaltedActors(play, NULL, 8);
+ 
+@@ -400,7 +412,7 @@ void func_80A91A90(EnKakasi3* this, PlayState* play) {
+         Message_CloseTextbox(play);
+         play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+         Player_SetCsActionWithHaltedActors(play, NULL, 7);
+-        this->actionFunc = func_80A911F0;
++        this->actionFunc = EnKakasi3_SetupIdle;  // was func_80A911F0 [LLM:HIGH]
+     }
+ }
+ 
+-- 
+2.55.0
+

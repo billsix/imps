@@ -1,0 +1,968 @@
+From 5dbe92395788a11c6892cd703a8c10b4436d1682 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:33 +0000
+Subject: [PATCH 388/488] soh: name the 30 address-named symbols defined in
+ z_collision_check.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 30 are defined in soh/src/code/z_collision_check.c.
+
+  * D_8015D8A0 -> sBlueBloodSparkInit
+    deduced, confidence HIGH: the EffectSparkInit CollisionCheck_BlueBlood
+    fills in, held static to keep it off the stack
+
+  * D_8015DD68 -> sGreenBloodSparkInit
+    deduced, confidence HIGH: the same scratch init for
+    CollisionCheck_GreenBlood
+
+  * D_8015CF10 -> sRedBloodSparkInit
+    deduced, confidence HIGH: the same scratch init for
+    CollisionCheck_SpawnRedBlood
+
+  * D_8015D3D8 -> sWaterDropletsSparkInit
+    deduced, confidence HIGH: the same scratch init for
+    CollisionCheck_SpawnWaterDroplets
+
+  * D_8015E230 -> sJntSphVsQuadTri0
+    deduced, confidence HIGH: the first triangle the AC quad is split into
+    in CollisionCheck_AC_JntSphVsQuad
+
+  * D_8015E268 -> sJntSphVsQuadTri1
+    deduced, confidence HIGH: the second triangle of that same split
+
+  * D_8015E2A0 -> sQuadVsJntSphTri0
+    deduced, confidence HIGH: the first triangle the AT quad is split into
+    in CollisionCheck_AC_QuadVsJntSph
+
+  * D_8015E2D8 -> sQuadVsJntSphTri1
+    deduced, confidence HIGH: the second triangle of that same split
+
+  * D_8015E310 -> sTrisVsCylHitPos
+    deduced, confidence HIGH: the hit position CollisionCheck_AC_TrisVsCyl
+    reports
+
+  * D_8015E320 -> sCylVsQuadTri0
+    deduced, confidence HIGH: the first triangle the AC quad is split into
+    in CollisionCheck_AC_CylVsQuad
+
+  * D_8015E358 -> sCylVsQuadTri1
+    deduced, confidence HIGH: the second triangle of that same split
+
+  * D_8015E390 -> sCylVsQuadHitPos
+    deduced, confidence HIGH: the hit position that check reports
+
+  * D_8015E3A0 -> sQuadVsCylTri0
+    deduced, confidence HIGH: the first triangle the AT quad is split into
+    in CollisionCheck_AC_QuadVsCyl
+
+  * D_8015E3D8 -> sQuadVsCylTri1
+    deduced, confidence HIGH: the second triangle of that same split
+
+  * D_8015E410 -> sQuadVsCylHitPos
+    deduced, confidence HIGH: the hit position that check reports
+
+  * D_8015E420 -> sTrisVsTrisHitPos
+    deduced, confidence HIGH: the hit position CollisionCheck_AC_TrisVsTris
+    reports
+
+  * D_8015E430 -> sTrisVsQuadHitPos
+    deduced, confidence HIGH: the hit position CollisionCheck_AC_TrisVsQuad
+    reports
+
+  * D_8015E440 -> sTrisVsQuadTri0
+    deduced, confidence HIGH: the first triangle the AC quad is split into
+    in that check
+
+  * D_8015E478 -> sTrisVsQuadTri1
+    deduced, confidence HIGH: the second triangle of that same split
+
+  * D_8015E4B0 -> sQuadVsTrisHitPos
+    deduced, confidence HIGH: the hit position CollisionCheck_AC_QuadVsTris
+    reports
+
+  * D_8015E4C0 -> sQuadVsTrisTri0
+    deduced, confidence HIGH: the first triangle the AT quad is split into
+    in that check
+
+  * D_8015E4F8 -> sQuadVsTrisTri1
+    deduced, confidence HIGH: the second triangle of that same split
+
+  * D_8015E530 -> sQuadVsQuadAcTris
+    deduced, confidence HIGH: the two triangles the AC quad is split into in
+    CollisionCheck_AC_QuadVsQuad
+
+  * D_8015E598 -> sQuadVsQuadHitPos
+    deduced, confidence HIGH: the hit position that check reports
+
+  * D_8015E5A8 -> sQuadVsQuadAtTris
+    deduced, confidence HIGH: the two triangles the AT quad is split into in
+    that same check
+
+  * D_8015E610 -> sLineOCJntSphLine
+    deduced, confidence HIGH: the line segment CollisionCheck_LineOC_JntSph
+    tests each sphere against
+
+  * D_8015E628 -> sLineOCCylHitA
+    deduced, confidence HIGH: the first intersection Math3D_CylVsLineSeg
+    writes in CollisionCheck_LineOC_Cyl
+
+  * D_8015E638 -> sLineOCCylHitB
+    deduced, confidence HIGH: the second intersection of that same call
+
+  * D_8015E648 -> sUpdateSpheresModelCenter
+    deduced, confidence HIGH: the model-space sphere centre
+    Collider_UpdateSpheres transforms
+
+  * D_8015CF00 -> sUpdateSpheresWorldCenter
+    deduced, confidence HIGH: the world-space result of that transform
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/code/z_collision_check.c | 514 +++++++++++++++----------------
+ 1 file changed, 257 insertions(+), 257 deletions(-)
+
+diff --git a/soh/src/code/z_collision_check.c b/soh/src/code/z_collision_check.c
+index 5ea332afa..576968229 100644
+--- a/soh/src/code/z_collision_check.c
++++ b/soh/src/code/z_collision_check.c
+@@ -1465,52 +1465,52 @@ void CollisionCheck_NoBlood(PlayState* play, Collider* collider, Vec3f* v) {
+  * Used by collider types HIT0 and HIT8.
+  */
+ void CollisionCheck_BlueBlood(PlayState* play, Collider* collider, Vec3f* v) {
+-    static EffectSparkInit D_8015D8A0;
++    static EffectSparkInit sBlueBloodSparkInit;  // was D_8015D8A0 [LLM:HIGH]
+     s32 effectIndex;
+ 
+-    D_8015D8A0.position.x = v->x;
+-    D_8015D8A0.position.y = v->y;
+-    D_8015D8A0.position.z = v->z;
+-    D_8015D8A0.uDiv = 5;
+-    D_8015D8A0.vDiv = 5;
+-    D_8015D8A0.colorStart[0].r = 10;
+-    D_8015D8A0.colorStart[0].g = 10;
+-    D_8015D8A0.colorStart[0].b = 200;
+-    D_8015D8A0.colorStart[0].a = 255;
+-    D_8015D8A0.colorStart[1].r = 0;
+-    D_8015D8A0.colorStart[1].g = 0;
+-    D_8015D8A0.colorStart[1].b = 128;
+-    D_8015D8A0.colorStart[1].a = 255;
+-    D_8015D8A0.colorStart[2].r = 0;
+-    D_8015D8A0.colorStart[2].g = 0;
+-    D_8015D8A0.colorStart[2].b = 128;
+-    D_8015D8A0.colorStart[2].a = 255;
+-    D_8015D8A0.colorStart[3].r = 0;
+-    D_8015D8A0.colorStart[3].g = 0;
+-    D_8015D8A0.colorStart[3].b = 128;
+-    D_8015D8A0.colorStart[3].a = 255;
+-    D_8015D8A0.colorEnd[0].r = 0;
+-    D_8015D8A0.colorEnd[0].g = 0;
+-    D_8015D8A0.colorEnd[0].b = 32;
+-    D_8015D8A0.colorEnd[0].a = 0;
+-    D_8015D8A0.colorEnd[1].r = 0;
+-    D_8015D8A0.colorEnd[1].g = 0;
+-    D_8015D8A0.colorEnd[1].b = 32;
+-    D_8015D8A0.colorEnd[1].a = 0;
+-    D_8015D8A0.colorEnd[2].r = 0;
+-    D_8015D8A0.colorEnd[2].g = 0;
+-    D_8015D8A0.colorEnd[2].b = 64;
+-    D_8015D8A0.colorEnd[2].a = 0;
+-    D_8015D8A0.colorEnd[3].r = 0;
+-    D_8015D8A0.colorEnd[3].g = 0;
+-    D_8015D8A0.colorEnd[3].b = 64;
+-    D_8015D8A0.colorEnd[3].a = 0;
+-    D_8015D8A0.timer = 0;
+-    D_8015D8A0.duration = 16;
+-    D_8015D8A0.speed = 8.0f;
+-    D_8015D8A0.gravity = -1.0f;
+-
+-    Effect_Add(play, &effectIndex, EFFECT_SPARK, 0, 1, &D_8015D8A0);
++    sBlueBloodSparkInit.position.x = v->x;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.position.y = v->y;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.position.z = v->z;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.uDiv = 5;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.vDiv = 5;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[0].r = 10;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[0].g = 10;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[0].b = 200;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[0].a = 255;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[1].r = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[1].g = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[1].b = 128;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[1].a = 255;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[2].r = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[2].g = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[2].b = 128;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[2].a = 255;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[3].r = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[3].g = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[3].b = 128;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorStart[3].a = 255;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[0].r = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[0].g = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[0].b = 32;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[0].a = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[1].r = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[1].g = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[1].b = 32;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[1].a = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[2].r = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[2].g = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[2].b = 64;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[2].a = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[3].r = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[3].g = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[3].b = 64;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.colorEnd[3].a = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.timer = 0;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.duration = 16;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.speed = 8.0f;  // was D_8015D8A0 [LLM:HIGH]
++    sBlueBloodSparkInit.gravity = -1.0f;  // was D_8015D8A0 [LLM:HIGH]
++
++    Effect_Add(play, &effectIndex, EFFECT_SPARK, 0, 1, &sBlueBloodSparkInit);  // was D_8015D8A0 [LLM:HIGH]
+ }
+ 
+ /**
+@@ -1518,52 +1518,52 @@ void CollisionCheck_BlueBlood(PlayState* play, Collider* collider, Vec3f* v) {
+  * Used by collider types HIT2 and HIT6. No actor has type HIT2.
+  */
+ void CollisionCheck_GreenBlood(PlayState* play, Collider* collider, Vec3f* v) {
+-    static EffectSparkInit D_8015DD68;
++    static EffectSparkInit sGreenBloodSparkInit;  // was D_8015DD68 [LLM:HIGH]
+     s32 effectIndex;
+ 
+-    D_8015DD68.position.x = v->x;
+-    D_8015DD68.position.y = v->y;
+-    D_8015DD68.position.z = v->z;
+-    D_8015DD68.uDiv = 5;
+-    D_8015DD68.vDiv = 5;
+-    D_8015DD68.colorStart[0].r = 10;
+-    D_8015DD68.colorStart[0].g = 200;
+-    D_8015DD68.colorStart[0].b = 10;
+-    D_8015DD68.colorStart[0].a = 255;
+-    D_8015DD68.colorStart[1].r = 0;
+-    D_8015DD68.colorStart[1].g = 128;
+-    D_8015DD68.colorStart[1].b = 0;
+-    D_8015DD68.colorStart[1].a = 255;
+-    D_8015DD68.colorStart[2].r = 0;
+-    D_8015DD68.colorStart[2].g = 128;
+-    D_8015DD68.colorStart[2].b = 0;
+-    D_8015DD68.colorStart[2].a = 255;
+-    D_8015DD68.colorStart[3].r = 0;
+-    D_8015DD68.colorStart[3].g = 128;
+-    D_8015DD68.colorStart[3].b = 0;
+-    D_8015DD68.colorStart[3].a = 255;
+-    D_8015DD68.colorEnd[0].r = 0;
+-    D_8015DD68.colorEnd[0].g = 32;
+-    D_8015DD68.colorEnd[0].b = 0;
+-    D_8015DD68.colorEnd[0].a = 0;
+-    D_8015DD68.colorEnd[1].r = 0;
+-    D_8015DD68.colorEnd[1].g = 32;
+-    D_8015DD68.colorEnd[1].b = 0;
+-    D_8015DD68.colorEnd[1].a = 0;
+-    D_8015DD68.colorEnd[2].r = 0;
+-    D_8015DD68.colorEnd[2].g = 64;
+-    D_8015DD68.colorEnd[2].b = 0;
+-    D_8015DD68.colorEnd[2].a = 0;
+-    D_8015DD68.colorEnd[3].r = 0;
+-    D_8015DD68.colorEnd[3].g = 64;
+-    D_8015DD68.colorEnd[3].b = 0;
+-    D_8015DD68.colorEnd[3].a = 0;
+-    D_8015DD68.timer = 0;
+-    D_8015DD68.duration = 16;
+-    D_8015DD68.speed = 8.0f;
+-    D_8015DD68.gravity = -1.0f;
+-
+-    Effect_Add(play, &effectIndex, EFFECT_SPARK, 0, 1, &D_8015DD68);
++    sGreenBloodSparkInit.position.x = v->x;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.position.y = v->y;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.position.z = v->z;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.uDiv = 5;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.vDiv = 5;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[0].r = 10;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[0].g = 200;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[0].b = 10;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[0].a = 255;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[1].r = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[1].g = 128;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[1].b = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[1].a = 255;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[2].r = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[2].g = 128;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[2].b = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[2].a = 255;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[3].r = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[3].g = 128;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[3].b = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorStart[3].a = 255;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[0].r = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[0].g = 32;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[0].b = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[0].a = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[1].r = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[1].g = 32;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[1].b = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[1].a = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[2].r = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[2].g = 64;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[2].b = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[2].a = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[3].r = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[3].g = 64;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[3].b = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.colorEnd[3].a = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.timer = 0;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.duration = 16;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.speed = 8.0f;  // was D_8015DD68 [LLM:HIGH]
++    sGreenBloodSparkInit.gravity = -1.0f;  // was D_8015DD68 [LLM:HIGH]
++
++    Effect_Add(play, &effectIndex, EFFECT_SPARK, 0, 1, &sGreenBloodSparkInit);  // was D_8015DD68 [LLM:HIGH]
+ }
+ 
+ /**
+@@ -2010,8 +2010,8 @@ void CollisionCheck_AC_TrisVsJntSph(PlayState* play, CollisionCheckContext* colC
+  */
+ void CollisionCheck_AC_JntSphVsQuad(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT,
+                                     Collider* colAC) {
+-    static TriNorm D_8015E230;
+-    static TriNorm D_8015E268;
++    static TriNorm sJntSphVsQuadTri0;  // was D_8015E230 [LLM:HIGH]
++    static TriNorm sJntSphVsQuadTri1;  // was D_8015E268 [LLM:HIGH]
+     ColliderJntSph* at = (ColliderJntSph*)colAT;
+     ColliderQuad* ac = (ColliderQuad*)colAC;
+     Vec3f hitPos;
+@@ -2021,8 +2021,8 @@ void CollisionCheck_AC_JntSphVsQuad(PlayState* play, CollisionCheckContext* colC
+         if (CollisionCheck_SkipBump(&ac->info) == 1) {
+             return;
+         }
+-        Math3D_TriNorm(&D_8015E230, &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);
+-        Math3D_TriNorm(&D_8015E268, &ac->dim.quad[1], &ac->dim.quad[0], &ac->dim.quad[2]);
++        Math3D_TriNorm(&sJntSphVsQuadTri0, &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);  // was D_8015E230 [LLM:HIGH]
++        Math3D_TriNorm(&sJntSphVsQuadTri1, &ac->dim.quad[1], &ac->dim.quad[0], &ac->dim.quad[2]);  // was D_8015E268 [LLM:HIGH]
+         for (atItem = at->elements; atItem < at->elements + at->count; atItem++) {
+             if (CollisionCheck_SkipTouch(&atItem->info) == 1) {
+                 continue;
+@@ -2030,8 +2030,8 @@ void CollisionCheck_AC_JntSphVsQuad(PlayState* play, CollisionCheckContext* colC
+             if (CollisionCheck_NoSharedFlags(&atItem->info, &ac->info) == 1) {
+                 continue;
+             }
+-            if (Math3D_TriVsSphIntersect(&atItem->dim.worldSphere, &D_8015E230, &hitPos) == 1 ||
+-                Math3D_TriVsSphIntersect(&atItem->dim.worldSphere, &D_8015E268, &hitPos) == 1) {
++            if (Math3D_TriVsSphIntersect(&atItem->dim.worldSphere, &sJntSphVsQuadTri0, &hitPos) == 1 ||  // was D_8015E230 [LLM:HIGH]
++                Math3D_TriVsSphIntersect(&atItem->dim.worldSphere, &sJntSphVsQuadTri1, &hitPos) == 1) {  // was D_8015E268 [LLM:HIGH]
+                 Vec3f atPos;
+                 Vec3f acPos;
+ 
+@@ -2053,8 +2053,8 @@ void CollisionCheck_AC_JntSphVsQuad(PlayState* play, CollisionCheckContext* colC
+  */
+ void CollisionCheck_AC_QuadVsJntSph(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT,
+                                     Collider* colAC) {
+-    static TriNorm D_8015E2A0;
+-    static TriNorm D_8015E2D8;
++    static TriNorm sQuadVsJntSphTri0;  // was D_8015E2A0 [LLM:HIGH]
++    static TriNorm sQuadVsJntSphTri1;  // was D_8015E2D8 [LLM:HIGH]
+     ColliderJntSph* ac = (ColliderJntSph*)colAC;
+     Vec3f hitPos;
+     ColliderQuad* at = (ColliderQuad*)colAT;
+@@ -2064,8 +2064,8 @@ void CollisionCheck_AC_QuadVsJntSph(PlayState* play, CollisionCheckContext* colC
+         if (CollisionCheck_SkipTouch(&at->info) == 1) {
+             return;
+         }
+-        Math3D_TriNorm(&D_8015E2A0, &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);
+-        Math3D_TriNorm(&D_8015E2D8, &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);
++        Math3D_TriNorm(&sQuadVsJntSphTri0, &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);  // was D_8015E2A0 [LLM:HIGH]
++        Math3D_TriNorm(&sQuadVsJntSphTri1, &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);  // was D_8015E2D8 [LLM:HIGH]
+         for (acElem = ac->elements; acElem < ac->elements + ac->count; acElem++) {
+             if (CollisionCheck_SkipBump(&acElem->info) == 1) {
+                 continue;
+@@ -2073,8 +2073,8 @@ void CollisionCheck_AC_QuadVsJntSph(PlayState* play, CollisionCheckContext* colC
+             if (CollisionCheck_NoSharedFlags(&at->info, &acElem->info) == 1) {
+                 continue;
+             }
+-            if (Math3D_TriVsSphIntersect(&acElem->dim.worldSphere, &D_8015E2A0, &hitPos) == 1 ||
+-                Math3D_TriVsSphIntersect(&acElem->dim.worldSphere, &D_8015E2D8, &hitPos) == 1) {
++            if (Math3D_TriVsSphIntersect(&acElem->dim.worldSphere, &sQuadVsJntSphTri0, &hitPos) == 1 ||  // was D_8015E2A0 [LLM:HIGH]
++                Math3D_TriVsSphIntersect(&acElem->dim.worldSphere, &sQuadVsJntSphTri1, &hitPos) == 1) {  // was D_8015E2D8 [LLM:HIGH]
+                 if (Collider_QuadSetNearestAC(play, at, &hitPos)) {
+                     Vec3f atPos;
+                     Vec3f acPos;
+@@ -2180,7 +2180,7 @@ void CollisionCheck_AC_CylVsTris(PlayState* play, CollisionCheckContext* colChkC
+  * AC overlap check. Calculates the center of each collider element and the point of contact.
+  */
+ void CollisionCheck_AC_TrisVsCyl(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+-    static Vec3f D_8015E310;
++    static Vec3f sTrisVsCylHitPos;  // was D_8015E310 [LLM:HIGH]
+     ColliderTris* at = (ColliderTris*)colAT;
+     ColliderTrisElement* atItem;
+     ColliderCylinder* ac = (ColliderCylinder*)colAC;
+@@ -2199,13 +2199,13 @@ void CollisionCheck_AC_TrisVsCyl(PlayState* play, CollisionCheckContext* colChkC
+                 continue;
+             }
+ 
+-            if (Math3D_CylTriVsIntersect(&ac->dim, &atItem->dim, &D_8015E310) == 1) {
++            if (Math3D_CylTriVsIntersect(&ac->dim, &atItem->dim, &sTrisVsCylHitPos) == 1) {  // was D_8015E310 [LLM:HIGH]
+                 atPos.x = (atItem->dim.vtx[0].x + atItem->dim.vtx[1].x + atItem->dim.vtx[2].x) * (1.0f / 3);
+                 atPos.y = (atItem->dim.vtx[0].y + atItem->dim.vtx[1].y + atItem->dim.vtx[2].y) * (1.0f / 3);
+                 atPos.z = (atItem->dim.vtx[0].z + atItem->dim.vtx[1].z + atItem->dim.vtx[2].z) * (1.0f / 3);
+                 Math_Vec3s_ToVec3f(&acPos, &ac->dim.pos);
+                 CollisionCheck_SetATvsAC(play, &at->base, &atItem->info, &atPos, &ac->base, &ac->info, &acPos,
+-                                         &D_8015E310);
++                                         &sTrisVsCylHitPos);  // was D_8015E310 [LLM:HIGH]
+                 return;
+             }
+         }
+@@ -2216,9 +2216,9 @@ void CollisionCheck_AC_TrisVsCyl(PlayState* play, CollisionCheckContext* colChkC
+  * AC overlap check. Calculates the center of each collider element and the point of contact.
+  */
+ void CollisionCheck_AC_CylVsQuad(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+-    static TriNorm D_8015E320;
+-    static TriNorm D_8015E358;
+-    static Vec3f D_8015E390;
++    static TriNorm sCylVsQuadTri0;  // was D_8015E320 [LLM:HIGH]
++    static TriNorm sCylVsQuadTri1;  // was D_8015E358 [LLM:HIGH]
++    static Vec3f sCylVsQuadHitPos;  // was D_8015E390 [LLM:HIGH]
+     ColliderCylinder* at = (ColliderCylinder*)colAT;
+     ColliderQuad* ac = (ColliderQuad*)colAC;
+ 
+@@ -2229,9 +2229,9 @@ void CollisionCheck_AC_CylVsQuad(PlayState* play, CollisionCheckContext* colChkC
+         if (CollisionCheck_NoSharedFlags(&at->info, &ac->info) == 1) {
+             return;
+         }
+-        Math3D_TriNorm(&D_8015E320, &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);
+-        Math3D_TriNorm(&D_8015E358, &ac->dim.quad[1], &ac->dim.quad[0], &ac->dim.quad[2]);
+-        if (Math3D_CylTriVsIntersect(&at->dim, &D_8015E320, &D_8015E390) == 1) {
++        Math3D_TriNorm(&sCylVsQuadTri0, &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);  // was D_8015E320 [LLM:HIGH]
++        Math3D_TriNorm(&sCylVsQuadTri1, &ac->dim.quad[1], &ac->dim.quad[0], &ac->dim.quad[2]);  // was D_8015E358 [LLM:HIGH]
++        if (Math3D_CylTriVsIntersect(&at->dim, &sCylVsQuadTri0, &sCylVsQuadHitPos) == 1) {  // was D_8015E320 [LLM:HIGH]
+             Vec3f atPos1;
+             Vec3f acPos1;
+ 
+@@ -2239,8 +2239,8 @@ void CollisionCheck_AC_CylVsQuad(PlayState* play, CollisionCheckContext* colChkC
+             acPos1.x = (ac->dim.quad[0].x + (ac->dim.quad[1].x + (ac->dim.quad[3].x + ac->dim.quad[2].x))) / 4.0f;
+             acPos1.y = (ac->dim.quad[0].y + (ac->dim.quad[1].y + (ac->dim.quad[3].y + ac->dim.quad[2].y))) / 4.0f;
+             acPos1.z = (ac->dim.quad[0].z + (ac->dim.quad[1].z + (ac->dim.quad[3].z + ac->dim.quad[2].z))) / 4.0f;
+-            CollisionCheck_SetATvsAC(play, &at->base, &at->info, &atPos1, &ac->base, &ac->info, &acPos1, &D_8015E390);
+-        } else if (Math3D_CylTriVsIntersect(&at->dim, &D_8015E358, &D_8015E390) == 1) {
++            CollisionCheck_SetATvsAC(play, &at->base, &at->info, &atPos1, &ac->base, &ac->info, &acPos1, &sCylVsQuadHitPos);  // was D_8015E390 [LLM:HIGH]
++        } else if (Math3D_CylTriVsIntersect(&at->dim, &sCylVsQuadTri1, &sCylVsQuadHitPos) == 1) {  // was D_8015E358 [LLM:HIGH]
+             Vec3f atPos2;
+             Vec3f acPos2;
+ 
+@@ -2248,7 +2248,7 @@ void CollisionCheck_AC_CylVsQuad(PlayState* play, CollisionCheckContext* colChkC
+             acPos2.x = (ac->dim.quad[0].x + (ac->dim.quad[1].x + (ac->dim.quad[3].x + ac->dim.quad[2].x))) / 4.0f;
+             acPos2.y = (ac->dim.quad[0].y + (ac->dim.quad[1].y + (ac->dim.quad[3].y + ac->dim.quad[2].y))) / 4.0f;
+             acPos2.z = (ac->dim.quad[0].z + (ac->dim.quad[1].z + (ac->dim.quad[3].z + ac->dim.quad[2].z))) / 4.0f;
+-            CollisionCheck_SetATvsAC(play, &at->base, &at->info, &atPos2, &ac->base, &ac->info, &acPos2, &D_8015E390);
++            CollisionCheck_SetATvsAC(play, &at->base, &at->info, &atPos2, &ac->base, &ac->info, &acPos2, &sCylVsQuadHitPos);  // was D_8015E390 [LLM:HIGH]
+         }
+     }
+ }
+@@ -2260,9 +2260,9 @@ static s8 sBssDummy1;
+  * AC overlap check. Calculates the center of each collider element and the point of contact.
+  */
+ void CollisionCheck_AC_QuadVsCyl(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+-    static TriNorm D_8015E3A0;
+-    static TriNorm D_8015E3D8;
+-    static Vec3f D_8015E410;
++    static TriNorm sQuadVsCylTri0;  // was D_8015E3A0 [LLM:HIGH]
++    static TriNorm sQuadVsCylTri1;  // was D_8015E3D8 [LLM:HIGH]
++    static Vec3f sQuadVsCylHitPos;  // was D_8015E410 [LLM:HIGH]
+     ColliderQuad* at = (ColliderQuad*)colAT;
+     ColliderCylinder* ac = (ColliderCylinder*)colAC;
+ 
+@@ -2273,10 +2273,10 @@ void CollisionCheck_AC_QuadVsCyl(PlayState* play, CollisionCheckContext* colChkC
+         if (CollisionCheck_NoSharedFlags(&at->info, &ac->info) == 1) {
+             return;
+         }
+-        Math3D_TriNorm(&D_8015E3A0, &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);
+-        Math3D_TriNorm(&D_8015E3D8, &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);
+-        if (Math3D_CylTriVsIntersect(&ac->dim, &D_8015E3A0, &D_8015E410) == 1) {
+-            if (Collider_QuadSetNearestAC(play, at, &D_8015E410)) {
++        Math3D_TriNorm(&sQuadVsCylTri0, &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);  // was D_8015E3A0 [LLM:HIGH]
++        Math3D_TriNorm(&sQuadVsCylTri1, &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);  // was D_8015E3D8 [LLM:HIGH]
++        if (Math3D_CylTriVsIntersect(&ac->dim, &sQuadVsCylTri0, &sQuadVsCylHitPos) == 1) {  // was D_8015E3A0 [LLM:HIGH]
++            if (Collider_QuadSetNearestAC(play, at, &sQuadVsCylHitPos)) {  // was D_8015E410 [LLM:HIGH]
+                 Vec3f atPos1;
+                 Vec3f acPos1;
+ 
+@@ -2285,12 +2285,12 @@ void CollisionCheck_AC_QuadVsCyl(PlayState* play, CollisionCheckContext* colChkC
+                 atPos1.z = (at->dim.quad[0].z + (at->dim.quad[1].z + (at->dim.quad[3].z + at->dim.quad[2].z))) / 4.0f;
+                 Math_Vec3s_ToVec3f(&acPos1, &ac->dim.pos);
+                 CollisionCheck_SetATvsAC(play, &at->base, &at->info, &atPos1, &ac->base, &ac->info, &acPos1,
+-                                         &D_8015E410);
++                                         &sQuadVsCylHitPos);  // was D_8015E410 [LLM:HIGH]
+                 return;
+             }
+         }
+-        if (Math3D_CylTriVsIntersect(&ac->dim, &D_8015E3D8, &D_8015E410) == 1) {
+-            if (Collider_QuadSetNearestAC(play, at, &D_8015E410)) {
++        if (Math3D_CylTriVsIntersect(&ac->dim, &sQuadVsCylTri1, &sQuadVsCylHitPos) == 1) {  // was D_8015E3D8 [LLM:HIGH]
++            if (Collider_QuadSetNearestAC(play, at, &sQuadVsCylHitPos)) {  // was D_8015E410 [LLM:HIGH]
+                 Vec3f atPos2;
+                 Vec3f acPos2;
+ 
+@@ -2299,7 +2299,7 @@ void CollisionCheck_AC_QuadVsCyl(PlayState* play, CollisionCheckContext* colChkC
+                 atPos2.z = (at->dim.quad[0].z + (at->dim.quad[1].z + (at->dim.quad[3].z + at->dim.quad[2].z))) / 4.0f;
+                 Math_Vec3s_ToVec3f(&acPos2, &ac->dim.pos);
+                 CollisionCheck_SetATvsAC(play, &at->base, &at->info, &atPos2, &ac->base, &ac->info, &acPos2,
+-                                         &D_8015E410);
++                                         &sQuadVsCylHitPos);  // was D_8015E410 [LLM:HIGH]
+             }
+         }
+     }
+@@ -2314,7 +2314,7 @@ static s8 sBssDummy6;
+  * AC overlap check. Calculates the center of each collider element and the point of contact.
+  */
+ void CollisionCheck_AC_TrisVsTris(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+-    static Vec3f D_8015E420;
++    static Vec3f sTrisVsTrisHitPos;  // was D_8015E420 [LLM:HIGH]
+     ColliderTris* at = (ColliderTris*)colAT;
+     ColliderTrisElement* atItem;
+     ColliderTris* ac = (ColliderTris*)colAC;
+@@ -2332,7 +2332,7 @@ void CollisionCheck_AC_TrisVsTris(PlayState* play, CollisionCheckContext* colChk
+                 if (CollisionCheck_NoSharedFlags(&atItem->info, &acElem->info) == 1) {
+                     continue;
+                 }
+-                if (Math3D_TriVsTriIntersect(&atItem->dim, &acElem->dim, &D_8015E420) == 1) {
++                if (Math3D_TriVsTriIntersect(&atItem->dim, &acElem->dim, &sTrisVsTrisHitPos) == 1) {  // was D_8015E420 [LLM:HIGH]
+                     Vec3f atPos;
+                     Vec3f acPos;
+ 
+@@ -2343,7 +2343,7 @@ void CollisionCheck_AC_TrisVsTris(PlayState* play, CollisionCheckContext* colChk
+                     acPos.y = (acElem->dim.vtx[0].y + acElem->dim.vtx[1].y + acElem->dim.vtx[2].y) * (1.0f / 3);
+                     acPos.z = (acElem->dim.vtx[0].z + acElem->dim.vtx[1].z + acElem->dim.vtx[2].z) * (1.0f / 3);
+                     CollisionCheck_SetATvsAC(play, &at->base, &atItem->info, &atPos, &ac->base, &acElem->info, &acPos,
+-                                             &D_8015E420);
++                                             &sTrisVsTrisHitPos);  // was D_8015E420 [LLM:HIGH]
+                     return;
+                 }
+             }
+@@ -2360,9 +2360,9 @@ static s8 sBssDummy10;
+  * AC overlap check. Calculates the center of each collider element and the point of contact.
+  */
+ void CollisionCheck_AC_TrisVsQuad(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+-    static Vec3f D_8015E430;
+-    static TriNorm D_8015E440;
+-    static TriNorm D_8015E478;
++    static Vec3f sTrisVsQuadHitPos;  // was D_8015E430 [LLM:HIGH]
++    static TriNorm sTrisVsQuadTri0;  // was D_8015E440 [LLM:HIGH]
++    static TriNorm sTrisVsQuadTri1;  // was D_8015E478 [LLM:HIGH]
+     ColliderTris* at = (ColliderTris*)colAT;
+     ColliderTrisElement* atItem;
+     ColliderQuad* ac = (ColliderQuad*)colAC;
+@@ -2371,8 +2371,8 @@ void CollisionCheck_AC_TrisVsQuad(PlayState* play, CollisionCheckContext* colChk
+         if (CollisionCheck_SkipBump(&ac->info) == 1) {
+             return;
+         }
+-        Math3D_TriNorm(&D_8015E440, &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);
+-        Math3D_TriNorm(&D_8015E478, &ac->dim.quad[1], &ac->dim.quad[0], &ac->dim.quad[2]);
++        Math3D_TriNorm(&sTrisVsQuadTri0, &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);  // was D_8015E440 [LLM:HIGH]
++        Math3D_TriNorm(&sTrisVsQuadTri1, &ac->dim.quad[1], &ac->dim.quad[0], &ac->dim.quad[2]);  // was D_8015E478 [LLM:HIGH]
+         for (atItem = at->elements; atItem < at->elements + at->count; atItem++) {
+             if (CollisionCheck_SkipTouch(&atItem->info) == 1) {
+                 continue;
+@@ -2380,8 +2380,8 @@ void CollisionCheck_AC_TrisVsQuad(PlayState* play, CollisionCheckContext* colChk
+             if (CollisionCheck_NoSharedFlags(&atItem->info, &ac->info) == 1) {
+                 continue;
+             }
+-            if (Math3D_TriVsTriIntersect(&D_8015E440, &atItem->dim, &D_8015E430) == 1 ||
+-                Math3D_TriVsTriIntersect(&D_8015E478, &atItem->dim, &D_8015E430) == 1) {
++            if (Math3D_TriVsTriIntersect(&sTrisVsQuadTri0, &atItem->dim, &sTrisVsQuadHitPos) == 1 ||  // was D_8015E430 [LLM:HIGH]
++                Math3D_TriVsTriIntersect(&sTrisVsQuadTri1, &atItem->dim, &sTrisVsQuadHitPos) == 1) {  // was D_8015E430 [LLM:HIGH]
+                 Vec3f atPos;
+                 Vec3f acPos;
+ 
+@@ -2392,7 +2392,7 @@ void CollisionCheck_AC_TrisVsQuad(PlayState* play, CollisionCheckContext* colChk
+                 acPos.y = (ac->dim.quad[0].y + (ac->dim.quad[1].y + (ac->dim.quad[3].y + ac->dim.quad[2].y))) / 4.0f;
+                 acPos.z = (ac->dim.quad[0].z + (ac->dim.quad[1].z + (ac->dim.quad[3].z + ac->dim.quad[2].z))) / 4.0f;
+                 CollisionCheck_SetATvsAC(play, &at->base, &atItem->info, &atPos, &ac->base, &ac->info, &acPos,
+-                                         &D_8015E430);
++                                         &sTrisVsQuadHitPos);  // was D_8015E430 [LLM:HIGH]
+                 return;
+             }
+         }
+@@ -2403,9 +2403,9 @@ void CollisionCheck_AC_TrisVsQuad(PlayState* play, CollisionCheckContext* colChk
+  * AC overlap check. Calculates the center of each collider element and the point of contact.
+  */
+ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+-    static Vec3f D_8015E4B0;
+-    static TriNorm D_8015E4C0;
+-    static TriNorm D_8015E4F8;
++    static Vec3f sQuadVsTrisHitPos;  // was D_8015E4B0 [LLM:HIGH]
++    static TriNorm sQuadVsTrisTri0;  // was D_8015E4C0 [LLM:HIGH]
++    static TriNorm sQuadVsTrisTri1;  // was D_8015E4F8 [LLM:HIGH]
+     ColliderQuad* at = (ColliderQuad*)colAT;
+     ColliderTris* ac = (ColliderTris*)colAC;
+     ColliderTrisElement* acElem;
+@@ -2414,8 +2414,8 @@ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChk
+         if (CollisionCheck_SkipTouch(&at->info) == 1) {
+             return;
+         }
+-        Math3D_TriNorm(&D_8015E4C0, &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);
+-        Math3D_TriNorm(&D_8015E4F8, &at->dim.quad[1], &at->dim.quad[0], &at->dim.quad[2]);
++        Math3D_TriNorm(&sQuadVsTrisTri0, &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);  // was D_8015E4C0 [LLM:HIGH]
++        Math3D_TriNorm(&sQuadVsTrisTri1, &at->dim.quad[1], &at->dim.quad[0], &at->dim.quad[2]);  // was D_8015E4F8 [LLM:HIGH]
+         for (acElem = ac->elements; acElem < ac->elements + ac->count; acElem++) {
+             if (CollisionCheck_SkipBump(&acElem->info) == 1) {
+                 continue;
+@@ -2423,9 +2423,9 @@ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChk
+             if (CollisionCheck_NoSharedFlags(&at->info, &acElem->info) == 1) {
+                 continue;
+             }
+-            if (Math3D_TriVsTriIntersect(&D_8015E4C0, &acElem->dim, &D_8015E4B0) == 1 ||
+-                Math3D_TriVsTriIntersect(&D_8015E4F8, &acElem->dim, &D_8015E4B0) == 1) {
+-                if (Collider_QuadSetNearestAC(play, at, &D_8015E4B0)) {
++            if (Math3D_TriVsTriIntersect(&sQuadVsTrisTri0, &acElem->dim, &sQuadVsTrisHitPos) == 1 ||  // was D_8015E4B0 [LLM:HIGH]
++                Math3D_TriVsTriIntersect(&sQuadVsTrisTri1, &acElem->dim, &sQuadVsTrisHitPos) == 1) {  // was D_8015E4B0 [LLM:HIGH]
++                if (Collider_QuadSetNearestAC(play, at, &sQuadVsTrisHitPos)) {  // was D_8015E4B0 [LLM:HIGH]
+                     Vec3f atPos;
+                     Vec3f acPos;
+ 
+@@ -2439,7 +2439,7 @@ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChk
+                     atPos.z =
+                         (at->dim.quad[0].z + (at->dim.quad[1].z + (at->dim.quad[3].z + at->dim.quad[2].z))) / 4.0f;
+                     CollisionCheck_SetATvsAC(play, &at->base, &at->info, &atPos, &ac->base, &acElem->info, &acPos,
+-                                             &D_8015E4B0);
++                                             &sQuadVsTrisHitPos);  // was D_8015E4B0 [LLM:HIGH]
+                     return;
+                 }
+             }
+@@ -2451,9 +2451,9 @@ void CollisionCheck_AC_QuadVsTris(PlayState* play, CollisionCheckContext* colChk
+  * AC overlap check. Calculates the center of each collider element and the point of contact.
+  */
+ void CollisionCheck_AC_QuadVsQuad(PlayState* play, CollisionCheckContext* colChkCtx, Collider* colAT, Collider* colAC) {
+-    static TriNorm D_8015E530[2];
+-    static Vec3f D_8015E598;
+-    static TriNorm D_8015E5A8[2];
++    static TriNorm sQuadVsQuadAcTris[2];  // was D_8015E530 [LLM:HIGH]
++    static Vec3f sQuadVsQuadHitPos;  // was D_8015E598 [LLM:HIGH]
++    static TriNorm sQuadVsQuadAtTris[2];  // was D_8015E5A8 [LLM:HIGH]
+     ColliderQuad* at = (ColliderQuad*)colAT;
+     ColliderQuad* ac = (ColliderQuad*)colAC;
+     s32 i;
+@@ -2469,15 +2469,15 @@ void CollisionCheck_AC_QuadVsQuad(PlayState* play, CollisionCheckContext* colChk
+         return;
+     }
+ 
+-    Math3D_TriNorm(&D_8015E5A8[0], &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);
+-    Math3D_TriNorm(&D_8015E5A8[1], &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);
+-    Math3D_TriNorm(&D_8015E530[0], &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);
+-    Math3D_TriNorm(&D_8015E530[1], &ac->dim.quad[2], &ac->dim.quad[1], &ac->dim.quad[0]);
++    Math3D_TriNorm(&sQuadVsQuadAtTris[0], &at->dim.quad[2], &at->dim.quad[3], &at->dim.quad[1]);  // was D_8015E5A8 [LLM:HIGH]
++    Math3D_TriNorm(&sQuadVsQuadAtTris[1], &at->dim.quad[2], &at->dim.quad[1], &at->dim.quad[0]);  // was D_8015E5A8 [LLM:HIGH]
++    Math3D_TriNorm(&sQuadVsQuadAcTris[0], &ac->dim.quad[2], &ac->dim.quad[3], &ac->dim.quad[1]);  // was D_8015E530 [LLM:HIGH]
++    Math3D_TriNorm(&sQuadVsQuadAcTris[1], &ac->dim.quad[2], &ac->dim.quad[1], &ac->dim.quad[0]);  // was D_8015E530 [LLM:HIGH]
+ 
+     for (i = 0; i < 2; i++) {
+         for (j = 0; j < 2; j++) {
+-            if (Math3D_TriVsTriIntersect(&D_8015E5A8[j], &D_8015E530[i], &D_8015E598) == 1) {
+-                if (Collider_QuadSetNearestAC(play, at, &D_8015E598)) {
++            if (Math3D_TriVsTriIntersect(&sQuadVsQuadAtTris[j], &sQuadVsQuadAcTris[i], &sQuadVsQuadHitPos) == 1) {  // was D_8015E530 [LLM:HIGH]
++                if (Collider_QuadSetNearestAC(play, at, &sQuadVsQuadHitPos)) {  // was D_8015E598 [LLM:HIGH]
+                     Vec3f atPos;
+                     Vec3f acPos;
+ 
+@@ -2494,7 +2494,7 @@ void CollisionCheck_AC_QuadVsQuad(PlayState* play, CollisionCheckContext* colChk
+                     acPos.z =
+                         (ac->dim.quad[0].z + (ac->dim.quad[1].z + (ac->dim.quad[3].z + ac->dim.quad[2].z))) / 4.0f;
+                     CollisionCheck_SetATvsAC(play, &at->base, &at->info, &atPos, &ac->base, &ac->info, &acPos,
+-                                             &D_8015E598);
++                                             &sQuadVsQuadHitPos);  // was D_8015E598 [LLM:HIGH]
+                     return;
+                 }
+             }
+@@ -3106,7 +3106,7 @@ void CollisionCheck_Damage(PlayState* play, CollisionCheckContext* colChkCtx) {
+  */
+ s32 CollisionCheck_LineOC_JntSph(PlayState* play, CollisionCheckContext* colChkCtx, Collider* collider, Vec3f* a,
+                                  Vec3f* b) {
+-    static Linef D_8015E610;
++    static Linef sLineOCJntSphLine;  // was D_8015E610 [LLM:HIGH]
+     ColliderJntSph* jntSph = (ColliderJntSph*)collider;
+     s32 i;
+ 
+@@ -3116,9 +3116,9 @@ s32 CollisionCheck_LineOC_JntSph(PlayState* play, CollisionCheckContext* colChkC
+         if (!(element->info.ocElemFlags & OCELEM_ON)) {
+             continue;
+         }
+-        D_8015E610.a = *a;
+-        D_8015E610.b = *b;
+-        if (Math3D_LineVsSph(&element->dim.worldSphere, &D_8015E610) == 1) {
++        sLineOCJntSphLine.a = *a;  // was D_8015E610 [LLM:HIGH]
++        sLineOCJntSphLine.b = *b;  // was D_8015E610 [LLM:HIGH]
++        if (Math3D_LineVsSph(&element->dim.worldSphere, &sLineOCJntSphLine) == 1) {  // was D_8015E610 [LLM:HIGH]
+             return true;
+         }
+     }
+@@ -3130,14 +3130,14 @@ s32 CollisionCheck_LineOC_JntSph(PlayState* play, CollisionCheckContext* colChkC
+  */
+ s32 CollisionCheck_LineOC_Cyl(PlayState* play, CollisionCheckContext* colChkCtx, Collider* collider, Vec3f* a,
+                               Vec3f* b) {
+-    static Vec3f D_8015E628;
+-    static Vec3f D_8015E638;
++    static Vec3f sLineOCCylHitA;  // was D_8015E628 [LLM:HIGH]
++    static Vec3f sLineOCCylHitB;  // was D_8015E638 [LLM:HIGH]
+     ColliderCylinder* cylinder = (ColliderCylinder*)collider;
+ 
+     if (!(cylinder->info.ocElemFlags & OCELEM_ON)) {
+         return false;
+     }
+-    if (Math3D_CylVsLineSeg(&cylinder->dim, a, b, &D_8015E628, &D_8015E638) != 0) {
++    if (Math3D_CylVsLineSeg(&cylinder->dim, a, b, &sLineOCCylHitA, &sLineOCCylHitB) != 0) {  // was D_8015E628 [LLM:HIGH]
+         return true;
+     }
+     return false;
+@@ -3278,19 +3278,19 @@ static s8 sBssDummy14;
+  * Updates the world spheres for all of the collider's JntSph elements attached to the specified limb
+  */
+ void Collider_UpdateSpheres(s32 limb, ColliderJntSph* collider) {
+-    static Vec3f D_8015E648;
+-    static Vec3f D_8015CF00; // bss ordering changes here
++    static Vec3f sUpdateSpheresModelCenter;  // was D_8015E648 [LLM:HIGH]
++    static Vec3f sUpdateSpheresWorldCenter; // bss ordering changes here, was D_8015CF00 [LLM:HIGH]
+     s32 i;
+ 
+     for (i = 0; i < collider->count; i++) {
+         if (limb == collider->elements[i].dim.limb) {
+-            D_8015E648.x = collider->elements[i].dim.modelSphere.center.x;
+-            D_8015E648.y = collider->elements[i].dim.modelSphere.center.y;
+-            D_8015E648.z = collider->elements[i].dim.modelSphere.center.z;
+-            Matrix_MultVec3f(&D_8015E648, &D_8015CF00);
+-            collider->elements[i].dim.worldSphere.center.x = D_8015CF00.x;
+-            collider->elements[i].dim.worldSphere.center.y = D_8015CF00.y;
+-            collider->elements[i].dim.worldSphere.center.z = D_8015CF00.z;
++            sUpdateSpheresModelCenter.x = collider->elements[i].dim.modelSphere.center.x;  // was D_8015E648 [LLM:HIGH]
++            sUpdateSpheresModelCenter.y = collider->elements[i].dim.modelSphere.center.y;  // was D_8015E648 [LLM:HIGH]
++            sUpdateSpheresModelCenter.z = collider->elements[i].dim.modelSphere.center.z;  // was D_8015E648 [LLM:HIGH]
++            Matrix_MultVec3f(&sUpdateSpheresModelCenter, &sUpdateSpheresWorldCenter);  // was D_8015E648 [LLM:HIGH]
++            collider->elements[i].dim.worldSphere.center.x = sUpdateSpheresWorldCenter.x;  // was D_8015CF00 [LLM:HIGH]
++            collider->elements[i].dim.worldSphere.center.y = sUpdateSpheresWorldCenter.y;  // was D_8015CF00 [LLM:HIGH]
++            collider->elements[i].dim.worldSphere.center.z = sUpdateSpheresWorldCenter.z;  // was D_8015CF00 [LLM:HIGH]
+             collider->elements[i].dim.worldSphere.radius =
+                 collider->elements[i].dim.modelSphere.radius * collider->elements[i].dim.scale;
+         }
+@@ -3302,52 +3302,52 @@ void Collider_UpdateSpheres(s32 limb, ColliderJntSph* collider) {
+  * No actor has a collision type that spawns red blood.
+  */
+ void CollisionCheck_SpawnRedBlood(PlayState* play, Vec3f* v) {
+-    static EffectSparkInit D_8015CF10;
++    static EffectSparkInit sRedBloodSparkInit;  // was D_8015CF10 [LLM:HIGH]
+     s32 effectIndex;
+ 
+-    D_8015CF10.position.x = v->x;
+-    D_8015CF10.position.y = v->y;
+-    D_8015CF10.position.z = v->z;
+-    D_8015CF10.uDiv = 5;
+-    D_8015CF10.vDiv = 5;
+-    D_8015CF10.colorStart[0].r = 128;
+-    D_8015CF10.colorStart[0].g = 0;
+-    D_8015CF10.colorStart[0].b = 64;
+-    D_8015CF10.colorStart[0].a = 255;
+-    D_8015CF10.colorStart[1].r = 128;
+-    D_8015CF10.colorStart[1].g = 0;
+-    D_8015CF10.colorStart[1].b = 64;
+-    D_8015CF10.colorStart[1].a = 255;
+-    D_8015CF10.colorStart[2].r = 255;
+-    D_8015CF10.colorStart[2].g = 128;
+-    D_8015CF10.colorStart[2].b = 0;
+-    D_8015CF10.colorStart[2].a = 255;
+-    D_8015CF10.colorStart[3].r = 255;
+-    D_8015CF10.colorStart[3].g = 128;
+-    D_8015CF10.colorStart[3].b = 0;
+-    D_8015CF10.colorStart[3].a = 255;
+-    D_8015CF10.colorEnd[0].r = 64;
+-    D_8015CF10.colorEnd[0].g = 0;
+-    D_8015CF10.colorEnd[0].b = 32;
+-    D_8015CF10.colorEnd[0].a = 0;
+-    D_8015CF10.colorEnd[1].r = 64;
+-    D_8015CF10.colorEnd[1].g = 0;
+-    D_8015CF10.colorEnd[1].b = 32;
+-    D_8015CF10.colorEnd[1].a = 0;
+-    D_8015CF10.colorEnd[2].r = 128;
+-    D_8015CF10.colorEnd[2].g = 0;
+-    D_8015CF10.colorEnd[2].b = 64;
+-    D_8015CF10.colorEnd[2].a = 0;
+-    D_8015CF10.colorEnd[3].r = 128;
+-    D_8015CF10.colorEnd[3].g = 0;
+-    D_8015CF10.colorEnd[3].b = 64;
+-    D_8015CF10.colorEnd[3].a = 0;
+-    D_8015CF10.timer = 0;
+-    D_8015CF10.duration = 16;
+-    D_8015CF10.speed = 8.0f;
+-    D_8015CF10.gravity = -1.0f;
+-
+-    Effect_Add(play, &effectIndex, EFFECT_SPARK, 0, 1, &D_8015CF10);
++    sRedBloodSparkInit.position.x = v->x;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.position.y = v->y;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.position.z = v->z;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.uDiv = 5;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.vDiv = 5;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[0].r = 128;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[0].g = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[0].b = 64;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[0].a = 255;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[1].r = 128;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[1].g = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[1].b = 64;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[1].a = 255;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[2].r = 255;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[2].g = 128;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[2].b = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[2].a = 255;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[3].r = 255;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[3].g = 128;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[3].b = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorStart[3].a = 255;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[0].r = 64;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[0].g = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[0].b = 32;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[0].a = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[1].r = 64;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[1].g = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[1].b = 32;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[1].a = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[2].r = 128;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[2].g = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[2].b = 64;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[2].a = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[3].r = 128;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[3].g = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[3].b = 64;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.colorEnd[3].a = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.timer = 0;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.duration = 16;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.speed = 8.0f;  // was D_8015CF10 [LLM:HIGH]
++    sRedBloodSparkInit.gravity = -1.0f;  // was D_8015CF10 [LLM:HIGH]
++
++    Effect_Add(play, &effectIndex, EFFECT_SPARK, 0, 1, &sRedBloodSparkInit);  // was D_8015CF10 [LLM:HIGH]
+ }
+ 
+ /**
+@@ -3355,52 +3355,52 @@ void CollisionCheck_SpawnRedBlood(PlayState* play, Vec3f* v) {
+  * No actor has a collision type that spawns water droplets.
+  */
+ void CollisionCheck_SpawnWaterDroplets(PlayState* play, Vec3f* v) {
+-    static EffectSparkInit D_8015D3D8;
++    static EffectSparkInit sWaterDropletsSparkInit;  // was D_8015D3D8 [LLM:HIGH]
+     s32 effectIndex;
+ 
+-    D_8015D3D8.position.x = v->x;
+-    D_8015D3D8.position.y = v->y;
+-    D_8015D3D8.position.z = v->z;
+-    D_8015D3D8.uDiv = 5;
+-    D_8015D3D8.vDiv = 5;
+-    D_8015D3D8.colorStart[0].r = 255;
+-    D_8015D3D8.colorStart[0].g = 255;
+-    D_8015D3D8.colorStart[0].b = 255;
+-    D_8015D3D8.colorStart[0].a = 255;
+-    D_8015D3D8.colorStart[1].r = 100;
+-    D_8015D3D8.colorStart[1].g = 100;
+-    D_8015D3D8.colorStart[1].b = 100;
+-    D_8015D3D8.colorStart[1].a = 100;
+-    D_8015D3D8.colorStart[2].r = 100;
+-    D_8015D3D8.colorStart[2].g = 100;
+-    D_8015D3D8.colorStart[2].b = 100;
+-    D_8015D3D8.colorStart[2].a = 100;
+-    D_8015D3D8.colorStart[3].r = 100;
+-    D_8015D3D8.colorStart[3].g = 100;
+-    D_8015D3D8.colorStart[3].b = 100;
+-    D_8015D3D8.colorStart[3].a = 100;
+-    D_8015D3D8.colorEnd[0].r = 50;
+-    D_8015D3D8.colorEnd[0].g = 50;
+-    D_8015D3D8.colorEnd[0].b = 50;
+-    D_8015D3D8.colorEnd[0].a = 50;
+-    D_8015D3D8.colorEnd[1].r = 50;
+-    D_8015D3D8.colorEnd[1].g = 50;
+-    D_8015D3D8.colorEnd[1].b = 50;
+-    D_8015D3D8.colorEnd[1].a = 50;
+-    D_8015D3D8.colorEnd[2].r = 50;
+-    D_8015D3D8.colorEnd[2].g = 50;
+-    D_8015D3D8.colorEnd[2].b = 50;
+-    D_8015D3D8.colorEnd[2].a = 50;
+-    D_8015D3D8.colorEnd[3].r = 0;
+-    D_8015D3D8.colorEnd[3].g = 0;
+-    D_8015D3D8.colorEnd[3].b = 0;
+-    D_8015D3D8.colorEnd[3].a = 0;
+-    D_8015D3D8.timer = 0;
+-    D_8015D3D8.duration = 16;
+-    D_8015D3D8.speed = 8.0f;
+-    D_8015D3D8.gravity = -1.0f;
+-
+-    Effect_Add(play, &effectIndex, EFFECT_SPARK, 0, 1, &D_8015D3D8);
++    sWaterDropletsSparkInit.position.x = v->x;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.position.y = v->y;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.position.z = v->z;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.uDiv = 5;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.vDiv = 5;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[0].r = 255;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[0].g = 255;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[0].b = 255;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[0].a = 255;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[1].r = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[1].g = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[1].b = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[1].a = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[2].r = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[2].g = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[2].b = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[2].a = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[3].r = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[3].g = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[3].b = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorStart[3].a = 100;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[0].r = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[0].g = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[0].b = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[0].a = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[1].r = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[1].g = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[1].b = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[1].a = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[2].r = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[2].g = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[2].b = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[2].a = 50;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[3].r = 0;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[3].g = 0;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[3].b = 0;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.colorEnd[3].a = 0;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.timer = 0;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.duration = 16;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.speed = 8.0f;  // was D_8015D3D8 [LLM:HIGH]
++    sWaterDropletsSparkInit.gravity = -1.0f;  // was D_8015D3D8 [LLM:HIGH]
++
++    Effect_Add(play, &effectIndex, EFFECT_SPARK, 0, 1, &sWaterDropletsSparkInit);  // was D_8015D3D8 [LLM:HIGH]
+ }
+ 
+ /**
+-- 
+2.55.0
+

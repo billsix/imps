@@ -1,0 +1,110 @@
+From 80b99e499f32ca79f5dfc53178827438f9b82053 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:02 +0000
+Subject: [PATCH 059/488] soh: name the 3 address-named symbols defined in
+ z_en_ishi.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 3 are defined in soh/src/overlays/actors/ovl_En_Ishi/z_en_ishi.c.
+
+  * D_80A7FA20 -> sRockYOffsets
+    deduced, confidence HIGH
+
+  * D_80A7FA28 -> sRockDragValues
+    deduced, confidence HIGH
+
+  * func_80A7ED94 -> EnIshi_ApplyDrag
+    deduced, confidence HIGH
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ishi/z_en_ishi.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ishi/z_en_ishi.c b/soh/src/overlays/actors/ovl_En_Ishi/z_en_ishi.c
+index a2c1524c4..0700ae5a5 100644
+--- a/soh/src/overlays/actors/ovl_En_Ishi/z_en_ishi.c
++++ b/soh/src/overlays/actors/ovl_En_Ishi/z_en_ishi.c
+@@ -55,8 +55,10 @@ const ActorInit En_Ishi_InitVars = {
+ };
+ 
+ static f32 sRockScales[] = { 0.1f, 0.4f };
+-static f32 D_80A7FA20[] = { 58.0f, 80.0f };
+-static f32 D_80A7FA28[] = { 0.0f, 0.005f };
++// LLM generated name (HIGH), was D_80A7FA20: per-type rock Y offsets applied to actor.shape.yOffset.
++static f32 sRockYOffsets[] = { 58.0f, 80.0f };
++// LLM generated name (HIGH), was D_80A7FA28: per-type drag factors passed to EnIshi_ApplyDrag.
++static f32 sRockDragValues[] = { 0.0f, 0.005f };
+ 
+ // the sizes of these arrays are very large and take up way more space than it needs to.
+ // coincidentally the sizes are the same as the ID for NA_SE_EV_ROCK_BROKEN, which may explain a mistake that could
+@@ -278,7 +280,8 @@ void EnIshi_Fall(EnIshi* this) {
+     }
+ }
+ 
+-void func_80A7ED94(Vec3f* arg0, f32 arg1) {
++// LLM generated name (HIGH), was func_80A7ED94: scales down a velocity vector by a randomized drag factor.
++void EnIshi_ApplyDrag(Vec3f* arg0, f32 arg1) {
+     arg1 += ((Rand_ZeroOne() * 0.2f) - 0.1f) * arg1;
+     arg0->x -= arg0->x * arg1;
+     arg0->y -= arg0->y * arg1;
+@@ -334,7 +337,7 @@ void EnIshi_Init(Actor* thisx, PlayState* play) {
+         return;
+     }
+     CollisionCheck_SetInfo(&this->actor.colChkInfo, NULL, &sColChkInfoInit);
+-    this->actor.shape.yOffset = D_80A7FA20[type];
++    this->actor.shape.yOffset = sRockYOffsets[type];
+     if (!((this->actor.params >> 5) & 1) && !EnIshi_SnapToFloor(this, play, 0.0f)) {
+         Actor_Kill(&this->actor);
+         return;
+@@ -411,7 +414,7 @@ void EnIshi_LiftedUp(EnIshi* this, PlayState* play) {
+         }
+         EnIshi_SetupFly(this);
+         EnIshi_Fall(this);
+-        func_80A7ED94(&this->actor.velocity, D_80A7FA28[this->actor.params & 1]);
++        EnIshi_ApplyDrag(&this->actor.velocity, sRockDragValues[this->actor.params & 1]);
+         Actor_UpdatePos(&this->actor);
+         Actor_UpdateBgCheckInfo(play, &this->actor, 7.5f, 35.0f, 0.0f, 0xC5);
+     }
+@@ -478,7 +481,7 @@ void EnIshi_Fly(EnIshi* this, PlayState* play) {
+     }
+     Math_StepToF(&this->actor.shape.yOffset, 0.0f, 2.0f);
+     EnIshi_Fall(this);
+-    func_80A7ED94(&this->actor.velocity, D_80A7FA28[type]);
++    EnIshi_ApplyDrag(&this->actor.velocity, sRockDragValues[type]);
+     Actor_UpdatePos(&this->actor);
+     this->actor.shape.rot.x += sRotSpeedX;
+     this->actor.shape.rot.y += sRotSpeedY;
+-- 
+2.55.0
+

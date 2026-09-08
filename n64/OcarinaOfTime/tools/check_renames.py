@@ -19,9 +19,21 @@ WHAT IT CHECKS (subcommands; `all` runs every one)
                   reader of functions.h cannot tell an upstream name from one
                   of our guesses -- and most of these names ARE guesses.
 
-    series        Every commit renames exactly one symbol (never two), and each
-                  claimed rename is total: the old name survives only inside
-                  provenance comments.
+    series        Every rename the history performs is CLAIMED by its commit
+                  message, and each claimed rename is total: the old name
+                  survives only inside provenance comments.
+
+                  Two commit shapes are accepted. A single-symbol commit says
+                  so in its subject ("soh: rename <old> -> <new>"). A GROUPED
+                  commit -- the shape the 2026-09-08 squash produced, one per
+                  definition file -- says how many it carries in its subject
+                  and lists them in its body as "  * <old> -> <new>" entries;
+                  the count and the entries must agree. Before the squash this
+                  check read "exactly one rename per commit"; that was the
+                  right rule while the series was being PRODUCED one rename at
+                  a time, and the wrong one once it was regrouped for review.
+                  The property worth gating never changed: no rename may
+                  happen that the message does not account for.
 
 Content-equivalence is deliberately NOT checked here -- that is
 tools/prove_comment_only.sh at the repo root, which settles it with a compiler.
@@ -44,6 +56,31 @@ from renames_common import (ADDR_RE, CITED_RE, CHECKOUT, INLINE_TAG_RE,
                             rename_range, renamed_symbols)
 
 SUBJECT_RE = re.compile(r"^soh: rename (\S+) -> (\S+)$")
+GROUP_RE = re.compile(r"^soh: name the (\d+) address-named symbols in (\S+)$")
+FILE_GROUP_RE = re.compile(r"^soh: rename (\d+) address-named source files\b")
+ENTRY_RE = re.compile(r"^  \* (\S+) -> (\S+)$", re.M)
+
+
+def claimed_renames(sha, subject):
+    """The (old, new) pairs a commit's message says it performs.
+
+    Returns None for a commit that claims no symbol rename (a file rename, or
+    anything that is not part of the series).
+    """
+    if FILE_GROUP_RE.match(subject):
+        return None                      # paths, not symbols -- see below
+    single = SUBJECT_RE.match(subject)
+    if single:
+        return None if single.group(1).endswith(".c") else [single.groups()]
+    group = GROUP_RE.match(subject)
+    if not group:
+        return None
+    body = git("show", "-s", "--format=%B", sha)
+    pairs = ENTRY_RE.findall(body)
+    if len(pairs) != int(group.group(1)):
+        raise ValueError(f"subject claims {group.group(1)} symbols but the "
+                         f"body lists {len(pairs)}")
+    return pairs
 
 
 def _address_names_in_code(rev):
@@ -152,54 +189,78 @@ def check_declarations():
 
 
 def check_series():
-    """One rename per commit, and each claimed rename is total."""
+    """Every rename is claimed by its commit message, and each is total."""
     failures = []
     log = [ln.split(" ", 1) for ln in
            git("log", "--reverse", "--format=%H %s", rename_range()).splitlines()]
     symbol_commits = 0
+    renames = 0
     for sha, subject in log:
         if not git("show", "--stat", "--format=", sha).strip():
             failures.append(f"empty commit: {subject}")
             continue
-        match = SUBJECT_RE.match(subject)
-        # A file-rename commit shares the subject shape but names paths.
-        if not match or match.group(1).endswith(".c"):
+        try:
+            pairs = claimed_renames(sha, subject)
+        except ValueError as exc:
+            failures.append(f"{subject}: {exc}")
+            continue
+        if pairs is None:
             continue
         symbol_commits += 1
-        old, new = match.groups()
+        renames += len(pairs)
+        olds = {old for old, _ in pairs}
+        news = {new for _, new in pairs}
 
         added, removed = set(), set()
+        added_text = []
         for line in git("show", "--format=", sha).splitlines():
             if not line.startswith(("+", "-")) or line.startswith(("+++", "---")):
                 continue
             body = code_part(line[1:])
-            names = set(ADDR_RE.findall(body))
-            if re.search(rf"\b{re.escape(new)}\b", body):
-                names.add(new)
-            (added if line.startswith("+") else removed).update(names)
+            if line.startswith("+"):
+                added_text.append(body)
+                added.update(ADDR_RE.findall(body))
+            else:
+                removed.update(ADDR_RE.findall(body))
         introduced, retired = added - removed, removed - added
-        if introduced != {new}:
-            failures.append(f"{subject}: introduces {sorted(introduced)}, "
-                            f"expected [{new}]")
-        if retired and retired != {old}:
+        # An address name must only ever LEAVE the code, never arrive.
+        if introduced:
+            failures.append(f"{subject}: introduces address names "
+                            f"{sorted(introduced)}")
+        # ...and exactly the ones the message claims must leave. Compare only
+        # against the claimed names ADDR_RE can actually see: SoH adds its own
+        # derivatives of an address name (func_808C1554_Raw,
+        # func_80AB70A0_nocutscene) whose trailing suffix defeats the pattern's
+        # word boundary, so they never show up in `retired` however correctly
+        # they are renamed. The totality loop below still holds them to account.
+        addr_olds = {o for o in olds if ADDR_RE.fullmatch(o)}
+        if retired and retired != addr_olds:
             failures.append(f"{subject}: retires {sorted(retired)}, "
-                            f"expected [{old}]")
+                            f"claimed {sorted(addr_olds)}")
+        # every new name the message claims must actually appear in the diff
+        joined = "\n".join(added_text)
+        for new in sorted(news):
+            if not re.search(rf"\b{re.escape(new)}\b", joined):
+                failures.append(f"{subject}: claims {new} but never adds it")
 
-        # totality: the old name must survive only inside comments
-        for line in git("grep", "-lw", old, "HEAD", "--", *SOURCE_PATHS,
-                        check=False).splitlines():
-            path = line.split(":", 1)[1] if ":" in line else line
-            text = git("show", f"HEAD:{path}", check=False)
-            if any(re.search(rf"\b{re.escape(old)}\b", code_part(l))
-                   for l in text.splitlines()):
-                failures.append(f"{subject}: {old} still live in {path}")
+        # totality: each old name must survive only inside comments
+        for old in sorted(olds):
+            for line in git("grep", "-lw", old, "HEAD", "--", *SOURCE_PATHS,
+                            check=False).splitlines():
+                path = line.split(":", 1)[1] if ":" in line else line
+                text = git("show", f"HEAD:{path}", check=False)
+                if any(re.search(rf"\b{re.escape(old)}\b", code_part(l))
+                       for l in text.splitlines()):
+                    failures.append(f"{subject}: {old} still live in {path}")
 
     print(f"  commits on the series   : {len(log)}")
     print(f"  symbol-rename commits   : {symbol_commits}")
+    print(f"  renames they claim      : {renames}")
     for failure in failures:
         print(f"  FAIL {failure}")
     if not failures:
-        print("  OK  one rename per commit, and every rename is total")
+        print("  OK  every rename is claimed by its commit, and every "
+              "rename is total")
     return not failures
 
 

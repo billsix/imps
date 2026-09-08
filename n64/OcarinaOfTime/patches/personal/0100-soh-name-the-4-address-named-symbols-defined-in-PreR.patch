@@ -1,0 +1,147 @@
+From 0f732427456c492f8aef7711d28532ea91187636 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:06 +0000
+Subject: [PATCH 100/488] soh: name the 4 address-named symbols defined in
+ PreRender.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/code/PreRender.c; updating their references touches 3 files in total.
+
+  * func_800C20B4 -> PreRender_DrawCoverage
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_800C2118 -> PreRender_RestoreZBuffer
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.98
+
+  * func_800C24BC -> PreRender_RestoreFramebuffer
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.98
+
+  * func_800C24E0 -> PreRender_CopyImageRegion
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.98
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h  |  8 ++++----
+ soh/src/code/PreRender.c | 12 ++++++++----
+ soh/src/code/z_play.c    |  4 ++--
+ 3 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index 232ecd00a..692ca6a8c 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -1586,11 +1586,11 @@ void PreRender_CoverageRgba16ToI8(PreRender* this, Gfx** gfxp, void* fbuf, void*
+ void PreRender_SaveZBuffer(PreRender* this, Gfx** gfxp);  // was func_800C1E9C [oot]
+ void PreRender_SaveFramebuffer(PreRender* this, Gfx** gfxp);  // was func_800C1F20 [oot]
+ void PreRender_FetchFbufCoverage(PreRender* this, Gfx** gfxp);  // was func_800C1FA4 [oot]
+-void func_800C20B4(PreRender* this, Gfx** gfxp);
+-void func_800C2118(PreRender* this, Gfx** gfxp);
++void PreRender_DrawCoverage(PreRender* this, Gfx** gfxp);  // was func_800C20B4 [oot]
++void PreRender_RestoreZBuffer(PreRender* this, Gfx** gfxp);  // was func_800C2118 [oot]
+ void func_800C213C(PreRender* this, Gfx** gfxp);
+-void func_800C24BC(PreRender* this, Gfx** gfxp);
+-void func_800C24E0(PreRender* this, Gfx** gfxp);
++void PreRender_RestoreFramebuffer(PreRender* this, Gfx** gfxp);  // was func_800C24BC [oot]
++void PreRender_CopyImageRegion(PreRender* this, Gfx** gfxp);  // was func_800C24E0 [oot]
+ void PreRender_AntiAliasFilter(PreRender* this, s32 x, s32 y);  // was func_800C2500 [oot]
+ void func_800C2FE4(PreRender* this);
+ void PreRender_Calc(PreRender* this);
+diff --git a/soh/src/code/PreRender.c b/soh/src/code/PreRender.c
+index 49efabd30..6ff229509 100644
+--- a/soh/src/code/PreRender.c
++++ b/soh/src/code/PreRender.c
+@@ -280,7 +280,8 @@ void PreRender_FetchFbufCoverage(PreRender* this, Gfx** gfxp) {
+     *gfxp = gfx;
+ }
+ 
+-void func_800C20B4(PreRender* this, Gfx** gfxp) {
++// Name from zeldaret/oot (was func_800C20B4): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_DrawCoverage(PreRender* this, Gfx** gfxp) {
+     PreRender_FetchFbufCoverage(this, gfxp);
+     LOG_CHECK_NULL_POINTER("this->cvg_save", this->cvgSave);
+     if (this->cvgSave != NULL) {
+@@ -288,7 +289,8 @@ void func_800C20B4(PreRender* this, Gfx** gfxp) {
+     }
+ }
+ 
+-void func_800C2118(PreRender* this, Gfx** gfxp) {
++// Name from zeldaret/oot (was func_800C2118): adopted upstream's name for this address; body verified to match upstream at 0.98. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_RestoreZBuffer(PreRender* this, Gfx** gfxp) {
+     PreRender_CopyImage(this, gfxp, this->zbufSave, this->zbuf);
+ }
+ 
+@@ -350,11 +352,13 @@ void func_800C213C(PreRender* this, Gfx** gfxp) {
+     }
+ }
+ 
+-void func_800C24BC(PreRender* this, Gfx** gfxp) {
++// Name from zeldaret/oot (was func_800C24BC): adopted upstream's name for this address; body verified to match upstream at 0.98. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_RestoreFramebuffer(PreRender* this, Gfx** gfxp) {
+     PreRender_CopyImage(this, gfxp, this->fbufSave, this->fbuf);
+ }
+ 
+-void func_800C24E0(PreRender* this, Gfx** gfxp) {
++// Name from zeldaret/oot (was func_800C24E0): adopted upstream's name for this address; body verified to match upstream at 0.98. [oot: https://github.com/zeldaret/oot/blob/main/src/code/PreRender.c]
++void PreRender_CopyImageRegion(PreRender* this, Gfx** gfxp) {
+     PreRender_CopyImageRegionImpl(this, gfxp);
+ }
+ 
+diff --git a/soh/src/code/z_play.c b/soh/src/code/z_play.c
+index 9a4497ad0..2d4c1f9c8 100644
+--- a/soh/src/code/z_play.c
++++ b/soh/src/code/z_play.c
+@@ -1448,7 +1448,7 @@ void Play_Draw(PlayState* play) {
+             Gfx* gfxP = POLY_OPA_DISP;
+ 
+             // SOH [Port] Draw game framebuffer using our custom handling
+-            // func_800C24BC(&play->pauseBgPreRender, &gfxP);
++            // PreRender_RestoreFramebuffer(&play->pauseBgPreRender, &gfxP);
+             FB_DrawFromFramebuffer(&gfxP, gPauseFrameBuffer, 255);
+             POLY_OPA_DISP = gfxP;
+ 
+@@ -1574,7 +1574,7 @@ void Play_Draw(PlayState* play) {
+             // PreRender_SaveFramebuffer(&play->pauseBgPreRender, &gfxP);
+             if (R_PAUSE_MENU_MODE == 1) {
+                 play->pauseBgPreRender.cvgSave = (u8*)gfxCtx->curFrameBuffer;
+-                // func_800C20B4(&play->pauseBgPreRender, &gfxP);
++                // PreRender_DrawCoverage(&play->pauseBgPreRender, &gfxP);
+                 R_PAUSE_MENU_MODE = 2;
+ 
+                 // #region SOH [Port] Custom handling for pause prerender background capture
+-- 
+2.55.0
+

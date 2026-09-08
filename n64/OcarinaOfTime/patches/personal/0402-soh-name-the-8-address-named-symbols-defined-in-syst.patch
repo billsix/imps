@@ -1,0 +1,193 @@
+From 3c5d06bcf0182c10c7dfddd8a78c735ec314cb12 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:34 +0000
+Subject: [PATCH 402/488] soh: name the 8 address-named symbols defined in
+ system_heap.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 8 are defined in soh/src/code/system_heap.c; updating their references touches 2 files in total.
+
+  * func_800FC800 -> SystemHeap_New
+    deduced, confidence HIGH: allocates from the system arena tagged with
+    the file's "new" string, forcing a minimum of one byte
+
+  * func_800FC83C -> SystemHeap_Delete
+    deduced, confidence HIGH: frees a system arena block, tolerating NULL
+
+  * func_800FC868 -> SystemHeap_ConstructArray
+    deduced, confidence HIGH: walks an array of blocks calling the caller's
+    one-argument function on each
+
+  * func_800FC8D8 -> SystemHeap_DestructArray
+    deduced, confidence HIGH: the same walk calling a two-argument function
+    with 2, the destructor flag
+
+  * func_800FC948 -> SystemHeap_NewArray
+    deduced, confidence HIGH: allocates the array when the caller passes
+    NULL, then constructs every element
+
+  * func_800FCA18 -> SystemHeap_DeleteArray
+    deduced, confidence HIGH: destructs the elements from the end backwards
+    and frees the block
+
+  * func_800FCB34 -> SystemHeap_RunInitFuncs
+    deduced, confidence HIGH: walks the sInitFuncs chain running each entry
+
+  * D_80134488 -> sFloatConstants
+    deduced, confidence GUESS: an 0x18-byte table holding the bit patterns
+    of zero, positive infinity, negative infinity and negative zero; nothing
+    in the tree reads it
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/include/functions.h    |  4 ++--
+ soh/src/code/system_heap.c | 30 +++++++++++++++++++-----------
+ 2 files changed, 21 insertions(+), 13 deletions(-)
+
+diff --git a/soh/include/functions.h b/soh/include/functions.h
+index b99ade68e..3b8a14240 100644
+--- a/soh/include/functions.h
++++ b/soh/include/functions.h
+@@ -2188,8 +2188,8 @@ void MtxConv_F2L(Mtx* m1, MtxF* m2);
+ void MtxConv_L2F(MtxF* m1, Mtx* m2);
+ void Overlay_Relocate(void* allocatedVRamAddress, OverlayRelocationSection* overlayInfo, void* vRamAddress);
+ s32 Overlay_Load(uintptr_t vRomStart, uintptr_t vRomEnd, void* vRamStart, void* vRamEnd, void* allocatedVRamAddress);
+-// ? func_800FC800(?);
+-// ? func_800FC83C(?);
++// ? SystemHeap_New(?);, was func_800FC800 [LLM:HIGH]
++// ? SystemHeap_Delete(?);, was func_800FC83C [LLM:HIGH]
+ // ? func_800FCAB4(?);
+ void SystemHeap_Init(void* start, size_t size);
+ void PadUtils_Init(Input* input);
+diff --git a/soh/src/code/system_heap.c b/soh/src/code/system_heap.c
+index 32197b417..ccf0578d5 100644
+--- a/soh/src/code/system_heap.c
++++ b/soh/src/code/system_heap.c
+@@ -15,7 +15,8 @@ void* sInitFuncs = NULL;
+ 
+ char sNew[] = { 'n', 'e', 'w' };
+ 
+-char D_80134488[0x18] = {
++// LLM generated name (GUESS), was D_80134488: an 0x18-byte table holding the bit patterns of zero, positive infinity, negative infinity and negative zero; nothing in the tree reads it
++char sFloatConstants[0x18] = {  // was D_80134488 [LLM:GUESS]
+     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7F, 0x80, 0x00, 0x00,
+     0xFF, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00,
+ };
+@@ -97,7 +98,8 @@ s32 Overlay_Load(uintptr_t vRomStart, uintptr_t vRomEnd, void* vRamStart, void*
+ }
+ 
+ // possibly some kind of new() function
+-void* func_800FC800(size_t size) {
++// LLM generated name (HIGH), was func_800FC800: allocates from the system arena tagged with the file's "new" string, forcing a minimum of one byte
++void* SystemHeap_New(size_t size) {
+     if (size == 0) {
+         size = 1;
+     }
+@@ -106,13 +108,15 @@ void* func_800FC800(size_t size) {
+ }
+ 
+ // possible some kind of delete() function
+-void func_800FC83C(void* ptr) {
++// LLM generated name (HIGH), was func_800FC83C: frees a system arena block, tolerating NULL
++void SystemHeap_Delete(void* ptr) {
+     if (ptr != NULL) {
+         __osFree(&gSystemArena, ptr);
+     }
+ }
+ 
+-void func_800FC868(void* blk, u32 nBlk, u32 blkSize, arg3_800FC868 arg3) {
++// LLM generated name (HIGH), was func_800FC868: walks an array of blocks calling the caller's one-argument function on each
++void SystemHeap_ConstructArray(void* blk, u32 nBlk, u32 blkSize, arg3_800FC868 arg3) {
+     uintptr_t pos;
+ 
+     for (pos = (uintptr_t)blk; pos < (uintptr_t)blk + (nBlk * blkSize); pos = (uintptr_t)pos + (blkSize & ~0)) {
+@@ -120,7 +124,8 @@ void func_800FC868(void* blk, u32 nBlk, u32 blkSize, arg3_800FC868 arg3) {
+     }
+ }
+ 
+-void func_800FC8D8(void* blk, u32 nBlk, s32 blkSize, arg3_800FC8D8 arg3) {
++// LLM generated name (HIGH), was func_800FC8D8: the same walk calling a two-argument function with 2, the destructor flag
++void SystemHeap_DestructArray(void* blk, u32 nBlk, s32 blkSize, arg3_800FC8D8 arg3) {
+     uintptr_t pos;
+ 
+     for (pos = (uintptr_t)blk; pos < (uintptr_t)blk + (nBlk * blkSize); pos = (uintptr_t)pos + (blkSize & ~0)) {
+@@ -128,11 +133,12 @@ void func_800FC8D8(void* blk, u32 nBlk, s32 blkSize, arg3_800FC8D8 arg3) {
+     }
+ }
+ 
+-void* func_800FC948(void* blk, u32 nBlk, u32 blkSize, arg3_800FC948 arg3) {
++// LLM generated name (HIGH), was func_800FC948: allocates the array when the caller passes NULL, then constructs every element
++void* SystemHeap_NewArray(void* blk, u32 nBlk, u32 blkSize, arg3_800FC948 arg3) {
+     uintptr_t pos;
+ 
+     if (blk == NULL) {
+-        blk = func_800FC800(nBlk * blkSize);
++        blk = SystemHeap_New(nBlk * blkSize);  // was func_800FC800 [LLM:HIGH]
+     }
+ 
+     if (blk != NULL && arg3 != NULL) {
+@@ -145,7 +151,8 @@ void* func_800FC948(void* blk, u32 nBlk, u32 blkSize, arg3_800FC948 arg3) {
+     return blk;
+ }
+ 
+-void func_800FCA18(void* blk, u32 nBlk, u32 blkSize, arg3_800FCA18 arg3, s32 arg4) {
++// LLM generated name (HIGH), was func_800FCA18: destructs the elements from the end backwards and frees the block
++void SystemHeap_DeleteArray(void* blk, u32 nBlk, u32 blkSize, arg3_800FCA18 arg3, s32 arg4) {
+     uintptr_t pos;
+     uintptr_t end;
+     s32 masked_arg2;
+@@ -169,11 +176,12 @@ void func_800FCA18(void* blk, u32 nBlk, u32 blkSize, arg3_800FCA18 arg3, s32 arg
+     }
+ 
+     if (arg4 != 0) {
+-        func_800FC83C(blk);
++        SystemHeap_Delete(blk);  // was func_800FC83C [LLM:HIGH]
+     }
+ }
+ 
+-void func_800FCB34(void) {
++// LLM generated name (HIGH), was func_800FCB34: walks the sInitFuncs chain running each entry
++void SystemHeap_RunInitFuncs(void) {
+     InitFunc* initFunc = (InitFunc*)&sInitFuncs;
+     u32 nextOffset = initFunc->nextOffset;
+     InitFunc* prev = NULL;
+@@ -195,5 +203,5 @@ void func_800FCB34(void) {
+ 
+ void SystemHeap_Init(void* start, size_t size) {
+     SystemArena_Init(start, size);
+-    func_800FCB34();
++    SystemHeap_RunInitFuncs();  // was func_800FCB34 [LLM:HIGH]
+ }
+-- 
+2.55.0
+

@@ -1,0 +1,713 @@
+From dc2b326101aedcf118b299ebfb2b2ef2e3f05c28 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:29 +0000
+Subject: [PATCH 359/488] soh: name the 20 address-named symbols defined in
+ z_en_ko.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 20 are defined in soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c; updating their references touches 3 files in total.
+
+  * func_80A97BC0 -> EnKo_GetTrackYOffset
+    deduced, confidence HIGH: returns the head-tracking yOffset for this
+    Kokiri's type and forest quest state; Fado as adult is a fixed -20
+
+  * func_80A97C7C -> EnKo_UsesGravity
+    deduced, confidence HIGH: the caller runs Actor_UpdateBgCheckInfo and
+    sets gravity -1 when this is true, gravity 0 when false
+
+  * func_80A97D68 -> EnKo_UpdateLiftingRock
+    deduced, confidence HIGH: loops gKokiriLiftingRockAnim while idle and
+    switches to gKokiriWipingForeheadAnim to talk
+
+  * func_80A97E18 -> EnKo_UpdateTrackNearbyPlayer
+    deduced, confidence HIGH: fidgets, tracks head and torso within the talk
+    angle, turns the whole body while talking, and stops tracking past
+    lookDist
+
+  * func_80A97EB0 -> EnKo_UpdateFidgetAndLook
+    deduced, confidence HIGH: fidgets and tracks head and torso only while
+    the player is within the talk angle, returning that test
+
+  * func_80A97F20 -> EnKo_UpdateFacePlayer
+    deduced, confidence HIGH: fidgets and turns the whole body toward the
+    player unconditionally
+
+  * func_80A97F70 -> EnKo_UpdateCuttingGrass
+    deduced, confidence HIGH: loops gKokiriCuttingGrassAnim while idle and
+    gKokiriBlockingAnim to talk
+
+  * func_80A98034 -> EnKo_UpdatePunching
+    deduced, confidence HIGH: loops gKokiriPunchingAnim while idle and
+    gKokiriBlockingAnim to talk
+
+  * func_80A98124 -> EnKo_UpdateFacePlayer2
+    deduced, confidence HIGH: byte-identical duplicate of
+    EnKo_UpdateFacePlayer, flagged as such by the comment above it, kept as
+    its own symbol
+
+  * func_80A98174 -> EnKo_UpdatePauseAnimToTalk
+    deduced, confidence HIGH: freezes the current animation at frame 18
+    while talking and resumes it at speed 1 afterwards
+
+  * func_80A9877C -> EnKo_TrackPlayerAndTalk
+    deduced, confidence HIGH: points the tracking at the player or the
+    cutscene camera, runs Npc_UpdateTalking, and picks Fado's trade text in
+    the Lost Woods
+
+  * func_80A98CD8 -> EnKo_InitInteractInfo
+    deduced, confidence HIGH: copies this type's sInteractInfo row into
+    targetMode, lookDist and appearDist
+
+  * func_80A98DB4 -> EnKo_UpdateModelAlpha
+    deduced, confidence HIGH: fades the Kokiri out past appearDist in the
+    forest scenes and drops targeting once nearly invisible
+
+  * func_80A98ECC -> EnKo_UpdateByForestQuestState
+    deduced, confidence HIGH: dispatches to the per-quest-state update,
+    short-circuiting to EnKo_UpdateTrackNearbyPlayer for Fado in the Lost
+    Woods
+
+  * func_80A99048 -> EnKo_WaitForObjects
+    deduced, confidence HIGH: holds until the animation and model objects
+    load, then builds the skeleton and collider and installs the first real
+    action
+
+  * func_80A99384 -> EnKo_FadoWaitToTrade
+    deduced, confidence HIGH: Fado's idle: starts the laugh on text 0x10B9
+    and closes the textbox to hand over the saw on NPC_TALK_STATE_ACTION
+
+  * func_80A99438 -> EnKo_FadoLaugh
+    deduced, confidence HIGH: holds ENKO_ANIM_LAUGHING until the text
+    changes or the trade begins
+
+  * func_80A99504 -> EnKo_FadoGiveSaw
+    deduced, confidence HIGH: offers GI_SAW until the player takes it
+
+  * func_80A99560 -> EnKo_FadoFinishTrade
+    deduced, confidence HIGH: continues into text 0x10B9, sets ITEMGETINF_31
+    and returns to Fado's idle
+
+  * func_80A995CC -> EnKo_OrbitHomeTowardPlayer
+    deduced, confidence HIGH: parks the actor 80 units from its home
+    position in the player's direction, facing the player, speeding the
+    animation up with the angle swept
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../SkipCutscene/Story/SkipBlueWarp.cpp       |   6 +-
+ soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c   | 244 ++++++++++--------
+ soh/src/overlays/actors/ovl_En_Ko/z_en_ko.h   |   4 +-
+ 3 files changed, 137 insertions(+), 117 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/SkipCutscene/Story/SkipBlueWarp.cpp b/soh/soh/Enhancements/TimeSavers/SkipCutscene/Story/SkipBlueWarp.cpp
+index e565e0550..7bdea40f6 100644
+--- a/soh/soh/Enhancements/TimeSavers/SkipCutscene/Story/SkipBlueWarp.cpp
++++ b/soh/soh/Enhancements/TimeSavers/SkipCutscene/Story/SkipBlueWarp.cpp
+@@ -24,13 +24,13 @@ extern void TimeSaverQueueItem(RandomizerGet randoGet);
+  * you end up getting the Kokiri Emerald after the actor has init'd, so the actor doesn't know you have it
+  */
+ void EnKo_MoveWhenReady(EnKo* enKo, PlayState* play) {
+-    func_80A995CC(enKo, play);
++    EnKo_OrbitHomeTowardPlayer(enKo, play);  // was func_80A995CC [LLM:HIGH]
+ 
+     if ((enKo->actor.params & 0xFF) == ENKO_TYPE_CHILD_3) {
+         if (GameInteractor_Should(VB_OPEN_KOKIRI_FOREST, CHECK_QUEST_ITEM(QUEST_KOKIRI_EMERALD))) {
+             enKo->collider.dim.height -= 200;
+             Path_CopyLastPoint(enKo->path, &enKo->actor.world.pos);
+-            enKo->actionFunc = func_80A99384;
++            enKo->actionFunc = EnKo_FadoWaitToTrade;  // was func_80A99384 [LLM:HIGH]
+         }
+     }
+ }
+@@ -38,7 +38,7 @@ void EnKo_MoveWhenReady(EnKo* enKo, PlayState* play) {
+ void SkipBlueWarp_OnActorUpdate(void* actorPtr) {
+     EnKo* enKo = static_cast<EnKo*>(actorPtr);
+ 
+-    if ((enKo->actor.params & 0xFF) == ENKO_TYPE_CHILD_3 && enKo->actionFunc == func_80A995CC) {
++    if ((enKo->actor.params & 0xFF) == ENKO_TYPE_CHILD_3 && enKo->actionFunc == EnKo_OrbitHomeTowardPlayer) {  // was func_80A995CC [LLM:HIGH]
+         enKo->actionFunc = EnKo_MoveWhenReady;
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+index 9cc1c4379..1408a5999 100644
+--- a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
++++ b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+@@ -22,14 +22,21 @@ void EnKo_Destroy(Actor* thisx, PlayState* play);
+ void EnKo_Update(Actor* thisx, PlayState* play);
+ void EnKo_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80A99048(EnKo* this, PlayState* play);
+-void func_80A995CC(EnKo* this, PlayState* play);
+-void func_80A99384(EnKo* this, PlayState* play);
+-void func_80A99438(EnKo* this, PlayState* play);
+-void func_80A99504(EnKo* this, PlayState* play);
+-void func_80A99560(EnKo* this, PlayState* play);
+-
+-s32 func_80A98ECC(EnKo* this, PlayState* play);
++// LLM generated name (HIGH), was func_80A99048: holds until the animation and model objects load, then builds the skeleton and collider and installs the first real action
++void EnKo_WaitForObjects(EnKo* this, PlayState* play);  // was func_80A99048 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A995CC: parks the actor 80 units from its home position in the player's direction, facing the player, speeding the animation up with the angle swept
++void EnKo_OrbitHomeTowardPlayer(EnKo* this, PlayState* play);  // was func_80A995CC [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A99384: Fado's idle: starts the laugh on text 0x10B9 and closes the textbox to hand over the saw on NPC_TALK_STATE_ACTION
++void EnKo_FadoWaitToTrade(EnKo* this, PlayState* play);  // was func_80A99384 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A99438: holds ENKO_ANIM_LAUGHING until the text changes or the trade begins
++void EnKo_FadoLaugh(EnKo* this, PlayState* play);  // was func_80A99438 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A99504: offers GI_SAW until the player takes it
++void EnKo_FadoGiveSaw(EnKo* this, PlayState* play);  // was func_80A99504 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A99560: continues into text 0x10B9, sets ITEMGETINF_31 and returns to Fado's idle
++void EnKo_FadoFinishTrade(EnKo* this, PlayState* play);  // was func_80A99560 [LLM:HIGH]
++
++// LLM generated name (HIGH), was func_80A98ECC: dispatches to the per-quest-state update, short-circuiting to EnKo_UpdateTrackNearbyPlayer for Fado in the Lost Woods
++s32 EnKo_UpdateByForestQuestState(EnKo* this, PlayState* play);  // was func_80A98ECC [LLM:HIGH]
+ 
+ const ActorInit En_Ko_InitVars = {
+     ACTOR_EN_KO,
+@@ -626,7 +633,8 @@ s32 EnKo_GetForestQuestState(EnKo* this) {
+     return result;
+ }
+ 
+-f32 func_80A97BC0(EnKo* this) {
++// LLM generated name (HIGH), was func_80A97BC0: returns the head-tracking yOffset for this Kokiri's type and forest quest state; Fado as adult is a fixed -20
++f32 EnKo_GetTrackYOffset(EnKo* this) {
+     f32 D_80A9A62C[13][5] = {
+         /* ENKO_TYPE_CHILD_0    */ { 0.0f, 0.0f, 0.0f, -30.0f, -20.0f },
+         /* ENKO_TYPE_CHILD_1    */ { 0.0f, 0.0f, 0.0f, -20.0f, -10.0f },
+@@ -649,7 +657,8 @@ f32 func_80A97BC0(EnKo* this) {
+     return D_80A9A62C[ENKO_TYPE][EnKo_GetForestQuestState(this)];
+ }
+ 
+-u8 func_80A97C7C(EnKo* this) {
++// LLM generated name (HIGH), was func_80A97C7C: the caller runs Actor_UpdateBgCheckInfo and sets gravity -1 when this is true, gravity 0 when false
++u8 EnKo_UsesGravity(EnKo* this) {
+     u8 D_80A9A730[13][5] = {
+         /* ENKO_TYPE_CHILD_0    */ { 1, 1, 1, 0, 1 },
+         /* ENKO_TYPE_CHILD_1    */ { 1, 1, 1, 1, 1 },
+@@ -685,7 +694,8 @@ s32 EnKo_IsWithinTalkAngle(EnKo* this) {
+     return result;
+ }
+ 
+-s32 func_80A97D68(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A97D68: loops gKokiriLiftingRockAnim while idle and switches to gKokiriWipingForeheadAnim to talk
++s32 EnKo_UpdateLiftingRock(EnKo* this, PlayState* play) {
+     s16 trackingMode;
+ 
+     if (this->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+@@ -703,7 +713,8 @@ s32 func_80A97D68(EnKo* this, PlayState* play) {
+     return EnKo_IsWithinTalkAngle(this);
+ }
+ 
+-s32 func_80A97E18(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A97E18: fidgets, tracks head and torso within the talk angle, turns the whole body while talking, and stops tracking past lookDist
++s32 EnKo_UpdateTrackNearbyPlayer(EnKo* this, PlayState* play) {
+     s16 trackingMode;
+ 
+     Actor_UpdateFidgetTables(play, this->fidgetTableY, this->fidgetTableZ, 16);
+@@ -721,7 +732,8 @@ s32 func_80A97E18(EnKo* this, PlayState* play) {
+     return 1;
+ }
+ 
+-s32 func_80A97EB0(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A97EB0: fidgets and tracks head and torso only while the player is within the talk angle, returning that test
++s32 EnKo_UpdateFidgetAndLook(EnKo* this, PlayState* play) {
+     s16 trackingMode;
+     s32 result;
+ 
+@@ -732,13 +744,15 @@ s32 func_80A97EB0(EnKo* this, PlayState* play) {
+     return result;
+ }
+ 
+-s32 func_80A97F20(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A97F20: fidgets and turns the whole body toward the player unconditionally
++s32 EnKo_UpdateFacePlayer(EnKo* this, PlayState* play) {
+     Actor_UpdateFidgetTables(play, this->fidgetTableY, this->fidgetTableZ, 16);
+     Npc_TrackPoint(&this->actor, &this->interactInfo, 2, NPC_TRACKING_FULL_BODY);
+     return 1;
+ }
+ 
+-s32 func_80A97F70(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A97F70: loops gKokiriCuttingGrassAnim while idle and gKokiriBlockingAnim to talk
++s32 EnKo_UpdateCuttingGrass(EnKo* this, PlayState* play) {
+     s16 trackingMode;
+ 
+     if (this->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+@@ -757,7 +771,8 @@ s32 func_80A97F70(EnKo* this, PlayState* play) {
+     return EnKo_IsWithinTalkAngle(this);
+ }
+ 
+-s32 func_80A98034(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A98034: loops gKokiriPunchingAnim while idle and gKokiriBlockingAnim to talk
++s32 EnKo_UpdatePunching(EnKo* this, PlayState* play) {
+     s16 trackingMode;
+     s32 result;
+ 
+@@ -779,14 +794,16 @@ s32 func_80A98034(EnKo* this, PlayState* play) {
+     return result;
+ }
+ 
+-// Same as func_80A97F20
+-s32 func_80A98124(EnKo* this, PlayState* play) {
++// Same as EnKo_UpdateFacePlayer, was func_80A97F20 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80A98124: byte-identical duplicate of EnKo_UpdateFacePlayer, flagged as such by the comment above it, kept as its own symbol
++s32 EnKo_UpdateFacePlayer2(EnKo* this, PlayState* play) {
+     Actor_UpdateFidgetTables(play, this->fidgetTableY, this->fidgetTableZ, 16);
+     Npc_TrackPoint(&this->actor, &this->interactInfo, 2, NPC_TRACKING_FULL_BODY);
+     return 1;
+ }
+ 
+-s32 func_80A98174(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A98174: freezes the current animation at frame 18 while talking and resumes it at speed 1 afterwards
++s32 EnKo_UpdatePauseAnimToTalk(EnKo* this, PlayState* play) {
+     if (this->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+         if (Animation_OnFrame(&this->skelAnime, 18.0f)) {
+             this->skelAnime.playSpeed = 0.0f;
+@@ -805,158 +822,159 @@ s32 func_80A98174(EnKo* this, PlayState* play) {
+ s32 EnKo_ChildStart(EnKo* this, PlayState* play) {
+     switch (ENKO_TYPE) {
+         case ENKO_TYPE_CHILD_0:
+-            return func_80A97D68(this, play);
++            return EnKo_UpdateLiftingRock(this, play);  // was func_80A97D68 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_1:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_2:
+-            return func_80A98034(this, play);
++            return EnKo_UpdatePunching(this, play);  // was func_80A98034 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_3:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_4:
+-            return func_80A97F70(this, play);
++            return EnKo_UpdateCuttingGrass(this, play);  // was func_80A97F70 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_5:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_6:
+-            return func_80A97F20(this, play);
++            return EnKo_UpdateFacePlayer(this, play);  // was func_80A97F20 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_7:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_8:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_9:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_10:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_11:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_FADO:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+     }
+ }
+ 
+ s32 EnKo_ChildStone(EnKo* this, PlayState* play) {
+     switch (ENKO_TYPE) {
+         case ENKO_TYPE_CHILD_0:
+-            return func_80A98124(this, play);
++            return EnKo_UpdateFacePlayer2(this, play);  // was func_80A98124 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_1:
+-            return func_80A98124(this, play);
++            return EnKo_UpdateFacePlayer2(this, play);  // was func_80A98124 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_2:
+-            return func_80A98034(this, play);
++            return EnKo_UpdatePunching(this, play);  // was func_80A98034 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_3:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_4:
+-            return func_80A97F70(this, play);
++            return EnKo_UpdateCuttingGrass(this, play);  // was func_80A97F70 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_5:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_6:
+-            return func_80A97F20(this, play);
++            return EnKo_UpdateFacePlayer(this, play);  // was func_80A97F20 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_7:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_8:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_9:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_10:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_11:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_FADO:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+     }
+ }
+ 
+ s32 EnKo_ChildSaria(EnKo* this, PlayState* play) {
+     switch (ENKO_TYPE) {
+         case ENKO_TYPE_CHILD_0:
+-            return func_80A98124(this, play);
++            return EnKo_UpdateFacePlayer2(this, play);  // was func_80A98124 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_1:
+-            return func_80A98124(this, play);
++            return EnKo_UpdateFacePlayer2(this, play);  // was func_80A98124 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_2:
+-            return func_80A98034(this, play);
++            return EnKo_UpdatePunching(this, play);  // was func_80A98034 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_3:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_4:
+-            return func_80A98174(this, play);
++            return EnKo_UpdatePauseAnimToTalk(this, play);  // was func_80A98174 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_5:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_6:
+-            return func_80A97F20(this, play);
++            return EnKo_UpdateFacePlayer(this, play);  // was func_80A97F20 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_7:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_8:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_9:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_10:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_11:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_FADO:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+     }
+ }
+ 
+ s32 EnKo_AdultEnemy(EnKo* this, PlayState* play) {
+     switch (ENKO_TYPE) {
+         case ENKO_TYPE_CHILD_0:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_1:
+-            return func_80A98124(this, play);
++            return EnKo_UpdateFacePlayer2(this, play);  // was func_80A98124 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_2:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_3:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_4:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_5:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_6:
+-            return func_80A97F20(this, play);
++            return EnKo_UpdateFacePlayer(this, play);  // was func_80A97F20 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_7:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_8:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_9:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_10:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_11:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_FADO:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+     }
+ }
+ 
+ s32 EnKo_AdultSaved(EnKo* this, PlayState* play) {
+     switch (ENKO_TYPE) {
+         case ENKO_TYPE_CHILD_0:
+-            return func_80A98034(this, play);
++            return EnKo_UpdatePunching(this, play);  // was func_80A98034 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_1:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_2:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_3:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_4:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_5:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_6:
+-            return func_80A97F20(this, play);
++            return EnKo_UpdateFacePlayer(this, play);  // was func_80A97F20 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_7:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_8:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_9:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_10:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_11:
+-            return func_80A97EB0(this, play);
++            return EnKo_UpdateFidgetAndLook(this, play);  // was func_80A97EB0 [LLM:HIGH]
+         case ENKO_TYPE_CHILD_FADO:
+-            return func_80A97E18(this, play);
++            return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+     }
+ }
+-void func_80A9877C(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A9877C: points the tracking at the player or the cutscene camera, runs Npc_UpdateTalking, and picks Fado's trade text in the Lost Woods
++void EnKo_TrackPlayerAndTalk(EnKo* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     if ((play->csCtx.state != 0) || (gDbgCamEnabled != 0)) {
+@@ -967,8 +985,8 @@ void func_80A9877C(EnKo* this, PlayState* play) {
+         }
+     } else {
+         this->interactInfo.trackPos = player->actor.world.pos;
+-        this->interactInfo.yOffset = func_80A97BC0(this);
+-        if ((func_80A98ECC(this, play) == 0) && (this->interactInfo.talkState == NPC_TALK_STATE_IDLE)) {
++        this->interactInfo.yOffset = EnKo_GetTrackYOffset(this);  // was func_80A97BC0 [LLM:HIGH]
++        if ((EnKo_UpdateByForestQuestState(this, play) == 0) && (this->interactInfo.talkState == NPC_TALK_STATE_IDLE)) {  // was func_80A98ECC [LLM:HIGH]
+             return;
+         }
+     }
+@@ -1072,7 +1090,8 @@ void EnKo_Blink(EnKo* this) {
+     }
+ }
+ 
+-void func_80A98CD8(EnKo* this) {
++// LLM generated name (HIGH), was func_80A98CD8: copies this type's sInteractInfo row into targetMode, lookDist and appearDist
++void EnKo_InitInteractInfo(EnKo* this) {
+     s32 type = ENKO_TYPE;
+     EnKoInteractInfo* info = &sInteractInfo[type];
+ 
+@@ -1093,7 +1112,8 @@ s32 EnKo_GetForestQuestState2(EnKo* this) {
+     return ENKO_FQS_CHILD_START;
+ }
+ 
+-void func_80A98DB4(EnKo* this, PlayState* play) {
++// LLM generated name (HIGH), was func_80A98DB4: fades the Kokiri out past appearDist in the forest scenes and drops targeting once nearly invisible
++void EnKo_UpdateModelAlpha(EnKo* this, PlayState* play) {
+     f32 dist;
+ 
+     if (play->sceneNum != SCENE_LOST_WOODS && play->sceneNum != SCENE_KOKIRI_FOREST) {
+@@ -1116,9 +1136,9 @@ void func_80A98DB4(EnKo* this, PlayState* play) {
+     }
+ }
+ 
+-s32 func_80A98ECC(EnKo* this, PlayState* play) {
++s32 EnKo_UpdateByForestQuestState(EnKo* this, PlayState* play) {
+     if (play->sceneNum == SCENE_LOST_WOODS && ENKO_TYPE == ENKO_TYPE_CHILD_FADO) {
+-        return func_80A97E18(this, play);
++        return EnKo_UpdateTrackNearbyPlayer(this, play);  // was func_80A97E18 [LLM:HIGH]
+     }
+     switch (EnKo_GetForestQuestState(this)) {
+         case ENKO_FQS_CHILD_START:
+@@ -1144,7 +1164,7 @@ void EnKo_Init(Actor* thisx, PlayState* play) {
+     if (!EnKo_CanSpawn(this, play)) {
+         Actor_Kill(thisx);
+     }
+-    this->actionFunc = func_80A99048;
++    this->actionFunc = EnKo_WaitForObjects;  // was func_80A99048 [LLM:HIGH]
+ }
+ 
+ void EnKo_Destroy(Actor* thisx, PlayState* play) {
+@@ -1152,7 +1172,7 @@ void EnKo_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ }
+ 
+-void func_80A99048(EnKo* this, PlayState* play) {
++void EnKo_WaitForObjects(EnKo* this, PlayState* play) {
+     if (EnKo_IsOsAnimeLoaded(this, play) && EnKo_AreObjectsLoaded(this, play)) {
+         this->actor.flags &= ~ACTOR_FLAG_UPDATE_CULLING_DISABLED;
+         this->actor.objBankIndex = this->legsObjectBankIdx;
+@@ -1185,7 +1205,7 @@ void func_80A99048(EnKo* this, PlayState* play) {
+         }
+         Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, sOsAnimeLookup[ENKO_TYPE][this->forestQuestState]);
+         Actor_SetScale(&this->actor, 0.01f);
+-        func_80A98CD8(this);
++        EnKo_InitInteractInfo(this);  // was func_80A98CD8 [LLM:HIGH]
+         this->modelAlpha = 0.0f;
+         this->path = Path_GetByIndex(play, ENKO_PATH, 0xFF);
+         Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_ELF, this->actor.world.pos.x,
+@@ -1193,59 +1213,59 @@ void func_80A99048(EnKo* this, PlayState* play) {
+         if (ENKO_TYPE == ENKO_TYPE_CHILD_3) {
+             if (!GameInteractor_Should(VB_OPEN_KOKIRI_FOREST, CHECK_QUEST_ITEM(QUEST_KOKIRI_EMERALD), this)) {
+                 this->collider.dim.height += 200;
+-                this->actionFunc = func_80A995CC;
++                this->actionFunc = EnKo_OrbitHomeTowardPlayer;  // was func_80A995CC [LLM:HIGH]
+                 return;
+             }
+             Path_CopyLastPoint(this->path, &this->actor.world.pos);
+         }
+-        this->actionFunc = func_80A99384;
++        this->actionFunc = EnKo_FadoWaitToTrade;  // was func_80A99384 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A99384(EnKo* this, PlayState* play) {
++void EnKo_FadoWaitToTrade(EnKo* this, PlayState* play) {
+     if (ENKO_TYPE == ENKO_TYPE_CHILD_FADO && this->interactInfo.talkState != NPC_TALK_STATE_IDLE &&
+         this->actor.textId == 0x10B9) {
+         Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_LAUGHING);
+-        this->actionFunc = func_80A99438;
++        this->actionFunc = EnKo_FadoLaugh;  // was func_80A99438 [LLM:HIGH]
+     } else if (ENKO_TYPE == ENKO_TYPE_CHILD_FADO && this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+-        this->actionFunc = func_80A99504;
++        this->actionFunc = EnKo_FadoGiveSaw;  // was func_80A99504 [LLM:HIGH]
+         play->msgCtx.stateTimer = 4;
+         play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
+     }
+ }
+ 
+-void func_80A99438(EnKo* this, PlayState* play) {
++void EnKo_FadoLaugh(EnKo* this, PlayState* play) {
+     if (ENKO_TYPE == ENKO_TYPE_CHILD_FADO && this->interactInfo.talkState == NPC_TALK_STATE_ACTION) {
+         Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_IDLE);
+-        this->actionFunc = func_80A99504;
++        this->actionFunc = EnKo_FadoGiveSaw;  // was func_80A99504 [LLM:HIGH]
+         play->msgCtx.stateTimer = 4;
+         play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
+     } else if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE || this->actor.textId != 0x10B9) {
+         Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_IDLE);
+-        this->actionFunc = func_80A99384;
++        this->actionFunc = EnKo_FadoWaitToTrade;  // was func_80A99384 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A99504(EnKo* this, PlayState* play) {
++void EnKo_FadoGiveSaw(EnKo* this, PlayState* play) {
+     if (Actor_HasParent(&this->actor, play) || !GameInteractor_Should(VB_TRADE_ODD_POTION, true, this)) {
+         this->actor.parent = NULL;
+-        this->actionFunc = func_80A99560;
++        this->actionFunc = EnKo_FadoFinishTrade;  // was func_80A99560 [LLM:HIGH]
+     } else {
+         Actor_OfferGetItem(&this->actor, play, GI_SAW, 120.0f, 10.0f);
+     }
+ }
+ 
+-void func_80A99560(EnKo* this, PlayState* play) {
++void EnKo_FadoFinishTrade(EnKo* this, PlayState* play) {
+     if (this->interactInfo.talkState == NPC_TALK_STATE_ITEM_GIVEN) {
+         this->actor.textId = 0x10B9;
+         Message_ContinueTextbox(play, this->actor.textId);
+         this->interactInfo.talkState = NPC_TALK_STATE_TALKING;
+         Flags_SetItemGetInf(ITEMGETINF_31);
+-        this->actionFunc = func_80A99384;
++        this->actionFunc = EnKo_FadoWaitToTrade;  // was func_80A99384 [LLM:HIGH]
+     }
+ }
+ 
+-void func_80A995CC(EnKo* this, PlayState* play) {
++void EnKo_OrbitHomeTowardPlayer(EnKo* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     f32 temp_f2;
+     f32 phi_f0;
+@@ -1275,20 +1295,20 @@ void EnKo_Update(Actor* thisx, PlayState* play) {
+     EnKo* this = (EnKo*)thisx;
+     s32 pad;
+ 
+-    if (this->actionFunc != func_80A99048) {
++    if (this->actionFunc != EnKo_WaitForObjects) {  // was func_80A99048 [LLM:HIGH]
+         if ((s32)this->modelAlpha != 0) {
+             gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[this->osAnimeBankIndex].segment);
+             SkelAnime_Update(&this->skelAnime);
+-            func_80A98DB4(this, play);
++            EnKo_UpdateModelAlpha(this, play);  // was func_80A98DB4 [LLM:HIGH]
+             EnKo_Blink(this);
+         } else {
+-            func_80A98DB4(this, play);
++            EnKo_UpdateModelAlpha(this, play);  // was func_80A98DB4 [LLM:HIGH]
+         }
+     }
+     if (this->interactInfo.talkState == NPC_TALK_STATE_IDLE) {
+         Actor_MoveXZGravity(&this->actor);
+     }
+-    if (func_80A97C7C(this)) {
++    if (EnKo_UsesGravity(this)) {  // was func_80A97C7C [LLM:HIGH]
+         Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+         this->actor.gravity = -1.0f;
+     } else {
+@@ -1297,7 +1317,7 @@ void EnKo_Update(Actor* thisx, PlayState* play) {
+ 
+     this->actionFunc(this, play);
+ 
+-    func_80A9877C(this, play);
++    EnKo_TrackPlayerAndTalk(this, play);  // was func_80A9877C [LLM:HIGH]
+     collider = &this->collider;
+     Collider_UpdateCylinder(&this->actor, collider);
+     CollisionCheck_SetOC(play, &play->colChkCtx, &collider->base);
+diff --git a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.h b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.h
+index 32d76764b..a0110716a 100644
+--- a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.h
++++ b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.h
+@@ -60,8 +60,8 @@ typedef enum {
+ } KokiriForestQuestState;
+ 
+ // #region SoH [Enhancements] Externed for time savers
+-void func_80A995CC(EnKo* actor, PlayState* play);
+-void func_80A99384(EnKo* actor, PlayState* play);
++void EnKo_OrbitHomeTowardPlayer(EnKo* actor, PlayState* play);  // was func_80A995CC [LLM:HIGH]
++void EnKo_FadoWaitToTrade(EnKo* actor, PlayState* play);  // was func_80A99384 [LLM:HIGH]
+ // #endregion
+ 
+ #endif
+-- 
+2.55.0
+

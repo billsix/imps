@@ -1,0 +1,247 @@
+From f9463e79ede38dce4b9811e1b2761895a7c020d2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:23 +0000
+Subject: [PATCH 292/488] soh: name the 7 address-named symbols defined in
+ z_bg_hidan_sima.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 7 are defined in soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c.
+
+  * func_8088E518 -> BgHidanSima_Rise
+    deduced, confidence HIGH: the params 0 platform's resting action: steps
+    back up to home height and, when the player steps on, arms the shake or
+    drops straight to the sink.
+
+  * func_8088E5D0 -> BgHidanSima_Shake
+    deduced, confidence HIGH: jitters the platform in a circle for twenty
+    frames with rumble and the block-shake sfx, then recentres it and starts
+    sinking.
+
+  * func_8088E6D0 -> BgHidanSima_Sink
+    deduced, confidence HIGH: lowers the platform 100 units below home,
+    re-arming the timer while the player is still standing on it, and
+    returns to the rise once it expires.
+
+  * func_8088E760 -> BgHidanSima_WaitToSlide
+    deduced, confidence HIGH: the params 1 platform's pause between passes:
+    on expiry it flips world.rot.y by 180 degrees and arms the 60-frame
+    slide.
+
+  * func_8088E7A8 -> BgHidanSima_Slide
+    deduced, confidence HIGH: sweeps the platform up to 200 units along its
+    facing on a sine curve while looping the fire-pillar sfx, then returns
+    to the pause.
+
+  * func_8088E90C -> BgHidanSima_UpdateCollider
+    deduced, confidence HIGH: places the two JntSph collider spheres in
+    world space along the platform's facing each frame.
+
+  * func_8088EB54 -> BgHidanSima_DrawFireballs
+    deduced, confidence HIGH: emits the trail of gFireTempleFireballDL quads
+    ahead of the platform, growing them and cycling sFireballsTexs with the
+    slide timer.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c       | 59 +++++++++++--------
+ 1 file changed, 33 insertions(+), 26 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c
+index 9effb70b7..2453355d5 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Sima/z_bg_hidan_sima.c
+@@ -14,12 +14,18 @@ void BgHidanSima_Destroy(Actor* thisx, PlayState* play);
+ void BgHidanSima_Update(Actor* thisx, PlayState* play);
+ void BgHidanSima_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_8088E518(BgHidanSima* this, PlayState* play);
+-void func_8088E5D0(BgHidanSima* this, PlayState* play);
+-void func_8088E6D0(BgHidanSima* this, PlayState* play);
+-void func_8088E760(BgHidanSima* this, PlayState* play);
+-void func_8088E7A8(BgHidanSima* this, PlayState* play);
+-void func_8088E90C(BgHidanSima* this);
++// LLM generated name (HIGH), was func_8088E518: the params 0 platform's resting action: steps back up to home height and, when the player steps on, arms the shake or drops straight to the sink.
++void BgHidanSima_Rise(BgHidanSima* this, PlayState* play);  // was func_8088E518 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088E5D0: jitters the platform in a circle for twenty frames with rumble and the block-shake sfx, then recentres it and starts sinking.
++void BgHidanSima_Shake(BgHidanSima* this, PlayState* play);  // was func_8088E5D0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088E6D0: lowers the platform 100 units below home, re-arming the timer while the player is still standing on it, and returns to the rise once it expires.
++void BgHidanSima_Sink(BgHidanSima* this, PlayState* play);  // was func_8088E6D0 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088E760: the params 1 platform's pause between passes: on expiry it flips world.rot.y by 180 degrees and arms the 60-frame slide.
++void BgHidanSima_WaitToSlide(BgHidanSima* this, PlayState* play);  // was func_8088E760 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088E7A8: sweeps the platform up to 200 units along its facing on a sine curve while looping the fire-pillar sfx, then returns to the pause.
++void BgHidanSima_Slide(BgHidanSima* this, PlayState* play);  // was func_8088E7A8 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8088E90C: places the two JntSph collider spheres in world space along the platform's facing each frame.
++void BgHidanSima_UpdateCollider(BgHidanSima* this);  // was func_8088E90C [LLM:HIGH]
+ 
+ const ActorInit Bg_Hidan_Sima_InitVars = {
+     ACTOR_BG_HIDAN_SIMA,
+@@ -101,9 +107,9 @@ void BgHidanSima_Init(Actor* thisx, PlayState* play) {
+         this->collider.elements[i].dim.worldSphere.radius = this->collider.elements[i].dim.modelSphere.radius;
+     }
+     if (this->dyna.actor.params == 0) {
+-        this->actionFunc = func_8088E518;
++        this->actionFunc = BgHidanSima_Rise;  // was func_8088E518 [LLM:HIGH]
+     } else {
+-        this->actionFunc = func_8088E760;
++        this->actionFunc = BgHidanSima_WaitToSlide;  // was func_8088E760 [LLM:HIGH]
+     }
+ }
+ 
+@@ -114,7 +120,7 @@ void BgHidanSima_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyJntSph(play, &this->collider);
+ }
+ 
+-void func_8088E518(BgHidanSima* this, PlayState* play) {
++void BgHidanSima_Rise(BgHidanSima* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+     Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y, 3.4f);
+@@ -123,14 +129,14 @@ void func_8088E518(BgHidanSima* this, PlayState* play) {
+         this->timer = 20;
+         this->dyna.actor.world.rot.y = Camera_GetCamDirYaw(GET_ACTIVE_CAM(play)) + 0x4000;
+         if (this->dyna.actor.home.pos.y <= this->dyna.actor.world.pos.y) {
+-            this->actionFunc = func_8088E5D0;
++            this->actionFunc = BgHidanSima_Shake;  // was func_8088E5D0 [LLM:HIGH]
+         } else {
+-            this->actionFunc = func_8088E6D0;
++            this->actionFunc = BgHidanSima_Sink;  // was func_8088E6D0 [LLM:HIGH]
+         }
+     }
+ }
+ 
+-void func_8088E5D0(BgHidanSima* this, PlayState* play) {
++void BgHidanSima_Shake(BgHidanSima* this, PlayState* play) {
+     if (this->timer != 0) {
+         this->timer--;
+     }
+@@ -140,7 +146,7 @@ void func_8088E5D0(BgHidanSima* this, PlayState* play) {
+         this->dyna.actor.world.pos.z =
+             Math_CosS(this->dyna.actor.world.rot.y + (this->timer * 0x4000)) * 5.0f + this->dyna.actor.home.pos.z;
+     } else {
+-        this->actionFunc = func_8088E6D0;
++        this->actionFunc = BgHidanSima_Sink;  // was func_8088E6D0 [LLM:HIGH]
+         this->dyna.actor.world.pos.x = this->dyna.actor.home.pos.x;
+         this->dyna.actor.world.pos.z = this->dyna.actor.home.pos.z;
+     }
+@@ -150,7 +156,7 @@ void func_8088E5D0(BgHidanSima* this, PlayState* play) {
+     }
+ }
+ 
+-void func_8088E6D0(BgHidanSima* this, PlayState* play) {
++void BgHidanSima_Sink(BgHidanSima* this, PlayState* play) {
+     if (DynaPolyActor_IsPlayerOnTop(&this->dyna)) {
+         this->timer = 20;
+     } else if (this->timer != 0) {
+@@ -158,22 +164,22 @@ void func_8088E6D0(BgHidanSima* this, PlayState* play) {
+     }
+     Math_StepToF(&this->dyna.actor.world.pos.y, this->dyna.actor.home.pos.y - 100.0f, 1.7f);
+     if (this->timer == 0) {
+-        this->actionFunc = func_8088E518;
++        this->actionFunc = BgHidanSima_Rise;  // was func_8088E518 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8088E760(BgHidanSima* this, PlayState* play) {
++void BgHidanSima_WaitToSlide(BgHidanSima* this, PlayState* play) {
+     if (this->timer != 0) {
+         this->timer--;
+     }
+     if (this->timer == 0) {
+         this->dyna.actor.world.rot.y += 0x8000;
+         this->timer = 60;
+-        this->actionFunc = func_8088E7A8;
++        this->actionFunc = BgHidanSima_Slide;  // was func_8088E7A8 [LLM:HIGH]
+     }
+ }
+ 
+-void func_8088E7A8(BgHidanSima* this, PlayState* play) {
++void BgHidanSima_Slide(BgHidanSima* this, PlayState* play) {
+     f32 temp;
+ 
+     if (this->timer != 0) {
+@@ -188,12 +194,12 @@ void func_8088E7A8(BgHidanSima* this, PlayState* play) {
+     this->dyna.actor.world.pos.z = Math_CosS(this->dyna.actor.world.rot.y) * temp + this->dyna.actor.home.pos.z;
+     if (this->timer == 0) {
+         this->timer = 20;
+-        this->actionFunc = func_8088E760;
++        this->actionFunc = BgHidanSima_WaitToSlide;  // was func_8088E760 [LLM:HIGH]
+     }
+     Actor_PlaySfx_Flagged(&this->dyna.actor, NA_SE_EV_FIRE_PILLAR - SFX_FLAG);
+ }
+ 
+-void func_8088E90C(BgHidanSima* this) {
++void BgHidanSima_UpdateCollider(BgHidanSima* this) {
+     ColliderJntSphElement* elem;
+     s32 i;
+     f32 cos = Math_CosS(this->dyna.actor.world.rot.y + 0x8000);
+@@ -215,18 +221,19 @@ void BgHidanSima_Update(Actor* thisx, PlayState* play) {
+     if (this->dyna.actor.params != 0) {
+         s32 temp = (this->dyna.actor.world.rot.y == this->dyna.actor.shape.rot.y) ? this->timer : (this->timer + 80);
+ 
+-        if (this->actionFunc == func_8088E7A8) {
++        if (this->actionFunc == BgHidanSima_Slide) {  // was func_8088E7A8 [LLM:HIGH]
+             temp += 20;
+         }
+         this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y - ((1.0f - cosf(temp * (M_PI / 20))) * 5.0f);
+-        if (this->actionFunc == func_8088E7A8) {
+-            func_8088E90C(this);
++        if (this->actionFunc == BgHidanSima_Slide) {  // was func_8088E7A8 [LLM:HIGH]
++            BgHidanSima_UpdateCollider(this);  // was func_8088E90C [LLM:HIGH]
+             CollisionCheck_SetAT(play, &play->colChkCtx, &this->collider.base);
+         }
+     }
+ }
+ 
+-Gfx* func_8088EB54(PlayState* play, BgHidanSima* this, Gfx* gfx) {
++// LLM generated name (HIGH), was func_8088EB54: emits the trail of gFireTempleFireballDL quads ahead of the platform, growing them and cycling sFireballsTexs with the slide timer.
++Gfx* BgHidanSima_DrawFireballs(PlayState* play, BgHidanSima* this, Gfx* gfx) {
+     MtxF mtxF;
+     s32 phi_s5;
+     s32 s3;
+@@ -283,11 +290,11 @@ void BgHidanSima_Draw(Actor* thisx, PlayState* play) {
+         gSPDisplayList(POLY_OPA_DISP++, gFireTempleStonePlatform1DL);
+     } else {
+         gSPDisplayList(POLY_OPA_DISP++, gFireTempleStonePlatform2DL);
+-        if (this->actionFunc == func_8088E7A8) {
++        if (this->actionFunc == BgHidanSima_Slide) {  // was func_8088E7A8 [LLM:HIGH]
+             POLY_XLU_DISP = Gfx_SetupDL(POLY_XLU_DISP, 0x14);
+             gDPSetPrimColor(POLY_XLU_DISP++, 0, 1, 255, 255, 0, 150);
+             gDPSetEnvColor(POLY_XLU_DISP++, 255, 0, 0, 255);
+-            POLY_XLU_DISP = func_8088EB54(play, this, POLY_XLU_DISP);
++            POLY_XLU_DISP = BgHidanSima_DrawFireballs(play, this, POLY_XLU_DISP);  // was func_8088EB54 [LLM:HIGH]
+         }
+     }
+     CLOSE_DISPS(play->state.gfxCtx);
+-- 
+2.55.0
+

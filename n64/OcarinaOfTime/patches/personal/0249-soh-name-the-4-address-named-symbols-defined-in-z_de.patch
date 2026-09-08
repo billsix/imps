@@ -1,0 +1,142 @@
+From 700f44fe0362ea16a0c1846b4ad8f37a08ce8923 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:19 +0000
+Subject: [PATCH 249/488] soh: name the 4 address-named symbols defined in
+ z_demo_tre_lgt.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Demo_Tre_Lgt/z_demo_tre_lgt.c.
+
+  * func_80993754 -> DemoTreLgt_SetupWait
+    deduced, confidence HIGH: sets action to DEMO_TRE_LGT_ACTION_WAIT;
+    called from Init.
+
+  * func_8099375C -> DemoTreLgt_Wait
+    deduced, confidence HIGH: sActionFuncs[DEMO_TRE_LGT_ACTION_WAIT]:
+    watches the parent chest's skelanime and starts the light animation on
+    frame 10.
+
+  * func_809937B4 -> DemoTreLgt_StartAnimation
+    deduced, confidence HIGH: switches to DEMO_TRE_LGT_ACTION_ANIMATE and
+    loads the age-appropriate SkelCurve animation from the chest's current
+    frame.
+
+  * func_80993848 -> DemoTreLgt_Animate
+    deduced, confidence HIGH: sActionFuncs[DEMO_TRE_LGT_ACTION_ANIMATE]:
+    fades the two limb alphas along the curve, plays the treasure-flash sfx
+    once past frame 30 and kills the actor when the curve ends.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Demo_Tre_Lgt/z_demo_tre_lgt.c  | 28 +++++++++++--------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Demo_Tre_Lgt/z_demo_tre_lgt.c b/soh/src/overlays/actors/ovl_Demo_Tre_Lgt/z_demo_tre_lgt.c
+index 4a0a8a47c..b302d63ec 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Tre_Lgt/z_demo_tre_lgt.c
++++ b/soh/src/overlays/actors/ovl_Demo_Tre_Lgt/z_demo_tre_lgt.c
+@@ -10,10 +10,14 @@ void DemoTreLgt_Destroy(Actor* thisx, PlayState* play);
+ void DemoTreLgt_Update(Actor* thisx, PlayState* play);
+ void DemoTreLgt_Draw(Actor* thisx, PlayState* play);
+ 
+-void func_80993848(DemoTreLgt* this, PlayState* play);
+-void func_80993754(DemoTreLgt* this);
+-void func_8099375C(DemoTreLgt* this, PlayState* play);
+-void func_809937B4(DemoTreLgt* this, PlayState* play, f32 currentFrame);
++// LLM generated name (HIGH), was func_80993848: sActionFuncs[DEMO_TRE_LGT_ACTION_ANIMATE]: fades the two limb alphas along the curve, plays the treasure-flash sfx once past frame 30 and kills the actor when the curve ends.
++void DemoTreLgt_Animate(DemoTreLgt* this, PlayState* play);  // was func_80993848 [LLM:HIGH]
++// LLM generated name (HIGH), was func_80993754: sets action to DEMO_TRE_LGT_ACTION_WAIT; called from Init.
++void DemoTreLgt_SetupWait(DemoTreLgt* this);  // was func_80993754 [LLM:HIGH]
++// LLM generated name (HIGH), was func_8099375C: sActionFuncs[DEMO_TRE_LGT_ACTION_WAIT]: watches the parent chest's skelanime and starts the light animation on frame 10.
++void DemoTreLgt_Wait(DemoTreLgt* this, PlayState* play);  // was func_8099375C [LLM:HIGH]
++// LLM generated name (HIGH), was func_809937B4: switches to DEMO_TRE_LGT_ACTION_ANIMATE and loads the age-appropriate SkelCurve animation from the chest's current frame.
++void DemoTreLgt_StartAnimation(DemoTreLgt* this, PlayState* play, f32 currentFrame);  // was func_809937B4 [LLM:HIGH]
+ 
+ typedef struct {
+     /* 0x00 */ f32 startFrame;
+@@ -43,8 +47,8 @@ const ActorInit Demo_Tre_Lgt_InitVars = {
+ static TransformUpdateIndex* sTransformUpdIdx[] = { &gTreasureChestCurveAnim_4B60, &gTreasureChestCurveAnim_4F70 };
+ 
+ static DemoTreLgtActionFunc sActionFuncs[] = {
+-    func_8099375C,
+-    func_80993848,
++    DemoTreLgt_Wait,  // was func_8099375C [LLM:HIGH]
++    DemoTreLgt_Animate,  // was func_80993848 [LLM:HIGH]
+ };
+ 
+ void DemoTreLgt_Init(Actor* thisx, PlayState* play) {
+@@ -60,7 +64,7 @@ void DemoTreLgt_Init(Actor* thisx, PlayState* play) {
+     this->unk_170 = 255;
+     this->unk_174 = 255;
+     this->status = 0;
+-    func_80993754(this);
++    DemoTreLgt_SetupWait(this);  // was func_80993754 [LLM:HIGH]
+ }
+ 
+ void DemoTreLgt_Destroy(Actor* thisx, PlayState* play) {
+@@ -69,19 +73,19 @@ void DemoTreLgt_Destroy(Actor* thisx, PlayState* play) {
+     SkelCurve_Destroy(play, &this->skelCurve);
+ }
+ 
+-void func_80993754(DemoTreLgt* this) {
++void DemoTreLgt_SetupWait(DemoTreLgt* this) {
+     this->action = DEMO_TRE_LGT_ACTION_WAIT;
+ }
+ 
+-void func_8099375C(DemoTreLgt* this, PlayState* play) {
++void DemoTreLgt_Wait(DemoTreLgt* this, PlayState* play) {
+     EnBox* treasureChest = (EnBox*)this->actor.parent;
+ 
+     if (treasureChest != NULL && Animation_OnFrame(&treasureChest->skelanime, 10.0f)) {
+-        func_809937B4(this, play, treasureChest->skelanime.curFrame);
++        DemoTreLgt_StartAnimation(this, play, treasureChest->skelanime.curFrame);  // was func_809937B4 [LLM:HIGH]
+     }
+ }
+ 
+-void func_809937B4(DemoTreLgt* this, PlayState* play, f32 currentFrame) {
++void DemoTreLgt_StartAnimation(DemoTreLgt* this, PlayState* play, f32 currentFrame) {
+     SkelAnimeCurve* skelCurve = &this->skelCurve;
+     s32 pad[2];
+ 
+@@ -93,7 +97,7 @@ void func_809937B4(DemoTreLgt* this, PlayState* play, f32 currentFrame) {
+     SkelCurve_Update(play, skelCurve);
+ }
+ 
+-void func_80993848(DemoTreLgt* this, PlayState* play) {
++void DemoTreLgt_Animate(DemoTreLgt* this, PlayState* play) {
+     f32 currentFrame = this->skelCurve.animCurFrame;
+ 
+     if (currentFrame < sDemoTreLgtInfo[((void)0, gSaveContext.linkAge)].endFrame) {
+-- 
+2.55.0
+

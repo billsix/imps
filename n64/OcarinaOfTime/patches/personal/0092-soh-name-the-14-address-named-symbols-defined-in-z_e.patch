@@ -1,0 +1,328 @@
+From 27ebdd4841dec8ebb1e98f47024ab840d834c57d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:05 +0000
+Subject: [PATCH 092/488] soh: name the 14 address-named symbols defined in
+ z_en_md.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 14 are defined in soh/src/overlays/actors/ovl_En_Md/z_en_md.c.
+
+  * func_80AAA250 -> EnMd_ReverseAnimation
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 1.00
+
+  * func_80AAA274 -> EnMd_UpdateAnimSequence_IdleToHalt
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.93
+
+  * func_80AAA308 -> EnMd_UpdateAnimSequence_HaltToCurious
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80AAA39C -> EnMd_UpdateAnimSequence_WalkAway
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.90
+
+  * func_80AAA474 -> EnMd_UpdateAnimSequence_TwitchIdle_Unused
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80AAA508 -> EnMd_UpdateAnimSequence_HaltToIdle
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+  * func_80AAA5A4 -> EnMd_UpdateAnimSequence_SurpriseToAnnoyed
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80AAA638 -> EnMd_UpdateAnimSequence_SurpriseToIdle
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+  * func_80AAA6D4 -> EnMd_UpdateAnimSequence_CuriousToAnnoyed
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.91
+
+  * func_80AAA768 -> EnMd_UpdateAnimSequence_AnnoyedToHalt
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80AAA7FC -> EnMd_UpdateAnimSequence_IdleToAnnoyed
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.92
+
+  * func_80AAA890 -> EnMd_UpdateAnimSequence_StopWalking
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.89
+
+  * func_80AAAC78 -> EnMd_TrackMessageState
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.95
+
+  * func_80AAAF04 -> EnMd_UpdateTalkState
+    zeldaret/oot (same decomp, same ROM address); body verified against
+    upstream at 0.84
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Md/z_en_md.c | 76 ++++++++++++---------
+ 1 file changed, 45 insertions(+), 31 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Md/z_en_md.c b/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
+index 1b110fda3..fdfa7d9b9 100644
+--- a/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
++++ b/soh/src/overlays/actors/ovl_En_Md/z_en_md.c
+@@ -93,7 +93,8 @@ static AnimationInfo sAnimationInfo[] = {
+     { &gMidoAngryHeadTurnAnim, 1.0f, 0.0f, -1.0f, ANIMMODE_LOOP, -1.0f },
+ };
+ 
+-void func_80AAA250(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA250): adopted upstream's name for this address; body verified to match upstream at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_ReverseAnimation(EnMd* this) {
+     f32 startFrame;
+ 
+     startFrame = this->skelAnime.startFrame;
+@@ -103,7 +104,8 @@ void func_80AAA250(EnMd* this) {
+     this->skelAnime.playSpeed = -1.0f;
+ }
+ 
+-void func_80AAA274(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA274): adopted upstream's name for this address; body verified to match upstream at 0.93. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_IdleToHalt(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_2);
+@@ -116,7 +118,8 @@ void func_80AAA274(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA308(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA308): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_HaltToCurious(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_4);
+@@ -129,11 +132,12 @@ void func_80AAA308(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA39C(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA39C): adopted upstream's name for this address; body verified to match upstream at 0.90. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_WalkAway(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_2);
+-            func_80AAA250(this);
++            EnMd_ReverseAnimation(this);
+             this->animSequenceEntry++;
+         case 1:
+             if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+@@ -150,7 +154,8 @@ void func_80AAA39C(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA474(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA474): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_TwitchIdle_Unused(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_7);
+@@ -163,11 +168,12 @@ void func_80AAA474(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA508(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA508): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_HaltToIdle(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_2);
+-            func_80AAA250(this);
++            EnMd_ReverseAnimation(this);
+             this->animSequenceEntry++;
+         case 1:
+             if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+@@ -177,7 +183,8 @@ void func_80AAA508(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA5A4(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA5A4): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_SurpriseToAnnoyed(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_9);
+@@ -190,11 +197,12 @@ void func_80AAA5A4(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA638(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA638): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_SurpriseToIdle(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_9);
+-            func_80AAA250(this);
++            EnMd_ReverseAnimation(this);
+             this->animSequenceEntry++;
+         case 1:
+             if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+@@ -204,7 +212,8 @@ void func_80AAA638(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA6D4(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA6D4): adopted upstream's name for this address; body verified to match upstream at 0.91. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_CuriousToAnnoyed(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_11);
+@@ -217,7 +226,8 @@ void func_80AAA6D4(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA768(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA768): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_AnnoyedToHalt(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_12);
+@@ -230,7 +240,8 @@ void func_80AAA768(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA7FC(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA7FC): adopted upstream's name for this address; body verified to match upstream at 0.92. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_IdleToAnnoyed(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_13);
+@@ -243,11 +254,12 @@ void func_80AAA7FC(EnMd* this) {
+     }
+ }
+ 
+-void func_80AAA890(EnMd* this) {
++// Name from zeldaret/oot (was func_80AAA890): adopted upstream's name for this address; body verified to match upstream at 0.89. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++void EnMd_UpdateAnimSequence_StopWalking(EnMd* this) {
+     switch (this->animSequenceEntry) {
+         case 0:
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENMD_ANIM_7);
+-            func_80AAA250(this);
++            EnMd_ReverseAnimation(this);
+             this->animSequenceEntry++;
+         case 1:
+             if (Animation_OnFrame(&this->skelAnime, this->skelAnime.endFrame)) {
+@@ -265,37 +277,37 @@ void EnMd_SetAnimSequence(EnMd* this, u8 arg1) {
+ void EnMd_UpdateAnimSequence(EnMd* this) {
+     switch (this->animSequence) {
+         case 1:
+-            func_80AAA274(this);
++            EnMd_UpdateAnimSequence_IdleToHalt(this);
+             break;
+         case 2:
+-            func_80AAA308(this);
++            EnMd_UpdateAnimSequence_HaltToCurious(this);
+             break;
+         case 3:
+-            func_80AAA39C(this);
++            EnMd_UpdateAnimSequence_WalkAway(this);
+             break;
+         case 4:
+-            func_80AAA474(this);
++            EnMd_UpdateAnimSequence_TwitchIdle_Unused(this);
+             break;
+         case 5:
+-            func_80AAA508(this);
++            EnMd_UpdateAnimSequence_HaltToIdle(this);
+             break;
+         case 6:
+-            func_80AAA5A4(this);
++            EnMd_UpdateAnimSequence_SurpriseToAnnoyed(this);
+             break;
+         case 7:
+-            func_80AAA638(this);
++            EnMd_UpdateAnimSequence_SurpriseToIdle(this);
+             break;
+         case 8:
+-            func_80AAA6D4(this);
++            EnMd_UpdateAnimSequence_CuriousToAnnoyed(this);
+             break;
+         case 9:
+-            func_80AAA768(this);
++            EnMd_UpdateAnimSequence_AnnoyedToHalt(this);
+             break;
+         case 10:
+-            func_80AAA7FC(this);
++            EnMd_UpdateAnimSequence_IdleToAnnoyed(this);
+             break;
+         case 11:
+-            func_80AAA890(this);
++            EnMd_UpdateAnimSequence_StopWalking(this);
+     }
+ }
+ 
+@@ -351,7 +363,8 @@ void EnMd_UpdateAnimSequence_WithTalking(EnMd* this) {
+     EnMd_UpdateAnimSequence(this);
+ }
+ 
+-s16 func_80AAAC78(EnMd* this, PlayState* play) {
++// Name from zeldaret/oot (was func_80AAAC78): adopted upstream's name for this address; body verified to match upstream at 0.95. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++s16 EnMd_TrackMessageState(EnMd* this, PlayState* play) {
+     s16 dialogState = Message_GetState(&play->msgCtx);
+ 
+     if ((this->messageState == TEXT_STATE_AWAITING_NEXT) || (this->messageState == TEXT_STATE_EVENT) ||
+@@ -443,9 +456,10 @@ u16 EnMd_GetText(PlayState* play, Actor* thisx) {
+     }
+ }
+ 
+-s16 func_80AAAF04(PlayState* play, Actor* thisx) {
++// Name from zeldaret/oot (was func_80AAAF04): adopted upstream's name for this address; body verified to match upstream at 0.84. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_En_Md/z_en_md.c]
++s16 EnMd_UpdateTalkState(PlayState* play, Actor* thisx) {
+     EnMd* this = (EnMd*)thisx;
+-    switch (func_80AAAC78(this, play)) {
++    switch (EnMd_TrackMessageState(this, play)) {
+         case TEXT_STATE_NONE:
+         case TEXT_STATE_DONE_HAS_NEXT:
+         case TEXT_STATE_DONE_FADING:
+@@ -563,7 +577,7 @@ void EnMd_UpdateTalking(EnMd* this, PlayState* play) {
+     if (this->actionFunc != EnMd_ListenToOcarina) {
+         if (canUpdateTalking) {
+             Npc_UpdateTalking(play, &this->actor, &this->interactInfo.talkState, this->collider.dim.radius + 30.0f,
+-                              EnMd_GetText, func_80AAAF04);
++                              EnMd_GetText, EnMd_UpdateTalkState);
+         }
+     }
+ }
+-- 
+2.55.0
+

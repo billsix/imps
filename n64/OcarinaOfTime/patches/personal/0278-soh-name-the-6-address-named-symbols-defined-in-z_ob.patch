@@ -1,0 +1,163 @@
+From 63ed433eab9fa2c2dd819bf46d4c778b49947dd0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:22 +0000
+Subject: [PATCH 278/488] soh: name the 6 address-named symbols defined in
+ z_obj_tsubo.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 6 are defined in soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c.
+
+  * D_80BA1B50 -> sThrownSpinTargetX
+    deduced, confidence HIGH: randomised target for the thrown pot's X spin
+    rate, picked in ObjTsubo_SetupThrown and eased toward each frame.
+
+  * D_80BA1B54 -> sThrownSpinX
+    deduced, confidence HIGH: the current X spin rate, stepped toward
+    sThrownSpinTargetX and added to shape.rot.x every frame while the pot is
+    airborne.
+
+  * D_80BA1B58 -> sThrownSpinTargetY
+    deduced, confidence HIGH: the Y counterpart of sThrownSpinTargetX.
+
+  * D_80BA1B5C -> sThrownSpinY
+    deduced, confidence HIGH: the Y counterpart of sThrownSpinX, added to
+    shape.rot.y.
+
+  * D_80BA1B84 -> sDLists
+    deduced, confidence HIGH: the two pot display lists, indexed by params
+    bit 8 in the draw function.
+
+  * D_80BA1B8C -> sFragmentDLists
+    deduced, confidence HIGH: the matching pot-fragment display lists,
+    indexed the same way and passed to the air and water break effects.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Obj_Tsubo/z_obj_tsubo.c        | 40 +++++++++++--------
+ 1 file changed, 23 insertions(+), 17 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c b/soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c
+index 643b7bca3..f5ad20ad9 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c
++++ b/soh/src/overlays/actors/ovl_Obj_Tsubo/z_obj_tsubo.c
+@@ -32,10 +32,14 @@ void ObjTsubo_LiftedUp(ObjTsubo* this, PlayState* play);
+ void ObjTsubo_SetupThrown(ObjTsubo* this);
+ void ObjTsubo_Thrown(ObjTsubo* this, PlayState* play);
+ 
+-static s16 D_80BA1B50 = 0;
+-static s16 D_80BA1B54 = 0;
+-static s16 D_80BA1B58 = 0;
+-static s16 D_80BA1B5C = 0;
++// LLM generated name (HIGH), was D_80BA1B50: randomised target for the thrown pot's X spin rate, picked in ObjTsubo_SetupThrown and eased toward each frame.
++static s16 sThrownSpinTargetX = 0;  // was D_80BA1B50 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80BA1B54: the current X spin rate, stepped toward sThrownSpinTargetX and added to shape.rot.x every frame while the pot is airborne.
++static s16 sThrownSpinX = 0;  // was D_80BA1B54 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80BA1B58: the Y counterpart of sThrownSpinTargetX.
++static s16 sThrownSpinTargetY = 0;  // was D_80BA1B58 [LLM:HIGH]
++// LLM generated name (HIGH), was D_80BA1B5C: the Y counterpart of sThrownSpinX, added to shape.rot.y.
++static s16 sThrownSpinY = 0;  // was D_80BA1B5C [LLM:HIGH]
+ 
+ const ActorInit Obj_Tsubo_InitVars = {
+     ACTOR_OBJ_TSUBO,
+@@ -52,9 +56,11 @@ const ActorInit Obj_Tsubo_InitVars = {
+ 
+ static s16 sObjectIds[] = { OBJECT_GAMEPLAY_DANGEON_KEEP, OBJECT_TSUBO };
+ 
+-static Gfx* D_80BA1B84[] = { gPotDL, object_tsubo_DL_0017C0 };
++// LLM generated name (HIGH), was D_80BA1B84: the two pot display lists, indexed by params bit 8 in the draw function.
++static Gfx* sDLists[] = { gPotDL, object_tsubo_DL_0017C0 };  // was D_80BA1B84 [LLM:HIGH]
+ 
+-static Gfx* D_80BA1B8C[] = { gPotFragmentDL, object_tsubo_DL_001960 };
++// LLM generated name (HIGH), was D_80BA1B8C: the matching pot-fragment display lists, indexed the same way and passed to the air and water break effects.
++static Gfx* sFragmentDLists[] = { gPotFragmentDL, object_tsubo_DL_001960 };  // was D_80BA1B8C [LLM:HIGH]
+ 
+ static ColliderCylinderInit sCylinderInit = {
+     {
+@@ -186,7 +192,7 @@ void ObjTsubo_AirBreak(ObjTsubo* this, PlayState* play) {
+         }
+         EffectSsKakera_Spawn(play, &pos, &velocity, &this->actor.world.pos, -240, arg5, 10, 10, 0,
+                              (Rand_ZeroOne() * 95.0f) + 15.0f, 0, 32, 60, KAKERA_COLOR_NONE,
+-                             sObjectIds[(this->actor.params >> 8) & 1], D_80BA1B8C[(this->actor.params >> 8) & 1]);
++                             sObjectIds[(this->actor.params >> 8) & 1], sFragmentDLists[(this->actor.params >> 8) & 1]);  // was D_80BA1B8C [LLM:HIGH]
+     }
+     func_80033480(play, &this->actor.world.pos, 30.0f, 4, 20, 50, 1);
+     gSaveContext.ship.stats.count[COUNT_POTS_BROKEN]++;
+@@ -216,7 +222,7 @@ void ObjTsubo_WaterBreak(ObjTsubo* this, PlayState* play) {
+         phi_s0 = (Rand_ZeroOne() < .2f) ? 64 : 32;
+         EffectSsKakera_Spawn(play, &pos, &velocity, &this->actor.world.pos, -180, phi_s0, 30, 30, 0,
+                              (Rand_ZeroOne() * 95.0f) + 15.0f, 0, 32, 70, KAKERA_COLOR_NONE,
+-                             sObjectIds[(this->actor.params >> 8) & 1], D_80BA1B8C[(this->actor.params >> 8) & 1]);
++                             sObjectIds[(this->actor.params >> 8) & 1], sFragmentDLists[(this->actor.params >> 8) & 1]);  // was D_80BA1B8C [LLM:HIGH]
+     }
+     gSaveContext.ship.stats.count[COUNT_POTS_BROKEN]++;
+ }
+@@ -299,10 +305,10 @@ void ObjTsubo_SetupThrown(ObjTsubo* this) {
+     this->actor.velocity.x = Math_SinS(this->actor.world.rot.y) * this->actor.speedXZ;
+     this->actor.velocity.z = Math_CosS(this->actor.world.rot.y) * this->actor.speedXZ;
+     this->actor.colChkInfo.mass = 240;
+-    D_80BA1B50 = (Rand_ZeroOne() - 0.7f) * 2800.0f;
+-    D_80BA1B58 = (Rand_ZeroOne() - 0.5f) * 2000.0f;
+-    D_80BA1B54 = 0;
+-    D_80BA1B5C = 0;
++    sThrownSpinTargetX = (Rand_ZeroOne() - 0.7f) * 2800.0f;  // was D_80BA1B50 [LLM:HIGH]
++    sThrownSpinTargetY = (Rand_ZeroOne() - 0.5f) * 2000.0f;  // was D_80BA1B58 [LLM:HIGH]
++    sThrownSpinX = 0;  // was D_80BA1B54 [LLM:HIGH]
++    sThrownSpinY = 0;  // was D_80BA1B5C [LLM:HIGH]
+     this->actionFunc = ObjTsubo_Thrown;
+ }
+ 
+@@ -322,10 +328,10 @@ void ObjTsubo_Thrown(ObjTsubo* this, PlayState* play) {
+     } else {
+         ObjTsubo_ApplyGravity(this);
+         Actor_UpdatePos(&this->actor);
+-        Math_StepToS(&D_80BA1B54, D_80BA1B50, 0x64);
+-        Math_StepToS(&D_80BA1B5C, D_80BA1B58, 0x64);
+-        this->actor.shape.rot.x += D_80BA1B54;
+-        this->actor.shape.rot.y += D_80BA1B5C;
++        Math_StepToS(&sThrownSpinX, sThrownSpinTargetX, 0x64);  // was D_80BA1B50 [LLM:HIGH]
++        Math_StepToS(&sThrownSpinY, sThrownSpinTargetY, 0x64);  // was D_80BA1B58 [LLM:HIGH]
++        this->actor.shape.rot.x += sThrownSpinX;  // was D_80BA1B54 [LLM:HIGH]
++        this->actor.shape.rot.y += sThrownSpinY;  // was D_80BA1B5C [LLM:HIGH]
+         Actor_UpdateBgCheckInfo(play, &this->actor, 5.0f, 15.0f, 0.0f, 0x85);
+         Collider_UpdateCylinder(&this->actor, &this->collider);
+         CollisionCheck_SetOC(play, &play->colChkCtx, &this->collider.base);
+@@ -340,5 +346,5 @@ void ObjTsubo_Update(Actor* thisx, PlayState* play) {
+ }
+ 
+ void ObjTsubo_Draw(Actor* thisx, PlayState* play) {
+-    Gfx_DrawDListOpa(play, D_80BA1B84[(thisx->params >> 8) & 1]);
++    Gfx_DrawDListOpa(play, sDLists[(thisx->params >> 8) & 1]);  // was D_80BA1B84 [LLM:HIGH]
+ }
+-- 
+2.55.0
+

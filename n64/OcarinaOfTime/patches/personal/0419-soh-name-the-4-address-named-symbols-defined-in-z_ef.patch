@@ -1,0 +1,150 @@
+From 6d92bfa3127965a04d5c6b4b2abf82235487b9bc Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:35 +0000
+Subject: [PATCH 419/488] soh: name the 4 address-named symbols defined in
+ z_eff_ss_kakera.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c.
+
+  * D_809AA558 -> sAttractionParams
+    deduced, confidence HIGH: the step and cap
+    EffectSsKakera_ApplyAttraction pulls a shard toward its attractor with
+
+  * D_809AA560 -> sBuoyancyParams
+    deduced, confidence HIGH: the constants EffectSsKakera_ApplyBuoyancy
+    floats a shard on water with
+
+  * D_809AA57C -> sRepulsionParams
+    deduced, confidence HIGH: the step, cap and radius
+    EffectSsKakera_ApplyRepulsion pushes a shard away with
+
+  * D_809AA5B0 -> sGroundedBounceSpeeds
+    deduced, confidence HIGH: the three speeds EffectSsKakera_UpdateGrounded
+    picks a bounce from
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c    | 22 +++++++++----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c b/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
+index a2b82a770..ab1cb87ea 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
+@@ -228,7 +228,7 @@ f32 EffectSsKakera_DragSquared2(f32 arg0, s32 arg1) {
+ 
+ // LLM generated name (HIGH), was func_809A9E88: the first force pass: pulls the fragment back toward its origin at one of two strengths, chosen by the low bits of the behaviour flags.
+ s32 EffectSsKakera_ApplyAttraction(EffectSs* this, Vec3f* diff, f32 dist) {
+-    static f32 D_809AA558[] = { 0.05f, 1.0f };
++    static f32 sAttractionParams[] = { 0.05f, 1.0f };  // was D_809AA558 [LLM:HIGH]
+     s32 temp_v0;
+     f32 phi_f0;
+ 
+@@ -242,8 +242,8 @@ s32 EffectSsKakera_ApplyAttraction(EffectSs* this, Vec3f* diff, f32 dist) {
+             phi_f0 = 1.0f;
+         }
+ 
+-        this->accel.x += ((D_809AA558[temp_v0 - 1] * diff->z) * phi_f0);
+-        this->accel.z -= ((D_809AA558[temp_v0 - 1] * diff->x) * phi_f0);
++        this->accel.x += ((sAttractionParams[temp_v0 - 1] * diff->z) * phi_f0);  // was D_809AA558 [LLM:HIGH]
++        this->accel.z -= ((sAttractionParams[temp_v0 - 1] * diff->x) * phi_f0);  // was D_809AA558 [LLM:HIGH]
+     }
+ 
+     return 1;
+@@ -251,13 +251,13 @@ s32 EffectSsKakera_ApplyAttraction(EffectSs* this, Vec3f* diff, f32 dist) {
+ 
+ // LLM generated name (HIGH), was func_809A9F10: the second force pass: adds one of seven fixed vertical accelerations, chosen by the next bits of the behaviour flags.
+ s32 EffectSsKakera_ApplyBuoyancy(EffectSs* this, Vec3f* diff, f32 dist) {
+-    static f32 D_809AA560[] = { 4.0f, 0.1f, 0.3f, 0.9f, -0.1f, -0.3f, -0.9f };
++    static f32 sBuoyancyParams[] = { 4.0f, 0.1f, 0.3f, 0.9f, -0.1f, -0.3f, -0.9f };  // was D_809AA560 [LLM:HIGH]
+     s32 temp_v0;
+ 
+     temp_v0 = (this->rReg0 >> 2) & 7;
+ 
+     if (temp_v0 != 0) {
+-        this->accel.y += D_809AA560[temp_v0];
++        this->accel.y += sBuoyancyParams[temp_v0];  // was D_809AA560 [LLM:HIGH]
+     }
+ 
+     return 1;
+@@ -265,7 +265,7 @@ s32 EffectSsKakera_ApplyBuoyancy(EffectSs* this, Vec3f* diff, f32 dist) {
+ 
+ // LLM generated name (HIGH), was func_809A9F4C: the third force pass: pushes the fragment away from its origin at one of three strengths.
+ s32 EffectSsKakera_ApplyRepulsion(EffectSs* this, Vec3f* diff, f32 dist) {
+-    static f32 D_809AA57C[] = { 0.1f, 1.0f, 6.0f };
++    static f32 sRepulsionParams[] = { 0.1f, 1.0f, 6.0f };  // was D_809AA57C [LLM:HIGH]
+     s32 temp_v0;
+     f32 phi_f0;
+ 
+@@ -279,8 +279,8 @@ s32 EffectSsKakera_ApplyRepulsion(EffectSs* this, Vec3f* diff, f32 dist) {
+             phi_f0 = 1.0f;
+         }
+ 
+-        this->accel.x -= ((diff->x * D_809AA57C[temp_v0 - 1]) * phi_f0);
+-        this->accel.z -= ((diff->z * D_809AA57C[temp_v0 - 1]) * phi_f0);
++        this->accel.x -= ((diff->x * sRepulsionParams[temp_v0 - 1]) * phi_f0);  // was D_809AA57C [LLM:HIGH]
++        this->accel.z -= ((diff->z * sRepulsionParams[temp_v0 - 1]) * phi_f0);  // was D_809AA57C [LLM:HIGH]
+     }
+ 
+     return 1;
+@@ -361,7 +361,7 @@ s32 EffectSsKakera_UpdateAccel(EffectSs* this) {
+ 
+ // LLM generated name (HIGH), was func_809AA230: stops the fragment dead once it has fallen below the floor, clearing its velocity, acceleration, gravity and spin.
+ void EffectSsKakera_UpdateGrounded(EffectSs* this, PlayState* play) {
+-    static f32 D_809AA5B0[] = { 10.0f, 20.0f, 40.0f };
++    static f32 sGroundedBounceSpeeds[] = { 10.0f, 20.0f, 40.0f };  // was D_809AA5B0 [LLM:HIGH]
+     Player* player = GET_PLAYER(play);
+ 
+     if (this->rReg8 == 0) {
+@@ -387,7 +387,7 @@ void EffectSsKakera_UpdateGrounded(EffectSs* this, PlayState* play) {
+                 break;
+             case 1:
+                 if (this->velocity.y < 0.0f) {
+-                    if (BgCheck_SphVsFirstPoly(&play->colCtx, &this->pos, D_809AA5B0[(this->rReg4 >> 2) & 3])) {
++                    if (BgCheck_SphVsFirstPoly(&play->colCtx, &this->pos, sGroundedBounceSpeeds[(this->rReg4 >> 2) & 3])) {  // was D_809AA5B0 [LLM:HIGH]
+                         this->velocity.x *= EffectSsKakera_RandCentered(0.9f, 0.2f);  // was func_809A9818 [LLM:HIGH]
+                         this->velocity.y *= -0.8f;
+                         this->velocity.z *= EffectSsKakera_RandCentered(0.9f, 0.2f);  // was func_809A9818 [LLM:HIGH]
+@@ -399,7 +399,7 @@ void EffectSsKakera_UpdateGrounded(EffectSs* this, PlayState* play) {
+                 }
+                 break;
+             case 2:
+-                if (BgCheck_SphVsFirstPoly(&play->colCtx, &this->pos, D_809AA5B0[(this->rReg4 >> 2) & 3])) {}
++                if (BgCheck_SphVsFirstPoly(&play->colCtx, &this->pos, sGroundedBounceSpeeds[(this->rReg4 >> 2) & 3])) {}  // was D_809AA5B0 [LLM:HIGH]
+                 break;
+         }
+     }
+-- 
+2.55.0
+

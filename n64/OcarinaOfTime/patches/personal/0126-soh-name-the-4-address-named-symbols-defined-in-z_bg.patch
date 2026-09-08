@@ -1,0 +1,159 @@
+From 91ad24453d45182132494322f898e94039e56150 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 8 Sep 2026 03:25:09 +0000
+Subject: [PATCH 126/488] soh: name the 4 address-named symbols defined in
+ z_bg_treemouth.c
+
+SoH carries the Ocarina of Time decomp, in which several thousand symbols are
+still named after their ROM address. This commit names every such symbol DEFINED
+IN ONE FILE, so the work can be reviewed a file at a time.
+
+The file names the unit; it does not bound it. Each rename is applied wherever
+the symbol occurs -- the declaration in the header, the definition, and every
+call site -- so this commit reaches into whatever other files use these symbols
+and leaves no dangling reference. It is a pure rename: no behaviour changes, and
+the only edits that are not renames are the provenance comments described below.
+
+Two name sources are used, and every name says which it came from:
+
+  * zeldaret/oot -- SoH's decomp IS zeldaret/oot at the same ROM addresses, so
+    where oot has already named a symbol, that name is adopted verbatim. The
+    definition gets a "Name from zeldaret/oot" comment and every declaration a
+    short "// was <addr> [oot]" tag.
+
+  * DEDUCED -- oot leaves a great many symbols address-named too, so those
+    names are inferred from the body and its callers, and are marked as OURS
+    rather than passed off as upstream. The definition gets
+    "LLM generated name (HIGH|GUESS), was <addr>: <reason>" and the short tag
+    reads "[LLM:HIGH]" or "[LLM:GUESS]". A GUESS is tagged at every call site
+    as well, not only the declaration, so a reader who meets the name anywhere
+    knows it is inferred. "git grep '[LLM:'" lists every place the decomp
+    leans on an inference.
+
+The justification recorded for each individual name follows, one entry per
+symbol, in the order the renames were made. Nothing is summarised away: these
+are the per-commit reasons from the unsquashed history, with the boilerplate
+that was identical in every one of them hoisted into the text above.
+
+All 4 are defined in soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c; updating their references touches 2 files in total.
+
+  * D_808BCE20 -> gDekuTreeMeetingCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_808BD2A0 -> gDekuTreeChoiceCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_808BD520 -> gDekuTreeMouthOpeningCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+  * D_808BD790 -> gDekuTreeAskAgainCs
+    zeldaret/oot (same decomp, same ROM address); structure verified against
+    upstream at 1.00
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+---
+ .../actors/ovl_Bg_Treemouth/z_bg_treemouth.c  | 20 +++++++++++--------
+ .../z_bg_treemouth_cutscene_data.c            |  8 ++++----
+ 2 files changed, 16 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+index 9af0b08bb..845e6811d 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
++++ b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+@@ -25,10 +25,14 @@ void func_808BC8B8(BgTreemouth* this, PlayState* play);
+ void func_808BC9EC(BgTreemouth* this, PlayState* play);
+ void func_808BCAF0(BgTreemouth* this, PlayState* play);
+ 
+-extern CutsceneData D_808BCE20[];
+-extern CutsceneData D_808BD2A0[];
+-extern CutsceneData D_808BD520[];
+-extern CutsceneData D_808BD790[];
++// Name from zeldaret/oot (was D_808BCE20): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c]
++extern CutsceneData gDekuTreeMeetingCs[];
++// Name from zeldaret/oot (was D_808BD2A0): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c]
++extern CutsceneData gDekuTreeChoiceCs[];
++// Name from zeldaret/oot (was D_808BD520): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c]
++extern CutsceneData gDekuTreeMouthOpeningCs[];
++// Name from zeldaret/oot (was D_808BD790): adopted upstream's name for this address; structure verified to match upstream (identifiers and constants differ, upstream having since renamed them) at 1.00. [oot: https://github.com/zeldaret/oot/blob/main/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c]
++extern CutsceneData gDekuTreeAskAgainCs[];
+ 
+ const ActorInit Bg_Treemouth_InitVars = {
+     ACTOR_BG_TREEMOUTH,
+@@ -147,7 +151,7 @@ void func_808BC8B8(BgTreemouth* this, PlayState* play) {
+                     this->dyna.actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+                     if (this->dyna.actor.isTargeted) {
+                         this->dyna.actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+-                        play->csCtx.segment = D_808BD2A0;
++                        play->csCtx.segment = gDekuTreeChoiceCs;
+                         gSaveContext.cutsceneTrigger = 1;
+                         BgTreemouth_SetupAction(this, func_808BC9EC);
+                     }
+@@ -155,7 +159,7 @@ void func_808BC8B8(BgTreemouth* this, PlayState* play) {
+             } else if (Actor_IsFacingAndNearPlayer(&this->dyna.actor, 1658.0f, 0x4E20)) {
+                 Flags_SetEventChkInf(EVENTCHKINF_MET_DEKU_TREE);
+                 if (GameInteractor_Should(VB_PLAY_DEKU_TREE_INTRO_CS, true, this)) {
+-                    play->csCtx.segment = D_808BCE20;
++                    play->csCtx.segment = gDekuTreeMeetingCs;
+                     gSaveContext.cutsceneTrigger = 1;
+                     BgTreemouth_SetupAction(this, func_808BC9EC);
+                 }
+@@ -186,11 +190,11 @@ void func_808BC9EC(BgTreemouth* this, PlayState* play) {
+         play->csCtx.state = CS_STATE_SKIPPABLE_EXEC;
+ 
+         if (play->msgCtx.choiceIndex == 0) {
+-            play->csCtx.segment = D_808BD520;
++            play->csCtx.segment = gDekuTreeMouthOpeningCs;
+             Flags_SetEventChkInf(EVENTCHKINF_DEKU_TREE_OPENED_MOUTH);
+             BgTreemouth_SetupAction(this, func_808BCAF0);
+         } else {
+-            play->csCtx.segment = D_808BD790;
++            play->csCtx.segment = gDekuTreeAskAgainCs;
+             play->csCtx.frames = 0;
+             BgTreemouth_SetupAction(this, func_808BC8B8);
+         }
+diff --git a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth_cutscene_data.c b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth_cutscene_data.c
+index a473dc025..5345d26f3 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth_cutscene_data.c
++++ b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth_cutscene_data.c
+@@ -2,7 +2,7 @@
+ #include "z64cutscene_commands.h"
+ 
+ // clang-format off
+-CutsceneData D_808BCE20[] = {
++CutsceneData gDekuTreeMeetingCs[] = {
+     CS_BEGIN_CUTSCENE(12, 3000),
+     CS_UNK_DATA_LIST(0x00000015, 1),
+         CS_UNK_DATA(0x00010000, 0x0BB80000, 0x00000000, 0x00000000, 0x0000000F, 0xFFFFFFDE, 0x00000000, 0x0000000F, 0xFFFFFFDE, 0x00000000, 0x00000000, 0x00000000),
+@@ -62,7 +62,7 @@ CutsceneData D_808BCE20[] = {
+     CS_END(),
+ };
+ 
+-CutsceneData D_808BD2A0[] = {
++CutsceneData gDekuTreeChoiceCs[] = {
+     CS_BEGIN_CUTSCENE(9, 3000),
+     CS_UNK_DATA_LIST(0x00000015, 1),
+         CS_UNK_DATA(0x00010000, 0x0BB80000, 0x00000000, 0x00000000, 0x0000000F, 0xFFFFFFDE, 0x00000000, 0x0000000F, 0xFFFFFFDE, 0x00000000, 0x00000000, 0x00000000),
+@@ -102,7 +102,7 @@ CutsceneData D_808BD2A0[] = {
+     CS_END(),
+ };
+ 
+-CutsceneData D_808BD520[] = {
++CutsceneData gDekuTreeMouthOpeningCs[] = {
+     CS_BEGIN_CUTSCENE(8, 3000),
+     CS_UNK_DATA_LIST(0x00000015, 1),
+         CS_UNK_DATA(0x00010000, 0x0BB80000, 0x00000000, 0x00000000, 0x0000000F, 0xFFFFFFDE, 0x00000000, 0x0000000F, 0xFFFFFFDE, 0x00000000, 0x00000000, 0x00000000),
+@@ -137,7 +137,7 @@ CutsceneData D_808BD520[] = {
+     CS_END(),
+ };
+ 
+-CutsceneData D_808BD790[] = {
++CutsceneData gDekuTreeAskAgainCs[] = {
+     CS_BEGIN_CUTSCENE(8, 3000),
+     CS_UNK_DATA_LIST(0x00000015, 1),
+         CS_UNK_DATA(0x00010000, 0x0BB80000, 0x00000000, 0x00000000, 0x0000000F, 0xFFFFFFDE, 0x00000000, 0x0000000F, 0xFFFFFFDE, 0x00000000, 0x00000000, 0x00000000),
+-- 
+2.55.0
+

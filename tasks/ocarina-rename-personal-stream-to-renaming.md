@@ -25,7 +25,7 @@ three docs that name the old path are updated.
 - **`n64/OcarinaOfTime/CLAUDE.md`** → the patch list and the ORDER explanation.
 - **[`tasks/ocarina-decomp-rename-and-cleanup.md`](ocarina-decomp-rename-and-cleanup.md)**
   and
-  **[`tasks/ocarina-deduce-remaining-decomp-names.md`](ocarina-deduce-remaining-decomp-names.md)**
+  **[`tasks/ocarina-deduce-remaining-decomp-names.md`](archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md)**
   — the work that fills this stream.
 
 ### Why a SIBLING stream, not a nested one

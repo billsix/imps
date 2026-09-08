@@ -30,7 +30,7 @@ Only **2 NOFILE** remain, both genuinely absent upstream: `code_800FBCE0.c`
 **The remaining 3,465 need names DEDUCED, not adopted** — 2,719 of them are
 address-named in oot too, so upstream has nothing to give. That is a different
 kind of work with a different risk profile, and it lives in its own task:
-[`tasks/ocarina-deduce-remaining-decomp-names.md`](ocarina-deduce-remaining-decomp-names.md).
+[`tasks/ocarina-deduce-remaining-decomp-names.md`](archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md).
 It inherits just **38** rows (23 UNSAFE, 13 MISMATCH, 2 NOFILE) that still fail
 for mechanical reasons — down from 146 once a second oot revision was queried.
 Those are worth one more look before any guessing, but the oracle is otherwise

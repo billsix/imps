@@ -31,16 +31,16 @@ maintainer calls it.
 
 ### Read first
 
-- **[`tasks/reference/ocarina/decomp-renaming.md`](reference/ocarina/decomp-renaming.md)**
+- **[`tasks/reference/ocarina/decomp-renaming.md`](../../../../../reference/ocarina/decomp-renaming.md)**
   — the governing conventions: the provenance-comment forms, the declaration
   tag, one rename per commit, the safe-rename mechanic, and the gotchas that
   have actually bitten. **Do not deviate from it.**
-- **[`tasks/ocarina-decomp-rename-and-cleanup.md`](ocarina-decomp-rename-and-cleanup.md)**
+- **[`tasks/ocarina-decomp-rename-and-cleanup.md`](../../../../../ocarina-decomp-rename-and-cleanup.md)**
   — the parent effort, including the 2026-09-07 oracle batches and how to
   rebuild in-sandbox. This task is its remainder.
 - **`tasks/adhoc/ocarina-decomp-rename-and-cleanup/oracle.tsv`** — the work-list.
   Filter `verdict == BOTH`; those are the ones needing deduction.
-- **[`tasks/reference/ocarina/decomp-map.md`](reference/ocarina/decomp-map.md)**
+- **[`tasks/reference/ocarina/decomp-map.md`](../../../../../reference/ocarina/decomp-map.md)**
   — where OoT subsystems live; essential for guessing what a function does.
 
 ### Current state (2026-09-07)
@@ -251,6 +251,11 @@ away, and nothing is dropped for brevity.
 
 ## Step 9 as executed — 2026-09-08
 
+> The reusable half of this section is harvested to
+> [](../../../../../reference/imps/squashing-a-produced-series-for-review.md)
+> — read that first if you are squashing another series; what follows is
+> this series specifically.
+
 **Result: 3,799 commits -> 488**, one per definition file, in the checkout
 `n64/OcarinaOfTime/Shipwright/`. Branches left in place:
 
@@ -335,7 +340,7 @@ which `ADDR_RE`'s closing `\b` cannot match — so those names never appear in t
 set is now filtered through `ADDR_RE` before that comparison, and the suffixed
 names are still held to account by the totality scan, which greps the literal
 name. Recorded in
-[`tasks/reference/ocarina/decomp-renaming.md`](reference/ocarina/decomp-renaming.md)
+[`tasks/reference/ocarina/decomp-renaming.md`](../../../../../reference/ocarina/decomp-renaming.md)
 because a false failure of this shape is indistinguishable at a glance from a
 dropped rename.
 

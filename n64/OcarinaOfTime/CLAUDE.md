@@ -44,7 +44,7 @@ on its own (see `../CLAUDE.md`).
   justification in its message, under a header that states the provenance rules
   once. Method, decisions and the branches left behind (`squash-backup` is the
   undo):
-  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/ocarina-deduce-remaining-decomp-names.md),
+  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md),
   "Step 9 as executed". Provenance per symbol:
   **665 adopted from zeldaret/oot**, **2,844 deduced at HIGH confidence**,
   **272 deduced as GUESS**. Every renamed symbol carries a
@@ -73,7 +73,7 @@ on its own (see `../CLAUDE.md`).
   series has **not** been rebuilt or re-run on-host yet — it builds clean
   in-sandbox (`soh.elf` links) and `tools/check_renames.py all` is green.
   The deduction effort is tracked in
-  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/ocarina-deduce-remaining-decomp-names.md)
+  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md)
   and its parent
   [`../../tasks/ocarina-decomp-rename-and-cleanup.md`](../../tasks/ocarina-decomp-rename-and-cleanup.md);
   method, the comment convention, and the one-rename-per-commit rule in
@@ -119,6 +119,11 @@ details against the pinned checkout.
 - [`decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md) —
   how to rename `func_/D_` symbols safely; read before touching the
   decomp-rename task.
+- [`../../tasks/reference/imps/squashing-a-produced-series-for-review.md`](../../tasks/reference/imps/squashing-a-produced-series-for-review.md)
+  — repo-wide: how a series produced at one change per commit is regrouped into
+  reviewable units without losing the per-commit reasoning, and how to prove the
+  regrouping changed history only. The Ocarina rename series is the worked
+  example.
 
 Upstream human-facing docs live in `Shipwright/docs/` (BUILDING, MODDING,
 VERSIONING, CUSTOM_MUSIC).

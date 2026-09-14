@@ -1,6 +1,6 @@
 # Trim the tier-3 per-game CLAUDE.md files (n64/<Game>/CLAUDE.md)
 
-**Status:** Done — trimmed 2026-09-14 (pending archive after the work commit)
+**Status:** Done — trimmed 2026-09-14 (archived 2026-09-14)
 **Priority:** 3
 **Difficulty:** 2
 

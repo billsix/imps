@@ -34,17 +34,16 @@ the whole delta.
   (d) a `u32` → `uintptr_t` segment address in `z_scene.c`;
   (e) a `numSamplesUntilEnd >= 0` clamp in `synthesis.c` — marked in the
   message as a stopgap, not a root-cause fix.
-  Exported verbatim 2026-09-01 from the maintainer's old fork branch
-  (`fedora44Fixes`, same base) and verified byte-identical on apply;
-  patched tree build- and run-verified on-host 2026-09-01 (William
-  Emerison Six <billsix@gmail.com>). **Good upstream-submission
-  candidate** — surgical,
-  well-documented, fixes real 64-bit portability bugs.
+  **Good upstream-submission candidate** — surgical, well-documented, fixes real
+  64-bit portability bugs.
 - `patches/0002-docs-add-the-required-audio-libraries-...patch` —
   adds libogg/libvorbis/opus/opusfile dev packages to BUILDING.md's
   Ubuntu and Fedora lines (the build hard-requires all four; the Nix
   section already listed them). Found by the install-script
   fresh-container verification. **Upstream-submission candidate.**
+
+Export & build/run verification history:
+`../../tasks/reference/imps/game-port-history.md`.
 
 ## Version notes
 
@@ -59,51 +58,32 @@ the whole delta.
   project's exact libultraship pin (`7f2baa10`, 1.3.1-397) as
   **iteration 15**: read it via git history (commit "1.3.1-397
   (7f2baa10)"); the working tree shows a newer pin.
+
 ## Podman build (Dockerfile + Makefile)
 
-Ported 2026-09-01 from the maintainer's old fork's `podmanBuildAppImage`
-branch (2 commits: "Added Bill's Dockerfile based on the github action" +
-"updated to ubuntu 26.04") — as **native imps files, not patches**, per the
-patches-carry-code-only principle. The branch's two Dockerfile versions
-were kept as **two selectable variants** instead of the second overwriting
-the first:
+**This folder is the imps reference implementation of the N64 podman build.**
+Native imps files (not patches), with **two selectable Dockerfile variants**:
 
-- `Dockerfile` (default, `VARIANT=ci`) — mirrors upstream CI:
-  ubuntu 22.04, gcc-12 pin, Kitware cmake. Use for CI fidelity.
-- `Dockerfile.ubuntu26.04` (`VARIANT=2604`) — ubuntu 26.04,
-  distro-default gcc-15/cmake. The modern-toolchain build.
+- `Dockerfile` (default, `VARIANT=ci`) — mirrors upstream CI: ubuntu 22.04,
+  gcc-12 pin, Kitware cmake. Use for CI fidelity.
+- `Dockerfile.ubuntu26.04` (`VARIANT=2604`) — ubuntu 26.04, distro-default
+  gcc-15/cmake. The modern-toolchain build.
 - Both: apt list **`COPY`d** from the checkout's
-  `.github/workflows/apt-deps.txt` (`COPY` not `RUN --mount=type=bind` —
-  the latter is read by the confined `container_t` RUN process and fails
-  on a `:Z`-poisoned checkout, see the SuperMario64 Dockerfile comment,
-  fixed 2026-09-01), SDL 2.30.3 / tinyxml2 10.0.0 /
-  libzip 1.10.1 built from source. Each variant gets its own image tag.
-- The branch's v2 also dropped `--userns=keep-id` from the `shell` target
-  only; with one shared Makefile that difference was deliberately NOT
-  carried — `shell` keeps `--userns=keep-id` in both variants, matching
-  `PODMAN_RUN` (without it a rootless-podman shell can't write the
-  bind-mounted source).
+  `.github/workflows/apt-deps.txt` (`COPY` not `RUN --mount=type=bind` — see the
+  SuperMario64 Dockerfile comment and the drift table), SDL 2.30.3 / tinyxml2
+  10.0.0 / libzip 1.10.1 built from source. Each variant gets its own image tag.
+- `shell` keeps `--userns=keep-id` in both variants (without it a rootless-podman
+  shell can't write the bind-mounted source).
 
-The Makefile was adapted for the imps layout, everything else verbatim:
+Makefile adapted for the imps layout: `SRC` = `2ship2harkinian/`; `make image`
+passes the checkout as the build **context** (`-f Dockerfile $(SRC)`) so the
+apt-deps bind mount resolves, and auto-runs `fetch.sh` if the checkout is
+missing; standard `PODMAN_RUN_FLAGS` threaded into the `run` invocations (never
+`build`). `make build`/`make appimage` compile the checkout as-is into
+`2ship2harkinian/build-cmake` (in-checkout, distinct from the host build.sh's
+sibling `build-cmake/`); `make run` executes the AppImage from the shared
+`runDir/`.
 
-- `SRC` = `2ship2harkinian/` (the imps checkout) instead of the Makefile's
-  own directory;
-- `make image` passes the checkout as the build **context**
-  (`-f Dockerfile $(SRC)`) so the apt-deps bind mount still resolves, and
-  auto-runs `fetch.sh` if the checkout is missing;
-- the standard `PODMAN_RUN_FLAGS` nested-podman auto-default was added and
-  threaded into the `run` invocations (never `build`);
-- the old branch's `.gitignore` hunk became entries in this folder's
-  `.gitignore` (`out/`, image tars) — the checkout itself is already
-  ignored.
-
-`make build`/`make appimage` compile the checkout as-is — normally pin +
-applied series — into `2ship2harkinian/build-cmake` (in-checkout, distinct
-from the host build.sh's sibling `build-cmake/`). `make run` executes the
-AppImage on the host from the shared `runDir/`.
-
-The default (`ci`, ubuntu-22.04) variant's AppImage build was
-**confirmed on-host 2026-09-01 (William Emerison Six
-<billsix@gmail.com>)** — `make appimage`, the `COPY` Dockerfile fix
-having cleared the SELinux block that stopped host builds; the `2604`
-variant and an on-host run of the AppImage were not exercised.
+Porting & verification history (from the old fork's `podmanBuildAppImage` branch;
+only the `ci` variant was on-host-verified):
+`../../tasks/reference/imps/game-port-history.md`.

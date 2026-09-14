@@ -14,8 +14,9 @@ family — an N64 session gets `n64/CLAUDE.md`, and a future family's session
 never pays for it.
 
 The four-tier design (master → family → project → `tasks/reference/`) is
-described in the master `CLAUDE.md` ("Documentation structure"); this doc does
-not duplicate it. What follows is the part that is *not* written down there.
+summarized in the master `CLAUDE.md` ("Documentation structure") and described in
+full in `tasks/reference/imps/documentation-structure.md`; this doc does not
+duplicate it. What follows is the part that is *not* written down there.
 
 ## Moving a project folder is safe — the check, and why
 

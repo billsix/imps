@@ -30,72 +30,54 @@ cheat ships with upstream and needs no patch.
 - `./run.sh` — launch `build-cmake/Ghostship` (binary is not installed;
   o2r archives are found next to the executable) with `runDir/` as cwd.
 
-## Patches — ported 2026-09-01 from the old fork's topic branches
+## Patches
 
-The old fork's topic branches (`highjump`, `infiniteJump`, `noSkybox`,
-all based 120+ commits back at `67e561c6`) were linearized into one
-series and ported across upstream's hooks→events restructure
-(`src/port/hooks/` became `src/port/events/`; the merged fly cheat served
-as the template for the new shape). Byte-identical `git am` reproduction
-verified against the ported branch.
-
-- `0001-cheat-high-jump.patch` — "Super Jump" (`gCheats.SuperJump`): all
-  upward jumps launch 3× higher via a `MarioHighJumpLaunch` event in
-  `set_mario_action_airborne`, with a `MarioHighJumpFallHeight` event
-  correcting effective fall height so the boosted jumps don't cause fall
-  damage / stuck-in-ground. Port notes: events moved into
-  `src/port/events/list/PlayerEvent.h`; in `check_fall_damage` the event
-  now runs after upstream's new `PlayerLanded` event (both kept).
-- `0002-cheat-infinite-jumps.patch` — "Infinite Air Jumps"
-  (`gCheats.InfiniteAirJumps`): pressing A while airborne re-jumps, via a
-  cancellable `MarioAirborneActionUpdate` event wrapping
-  `mario_execute_airborne_action`. Port note: the cancel field is
-  `Cancelled` (capital) in the events layer — the original commit's
-  lowercase `cancelled` was fixed during the port.
-- `patches/upstream-candidates/0001-...libshaderc...` (upstream candidate) —
-  adds `libshaderc-devel` to both Fedora dnf lines in
-  `docs/building.md` (the LUS Vulkan backend includes
-  `shaderc/shaderc.hpp`; found the hard way, 2026-09-01). Doc fix to
-  upstream's own file, hence a patch; upstream-submission candidate.
 **Stream order is pinned — `cheats` before `book`** (`patches/ORDER`). These two
 streams both touch `src/game/mario.c`, the one place this project's streams are
 not disjoint; the markers belong on the cheated tree, not the other way round.
 `upstream-candidates` is unlisted (docs only, disjoint) and applies last.
 
+- `patches/cheats/0001-cheat-high-jump.patch` — "Super Jump"
+  (`gCheats.SuperJump`): all upward jumps launch 3× higher via a
+  `MarioHighJumpLaunch` event in `set_mario_action_airborne`, with a
+  `MarioHighJumpFallHeight` event correcting effective fall height so the
+  boosted jumps don't cause fall damage / stuck-in-ground.
+- `patches/cheats/0002-cheat-infinite-jumps.patch` — "Infinite Air Jumps"
+  (`gCheats.InfiniteAirJumps`): pressing A while airborne re-jumps, via a
+  cancellable `MarioAirborneActionUpdate` event wrapping
+  `mario_execute_airborne_action`.
+- `patches/cheats/0003-disable-skybox.patch` — "Disable Skybox"
+  (`gEnhancements.DisableSkybox`): a listener cancelling upstream's
+  `SkyboxRender` event (already wired into `level_geo.c`) plus the menu widget.
+- `patches/upstream-candidates/0001-...libshaderc...` (upstream candidate) —
+  adds `libshaderc-devel` to both Fedora dnf lines in `docs/building.md` (the
+  LUS Vulkan backend includes `shaderc/shaderc.hpp`; found the hard way,
+  2026-09-01). Doc fix to upstream's own file, hence a patch.
 - `patches/book/0001-doc-region-markers.patch` — comment-only
   (**gated**: `tools/check_comment_only_streams.sh SuperMario64` proves both
   book streams change nothing the compiler sees; see `../CLAUDE.md`)
-  `// doc-region-begin/end <name>` markers so the book's
-  `literalinclude` pulls spans by NAME, not line numbers. First region:
-  `euler_zxy_to_matrix`. Grows per book chapter (the game-tree doc-region
-  lane). Upstream-plausible (comments only).
-- `0003-disable-skybox.patch` — "Disable Skybox"
-  (`gEnhancements.DisableSkybox`). **Slimmed in the port:** upstream now
-  ships a cancellable `SkyboxRender` event already wired into
-  `level_geo.c` (the same idea the original commit implemented), so the
-  patch reduces to a listener cancelling that event plus the menu widget
-  — no game-code or event-definition changes remain.
+  `// doc-region-begin/end <name>` markers so the book's `literalinclude` pulls
+  spans by NAME, not line numbers. First region: `euler_zxy_to_matrix`. Grows
+  per book chapter (the game-tree doc-region lane).
+
+Cheat-series porting history (the old fork's `highjump`/`infiniteJump`/`noSkybox`
+branches linearized across upstream's hooks→events restructure, per-patch port
+notes): `../../tasks/reference/imps/game-port-history.md`. How to add a cheat:
+DEFINE_EVENT, CALL_EVENT at the game-code seam, REGISTER_EVENT +
+REGISTER_LISTENER gated on a CVar in `src/port/mods/PortEnhancements.cpp`, and a
+widget in `src/port/ui/GhostshipMenuEnhancements.cpp` (upstream's
+`src/port/events/EVENTS.md` documents the layer — read it first).
 
 ## Version notes
 
-- Submodules at the pin: **libultraship `c151cc91` (1.3.1-544)** — the
-  newest LUS of any imps project — and Torch `4c8ef537` (v1.0.0-409).
-  **Caveat (found 2026-09-01 by the LUS crawl): `c151cc91` is a KiritoDv
-  FORK branch of LUS, not Kenix3 mainline** — branch point `f30fe0ed`
-  (1.3.1-463) + 81 fork commits (Vulkan backend, GPU-side T&L,
-  postprocessing/multipass shaders, RT64 mipmapping, async texture
-  loading, web/emscripten). The ~23 mainline commits after the branch
-  point (Context `GetRawInstance` rework, `.meta` priority resolution,
-  several audio/texture fixes) are absent from it. The crawl's docs at
-  `../../tasks/reference/libultraship/` cover this pin as iteration 18 —
-  the **current working-tree state** of that doc set (the crawl's final
-  stop), so no git-history digging is needed for this project.
-- The events layer is documented upstream in `src/port/events/EVENTS.md`
-  — read it before adding cheats; a new cheat is: DEFINE_EVENT (or reuse
-  one), CALL_EVENT at the game-code seam, REGISTER_EVENT +
-  REGISTER_LISTENER gated on a CVar in
-  `src/port/mods/PortEnhancements.cpp`, and a widget in
-  `src/port/ui/GhostshipMenuEnhancements.cpp`.
+- Submodules at the pin: **libultraship `c151cc91` (1.3.1-544)** — the newest
+  LUS of any imps project — and Torch `4c8ef537` (v1.0.0-409). **Caveat:
+  `c151cc91` is a KiritoDv FORK branch of LUS, not Kenix3 mainline** — it lacks
+  ~23 mainline commits after its branch point (1.3.1-463) and carries 81 fork
+  commits (Vulkan backend, GPU-side T&L, etc.). The crawl's docs at
+  `../../tasks/reference/libultraship/` cover this pin as iteration 18 — the
+  current working-tree state of that doc set, so no git-history digging is needed
+  here. Fork-topology detail: `../../tasks/reference/imps/game-port-history.md`.
 - Sandbox note: building in the runClaudeInContainer sandbox needs
   `mbedtls-devel` (ixwebsocket's cmake configure) and `libshaderc-devel`
   (the new LUS Vulkan backend) installed — neither is in the base image.
@@ -120,47 +102,26 @@ not disjoint; the markers belong on the cheated tree, not the other way round.
 
 ## Podman build (Dockerfile + Makefile)
 
-Created 2026-09-01 per `../../tasks/archive/mario64/2026/09/01/mario64-podman-appimage-build.md`, on
-the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
-CI's build-linux job (`.github/workflows/main.yml` at the pin,
-`ubuntu-latest` resolved to **24.04**): CI's apt line verbatim
-(including the Vulkan set — libvulkan/libshaderc/glslang/spirv-tools),
-python deps **`COPY`d from the checkout's
-`libultraship/requirements.txt`** (pip `--break-system-packages` for
-noble's PEP668; `COPY` not `RUN --mount=type=bind` on purpose — a
-build-time bind mount is read by the confined `container_t` RUN process
-with the file's on-disk SELinux label, so a `:Z`-poisoned checkout
-(sandbox's `c1022,c1023` MCS categories) makes a host-side `podman
-build` fail with an MCS-mismatch AVC on `requirements.txt`, and a build
-mount has no relabel step; `COPY` is read by buildah as the unconfined
-host user, immune to the label — fixed 2026-09-01), SDL 2.30.3 /
-tinyxml2 10.0.0 / libzip 1.10.1 from
-source. `GeneratePortO2R` runs in-container; the `appimage` target also
-copies `build-cmake/.tcc` to `out/.tcc` (CI ships it beside the
-AppImage and hard-fails without it — the scripting runtime).
+`Dockerfile` mirrors upstream CI's build-linux job
+(`.github/workflows/main.yml` at the pin, `ubuntu-latest` → **24.04**): CI's apt
+line verbatim (including the Vulkan set), python deps `COPY`d from the checkout's
+`libultraship/requirements.txt` (`COPY` not `RUN --mount=type=bind` — see the
+drift table), SDL 2.30.3 / tinyxml2 10.0.0 / libzip 1.10.1 from source.
+`GeneratePortO2R` runs in-container; the `appimage` target also copies
+`build-cmake/.tcc` to `out/.tcc` (the scripting runtime — the AppImage
+hard-fails without it). The Dockerfile adds a `libshaderc_shared.so` compat
+symlink for a **shaderc/spirv-tools packaging skew on noble** (LUS prefers
+`shaderc_shared`; Ubuntu names it plain `libshaderc.so`, so cmake would fall
+back to the ABI-skewed `libshaderc_combined.a` — undefined `spvtools::` at link).
+Other fresh-environment gaps (cmake ≥ 3.30 via the Kitware block) are in the
+drift table. `make image/build/appimage/run`.
 
-Two fresh-environment gaps surfaced (in the master drift table):
-**cmake ≥ 3.30** (LUS's FindVulkan uses policy CMP0159; noble apt ships
-3.28; runners pre-provide newer → the Kitware repo block), and a
-**shaderc/spirv-tools packaging skew on noble**: LUS prefers
-`shaderc_shared`, Ubuntu names the lib plain `libshaderc.so`, so cmake
-fell back to `libshaderc_combined.a` — which is ABI-skewed against
-noble's newer spirv-tools static libs (undefined `spvtools::` at link).
-The Dockerfile adds a `libshaderc_shared.so` compat symlink so LUS
-takes its preferred, self-consistent shared path.
-
-Verified nested 2026-09-01: image, `make build` of the patched tree,
-and `make appimage` (`out/ghostship.appimage`, 16 MB, + `.tcc`) all
-green. The on-host AppImage build was **confirmed 2026-09-01 (William
-Emerison Six <billsix@gmail.com>)** — the `COPY` Dockerfile fix cleared
-the SELinux block that had stopped host builds (see the Dockerfile
-comment). **The OpenGL-default seed lives in `run.sh`, not in the AppImage**
-— an AppImage launched directly (not via `run.sh`) still auto-picks Vulkan
-on first run, so the RADV Vulkan-hang caveat applies to it: switch to
-OpenGL in the menu if it goes silent after "Vulkan device:". This is
-accepted, not a bug — the podman AppImage exists only to mirror upstream's
-CI/CD; the maintainer's own play path is a from-source build run via
-`run.sh`, which is seeded.
+**The OpenGL-default seed lives in `run.sh`, not in the AppImage** — an AppImage
+launched directly (not via `run.sh`) still auto-picks Vulkan on first run, so the
+RADV Vulkan-hang caveat applies to it: switch to OpenGL in the menu if it goes
+silent after "Vulkan device:". The maintainer's own play path is a from-source
+build run via `run.sh`, which is seeded. Build/run verification history:
+`../../tasks/reference/imps/game-port-history.md`.
 
 ## Architecture reference (read to get oriented without re-reading the code)
 

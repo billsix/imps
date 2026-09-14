@@ -24,73 +24,34 @@ personal branches — the patch series is the whole delta.
 
 ## Patches
 
-**Stream order is pinned here — `personal` FIRST.** `patches/ORDER` lists it,
-and `apply.sh` honours that. The renames touch 3,781 symbols and 18 filenames, so
-**any stream added later must be written against the renamed tree**; without the
-pin, a future `book/` stream would sort alphabetically ahead of `personal/` and
-try to patch symbols that no longer exist under those names. The stream folders
-stay separate regardless — that is what keeps `upstream-candidates/` submittable
-on its own (see `../CLAUDE.md`).
+**Stream order is pinned here — `personal` FIRST** (`patches/ORDER`; `apply.sh`
+honours it). The renames touch 3,781 symbols and 18 filenames, so **any stream
+added later must be written against the renamed tree** — without the pin a future
+`book/` stream would sort alphabetically ahead of `personal/` and try to patch
+symbols that no longer exist. Stream folders stay separate regardless (keeps
+`upstream-candidates/` submittable on its own; see `../CLAUDE.md`).
 
-- `patches/personal/0001…0488-*.patch` — the decomp rename series, **one
-  file per patch**: patch 0001 renames the 18 address-named
-  `soh/src/code/code_<addr>.c` files, and each of the other 487 names every
-  address-named symbol in one definition file (156 of those files hold a single
-  symbol). **Squashed 2026-09-08 from 3,799 one-rename-per-commit patches** —
-  that grain was right for *producing* the work (a breakage localises to one
-  symbol) and wrong for *reviewing* it. The squash is content-neutral: the
-  pre- and post-squash trees have the identical SHA and the identical diff from
-  the pin. Each grouped patch keeps every folded commit's per-symbol
-  justification in its message, under a header that states the provenance rules
-  once. Method, decisions and the branches left behind (`squash-backup` is the
-  undo):
-  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md),
-  "Step 9 as executed". Provenance per symbol:
-  **665 adopted from zeldaret/oot**, **2,844 deduced at HIGH confidence**,
-  **272 deduced as GUESS**. Every renamed symbol carries a
-  provenance comment at its definition **and** a short `// was func_… [oot]`
-  / `[LLM:HIGH]` tag at each header declaration (and, for a guess, at every
-  call site), so a reader of `functions.h` can tell an upstream name from one
-  of our deductions. `git grep '\[LLM:'` lists every place the decomp leans on
-  an inference. `tools/check_renames.py series` gates the whole series on one
-  property: **no rename may happen that its commit message does not account
-  for**, and every claimed rename must be total.
-  **Every address-named symbol in the tree now has a name except four**, all in
-  declared exclusions: `func_800FBCE0` / `func_800FBFD8` (the RCP block in
+- `patches/personal/0001…0488-*.patch` — the decomp rename series, **one file
+  per patch**: 0001 renames the 18 address-named `soh/src/code/code_<addr>.c`
+  files, and each other patch names the address-named symbols in one definition
+  file (156 files hold a single symbol). Every renamed symbol carries a
+  provenance comment at its definition **and** a short `// was func_… [oot]` /
+  `[LLM:HIGH]` tag at each header declaration (and, for a guess, at every call
+  site), so a reader of `functions.h` can tell an upstream name from a deduction;
+  `git grep '\[LLM:'` lists every inferred name.
+  **Every address-named symbol now has a name except four**, all declared
+  exclusions: `func_800FBCE0` / `func_800FBFD8` (the RCP block in
   `code_800FBCE0.c`) and `func_80837C0C` / `func_80838940` (`z_player.c`).
   Segmented asset addresses (`D_0xxxxxxx`) and OTR asset identifiers are out of
   scope by construction — the identifier IS the archive key.
-  **Split from a single 6,854-line commit on 2026-09-07**; the split is
-  content-neutral (only the new comments differ from the pre-split tree),
-  proven by `tools/prove_comment_only.sh` at the imps root (it has gcc strip
-  the comments and compares) and gated by `tools/check_renames.py`.
-  Originally ported 2026-09-01 from a fork based at `988b53665`; one
-  conflict resolved in `z_demo_kankyo.c` (upstream's `Audio_PlaySfxGeneral`
-  rename crossing the series' `CutsceneCamera_UpdateSpline` rename), and
-  upstream-added identifiers were checked for references to renamed-away
-  symbols (none). The **pre-split** tree was build- and run-verified
-  on-host 2026-09-01 (William Emerison Six <billsix@gmail.com>). The
-  **squashed** series is **container-build-verified 2026-09-08**: `make image`
-  + `make build` in the ubuntu-22.04 CI-mirror image compiled all 1,581 targets
-  with zero errors and linked `soh.elf`, and `make appimage` produced
-  `out/soh.appimage` (31 MB, `Ship-9.2.3-jammy`). `tools/check_renames.py all`
-  and `tools/check_patches_apply.sh` are both green. It was **built and run
-  on-host 2026-09-08 (William Emerison Six <billsix@gmail.com>)** using
-  `fetch.sh`/`apply.sh`/`build.sh`; the game launched and played.
-  One oddity was seen — illegible text on the save prompt — which is **not**
-  from this series: every one of the 484 changed files, taken at the pin with
-  the rename map applied and comments stripped, is byte-identical to its HEAD
-  form with comments stripped, so the series changes identifiers and comments
-  and nothing else. Suspect the pin (upstream `develop` tip); a pristine
-  `./fetch.sh && ./build.sh` with no `apply.sh` settles it.
-  Commit messages carry `Co-Authored-By` and deliberately **no session URL**
-  (runClaudeInContainer `tasks/suppress-claude-session-trailer.md`).
-  The deduction effort is tracked in
-  [`../../tasks/ocarina-deduce-remaining-decomp-names.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-deduce-remaining-decomp-names.md)
-  and its parent
-  [`../../tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md`](../../tasks/archive/ocarina/2026/09/08/ocarina-decomp-rename-and-cleanup.md);
-  method, the comment convention, and the one-rename-per-commit rule in
+  Gated by `tools/check_renames.py series`: **no rename may happen that its
+  commit message does not account for**, and every claimed rename must be total.
+  Method, comment convention, and the one-rename-per-commit rule:
   [`../../tasks/reference/ocarina/decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md).
+  Production & verification history (squash from 3,799 one-rename-per-commit
+  patches, provenance counts, the original fork port, container/on-host
+  build-and-run verification, the illegible-save-text oddity):
+  `../../tasks/reference/imps/game-port-history.md`.
 
 ## Version notes
 
@@ -156,33 +117,16 @@ the working tree shows a newer pin, so read it via git history
 
 ## Podman build (Dockerfile + Makefile)
 
-Created 2026-09-01 per `../../tasks/archive/ocarina/2026/09/01/ocarina-podman-appimage-build.md`, on
-the MajorasMask/BanjoKazooie template. `Dockerfile` mirrors upstream
-CI's linux job (`.github/workflows/generate-builds.yml` at the pin,
-**ubuntu-22.04**): the apt list is **`COPY`d from the checkout's
-own `linux-build-deps/apt.txt`** at image build (stays auto-current;
-`COPY` not `RUN --mount=type=bind` — the latter is read by the confined
-`container_t` RUN process and fails on a `:Z`-poisoned checkout, see the
-SuperMario64 Dockerfile comment, fixed 2026-09-01);
-SDL 2.30.3, SDL2_net 2.2.0 (CI's local action), tinyxml2 10.0.0, and
-libzip 1.10.1 (no crypto) built from source, shadowing the apt ones the
-way CI does. Build flags mirror CI: Release + `BUILD_REMOTE_CONTROL=1`;
-`GenerateSohOtr` runs in-container (CI uses a separate job + artifact).
-
-Three "the GitHub runner pre-provides it" gaps surfaced (now in the
-master drift table): **cmake ≥ 3.26** (jammy apt ships 3.22 → the
-Kitware repo block, same fix as the maintainer's original 2ship
-Dockerfile), **python3** (the asset extractor), and **imagemagick**
-(the AppImage icon is generated at configure time by `convert`,
-silently skipped when absent — the appimage step then fails on a
-missing `sohIcon.png`).
-
-Verified nested 2026-09-01: image, `make build` of the patched tree,
-and `make appimage` (`out/soh.appimage`, 32 MB) all green. The AppImage
-was **built and run on-host, 2026-09-01 (William Emerison Six
-<billsix@gmail.com>)** — the `COPY` Dockerfile fix cleared the SELinux
-block that had stopped host builds (see the Dockerfile comment) — the
-full pipeline is closed.
+`Dockerfile` mirrors upstream CI's linux job
+(`.github/workflows/generate-builds.yml` at the pin, **ubuntu-22.04**): the apt
+list is **`COPY`d from the checkout's own `linux-build-deps/apt.txt`** at image
+build (auto-current; `COPY` not `RUN --mount=type=bind` — see the SuperMario64
+Dockerfile comment and the drift table); SDL 2.30.3, SDL2_net 2.2.0, tinyxml2
+10.0.0, libzip 1.10.1 built from source; flags Release + `BUILD_REMOTE_CONTROL=1`;
+`GenerateSohOtr` in-container. `make image/build/appimage/run`. Fresh-environment
+gaps (cmake ≥ 3.26 via the Kitware block, python3, imagemagick for the
+configure-time AppImage icon) are in the master drift table. Build/run
+verification history: `../../tasks/reference/imps/game-port-history.md`.
 
 ## Tools
 

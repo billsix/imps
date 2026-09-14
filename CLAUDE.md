@@ -9,55 +9,35 @@ container. One folder per project; each folder is self-contained.
 
 ## Documentation structure — four tiers, docs live in imps, patches carry code
 
-The dividing principle: **a patch carries only what must live inside
-upstream's own files — code. Everything that is purely the maintainer's
-(CLAUDE.md content, task docs, reference docs) lives natively in imps**,
-where editing it is a plain file edit (no patch regeneration), it exists
-whether or not a checkout does, and it never rides along in a pin-bump
-rebase.
+**Dividing principle: a patch carries only code (what must live inside
+upstream's own files); everything purely the maintainer's — CLAUDE.md content,
+task docs, reference docs — lives natively in imps** (editing it is a plain file
+edit, no patch regeneration, and it never rides a pin-bump rebase). The tiers
+exploit Claude Code's ancestor-CLAUDE.md loading (a session anywhere under
+`imps/` auto-loads every CLAUDE.md from cwd to the repo root), with a **family
+folder** tier between master and project so a family's contract loads exactly for
+that family's sessions:
 
-The tiers exploit Claude Code's ancestor CLAUDE.md loading (a session
-working anywhere under `imps/`, including deep inside a project's checkout,
-auto-loads every CLAUDE.md on the path from cwd to the repo root). Projects
-are grouped into **family folders** by the kind of thing they patch
-(currently `n64/` for the HarbourMasters game ports), and the family tier
-sits between the master and the project so that a
-family's specialized contract loads **exactly** for that family's sessions
-and never bloats another's:
+1. **`CLAUDE.md` (this file, the master)** — lean and family-agnostic: what imps
+   is, the cross-family contracts, and a one-line-per-family index (tier 2).
+2. **`<family>/CLAUDE.md`** (e.g. `n64/CLAUDE.md`) — that family's build/patch
+   contract, drift table, gotchas, and a one-line-per-project index (tier 3).
+3. **`<family>/<Project>/CLAUDE.md`** — that project's operational facts (upstream
+   URL, pin, patch list one line each, build/run gotchas) + index of its tier-4
+   reference docs. Sits outside the checkout but is its ancestor, so it loads
+   exactly when a session works inside that project.
+4. **`tasks/reference/<project>/*.md`** — the deep-dive reference docs, one subdir
+   per project, pointed at from tier 3 (plain pointers, not `@`-imports).
 
-1. **`CLAUDE.md` (this file, the master)** — lean and **family-agnostic**:
-   what imps is, the cross-family contracts (patch philosophy, the generic
-   self-contained-folder principle, the unsigned-commits rule, the
-   tasks/archive convention), and a one-line-per-family index pointing at
-   tier 2.
-2. **`<family>/CLAUDE.md`** (e.g. `n64/CLAUDE.md`) — that family's concrete
-   build/patch contract, its derived-artifact drift table and gotchas, and a
-   one-line-per-project index pointing at tier 3. Auto-loads for any session
-   under that family folder, and only those — a session in one family never
-   loads another family's detail.
-3. **`<family>/<Project>/CLAUDE.md`** — that project's operational facts:
-   upstream URL, pin and why it sits there, the patch list one line each,
-   build/run gotchas, and an index of its tier-4 reference docs. Sits
-   OUTSIDE the checkout but is its ancestor, so it auto-loads exactly when a
-   session works inside that project.
-4. **`tasks/reference/<project>/*.md`** — the deep-dive reference docs,
-   one subdirectory per project (e.g. `tasks/reference/ocarina/`). Pointed
-   at from tier 3 — plain pointers, not `@`-imports, so one project's
-   large doc set never bloats sessions about another project.
+`tasks/` is shared at the imps root and stays **project-keyed** regardless of
+family: reference docs at `tasks/reference/<project>/`, archives at
+`tasks/archive/<project>/<YYYY>/<MM>/<DD>/<slug>.md` (project first, then date —
+**overriding** the global flat-date convention, decided 2026-09-01). Repo-wide
+tasks use `imps` as the project key.
 
-`tasks/` is shared across all projects at the imps root (this repo is the
-one that versions them): in-flight task docs at `tasks/*.md` (named with a
-project prefix, e.g. `ocarina-…`), reference docs namespaced per project
-as above. **`tasks/` stays project-keyed regardless of family folder** — a
-project's reference docs live at `tasks/reference/<project>/` and its archives
-at `tasks/archive/<project>/…` using the **project name** as the key, never a
-family segment (project names stay unique across families, so no collision).
-**Archives are per-project — this overrides the global convention's flat date
-layout for this repo** (decided with William Emerison Six
-<billsix@gmail.com>, 2026-09-01): a completed task moves to
-`tasks/archive/<project>/<YYYY>/<MM>/<DD>/<slug>.md` — project first, then
-the standard date buckets. Repo-wide tasks (not about one game) use
-`imps` as their project directory.
+Full mechanics — the dividing principle in full, the ancestor-loading rationale,
+why the family tier sits between master and project, and the tasks/-keying +
+per-project-archive decision: `tasks/reference/imps/documentation-structure.md`.
 
 ## Per-project folder contract
 
@@ -113,47 +93,19 @@ whole tree.
 ## Patch philosophy — must keep working; upstream where it can
 
 (William Emerison Six <billsix@gmail.com>, 2026-09-01; reframed 2026-09-07.)
-Two goals, and the ranking matters:
+Two goals, ranked:
 
-0. **The patches must keep working for the maintainer over time, across
-   machines, as he pulls from upstream.** This is the primary goal and the
-   reason imps exists — see the paragraphs below. Upstreaming is the ideal
-   outcome and has proven hard in practice, so it is the aspiration, not the
-   mechanism.
-1. **Shape for upstreaming anyway, where the change plausibly fits.** If a change is something
-   upstream would plausibly accept — a bug fix, a portability fix, a doc
-   correction — shape it as a **standalone, submission-ready patch**:
-   its own commit, a commit message written for an upstream reviewer
-   (problem → cause → fix, like the banjo series), no entanglement with
-   personal changes. Never fold an upstreamable fix into a personal
-   patch, and split a mixed change into two patches rather than ship one
-   hybrid. Mark upstream candidates as such in the per-project
-   CLAUDE.md patch list.
-2. **Personal patches are maintained independently, indefinitely.**
-   Changes upstream won't take (cheats, personal tweaks) are carried in
-   the same series and **replayed onto newer upstream pins as time
-   progresses** — that replay (the pin-bump operation below) is a core
-   workflow, not an afterthought.
-
-**What imps actually buys, and must keep buying:**
-
-- **Repeatability across computers.** A pin + a patch series reproduces the
-  same tree anywhere, with no per-project git branches to keep in sync between
-  machines. That is the thing forks were failing to provide.
-- **Survivable pin bumps.** The patches are replayed onto newer upstream
-  commits as a routine operation; a patch's long-term rebase cost is a design
-  consideration when writing it (prefer the port's event/enhancement layers over
-  editing decomp internals).
-- **No fork maintenance.** No branches, no merges, no divergence to reconcile —
-  just a SHA and a folder of patches.
-- **Coordination cost is real and deliberate to avoid.** Patching libultraship
-  and its downstream consumers would mean keeping several projects in step; the
-  patch-carrier design is what keeps that tractable rather than a standing
-  obligation.
-
-So when a choice arises between "shaped for upstream" and "survives the next
-pin bump cleanly", both matter — but a patch that no longer applies has failed
-at its primary job.
+0. **The patches must keep working for the maintainer over time, across machines,
+   as he pulls from upstream.** Primary goal, and the reason imps exists.
+   Upstreaming is the ideal but has proven hard — an aspiration, not the mechanism.
+1. **Shape for upstreaming anyway, where the change plausibly fits.** A bug fix,
+   portability fix, or doc correction gets shaped as a standalone, submission-ready
+   patch (own commit, reviewer-facing message, no entanglement with personal
+   changes). Split a mixed change into two rather than ship a hybrid. Mark upstream
+   candidates in the per-project CLAUDE.md patch list.
+2. **Personal patches are maintained independently, indefinitely** — cheats and
+   personal tweaks carried in the same series and replayed onto newer pins (the
+   pin-bump operation).
 
 **That invariant is gated** (2026-09-07). `tools/check_patches_apply.sh` resets
 every project to its pin and runs the project's own `apply.sh` — the real path,
@@ -165,24 +117,18 @@ tools/check_patches_apply.sh                 # every project
 tools/check_patches_apply.sh OcarinaOfTime   # just one
 ```
 
-A companion at the same level, **not** a gate: `tools/squash_series.py` regroups
-a series that was produced one-change-per-commit into the units a human would
-review, without losing the per-commit reasoning. Run deliberately, once, when a
-series is finished; the method (and its traps) is
-`tasks/reference/imps/squashing-a-produced-series-for-review.md`.
-
 Run it after a pin bump, after reshaping a series, and when picking the repo up
-after a gap. A failure IS the pin-bump conflict surfacing early, which is the
-point. It leaves each checkout on the fully-applied series — the documented
-default working state — so it doubles as "put everything back in a known-good
-state". It never touches `runDir/` (a sibling of the checkout; see above).
+after a gap. A failure IS the pin-bump conflict surfacing early. It leaves each
+checkout on the fully-applied series (the documented default working state) and
+never touches `runDir/` (a sibling of the checkout).
 
-Lifecycle consequence: an upstreamable patch is temporary — once merged
-upstream, it retires at the next pin bump (the bump's `git am` will show
-it as already applied, or the rebase drops it); a personal patch is
-permanent and its long-term rebase cost is a design consideration when
-writing it (prefer hooking the port's event/enhancement layers over
-editing decomp internals — the mario64 cheats are the worked example).
+A companion at the same level, **not** a gate: `tools/squash_series.py` regroups a
+one-change-per-commit series into review units without losing the reasoning;
+method in `tasks/reference/imps/squashing-a-produced-series-for-review.md`.
+
+Why imps exists, the full goal statements, what it buys, the upstream-vs-pin-bump
+tradeoff, and the patch-lifecycle consequence:
+`tasks/reference/imps/patch-philosophy.md`.
 
 ## Working on a project — agent contract
 

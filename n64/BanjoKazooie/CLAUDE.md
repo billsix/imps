@@ -29,13 +29,10 @@ the whole delta.
 
 ## Patches
 
-Exported 2026-09-01 from the maintainer's `fixOnFedora` branch (same base
-as the pin) — this series was **submitted upstream as a PR and reviewed by
-JeodC** (patch 0004 is the review round), so when it merges, the series
-retires at the next pin bump. Patch 0002's commit subject was repaired
-during export (the original commit had lost its subject line to a
-formatting accident; the intended message survived in the maintainer's
-draft). Byte-identical to `fixOnFedora` verified on apply.
+The series was **submitted upstream as a PR and reviewed by JeodC** (patch 0004
+is the review round), so when it merges the series retires at the next pin bump.
+Export & verification history:
+`../../tasks/reference/imps/game-port-history.md`.
 
 - `0001-fix-build-dependencies-in-instructions-for-Fedora.patch` —
   `docs/BUILDING.md`: adds SDL2_net to the Fedora gcc dnf line.
@@ -104,31 +101,22 @@ tree shows a newer pin.
 
 ## Podman build (Dockerfile + Makefile)
 
-Created 2026-09-01 per the banjo-podman-appimage-build task (archived at
-`../../tasks/archive/banjo/2026/09/01/banjo-podman-appimage-build.md`), on
-the MajorasMask template. `Dockerfile` mirrors upstream CI's `build-linux`
-job (`.github/workflows/main.yml` at the pin): base **ubuntu:24.04**
-(CI says `ubuntu-latest`, which has resolved to the 24.04 LTS since
-early 2025 — recorded in the Dockerfile header), the workflow's apt
-list inlined (Lighthouse has no apt-deps.txt file), and SDL 2.30.3 /
-tinyxml2 10.0.0 / libzip 1.10.1 (no crypto) built from source. The
-Makefile builds `GeneratePortO2R` in-container (CI uses a separate
-Torch job + artifact download; same result), then the game, then
-`cpack -G External` → `out/lighthouse.appimage`.
+`Dockerfile` mirrors upstream CI's `build-linux` job
+(`.github/workflows/main.yml` at the pin): base **ubuntu:24.04** (CI's
+`ubuntu-latest`), the workflow's apt list inlined (Lighthouse has no apt-deps.txt
+file), SDL 2.30.3 / tinyxml2 10.0.0 / libzip 1.10.1 (no crypto) from source. The
+Makefile builds `GeneratePortO2R` in-container, then the game, then
+`cpack -G External` → `out/lighthouse.appimage`. `make image/build/appimage/run`.
 
 One deviation from the MM template worth knowing:
-**`USERNS_FLAG ?= $(if $(filter 1,$(NESTED_PODMAN)),,--userns=keep-id)`**
-— inside the nested sandbox there are no subordinate IDs for
-`--userns=keep-id` to build its user namespace from (inner runs die
-with `write /proc/…/uid_map: operation not permitted`), and the inner
-root already matches the mount owner, so the flag is dropped there; on
-a normal host it stays, byte-identical to before. (MajorasMask's
-Makefile got the same fix.)
+**`USERNS_FLAG ?= $(if $(filter 1,$(NESTED_PODMAN)),,--userns=keep-id)`** — inside
+the nested sandbox there are no subordinate IDs for `--userns=keep-id` to build
+its user namespace from (inner runs die with `write /proc/…/uid_map: operation
+not permitted`), and the inner root already matches the mount owner, so the flag
+is dropped there; on a normal host it stays. (MajorasMask's Makefile got the same
+fix.)
 
-Verified 2026-09-01: `make image` (1.08 GB), `make build` of the patched
-tree (17 MB binary), and `make appimage` (`out/lighthouse.appimage`,
-12.5 MB) all green nested in the sandbox, and **`make run` confirmed
-working on the maintainer's host** — the full pipeline is closed.
+Build/run verification history: `../../tasks/reference/imps/game-port-history.md`.
 
 ## Conventions
 

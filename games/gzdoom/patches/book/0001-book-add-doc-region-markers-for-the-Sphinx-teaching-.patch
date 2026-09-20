@@ -1,0 +1,133 @@
+From 39af300f878fc580cde31a9fd4e0c70e020f7522 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 19:40:24 +0000
+Subject: [PATCH 1/2] book: add doc-region markers for the Sphinx teaching book
+
+Comment-only. Adds // doc-region-begin/end <name> markers so the imps GZDoom
+book can literalinclude source spans by NAME (drift-proof), never line numbers.
+
+Spans marked:
+  src/d_main.cpp                 doom_loop, startup_to_loop, game_main_entry
+  src/d_iwad.cpp                 scan_iwad, iwad_picker_decision
+  src/common/filesystem/source/filesystem.cpp   init_multiple_files
+
+No code changes; proven comment-only by tools/check_comment_only_streams.sh.
+---
+ src/common/filesystem/source/filesystem.cpp | 2 ++
+ src/d_iwad.cpp                              | 4 ++++
+ src/d_main.cpp                              | 6 ++++++
+ 3 files changed, 12 insertions(+)
+
+diff --git a/src/common/filesystem/source/filesystem.cpp b/src/common/filesystem/source/filesystem.cpp
+index 0bc0dd5fe..f1c87283f 100644
+--- a/src/common/filesystem/source/filesystem.cpp
++++ b/src/common/filesystem/source/filesystem.cpp
+@@ -232,6 +232,7 @@ void FileSystem::DeleteAll ()
+ //
+ //==========================================================================
+ 
++// doc-region-begin init_multiple_files
+ bool FileSystem::InitSingleFile(const char* filename, FileSystemMessageFunc Printf)
+ {
+ 	std::vector<std::string> filenames = { filename };
+@@ -291,6 +292,7 @@ bool FileSystem::InitMultipleFiles (std::vector<std::string>& filenames, LumpFil
+ 
+ //==========================================================================
+ //
++// doc-region-end init_multiple_files
+ // AddFromBuffer
+ //
+ // Adds an in-memory resource to the virtual directory
+diff --git a/src/d_iwad.cpp b/src/d_iwad.cpp
+index 589b2fbb4..8c14553ea 100644
+--- a/src/d_iwad.cpp
++++ b/src/d_iwad.cpp
+@@ -349,6 +349,7 @@ FIWadManager::FIWadManager(const char *firstfn, const char *optfn)
+ // Scan the contents of an IWAD to determine which one it is
+ //==========================================================================
+ 
++// doc-region-begin scan_iwad
+ int FIWadManager::ScanIWAD (const char *iwad)
+ {
+ 	FileSystem check;
+@@ -402,6 +403,7 @@ int FIWadManager::ScanIWAD (const char *iwad)
+ //
+ //==========================================================================
+ 
++// doc-region-end scan_iwad
+ int FIWadManager::CheckIWADInfo(const char* fn)
+ {
+ 	FileSystem check;
+@@ -754,6 +756,7 @@ int FIWadManager::IdentifyVersion (std::vector<std::string>&wadfiles, const char
+ 	}
+ 	int pick = 0;
+ 
++	// doc-region-begin iwad_picker_decision
+ 	// Present the IWAD selection box.
+ 	bool alwaysshow = (queryiwad && !Args->CheckParm("-iwad") && !foundprio);
+ 
+@@ -820,6 +823,7 @@ int FIWadManager::IdentifyVersion (std::vector<std::string>&wadfiles, const char
+ 		}
+ 	}
+ 
++	// doc-region-end iwad_picker_decision
+ 	// zdoom.pk3 must always be the first file loaded and the IWAD second.
+ 	wadfiles.clear();
+ 	D_AddFile (wadfiles, zdoom_wad, true, -1, GameConfig);
+diff --git a/src/d_main.cpp b/src/d_main.cpp
+index 343c9c36a..3477a29fb 100644
+--- a/src/d_main.cpp
++++ b/src/d_main.cpp
+@@ -1198,6 +1198,7 @@ void D_ErrorCleanup ()
+ //
+ //==========================================================================
+ 
++// doc-region-begin doom_loop
+ void D_DoomLoop ()
+ {
+ 	int lasttic = 0;
+@@ -1284,6 +1285,7 @@ void D_DoomLoop ()
+ 
+ //==========================================================================
+ //
++// doc-region-end doom_loop
+ // D_PageTicker
+ //
+ //==========================================================================
+@@ -3744,6 +3746,7 @@ static int D_DoomMain_Internal (void)
+ 		}
+ 		lastIWAD = iwad;
+ 
++		// doc-region-begin startup_to_loop
+ 		int ret = D_InitGame(iwad_info, allwads, pwads);
+ 		pwads.clear();
+ 		pwads.shrink_to_fit();
+@@ -3756,6 +3759,7 @@ static int D_DoomMain_Internal (void)
+ 		D_DoAnonStats();
+ 		I_UpdateWindowTitle();
+ 		D_DoomLoop ();		// this only returns if a 'restart' CCMD is given.
++		// doc-region-end startup_to_loop
+ 		// 
+ 		// Clean up after a restart
+ 		//
+@@ -3767,6 +3771,7 @@ static int D_DoomMain_Internal (void)
+ 	while (1);
+ }
+ 
++// doc-region-begin game_main_entry
+ int GameMain()
+ {
+ 	int ret = 0;
+@@ -3824,6 +3829,7 @@ int GameMain()
+ //
+ //==========================================================================
+ 
++// doc-region-end game_main_entry
+ void D_Cleanup()
+ {
+ 	if (demorecording)
+
+base-commit: 99aa489d09015a95bb78df2b30ede29f328cc874
+-- 
+2.55.0
+

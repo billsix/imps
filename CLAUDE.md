@@ -4,8 +4,11 @@ Patch carrier for third-party projects, replacing maintained forks. The
 maintainer has git work he wants applied to other people's projects without
 managing GitHub forks of them: imps stores the patch series plus the scripts
 that fetch pristine upstream source at a pinned commit, apply the patches,
-and build/run the result — eventually both on the host and in a podman
-container. One folder per project; each folder is self-contained.
+and build/run the result. **The baseline every project facilitates is a
+native host build** — fetch, install dependencies, build, run, all from plain
+host scripts; a podman `Dockerfile`/`Makefile` is welcome on top (most projects
+have one) but is an extra convenience, never the only way in. One folder per
+project; each folder is self-contained.
 
 ## Documentation structure — four tiers, docs live in imps, patches carry code
 
@@ -46,16 +49,32 @@ Each family's `CLAUDE.md` adds its concrete build/patch specifics on top (the
 N64 HarbourMasters-port contract — pristine-upstream fetch at a pin, `git am`
 the series, the podman AppImage build — is in `n64/CLAUDE.md`).
 
+**Native host build is the baseline — every project must build and run without a
+container, through four host-runnable scripts** (the set the n64 games carry):
+`fetch.sh` → `installdependencies.sh` → `build.sh` → `run.sh`, with `apply.sh`
+between fetch and build for a patched project. They are host-first: no hardcoded
+home paths, `installdependencies.sh` uses the host package manager, `build.sh`
+installs into a prefix beside the script, `run.sh` runs from a local `runDir/`. A
+podman `Dockerfile` + `Makefile` is welcome on top (most projects have one), but
+it is an **extra convenience layer, never the only way to build** (William
+Emerison Six <billsix@gmail.com>, 2026-09-20).
+
 - `fetch.sh` — clone upstream (URL and pinned full base SHA live in this
   script, the SHA commented with its date and the upstream branch it was
   taken from), checkout the pin, `git submodule update --init --recursive`.
   Idempotent; never destroys local branches or committed work.
-- `build.sh` — host build; calls `fetch.sh` when the checkout is missing, so
-  it is the only command a fresh clone needs.
+- `installdependencies.sh` — install the upstream's build dependencies on the
+  **host** with its package manager (run as root/`sudo`; guard that the manager
+  exists and fail loudly otherwise; inline the package list so it runs before the
+  first fetch).
+- `build.sh` — host build; calls `fetch.sh` when the checkout is missing, so with
+  `installdependencies.sh` it is all a fresh clone needs to reach a built binary.
+  Installs into a prefix beside the script (no hardcoded home paths).
 - `run.sh` — launch the installed binary with `runDir/` as the game's cwd
   (saves, config, logs, extracted assets accumulate there).
-- `README.md` — human-facing, commands-forward: the fetch/apply/build/run
-  sequence and the clean-rebuild recipe at the top, caveats as one-liners.
+- `README.md` — human-facing, commands-forward: the
+  fetch/installdependencies/apply/build/run sequence and the clean-rebuild recipe
+  at the top, caveats as one-liners.
 - `CLAUDE.md` — the tier-2 per-project doc (see "Documentation structure").
 - `apply.sh` — `git am --3way` of `patches/*.patch` onto the checkout;
   guarded to run only when HEAD is exactly at the pin (it reads the pin out
@@ -191,6 +210,10 @@ contract and its per-project index; open it when working in that family.
 - **`n64/`** — the HarbourMasters N64 PC ports (Ocarina of Time, Majora's
   Mask, Super Mario 64, Banjo-Kazooie) plus the shared `libultraship`
   engine. Contract, drift table, and project index: `n64/CLAUDE.md`.
+- **`games/`** — buildable open-source game/engine ports (a code-patch family
+  like `n64/`): **GZDoom**, the Doom-engine source port (built with its ZMusic
+  dependency), in a Fedora-44 container. Contract + project index:
+  `games/CLAUDE.md`.
 
 ### Documentation-only carrier families (landing 2026-09-20)
 

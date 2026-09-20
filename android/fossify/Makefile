@@ -3,11 +3,16 @@ IMAGE := fossify-builder:latest
 # Repo part of IMAGE (drops ":tag"), used for the export tarball filename.
 IMAGE_BASE := $(firstword $(subst :, ,$(IMAGE)))
 
-# Which upstream checkout a per-repo target acts on, and the Gradle module +
-# task to compile inside it. Defaults document Commons (the deepest-documented
-# repo, a library whose module is `commons`); override for an app, e.g.:
-#   make build REPO=Gallery GRADLE_MODULE=:app
-#   make check-comment-only REPO=Phone GRADLE_MODULE=:app
+# Which upstream checkout a per-repo target acts on, and the Gradle task to
+# compile inside it. Defaults document Commons (the deepest-documented repo, a
+# flavorless library whose module is `commons`). The exemplar APPS carry product
+# flavors, so their compile task is flavor-qualified (compileFOSSReleaseKotlin),
+# NOT the bare compileReleaseKotlin a flavorless module has — override GRADLE_TASK
+# for them, e.g.:
+#   make build REPO=Gallery GRADLE_TASK=:app:compileFossReleaseKotlin
+#   make build REPO=Phone   GRADLE_TASK=:app:compileFossReleaseKotlin
+# (Gallery flavors: foss/gplay; Phone: core/foss/gplay — `foss` is the privacy
+# build, and it is the flavor the image's Gradle cache is warmed for.)
 REPO ?= Commons
 GRADLE_MODULE ?= :commons
 # compile only (no packaging/APK) — the cheapest task that still runs the Kotlin
@@ -52,25 +57,27 @@ image-import: ## Load an image tar: make image-import FILE=foo.tar
 	@test -n "$(FILE)" || { echo 'usage: make image-import FILE=foo.tar' >&2; exit 1; }
 	podman load -i $(FILE)
 
-# BEST-EFFORT / HEAVY / may be UNVERIFIED — see README.md and CLAUDE.md. Compiles
-# one module of REPO with its Gradle wrapper. First run downloads the AGP/Kotlin
-# dependency graph (needs network) and is slow; it may exceed a bounded run.
-build: image ## Compile REPO's GRADLE_MODULE in the container (heavy, best-effort)
+# HEAVY. Compiles one module of REPO with its Gradle wrapper, OFFLINE against the
+# Gradle dependency cache baked into the image at build time (see Dockerfile's
+# warm step). --offline forces Gradle to resolve only from the baked cache, so
+# this proves the exported image is offline-self-contained; a cache miss fails
+# loudly rather than silently reaching the network. GRADLE_USER_HOME /
+# ANDROID_USER_HOME come from the image ENV (both under /opt, the warmed layers).
+build: image ## Compile REPO's GRADLE_MODULE in the container OFFLINE (heavy)
 	podman run $(PODMAN_RUN_FLAGS) --rm \
 	    -v $(CURDIR):/work:z -e HOME=/tmp $(IMAGE) \
-	    bash -c 'set -euxo pipefail; cd /work/checkout/$(REPO) && ./gradlew --no-daemon $(GRADLE_TASK)'
+	    bash -c 'set -euxo pipefail; cd /work/checkout/$(REPO) && ./gradlew --no-daemon --offline $(GRADLE_TASK)'
 
-# The Kotlin analogue of the C -fpreprocessed comment-only gate (../CLAUDE.md).
-# Kotlin has no -fpreprocessed, and a naive compiled-output diff is unreliable
-# here: adding comment lines shifts line numbers, which changes the .class
-# LineNumberTable even for a pure-comment change. But Kotlin comments and KDoc
-# are NON-semantic (never emitted to bytecode), so a source-level proof is both
-# correct and cheap: this asserts every changed line in each repo's docs/ (and
-# book/) patch hunks is a comment or blank line. Host-runnable, no SDK — the
-# heavier compile-and-diff-stripped-source alternative is described in CLAUDE.md
-# and left as best-effort/UNVERIFIED. With no REPO, checks every repo.
-check-comment-only: ## Prove all doc streams are comment-only (host, fast)
-	./check-comment-only.sh
+# The comment-only gate, via the SHARED, family-agnostic entry point at the repo
+# root. It discovers this multi-repo project, reads patches/LANG (fossify →
+# kotlin) and dispatches every repo's comment-only stream to
+# tools/prove_comment_only_strip.py --lang kotlin. That stripper removes Kotlin
+# comments/KDoc and byte-compares the pinned-vs-applied token stream per touched
+# file — stronger than the old per-hunk "is this line a comment?" check, and it
+# needs no Android SDK. Pure git + python3 — runs on the HOST, no container (the
+# shared tools/ live above this carrier and are not mounted into the image).
+check-comment-only: ## Prove all doc streams are comment-only (host: git + python3)
+	../../tools/check_comment_only_streams.sh fossify
 
 shell: image ## Interactive shell in the builder container
 	podman run -it $(SHELL_RUN_FLAGS) bash

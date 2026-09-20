@@ -1,6 +1,7 @@
 # Fossify carrier — pin the build JDK (toolchain) and bake Gradle deps offline
 
-**Status:** ready — decisions locked 2026-09-20 (below); awaiting go-ahead to implement. Raised 2026-09-20
+**Status:** DONE (Commons) — 2026-09-20; one follow-up filed (the two exemplar apps don't build at their
+pins — upstream rot, see Outcome). Go-ahead + implementation 2026-09-20. Raised 2026-09-20
 (William Emerison Six <billsix@gmail.com>) as follow-up #1 to the Fossify Phase-A carrier
 ([fossify-refdocs-and-book.md](fossify-refdocs-and-book.md)). Two questions the maintainer asked, answered
 below with the fix each implies.
@@ -79,6 +80,31 @@ the manifest pins; runtime `make build`/`check-comment-only` pass `--offline`. T
    `--offline`. Verify with the offline export test (`--network=none`) per the maintainer's convention.
 3. **Verify app modules**, not just the Commons library (Phase A only built Commons): at least one app
    (Gallery) offline.
+
+## Outcome (2026-09-20) — DONE for Commons, apps blocked by upstream rot
+
+- **JDK: Adoptium/Temurin 17** via the Adoptium dnf repo (`entrypoint/adoptium.repo`, `gpgcheck=1`; Fedora
+  44 has no `java-17-openjdk`). JDK 25 dropped. One JDK-17 daemon runs both Gradle 9.6.1 (Commons) and
+  8.11.1 (apps) — no toolchain/daemon split needed. Bonus: JDK 25 had literally broken Phone (its AGP
+  8.10.1 aborted on the bare version string `25.0.4.1`); JDK 17 fixes it.
+- **Offline bake (the mvp `/venv` analogue):** `entrypoint/warm-gradle-cache.sh` clones each documented repo
+  at its pin at image-build and runs its runtime compile task with network ON, baking the dep graph + both
+  Gradle wrapper distributions into a committed `GRADLE_USER_HOME=/opt/gradle-cache` layer. Also added SDK
+  platform 34 + build-tools 35.0.0 (the apps' targets) alongside 36. Image ~3.99 GB. `make build` runs
+  `./gradlew --offline`.
+- **Offline export test PASSED for Commons (independently re-verified):** after `make image-export` →
+  `podman rmi` → `make image-import`, `:commons:compileReleaseKotlin` built `BUILD SUCCESSFUL` under
+  `--network=none` from only the baked cache. The maintainer's "exported image runs offline" convention is
+  met for Commons.
+- **The two exemplar apps (Gallery, Phone) do NOT build at their pins — upstream JitPack/Bintray rot, not an
+  offline/JDK gap.** Each depends on an old *published* `org.fossify:commons` JitPack can no longer serve
+  (Gallery 1.3.0 → a transitive `com.github.duolingo:rtl-viewpager` whose JitPack build needs the shut-down
+  `jcenter.bintray.com`; Phone 1.5.0 → `commons:3.0.3` 404s). They fail **online too**, so warming can't
+  cache what won't resolve anywhere. **Follow-up:** bump Gallery/Phone to newer tags whose published-Commons
+  dep resolves, or substitute the locally-checked-out Commons for the published artifact. (The warm still
+  *attempts* them each build (~1 min of expected failure) so it auto-heals on a pin bump; comment them out to
+  save the time until then.) Messages/Keyboard not warmed (undocumented, per decision 3).
+- Full detail: `android/fossify/CLAUDE.md` ("Build status") + `README.md`.
 
 ## Decisions (William Emerison Six <billsix@gmail.com>, 2026-09-20)
 1. **Build JDK: 17**, pinned via a Gradle Java toolchain (matches `kotlinJVMTarget 17`). Still verify AGP

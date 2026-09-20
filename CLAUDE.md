@@ -126,6 +126,15 @@ A companion at the same level, **not** a gate: `tools/squash_series.py` regroups
 one-change-per-commit series into review units without losing the reasoning;
 method in `tasks/reference/imps/squashing-a-produced-series-for-review.md`.
 
+**The comment-only gate** proves a doc/marker stream (`docs`/`book`) changes nothing the compiler sees —
+the invariant behind the docs-only carriers (and n64's `book/` markers). One shared, family-agnostic entry
+point: `tools/check_comment_only_streams.sh [project ...]` discovers projects across every family, reads
+each project's `patches/LANG` (`c`/`rust`/`kotlin`; undeclared → C), and dispatches to the right prover:
+`tools/prove_comment_only.sh` (C — argues via `gcc -fpreprocessed`) or **`tools/prove_comment_only_strip.py
+--lang rust|kotlin`** (the non-C analogue: for every file two refs disagree on, it strips all comments and
+byte-compares, so an identical token stream proves the same program compiles). Run host-side (git + gcc +
+python3, no build).
+
 Why imps exists, the full goal statements, what it buys, the upstream-vs-pin-bump
 tradeoff, and the patch-lifecycle consequence:
 `tasks/reference/imps/patch-philosophy.md`.

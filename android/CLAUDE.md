@@ -33,16 +33,32 @@ departs from the single-repo `unixutils/` shape.
   best-effort; the comment-only proof for Kotlin can also be a compile-before/after or comment-strip diff
   of just the touched modules rather than a full APK build.** Targets: `fetch`, `apply`, `image`,
   optionally `build`, and `check-comment-only`.
-- `repos` (the manifest), `patches/<repo>/docs/.keep` + `patches/<repo>/book/.keep` per repo,
-  `patches/ORDER`, `.gitignore` (all checkouts + build dirs), tier-3 `CLAUDE.md` (the repo manifest, pins,
-  doc-stream contents, build gotchas), `README.md` (fetch → apply → build).
+- `repos` (the manifest), `patches/LANG` (one word — `kotlin` — read by the shared gate to pick the
+  prover; one lang for every repo in the manifest; see below), `patches/<repo>/docs/.keep` +
+  `patches/<repo>/book/.keep` per repo, `patches/ORDER`, `.gitignore` (all checkouts + build dirs), tier-3
+  `CLAUDE.md` (the repo manifest, pins, doc-stream contents, build gotchas), `README.md` (fetch → apply →
+  build).
 
-## The comment-only gate
+## The comment-only gate — one shared, family-agnostic tool
 
-Kotlin has no `gcc -fpreprocessed`, so `../tools/check_comment_only_streams.sh` (C-only) does not cover it.
-The project's `check-comment-only` target provides the analogue: compile the touched modules at the pin,
-apply the `docs`/`book` stream, recompile, and diff the compiled output (or compare a comment-stripped
-source). Keep it scoped to touched modules so it doesn't require a full-suite build.
+The gate is **shared**, at the imps repo root — there is no per-project Kotlin re-implementation any more
+(the earlier "add a local wrapper" stopgap is gone). **`../../tools/check_comment_only_streams.sh
+[project ...]`** discovers every project across all families, reads each project's **`patches/LANG`**
+declaration (`kotlin` for an android carrier — one lang covers all repos in the manifest, so `patches/LANG`
+sits once at the patches root, above the per-repo `patches/<repo>/` dirs), and **dispatches** per language:
+
+- Kotlin has no `gcc -fpreprocessed`, so a `kotlin` project routes to **`../../tools/
+  prove_comment_only_strip.py --lang kotlin`** — a Kotlin-aware comment stripper. For every file a repo's
+  `docs`/`book` stream touches, it strips comments/KDoc (handling `//`, nested `/* */`, `"..."` strings
+  with `$`-templates, `"""..."""` raw strings, and char literals) and byte-compares the pinned-vs-applied
+  token stream. This is **stronger** than the old per-hunk "is every changed line a comment?" check — it
+  proves token identity of what the compiler sees, and it needs **no Android SDK** (git + python3 only).
+- Multi-repo is handled natively: the tool loops the `repos` manifest, checking each repo's stream at
+  that repo's pin.
+
+Run it host-side (the shared `tools/` live above a carrier and are not mounted into its heavy Android
+image). `make check-comment-only` calls the shared tool with the project name; `./check-comment-only.sh`
+is a thin shim to the same entry point (a per-repo argument is no longer honored — every repo is checked).
 
 ## Books & references
 

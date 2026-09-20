@@ -62,11 +62,14 @@ build: image  ## Compile the dash checkout in the container (autotools)
 		./src/dash -c "echo dash built: \$$0 works"; \
 	'
 
-# Prove the doc-comment / doc-region streams change nothing the compiler sees.
-# Pure git + gcc (tools/prove_comment_only.sh, gcc -fpreprocessed) — runs on the
-# host or in the image; needs no build, so no `image` prerequisite.
-check-comment-only:  ## Prove patches/docs + patches/book are comment-only
-	./check_comment_only.sh
+# Prove the doc-comment / doc-region streams change nothing the compiler sees,
+# via the SHARED, family-agnostic gate at the repo root. It discovers this
+# project, reads patches/LANG (dash → c) and dispatches to tools/
+# prove_comment_only.sh (gcc -fpreprocessed). Pure git + gcc — runs on the host,
+# needs no build/container, so no `image` prerequisite. (The local
+# ./check_comment_only.sh is a thin shim to the same entry point.)
+check-comment-only:  ## Prove patches/docs + patches/book are comment-only (host)
+	../../tools/check_comment_only_streams.sh dash
 
 shell: image  ## Interactive shell in the build container
 	podman run -it $(SHELL_RUN_FLAGS) bash

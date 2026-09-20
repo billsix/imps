@@ -36,17 +36,26 @@ apply:  ## git am the comment-only patch streams onto the checkout (host).
 image:  ## Build the Fedora-44 + Rust builder image.
 	$(CONTAINER_CMD) build -t $(IMAGE) -f Dockerfile .
 
-build: image  ## cargo build the checkout inside the container.
+# Compile the checkout inside the container, OFFLINE against the Cargo registry
+# cache baked into the image at build time (see the Dockerfile warm step).
+# --offline forces cargo to resolve only from the baked CARGO_HOME (=/opt/cargo-
+# cache, from the image ENV), so this proves the exported image is
+# offline-self-contained: a cache miss fails loudly instead of silently reaching
+# crates.io. Only ripgrep's own source is (re)built here, from the bind mount.
+build: image  ## cargo build the checkout in the container, OFFLINE (baked deps).
 	@[ -d checkout ] || ./fetch.sh
 	$(CONTAINER_CMD) run $(SHELL_RUN_FLAGS) \
-	    bash -c 'cd $(REPO_MOUNT)/checkout && cargo build'
+	    bash -c 'cd $(REPO_MOUNT)/checkout && cargo build --offline'
 
-# The docs-only family gate: prove patches/docs/ is comment-only, then that it
-# still compiles. Runs the same script the host uses (check-comment-only.sh).
-check-comment-only: image  ## Prove the docs stream is comment-only + compiles.
+# The docs-only family gate, via the SHARED, family-agnostic entry point at the
+# repo root. It discovers this project, reads patches/LANG (ripgrep → rust) and
+# dispatches to tools/prove_comment_only_strip.py --lang rust (the Rust-aware
+# comment stripper). Pure git + python3 — runs on the HOST, no container: the
+# shared tools/ live above this carrier and are not mounted into the builder
+# image. (`make build` is the separate "still compiles" check.)
+check-comment-only:  ## Prove the docs stream is comment-only (host: git + python3).
 	@[ -d checkout ] || { ./fetch.sh && ./apply.sh; }
-	$(CONTAINER_CMD) run $(SHELL_RUN_FLAGS) \
-	    bash -c 'cd $(REPO_MOUNT) && ./check-comment-only.sh'
+	../../tools/check_comment_only_streams.sh ripgrep
 
 shell: image  ## Interactive shell in the builder container (repo at /ripgrep).
 	$(CONTAINER_CMD) run -it $(SHELL_RUN_FLAGS) bash

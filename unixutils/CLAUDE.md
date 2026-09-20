@@ -38,21 +38,39 @@ prove the doc patches are comment-only, and to host the book).
   `apply.sh` shape.
 - `Makefile` + `Dockerfile` — a Fedora-44 image (the maintainer's container template: `PODMAN_RUN_FLAGS`
   threaded into every `run`, a `shell`/`shell-exec` pair, `##`-documented `help`) carrying the tool's
-  **build toolchain**, so the tool can be compiled to **prove the doc patches are comment-only**. Targets:
-  `fetch`, `apply`, `image`, `build` (compile the checkout), and `check-comment-only` (build the pinned
-  source, apply the docs stream, rebuild, and prove the compiled output is unchanged — the family gate).
-- `patches/docs/.keep`, `patches/book/.keep`, `patches/ORDER`, `.gitignore` (ignore the checkout + build
-  dirs), tier-3 `CLAUDE.md` (upstream URL, pin, the doc-stream contents one line each, build gotchas),
-  `README.md` (commands-forward: fetch → apply → build → check-comment-only).
+  **build toolchain**, so the tool can be compiled by `make build`. Targets: `fetch`, `apply`, `image`,
+  `build` (compile the checkout), and `check-comment-only` (the family gate — calls the shared
+  `../../tools/check_comment_only_streams.sh <project>`; see below).
+- `patches/LANG` (one word: `c`/`rust`/`kotlin` — the shared gate reads it to pick the prover; see
+  below), `patches/docs/.keep`, `patches/book/.keep`, `patches/ORDER`, `.gitignore` (ignore the checkout +
+  build dirs), tier-3 `CLAUDE.md` (upstream URL, pin, the doc-stream contents one line each, build
+  gotchas), `README.md` (commands-forward: fetch → apply → build → check-comment-only).
 
-## The comment-only gate
+## The comment-only gate — one shared, family-agnostic tool
 
-A doc-comment / doc-region stream must be provably comment-only. `../tools/check_comment_only_streams.sh`
-does this for **C** via `gcc -fpreprocessed` (so **dash** is covered as-is). **Rust has no
-`-fpreprocessed`** — a Rust project (ripgrep) needs the analogue: build at the pin, apply the stream,
-rebuild, and diff the compiled artifact (or compare a comment-stripped token stream). Wire this as the
-project's `check-comment-only` make target; a shared Rust helper can graduate to `../tools/` once a second
-Rust project needs it.
+A doc-comment / doc-region stream must be provably comment-only. That gate is **shared**, at the imps
+repo root — there is no per-project wrapper any more (the earlier "add a local wrapper" stopgap is gone):
+
+- **`../../tools/check_comment_only_streams.sh [project ...]`** discovers every project across all
+  families (n64/, unixutils/, android/), reads each project's **`patches/LANG`** declaration, and
+  **dispatches** to the right prover per language. It builds a BEFORE/AFTER scratch-branch pair per
+  comment-only stream (pin + the streams that apply before it, then that stream on top) and restores the
+  checkout afterward. Run it host-side (git + gcc/python3; no build, no container — the shared `tools/`
+  live above a carrier and are not mounted into its image).
+- **Language declaration is explicit, per project** — a one-word `patches/LANG` file (`c`, `rust`, or
+  `kotlin`), **not** inferred from file extensions. An undeclared project is treated as C (that is how
+  the n64 ports keep working unchanged).
+- **Two provers (dispatch, not replace):**
+  - `c` → **`../../tools/prove_comment_only.sh`** (gcc `-fpreprocessed` strips comments, then the token
+    streams are compared). **dash** uses this.
+  - `rust`/`kotlin` → **`../../tools/prove_comment_only_strip.py --lang <lang>`**, a language-aware
+    comment stripper: for each touched file it strips comments (and collapses whitespace) from both refs
+    and byte-compares — the same strip-then-compare argument, since those languages have no C
+    preprocessor. **ripgrep** uses `--lang rust`. (`prove_comment_only_strip.py --self-test` runs its
+    tricky-case suite: nested block comments, raw strings, char/lifetime, string templates.)
+
+Each project's `make check-comment-only` calls the shared tool with its own project name; its
+`./check_comment_only.sh` (or `./check-comment-only.sh`) is a thin shim to the same entry point.
 
 ## Books
 

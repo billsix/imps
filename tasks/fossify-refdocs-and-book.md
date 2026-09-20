@@ -10,9 +10,13 @@ patches. **UNVERIFIED / decisions** (details in `android/fossify/CLAUDE.md`): ap
 (only the Commons library compiled); Fedora 44 ships only JDK 25 (project targets JVM 17 — may need an
 Adoptium 17/21 drop-in); the image isn't fully offline (Gradle cache warms at first build, not baked);
 Messages & Keyboard cloned but not yet documented. **Phase B** (`tasks/reference/fossify/`) and **Phase C**
-(the Sphinx book) are **DEFERRED** until the follow-ups land (maintainer's call 2026-09-20):
-[fossify-jdk-toolchain-and-gradle-offline.md](fossify-jdk-toolchain-and-gradle-offline.md) and
-[generalize-comment-only-gate.md](generalize-comment-only-gate.md). Scoped autonomously
+(the Sphinx book) were gated on the follow-ups, now **DONE** (2026-09-20):
+[fossify-jdk-toolchain-and-gradle-offline.md](fossify-jdk-toolchain-and-gradle-offline.md) ✅ (Commons
+builds offline) and [generalize-comment-only-gate.md](generalize-comment-only-gate.md) ✅ (shared gate).
+**Phase B/C are now UNBLOCKED** for the Commons-centred material. **Caveat:** the per-app chapters
+(Gallery/Phone) are gated on [fossify-bump-app-pins.md](fossify-bump-app-pins.md) — those apps don't build
+at their pins (upstream JitPack rot), so build-dependent per-app work waits on that; Commons + the shared
+skeleton (the bulk of Phase B) are ready now. Scoped autonomously
 2026-09-19. One of FOUR sibling documentation-only initiatives — see [ripgrep](ripgrep-refdocs-and-book.md)
 for the shared recipe + family decision, plus [coreutils](coreutils-refdocs-and-book.md),
 [dash](dash-refdocs-and-book.md).

@@ -41,25 +41,35 @@ Work as commits inside a checkout, then regenerate that repo's series:
 PIN=$(sed -n 's#.*/<repo>.git[[:space:]]*\([0-9a-f]*\).*#\1#p' repos)
 git -C checkout/<repo> format-patch --no-cover-letter --base="$PIN" \
     "$PIN"..HEAD -o patches/<repo>/docs/
-./check-comment-only.sh <repo>      # must PASS before staging
+./check-comment-only.sh             # checks the whole suite; must PASS before staging
 ```
 
-## Building (heavy — best-effort, largely UNVERIFIED)
+## Building (heavy — Commons builds OFFLINE; the apps are best-effort)
 
 ```sh
 make help              # list targets
-make image             # build the Fedora-44 Android/Gradle/JDK builder image
-make build             # compile one module (REPO=Commons GRADLE_MODULE=:commons)
+make image             # build the Fedora-44 Android/Gradle/JDK image (~4 GB, warms the cache)
+make build             # compile Commons OFFLINE (REPO=Commons GRADLE_MODULE=:commons)
 make shell             # interactive shell in the builder container
 ```
 
-> `make image` and `make build` (Commons) are **verified**: the image builds
-> (JDK 25 + Android SDK platform 36 / build-tools / platform-tools) and
-> `:commons:compileReleaseKotlin` compiles cleanly with the doc patches applied
-> (~1m45s). Building an *app* module (`REPO=Gallery GRADLE_MODULE=:app`, …) is
-> untested and heavier. See `CLAUDE.md` ("Build status"). The comment-only proof
-> needs no build: `./check-comment-only.sh` runs on the host in seconds.
+> **Verified 2026-09-20:** the image builds on **Adoptium/Temurin JDK 17** (AGP's
+> minimum, and it matches Commons' JVM-17 compile target) with the Android SDK
+> (platforms 34 & 36, build-tools 35 & 36) AND the Gradle dependency cache **baked
+> in at image-build** — so `:commons:compileReleaseKotlin` compiles **offline**.
+> Proof: an export→`rmi`→import roundtrip then a `--network=none` build succeeded
+> (`BUILD SUCCESSFUL in 33s`), meeting the "exported image runs offline" convention.
+>
+> The exemplar **apps do NOT build at their pinned tags** — Gallery and Phone each
+> depend on an old published `org.fossify:commons` that JitPack can no longer serve
+> (Gallery: a transitive `rtl-viewpager` whose build needs the dead
+> `jcenter.bintray.com`; Phone: commons `3.0.3` 404s). This fails online too, so
+> it's upstream rot, not an offline gap — bump those apps to newer tags to build
+> them. Detail: `CLAUDE.md` ("Build status"). The comment-only proof needs no build:
+> `./check-comment-only.sh` runs on the host in seconds.
 
+- To build an app once its pin resolves, override the flavor-qualified task, e.g.
+  `make build REPO=Gallery GRADLE_TASK=:app:compileFossReleaseKotlin`.
 - `make` threads `PODMAN_RUN_FLAGS` (nested-podman `--cgroups=disabled`) into
   every `run`, never into `build`. `make shell-exec CMD='...'` is the batch twin
   of `shell`.

@@ -8,9 +8,10 @@
 `#![deny(missing_docs)]`, so the gap is internal engine code), proven comment-only + `cargo build` green
 in-container. Details/gotchas in `unixutils/ripgrep/CLAUDE.md` (incl. the crates.io-fetch-at-build vs
 offline-vendor decision). **Phase B** (the `tasks/reference/ripgrep/` set) and **Phase C** (the Sphinx
-book) are **DEFERRED** until the follow-ups land (maintainer's call 2026-09-20):
-[ripgrep-cargo-vendor-offline.md](ripgrep-cargo-vendor-offline.md) and
-[generalize-comment-only-gate.md](generalize-comment-only-gate.md). Scoped
+book) were gated on the follow-ups, which are now **DONE** (2026-09-20):
+[ripgrep-cargo-vendor-offline.md](ripgrep-cargo-vendor-offline.md) ✅ (offline cargo cache) and
+[generalize-comment-only-gate.md](generalize-comment-only-gate.md) ✅ (shared gate). **Phase B/C are now
+UNBLOCKED** — ready to start on the maintainer's go-ahead. Scoped
 autonomously 2026-09-19. One of FOUR sibling "documentation-only" initiatives — see
 [dash](dash-refdocs-and-book.md), [coreutils](coreutils-refdocs-and-book.md),
 [Fossify](fossify-refdocs-and-book.md).

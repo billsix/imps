@@ -67,12 +67,15 @@ should be pointed at `nodetypes` + `nodes.c.pat` instead (documented in the
   `run` (auto `--cgroups=disabled` when nested), never into `build`.
 - `make build` — compile the checkout in the container (autotools) and smoke-run
   `dash -c`. Proves the doc series still builds; also exercises the generators.
-- `make check-comment-only` — the family gate. Runs `./check_comment_only.sh`,
-  which builds before/after branches per stream and hands them to the repo-root
+- `make check-comment-only` — the family gate. Runs the **shared**, family-agnostic
+  `../../tools/check_comment_only_streams.sh dash` (via the thin
+  `./check_comment_only.sh` shim), which reads `patches/LANG` (= `c`), builds
+  before/after branches per stream, and hands them to
   `../../tools/prove_comment_only.sh` (gcc `-fpreprocessed` comment stripping).
-  Needs git + gcc; runs on the host or in the image, needs no full build. NOTE:
-  the n64 wrapper `../../tools/check_comment_only_streams.sh` is hardcoded to the
-  `n64/` family, so dash uses this local wrapper around the shared proof engine.
+  Needs git + gcc; runs on the host, needs no full build. (The shared wrapper is
+  now family-agnostic — it discovers projects across all families and dispatches
+  by `patches/LANG` — so the earlier n64-only limitation, and dash's local
+  wrapper, are gone.)
 - `make shell` / `make shell-exec CMD=... | SCRIPT=...` — interactive / batch
   shell in the build image (share one `SHELL_RUN_FLAGS` block so they can't drift).
 

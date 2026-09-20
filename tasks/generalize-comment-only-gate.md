@@ -1,9 +1,27 @@
 # Generalize the comment-only gate across families and languages
 
-**Status:** ready — decisions locked 2026-09-20 (below); awaiting go-ahead to implement. Raised 2026-09-20
-(William Emerison Six <billsix@gmail.com>) as follow-up #3 to the docs-only carriers: three per-carrier
-gate wrappers were written in Phase A because the shared tool is `n64/`-only; generalize now that there are
-exemplars to generalize from (and more subfolders are coming).
+**Status:** DONE — 2026-09-20. The gate is now one shared, family-agnostic, language-dispatched tool
+(`tools/check_comment_only_streams.sh` discovers all families + dispatches by `patches/LANG`; the new
+`tools/prove_comment_only_strip.py --lang rust|kotlin` handles the non-C languages; the three per-carrier
+scripts are thin shims and ripgrep's `check_comment_only.py` was promoted into `tools/`). Verified: stripper
+self-tests (rust + kotlin, with negatives) pass, and the unified gate proves all 5 docs streams comment-only
+across dash (C→gcc), ripgrep (rust→strip), and Fossify's 3 Kotlin repos (n64 SuperMario64's book streams
+also still pass, undeclared→C). Awaiting go-ahead was given by the maintainer 2026-09-20 (implement 1–3,
+starting with 3). Archived after the maintainer commits.
+
+## Outcome (2026-09-20)
+Implemented per the locked decisions below (subagent + maintainer verification). `patches/LANG` (one word:
+`c`/`rust`/`kotlin`) is the explicit per-project declaration; an undeclared project defaults to C (keeps the
+n64 ports working untouched). Dispatch: `c` → `tools/prove_comment_only.sh` (gcc `-fpreprocessed`,
+unchanged); `rust`/`kotlin` → `tools/prove_comment_only_strip.py` (strip-comments-then-byte-compare, stronger
+than a hunk-diff). The gate now runs **host-side** for the carriers (the shared `tools/` sit above a carrier
+and aren't mounted into its image), and no longer runs `cargo build` as part of the proof (`make build` still
+compiles). Tier-3 carrier CLAUDE.md/README prose was reconciled to the shared gate. Files: created
+`tools/prove_comment_only_strip.py` + three `patches/LANG`; edited `tools/check_comment_only_streams.sh`, the
+three carriers' shims + Makefile targets + tier-3 docs, and `unixutils/CLAUDE.md` + `android/CLAUDE.md`;
+removed `unixutils/ripgrep/check_comment_only.py` (promoted).
+
+## Original scope (kept for the record)
 **Priority:** 5
 **Difficulty:** 5
 

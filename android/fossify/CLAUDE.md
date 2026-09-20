@@ -83,44 +83,72 @@ pass deliberately went deep on Commons rather than shallow on all apps.
 
 ## The comment-only gate
 
-`./check-comment-only.sh [repo]` is the android-family analogue of the C
-`../../tools/check_comment_only_streams.sh`. Kotlin has no `gcc -fpreprocessed`,
-and a naive compiled-output diff is unreliable: adding comment lines shifts
-source line numbers, changing the `.class` `LineNumberTable` even for a
-comment-only edit. Since Kotlin comments/KDoc are non-semantic (discarded by the
-lexer, never in bytecode), the gate instead proves **every changed line in each
-`docs`/`book` patch hunk is a comment or blank line** — a source-level proof that
-is correct, fast, and needs no Android SDK. Run it before staging regenerated
-patches. (A heavier compile-and-diff-a-comment-stripped-disassembly alternative
-is possible but left best-effort/UNVERIFIED given how heavy an Android build is.)
+The gate is the **shared** `../../tools/check_comment_only_streams.sh fossify`
+(wrapped by `make check-comment-only` and the thin `./check-comment-only.sh`
+shim — which now checks the whole suite; a per-`repo` argument is no longer
+honored). It reads `patches/LANG` (= `kotlin`, one lang for every repo in the
+manifest), loops the `repos` manifest, and for every file each repo's
+`docs`/`book` stream touches, strips Kotlin comments/KDoc and byte-compares the
+pin-vs-applied token stream via `../../tools/prove_comment_only_strip.py --lang
+kotlin`. Kotlin has no `gcc -fpreprocessed`, and a naive compiled-output diff is
+unreliable (adding comment lines shifts the `.class` `LineNumberTable` even for a
+comment-only edit); the strip-and-compare proof sidesteps that and is **stronger**
+than the earlier per-hunk "is every changed line a comment?" check — it proves
+token identity of what the compiler sees. It needs no Android SDK (git + python3
+only), so run it host-side before staging regenerated patches.
 
-## Build status — image + Commons build VERIFIED
+## Build status — image + Commons OFFLINE build VERIFIED (JDK 17, baked cache)
 
-Both verified 2026-09-20, nested (`NESTED_PODMAN=1`):
-- `make image` builds the Fedora-44 image (JDK 25, Android command-line tools,
-  platform 36 + build-tools 36.0.0 + platform-tools, licenses accepted).
-- `make build` (default `REPO=Commons GRADLE_MODULE=:commons`) compiled
-  `:commons:compileReleaseKotlin` **cleanly in ~1m45s with the doc patches
-  applied** — Gradle 9.6.1 + AGP 9.3.1 + Kotlin 2.3.10 run fine on JDK 25, and
-  the KDoc compiles (only pre-existing deprecation warnings). This also
-  independently confirms the doc patches don't break the build.
+Verified 2026-09-20, nested (`NESTED_PODMAN=1`), after the JDK-17 + Gradle-offline
+hardening (`../../tasks/fossify-jdk-toolchain-and-gradle-offline.md`):
 
-Remaining gaps / decisions for the maintainer:
+- **JDK: Adoptium/Temurin 17** (`temurin-17-jdk`, GPG-verified via the Adoptium
+  dnf repo — `entrypoint/adoptium.repo`; Fedora 44 ships no `java-17-openjdk`).
+  Rationale: AGP 9.0+ requires **JDK 17 minimum**, and Commons' `libs.versions.toml`
+  sets `app-build-javaVersion=VERSION_17` + `kotlinJVMTarget=17`, so JDK 17 both
+  satisfies AGP's floor and matches the compile target — removing the off-target
+  uncertainty the Phase-A JDK 25 had. (JDK 25 also literally broke Phone: its AGP
+  8.10.1 aborted with the bare version string `25.0.4.1`; JDK 17 fixes that.) One
+  JDK-17 daemon runs both Gradle 9.6.1 (Commons) and 8.11.1 (the apps), so no
+  toolchain-vs-daemon split is needed.
+- **`make image`** builds the Fedora-44 image (~4 GB): Temurin 17, Android SDK
+  platform-tools + **platforms 34 & 36** + **build-tools 35.0.0 & 36.0.0** (Commons
+  wants 36; the apps want 34 + build-tools 35), licenses accepted, then the Gradle
+  cache is **warmed at build time** (see next bullet).
+- **Offline-self-contained (the mvp `/venv` analogue).** At image-build,
+  `entrypoint/warm-gradle-cache.sh` clones each documented repo at its manifest pin
+  and runs its runtime compile task with network ON, baking the full dependency
+  graph + both Gradle wrapper distributions into a committed `GRADLE_USER_HOME`
+  layer (`/opt/gradle-cache`). `make build` then runs `./gradlew --offline`.
+- **Offline export test PASSED for Commons.** After `make image-export` → `podman
+  rmi` → `make image-import` (a 3.8 GB tar roundtrip), `:commons:compileReleaseKotlin`
+  built **`BUILD SUCCESSFUL in 33s` under `--network=none`** against only the baked
+  cache — the maintainer's "exported image runs offline in 5 years" convention is
+  now met for Commons. (Comment-only proof is independent: `check-comment-only.sh`
+  runs host-side and stays the real gate.)
 
-- **Only Commons build-checked.** `make build REPO=Gallery GRADLE_MODULE=:app`
-  (and Phone/Messages/Keyboard) were not run — an *app* (vs the Commons library)
-  pulls more of the dependency graph and may need `:app` and more time. Untested.
-- **JDK 25 works but is off-target.** Fedora 44 ships only `java-25-openjdk-devel`
-  (no 17/21). The project targets JVM 17 *bytecode*; JDK 25 running Gradle was
-  fine for Commons. If a future toolchain rejects it, drop in an Adoptium 17/21
-  tarball and repoint `JAVA_HOME`.
-- **Not offline-self-contained:** the SDK is baked into the image, but the
-  per-project **Gradle dependency cache is warmed on first `make build`** (needs
-  network), not at image-build. So the maintainer's "exported image runs offline
-  in 5 years" convention is only partially met. Warming `~/.gradle` at
-  image-build is a candidate follow-up (heavy — deliberately skipped this pass).
-- The comment-only invariant does **not** depend on any build;
-  `check-comment-only.sh` is the real, verified gate.
+### The two exemplar apps DON'T build at their pins — upstream JitPack/Bintray rot
+
+Both Gallery and Phone fail to build **online AND offline** at their pinned RELEASED
+tags, because each depends on an *old published* `org.fossify:commons` that JitPack
+can no longer serve (this is orthogonal to the JDK/offline work — warming can't cache
+what won't resolve anywhere). The warm treats them as **best-effort** (a failure is
+logged, Commons is the only required warm), so the image still builds:
+
+- **Gallery 1.3.0** → published `org.fossify:commons:3dd1f7f33e` → transitive
+  `com.github.duolingo:rtl-viewpager:940f12724f`, whose **own** JitPack build fails
+  (it needs `gradle-bintray-plugin` from the shut-down `jcenter.bintray.com`), so the
+  artifact 404s permanently. Offline it fails with "No cached version … for offline
+  mode" — same missing dep.
+- **Phone 1.5.0** → published `org.fossify:commons:3.0.3`, which **404s** on JitPack
+  (both `.pom` and `.aar`). (JDK 17 got Phone past the JDK-25 abort; the dep is just
+  gone.)
+
+Fix path when the maintainer wants an app built: **bump Gallery/Phone to newer tags**
+whose published-Commons dependency still resolves (re-check at the bump), or substitute
+the locally-checked-out Commons for the published artifact. Messages/Keyboard were not
+attempted (undocumented, not warmed). The comment-only invariant does **not** depend on
+any app build; `check-comment-only.sh` is the real, verified gate for all seven streams.
 
 ## Conventions
 

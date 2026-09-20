@@ -8,9 +8,10 @@ doc-comment patches on the pipeline spine (`memalloc.c` stalloc allocator, the `
 Details in `unixutils/dash/CLAUDE.md`. (Note: the shared `tools/check_comment_only_streams.sh` is
 hardcoded to `n64/`, so dash added a local wrapper over `tools/prove_comment_only.sh` — generalizing the
 shared one is a candidate.) **Phase B** (the `tasks/reference/dash/` set) and **Phase C** (the Sphinx
-book) are **DEFERRED** until the follow-ups land (maintainer's call 2026-09-20). dash builds offline
-already (self-contained C, no dependency manager), so it has no vendoring task; its gate is folded into
-[generalize-comment-only-gate.md](generalize-comment-only-gate.md). Scoped
+book) were gated on the follow-ups, now **DONE** (2026-09-20). dash builds offline already (self-contained
+C, no dependency manager), so it had no vendoring task; its only gate was
+[generalize-comment-only-gate.md](generalize-comment-only-gate.md) ✅ (shared gate). **Phase B/C are now
+UNBLOCKED** — ready to start on the maintainer's go-ahead. Scoped
 autonomously 2026-09-19. One of FOUR sibling documentation-only initiatives — see
 [ripgrep](ripgrep-refdocs-and-book.md) for the shared recipe + family decision, plus
 [coreutils](coreutils-refdocs-and-book.md), [Fossify](fossify-refdocs-and-book.md).

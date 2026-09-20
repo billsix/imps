@@ -26,21 +26,50 @@ repo-root `../../CLAUDE.md` (the carrier model) first.
 - `./apply.sh` — `git am --3way` the streams in `patches/ORDER` (`docs` then
   `book`); refuses unless the checkout is exactly at the pin.
 - `make help` — lists targets. `make check-comment-only` is the family gate;
-  `make build` compiles the checkout; `make shell` / `shell-exec` open the
-  builder image. All `run` lines thread `PODMAN_RUN_FLAGS` (nested-podman auto).
-- **Build gotcha:** `cargo build` in the container fetches crates from
-  crates.io at run time (the gitignored checkout does not exist at image-build,
-  so deps cannot be baked). The image itself needs no network; the *build* does.
-  The host build reuses `~/.cargo`. This carrier only compiles ripgrep to prove
-  the doc patches are comment-only — it ships nothing.
+  `make build` compiles the checkout OFFLINE; `make shell` / `shell-exec` open
+  the builder image. All `run` lines thread `PODMAN_RUN_FLAGS` (nested-podman
+  auto).
+
+## Offline-self-contained image (baked Cargo cache)
+
+The image is **offline-self-contained** per the maintainer's "exported image
+runs offline in 5 years" convention (the Cargo analogue of modelviewprojection's
+baked `/venv` and the Fossify sibling's warmed Gradle cache — see
+`../../tasks/ripgrep-cargo-vendor-offline.md`):
+
+- **Baked at image-build:** `entrypoint/warm-cargo-cache.sh` (run by the
+  Dockerfile) clones ripgrep at the pin and `cargo fetch --locked`s ripgrep's
+  whole `Cargo.lock` dependency graph into a **fixed, committed** `CARGO_HOME`
+  layer, `ENV CARGO_HOME=/opt/cargo-cache`. The throwaway clone is created and
+  removed inside one `RUN` layer, so only `/opt/cargo-cache` persists. `cargo
+  fetch` pulls every crate in the lockfile (all targets/features) regardless of
+  feature flags, covering the default build.
+- **Built at runtime:** `make build` runs `cargo build --offline` against the
+  bind-mounted checkout, resolving crates **only** from the baked cache — a
+  cache miss fails loudly instead of reaching crates.io. Only ripgrep's own
+  source is (re)compiled from the mount; the third-party crates come from the
+  layer. Verified with the offline export test (export/import roundtrip →
+  `cargo build --offline` under `--network=none`).
+- **Pin-bump re-warm (REQUIRED):** the pin lives twice — `PIN_SHA` in `fetch.sh`
+  and the `RIPGREP_PIN` ARG default in the `Dockerfile` (documented to match).
+  When the pin moves, **update both together and rebuild `make image`** so the
+  Cargo cache is re-warmed for the new lockfile; the ARG keeps the two honest
+  (or pass `--build-arg RIPGREP_PIN=<sha>` for a one-off). A stale cache would
+  make the offline build miss newly-pinned crates.
+
+This carrier only compiles ripgrep to prove the doc patches are comment-only —
+it ships nothing.
 
 ## Patch streams (comment-only, gated)
 
-Both streams change **nothing the compiler sees** — proved by
-`./check-comment-only.sh` (`make check-comment-only`), the Rust analogue of the
-C `-fpreprocessed` gate: for every file the stream touches it compares the
-comment-stripped pin version against the applied version, then runs `cargo
-build`. Helper: `check_comment_only.py` (a Rust-aware comment stripper).
+Both streams change **nothing the compiler sees** — proved by the **shared**
+family-agnostic gate `../../tools/check_comment_only_streams.sh ripgrep` (wrapped
+by `make check-comment-only` and the thin `./check-comment-only.sh` shim). It
+reads `patches/LANG` (= `rust`) and, for every file the stream touches, compares
+the comment-stripped pin version against the applied version via
+`../../tools/prove_comment_only_strip.py --lang rust`. (The former local
+`check_comment_only.py` was promoted into `tools/`; the gate no longer runs
+`cargo build` — `make build` still compiles the checkout separately.)
 
 - `patches/docs/` — explanatory Rust doc comments on interesting internals,
   shaped to be upstreamable. First pass (3 commits, all in **grep-searcher**,

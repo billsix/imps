@@ -1,8 +1,20 @@
 # ripgrep carrier — bake Cargo deps offline (cargo vendor / warmed CARGO_HOME)
 
-**Status:** ready — decisions locked 2026-09-20 (below); awaiting go-ahead to implement. Raised 2026-09-20
+**Status:** DONE — 2026-09-20. Go-ahead + implementation 2026-09-20. Raised 2026-09-20
 (William Emerison Six <billsix@gmail.com>) as follow-up #2 to the ripgrep Phase-A carrier
 ([ripgrep-refdocs-and-book.md](ripgrep-refdocs-and-book.md)).
+
+## Outcome (2026-09-20)
+`CARGO_HOME=/opt/cargo-cache` (fixed, committed layer). A new `entrypoint/warm-cargo-cache.sh` (the Cargo
+analogue of Fossify's `warm-gradle-cache.sh`) clones ripgrep at the pin at image-build and `cargo fetch
+--locked`s the whole `Cargo.lock` graph into that layer (all targets/features, so feature flags don't
+matter), discarding the clone in the same `RUN`. The pin lives twice — `PIN_SHA` (fetch.sh) + an
+`ARG RIPGREP_PIN` default (Dockerfile), documented to match; re-warm on a pin bump. `make build` runs
+`cargo build --offline` against the bind-mounted checkout. Image 1.06 GB. **Offline export test PASSED
+(independently re-verified):** export → `rmi` → import → `rm -rf target` → `cargo build --offline` under
+`--network=none` compiled every third-party crate + ripgrep's own workspace from the baked cache alone,
+`Finished in ~5.8s`. Docs updated (`unixutils/ripgrep/CLAUDE.md` + `README.md`; the old "fetches at run
+time" gotcha removed). Comment-only gate still green.
 The Cargo sibling of the Fossify/Gradle offline task
 ([fossify-jdk-toolchain-and-gradle-offline.md](fossify-jdk-toolchain-and-gradle-offline.md)).
 **Priority:** 5

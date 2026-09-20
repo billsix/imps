@@ -1,7 +1,7 @@
 # Fossify — bump the exemplar app pins (Gallery/Phone) so they build
 
 **Status:** proposed — needs go-ahead. Filed 2026-09-20 (William Emerison Six <billsix@gmail.com>) as the
-follow-up surfaced by [fossify-jdk-toolchain-and-gradle-offline.md](fossify-jdk-toolchain-and-gradle-offline.md).
+follow-up surfaced by [fossify-jdk-toolchain-and-gradle-offline.md](archive/imps/2026/09/20/fossify-jdk-toolchain-and-gradle-offline.md).
 **Priority:** 6
 **Difficulty:** 4
 
@@ -61,7 +61,7 @@ a different viewpager dep) — or (C) for both if the per-app build isn't worth 
 2. If (A): acceptable that a newer tag may have more Compose migration and need doc-patch re-anchoring?
 
 ## Related
-- Surfaced by: [fossify-jdk-toolchain-and-gradle-offline.md](fossify-jdk-toolchain-and-gradle-offline.md)
+- Surfaced by: [fossify-jdk-toolchain-and-gradle-offline.md](archive/imps/2026/09/20/fossify-jdk-toolchain-and-gradle-offline.md)
   (DONE for Commons). Carrier: `android/fossify/` (`CLAUDE.md`, `repos`, `entrypoint/warm-gradle-cache.sh`).
 - Umbrella: [fossify-refdocs-and-book.md](fossify-refdocs-and-book.md) — Phase B per-app chapters depend on
   this.

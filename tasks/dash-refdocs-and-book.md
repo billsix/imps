@@ -10,7 +10,7 @@ hardcoded to `n64/`, so dash added a local wrapper over `tools/prove_comment_onl
 shared one is a candidate.) **Phase B** (the `tasks/reference/dash/` set) and **Phase C** (the Sphinx
 book) were gated on the follow-ups, now **DONE** (2026-09-20). dash builds offline already (self-contained
 C, no dependency manager), so it had no vendoring task; its only gate was
-[generalize-comment-only-gate.md](generalize-comment-only-gate.md) ✅ (shared gate). **Phase B/C are now
+[generalize-comment-only-gate.md](archive/imps/2026/09/20/generalize-comment-only-gate.md) ✅ (shared gate). **Phase B/C are now
 UNBLOCKED** — ready to start on the maintainer's go-ahead. Scoped
 autonomously 2026-09-19. One of FOUR sibling documentation-only initiatives — see
 [ripgrep](ripgrep-refdocs-and-book.md) for the shared recipe + family decision, plus

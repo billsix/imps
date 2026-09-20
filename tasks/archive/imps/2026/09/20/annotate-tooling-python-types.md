@@ -62,7 +62,7 @@ to meet the "ruff/ty-clean" done-criterion — all behavior-neutral):
   gate. Verify by running `ruff check tools/squash_series.py` and `ty check tools/squash_series.py`
   locally (both are in the sandbox image).
 
-## Plan
+## Plan (as executed — see Outcome above for the result)
 
 1. Annotate `tools/squash_series.py`: module globals, every function's params + return type, and local
    variables (`x: T = …`), matching the trench tools' density. Keep any externally-dictated names as-is.

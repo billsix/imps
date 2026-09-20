@@ -3,7 +3,7 @@
 **Status:** DONE (Commons) — 2026-09-20; one follow-up filed (the two exemplar apps don't build at their
 pins — upstream rot, see Outcome). Go-ahead + implementation 2026-09-20. Raised 2026-09-20
 (William Emerison Six <billsix@gmail.com>) as follow-up #1 to the Fossify Phase-A carrier
-([fossify-refdocs-and-book.md](fossify-refdocs-and-book.md)). Two questions the maintainer asked, answered
+([fossify-refdocs-and-book.md](../../../../../fossify-refdocs-and-book.md)). Two questions the maintainer asked, answered
 below with the fix each implies.
 **Priority:** 5
 **Difficulty:** 6 (the Gradle offline-bake is the hard, heavy part)
@@ -71,7 +71,7 @@ choosing 17 vs 21.
 the manifest pins; runtime `make build`/`check-comment-only` pass `--offline`. This is the sibling of
 [ripgrep-cargo-vendor-offline.md](ripgrep-cargo-vendor-offline.md) (the Cargo version of the same idea).
 
-## Plan
+## Plan (as executed — see Outcome above for the result)
 1. **JDK:** add Adoptium 17 (or 21, per AGP 9.3.1's supported range — verify first) to the Dockerfile;
    configure a Gradle toolchain so compilation uses it regardless of the daemon JDK; keep or drop JDK 25
    as the daemon per what Gradle/AGP want. Re-verify Commons compiles.
@@ -117,7 +117,7 @@ the manifest pins; runtime `make build`/`check-comment-only` pass `--offline`. T
    skip warming them until they are.
 
 ## Related
-- Phase-A carrier + caveats: [fossify-refdocs-and-book.md](fossify-refdocs-and-book.md),
+- Phase-A carrier + caveats: [fossify-refdocs-and-book.md](../../../../../fossify-refdocs-and-book.md),
   `android/fossify/CLAUDE.md` (the JDK-25 + offline TODOs).
 - Sibling (Cargo): [ripgrep-cargo-vendor-offline.md](ripgrep-cargo-vendor-offline.md).
 - Model: github.com/billsix/modelviewprojection (bakes pip deps into a `/venv` layer; `make type-check`

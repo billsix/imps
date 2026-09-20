@@ -11,8 +11,8 @@ patches. **UNVERIFIED / decisions** (details in `android/fossify/CLAUDE.md`): ap
 Adoptium 17/21 drop-in); the image isn't fully offline (Gradle cache warms at first build, not baked);
 Messages & Keyboard cloned but not yet documented. **Phase B** (`tasks/reference/fossify/`) and **Phase C**
 (the Sphinx book) were gated on the follow-ups, now **DONE** (2026-09-20):
-[fossify-jdk-toolchain-and-gradle-offline.md](fossify-jdk-toolchain-and-gradle-offline.md) ✅ (Commons
-builds offline) and [generalize-comment-only-gate.md](generalize-comment-only-gate.md) ✅ (shared gate).
+[fossify-jdk-toolchain-and-gradle-offline.md](archive/imps/2026/09/20/fossify-jdk-toolchain-and-gradle-offline.md) ✅ (Commons
+builds offline) and [generalize-comment-only-gate.md](archive/imps/2026/09/20/generalize-comment-only-gate.md) ✅ (shared gate).
 **Phase B/C are now UNBLOCKED** for the Commons-centred material. **Caveat:** the per-app chapters
 (Gallery/Phone) are gated on [fossify-bump-app-pins.md](fossify-bump-app-pins.md) — those apps don't build
 at their pins (upstream JitPack rot), so build-dependent per-app work waits on that; Commons + the shared

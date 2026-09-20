@@ -2,7 +2,7 @@
 
 **Status:** DONE — 2026-09-20. Go-ahead + implementation 2026-09-20. Raised 2026-09-20
 (William Emerison Six <billsix@gmail.com>) as follow-up #2 to the ripgrep Phase-A carrier
-([ripgrep-refdocs-and-book.md](ripgrep-refdocs-and-book.md)).
+([ripgrep-refdocs-and-book.md](../../../../../ripgrep-refdocs-and-book.md)).
 
 ## Outcome (2026-09-20)
 `CARGO_HOME=/opt/cargo-cache` (fixed, committed layer). A new `entrypoint/warm-cargo-cache.sh` (the Cargo
@@ -56,7 +56,7 @@ tag 14.1.1):
 Set `CARGO_NET_OFFLINE=true` (or pass `--offline`) in the Makefile's `build`/`check-comment-only` targets
 so a stray network fetch fails loudly (the check that the bake actually worked).
 
-## Plan
+## Plan (as executed — see Outcome above for the result)
 1. In the Dockerfile: pin the ripgrep tag as an ARG (default = `fetch.sh`'s pin), shallow-clone at build,
    `cargo fetch` into a committed `CARGO_HOME` layer (or `cargo vendor` into `/vendor` + a config).
 2. Makefile `build`/`check-comment-only`: add `--offline` / `CARGO_NET_OFFLINE=true`.
@@ -70,7 +70,7 @@ so a stray network fetch fails loudly (the check that the bake actually worked).
    image builds under `--network=none` later.
 
 ## Related
-- Phase-A carrier + the offline gotcha it documented: [ripgrep-refdocs-and-book.md](ripgrep-refdocs-and-book.md),
+- Phase-A carrier + the offline gotcha it documented: [ripgrep-refdocs-and-book.md](../../../../../ripgrep-refdocs-and-book.md),
   `unixutils/ripgrep/CLAUDE.md`.
 - Sibling (Gradle/Android): [fossify-jdk-toolchain-and-gradle-offline.md](fossify-jdk-toolchain-and-gradle-offline.md).
 - Model: github.com/billsix/modelviewprojection self-contained-image convention (deps fetched+compiled

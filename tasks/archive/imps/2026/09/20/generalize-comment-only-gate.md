@@ -51,7 +51,7 @@ the right per-language proof; the three per-carrier scripts are removed (or beco
   - `android/fossify/check-comment-only.sh` — **Kotlin**; a source-level hunk proof (every changed hunk
     line is a comment/blank), robust to comment-induced line shifts.
 
-## The design (proposed)
+## The design (as built)
 
 Two layers, mirroring what already exists:
 
@@ -72,7 +72,7 @@ Two layers, mirroring what already exists:
 Then delete the three per-carrier scripts (or leave one-line shims that call the shared tool), and point
 each carrier's `check-comment-only` Makefile target at `tools/`.
 
-## Plan
+## Plan (as executed — see Outcome above for the result)
 1. Generalize `check_comment_only_streams.sh` discovery to all families (glob `*/*/patches` or a registry);
    keep its stream/scratch-branch logic.
 2. Promote a **language-parameterized comment stripper** into `tools/` (from `ripgrep/check_comment_only.py`);
@@ -98,5 +98,5 @@ each carrier's `check-comment-only` Makefile target at `tools/`.
   `android/fossify/check-comment-only.sh`.
 - Family contracts to update: `unixutils/CLAUDE.md`, `android/CLAUDE.md` (both currently document a local
   wrapper as a stopgap).
-- The carriers: [ripgrep](ripgrep-refdocs-and-book.md), [dash](dash-refdocs-and-book.md),
-  [Fossify](fossify-refdocs-and-book.md).
+- The carriers: [ripgrep](../../../../../ripgrep-refdocs-and-book.md), [dash](../../../../../dash-refdocs-and-book.md),
+  [Fossify](../../../../../fossify-refdocs-and-book.md).

@@ -1,0 +1,68 @@
+From 52fd90fbc62d4851edef8aee2db6bf4db56d8d89 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:16:39 +0000
+Subject: [PATCH 6/6] docs: explain command resolution and the exec model
+
+Document exec.c: how shellexec runs an external command in the forked child
+(PATH search via padvance, errno -> 126/127 exit-code mapping), the ENOEXEC
+"run it as a /bin/sh script" fallback in tryexec, and the POSIX command-search
+order and hash-table caching in find_command (special builtin / function / PATH,
+producing a cmdentry the evaluator dispatches on).
+
+Comment-only; no behavioural change.
+---
+ src/exec.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/src/exec.c b/src/exec.c
+index 6fe0fed..5d58c6a 100644
+--- a/src/exec.c
++++ b/src/exec.c
+@@ -103,6 +103,13 @@ STATIC int describe_command(struct output *, char *, const char *, int);
+ /*
+  * Exec a program.  Never returns.  If you change this routine, you may
+  * have to change the find_command routine as well.
++ *
++ * Runs in the forked child of an external command.  If argv[0] contains a '/'
++ * it is exec'd directly; otherwise each PATH element is tried in turn via
++ * padvance (idx lets a cached hash-table hit skip straight to the known
++ * directory).  On failure the errno is mapped to the shell's conventional exit
++ * codes — 127 for "not found" (ENOENT/ENOTDIR/...) and 126 for "found but not
++ * executable" — and exerror unwinds; the caller's process then exits with that.
+  */
+ 
+ void
+@@ -149,6 +156,14 @@ shellexec(char **argv, const char *path, int idx)
+ }
+ 
+ 
++/*
++ * Attempt one execve of cmd.  If the kernel rejects the file with ENOEXEC (it
++ * is not a recognised binary — typically a script with no #! line), fall back
++ * to running it as a shell script: prepend the path to /bin/sh in front of
++ * argv (the pre-decremented argv slot is why the caller leaves room) and retry.
++ * That is dash's implementation of the POSIX "execute a text file with sh"
++ * rule.  Returns only on failure; a successful execve never comes back.
++ */
+ STATIC void
+ tryexec(char *cmd, char **argv, char **envp)
+ {
+@@ -345,6 +360,15 @@ static int test_exec(const char *fullname, struct stat64 *statb)
+ /*
+  * Resolve a command name.  If you change this routine, you may have to
+  * change the shellexec routine as well.
++ *
++ * Fills *entry with how the name should be run, following the POSIX command
++ * search order: a name with a '/' is a pathname (CMDNORMAL, no lookup); a
++ * special built-in and a shell function take precedence over PATH; otherwise
++ * PATH is scanned, honouring %builtin/%func pathopts, and the result is cached
++ * in the hash table (updatetbl) so the next lookup is O(1).  cmdtype comes back
++ * as CMDNORMAL (external, with u.index = the PATH slot for shellexec),
++ * CMDBUILTIN, CMDFUNCTION, or CMDUNKNOWN.  `act` flags (DO_ERR/DO_ABS/DO_NOFUNC)
++ * tune error reporting and whether functions/absolute paths are considered.
+  */
+ 
+ void
+-- 
+2.55.0
+

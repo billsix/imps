@@ -183,28 +183,28 @@ contract and its per-project index; open it when working in that family.
   Mask, Super Mario 64, Banjo-Kazooie) plus the shared `libultraship`
   engine. Contract, drift table, and project index: `n64/CLAUDE.md`.
 
-### Planned families — documentation-only carriers (proposed 2026-09-19)
+### Documentation-only carrier families (landing 2026-09-20)
 
-A second KIND of family is planned: **documentation-only** carriers that pin an
-upstream purely to write a `file:line`-anchored reference set + a Sphinx
-doc-region teaching book about it (the mario64 machinery — see
-`tasks/reference/mario64/` and `n64/SuperMario64/book/`), with **no code patches
-except the comment-only `book/` doc-region-marker stream**. Categorized by kind,
-like `n64/`:
+A second KIND of family: **documentation-only** carriers that pin an upstream to
+**document** it, not port it. They add only **comment-only** patch streams —
+`patches/docs/` (explanatory doc comments on interesting source, the maintainer's
+"add docstrings to the codebase" ask, 2026-09-20) and `patches/book/` (Sphinx
+doc-region markers, the mario64 machinery — see `tasks/reference/mario64/` and
+`n64/SuperMario64/book/`) — plus a Makefile/Dockerfile that builds the upstream
+only to prove the doc patches are comment-only, and hosts the Sphinx book.
+Categorized by kind, like `n64/`. Each family's tier-2 contract is its
+`<family>/CLAUDE.md`:
 
-- **`unixutils/`** (planned) — command-line Unix tools documented for teaching:
-  **ripgrep** (Rust), **coreutils** (uutils, Rust), **dash** (C). Tasks:
-  `tasks/ripgrep-refdocs-and-book.md`, `tasks/coreutils-refdocs-and-book.md`,
-  `tasks/dash-refdocs-and-book.md`.
-- **`android/`** (planned) — Android apps documented for teaching: the **Fossify**
-  suite (Kotlin) + its shared `Commons` library. Task:
-  `tasks/fossify-refdocs-and-book.md`.
+- **`unixutils/`** — command-line Unix tools documented for teaching:
+  **ripgrep** (Rust), **dash** (C) landing 2026-09-20; **coreutils** (uutils,
+  Rust) still planned. Contract + project index: `unixutils/CLAUDE.md`. Tasks:
+  `tasks/ripgrep-refdocs-and-book.md`, `tasks/dash-refdocs-and-book.md`,
+  `tasks/coreutils-refdocs-and-book.md`.
+- **`android/`** — Android apps documented for teaching: the **Fossify** suite
+  (Kotlin) + its shared `Commons` library, multi-repo. Contract + index:
+  `android/CLAUDE.md`. Task: `tasks/fossify-refdocs-and-book.md`.
 
-These four are `proposed — needs go-ahead`; each task's phase A creates the
-tier-2 `<family>/CLAUDE.md` (the docs-only carrier contract) and the tier-3
-project folder. When the first of a family lands, drop its "(planned)" here.
-
-imps currently carries the single `n64/` family. The maintainer's OpenStax textbook
-port — the same carrier idea applied to CNXML→LaTeX books — lives in the
-sibling repo **impo** (https://github.com/billsix/impo), split out to keep
-imps small (its committed OpenStax content is large).
+The maintainer's OpenStax textbook port — the same carrier idea applied to
+CNXML→LaTeX books — lives in the sibling repo **impo**
+(https://github.com/billsix/impo), split out to keep imps small (its committed
+OpenStax content is large).

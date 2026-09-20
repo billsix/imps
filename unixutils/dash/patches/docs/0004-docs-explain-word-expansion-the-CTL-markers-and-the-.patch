@@ -1,0 +1,137 @@
+From dfd40f4bc7e9d6ccc99ab46239511c9778ad7ec9 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:14:56 +0000
+Subject: [PATCH 4/6] =?UTF-8?q?docs:=20explain=20word=20expansion=20?=
+ =?UTF-8?q?=E2=80=94=20the=20CTL=20markers=20and=20the=20four=20stages?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Document dash's expansion machinery in expand.c: the overall pipeline in
+expandarg (parameter/command/arith substitution, then IFS field splitting, then
+pathname/glob expansion) and the internal CTL* control-byte encoding the parser
+lays down so expansion is a second pass over markers rather than a re-lex.
+Comment the workhorse argstr, the ${var%pat}/${var#pat} operator machinery
+(subevalvar + scanleft/scanright), glob pathname expansion (expandmeta_glob),
+and the shared shell-pattern matcher pmatch.
+
+Comment-only; no behavioural change.
+---
+ src/expand.c | 66 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
+
+diff --git a/src/expand.c b/src/expand.c
+index 76e67ce..c17788c 100644
+--- a/src/expand.c
++++ b/src/expand.c
+@@ -219,6 +219,21 @@ static inline const char *getpwhome(const char *name)
+  * placing the resulting list of arguments in arglist.  If EXP_FULL is true,
+  * perform splitting and file name expansion.  When arglist is NULL, perform
+  * here document expansion.
++ *
++ * This is the entry point for word expansion, and it runs the POSIX expansion
++ * stages in order on one word:
++ *   1. argstr()      - tilde, parameter ($x, ${x%pat}, ...), command $( ),
++ *                      and arithmetic $(( )) expansion, all in a single pass.
++ *   2. ifsbreakup()  - field splitting on $IFS (only under EXP_FULL).
++ *   3. expandmeta()  - pathname/glob expansion of the resulting fields.
++ * (Quote removal is folded into the earlier passes.)  The word text argstr
++ * consumes is not raw source: the parser has already rewritten it into an
++ * internal form where control bytes (the CTL* constants — CTLVAR/CTLENDVAR
++ * bracket a parameter expansion, CTLBACKQ a command substitution, CTLARI/
++ * CTLENDARI arithmetic, CTLESC protects the next byte from splitting/globbing,
++ * CTLQUOTEMARK toggles quoting) mark exactly where each expansion goes.  So
++ * expansion is a second pass that acts on those markers rather than re-lexing.
++ * The result is built on the string stack (expdest) and split into a strlist.
+  */
+ 
+ void
+@@ -266,6 +281,16 @@ out:
+  * Perform variable and command substitution.  If EXP_FULL is set, output CTLESC
+  * characters to allow for further processing.  Otherwise treat
+  * $@ like $* since no splitting will be performed.
++ *
++ * argstr is the workhorse of stage 1: it walks the word copying literal runs to
++ * the output while dispatching on each control byte it meets — CTLVAR hands off
++ * to evalvar (parameter expansion, including the ${var-word}/${var%pat}/... word
++ * operators via subevalvar), CTLBACKQ to expbackq (command substitution), CTLARI
++ * to expari (arithmetic), CTLQUOTEMARK flips `inquotes`.  `reject` is the set of
++ * bytes strcspn stops on; it is trimmed at the top so `=`/`:` are only special
++ * during the tilde-in-assignment cases (EXP_VARTILDE/EXP_VARTILDE2).  When
++ * splitting will happen (breakall), the offsets of unquoted spans are recorded
++ * with recordregion so ifsbreakup knows which parts may be split.
+  */
+ 
+ static char *argstr(char *p, int flag)
+@@ -595,6 +620,16 @@ out:
+ }
+ 
+ 
++/*
++ * scanleft/scanright find where a ${var#pat}/${var%pat} prefix- or
++ * suffix-removal pattern matches.  scanleft walks left-to-right and scanright
++ * right-to-left; each tries pmatch at successive positions and, with `zero`,
++ * temporarily NUL-terminates so the pattern is matched against a growing
++ * (`#`/`##`) or shrinking (`%`/`%%`) leading/trailing span.  The `#`/`##`
++ * (shortest/longest) distinction is chosen by which scanner subevalvar calls
++ * and in which direction, not by a flag here.  Returns the cut point, or 0 if
++ * the pattern never matched.
++ */
+ static char *scanleft(char *startp, char *endp, char *rmesc, char *rmescend,
+ 		      char *str, int quotes, int zero
+ ) {
+@@ -674,6 +709,17 @@ static char *scanright(char *startp, char *endp, char *rmesc, char *rmescend,
+ 	return 0;
+ }
+ 
++/*
++ * Apply a ${var OP word} parameter-expansion operator once the variable's value
++ * and the operator's `word` have both been laid down on the stack.  subtype
++ * (from varflags & VSTYPE) selects the operator: VSASSIGN assigns the default
++ * back to the variable, VSQUESTION errors out if unset, and the four
++ * VSTRIMLEFT/VSTRIMRIGHT[MAX] cases do prefix/suffix pattern removal by picking
++ * scanleft vs scanright and shortest vs longest.  (The VSNORMAL / use-default /
++ * use-alternative cases are handled in evalvar, which only calls here for the
++ * operators that need the word evaluated and matched.)  `zero` and the `scan`
++ * function pointer encode the direction/greediness derived from subtype.
++ */
+ static char *subevalvar(char *start, char *str, int strloc, int startloc,
+ 			int varflags, int flag)
+ {
+@@ -1476,6 +1522,16 @@ static void *opendir_interruptible(const char *pathname)
+ #define GLOB_ALTDIRFUNC 0
+ #endif
+ 
++/*
++ * Stage 3, pathname expansion: for each field, if globbing is not disabled
++ * (`set -f` sets fflag), expand shell wildcards against the filesystem.  This
++ * build uses glibc's glob64 with GLOB_NOMAGIC, so a pattern that matches
++ * nothing (or contained no metacharacters) is left as the literal word — the
++ * POSIX "no match -> the word itself" rule.  preglob() strips the internal
++ * CTLESC escapes back to the real characters glob should see.  (The
++ * alternative expmeta() below is dash's own matcher, selected at configure
++ * time when glob64 is unavailable/undesired.)
++ */
+ static void expandmeta_glob(struct strlist *str)
+ {
+ 	while (str) {
+@@ -1883,6 +1939,16 @@ static __attribute__((noinline)) int ccmatch(char *p, const char *mbc, int ml,
+ 	return iswctype(wc, type);
+ }
+ 
++/*
++ * Match a shell pattern (not a regex) against a whole string, returning 1 on a
++ * full match.  This is the shared matcher behind case patterns, ${var#pat}
++ * trimming, and (when the libc fnmatch path is off) pathname globbing.  It
++ * recognises `?` (one char), `*` (any run — handled by advancing and retrying),
++ * and `[...]` bracket classes including `[:class:]` via ccmatch(); CTLESC marks
++ * a following metacharacter as a literal (that is how a quoted `\*` matches a
++ * real `*`).  When FNMATCH_IS_ENABLED, it simply defers to the C library's
++ * fnmatch instead.
++ */
+ static int pmatch(char *pattern, const char *string)
+ {
+ 	const char *q;
+-- 
+2.55.0
+

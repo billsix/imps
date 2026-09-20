@@ -1,0 +1,42 @@
+From 0b664217ccb4d21c0d54fff7b24686b5820339fb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:15:09 +0000
+Subject: [PATCH 3/5] docs: document BaseConfig, the shared settings store
+
+Explain the SharedPreferences-backed property pattern each setting follows and
+how every app subclasses BaseConfig to add its own settings while inheriting the
+shared ones. Comment-only.
+---
+ .../org/fossify/commons/helpers/BaseConfig.kt    | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/commons/src/main/kotlin/org/fossify/commons/helpers/BaseConfig.kt b/commons/src/main/kotlin/org/fossify/commons/helpers/BaseConfig.kt
+index 66dfae5d4..165070c75 100644
+--- a/commons/src/main/kotlin/org/fossify/commons/helpers/BaseConfig.kt
++++ b/commons/src/main/kotlin/org/fossify/commons/helpers/BaseConfig.kt
+@@ -18,6 +18,22 @@ import java.util.LinkedList
+ import java.util.Locale
+ import kotlin.reflect.KProperty0
+ 
++/**
++ * The shared settings store every Fossify app builds on.
++ *
++ * `BaseConfig` wraps a single `SharedPreferences` instance and exposes each
++ * persisted setting as a Kotlin `var` whose getter reads the pref (with a
++ * default) and whose setter writes it back — so calling code treats settings as
++ * ordinary properties (`baseConfig.primaryColor = ...`) and never touches keys
++ * or `SharedPreferences.edit()` directly. The keys are the `String` constants in
++ * `Constants` (e.g. `PRIMARY_COLOR`); the defaults come from Commons resources.
++ *
++ * It is `open` on purpose: each app subclasses it (e.g. `class Config : BaseConfig`)
++ * to add its own settings in exactly this pattern, inheriting all the shared
++ * ones (theme colors, storage paths and SAF/OTG tree URIs, font choice, run
++ * count, etc.). Obtain the right subclass instance through the `Context.baseConfig`
++ * / `Context.config` extension rather than constructing it directly.
++ */
+ open class BaseConfig(val context: Context) {
+     protected val prefs = context.getSharedPrefs()
+ 
+-- 
+2.55.0
+

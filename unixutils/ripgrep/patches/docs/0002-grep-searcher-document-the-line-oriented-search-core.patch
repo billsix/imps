@@ -1,0 +1,303 @@
+From abb1d93df899c2748632afb08ca641058a661fdf Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:24:50 +0000
+Subject: [PATCH 2/3] grep-searcher: document the line-oriented search core
+
+core.rs holds Core, the state machine shared by every non-multi-line
+search strategy, but had no module or item documentation. Add:
+
+* a module overview explaining Core's role and the fast-vs-slow
+  line-search distinction (find_candidate_line prefilter vs testing
+  every line);
+* doc comments on the Core struct and each of its fields, which track
+  search position, absolute offsets, lazy line numbering and the context
+  windows;
+* doc comments on the non-trivial methods (roll, match_by_line and its
+  fast/slow variants, find_by_line_fast, the context emitters, binary
+  detection, lazy line counting, and is_line_by_line_fast).
+
+Comment-only: no code changes.
+---
+ crates/searcher/src/searcher/core.rs | 157 +++++++++++++++++++++++++++
+ 1 file changed, 157 insertions(+)
+
+diff --git a/crates/searcher/src/searcher/core.rs b/crates/searcher/src/searcher/core.rs
+index 7d7e5cd..ec6d188 100644
+--- a/crates/searcher/src/searcher/core.rs
++++ b/crates/searcher/src/searcher/core.rs
+@@ -1,3 +1,33 @@
++/*!
++The line-oriented search core shared by every non-multi-line search strategy.
++
++The three strategies in `glue.rs` (`ReadByLine`, `SliceByLine` and `MultiLine`)
++differ only in *where the bytes come from* and *how matches are found*; the
++bookkeeping that turns raw matches into the events a [`Sink`] expects — line
++numbering, before/after/passthru context windows, context-break separators,
++binary detection and absolute byte offsets — is identical, and lives here in
++[`Core`]. A strategy owns a `Core`, feeds it one buffer at a time, and lets it
++drive the sink.
++
++# Fast vs. slow line search
++
++For a non-inverted, non-passthru search, `Core` can run in one of two modes,
++chosen once by [`Core::is_line_by_line_fast`]:
++
++* The **slow** path ([`Core::match_by_line_slow`]) walks every line in the
++  buffer and asks the matcher whether that line matches. It is always correct.
++* The **fast** path ([`Core::match_by_line_fast`]) instead calls
++  [`Matcher::find_candidate_line`], which may use a highly optimized substring
++  prefilter (e.g. `memmem`) to *skip whole runs of non-matching lines* and only
++  land on lines that could match. It is usable only when the matcher's notion
++  of a line terminator is compatible with the searcher's (see
++  `is_line_by_line_fast` for the exact conditions); otherwise `Core` falls back
++  to the slow path.
++
++The fast path is what makes ripgrep fast on the common case of a literal or
++literal-prefixed pattern over large files.
++*/
++
+ use bstr::ByteSlice;
+ 
+ use grep_matcher::{LineMatchKind, Matcher};
+@@ -11,27 +41,61 @@ use crate::{
+     },
+ };
+ 
++/// The outcome of one run of the fast line matcher over a buffer.
+ enum FastMatchResult {
++    /// The fast matcher exhausted the buffer; keep going with the next buffer.
+     Continue,
++    /// The sink asked to stop (or a quit condition was hit); end the search.
+     Stop,
++    /// The fast path can no longer be used for the rest of this buffer (e.g.
++    /// `stop_on_nonmatch` fired after a match), so finish it on the slow path.
+     SwitchToSlow,
+ }
+ 
++/// The mutable state and bookkeeping of a single line-oriented search.
++///
++/// A `Core` is created once per file/stream searched (by one of the strategies
++/// in `glue.rs`) and is then fed buffers to search. It owns the matcher and the
++/// sink, and tracks everything needed to translate byte ranges into the
++/// context-aware, line-numbered events a [`Sink`] consumes.
+ #[derive(Debug)]
+ pub(crate) struct Core<'s, M: 's, S> {
++    /// The searcher's configuration (line terminator, context sizes, invert,
++    /// passthru, binary detection, ...). Borrowed from the owning `Searcher`.
+     config: &'s Config,
++    /// The matcher used to find matches within a line (or candidate line).
+     matcher: M,
++    /// The searcher this core belongs to, passed back to the sink on each event.
+     searcher: &'s Searcher,
++    /// Where search results and context lines are reported.
+     sink: S,
++    /// Whether binary detection is active for this search.
+     binary: bool,
++    /// The current search offset into the buffer being searched. Everything
++    /// before `pos` has already been searched (in the current buffer).
+     pos: usize,
++    /// The number of bytes that preceded the current buffer, i.e. the bytes
++    /// already rolled off the front. Added to in-buffer offsets to recover the
++    /// absolute offset into the whole stream (see `roll`).
+     absolute_byte_offset: u64,
++    /// If binary data was detected, the *absolute* offset at which it was seen.
+     binary_byte_offset: Option<usize>,
++    /// The current line number, tracked only when line numbering is enabled.
+     line_number: Option<u64>,
++    /// High-water mark for lazy line counting: the buffer offset up to which
++    /// `line_number` has already counted terminators (avoids recounting).
+     last_line_counted: usize,
++    /// The end offset of the last line handed to the sink. Used to detect gaps
++    /// between reported lines (for context-break separators) and as the start
++    /// of the next context window.
+     last_line_visited: usize,
++    /// How many "after context" lines still remain to be emitted following the
++    /// most recent match.
+     after_context_left: usize,
++    /// Whether anything at all has been sent to the sink yet. A context break
++    /// is only meaningful once something has been reported.
+     has_sunk: bool,
++    /// Whether any match has occurred so far (drives `stop_on_nonmatch`).
+     has_matched: bool,
+ }
+ 
+@@ -116,6 +180,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         )
+     }
+ 
++    /// Search the given buffer line by line, reporting matches (and their
++    /// context) to the sink.
++    ///
++    /// Returns `Ok(true)` if the caller should keep feeding buffers, or
++    /// `Ok(false)` if the search should stop (the sink asked to quit, or a
++    /// quit condition such as binary detection was hit). This dispatches to the
++    /// fast or slow line searcher; see the module docs for the difference.
+     pub(crate) fn match_by_line(
+         &mut self,
+         buf: &[u8],
+@@ -131,6 +202,22 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         }
+     }
+ 
++    /// Roll the buffer forward, returning how many bytes at the front may be
++    /// discarded before the next read.
++    ///
++    /// When searching a stream through a fixed-size [`LineBuffer`], the buffer
++    /// is searched, then rolled: this prefix is dropped and the remainder slid
++    /// to the front so the next read can append fresh bytes. With no context
++    /// configured, the whole buffer is consumed. Otherwise it keeps back enough
++    /// trailing lines to serve as the "before context" of a match that might
++    /// appear right after the roll — but it never keeps bytes at or before
++    /// `last_line_visited`, since lines already handed to the sink don't need
++    /// re-emitting. Concretely the consumed prefix is
++    /// `max(before-context start, last_line_visited)`. It also advances
++    /// `absolute_byte_offset` by the consumed amount and resets the per-buffer
++    /// line counters.
++    ///
++    /// [`LineBuffer`]: crate::line_buffer::LineBuffer
+     pub(crate) fn roll(&mut self, buf: &[u8]) -> usize {
+         let consumed = if self.config.max_context() == 0 {
+             buf.len()
+@@ -157,6 +244,14 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         consumed
+     }
+ 
++    /// Scan `range` of `buf` for the configured binary sentinel byte.
++    ///
++    /// Returns `Ok(true)` when the search should stop because binary data was
++    /// found *and* the configured behavior is to quit on binary data. The
++    /// offset of the first binary byte is recorded (once) in
++    /// `binary_byte_offset` and reported to the sink. Returns `Ok(false)` when
++    /// binary detection is disabled, nothing was found, or the behavior is to
++    /// convert rather than quit.
+     pub(crate) fn detect_binary(
+         &mut self,
+         buf: &[u8],
+@@ -182,6 +277,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         }
+     }
+ 
++    /// Emit up to `before_context` lines that precede offset `upto` as "before
++    /// context" for an upcoming match.
++    ///
++    /// Only the lines after `last_line_visited` are eligible (so context never
++    /// overlaps lines already reported), and a context-break separator is
++    /// emitted before them if there is a gap. A no-op when before-context is
++    /// disabled.
+     pub(crate) fn before_context_by_line(
+         &mut self,
+         buf: &[u8],
+@@ -218,6 +320,11 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         Ok(true)
+     }
+ 
++    /// Emit lines from `last_line_visited` up to `upto` as "after context"
++    /// trailing a previous match, stopping once the remaining after-context
++    /// budget (`after_context_left`, decremented per line) is exhausted.
++    ///
++    /// A no-op when no after-context lines are currently owed.
+     pub(crate) fn after_context_by_line(
+         &mut self,
+         buf: &[u8],
+@@ -243,6 +350,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         Ok(true)
+     }
+ 
++    /// Emit every line from `last_line_visited` up to `upto` as "other"
++    /// context.
++    ///
++    /// This is the passthru case: in `--passthru` mode every non-matching line
++    /// is still printed (as context), so all intervening lines are emitted
++    /// rather than a bounded window.
+     pub(crate) fn other_context_by_line(
+         &mut self,
+         buf: &[u8],
+@@ -262,6 +375,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         Ok(true)
+     }
+ 
++    /// The always-correct line searcher: step through every line in the buffer
++    /// (from `pos`), run the matcher against each (with its terminator
++    /// stripped), and report matches, context, or passthru lines accordingly.
++    ///
++    /// The terminator is stripped before matching so that patterns like
++    /// `(?m)^$` do not spuriously match the empty position just past the end of
++    /// a line.
+     fn match_by_line_slow(&mut self, buf: &[u8]) -> Result<bool, S::Error> {
+         debug_assert!(!self.searcher.multi_line_with_matcher(&self.matcher));
+ 
+@@ -312,6 +432,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         Ok(true)
+     }
+ 
++    /// The fast line searcher: repeatedly jump straight to the next candidate
++    /// matching line via [`Core::find_by_line_fast`] (which can use a substring
++    /// prefilter) instead of testing every line, emitting each match and its
++    /// context.
++    ///
++    /// Returns a [`FastMatchResult`] telling the caller whether to continue,
++    /// stop, or finish this buffer on the slow path.
+     fn match_by_line_fast(
+         &mut self,
+         buf: &[u8],
+@@ -394,6 +521,15 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         Ok(true)
+     }
+ 
++    /// Find the next line containing a match, starting at `pos`, using the
++    /// matcher's candidate-line prefilter.
++    ///
++    /// [`Matcher::find_candidate_line`] may return a *confirmed* match (used
++    /// directly) or a mere *candidate* (a fast prefilter hit that must be
++    /// verified by running the full matcher on that line, stripped of its
++    /// terminator). Candidate lines that fail verification are skipped and the
++    /// scan continues. Returns the located line range, or `None` at end of
++    /// buffer.
+     #[inline(always)]
+     fn find_by_line_fast(
+         &self,
+@@ -575,6 +711,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         Ok(true)
+     }
+ 
++    /// Emit a context-break separator (e.g. grep's `--` line) before the line
++    /// starting at `start_of_line`, if one is warranted.
++    ///
++    /// A break is warranted only when context is enabled, something has already
++    /// been reported, and there is a gap between the last reported line and
++    /// this one (i.e. non-contiguous blocks of output).
+     fn sink_break_context(
+         &mut self,
+         start_of_line: usize,
+@@ -590,6 +732,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         }
+     }
+ 
++    /// Lazily advance the current line number to the line containing `upto`.
++    ///
++    /// Terminators are counted only in the not-yet-counted span
++    /// `[last_line_counted, upto)`, and `last_line_counted` is advanced, so
++    /// each byte is counted at most once no matter how often this is called.
++    /// A no-op when line numbering is disabled.
+     fn count_lines(&mut self, buf: &[u8], upto: usize) {
+         if let Some(ref mut line_number) = self.line_number {
+             if self.last_line_counted >= upto {
+@@ -602,6 +750,15 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         }
+     }
+ 
++    /// Decide whether the fast line searcher may be used for this search.
++    ///
++    /// The fast path relies on the matcher agreeing with the searcher about
++    /// line boundaries. It is disabled for passthru and (after a first match)
++    /// for `stop_on_nonmatch`. Otherwise it is allowed when either the matcher
++    /// reports a compatible line terminator, or reports that the searcher's
++    /// line terminator can never appear inside a match (so scanning for that
++    /// byte cannot split a match). A NUL line terminator is excluded to work
++    /// around a grep-regex limitation (see the inline note).
+     fn is_line_by_line_fast(&self) -> bool {
+         debug_assert!(!self.searcher.multi_line_with_matcher(&self.matcher));
+ 
+-- 
+2.55.0
+

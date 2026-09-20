@@ -1,9 +1,21 @@
 # Fossify (Android app suite) — reference-doc set + doc-region teaching book (imps)
 
-**Status:** proposed — needs go-ahead. Scoped autonomously 2026-09-19 (William Emerison Six
-<billsix@gmail.com> away; asked me to make the task + research). One of FOUR sibling documentation-only
-initiatives — see [ripgrep](ripgrep-refdocs-and-book.md) for the shared recipe + family decision, plus
-[coreutils](coreutils-refdocs-and-book.md), [dash](dash-refdocs-and-book.md).
+**Status:** in progress — go-ahead 2026-09-20 (William Emerison Six <billsix@gmail.com>). **Phase A**
+(the multi-repo `android/fossify/` docs-only carrier — `repos` manifest + fetch/apply/Makefile/Dockerfile)
++ a first pass of `patches/<repo>/docs/` KDoc is DONE this session: 5 repos pinned at released tags
+(Commons 6.2.0, Gallery 1.3.0, Phone 1.5.0, Messages 1.2.0, Keyboard 1.2.0), 7 KDoc patches (5 on
+`Commons` — app skeleton, theming, settings store, color-picker, storage — + Gallery media pipeline +
+Phone CallManager), all proven comment-only, and Commons compiled in-container (JDK 25 + Gradle) with the
+patches. **UNVERIFIED / decisions** (details in `android/fossify/CLAUDE.md`): app-module builds untested
+(only the Commons library compiled); Fedora 44 ships only JDK 25 (project targets JVM 17 — may need an
+Adoptium 17/21 drop-in); the image isn't fully offline (Gradle cache warms at first build, not baked);
+Messages & Keyboard cloned but not yet documented. **Phase B** (`tasks/reference/fossify/`) and **Phase C**
+(the Sphinx book) are **DEFERRED** until the follow-ups land (maintainer's call 2026-09-20):
+[fossify-jdk-toolchain-and-gradle-offline.md](fossify-jdk-toolchain-and-gradle-offline.md) and
+[generalize-comment-only-gate.md](generalize-comment-only-gate.md). Scoped autonomously
+2026-09-19. One of FOUR sibling documentation-only initiatives — see [ripgrep](ripgrep-refdocs-and-book.md)
+for the shared recipe + family decision, plus [coreutils](coreutils-refdocs-and-book.md),
+[dash](dash-refdocs-and-book.md).
 **Priority:** 7
 **Difficulty:** 8 (breadth — 17 apps — plus a mid-flight Compose/Views migration, so "current architecture"
 is a moving target per app; the strong shared `Commons` core is what makes it tractable)

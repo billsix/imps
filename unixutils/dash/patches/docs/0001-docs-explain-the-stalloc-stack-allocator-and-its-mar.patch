@@ -1,0 +1,122 @@
+From ed43a03106ec474dd4860b89faac9b550b091f55 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:13:10 +0000
+Subject: [PATCH 1/6] docs: explain the stalloc stack allocator and its
+ mark/release model
+
+Add explanatory comments to the core of dash's memory model in memalloc.c:
+the block list and its three cursors (stacknxt/stacknleft/sstrend), the
+bump-allocation fast path and block growth in stalloc(), the LIFO stunalloc(),
+the setstackmark/popstackmark bulk-release discipline (and why it avoids
+per-interrupt cleanup), and the realloc-style growstackblock().
+
+Comment-only; no behavioural change.
+---
+ src/memalloc.c | 55 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
+
+diff --git a/src/memalloc.c b/src/memalloc.c
+index 3275e51..fad11b6 100644
+--- a/src/memalloc.c
++++ b/src/memalloc.c
+@@ -107,12 +107,33 @@ struct stack_block {
+ 	char space[MINSIZE];
+ };
+ 
++/*
++ * The stack is a singly-linked list of blocks, newest first, threaded through
++ * ->prev; stackbase is a static first block so the shell can allocate before
++ * any malloc happens.  Allocation is a bump pointer inside the current (top)
++ * block, tracked by three cursors that always describe that block:
++ *   stackp     - the current block
++ *   stacknxt   - the next free byte in it (the bump pointer)
++ *   stacknleft - how many free bytes remain after stacknxt
++ *   sstrend    - one past the block's usable end (== stacknxt + stacknleft);
++ *                the string-builder macros compare against it hot-path-cheaply
++ * There is no per-object free: memory is reclaimed in bulk back to a saved
++ * high-water mark (see setstackmark/popstackmark), which is why parse trees and
++ * expansion scratch can be thrown away wholesale when a command finishes.
++ */
+ struct stack_block stackbase;
+ struct stack_block *stackp = &stackbase;
+ char *stacknxt = stackbase.space;
+ size_t stacknleft = MINSIZE;
+ char *sstrend = stackbase.space + MINSIZE;
+ 
++/*
++ * Allocate nbytes from the stack.  The fast path is a pointer bump within the
++ * current block; only when the request does not fit is a fresh block malloc'd
++ * and pushed on the front of the list.  The malloc + list-splice runs under
++ * INTOFF/INTON so a signal cannot interrupt it and leave the cursors and the
++ * ->prev chain describing a half-linked block.
++ */
+ void *stalloc(size_t nbytes)
+ {
+ 	char *p;
+@@ -146,6 +167,13 @@ void *stalloc(size_t nbytes)
+ }
+ 
+ 
++/*
++ * Undo the most recent stalloc within the current block: rewind the bump
++ * pointer back to p, returning the bytes above it to the free count.  Only
++ * valid LIFO (p must lie in the current block, at or below stacknxt) — hence
++ * the DEBUG sanity check.  This is the cheap "oops, didn't need that" partner
++ * to stalloc; wholesale reclaim across blocks is popstackmark's job.
++ */
+ void stunalloc(void *p)
+ {
+ #ifdef DEBUG
+@@ -160,6 +188,15 @@ void stunalloc(void *p)
+ 
+ 
+ 
++/*
++ * Save the current top-of-stack position so it can be restored later in one
++ * shot.  This mark/release pairing is the heart of dash's memory discipline:
++ * a caller sets a mark, freely stalloc's parse nodes and expansion scratch,
++ * then popstackmark's back to the mark and everything allocated after it
++ * vanishes at once — no per-object bookkeeping, and (crucially) no cleanup
++ * code strewn through the interrupt paths.  grabstackblock(len) claims any
++ * unfinished string-builder space first so the mark records a settled state.
++ */
+ __attribute__((__noinline__)) void pushstackmark(struct stackmark *mark,
+ 						 size_t len)
+ {
+@@ -175,6 +212,13 @@ void setstackmark(struct stackmark *mark)
+ }
+ 
+ 
++/*
++ * Release everything stalloc'd since the matching setstackmark: free every
++ * block newer than the marked one, then restore the three cursors.  Runs under
++ * INTOFF/INTON because it is walking and freeing the block list.  After this,
++ * pointers into the freed region are dangling — the contract is that the caller
++ * is done with all of it, which is exactly true at the end of a command.
++ */
+ void
+ popstackmark(struct stackmark *mark)
+ {
+@@ -203,6 +247,17 @@ popstackmark(struct stackmark *mark)
+  * part of the block that has been used.
+  */
+ 
++/*
++ * Enlarge the current string-builder block so at least min more bytes fit,
++ * roughly doubling it.  Two cases:
++ *   - if nothing else has been allocated on top of this block (stacknxt is
++ *     still at its start), the block can simply be ckrealloc'd in place — and
++ *     because it may move, the cursors are repointed at the new address;
++ *   - otherwise something sits above it, so a bigger block is stalloc'd and the
++ *     in-progress string is memcpy'd over, realloc-style.
++ * The caller-visible effect matches realloc: the growing string may relocate,
++ * so callers always recompute their write pointer from the return value.
++ */
+ static char *growstackblock(size_t min)
+ {
+ 	size_t newlen;
+
+base-commit: 037bbdfd330017c368caf6242f977974123239b5
+-- 
+2.55.0
+

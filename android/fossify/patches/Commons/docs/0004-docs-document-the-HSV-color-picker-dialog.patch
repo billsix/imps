@@ -1,0 +1,59 @@
+From 178ec1740ba235702fa1b5dd5858ff113c59090f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:15:15 +0000
+Subject: [PATCH 4/5] docs: document the HSV color-picker dialog
+
+Add KDoc to ColorPickerDialog (the Views-based picker behind color choices) and
+its inline Hsv value-class wrapper, covering the live/final color callbacks and
+recent-color persistence. Comment-only.
+---
+ .../commons/dialogs/ColorPickerDialog.kt      | 26 +++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/commons/src/main/kotlin/org/fossify/commons/dialogs/ColorPickerDialog.kt b/commons/src/main/kotlin/org/fossify/commons/dialogs/ColorPickerDialog.kt
+index 5af6cc391..6e3b4b6ae 100644
+--- a/commons/src/main/kotlin/org/fossify/commons/dialogs/ColorPickerDialog.kt
++++ b/commons/src/main/kotlin/org/fossify/commons/dialogs/ColorPickerDialog.kt
+@@ -48,6 +48,12 @@ import java.util.LinkedList
+ 
+ private const val RECENT_COLORS_NUMBER = 5
+ 
++/**
++ * A thin, allocation-free wrapper over the `FloatArray(3)` that Android's
++ * `Color.colorToHSV` / `Color.HSVToColor` use: index 0 hue (0–360), 1
++ * saturation, 2 value (both 0–1). Being an `@JvmInline value class` it adds
++ * readable `getHue`/`setSat`/… accessors with no extra object at runtime.
++ */
+ @JvmInline
+ private value class Hsv(val value: FloatArray) {
+     fun getColor() = Color.HSVToColor(value)
+@@ -67,6 +73,26 @@ private value class Hsv(val value: FloatArray) {
+     }
+ }
+ 
++/**
++ * The HSV color picker behind Fossify's "pick a color" interactions (accent,
++ * primary, per-item colors, etc.) — the classic Views/XML implementation, built
++ * on [DialogColorPickerBinding] and shown through Commons' shared
++ * `setupDialogStuff` so it inherits the current theme.
++ *
++ * The user drags a hue bar and a saturation/value square; the live color is
++ * reported through [currentColorCallback] as it changes, and the final choice
++ * (or cancel) through [callback] with the pressed button. Recent picks are
++ * persisted in `baseConfig.colorPickerRecentColors` (last [RECENT_COLORS_NUMBER]).
++ * Adapted from the ambilwarna picker (see the URL below).
++ *
++ * @param color the initial color to select.
++ * @param removeDimmedBackground clears the dialog's dim-behind flag on first
++ *   change, useful when the color affects something visible behind the dialog.
++ * @param addDefaultColorButton adds a neutral "default color" button.
++ * @param currentColorCallback invoked continuously as the selection changes.
++ * @param callback invoked once on dismiss with whether OK was pressed and the
++ *   chosen color.
++ */
+ // forked from https://github.com/yukuku/ambilwarna
+ class ColorPickerDialog(
+     val activity: Activity,
+-- 
+2.55.0
+

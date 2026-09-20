@@ -1,0 +1,55 @@
+From af4f43fca6360ce5b6302cb4b92b7642d164d059 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:17:18 +0000
+Subject: [PATCH] docs: document CallManager, the live-call singleton
+
+Add KDoc explaining how CallManager mediates between Android's InCallService
+and the in-call UI: it holds the active calls, tracks them via per-call
+callbacks, derives a high-level PhoneState (getPhoneState), and exposes the call
+controls. Comment-only.
+---
+ .../org/fossify/phone/helpers/CallManager.kt  | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/app/src/main/kotlin/org/fossify/phone/helpers/CallManager.kt b/app/src/main/kotlin/org/fossify/phone/helpers/CallManager.kt
+index 51541c74..14b36f15 100644
+--- a/app/src/main/kotlin/org/fossify/phone/helpers/CallManager.kt
++++ b/app/src/main/kotlin/org/fossify/phone/helpers/CallManager.kt
+@@ -12,6 +12,18 @@ import org.fossify.phone.extensions.isConference
+ import org.fossify.phone.models.AudioRoute
+ import java.util.concurrent.CopyOnWriteArraySet
+ 
++/**
++ * The single source of truth for the phone's live call(s).
++ *
++ * Everything is in the `companion object`, i.e. it is effectively a process-wide
++ * singleton, because there is only ever one telephony session: Android's
++ * [InCallService] (see CallService) feeds call add/remove/audio events in here,
++ * and the in-call UI reads state and issues control actions (accept, reject,
++ * hold, swap, merge, keypad tones, audio routing) back out. It keeps the list of
++ * active calls, registers a per-call `Call.Callback` to stay current, derives a
++ * high-level [PhoneState] (no call / single / two calls / conference) via
++ * [getPhoneState], and fans changes out to registered [CallManagerListener]s.
++ */
+ // inspired by https://github.com/Chooloo/call_manage
+ class CallManager {
+     companion object {
+@@ -54,6 +66,13 @@ class CallManager {
+             }
+         }
+ 
++        /**
++         * Collapses the raw call list into a high-level [PhoneState] the UI can
++         * switch on: [NoCall], [SingleCall], [TwoCalls] (ordered so the more
++         * "foreground" call — the newly dialing/connecting one, else the active
++         * one — is primary), or a conference. With more than two calls it looks
++         * for the conference call and any lone second call outside it.
++         */
+         fun getPhoneState(): PhoneState {
+             return when (calls.size) {
+                 0 -> NoCall
+
+base-commit: 572590d3b0909a124038197ea95baa17a2bb25a6
+-- 
+2.55.0
+

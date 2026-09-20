@@ -1,0 +1,91 @@
+From 82d2a2e530d3041b07d83c149e205a5361c5f8cf Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:13:10 +0000
+Subject: [PATCH 2/6] docs: explain the mknodes parse-tree generator and
+ generated files
+
+Document why nodes.h/nodes.c are generated rather than hand-written, what
+mknodes emits from the nodetypes description and the nodes.c.pat template
+(the %SIZES/%CALCSIZE/%COPY splice points), and how outfunc() emits the shared
+calcsize()/copynode() tree walk in two modes. Points a reader who goes looking
+for a hand-written nodes.c at nodetypes and nodes.c.pat instead.
+
+Comment-only; no behavioural change.
+---
+ src/mknodes.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+
+diff --git a/src/mknodes.c b/src/mknodes.c
+index 1903a60..b0e502a 100644
+--- a/src/mknodes.c
++++ b/src/mknodes.c
+@@ -35,6 +35,31 @@
+ /*
+  * This program reads the nodetypes file and nodes.c.pat file.  It generates
+  * the files nodes.h and nodes.c.
++ *
++ * WHY THIS IS GENERATED, NOT HAND-WRITTEN
++ * The parser (parser.c) builds a tree of `union node`, where each command
++ * shape (a simple command, a pipeline, an `if`, a `for`, a redirection, ...)
++ * is one arm of the union.  Two facts about every node type must stay in
++ * lock-step: its struct layout, and the code that deep-copies a tree
++ * (copyfunc/copynode, used when a shell function stores its parsed body).
++ * Rather than maintain that twice by hand and risk them drifting, dash keeps a
++ * single declarative description — the `nodetypes` file — and derives both from
++ * it at build time.  So there is no hand-written nodes.c/nodes.h to read: they
++ * are produced by this program during `make` and disappear on `make clean`.
++ * To understand or document a node type, read `nodetypes`; to understand the
++ * copy machinery, read the %CALCSIZE/%COPY templates in `nodes.c.pat`.
++ *
++ * WHAT IT EMITS
++ *   nodes.h  - one `#define NCMD 0`, `#define NPIPE 1`, ... per node type (the
++ *              tags parser.c and eval.c switch on), a `struct <tag>` per shared
++ *              layout, and the `union node` gathering them plus `int type`.
++ *   nodes.c  - the nodes.c.pat template copied through verbatim, except three
++ *              marker lines are replaced by generated C (see output()):
++ *                %SIZES    -> the nodesize[] table (aligned sizeof each struct)
++ *                %CALCSIZE -> the body of calcsize()  (measure a tree)
++ *                %COPY     -> the body of copynode()  (clone a tree)
++ * This template-splice style — a real C file with holes, filled programmatically
++ * — is how dash keeps the generated output readable while driving it from data.
+  */
+ 
+ #include <stdio.h>
+@@ -205,6 +230,14 @@ char writer[] = "\
+  */\n\
+ \n";
+ 
++/*
++ * Emit nodes.h and nodes.c.  nodes.h is written outright — the type #defines,
++ * then a struct per distinct layout, then the `union node` over them, plus the
++ * fixed nodelist/funcnode declarations.  nodes.c is produced by streaming
++ * `file` (nodes.c.pat) line by line and substituting the three template markers
++ * (%SIZES/%CALCSIZE/%COPY) with generated code; every other line is copied as
++ * is.  `file` is the pattern path passed on argv, opened here read-only.
++ */
+ static void
+ output(char *file)
+ {
+@@ -280,6 +313,19 @@ outsizes(FILE *cfile)
+ }
+ 
+ 
++/*
++ * Emit the body shared by calcsize() and copynode() — the same tree walk in two
++ * modes, so it is generated once here.  calcsize (calcsize != 0) only sums the
++ * sizes needed to hold a copy (into funcblocksize/funcstringsize); copynode
++ * (calcsize == 0) actually clones each field into the pre-measured block.
++ * It emits a `switch (n->type)` with one case per node type, and per field
++ * dispatches on the field's kind: child nodes recurse (calcsize/copynode),
++ * node lists recurse via sizenodelist/copynodelist, strings are measured or
++ * duplicated, and plain int/other fields are just assigned on the copy pass.
++ * Note it walks fields from the last down to index 1, skipping field 0 — that
++ * is `type`, copied explicitly at the end — so the generated cases never touch
++ * it in the loop.
++ */
+ static void
+ outfunc(FILE *cfile, int calcsize)
+ {
+-- 
+2.55.0
+

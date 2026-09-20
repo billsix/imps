@@ -1,9 +1,19 @@
 # ripgrep — reference-doc set + doc-region teaching book (imps)
 
-**Status:** proposed — needs go-ahead. Scoped autonomously 2026-09-19 (William Emerison Six
-<billsix@gmail.com> away; asked me to make the task + research). One of FOUR sibling
-"documentation-only" initiatives requested together — see [dash](dash-refdocs-and-book.md),
-[coreutils](coreutils-refdocs-and-book.md), [Fossify](fossify-refdocs-and-book.md).
+**Status:** in progress — go-ahead 2026-09-20 (William Emerison Six <billsix@gmail.com>). **Phase A**
+(the `unixutils/ripgrep/` docs-only carrier — fetch/apply/Makefile/Dockerfile) + a first pass of
+`patches/docs/` doc comments is DONE this session: pinned tag 14.1.1
+(`4649aa97…`, the annotated tag's peeled commit), 3 doc-comment patches on `grep-searcher` internals
+(`line_buffer.rs`, `searcher/core.rs`, `searcher/glue.rs` — the public library APIs already carry
+`#![deny(missing_docs)]`, so the gap is internal engine code), proven comment-only + `cargo build` green
+in-container. Details/gotchas in `unixutils/ripgrep/CLAUDE.md` (incl. the crates.io-fetch-at-build vs
+offline-vendor decision). **Phase B** (the `tasks/reference/ripgrep/` set) and **Phase C** (the Sphinx
+book) are **DEFERRED** until the follow-ups land (maintainer's call 2026-09-20):
+[ripgrep-cargo-vendor-offline.md](ripgrep-cargo-vendor-offline.md) and
+[generalize-comment-only-gate.md](generalize-comment-only-gate.md). Scoped
+autonomously 2026-09-19. One of FOUR sibling "documentation-only" initiatives — see
+[dash](dash-refdocs-and-book.md), [coreutils](coreutils-refdocs-and-book.md),
+[Fossify](fossify-refdocs-and-book.md).
 **Priority:** 7 (proposed; large initiative, not do-first)
 **Difficulty:** 7 (the codebase is the *easiest* of the four to document; the effort is breadth of prose)
 

@@ -1,0 +1,123 @@
+From 52605d5843bcf0961fea0ae282fc218b85bfe8e2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:13:10 +0000
+Subject: [PATCH 3/6] docs: explain the recursive-descent parser grammar spine
+
+Document the parser's grammar functions and how they mirror the shell grammar
+loosest-operator-first: parsecmd -> list -> andor -> pipeline -> command ->
+simplecmd, the single-token lookahead via tokpushback, and which node type each
+production builds (NSEMI/NBACKGND, NAND/NOR, NNOT/NPIPE, the compound-command
+nodes, and NCMD/NDEFUN).
+
+Comment-only; no behavioural change.
+---
+ src/parser.c | 58 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+
+diff --git a/src/parser.c b/src/parser.c
+index e44b3c3..68dbeb0 100644
+--- a/src/parser.c
++++ b/src/parser.c
+@@ -153,6 +153,19 @@ static inline int realeofmark(const char *eofmark)
+ /*
+  * Read and parse a command.  Returns NEOF on end of file.  (NULL is a
+  * valid parse tree indicating a blank line.)
++ *
++ * This is the entry point of a hand-written recursive-descent parser whose
++ * functions mirror the shell grammar, loosest operator first:
++ *   list()      - commands separated by ';' / '&' / newline (NSEMI/NBACKGND)
++ *   andor()     - the '&&' and '||' operators                (NAND/NOR)
++ *   pipeline()  - optional '!' then commands joined by '|'    (NNOT/NPIPE)
++ *   command()   - one command: a compound (if/while/for/case/{}/subshell) or
++ *                 a simplecmd() (assignments + words + redirections)
++ * Tokens come from readtoken() (the lexer, ultimately readtoken1()); lookahead
++ * is a single pushed-back token, re-read next time when `tokpushback` is set —
++ * so `tokpushback++` after a readtoken() means "I peeked; put it back".  Nodes
++ * are stalloc'd on the memory stack, so the whole tree is freed in one shot
++ * (see memalloc.c) once the command has run.
+  */
+ 
+ union node *
+@@ -169,6 +182,17 @@ parsecmd(int interact)
+ }
+ 
+ 
++/*
++ * Parse a sequence of and-or lists separated by ';', '&', or newline, chaining
++ * them left-associatively into NSEMI nodes (ch1 = everything so far, ch2 = the
++ * new command).  A trailing '&' turns the preceding command into NBACKGND (or
++ * sets npipe.backgnd on a pipeline).  nlflag encodes the context: bit 0 (the
++ * `1` from parsecmd) means a bare newline ends the list here rather than being
++ * skipped, and value 2 means "stop at a keyword that ends an enclosing
++ * construct" (e.g. `done`, `fi`) — that is how the body of a loop or `if` knows
++ * where it stops.  Here-documents queued by the lexer are read at each newline
++ * via parseheredoc().
++ */
+ STATIC union node *
+ list(int nlflag)
+ {
+@@ -245,6 +269,12 @@ out_eof:
+ 
+ 
+ 
++/*
++ * Parse `pipeline ( ('&&' | '||') pipeline )*`.  Builds a left-leaning tree of
++ * NAND/NOR nodes so `a && b || c` groups as `(a && b) || c` — the two operators
++ * share one precedence level and associate left, exactly as POSIX requires.
++ * eval.c later short-circuits by inspecting each node's exit status.
++ */
+ STATIC union node *
+ andor(void)
+ {
+@@ -273,6 +303,14 @@ andor(void)
+ 
+ 
+ 
++/*
++ * Parse an optional leading `!` then `command ( '|' command )*`.  A single
++ * command is returned as-is; two or more become an NPIPE whose cmdlist is a
++ * linked list of the stages (eval.c forks all but the last and wires their
++ * stdin/stdout with pipe()).  A `!` wraps the result in NNOT, which inverts the
++ * pipeline's exit status.  Multiple `!` toggle (negate = !negate), matching the
++ * shell rule that `! !` cancels out.
++ */
+ STATIC union node *
+ pipeline(void)
+ {
+@@ -317,6 +355,16 @@ pipeline(void)
+ 
+ 
+ 
++/*
++ * Parse a single command by dispatching on its first token.  A keyword starts a
++ * compound command, each built into its own node type: TIF -> NIF (elif clauses
++ * chain as nested NIF via the elsepart), TWHILE/TUNTIL -> NWHILE/NUNTIL, TFOR ->
++ * NFOR, TCASE -> NCASE with a list of NCLIST arms, TBEGIN `{ }` and TLP `( )`
++ * (subshell) -> NREDIR-family nodes.  Anything else falls through to
++ * simplecmd().  Redirections attached to a compound command are collected into
++ * `redir` here and spliced on afterwards, so `while ...; done >log` works.
++ * savelinno remembers the command's starting line for error messages and $LINENO.
++ */
+ STATIC union node *
+ command(void)
+ {
+@@ -518,6 +566,16 @@ redir:
+ }
+ 
+ 
++/*
++ * Parse a simple command: a run of words, variable assignments, and
++ * redirections in any order, terminated by anything that is not one of those.
++ * Leading `NAME=value` words are split off into the `assign` list (only while
++ * savecheckkwd is set — once a real command word is seen, later `x=y` is just an
++ * argument, per POSIX); other words go to `args`, and redirections to `redirect`.
++ * The one oddity handled here is a function definition: a single word
++ * immediately followed by `()` reinterprets the command as NDEFUN, whose body is
++ * the following command.  The assembled node is NCMD (linno/args/assign/redirect).
++ */
+ STATIC union node *
+ simplecmd(void) {
+ 	union node *args, **app;
+-- 
+2.55.0
+

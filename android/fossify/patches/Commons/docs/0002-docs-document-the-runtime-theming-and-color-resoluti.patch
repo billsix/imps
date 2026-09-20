@@ -1,0 +1,158 @@
+From d50fca43b89df93b914e6e3619af4f1011753c83 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:15:09 +0000
+Subject: [PATCH 2/5] docs: document the runtime theming and color-resolution
+ system
+
+Add KDoc across the theming core: getThemeId (how a chosen ARGB color maps to a
+pre-generated per-swatch theme style, with the Material You / white /
+black-and-white special modes), and the Context-styling resolvers
+(isDynamicTheme, getProper*Color, updateTextColors, syncGlobalConfig,
+toggleAppIconColor) that decide the active theme mode and return effective
+colors. Comment-only.
+---
+ .../commons/extensions/Activity-themes.kt     | 24 ++++++++
+ .../commons/extensions/Context-styling.kt     | 55 +++++++++++++++++++
+ 2 files changed, 79 insertions(+)
+
+diff --git a/commons/src/main/kotlin/org/fossify/commons/extensions/Activity-themes.kt b/commons/src/main/kotlin/org/fossify/commons/extensions/Activity-themes.kt
+index 4684886c1..e903d8a97 100644
+--- a/commons/src/main/kotlin/org/fossify/commons/extensions/Activity-themes.kt
++++ b/commons/src/main/kotlin/org/fossify/commons/extensions/Activity-themes.kt
+@@ -5,6 +5,30 @@ import android.graphics.Color
+ import org.fossify.commons.R
+ import org.fossify.commons.helpers.DARK_GREY
+ 
++/**
++ * Resolves which XML theme style an activity should apply, given the user's
++ * chosen primary color.
++ *
++ * Fossify lets every app be recolored at runtime, but an Android theme is a
++ * compile-time resource — you cannot synthesize one from an arbitrary color at
++ * run time. Commons squares that circle by pre-generating one `*_core` style
++ * per Material Design palette swatch (each hue at shades 100–900) and picking
++ * the matching one here by the swatch's exact ARGB value. The literal ints in
++ * the `when` below are those ARGB constants (e.g. `-769226` is Material Red
++ * 500); an unrecognized color falls back to `AppTheme_Green_900_core`.
++ *
++ * Three "special" modes take precedence over the palette lookup:
++ *  - dynamic (Material You, Android 12+): a system-colored theme, light or dark
++ *    per the current night mode;
++ *  - black-and-white and pure-white: dedicated high-contrast themes, further
++ *    split by whether the primary color's contrast color is dark or light.
++ *
++ * @param color the primary color to theme against; defaults to the saved
++ *   [baseConfig.primaryColor].
++ * @param showTransparentTop when true, selects a `NoActionBar`/transparent-top
++ *   variant (used by edge-to-edge screens that draw their own top bar).
++ * @return the resolved `R.style.*` theme id, to hand to `setTheme`.
++ */
+ fun Activity.getThemeId(color: Int = baseConfig.primaryColor, showTransparentTop: Boolean = false) = when {
+     isDynamicTheme() -> if (isSystemInDarkMode()) R.style.AppTheme_Base_System else R.style.AppTheme_Base_System_Light
+     isBlackAndWhiteTheme() -> when {
+diff --git a/commons/src/main/kotlin/org/fossify/commons/extensions/Context-styling.kt b/commons/src/main/kotlin/org/fossify/commons/extensions/Context-styling.kt
+index b7970cacb..e1054fd25 100644
+--- a/commons/src/main/kotlin/org/fossify/commons/extensions/Context-styling.kt
++++ b/commons/src/main/kotlin/org/fossify/commons/extensions/Context-styling.kt
+@@ -37,8 +37,26 @@ import org.fossify.commons.views.MyTextInputLayout
+ import org.fossify.commons.views.MyTextView
+ import java.io.File
+ 
++// This file is the color-resolution core of Fossify's runtime theming. The
++// user's chosen colors live as plain ARGB ints in `baseConfig` (see
++// BaseConfig); the app never reads those directly for painting. Instead it
++// asks the `getProper*Color()` helpers below, which first decide WHICH theme
++// mode is active — dynamic (Material You), pure-white, black-and-white, or a
++// custom palette color — and only then return the effective color. Centralizing
++// that decision here is why every Fossify screen recolors consistently.
++
++/**
++ * True when Material You dynamic theming is active: Android 12+ ("S plus") AND
++ * the user has enabled "system theme". In this mode colors come from the OS
++ * wallpaper palette (the `you_*` resource colors), not from [baseConfig].
++ */
+ fun Context.isDynamicTheme() = isSPlus() && baseConfig.isSystemThemeEnabled
+ 
++/**
++ * True when the saved colors match the built-in pure black-and-white theme
++ * (white text on black, black primary and background) — a distinct high-contrast
++ * mode the `getProper*` and `getThemeId` logic special-cases.
++ */
+ fun Context.isBlackAndWhiteTheme(): Boolean {
+     return baseConfig.textColor == Color.WHITE
+             && baseConfig.primaryColor == Color.BLACK
+@@ -55,6 +73,11 @@ fun Context.isSystemInDarkMode() = resources.configuration.uiMode and Configurat
+ 
+ fun Context.isAutoTheme() = !isSPlus() && baseConfig.isSystemThemeEnabled
+ 
++/**
++ * The effective text color for the active theme: the wallpaper-derived neutral
++ * color under Material You, otherwise the user's saved [baseConfig.textColor].
++ * Prefer this over reading the config color directly, so dynamic theming works.
++ */
+ fun Context.getProperTextColor() = when {
+     isDynamicTheme() -> resources.getColor(R.color.you_neutral_text_color, theme)
+     else -> baseConfig.textColor
+@@ -65,6 +88,12 @@ fun Context.getProperBackgroundColor() = when {
+     else -> baseConfig.backgroundColor
+ }
+ 
++/**
++ * The effective primary (accent-bearing) color. Under Material You it is the
++ * wallpaper primary; in the white / black-and-white modes the plain primary
++ * would vanish against the background, so the user's [baseConfig.accentColor]
++ * stands in; otherwise it is [baseConfig.primaryColor].
++ */
+ fun Context.getProperPrimaryColor() = when {
+     isDynamicTheme() -> resources.getColor(R.color.you_primary_color, theme)
+     isWhiteTheme() || isBlackAndWhiteTheme() -> baseConfig.accentColor
+@@ -84,6 +113,14 @@ fun Context.getColoredMaterialStatusBarColor(): Int {
+     }
+ }
+ 
++/**
++ * Recolors an entire view subtree to the current theme in one pass. Walks
++ * [viewGroup]'s children and, for each of Commons' custom `My*` widgets, calls
++ * its `setColors(text, accent, background)`; nested `ViewGroup`s recurse. This
++ * is how a classic Views/XML Fossify screen applies theme colors after infla-
++ * tion — the accent uses the primary color except in the white / black-and-
++ * white modes, where it uses the saved accent color instead.
++ */
+ fun Context.updateTextColors(viewGroup: ViewGroup) {
+     val textColor = when {
+         isDynamicTheme() -> getProperTextColor()
+@@ -146,6 +183,15 @@ fun Context.getPopupMenuTheme(): Int {
+     }
+ }
+ 
++/**
++ * Pulls "global theming" from the Fossify Thank-You app and mirrors it into
++ * this app's [baseConfig], so a single choice can theme every installed Fossify
++ * app at once. When the Thank-You app is installed and its global theme is
++ * enabled, this copies its colors, font, and app-icon color across (via that
++ * app's content provider — see [withGlobalConfig]); otherwise it disables
++ * global theming locally. Font settings are re-validated either way, and
++ * [callback] runs when done (possibly after a background provider read).
++ */
+ fun Context.syncGlobalConfig(callback: (() -> Unit)? = null) {
+     if (canAccessGlobalConfig()) {
+         withGlobalConfig {
+@@ -268,6 +314,15 @@ fun Context.checkAppIconColor() {
+     }
+ }
+ 
++/**
++ * Switches the launcher icon to a colored variant by enabling/disabling manifest
++ * `activity-alias` components. Each Fossify app ships one `SplashActivity<Color>`
++ * alias per selectable icon color; exactly one is enabled at a time. This toggles
++ * the alias named for [colorIndex] on or off ([enable]) via the package manager,
++ * recording [color] as the last applied icon color when enabling. `DONT_KILL_APP`
++ * keeps the current process alive across the change. See [checkAppIconColor],
++ * which drives this to reconcile the icon after the user picks a new color.
++ */
+ fun Context.toggleAppIconColor(appId: String, colorIndex: Int, color: Int, enable: Boolean) {
+     val className = "${appId.removeSuffix(".debug")}.activities.SplashActivity${appIconColorStrings[colorIndex]}"
+     val state = if (enable) COMPONENT_ENABLED_STATE_ENABLED else COMPONENT_ENABLED_STATE_DISABLED
+-- 
+2.55.0
+

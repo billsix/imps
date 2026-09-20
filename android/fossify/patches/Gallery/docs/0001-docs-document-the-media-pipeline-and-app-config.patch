@@ -1,0 +1,101 @@
+From 0071c2da093fd8dc1f511381337d111916786a56 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:16:35 +0000
+Subject: [PATCH] docs: document the media pipeline and app config
+
+Add KDoc to MediaFetcher (how Gallery discovers folders and loads/sorts/groups
+media across the OTG, pre-scoped-storage, and Android 11+ MediaStore access
+paths) and to Config, the canonical example of an app extending Commons
+BaseConfig with app-specific settings. Comment-only.
+---
+ .../org/fossify/gallery/helpers/Config.kt     |  8 +++++
+ .../fossify/gallery/helpers/MediaFetcher.kt   | 35 +++++++++++++++++++
+ 2 files changed, 43 insertions(+)
+
+diff --git a/app/src/main/kotlin/org/fossify/gallery/helpers/Config.kt b/app/src/main/kotlin/org/fossify/gallery/helpers/Config.kt
+index 5ea55c1d0..eaa7b41f0 100644
+--- a/app/src/main/kotlin/org/fossify/gallery/helpers/Config.kt
++++ b/app/src/main/kotlin/org/fossify/gallery/helpers/Config.kt
+@@ -11,6 +11,14 @@ import org.fossify.gallery.models.AlbumCover
+ import java.util.Arrays
+ import java.util.Locale
+ 
++/**
++ * Gallery's settings, layered on Commons' shared store. Extending
++ * `BaseConfig` inherits all the common settings (theme colors, storage paths,
++ * font, …) and adds Gallery-specific ones (view/grouping/sorting preferences,
++ * included/excluded folders, album covers, hidden-item handling) using the same
++ * SharedPreferences-property pattern. This is the canonical example of how a
++ * Fossify app specializes the shared config — reached via `context.config`.
++ */
+ class Config(context: Context) : BaseConfig(context) {
+     companion object {
+         fun newInstance(context: Context) = Config(context)
+diff --git a/app/src/main/kotlin/org/fossify/gallery/helpers/MediaFetcher.kt b/app/src/main/kotlin/org/fossify/gallery/helpers/MediaFetcher.kt
+index 272e30e7c..c640e1f38 100644
+--- a/app/src/main/kotlin/org/fossify/gallery/helpers/MediaFetcher.kt
++++ b/app/src/main/kotlin/org/fossify/gallery/helpers/MediaFetcher.kt
+@@ -22,9 +22,31 @@ import java.io.File
+ import java.util.Calendar
+ import java.util.Locale
+ 
++/**
++ * The heart of Gallery's media pipeline: it discovers folders and loads the
++ * photos/videos in them, then sorts and groups the results for display.
++ *
++ * It has to bridge several eras of Android storage access, which is most of its
++ * complexity: OTG (USB) drives, the pre-scoped-storage direct file scan, and the
++ * Android 11+ path where the app is not a MediaStore manager and instead reads
++ * everything from `MediaStore` in one query split by folder. [getFoldersToScan]
++ * finds candidate folders (standard DCIM/Pictures plus MediaStore-discovered
++ * ones, minus excluded/hidden), [getFilesFrom] returns the media for one folder
++ * via the right strategy, and [sortMedia] / [groupMedia] arrange them per the
++ * user's settings. [shouldStop] lets a long scan be cancelled cooperatively.
++ */
+ class MediaFetcher(val context: Context) {
+     var shouldStop = false
+ 
++    /**
++     * Returns the media in [curPath], picking the right access strategy: OTG
++     * drives via SAF, the Android 11+ MediaStore bulk fetch when the app is not
++     * an external-storage manager (optionally reusing a pre-fetched
++     * [android11Files] map), otherwise a direct folder scan. The many boolean
++     * flags request optional (more expensive) per-file metadata — proper
++     * date-taken, last-modified, size, and video durations. The result is sorted
++     * by the folder's configured sorting before being returned.
++     */
+     // on Android 11 we fetch all files at once from MediaStore and have it split by folder, use it if available
+     fun getFilesFrom(
+         curPath: String, isPickImage: Boolean, isPickVideo: Boolean, getProperDateTaken: Boolean, getProperLastModified: Boolean,
+@@ -81,6 +103,12 @@ class MediaFetcher(val context: Context) {
+         return curMedia
+     }
+ 
++    /**
++     * Builds the list of folders that may contain media. It seeds the standard
++     * DCIM / DCIM/Camera / Pictures directories, adds folders recently touched
++     * and every folder MediaStore reports for the current media filter, then
++     * applies the user's included/excluded/hidden-folder rules and de-duplicates.
++     */
+     fun getFoldersToScan(): ArrayList<String> {
+         return try {
+             val OTGPath = context.config.OTGPath
+@@ -799,6 +827,13 @@ class MediaFetcher(val context: Context) {
+         }
+     }
+ 
++    /**
++     * Turns a flat, already-sorted [media] list into the display list by
++     * inserting section headers ([ThumbnailSection]) between groups, per the
++     * folder's configured grouping (by date taken/modified, file type, folder,
++     * etc.). Returns the interleaved headers-and-media list the grid adapter
++     * renders.
++     */
+     fun groupMedia(media: ArrayList<Medium>, path: String): ArrayList<ThumbnailItem> {
+         val pathToCheck = if (path.isEmpty()) SHOW_ALL else path
+         val currentGrouping = context.config.getFolderGrouping(pathToCheck)
+
+base-commit: 7c11d0a2ffac25902b4007ca1f45d05080fa8f52
+-- 
+2.55.0
+

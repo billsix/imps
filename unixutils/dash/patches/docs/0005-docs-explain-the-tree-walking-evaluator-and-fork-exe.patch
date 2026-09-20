@@ -1,0 +1,97 @@
+From 18423115753d68a39c384f250608251112207626 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:15:56 +0000
+Subject: [PATCH 5/6] docs: explain the tree-walking evaluator and fork/exec
+ dispatch
+
+Document eval.c: how evaltree switches on node type and dispatches per command
+shape (with the EV_TESTED/set -e and evalskip mechanics), the subshell fork and
+its exec-the-tail optimisation (evalsubshell), the simple-command sequence in
+evalcommand (expand -> find_command -> redirect -> run builtin/function/external
+or exec), and the positional-parameter swap and longjmp return path of a
+function call (evalfun).
+
+Comment-only; no behavioural change.
+---
+ src/eval.c | 44 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 42 insertions(+), 2 deletions(-)
+
+diff --git a/src/eval.c b/src/eval.c
+index 0f2a7ba..6e47fdf 100644
+--- a/src/eval.c
++++ b/src/eval.c
+@@ -206,6 +206,18 @@ evalstring(char *s, int flags)
+ /*
+  * Evaluate a parse tree.  The value is left in the global variable
+  * exitstatus.
++ *
++ * This is the tree-walking interpreter: it switches on the node type produced
++ * by the parser and either handles the node inline (NNOT inverts a status,
++ * NREDIR applies redirections around a child, the NAND/NOR/NSEMI binary nodes
++ * short-circuit via the isor trick, NIF branches) or dispatches to a per-shape
++ * evaluator through the evalfn pointer (evalcommand, evalfor, evalloop,
++ * evalcase, evalsubshell, evalpipe).  A stackmark is set on entry and released
++ * as the frame unwinds, so all the scratch memory a command allocates is freed
++ * in one stroke (see memalloc.c).  EV_TESTED marks a context (an `if` test, a
++ * `&&`/`||` operand) where a nonzero status is expected and so must not trip
++ * `set -e`; `checkexit` records when the result should be considered for it.
++ * evalskip is the non-local exit for break/continue/return, checked throughout.
+  */
+ 
+ int
+@@ -481,7 +493,14 @@ out:
+ 
+ 
+ /*
+- * Kick off a subshell to evaluate a tree.
++ * Kick off a subshell to evaluate a tree.  Handles both `( ... )` (NSUBSHELL)
++ * and `cmd &` (NBACKGND): the child forks via forkshell, applies the node's
++ * redirections, and evaltreenr's the body (which never returns — it exec's or
++ * _exit's).  The parent waitforjob()s a foreground subshell but returns
++ * immediately for a background one.  Optimisation: if this is the shell's last
++ * action (EV_EXIT) and there are no traps to run, the fork is skipped
++ * (`nofork`) and the body runs in this process, which then exits — the classic
++ * "exec the tail" saving of a needless process.
+  */
+ 
+ STATIC int
+@@ -725,7 +744,19 @@ static int parse_command_args(struct arglist *arglist, union node **argpp,
+ }
+ 
+ /*
+- * Execute a simple command.
++ * Execute a simple command (an NCMD node).  This is the busiest routine in the
++ * evaluator; it drives the whole "one command" sequence:
++ *   - expand the argument words and the leading NAME=value assignments;
++ *   - look the command name up with find_command, classifying it as a special
++ *     builtin, a regular builtin, a shell function, or an external program;
++ *   - apply redirections, and place the assignments either in the environment
++ *     (for an external command) or as shell variables;
++ *   - then run it: a builtin via evalbltin, a function via evalfun, or an
++ *     external program by forkshell + shellexec (unless it is `exec`, which
++ *     replaces this shell without forking).
++ * localvar/redir/parsefile "stop" marks are captured so function-local state and
++ * pushed redirections can be unwound afterwards.  A bare assignment with no
++ * command word just sets variables and is handled here too.
+  */
+ 
+ STATIC int
+@@ -986,6 +1017,15 @@ cmddone:
+ 	return i;
+ }
+ 
++/*
++ * Call a shell function.  The positional parameters ($1..$#, argc/argv) are
++ * swapped in for the duration and the saved shellparam is restored on return;
++ * funcline and loopnest are likewise saved so $LINENO and break/continue scope
++ * correctly inside the body.  A setjmp/longjmp handler is installed so a
++ * `return`, an error, or `set -e` inside the function unwinds straight back
++ * here (funcdone) rather than up through evaltree.  The body is just another
++ * parse tree, so it runs via evaltree.
++ */
+ STATIC int
+ evalfun(struct funcnode *func, int argc, char **argv, int flags)
+ {
+-- 
+2.55.0
+

@@ -1,0 +1,75 @@
+From 1e9c95a651ff52350a2979d441a9362b9f6701c0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 03:15:15 +0000
+Subject: [PATCH 5/5] docs: document the storage-path discovery helpers
+
+Add KDoc to the SD-card / OTG / storage-root helpers (getSDCardPath,
+hasOTGConnected, getStorageDirectories) and the SAF-only directories constant,
+explaining the device heuristics and why some paths need the Storage Access
+Framework. Comment-only.
+---
+ .../commons/extensions/Context-storage.kt     | 31 +++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/commons/src/main/kotlin/org/fossify/commons/extensions/Context-storage.kt b/commons/src/main/kotlin/org/fossify/commons/extensions/Context-storage.kt
+index dca8fc2aa..fe59fe1b8 100644
+--- a/commons/src/main/kotlin/org/fossify/commons/extensions/Context-storage.kt
++++ b/commons/src/main/kotlin/org/fossify/commons/extensions/Context-storage.kt
+@@ -30,9 +30,28 @@ import java.util.regex.Pattern
+ 
+ private const val ANDROID_DATA_DIR = "/Android/data/"
+ private const val ANDROID_OBB_DIR = "/Android/obb/"
++
++/**
++ * The two app-private external directories that modern Android forbids plain
++ * filesystem access to — they can only be reached through the Storage Access
++ * Framework (a user-granted document tree). Code checks a path against these to
++ * decide whether it must fall back to SAF instead of `java.io.File`.
++ */
+ val DIRS_ACCESSIBLE_ONLY_WITH_SAF = listOf(ANDROID_DATA_DIR, ANDROID_OBB_DIR)
++
++/** The app's internal files dir, used as the recycle-bin location. */
+ val Context.recycleBinPath: String get() = filesDir.absolutePath
+ 
++/**
++ * Best-effort discovery of a removable SD card's mount path, or "" if none.
++ *
++ * There is no reliable public API for this, so it heuristically filters the
++ * device's storage directories (see [getStorageDirectories]): drop internal
++ * storage, `/storage/emulated/0`, and any OTG partition, then match what remains
++ * against known SD/OTG path patterns, with several device-specific fallbacks
++ * (the comments record the real devices each one was needed for). The resolved
++ * path is cached back into `baseConfig.sdCardPath`.
++ */
+ // http://stackoverflow.com/a/40582634/1967672
+ fun Context.getSDCardPath(): String {
+     val directories = getStorageDirectories().filter {
+@@ -75,6 +94,11 @@ fun Context.getSDCardPath(): String {
+ 
+ fun Context.hasExternalSDCard() = sdCardPath.isNotEmpty()
+ 
++/**
++ * True if a USB mass-storage device (OTG drive) is currently attached, detected
++ * by scanning the `UsbManager` device list for a mass-storage interface class.
++ * Returns false on any error (e.g. no USB service).
++ */
+ fun Context.hasOTGConnected(): Boolean {
+     return try {
+         (getSystemService(Context.USB_SERVICE) as UsbManager).deviceList.any {
+@@ -85,6 +109,13 @@ fun Context.hasOTGConnected(): Boolean {
+     }
+ }
+ 
++/**
++ * Enumerates the device's storage root paths (internal plus any secondary/SD
++ * volumes). It combines the `SECONDARY_STORAGE` / `EMULATED_STORAGE_TARGET`
++ * environment variables with the roots derived from `getExternalFilesDirs`,
++ * returning each with any trailing slash trimmed. This is the raw list the
++ * higher-level helpers like [getSDCardPath] filter down.
++ */
+ fun Context.getStorageDirectories(): Array<String> {
+     val paths = HashSet<String>()
+     val rawSecondaryStoragesStr = System.getenv("SECONDARY_STORAGE")
+-- 
+2.55.0
+

@@ -18,8 +18,8 @@ selected by **named doc-region markers** rather than line numbers. It opens with
 the two things an engine must do before it can draw a single frame — **come up
 and enter its main loop**, and **find and load the game's data** — and then turns
 to the renderer: how a room in *Doom* becomes pixels through the **OpenGL**
-backend. Later chapters (the Vulkan backend, the tic/sim model, scripting) build
-on these.
+backend, and then how the **Vulkan** backend renders the same frame a different
+way. Later chapters (the tic/sim model, scripting, sound) build on these.
 
 This is a teaching book maintained inside `imps <https://github.com/billsix>`_,
 which carries the GZDoom source at a pinned commit (tag ``g4.14.2``) plus a
@@ -33,3 +33,4 @@ comment-only patch that adds the doc-region markers these chapters cite.
    launch-to-loop
    iwads-and-lumps
    opengl-renderer
+   vulkan-renderer

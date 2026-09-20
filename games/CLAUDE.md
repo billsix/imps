@@ -28,10 +28,17 @@ The master `CLAUDE.md` states the generic self-contained-folder contract
   exactly as in `n64/CLAUDE.md` (within a stream order matters, across streams it
   doesn't; disjoint files commute). A dependency built only to link against
   (ZMusic for GZDoom) is fetched pristine and **never patched** — one lane only.
-- **`Dockerfile` + `Makefile`** (native imps files, not patches). The image
-  carries only the toolchain + the game's build deps; **the source is
-  bind-mounted, never baked** — so host edits and applied patches propagate
-  without an image rebuild, and `checkout/`/`build/`/`install/` stay gitignored.
+- **`installdependencies.sh` + `build.sh` + `run.sh`** — the native host-build
+  baseline (master `CLAUDE.md`): install the game's build deps on the host, build
+  it (into `bldInstall/<BUILD_TYPE>/` beside the scripts) and run it, **with no
+  container**. `build.sh` self-fetches when the checkout is missing, so with
+  `installdependencies.sh` a fresh clone needs only `./build.sh`. This is the
+  **primary** build path; the Dockerfile/Makefile below are an extra layer.
+- **`Dockerfile` + `Makefile`** (native imps files, not patches — the *optional*
+  container build). The image carries only the toolchain + the game's build deps;
+  **the source is bind-mounted, never baked** — so host edits and applied
+  patches propagate without an image rebuild, and
+  `checkout/`/`build/`/`install/` stay gitignored.
   Standard targets: `fetch`, `apply`, `image`, `build` (Release default,
   `BUILD_TYPE` overridable), `run` (launch the built game with a CLI-passed data
   file; X/Wayland passthrough, or Xvfb headless for a no-display smoke run),
@@ -56,7 +63,8 @@ are in each game's tier-3 `games/<Game>/CLAUDE.md`; deep dives in
 
 - `games/gzdoom/` — GZDoom, the open-source Doom-engine source port
   (https://github.com/ZDoom/gzdoom, pin `g4.14.2`), built with its ZMusic
-  dependency (https://github.com/ZDoom/ZMusic, pin `1.3.0`). Builds + launches in
-  a Fedora-44 container; carries a comment-only `patches/book/` doc-region stream
+  dependency (https://github.com/ZDoom/ZMusic, pin `1.3.0`). Builds + launches
+  natively on the host (`installdependencies.sh`/`build.sh`/`run.sh`) or in a
+  Fedora-44 container; carries a comment-only `patches/book/` doc-region stream
   feeding the Sphinx book *How a Doom Engine Works* (`games/gzdoom/book/`), and a
   CLI-WAD-loading fix is the planned code stream. Details: `games/gzdoom/CLAUDE.md`.

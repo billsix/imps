@@ -212,8 +212,8 @@ contract and its per-project index; open it when working in that family.
   engine. Contract, drift table, and project index: `n64/CLAUDE.md`.
 - **`games/`** — buildable open-source game/engine ports (a code-patch family
   like `n64/`): **GZDoom**, the Doom-engine source port (built with its ZMusic
-  dependency), in a Fedora-44 container. Contract + project index:
-  `games/CLAUDE.md`.
+  dependency), natively on the host or in a Fedora-44 container. Contract +
+  project index: `games/CLAUDE.md`.
 
 ### Documentation-only carrier families (landing 2026-09-20)
 

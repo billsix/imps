@@ -7,9 +7,11 @@ against the source if the pin moves.
 
 ## Build (what works)
 
-Fedora-44 container (`games/gzdoom/Dockerfile`). Build deps that were actually
-needed to configure + compile GZDoom 4.14.2 + ZMusic 1.3.0 (all installed
-cleanly, no CMake "not found" iterations after this set):
+Two build paths share this dependency set: the **native host scripts**
+(`installdependencies.sh` → `build.sh`, the primary path) and the **Fedora-44
+container** (`games/gzdoom/Dockerfile` + `make build`). Build deps that were
+actually needed to configure + compile GZDoom 4.14.2 + ZMusic 1.3.0 (all
+installed cleanly, no CMake "not found" iterations after this set):
 
 - toolchain: `gcc-c++ cmake make git ninja-build pkgconf-pkg-config`
 - core: `SDL2-devel zlib-devel libjpeg-turbo-devel bzip2-devel`
@@ -37,9 +39,13 @@ is an out-of-tree prefix like the carrier's `/work/install/Release`. Result:
 `Cannot find gzdoom.pk3`. `src/CMakeLists.txt` gates the fix on the
 `SYSTEMINSTALL` option: with it ON it bakes
 `-DPROGDIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_PK3_PATH}"` (= `<prefix>/share/games/doom`),
-so the installed binary finds its own resources. The carrier's Makefile passes
-`-DSYSTEMINSTALL=ON`. (This bakes an absolute container path, which is fine — the
-carrier's mount is always `/work`.)
+so the installed binary finds its own resources. **Both** build paths pass
+`-DSYSTEMINSTALL=ON`: the container Makefile (baking `/work/install/<type>/share/games/doom`)
+and the native `build.sh` (baking `<repo>/bldInstall/<type>/share/games/doom`).
+Because that path is baked **absolute**, a container-built binary and a
+host-built binary are not interchangeable — each finds its `.pk3` only from the
+prefix it was built for — which is why the two use separate prefixes (`install/`
+vs `bldInstall/`).
 
 ## The CLI-WAD failure — reproduced (Phase-C evidence)
 
@@ -95,6 +101,9 @@ implies `queryiwad=false` and honours the CLI-provided WAD. The code lives in
 ## Reproduce it
 
 ```sh
+# Native (primary) — on a host, or a bare fedora:44 standing in for one:
+cd games/gzdoom && ./installdependencies.sh && ./build.sh && ./run.sh /path/to/DOOM2.WAD
+# Container:
 cd games/gzdoom && ./fetch.sh && make image && make build
 make version                                   # prints the version banner
 make smoke WAD=/path/to/DOOM2.WAD              # headless Xvfb CLI-WAD launch

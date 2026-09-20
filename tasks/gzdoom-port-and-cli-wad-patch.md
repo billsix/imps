@@ -1,25 +1,27 @@
 # Port GZDoom into imps (new `games/` family) + a CLI-WAD-loading patch
 
-**Status:** in progress — **Phase A (the `games/gzdoom/` carrier + Release build) is DONE + launch-verified
-2026-09-20**: GZDoom `g4.14.2` + ZMusic `1.3.0` build in a Fedora-44 container, `make version` prints the
-banner (exit 0), `make smoke WAD=<iwad>` loads an IWAD headless. Build needed `-DSYSTEMINSTALL=ON` so an
-out-of-tree install finds `gzdoom.pk3` (see the Phase-C note). A first reference doc landed
-(`tasks/reference/gzdoom/build-and-cli-wad-repro.md`). **Phase B is underway** — the Sphinx book
-beginning shipped 2026-09-20, three chapters deep through the OpenGL renderer (`games/gzdoom/book/`).
-**Also now required (maintainer, 2026-09-20): native host-build scripts** — `installdependencies.sh`,
-`build.sh`, `run.sh` (the n64 games' host script set) so GZDoom builds and runs with **no container**; not
-yet written (Phase A2 below). The Vulkan renderer chapter and the Phase-C CLI-WAD fix also remain. The
-optional AppImage packaging is split to its own task (`tasks/gzdoom-appimage-packaging.md`). Filed 2026-09-20
-(William Emerison Six <billsix@gmail.com>).
+**Status:** in progress (Filed 2026-09-20, William Emerison Six <billsix@gmail.com>).
+- **Phase A (container carrier + Release build) — DONE + launch-verified 2026-09-20.** GZDoom `g4.14.2` +
+  ZMusic `1.3.0` build in a Fedora-44 container; `make version` prints the banner (exit 0), `make smoke
+  WAD=<iwad>` loads an IWAD headless. Needed `-DSYSTEMINSTALL=ON` so an out-of-tree install finds
+  `gzdoom.pk3` (see the Phase-C note). First reference doc: `tasks/reference/gzdoom/build-and-cli-wad-repro.md`.
+- **Phase A2 (native host-build scripts — the primary build path) — DONE + verified 2026-09-20.**
+  `installdependencies.sh`/`build.sh`/`run.sh` build and run GZDoom on a bare host with no container; proven
+  end-to-end in a clean `fedora:44`, and the maintainer confirmed building and running his own WADs.
+- **Phase B (the Sphinx book) — underway.** Four chapters shipped, through both renderer backends (OpenGL +
+  Vulkan) (`games/gzdoom/book/`).
+- **Remaining:** Phase B's later chapters (resource/`.pk3`, ZScript, sound, CLI flags), and **Phase C** (the
+  CLI-WAD picker fix). The optional AppImage packaging is split to
+  `tasks/gzdoom-appimage-packaging.md`.
 **Priority:** 5
 **Difficulty:** 6 (a real C++ build with deps; the patch needs reading GZDoom's IWAD-selection code)
 
 ## BLUF
 
 Bring **GZDoom** (the open-source Doom-engine source port, `github.com/ZDoom/gzdoom`) into imps as a
-**code-patch carrier** under a NEW **`games/`** family, in three phases, in this order:
-1. **Port it first** — fetch pristine GZDoom (pinned) + its ZMusic dependency and **build it in a
-   container** (CMake, the maintainer's Fedora-44 template).
+**code-patch carrier** under a NEW **`games/`** family, in this order:
+1. **Port it first** — fetch pristine GZDoom (pinned) + its ZMusic dependency and **build it**, both
+   **natively on the host** (the primary path, Phase A2) and in a container (CMake, the Fedora-44 template).
 2. **Then plenty of reference docs** on how GZDoom works.
 3. **Then a patch** that lets the built GZDoom **play a WAD file passed on the command line**, so the
    maintainer can skip GZDoom's startup **GUI** (which he hasn't learned) and just launch his many WADs from
@@ -33,7 +35,7 @@ build → run) *and* in a container from the pinned source, `tasks/reference/gzd
 
 - **Upstream + pin.** GZDoom: `github.com/ZDoom/gzdoom`, pinned at tag **`g4.14.2`**. It requires **ZMusic**
   (`github.com/ZDoom/ZMusic`, pinned at **`1.3.0`**) built first. Both are the maintainer's known-good pins.
-- **Build recipe (host-proven; adapt to a container).** CMake, ZMusic then GZDoom, each with
+- **Build recipe (native + container, both implemented).** CMake, ZMusic then GZDoom, each with
   `-DCMAKE_INSTALL_PREFIX=<install>` and `-DCMAKE_BUILD_TYPE=Debug|Release`, then `cmake --build` +
   `cmake --install`. GZDoom writes/uses a `gzdoom.ini` whose `[FileSearch.Directories]` `PATH=` points at the
   install's `share/games/doom/` (where its bundled `.pk3` resources land). Launch:
@@ -72,53 +74,59 @@ build → run) *and* in a container from the pinned source, `tasks/reference/gzd
    `make run WAD=<path>` launches it. Build + run are **self-verifiable in-session** (X/Wayland is
    available), so reproduce the failing CLI-WAD load with a real WAD and validate the Phase-C fix directly.
 
-## Phase A2 — native host-build scripts (the main 2026-09-20 ask)
+## Phase A2 — native host-build scripts (DONE 2026-09-20)
 
-The maintainer wants GZDoom buildable and runnable **without a container**, through the same host-runnable
-scripts the n64 games carry (`n64/OcarinaOfTime/` is the exemplar) — this is now the **primary** build path;
-the podman `Dockerfile`/`Makefile` stays as an extra convenience layer (keep it). Per the master `CLAUDE.md`
-native-baseline contract, add beside the existing `fetch.sh`/`apply.sh`:
+GZDoom's **primary** build path became the native one: it builds and runs with no container, through the four
+host-runnable scripts the n64 games carry (`n64/OcarinaOfTime/` was the exemplar), the podman
+`Dockerfile`/`Makefile` kept as an extra layer. Per the master `CLAUDE.md` native-baseline contract, three
+scripts were added beside `fetch.sh`/`apply.sh`:
 
-1. **`installdependencies.sh`** — install GZDoom's *and* ZMusic's Fedora build deps on the host with `dnf`,
-   run as root/`sudo`, guarded on `dnf` (fail loudly otherwise), package list **inlined** so it runs before
-   the first fetch. Take the list from the Dockerfile's current dep set (`gcc-c++ cmake make git ninja-build
-   pkgconf-pkg-config SDL2-devel zlib-devel libjpeg-turbo-devel bzip2-devel openal-soft-devel
-   fluidsynth-devel libvpx-devel mesa-libGL-devel vulkan-loader-devel vulkan-headers gtk3-devel`); the Xvfb
-   packages are a container-only smoke dep, not needed for a real host run.
-2. **`build.sh`** — host cmake build: ZMusic then GZDoom into an install prefix **beside the script**
-   (`bldInstall/`-style, no hardcoded home paths), with `-DSYSTEMINSTALL=ON` (the Phase-A fix so the binary
-   finds its own `gzdoom.pk3`). Calls `./fetch.sh` when `checkout/` is missing, so with
-   `installdependencies.sh` it is all a fresh clone needs. Release by default; document `BUILD_TYPE=Debug`.
-3. **`run.sh`** — launch the built `gzdoom` with a gitignored `runDir/` as its cwd (so `gzdoom.ini`, saves,
-   and config live there, not in the build tree), passing a CLI WAD via `-iwad`. WADs stay the maintainer's
-   own game data — **never committed**, location never recorded here.
+- **`installdependencies.sh`** — host `dnf` install of GZDoom's + ZMusic's build deps (root/`sudo`, guarded
+  on `dnf`, package list inlined so it runs before the first fetch). The Dockerfile's set minus the
+  container-only Xvfb smoke deps; the two lists are kept in sync.
+- **`build.sh`** — native CMake/Ninja build (ZMusic then GZDoom) into `bldInstall/<BUILD_TYPE>/` beside the
+  script, `-DSYSTEMINSTALL=ON` so the binary finds its own `gzdoom.pk3`. Self-fetches when `checkout/` is
+  missing, so with `installdependencies.sh` it is all a fresh clone needs. Release default; `BUILD_TYPE=Debug`
+  documented.
+- **`run.sh`** — launches the built `gzdoom` with a CLI `-iwad` WAD from a gitignored `runDir/` cwd (resolves
+  a relative WAD path before `cd`; sets `LD_LIBRARY_PATH` for `libzmusic`). WADs stay the maintainer's own
+  game data — never committed, location never recorded.
 
-Then update `README.md` to lead with the native `installdependencies → fetch → apply → build → run` sequence
-(container path second), the tier-3 `games/gzdoom/CLAUDE.md` to document the scripts, and `.gitignore` for
-`bldInstall/` + `runDir/`. **Verify:** `./installdependencies.sh && ./build.sh && ./run.sh <wad>` reaches a
-running GZDoom with **no `make`/podman** (stand in a bare `fedora:44` container for a host if needed).
+`README.md` now leads native-first (container second), the tier-3 `games/gzdoom/CLAUDE.md` documents the
+four-script baseline, and `.gitignore` covers `build-cmake/` + `bldInstall/`. **The native and container
+install prefixes are deliberately separate** — `-DSYSTEMINSTALL=ON` bakes an *absolute* resource path, so a
+`/work/...` container binary won't run on the host and vice versa; build with the path you run from.
+
+**Verified 2026-09-20:** a clean `fedora:44` (no `make`, no podman in the recipe) ran `installdependencies.sh`
+→ `build.sh` → a native version check, printing `GZDoom g4.14.2-2-g9ca5b816b … SDL version` (the `-2-g` = the
+binary carries the two applied doc-region commits), with `gzdoom.pk3` installed under
+`bldInstall/Release/share/games/doom/`. The maintainer then built and ran on his own machine and confirmed
+passing WADs works (an initial "Cannot find a game IWAD" was him passing the exe as the WAD argument, not a
+script defect).
 
 ## Phase B — a Sphinx teaching book ("How a Doom Engine Works") + reference docs
 
 **Underway (2026-09-20).** The book beginning lives at `games/gzdoom/book/` (mario64 machinery: doc-region
 markers in the checkout as the comment-only `patches/book/` stream, `literalinclude`d by name; builds HTML;
-`patches/LANG=c`, proven comment-only). **Three chapters ship so far**, in the maintainer's teaching voice
+`patches/LANG=c`, proven comment-only). **Four chapters ship so far**, in the maintainer's teaching voice
 (transformations as functions, terms defined before jargon):
 1. **From launch to the main loop** (`d_main.cpp`) — startup → `D_DoomLoop`.
 2. **IWADs, PWADs, and the lump filesystem** (`d_iwad.cpp`, `filesystem.cpp`) — with an admonition tying the
    IWAD picker to the Phase-C CLI-WAD goal.
-3. **The OpenGL renderer** — the maintainer's *main* first interest, DONE. One 3D frame traced from
-   "render the world now" to the single `glDrawArrays`: the shared HW renderer decides *what*
-   (`src/rendering/hwrenderer/`), the GL backend decides *how* (`src/common/rendering/gl/`), and the
-   pure-virtual `FRenderState::Draw` is the GL/Vulkan seam. Nine doc-region markers (`patches/book/0002`).
+3. **The OpenGL renderer** — the maintainer's *main* first interest. One 3D frame traced from "render the
+   world now" to the single `glDrawArrays`: the shared HW renderer decides *what* (`src/rendering/hwrenderer/`),
+   the GL backend decides *how* (`src/common/rendering/gl/`), and the pure-virtual `FRenderState::Draw` is the
+   GL/Vulkan seam. Nine doc-region markers (`patches/book/0002`).
+4. **The Vulkan renderer** — the same frame down the Vulkan backend (`src/common/rendering/vulkan/`), building
+   on Ch.3's shared-half understanding: the seam dispatches to `VkRenderState` instead of `FGLRenderState`;
+   `Draw` *records* a `vkCmdDraw` into a command buffer instead of executing immediately; `ApplyRenderPass`
+   picks a prebuilt `VkPipeline` by key (vs OpenGL's per-knob state machine); the frame is submitted +
+   presented at `VulkanRenderDevice::Update`/`WaitForCommands`. Six doc-region markers (`patches/book/0003`).
 
-**Direction (maintainer, 2026-09-20): the RENDERER is the priority.** Remaining chapters, in order:
-1. **The Vulkan renderer** — also wanted (`src/common/rendering/vulkan/`; the shared HW renderer feeds both
-   the GL and Vulkan backends, so the chapter starts most of the way up the OpenGL chapter's picture and
-   covers only the Vulkan backend's *how*).
-2. Then the rest at whatever depth is useful (the resource/`.pk3` model, ZScript, sound via ZMusic, the CLI
-   flags). **There is a lot of good material online about the Doom / GZDoom source — look it up to guide the
-   narrative and anchor claims** (verify against the pinned `g4.14.2` source before writing a `file:line`).
+**Direction (maintainer, 2026-09-20): the RENDERER is the priority — both renderer chapters now ship.**
+Remaining chapters, at whatever depth is useful: the resource/`.pk3` model, ZScript, sound via ZMusic, the
+CLI flags. **There is a lot of good material online about the Doom / GZDoom source — look it up to guide the
+narrative and anchor claims** (verify against the pinned `g4.14.2` source before writing a `file:line`).
 
 ## Phase C — the CLI-WAD-loading patch (`patches/`, upstream-candidate)
 
@@ -141,6 +149,11 @@ and/or a flag that **skips the IWAD picker and uses the CLI-provided WAD**. Then
    `run` can launch the built GZDoom with a real WAD — reproduce the broken CLI-WAD behaviour and validate
    the fix directly, rather than a headless-only check. (Test WADs are available; their location is not
    recorded in this task.)
+5. **Native host build is the baseline (Phase A2).** Every imps project — GZDoom included — must build and
+   run without a container via the four host scripts; podman is an extra convenience. The general rule is
+   recorded in the master `CLAUDE.md`.
+6. **AppImage split out.** The optional `make appimage` distributable is its own task
+   (`tasks/gzdoom-appimage-packaging.md`); the Dockerfile/Makefile stay as-is for now.
 
 ## Phase-C target — DIAGNOSED (2026-09-20; fix not yet written)
 

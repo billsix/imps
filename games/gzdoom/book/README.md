@@ -3,7 +3,8 @@
 A Sphinx teaching book that reads the [GZDoom](https://github.com/ZDoom/gzdoom)
 source to show how a real game engine starts up, finds its data, and runs. The
 **beginning** of the book: launch → main loop; IWADs, PWADs and the lump
-filesystem; then the OpenGL renderer (how a scene becomes GL draw calls).
+filesystem; then the OpenGL renderer (how a scene becomes GL draw calls) and the
+Vulkan renderer (the same frame, recorded into a command buffer instead).
 
 ## Build
 
@@ -35,6 +36,7 @@ named region (never a line number, so it cannot drift):
 | From launch to the main loop | `src/d_main.cpp` | `game_main_entry`, `startup_to_loop`, `doom_loop` |
 | IWADs, PWADs, and the lump filesystem | `src/d_iwad.cpp`, `src/common/filesystem/source/filesystem.cpp` | `scan_iwad`, `iwad_picker_decision`, `init_multiple_files` |
 | The OpenGL renderer | `src/common/rendering/hwrenderer/data/hw_renderstate.h`, `src/rendering/hwrenderer/hw_entrypoint.cpp`, `src/rendering/hwrenderer/scene/hw_drawinfo.cpp`, `src/common/rendering/gl/gl_renderstate.cpp`, `src/common/rendering/gl/gl_framebuffer.cpp` | `renderstate_draw_api`, `render_one_viewpoint`, `process_scene`, `draw_scene`, `create_scene`, `render_scene`, `gl_apply`, `gl_draw`, `gl_frame_update` |
+| The Vulkan renderer | `src/common/rendering/vulkan/renderer/vk_renderstate.cpp`, `src/common/rendering/vulkan/system/vk_commandbuffer.cpp`, `src/common/rendering/vulkan/system/vk_renderdevice.cpp` | `vk_draw`, `vk_apply`, `vk_apply_renderpass`, `vk_get_draw_commands`, `vk_wait_for_commands`, `vk_frame_update` |
 
 The markers are a comment-only patch (`../patches/book/`) — adding a marker must
 never change the program. Proven with `tools/prove_comment_only.sh --allow-line-shift

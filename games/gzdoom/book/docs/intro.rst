@@ -14,7 +14,9 @@ figure out **which game you are playing and where its data lives**: *Doom* ships
 its content in ``.wad`` files, and the engine has to identify one, then load its
 thousands of named chunks (called *lumps*) into memory.
 
-These two chapters follow exactly those two problems, in the real code:
+The first two chapters follow exactly those two problems; the next two then
+follow one frame through the renderer, once the world is loaded and it is time to
+draw:
 
 - **Chapter 1 — From launch to the main loop.** The top-level entry point, the
   handoff into the game, and the loop itself (``src/d_main.cpp``).
@@ -22,6 +24,13 @@ These two chapters follow exactly those two problems, in the real code:
   recognizes a WAD by its contents, when it has to ask you which one to use, and
   how every WAD gets merged into one virtual filesystem
   (``src/d_iwad.cpp`` and ``src/common/filesystem/source/filesystem.cpp``).
+- **Chapter 3 — The OpenGL renderer.** One 3D frame, from "render the world now"
+  down to the single OpenGL draw call, and the shared-vs-backend split that
+  decides *what* to draw vs *how*
+  (``src/rendering/hwrenderer/`` + ``src/common/rendering/gl/``).
+- **Chapter 4 — The Vulkan renderer.** The same frame down the other backend —
+  recorded into a command buffer and submitted to the GPU — reusing Chapter 3's
+  shared half (``src/common/rendering/vulkan/``).
 
 A little vocabulary
 ===================

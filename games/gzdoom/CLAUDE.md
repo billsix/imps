@@ -111,7 +111,7 @@ recorded here.
   comments). `patches/LANG` = `c` (GZDoom is C++, but its `//` + `/* */` comment
   syntax is identical to C, so the shared C prover — which globs `*.cpp` —
   handles it; the dispatcher only knows c/rust/kotlin, so `cpp` is not a valid
-  value). Two patches, one per book stage:
+  value). Three patches, one per book stage:
   - `0001-book-...Sphinx-teaching-book` — the first two chapters. Six regions:
     `doom_loop`, `startup_to_loop`, `game_main_entry` (`src/d_main.cpp`);
     `scan_iwad`, `iwad_picker_decision` (`src/d_iwad.cpp`); `init_multiple_files`
@@ -124,6 +124,12 @@ recorded here.
     (`src/rendering/hwrenderer/scene/hw_drawinfo.cpp`); `gl_apply`, `gl_draw`
     (`src/common/rendering/gl/gl_renderstate.cpp`); `gl_frame_update`
     (`src/common/rendering/gl/gl_framebuffer.cpp`).
+  - `0003-book-...Vulkan-renderer` — the Vulkan-renderer chapter. Six regions
+    across three files: `vk_draw`, `vk_apply`, `vk_apply_renderpass`
+    (`src/common/rendering/vulkan/renderer/vk_renderstate.cpp`);
+    `vk_get_draw_commands`, `vk_wait_for_commands`
+    (`src/common/rendering/vulkan/system/vk_commandbuffer.cpp`); `vk_frame_update`
+    (`src/common/rendering/vulkan/system/vk_renderdevice.cpp`).
   > Caveat: the shared `tools/check_comment_only_streams.sh` cannot yet
   > *discover* this project — its shapes expect a direct-child checkout, a
   > `checkout/.git`, or a `repos` manifest, none of which match the `games/`
@@ -139,10 +145,11 @@ recorded here.
 
 `book/` is the Sphinx teaching book *How a Doom Engine Works* (HTML/EPUB/PDF via
 its own Dockerfile+Makefile), reading this source to show how a game engine
-starts up, finds its data, and runs. The **beginning** ships three chapters —
+starts up, finds its data, and runs. The **beginning** ships four chapters —
 *From launch to the main loop* (`src/d_main.cpp`), *IWADs, PWADs, and the lump
-filesystem* (`src/d_iwad.cpp` + the filesystem), and *The OpenGL renderer* (one
-3D frame from the shared HW renderer down to `glDrawArrays`) — each
+filesystem* (`src/d_iwad.cpp` + the filesystem), *The OpenGL renderer* (one 3D
+frame from the shared HW renderer down to `glDrawArrays`), and *The Vulkan
+renderer* (the same frame recorded into a command buffer, then submitted) — each
 `literalinclude`ing the checkout by doc-region marker (the `patches/book/`
 stream above; the book does not build against a bare checkout — `apply.sh`
 first). Its `Makefile`

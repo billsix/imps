@@ -1,7 +1,9 @@
 # PaperMario: add PaperBoat as a new n64-family port (compile-as-is first)
 
-**Status:** ready — first step is a pristine compile-as-is (William Emerison Six
-<billsix@gmail.com> requested it 2026-09-17)
+**Status:** in progress — first step (pristine compile-as-is) built green in
+the sandbox 2026-09-21; awaiting the maintainer's host run-verify, then the
+follow-on units. (William Emerison Six <billsix@gmail.com> requested it
+2026-09-17; executed 2026-09-21.)
 **Priority:** 5
 **Difficulty:** 6
 **Project key:** papermario (a new `n64/PaperMario/` folder)
@@ -61,12 +63,20 @@ capturing the operational facts. Patches, a podman build, and the
 ## Approach
 
 First step (the maintainer's immediate ask — pristine compile-as-is):
+**Done in the sandbox 2026-09-21** except the maintainer's host run-verify.
+Work record + verified facts live in `n64/PaperMario/CLAUDE.md`.
 
-- [ ] Clone PaperBoat to a scratch checkout and read its own build docs
+- [x] Clone PaperBoat to a scratch checkout and read its own build docs
       (`README`, `BUILDING*`, `.github/workflows/*`, `CMakeLists.txt`) to
       learn its real dependencies, submodules, and build commands. Confirm
       whether it is libultraship-based and which LUS commit it pins.
-- [ ] Create `n64/PaperMario/` with `fetch.sh` (copy SuperMario64's shape;
+      → Yes, libultraship-based, but with **JeodC forks** for both submodules
+      (`external/libultraship` @ `601f7002`, branch `lus-converge`;
+      `external/torch` @ `106f4e30`, branch `pm64`) — distinct from the other
+      four ports' engine pins. Build = CMake presets (`ninja-release`); deps
+      from the CI apt line mapped to Fedora. No Python needed for the port
+      build (the big `requirements.txt` is the ROM/decomp pipeline).
+- [x] Create `n64/PaperMario/` with `fetch.sh` (copy SuperMario64's shape;
       `UPSTREAM=https://github.com/HarbourMasters/PaperBoat.git`, `PIN_SHA=`
       = tip of the default branch at execution, commented with the date and
       branch), `installdependencies.sh` (host package-manager install of the
@@ -77,14 +87,21 @@ First step (the maintainer's immediate ask — pristine compile-as-is):
       (launch installed binary with `runDir/` as cwd), a `.gitignore` (the
       checkout, `build-cmake/`, `bldInstall/`, `runDir/`), and a
       commands-forward `README.md`.
-- [ ] Run `./fetch.sh && ./build.sh` and produce a runnable binary from
+- [x] Run `./fetch.sh && ./build.sh` and produce a runnable binary from
       the **unmodified** checkout — no `apply.sh`, no `patches/` yet. Record
       the exact dependency list and any deviations from the SM64 build.
-- [ ] Write the tier-3 `n64/PaperMario/CLAUDE.md` (upstream URL, pin SHA,
+      → Full 3666-step build green (Fedora 44, gcc 16.2.1); 37 MB `Paperboat`
+      ELF + `paperboat.o2r` + `assets/` produced. Dep deltas vs Ghostship and
+      the confirmed-vs-carried-over notes are in the CLAUDE.md Version notes.
+- [x] Write the tier-3 `n64/PaperMario/CLAUDE.md` (upstream URL, pin SHA,
       libultraship pin, build/run gotchas; empty patch list for now).
-- [ ] Maintainer host-verifies the build actually runs (ROM extraction in
-      `runDir/`, display/audio) — sandbox can build but not verify a
-      display/FUSE/audio run.
+      → Plus a commands-forward `README.md` and a `.gitignore`.
+- [ ] **(maintainer — owed)** Host-verify the build actually runs (ROM
+      extraction in `runDir/`, display/audio) — sandbox can build but not
+      verify a display/FUSE/audio run. Deviation from SM64: this LUS fork
+      builds no `libtcc.so` and bakes no RPATH, so `run.sh` needs no
+      `LD_LIBRARY_PATH` (verified). No OpenGL-default seed added yet — add one
+      à la Ghostship's `run.sh` only if the Vulkan backend hangs on the host.
 
 Follow-on (separate units, once the bare build works — do NOT bundle):
 
@@ -98,14 +115,17 @@ Follow-on (separate units, once the bare build works — do NOT bundle):
 
 ## Open questions
 
-1. **Pin choice.** Pin the tip of PaperBoat's default branch at execution,
-   or a specific tagged/known-good commit? Recommendation: tip of the
-   default branch at execution (matches how the other four were pinned),
-   recorded with its date — unless the maintainer knows of a stable tag.
-2. **libultraship lane.** If PaperBoat pins a libultraship commit not yet
-   covered by the `tasks/reference/libultraship/` crawl, do we reopen the
-   crawl now or defer until a LUS-lane patch is actually needed?
-   Recommendation: defer — the first bare build needs no LUS docs.
+Both resolved at execution (2026-09-21) via their recommendations — no
+maintainer input was needed for the bare build:
+
+1. **Pin choice.** → Pinned the tip of `develop` at execution,
+   `611f5b685750e3e7f3a99eefe90fd874e8f1eb7b` (dated 2026-09-20), matching how
+   the other four were pinned. Revisit only if the maintainer wants a tag.
+2. **libultraship lane.** → **Deferred.** PaperBoat pins a JeodC LUS fork
+   (`601f7002`, `lus-converge`) not covered by the
+   `tasks/reference/libultraship/` crawl, but the bare build needs no LUS
+   docs. Reopen the crawl against `601f7002` only when a LUS-lane patch is
+   actually needed.
 
 ## See also
 

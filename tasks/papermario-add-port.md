@@ -69,8 +69,11 @@ First step (the maintainer's immediate ask — pristine compile-as-is):
 - [ ] Create `n64/PaperMario/` with `fetch.sh` (copy SuperMario64's shape;
       `UPSTREAM=https://github.com/HarbourMasters/PaperBoat.git`, `PIN_SHA=`
       = tip of the default branch at execution, commented with the date and
-      branch), `build.sh` (host build mirroring upstream's documented
-      commands; calls `fetch.sh` when the checkout is missing), `run.sh`
+      branch), `installdependencies.sh` (host package-manager install of the
+      dependency list learned from upstream's build docs; guard the manager
+      exists and fail loudly, inline the package list), `build.sh` (host build
+      mirroring upstream's documented commands; calls `fetch.sh` when the
+      checkout is missing), `run.sh`
       (launch installed binary with `runDir/` as cwd), a `.gitignore` (the
       checkout, `build-cmake/`, `bldInstall/`, `runDir/`), and a
       commands-forward `README.md`.

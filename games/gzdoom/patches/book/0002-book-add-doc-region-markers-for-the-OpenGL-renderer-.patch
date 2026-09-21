@@ -1,0 +1,193 @@
+From 6f01d706a47816d82a36790c75b4f37b3b0605f0 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 20:27:51 +0000
+Subject: [PATCH 2/3] book: add doc-region markers for the OpenGL renderer
+ chapter
+
+Comment-only. Adds // doc-region-begin/end <name> markers so the imps GZDoom
+book's OpenGL renderer chapter can literalinclude source spans by NAME
+(drift-proof), never line numbers.
+
+Spans marked (the shared hardware renderer feeding the GL backend, then the GL
+backend itself):
+  src/common/rendering/hwrenderer/data/hw_renderstate.h   renderstate_draw_api
+  src/rendering/hwrenderer/hw_entrypoint.cpp              render_one_viewpoint
+  src/rendering/hwrenderer/scene/hw_drawinfo.cpp          process_scene, draw_scene,
+                                                          create_scene, render_scene
+  src/common/rendering/gl/gl_renderstate.cpp             gl_apply, gl_draw
+  src/common/rendering/gl/gl_framebuffer.cpp             gl_frame_update
+
+No code changes; proven comment-only by tools/prove_comment_only.sh.
+---
+ src/common/rendering/gl/gl_framebuffer.cpp            | 2 ++
+ src/common/rendering/gl/gl_renderstate.cpp            | 4 ++++
+ src/common/rendering/hwrenderer/data/hw_renderstate.h | 2 ++
+ src/rendering/hwrenderer/hw_entrypoint.cpp            | 2 ++
+ src/rendering/hwrenderer/scene/hw_drawinfo.cpp        | 8 ++++++++
+ 5 files changed, 18 insertions(+)
+
+diff --git a/src/common/rendering/gl/gl_framebuffer.cpp b/src/common/rendering/gl/gl_framebuffer.cpp
+index 4b20db68f..385e01ba1 100644
+--- a/src/common/rendering/gl/gl_framebuffer.cpp
++++ b/src/common/rendering/gl/gl_framebuffer.cpp
+@@ -188,6 +188,7 @@ void OpenGLFrameBuffer::InitializeState()
+ //
+ //==========================================================================
+ 
++// doc-region-begin gl_frame_update
+ void OpenGLFrameBuffer::Update()
+ {
+ 	twoD.Reset();
+@@ -200,6 +201,7 @@ void OpenGLFrameBuffer::Update()
+ 	Swap();
+ 	Super::Update();
+ }
++// doc-region-end gl_frame_update
+ 
+ void OpenGLFrameBuffer::CopyScreenToBuffer(int width, int height, uint8_t* scr)
+ {
+diff --git a/src/common/rendering/gl/gl_renderstate.cpp b/src/common/rendering/gl/gl_renderstate.cpp
+index 10baa3e66..ba4a112fe 100644
+--- a/src/common/rendering/gl/gl_renderstate.cpp
++++ b/src/common/rendering/gl/gl_renderstate.cpp
+@@ -298,12 +298,14 @@ void FGLRenderState::ApplyBuffers()
+ 	}
+ }
+ 
++// doc-region-begin gl_apply
+ void FGLRenderState::Apply()
+ {
+ 	ApplyState();
+ 	ApplyBuffers();
+ 	ApplyShader();
+ }
++// doc-region-end gl_apply
+ 
+ //===========================================================================
+ // 
+@@ -417,6 +419,7 @@ void FGLRenderState::ApplyBlendMode()
+ 
+ static int dt2gl[] = { GL_POINTS, GL_LINES, GL_TRIANGLES, GL_TRIANGLE_FAN, GL_TRIANGLE_STRIP };
+ 
++// doc-region-begin gl_draw
+ void FGLRenderState::Draw(int dt, int index, int count, bool apply)
+ {
+ 	if (apply)
+@@ -427,6 +430,7 @@ void FGLRenderState::Draw(int dt, int index, int count, bool apply)
+ 	glDrawArrays(dt2gl[dt], index, count);
+ 	drawcalls.Unclock();
+ }
++// doc-region-end gl_draw
+ 
+ void FGLRenderState::DrawIndexed(int dt, int index, int count, bool apply)
+ {
+diff --git a/src/common/rendering/hwrenderer/data/hw_renderstate.h b/src/common/rendering/hwrenderer/data/hw_renderstate.h
+index 41e4b50a3..66fa06664 100644
+--- a/src/common/rendering/hwrenderer/data/hw_renderstate.h
++++ b/src/common/rendering/hwrenderer/data/hw_renderstate.h
+@@ -719,12 +719,14 @@ public:
+ 		mColorMapFlash = flash;
+ 	}
+ 
++	// doc-region-begin renderstate_draw_api
+ 	// API-dependent render interface
+ 
+ 	// Draw commands
+ 	virtual void ClearScreen() = 0;
+ 	virtual void Draw(int dt, int index, int count, bool apply = true) = 0;
+ 	virtual void DrawIndexed(int dt, int index, int count, bool apply = true) = 0;
++	// doc-region-end renderstate_draw_api
+ 
+ 	// Immediate render state change commands. These only change infrequently and should not clutter the render state.
+ 	virtual bool SetDepthClamp(bool on) = 0;					// Deactivated only by skyboxes.
+diff --git a/src/rendering/hwrenderer/hw_entrypoint.cpp b/src/rendering/hwrenderer/hw_entrypoint.cpp
+index 0252fbc40..a4cfd621a 100644
+--- a/src/rendering/hwrenderer/hw_entrypoint.cpp
++++ b/src/rendering/hwrenderer/hw_entrypoint.cpp
+@@ -149,6 +149,7 @@ sector_t* RenderViewpoint(FRenderViewpoint& mainvp, AActor* camera, IntRect* bou
+ 			RenderState.EnableDrawBuffers(RenderState.GetPassDrawBufferCount(), true);
+ 		}
+ 
++		// doc-region-begin render_one_viewpoint
+ 		auto di = HWDrawInfo::StartDrawInfo(mainvp.ViewLevel, nullptr, mainvp, nullptr);
+ 		auto& vp = di->Viewpoint;
+ 
+@@ -174,6 +175,7 @@ sector_t* RenderViewpoint(FRenderViewpoint& mainvp, AActor* camera, IntRect* bou
+ 		di->SetupView(RenderState, vp.Pos.X, vp.Pos.Y, vp.Pos.Z, false, false);
+ 
+ 		di->ProcessScene(toscreen);
++		// doc-region-end render_one_viewpoint
+ 
+ 		if (mainview)
+ 		{
+diff --git a/src/rendering/hwrenderer/scene/hw_drawinfo.cpp b/src/rendering/hwrenderer/scene/hw_drawinfo.cpp
+index e16a549d9..ad59a08a6 100644
+--- a/src/rendering/hwrenderer/scene/hw_drawinfo.cpp
++++ b/src/rendering/hwrenderer/scene/hw_drawinfo.cpp
+@@ -476,6 +476,7 @@ HWDecal *HWDrawInfo::AddDecal(bool onmirror)
+ //
+ //-----------------------------------------------------------------------------
+ 
++// doc-region-begin create_scene
+ void HWDrawInfo::CreateScene(bool drawpsprites)
+ {
+ 	const auto &vp = Viewpoint;
+@@ -518,6 +519,7 @@ void HWDrawInfo::CreateScene(bool drawpsprites)
+ 	ProcessAll.Unclock();
+ 
+ }
++// doc-region-end create_scene
+ 
+ //-----------------------------------------------------------------------------
+ //
+@@ -527,6 +529,7 @@ void HWDrawInfo::CreateScene(bool drawpsprites)
+ //
+ //-----------------------------------------------------------------------------
+ 
++// doc-region-begin render_scene
+ void HWDrawInfo::RenderScene(FRenderState &state)
+ {
+ 	const auto &vp = Viewpoint;
+@@ -580,6 +583,7 @@ void HWDrawInfo::RenderScene(FRenderState &state)
+ 
+ 	RenderAll.Unclock();
+ }
++// doc-region-end render_scene
+ 
+ //-----------------------------------------------------------------------------
+ //
+@@ -1023,6 +1027,7 @@ void HWDrawInfo::DrawScene(int drawmode)
+ 		ssao_portals_available--;
+ 	}
+ 
++	// doc-region-begin draw_scene
+ 	if (vp.camera != nullptr)
+ 	{
+ 		ActorRenderFlags savedflags = vp.camera->renderflags;
+@@ -1052,6 +1057,7 @@ void HWDrawInfo::DrawScene(int drawmode)
+ 	portalState.EndFrame(this, RenderState);
+ 	recursion--;
+ 	RenderTranslucent(RenderState);
++	// doc-region-end draw_scene
+ }
+ 
+ 
+@@ -1061,6 +1067,7 @@ void HWDrawInfo::DrawScene(int drawmode)
+ //
+ //-----------------------------------------------------------------------------
+ 
++// doc-region-begin process_scene
+ void HWDrawInfo::ProcessScene(bool toscreen)
+ {
+ 	portalState.BeginScene();
+@@ -1072,6 +1079,7 @@ void HWDrawInfo::ProcessScene(bool toscreen)
+ 	DrawScene(toscreen ? DM_MAINVIEW : DM_OFFSCREEN);
+ 
+ }
++// doc-region-end process_scene
+ 
+ //==========================================================================
+ //
+-- 
+2.55.0
+

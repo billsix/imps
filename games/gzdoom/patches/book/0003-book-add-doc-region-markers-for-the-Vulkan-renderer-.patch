@@ -1,0 +1,123 @@
+From 04fbbc1a69c349bce9195f2066d40ba10c7843f1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 20 Sep 2026 23:47:01 +0000
+Subject: [PATCH 3/3] book: add doc-region markers for the Vulkan renderer
+ chapter
+
+---
+ src/common/rendering/vulkan/renderer/vk_renderstate.cpp | 6 ++++++
+ src/common/rendering/vulkan/system/vk_commandbuffer.cpp | 4 ++++
+ src/common/rendering/vulkan/system/vk_renderdevice.cpp  | 2 ++
+ 3 files changed, 12 insertions(+)
+
+diff --git a/src/common/rendering/vulkan/renderer/vk_renderstate.cpp b/src/common/rendering/vulkan/renderer/vk_renderstate.cpp
+index 76bd35cb0..852fe555a 100644
+--- a/src/common/rendering/vulkan/renderer/vk_renderstate.cpp
++++ b/src/common/rendering/vulkan/renderer/vk_renderstate.cpp
+@@ -55,6 +55,7 @@ void VkRenderState::ClearScreen()
+ 	mCommandBuffer->draw(4, 1, FFlatVertexBuffer::FULLSCREEN_INDEX, 0);
+ }
+ 
++// doc-region-begin vk_draw
+ void VkRenderState::Draw(int dt, int index, int count, bool apply)
+ {
+ 	if (apply || mNeedApply)
+@@ -63,6 +64,7 @@ void VkRenderState::Draw(int dt, int index, int count, bool apply)
+ 	mCommandBuffer->draw(count, 1, index, 0);
+ }
+ 
++// doc-region-end vk_draw
+ void VkRenderState::DrawIndexed(int dt, int index, int count, bool apply)
+ {
+ 	if (apply || mNeedApply)
+@@ -178,6 +180,7 @@ void VkRenderState::EnableLineSmooth(bool on)
+ {
+ }
+ 
++// doc-region-begin vk_apply
+ void VkRenderState::Apply(int dt)
+ {
+ 	drawcalls.Clock();
+@@ -205,6 +208,7 @@ void VkRenderState::Apply(int dt)
+ 	drawcalls.Unclock();
+ }
+ 
++// doc-region-end vk_apply
+ void VkRenderState::ApplyDepthBias()
+ {
+ 	if (mBias.mChanged)
+@@ -214,6 +218,7 @@ void VkRenderState::ApplyDepthBias()
+ 	}
+ }
+ 
++// doc-region-begin vk_apply_renderpass
+ void VkRenderState::ApplyRenderPass(int dt)
+ {
+ 	// Find a pipeline that matches our state
+@@ -270,6 +275,7 @@ void VkRenderState::ApplyRenderPass(int dt)
+ 	}
+ }
+ 
++// doc-region-end vk_apply_renderpass
+ void VkRenderState::ApplyStencilRef()
+ {
+ 	if (mStencilRefChanged)
+diff --git a/src/common/rendering/vulkan/system/vk_commandbuffer.cpp b/src/common/rendering/vulkan/system/vk_commandbuffer.cpp
+index 683a3b7ff..98017a3c7 100644
+--- a/src/common/rendering/vulkan/system/vk_commandbuffer.cpp
++++ b/src/common/rendering/vulkan/system/vk_commandbuffer.cpp
+@@ -78,6 +78,7 @@ VulkanCommandBuffer* VkCommandBufferManager::GetTransferCommands()
+ 	return mTransferCommands.get();
+ }
+ 
++// doc-region-begin vk_get_draw_commands
+ VulkanCommandBuffer* VkCommandBufferManager::GetDrawCommands()
+ {
+ 	if (!mDrawCommands)
+@@ -89,6 +90,7 @@ VulkanCommandBuffer* VkCommandBufferManager::GetDrawCommands()
+ 	return mDrawCommands.get();
+ }
+ 
++// doc-region-end vk_get_draw_commands
+ void VkCommandBufferManager::BeginFrame()
+ {
+ 	if (mNextTimestampQuery > 0)
+@@ -159,6 +161,7 @@ void VkCommandBufferManager::FlushCommands(bool finish, bool lastsubmit, bool up
+ 	}
+ }
+ 
++// doc-region-begin vk_wait_for_commands
+ void VkCommandBufferManager::WaitForCommands(bool finish, bool uploadOnly)
+ {
+ 	if (finish)
+@@ -197,6 +200,7 @@ void VkCommandBufferManager::WaitForCommands(bool finish, bool uploadOnly)
+ 	}
+ }
+ 
++// doc-region-end vk_wait_for_commands
+ void VkCommandBufferManager::DeleteFrameObjects(bool uploadOnly)
+ {
+ 	TransferDeleteList = std::make_unique<DeleteList>();
+diff --git a/src/common/rendering/vulkan/system/vk_renderdevice.cpp b/src/common/rendering/vulkan/system/vk_renderdevice.cpp
+index 91686de6a..a363fcd66 100644
+--- a/src/common/rendering/vulkan/system/vk_renderdevice.cpp
++++ b/src/common/rendering/vulkan/system/vk_renderdevice.cpp
+@@ -210,6 +210,7 @@ void VulkanRenderDevice::InitializeState()
+ #endif
+ }
+ 
++// doc-region-begin vk_frame_update
+ void VulkanRenderDevice::Update()
+ {
+ 	twoD.Reset();
+@@ -350,6 +351,7 @@ void VulkanRenderDevice::BlurScene(float amount)
+ 		mPostprocess->BlurScene(amount);
+ }
+ 
++// doc-region-end vk_frame_update
+ void VulkanRenderDevice::UpdatePalette()
+ {
+ 	if (mPostprocess)
+-- 
+2.55.0
+

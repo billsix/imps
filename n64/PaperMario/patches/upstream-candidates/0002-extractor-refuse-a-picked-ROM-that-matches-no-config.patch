@@ -1,0 +1,71 @@
+From 9bf3f734c629582349ca72b2ae0f1d685059e00b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 03:05:53 +0000
+Subject: [PATCH 2/2] extractor: refuse a picked ROM that matches no config.yml
+ recipe
+
+LoadRomFromPath accepted any readable file, so a ROM the file dialog
+returned went straight into GenerateOTR. For a file whose SHA-1 is not a
+config.yml key, Torch logs "No config found" and returns without writing
+an archive, GenerateOTR reports success, and the user ends up at the
+generic "No ROM O2R file detected" error with no hint why.
+
+Check the hash in LoadRomFromPath (the same test RunStandalone already
+makes), record the reason in sLastError, and have the picker callback
+show it. The common trigger is an over-dumped cart: a 64 MB dump of a
+40 MB game hashes differently over its padding.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/port/Engine.cpp                  |  9 +++++++++
+ src/port/extractor/GameExtractor.cpp | 14 ++++++++++++++
+ 2 files changed, 23 insertions(+)
+
+diff --git a/src/port/Engine.cpp b/src/port/Engine.cpp
+index 1dc46b65c..90561f5ca 100644
+--- a/src/port/Engine.cpp
++++ b/src/port/Engine.cpp
+@@ -630,6 +630,15 @@ void GameEngine::RunExtract(int argc, char* argv[]) {
+                             promptStep = PS_WAIT;
+                             extract.SelectGameFromUI([&](bool picked) {
+                                 if (!picked) {
++                                    // A file was chosen but is not a supported ROM (wrong size,
++                                    // byte order or version): say so instead of extracting into
++                                    // an empty archive. A plain cancel leaves sLastError empty.
++                                    if (!GameExtractor::sLastError.empty()) {
++                                        PaperboatGui::RegisterPopup(
++                                            "PaperBoat ROM Error", GameExtractor::sLastError.c_str()
++                                        );
++                                        GameExtractor::sLastError.clear();
++                                    }
+                                     promptStep = PS_FILE_CHECK;
+                                     return;
+                                 }
+diff --git a/src/port/extractor/GameExtractor.cpp b/src/port/extractor/GameExtractor.cpp
+index c18c5cc61..81d74fc09 100644
+--- a/src/port/extractor/GameExtractor.cpp
++++ b/src/port/extractor/GameExtractor.cpp
+@@ -104,6 +104,20 @@ bool GameExtractor::LoadRomFromPath(const std::string& romPath) {
+         return false;
+     }
+ 
++    // Refuse a file config.yml has no recipe for, the same check RunStandalone makes. Without
++    // it the extractor ran on anything the picker returned; Torch then logged "No config found"
++    // and returned without writing an archive, and the caller saw a successful extraction with
++    // no archive behind it. The most common cause is a ROM dump padded past the game's real
++    // size: the hash covers the whole file, so a 64 MB over-dump of a 40 MB game never matches.
++    if (!GetSupportedRomNode(romData).has_value()) {
++        sLastError = "File\n" + romPath + "\nis not a supported ROM (" + std::to_string(romData.size())
++                     + " bytes). Its SHA-1 matches no entry in config.yml.\nCheck the byte order (a .z64 "
++                       "starts 80 37 12 40) and the size: a dump padded past the\ngame's real size hashes "
++                       "differently and must be trimmed first.";
++        SPDLOG_ERROR("{}", sLastError);
++        return false;
++    }
++
+     this->mGamePath = romPath;
+     this->mGameData = std::move(romData);
+     return true;
+-- 
+2.55.0
+

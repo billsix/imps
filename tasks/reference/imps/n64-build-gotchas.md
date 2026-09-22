@@ -16,3 +16,20 @@ used when making a PIE object` link failure in mario's `make build`.
 Recovery: `git clean -fdx` in the submodule (+ `git checkout --` any tracked
 file the build overwrote, e.g. Ghostship's `src/generate_keys_header`) and
 wipe `build-cmake/`.
+
+## `libshaderc-devel` must be installed BEFORE cmake configures (Vulkan backend)
+
+Every port whose libultraship builds the Vulkan backend (`gfx_vulkan.cpp`
+includes `shaderc/shaderc.hpp`) needs `libshaderc-devel`; the project
+`installdependencies.sh` scripts list it. The trap (PaperMario, 2026-09-22):
+install it *after* `cmake --preset` has run and the build still fails — at the
+**final link**, on `shaderc_*` undefined references — because the configure
+cache never recorded the library. Re-run the configure step (`build.sh` does)
+after installing. Symptom to recognise: a clean compile of 3,600 objects, then
+`undefined reference to shaderc_compile_into_spv` in `Paperboat`.
+
+## Headless runs of a built port: hard-kill, never plain `timeout`
+
+The games ignore SIGTERM and a forgotten instance can grow to tens of GB. The
+full method and the rules (`timeout -s KILL`, an EXIT trap, a `ps` audit,
+never a renamed binary): `tasks/reference/imps/headless-gui-port-testing.md`.

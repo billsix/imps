@@ -125,6 +125,10 @@ patch-stream reshape): `tasks/reference/imps/patch-streams-design.md`.
 Copy the source into the throwaway container; don't bind-mount (libultraship
 1.3.1-482+ writes artifacts into its submodule source dir, poisoning the next
 podman build). Post-mortem + recovery: `tasks/reference/imps/n64-build-gotchas.md`.
+Three more cross-port lessons (2026-09-22, from PaperMario): headless testing of a port
+(`tasks/reference/imps/headless-gui-port-testing.md`), why every Linux `run.sh` seeds OpenGL
+(`tasks/reference/imps/lus-render-backend-selection.md`), and telling a bad ROM dump from a good
+one (`tasks/reference/imps/n64-rom-dump-identification.md`).
 
 ## Derived artifacts — re-verify each at every pin bump
 
@@ -171,9 +175,11 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   `fixOnFedora` series (a submitted upstream PR); builds and runs; podman build.
   Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
-  pin `1.0.1` (`424c220f0`). **No patches** — pristine compile-as-is stage;
-  builds + in-app ROM extraction verified (2026-09-21). Uses JeodC LUS/Torch
-  forks (`external/`), NOT the crawl's engine pin. Gotcha: needs an exactly-40MB
-  US ROM (over-dumps fail). Details: `n64/PaperMario/CLAUDE.md`.
+  pin `1.0.1` (`424c220f0`). 3-patch series on two lanes (2026-09-22): game
+  tree — CLI ROM import on Linux + a precise refusal of unsupported ROMs;
+  libultraship lane — the Vulkan first-frame crash fix (two null Context objects).
+  All upstream candidates; headless-verified + host-verified 2026-09-22. Uses JeodC
+  LUS/Torch forks (`external/`), NOT the crawl's engine pin. `run.sh <ROM>`
+  verifies the SHA-1 and trims a padded dump. Details: `n64/PaperMario/CLAUDE.md`.
 - `n64/libultraship/` — the shared engine (see the "libultraship" section above).
   Docs-only; the reference crawl lives at `tasks/reference/libultraship/`.

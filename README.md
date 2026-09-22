@@ -95,7 +95,12 @@ sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
   with the patches applied (verified 2026-09-01 via the podman AppImage
   pipeline: image → build → appimage → host run). Fork docs migrated to
   `n64/BanjoKazooie/CLAUDE.md` + `tasks/reference/banjo/`.
-- All four projects now have a podman AppImage build (`make appimage`)
+- **PaperMario** — PaperBoat at the `1.0.1` tag with a three-patch series
+  (command-line ROM import on Linux, a precise refusal of unsupported ROMs,
+  and the libultraship Vulkan first-frame crash fix); `run.sh <ROM>` verifies
+  the ROM's SHA-1 and trims a padded dump. Built and played on my host
+  2026-09-22. No podman build yet. Details: `n64/PaperMario/CLAUDE.md`.
+- The four earlier projects have a podman AppImage build (`make appimage`)
   and a container-verified `installdependencies.sh` — **all four
   AppImages now build on my host** (2026-09-01): OcarinaOfTime and
   BanjoKazooie are run-confirmed. SuperMario64's `run.sh` defaults the

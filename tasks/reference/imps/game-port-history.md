@@ -98,6 +98,23 @@
   above). Docs-only; the reference crawl lives at
   `tasks/reference/libultraship/`.
 
+- `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
+  pinned at `424c220f0` (release tag `1.0.1`, 2026-09-18; submodules are JeodC
+  forks: libultraship `lus-converge` @ `7aa03b6c`, Torch-LH `pm64` @ `106f4e30`).
+  Details: `n64/PaperMario/CLAUDE.md`. Status: added 2026-09-21 as a pristine
+  compile-as-is build (sandbox-verified, in-app extraction verified headless);
+  on 2026-09-22 an overnight ROM-import investigation
+  (`tasks/reference/papermario/rom-overdump-and-trimming.md`) produced the
+  first series — **two game-tree patches** (CLI ROM import on Linux; refuse an
+  unsupported picked ROM with the reason) and **one libultraship-lane patch**
+  (the Vulkan first-frame crash: `GfxRenderingAPIVK` built with null Context
+  objects), all upstream candidates, plus `apply.sh`, a `run.sh`
+  that verifies/trims the ROM and seeds OpenGL, and a six-scenario headless
+  test (`tasks/adhoc/papermario-rom-import/`). Byte-identity verified; **built
+  and played on the maintainer's host 2026-09-22** (William Emerison Six
+  <billsix@gmail.com>). Upstream submission is its own task
+  (`tasks/papermario-upstream-patches.md`, proposed).
+
 ## libultraship crawl history
 
 The crawl is **complete** (2026-09-01, 18 iterations —

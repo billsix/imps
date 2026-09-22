@@ -1,0 +1,38 @@
+From c24964f18702e7b3ecf8fc73be95336ccafc8288 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 03:05:53 +0000
+Subject: [PATCH 1/2] extractor: honour a ROM path on the command line on
+ Linux/macOS
+
+RunExtract collected argv into `args`, but the transition to
+ES_EXTRACT_ARGS only happened inside the Windows-only ES_WINDOWS branch,
+so on Linux and macOS `Paperboat /path/to/rom.z64` silently ignored the
+argument and fell into the interactive prompts. Take the same branch on
+the non-Windows path.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/port/Engine.cpp | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/port/Engine.cpp b/src/port/Engine.cpp
+index 26d70f565..1dc46b65c 100644
+--- a/src/port/Engine.cpp
++++ b/src/port/Engine.cpp
+@@ -419,7 +419,10 @@ void GameEngine::RunExtract(int argc, char* argv[]) {
+ #ifdef _WIN32
+                     extractStep = ES_WINDOWS;
+ #else
+-                    extractStep = ES_EXTRACT;
++                    // A ROM path on the command line goes straight to extraction, the same as
++                    // the Windows path decides after its folder checks; without this the args
++                    // were collected above and then never read on Linux/macOS.
++                    extractStep = args.empty() ? ES_EXTRACT : ES_EXTRACT_ARGS;
+ #endif
+                 } else {
+                     PaperboatGui::RegisterPopup(
+
+base-commit: 424c220f0863c29b9fe55cc674baceff88e9e14f
+-- 
+2.55.0
+

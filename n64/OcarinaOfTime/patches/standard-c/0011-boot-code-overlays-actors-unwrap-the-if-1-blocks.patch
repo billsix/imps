@@ -1,0 +1,179 @@
+From c6c0037129650e301c6458bef83304ecdde57f23 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:36:22 +0000
+Subject: [PATCH 11/36] boot, code, overlays/actors: unwrap the `if (1) {`
+ blocks
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+A constant-true `if` was the decomp's way to open a scope the ROM's
+compiler needed (z_std_dma.c, code_800EC960.c, z_actor.c, Bg_Hidan_Hrock,
+Demo_Go — bodies hoisted; z_player_lib.c — with its dead `s32 pad[2]`).
+Where the block declares locals (Boss_Fd, Boss_Ganon2) it becomes a bare
+`{ … }` scope so the declarations keep their extent.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/boot/z_std_dma.c                         | 16 +++++++---------
+ soh/src/code/code_800EC960.c                     |  4 +---
+ soh/src/code/z_actor.c                           | 10 ++++------
+ soh/src/code/z_player_lib.c                      |  7 +------
+ .../actors/ovl_Bg_Hidan_Hrock/z_bg_hidan_hrock.c | 12 +++++-------
+ soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c  |  2 +-
+ .../actors/ovl_Boss_Ganon2/z_boss_ganon2.c       |  2 +-
+ soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c  |  4 +---
+ 8 files changed, 21 insertions(+), 36 deletions(-)
+
+diff --git a/soh/src/boot/z_std_dma.c b/soh/src/boot/z_std_dma.c
+index 6393ae270..898f5547a 100644
+--- a/soh/src/boot/z_std_dma.c
++++ b/soh/src/boot/z_std_dma.c
+@@ -347,15 +347,13 @@ s32 DmaMgr_SendRequestImpl(DmaRequest* req, uintptr_t ram, uintptr_t vrom, size_
+     req->notifyQueue = queue;
+     req->notifyMsg = msg;
+ 
+-    if (1) {
+-        if ((sDmaMgrQueueFullLogged == 0) && (sDmaMgrMsgQueue.validCount >= sDmaMgrMsgQueue.msgCount)) {
+-            sDmaMgrQueueFullLogged++;
+-            osSyncPrintf("%c", BEL);
+-            osSyncPrintf(VT_FGCOL(RED));
+-            osSyncPrintf("dmaEntryMsgQが一杯です。キューサイズの再検討をおすすめします。");
+-            LOG_NUM("(sizeof(dmaEntryMsgBufs) / sizeof(dmaEntryMsgBufs[0]))", ARRAY_COUNT(sDmaMgrMsgs));
+-            osSyncPrintf(VT_RST);
+-        }
++    if ((sDmaMgrQueueFullLogged == 0) && (sDmaMgrMsgQueue.validCount >= sDmaMgrMsgQueue.msgCount)) {
++        sDmaMgrQueueFullLogged++;
++        osSyncPrintf("%c", BEL);
++        osSyncPrintf(VT_FGCOL(RED));
++        osSyncPrintf("dmaEntryMsgQが一杯です。キューサイズの再検討をおすすめします。");
++        LOG_NUM("(sizeof(dmaEntryMsgBufs) / sizeof(dmaEntryMsgBufs[0]))", ARRAY_COUNT(sDmaMgrMsgs));
++        osSyncPrintf(VT_RST);
+     }
+ 
+     osSendMesgPtr(&sDmaMgrMsgQueue, req, OS_MESG_BLOCK);
+diff --git a/soh/src/code/code_800EC960.c b/soh/src/code/code_800EC960.c
+index 3fea838e1..1cc4dbf44 100644
+--- a/soh/src/code/code_800EC960.c
++++ b/soh/src/code/code_800EC960.c
+@@ -3346,9 +3346,7 @@ void AudioDebug_ProcessInput_SndCont(void) {
+ 
+     if (CHECK_BTN_ANY(sDebugPadPress, BTN_DLEFT)) {
+         if (sAudioSndContWork[sAudioSndContSel] >= step) {
+-            if (1) {
+-                sAudioSndContWork[sAudioSndContSel] -= step;
+-            }
++            sAudioSndContWork[sAudioSndContSel] -= step;
+         } else {
+             sAudioSndContWork[sAudioSndContSel] += sAudioSndContWorkLims[sAudioSndContSel] - step;
+         }
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index e36d8c49a..95dd4cae4 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -3779,12 +3779,10 @@ s32 BodyBreak_SpawnParts(Actor* actor, BodyBreak* bodyBreak, PlayState* play, s1
+         Matrix_Scale(1.0f / actor->scale.x, 1.0f / actor->scale.y, 1.0f / actor->scale.z, MTXMODE_APPLY);
+         Matrix_Get(&bodyBreak->matrices[bodyBreak->count]);
+ 
+-        if (1) {
+-            if (bodyBreak->objectIds[bodyBreak->count] >= 0) {
+-                objBankIndex = bodyBreak->objectIds[bodyBreak->count];
+-            } else {
+-                objBankIndex = actor->objBankIndex;
+-            }
++        if (bodyBreak->objectIds[bodyBreak->count] >= 0) {
++            objBankIndex = bodyBreak->objectIds[bodyBreak->count];
++        } else {
++            objBankIndex = actor->objBankIndex;
+         }
+ 
+         mtx = &bodyBreak->matrices[bodyBreak->count];
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index 62b003c98..ecc6dc266 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -2143,12 +2143,7 @@ void Player_DrawPauseImpl(PlayState* play, void* gameplayKeep, void* linkObject,
+                         G_TD_CLAMP | G_TP_PERSP | G_CYC_FILL | G_PM_NPRIMITIVE,
+                     G_AC_NONE | G_ZS_PIXEL | G_RM_NOOP | G_RM_NOOP2);
+ 
+-    // Also matches if some of the previous graphics commands are moved inside this block too. Possible macro?
+-    if (1) {
+-        s32 pad[2];
+-
+-        gSPLoadGeometryMode(POLY_OPA_DISP++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH);
+-    }
++    gSPLoadGeometryMode(POLY_OPA_DISP++, G_ZBUFFER | G_SHADE | G_CULL_BACK | G_LIGHTING | G_SHADING_SMOOTH);
+ 
+     gDPSetScissor(POLY_OPA_DISP++, G_SC_NON_INTERLACE, 0, 0, width, height);
+     gSPClipRatio(POLY_OPA_DISP++, FRUSTRATIO_1);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Hrock/z_bg_hidan_hrock.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Hrock/z_bg_hidan_hrock.c
+index af121e404..950d78ed5 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Hrock/z_bg_hidan_hrock.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Hrock/z_bg_hidan_hrock.c
+@@ -102,14 +102,12 @@ void BgHidanHrock_Init(Actor* thisx, PlayState* play) {
+     for (i = 0; i < 2; i++) {
+         colliderElementInit = &sTrisInit.elements[i];
+ 
+-        if (1) {
+-            for (j = 0; j < 3; j++) {
+-                Vec3f* vtx = &colliderElementInit->dim.vtx[j];
++        for (j = 0; j < 3; j++) {
++            Vec3f* vtx = &colliderElementInit->dim.vtx[j];
+ 
+-                vertices[j].x = vtx->z * sinRotY + (thisx->home.pos.x + vtx->x * cosRotY);
+-                vertices[j].y = vtx->y + thisx->home.pos.y;
+-                vertices[j].z = vtx->z * cosRotY + (thisx->home.pos.z - vtx->x * sinRotY);
+-            }
++            vertices[j].x = vtx->z * sinRotY + (thisx->home.pos.x + vtx->x * cosRotY);
++            vertices[j].y = vtx->y + thisx->home.pos.y;
++            vertices[j].z = vtx->z * cosRotY + (thisx->home.pos.z - vtx->x * sinRotY);
+         }
+         Collider_SetTrisVertices(&this->collider, i, &vertices[0], &vertices[1], &vertices[2]);
+     }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+index ec0ab18f3..664799085 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+@@ -1384,7 +1384,7 @@ void BossFd_Update(Actor* thisx, PlayState* play) {
+         }
+     }
+ 
+-    if (1) { // Needed for matching, and also to define new variables
++    {
+         Vec3f emberVel = { 0.0f, 0.0f, 0.0f };
+         Vec3f emberAccel = { 0.0f, 0.0f, 0.0f };
+         Vec3f emberPos;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+index 218d261ff..d45649cb0 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon2/z_boss_ganon2.c
+@@ -805,7 +805,7 @@ void func_808FD5F4(BossGanon2* this, PlayState* play) {
+             break;
+         case 24:
+             SkelAnime_Update(&this->skelAnime);
+-            if (1) {
++            {
+                 BossGanon2Effect* effect = play->specialEffects;
+ 
+                 this->subCamAt = effect->position;
+diff --git a/soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c b/soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c
+index edca1fc2d..012a8094d 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c
++++ b/soh/src/overlays/actors/ovl_Demo_Go/z_demo_go.c
+@@ -61,9 +61,7 @@ s32 DemoGo_GetCueChannel(DemoGo* this) {
+             ret = 4;
+             break;
+         default:
+-            if (1) {
+-                ret = 5;
+-            }
++            ret = 5;
+             break;
+     }
+     return ret;
+-- 
+2.55.0
+

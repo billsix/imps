@@ -1,0 +1,92 @@
+From 619abe7f27570692aa3962686fb49fe42e559f98 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:09:02 +0000
+Subject: [PATCH 04/46] goddard: delete the empty statements and the
+ unreachable `break` kept "to match"
+
+Five `; // needed to match` lines (draw_objects.c x3, joints.c, particles.c)
+are empty statements that only nudged IDO's instruction scheduling, and
+gd_printf's second `break;` after a `break;` (renderer.c) is unreachable.
+None of them exists at the C level; delete them with their comments. The one
+comment that carried a real note ("presumably setting up the color to draw
+the plane with") is kept as a plain comment.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/goddard/draw_objects.c | 4 +---
+ src/goddard/joints.c       | 1 -
+ src/goddard/particles.c    | 1 -
+ src/goddard/renderer.c     | 1 -
+ 4 files changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/src/goddard/draw_objects.c b/src/goddard/draw_objects.c
+index 8a951e76..a9a22432 100644
+--- a/src/goddard/draw_objects.c
++++ b/src/goddard/draw_objects.c
+@@ -655,7 +655,6 @@ void draw_camera(struct ObjCamera *cam) {
+         sp44.x += cam->lookAt.x;
+         sp44.y += cam->lookAt.y;
+         sp44.z += cam->lookAt.z;
+-        ; // needed to match
+     } else {
+         sp44.x = cam->lookAt.x;
+         sp44.y = cam->lookAt.y;
+@@ -881,7 +880,6 @@ void draw_particle(struct GdObj *obj) {
+         sLightColours[0].r = (white->r - black->r) * brightness + black->r;
+         sLightColours[0].g = (white->g - black->g) * brightness + black->g;
+         sLightColours[0].b = (white->b - black->b) * brightness + black->b;
+-        ; // needed to match
+     } else {
+         sLightColours[0].r = 0.0f;
+         sLightColours[0].g = 0.0f;
+@@ -984,7 +982,7 @@ void draw_plane(struct GdObj *obj) {
+ 
+     if (obj->drawFlags & OBJ_HIGHLIGHTED) {
+         obj->drawFlags &= ~OBJ_HIGHLIGHTED;
+-        ; // needed to match; presumably setting up the color to draw the plane with
++        // presumably setting up the color to draw the plane with
+     } else {
+         sUseSelectedColor = FALSE;
+     }
+diff --git a/src/goddard/joints.c b/src/goddard/joints.c
+index ff136877..5cf100ce 100644
+--- a/src/goddard/joints.c
++++ b/src/goddard/joints.c
+@@ -69,7 +69,6 @@ void grabbable_joint_update_func(struct ObjJoint *self) {
+         self->velocity.z = offset.z * -0.25;
+ 
+         self->flags |= 0x2000;
+-        ;  // needed to match
+     } else {
+         if (gGdCtrl.trgR == FALSE) { // R trigger is released
+             // Set velocity so that the joint approaches its initial position
+diff --git a/src/goddard/particles.c b/src/goddard/particles.c
+index c7e7c13f..afa1ddd2 100644
+--- a/src/goddard/particles.c
++++ b/src/goddard/particles.c
+@@ -350,7 +350,6 @@ void move_particle(struct ObjParticle *ptc) {
+                 if (sp4C->unk18C->pickedObj != NULL) {
+                     set_cur_dynobj(sp4C->unk18C->pickedObj);
+                     ptc->flags |= 0x20;
+-                    ; // needed to match
+                 } else {
+                     ptc->flags &= ~0x10;
+                     ptc->flags &= ~0x20;
+diff --git a/src/goddard/renderer.c b/src/goddard/renderer.c
+index 2616a20f..49279b39 100644
+--- a/src/goddard/renderer.c
++++ b/src/goddard/renderer.c
+@@ -813,7 +813,6 @@ void gd_printf(const char *format, ...) {
+                         csr++;
+                         *csr = '\0';
+                         break;
+-                        break; // needed to match
+                     case 'f':
+                         val.f = (f32) va_arg(args, double);
+                         csr = sprint_val_withspecifiers(csr, val, spec);
+-- 
+2.55.0
+

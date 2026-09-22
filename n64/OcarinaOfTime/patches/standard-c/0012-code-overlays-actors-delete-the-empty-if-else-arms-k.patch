@@ -1,0 +1,92 @@
+From 703bea17f2af9bd3c84c60138da39724c48d5be9 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:36:27 +0000
+Subject: [PATCH 12/36] code, overlays/actors: delete the empty if/else arms
+ kept "to match"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+audio_synthesis.c's three-arm `if … {} else if … {} else {}` ("no-op ifs
+required for matching"), Bg_Treemouth's empty `else`, a commented-out
+`if (!x) {}` in z_camera.c, and ucode_disas.c's `if (x == 0) {} else {
+print }` written as `if (x != 0) { print }` (dropping the clang-format
+fence that protected only that one-liner; the twin below already reads
+`if (this->enableLog)`).
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/audio_synthesis.c                            | 7 -------
+ soh/src/code/ucode_disas.c                                | 8 ++++----
+ soh/src/code/z_camera.c                                   | 2 --
+ soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c | 1 -
+ 4 files changed, 4 insertions(+), 14 deletions(-)
+
+diff --git a/soh/src/code/audio_synthesis.c b/soh/src/code/audio_synthesis.c
+index cc8ee8661..9b5e89919 100644
+--- a/soh/src/code/audio_synthesis.c
++++ b/soh/src/code/audio_synthesis.c
+@@ -742,13 +742,6 @@ Acmd* AudioSynth_ProcessNote(s32 noteIndex, NoteSubEu* noteSubEu, NoteSynthesisS
+     nSamplesToLoad = samplesLenFixedPoint >> 16;
+     synthState->samplePosFrac = samplesLenFixedPoint & 0xFFFF;
+ 
+-    // Partially-optimized out no-op ifs required for matching. SM64 decomp
+-    // makes it clear that this is how it should look.
+-    if (synthState->numParts == 1 && nParts == 2) {
+-    } else if (synthState->numParts == 2 && nParts == 1) {
+-    } else {
+-    }
+-
+     synthState->numParts = nParts;
+ 
+     if (noteSubEu->bitField1.isSyntheticWave) {
+diff --git a/soh/src/code/ucode_disas.c b/soh/src/code/ucode_disas.c
+index 56e3aad9a..3d84908e1 100644
+--- a/soh/src/code/ucode_disas.c
++++ b/soh/src/code/ucode_disas.c
+@@ -223,10 +223,10 @@ void UCodeDisas_ParseRenderMode(UCodeDisas* this, u32 mode) {
+     a = (mode >> 18) & 0x3333;
+     b = (mode >> 16) & 0x3333;
+ 
+-    // clang-format off
+-    if (this->enableLog == 0) {} else { osSyncPrintf("\nGBL_c1(%s, %s, %s, %s)|",
+-        D_8012DDDC[0][a >> 12 & 3], D_8012DDDC[1][a >> 8 & 3], D_8012DDDC[2][a >> 4 & 3], D_8012DDDC[3][a >> 0 & 3]); }
+-    // clang-format on
++    if (this->enableLog != 0) {
++        osSyncPrintf("\nGBL_c1(%s, %s, %s, %s)|", D_8012DDDC[0][a >> 12 & 3], D_8012DDDC[1][a >> 8 & 3],
++                     D_8012DDDC[2][a >> 4 & 3], D_8012DDDC[3][a >> 0 & 3]);
++    }
+ 
+     if (this->enableLog) {
+         osSyncPrintf("\nGBL_c2(%s, %s, %s, %s)", D_8012DDDC[0][b >> 12 & 3], D_8012DDDC[1][b >> 8 & 3],
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index f23665c22..fcc73f9f1 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -3611,8 +3611,6 @@ s32 Camera_KeepOn3(Camera* camera) {
+         at->x += (anim->atTarget.x - at->x) / anim->animTimer;
+         at->y += (anim->atTarget.y - at->y) / anim->animTimer;
+         at->z += (anim->atTarget.z - at->z) / anim->animTimer;
+-        // needed to match
+-        // if (!prevTargetPlayerDist) {}
+         atToEyeAdj.r = ((anim->eyeToAtTarget.x * anim->animTimer) + atToEyeNextDir.r) + 1.0f;
+         atToEyeAdj.yaw = atToEyeNextDir.yaw + (s16)(anim->eyeToAtTarget.y * anim->animTimer);
+         atToEyeAdj.pitch = atToEyeNextDir.pitch + (s16)(anim->eyeToAtTarget.z * anim->animTimer);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+index 4d728d316..1e161c39e 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
++++ b/soh/src/overlays/actors/ovl_Bg_Treemouth/z_bg_treemouth.c
+@@ -240,7 +240,6 @@ void BgTreemouth_Draw(Actor* thisx, PlayState* play) {
+         if (Flags_GetEventChkInf(EVENTCHKINF_OBTAINED_KOKIRI_EMERALD_DEKU_TREE_DEAD)) {
+             alpha = 2150;
+         }
+-    } else { // neeeded to match
+     }
+ 
+     if (gSaveContext.sceneLayer == 6) {
+-- 
+2.55.0
+

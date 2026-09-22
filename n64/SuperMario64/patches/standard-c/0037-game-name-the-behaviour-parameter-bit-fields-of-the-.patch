@@ -1,0 +1,112 @@
+From 03472ecd51a5e867ac096732e1e0168bf939ec09 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:30:02 +0000
+Subject: [PATCH 37/46] game: name the behaviour-parameter bit fields of the
+ two back-and-forth platforms
+
+activated_bf_plat and sliding_platform_2 unpack oBehParams with bare
+masks (`0x0300`, `0x007F`, `0x0080`; `0x0380`, `0x003F`, `0x0040`). This
+adds the masks to object_constants.h in the PLATFORM_ON_TRACK_BP_* idiom,
+next to the ACTIVATED_BF_PLAT_TYPE_* values that already document the
+type field, and uses them at the six sites.
+
+Verified: both files, through their including translation units, compile
+to byte-identical assembly before and after with the port's own flags
+(asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ include/object_constants.h                  | 12 +++++++++++-
+ src/game/behaviors/activated_bf_plat.inc.c  |  6 +++---
+ src/game/behaviors/sliding_platform_2.inc.c |  8 ++++----
+ 3 files changed, 18 insertions(+), 8 deletions(-)
+
+diff --git a/include/object_constants.h b/include/object_constants.h
+index 16dfe90c..4e37f289 100644
+--- a/include/object_constants.h
++++ b/include/object_constants.h
+@@ -949,11 +949,21 @@
+     #define TTC_2D_ROTATOR_BP_2D_COG 1
+ 
+ /* Activated Back-and-Forth Platform */
+-    /* ((u16)(o->oBehParams >> 16) & 0x0300) >> 8 aka platform type */
++    /* oBehParams >> 16 */
++    #define ACTIVATED_BF_PLAT_BP_MASK_MAX_OFFSET 0x007F
++    #define ACTIVATED_BF_PLAT_BP_VERTICAL        (1 << 7)
++    #define ACTIVATED_BF_PLAT_BP_MASK_TYPE       (0x3 << 8)
++    /* ((u16)(o->oBehParams >> 16) & ACTIVATED_BF_PLAT_BP_MASK_TYPE) >> 8 aka platform type */
+     #define ACTIVATED_BF_PLAT_TYPE_BITS_ARROW_PLAT 0
+     #define ACTIVATED_BF_PLAT_TYPE_BITFS_MESH_PLAT 1
+     #define ACTIVATED_BF_PLAT_TYPE_BITFS_ELEVATOR  2
+ 
++/* Sliding Platform 2 */
++    /* oBehParams >> 16 */
++    #define SLIDING_PLATFORM_2_BP_MASK_PATH_LENGTH 0x003F
++    #define SLIDING_PLATFORM_2_BP_REVERSE          (1 << 6)
++    #define SLIDING_PLATFORM_2_BP_MASK_COLLISION   (0x7 << 7)
++
+ /* Dorrie */
+     /* oAction */
+     #define DORRIE_ACT_MOVE       0
+diff --git a/src/game/behaviors/activated_bf_plat.inc.c b/src/game/behaviors/activated_bf_plat.inc.c
+index 7c63977e..7b28dddd 100644
+--- a/src/game/behaviors/activated_bf_plat.inc.c
++++ b/src/game/behaviors/activated_bf_plat.inc.c
+@@ -28,7 +28,7 @@ static Collision const *sActivatedBackAndForthPlatformCollisionModels[] = {
+  */
+ void bhv_activated_back_and_forth_platform_init(void) {
+     // Equivalent to the first behavior param byte & 3 (last 2 bits of the byte).
+-    s32 platformType = ((u16)(o->oBehParams >> 16) & 0x0300) >> 8;
++    s32 platformType = ((u16)(o->oBehParams >> 16) & ACTIVATED_BF_PLAT_BP_MASK_TYPE) >> 8;
+ 
+     // The BitS arrow platform should flip 180º (0x8000 angle units), but
+     // there is no reason for the other platforms to flip.
+@@ -45,7 +45,7 @@ void bhv_activated_back_and_forth_platform_init(void) {
+     // Equivalent to 50 * (oBehParams2ndByte & 0x7F), i.e. 50 * (oBehParams2ndByte % 128).
+     // The maximum possible value of this is 50 * 127 = 6350.
+     // It's 50 * 97 = 4850 in BitS and 50 * 31 = 1550 in BitFS.
+-    o->oActivatedBackAndForthPlatformMaxOffset = 50.0f * ((u16)(o->oBehParams >> 16) & 0x007F);
++    o->oActivatedBackAndForthPlatformMaxOffset = 50.0f * ((u16)(o->oBehParams >> 16) & ACTIVATED_BF_PLAT_BP_MASK_MAX_OFFSET);
+ 
+     if (platformType == ACTIVATED_BF_PLAT_TYPE_BITFS_ELEVATOR) {
+         o->oActivatedBackAndForthPlatformMaxOffset -= 12.0f;
+@@ -53,7 +53,7 @@ void bhv_activated_back_and_forth_platform_init(void) {
+ 
+     // Truthy/falsy value that determines the direction of movement.
+     // Equivalent to oBehParams2ndByte & 0x80, i.e. the most significant bit of oBehParams2ndByte.
+-    o->oActivatedBackAndForthPlatformVertical = (u16)(o->oBehParams >> 16) & 0x0080;
++    o->oActivatedBackAndForthPlatformVertical = (u16)(o->oBehParams >> 16) & ACTIVATED_BF_PLAT_BP_VERTICAL;
+ 
+     o->oActivatedBackAndForthPlatformStartYaw = o->oFaceAngleYaw;
+ }
+diff --git a/src/game/behaviors/sliding_platform_2.inc.c b/src/game/behaviors/sliding_platform_2.inc.c
+index 853bc409..aa0be360 100644
+--- a/src/game/behaviors/sliding_platform_2.inc.c
++++ b/src/game/behaviors/sliding_platform_2.inc.c
+@@ -12,19 +12,19 @@ static Collision const *sSlidingPlatform2CollisionData[] = {
+ };
+ 
+ void bhv_sliding_plat_2_init(void) {
+-    s32 collisionDataIndex = ((u16)(o->oBehParams >> 16) & 0x0380) >> 7;
++    s32 collisionDataIndex = ((u16)(o->oBehParams >> 16) & SLIDING_PLATFORM_2_BP_MASK_COLLISION) >> 7;
+ 
+     o->collisionData = segmented_to_virtual(sSlidingPlatform2CollisionData[collisionDataIndex]);
+-    o->oBackAndForthPlatformPathLength = 50.0f * ((u16)(o->oBehParams >> 16) & 0x003F);
++    o->oBackAndForthPlatformPathLength = 50.0f * ((u16)(o->oBehParams >> 16) & SLIDING_PLATFORM_2_BP_MASK_PATH_LENGTH);
+ 
+     if (collisionDataIndex < 5 || collisionDataIndex > 6) {
+         o->oBackAndForthPlatformVel = 15.0f;
+-        if ((u16)(o->oBehParams >> 16) & 0x0040) {
++        if ((u16)(o->oBehParams >> 16) & SLIDING_PLATFORM_2_BP_REVERSE) {
+             o->oMoveAngleYaw += 0x8000;
+         }
+     } else {
+         o->oBackAndForthPlatformVel = 10.0f;
+-        if ((u16)(o->oBehParams >> 16) & 0x0040) {
++        if ((u16)(o->oBehParams >> 16) & SLIDING_PLATFORM_2_BP_REVERSE) {
+             o->oBackAndForthPlatformDirection = -1.0f;
+         } else {
+             o->oBackAndForthPlatformDirection = 1.0f;
+-- 
+2.55.0
+

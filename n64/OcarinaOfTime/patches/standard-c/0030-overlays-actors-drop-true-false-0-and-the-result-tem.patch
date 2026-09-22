@@ -1,0 +1,89 @@
+From 55ae0451ce4bebee77baded755d6faec7c853982 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:50:56 +0000
+Subject: [PATCH 30/36] overlays/actors: drop `? true : false`, `!! == 0` and
+ the result temporary around comparisons
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`x = c ? true : false` on a u8 flag (En_Fr ×2), `return !c ? false : true`
+(En_Hy), `if (!!(m) == 0)` (En_Ssh, En_St) and En_Ko's
+`if (c) result = true; else result = false; return result;` — the
+comparison already is the 0/1 value.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c   | 4 ++--
+ soh/src/overlays/actors/ovl_En_Hy/z_en_hy.c   | 2 +-
+ soh/src/overlays/actors/ovl_En_Ssh/z_en_ssh.c | 2 +-
+ soh/src/overlays/actors/ovl_En_St/z_en_st.c   | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c b/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
+index b9708e2cf..bb80c56a0 100644
+--- a/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
++++ b/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
+@@ -334,7 +334,7 @@ void EnFr_IsDivingIntoWater(EnFr* this, PlayState* play) {
+     if (WaterBox_GetSurfaceImpl(play, &play->colCtx, this->actor.world.pos.x, this->actor.world.pos.z, &waterSurface,
+                                 &waterBox)) {
+         this->isBelowWaterSurfacePrevious = this->isBelowWaterSurfaceCurrent;
+-        this->isBelowWaterSurfaceCurrent = this->actor.world.pos.y <= waterSurface ? true : false;
++        this->isBelowWaterSurfaceCurrent = this->actor.world.pos.y <= waterSurface;
+     }
+ }
+ 
+@@ -792,7 +792,7 @@ void EnFr_CheckOcarinaInputFrogSong(u8 ocarinaNote) {
+     // Turn on or off butterfly above frog
+     for (frogIndex = 0; frogIndex < ARRAY_COUNT(sEnFrPointers.frogs); frogIndex++) {
+         frog = sEnFrPointers.frogs[frogIndex];
+-        frog->isButterflyDrawn = frogIndex == frogIndexButterfly ? true : false;
++        frog->isButterflyDrawn = frogIndex == frogIndexButterfly;
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Hy/z_en_hy.c b/soh/src/overlays/actors/ovl_En_Hy/z_en_hy.c
+index a5ab85707..03521cc11 100644
+--- a/soh/src/overlays/actors/ovl_En_Hy/z_en_hy.c
++++ b/soh/src/overlays/actors/ovl_En_Hy/z_en_hy.c
+@@ -860,7 +860,7 @@ s32 EnHy_ShouldSpawn(EnHy* this, PlayState* play) {
+             }
+         case SCENE_KAKARIKO_CENTER_GUEST_HOUSE:
+             if ((this->actor.params & 0x7F) == ENHY_TYPE_AOB) {
+-                return !LINK_IS_ADULT ? false : true;
++                return LINK_IS_ADULT;
+             } else if (!((this->actor.params & 0x7F) == ENHY_TYPE_BOJ_9 ||
+                          (this->actor.params & 0x7F) == ENHY_TYPE_AHG_2 ||
+                          (this->actor.params & 0x7F) == ENHY_TYPE_BJI_7)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Ssh/z_en_ssh.c b/soh/src/overlays/actors/ovl_En_Ssh/z_en_ssh.c
+index df3a97c11..19041b519 100644
+--- a/soh/src/overlays/actors/ovl_En_Ssh/z_en_ssh.c
++++ b/soh/src/overlays/actors/ovl_En_Ssh/z_en_ssh.c
+@@ -484,7 +484,7 @@ s32 EnSsh_CheckHitFront(EnSsh* this) {
+     if (this->colCylinder[2].base.acFlags) {} // Needed for matching
+     acFlags = this->colCylinder[2].base.acFlags;
+ 
+-    if (!!(acFlags & AC_HIT) == 0) {
++    if (!(acFlags & AC_HIT)) {
+         return 0;
+     } else {
+         this->colCylinder[2].base.acFlags &= ~AC_HIT;
+diff --git a/soh/src/overlays/actors/ovl_En_St/z_en_st.c b/soh/src/overlays/actors/ovl_En_St/z_en_st.c
+index 7096255a2..706b3e6ca 100644
+--- a/soh/src/overlays/actors/ovl_En_St/z_en_st.c
++++ b/soh/src/overlays/actors/ovl_En_St/z_en_st.c
+@@ -408,7 +408,7 @@ s32 EnSt_CheckHitLink(EnSt* this, PlayState* play) {
+ s32 EnSt_CheckHitFrontside(EnSt* this) {
+     u8 acFlags = this->colCylinder[2].base.acFlags;
+ 
+-    if (!!(acFlags & AC_HIT) == 0) {
++    if (!(acFlags & AC_HIT)) {
+         // not hit
+         return false;
+     } else {
+-- 
+2.55.0
+

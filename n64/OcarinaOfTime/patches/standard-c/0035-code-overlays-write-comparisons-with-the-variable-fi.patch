@@ -1,0 +1,1140 @@
+From c15ae11636a6700c6af06d0c61bdef7657e16efa Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:55:33 +0000
+Subject: [PATCH 35/36] code, overlays: write comparisons with the variable
+ first
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`15 < x`, `950.0f < projectedW`, `0 <= index` — the constant-first order
+is the MIPS `slti` operand order, not the reader's. Mirrored operator,
+same value.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/audio_load.c                              |  4 ++--
+ soh/src/code/audio_playback.c                          | 10 +++++-----
+ soh/src/code/code_800A9F30.c                           |  4 ++--
+ soh/src/code/jpegdecoder.c                             |  2 +-
+ soh/src/code/sys_math3d.c                              | 10 +++++-----
+ soh/src/code/sys_matrix.c                              |  2 +-
+ soh/src/code/ucode_disas.c                             |  2 +-
+ soh/src/code/z_actor.c                                 |  6 +++---
+ soh/src/code/z_bg_item.c                               |  2 +-
+ soh/src/code/z_bgcheck.c                               |  2 +-
+ soh/src/code/z_camera.c                                |  2 +-
+ soh/src/code/z_collision_btltbls.c                     |  2 +-
+ soh/src/code/z_collision_check.c                       | 10 +++++-----
+ soh/src/code/z_eff_blure.c                             |  2 +-
+ soh/src/code/z_player_lib.c                            |  2 +-
+ soh/src/code/z_view.c                                  |  4 ++--
+ soh/src/overlays/actors/ovl_Arrow_Fire/z_arrow_fire.c  |  2 +-
+ soh/src/overlays/actors/ovl_Arrow_Ice/z_arrow_ice.c    |  2 +-
+ .../overlays/actors/ovl_Arrow_Light/z_arrow_light.c    |  2 +-
+ soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c        |  2 +-
+ .../actors/ovl_Bg_Hidan_Firewall/z_bg_hidan_firewall.c |  4 ++--
+ .../overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c    |  2 +-
+ .../actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c   |  2 +-
+ .../ovl_Bg_Mori_Rakkatenjo/z_bg_mori_rakkatenjo.c      |  4 ++--
+ soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c            |  2 +-
+ .../overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c  |  6 +++---
+ soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c        | 10 +++++-----
+ soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c      |  8 ++++----
+ soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c  |  4 ++--
+ .../actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c       |  4 ++--
+ soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c        |  6 +++---
+ soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c      |  2 +-
+ soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c        |  2 +-
+ soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c      |  4 ++--
+ soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c          |  4 ++--
+ soh/src/overlays/actors/ovl_En_Dha/z_en_dha.c          |  2 +-
+ soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c  |  8 ++++----
+ soh/src/overlays/actors/ovl_En_Dog/z_en_dog.c          |  2 +-
+ soh/src/overlays/actors/ovl_En_Eg/z_en_eg.c            |  2 +-
+ soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c  |  2 +-
+ .../overlays/actors/ovl_En_Floormas/z_en_floormas.c    |  2 +-
+ .../actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c         |  2 +-
+ soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c      | 10 +++++-----
+ soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c  |  4 ++--
+ .../overlays/actors/ovl_En_Hintnuts/z_en_hintnuts.c    |  2 +-
+ .../overlays/actors/ovl_En_Honotrap/z_en_honotrap.c    |  2 +-
+ soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c          |  2 +-
+ soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c          |  2 +-
+ soh/src/overlays/actors/ovl_En_Peehat/z_en_peehat.c    |  4 ++--
+ .../actors/ovl_En_Po_Sisters/z_en_po_sisters.c         |  2 +-
+ soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c            |  2 +-
+ soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c    |  2 +-
+ soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c  |  2 +-
+ .../overlays/actors/ovl_Obj_Syokudai/z_obj_syokudai.c  |  2 +-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c    |  6 +++---
+ 55 files changed, 100 insertions(+), 100 deletions(-)
+
+diff --git a/soh/src/code/audio_load.c b/soh/src/code/audio_load.c
+index 626ba2ac7..782d39e21 100644
+--- a/soh/src/code/audio_load.c
++++ b/soh/src/code/audio_load.c
+@@ -139,7 +139,7 @@ uintptr_t AudioLoad_DmaSampleData(uintptr_t devAddr, size_t size, s32 arg2, u8*
+         for (i = gAudioContext.sampleDmaListSize1; i < gAudioContext.sampleDmaCount; i++) {
+             dma = &gAudioContext.sampleDmas[i];
+             bufferPos = devAddr - dma->devAddr;
+-            if (0 <= bufferPos && (u32)bufferPos <= dma->size - size) {
++            if (bufferPos >= 0 && (u32)bufferPos <= dma->size - size) {
+                 // We already have a DMA request for this memory range.
+                 if (dma->ttl == 0 &&
+                     gAudioContext.sampleDmaReuseQueue2RdPos != gAudioContext.sampleDmaReuseQueue2WrPos) {
+@@ -177,7 +177,7 @@ uintptr_t AudioLoad_DmaSampleData(uintptr_t devAddr, size_t size, s32 arg2, u8*
+         i = 0;
+     again:
+         bufferPos = devAddr - dma->devAddr;
+-        if (0 <= bufferPos && (u32)bufferPos <= dma->size - size) {
++        if (bufferPos >= 0 && (u32)bufferPos <= dma->size - size) {
+             // We already have DMA for this memory range.
+             if (dma->ttl == 0) {
+                 // Move the DMA out of the reuse queue, by swapping it with the
+diff --git a/soh/src/code/audio_playback.c b/soh/src/code/audio_playback.c
+index f44c696f1..5e8628ea2 100644
+--- a/soh/src/code/audio_playback.c
++++ b/soh/src/code/audio_playback.c
+@@ -90,8 +90,8 @@ void Audio_InitNoteSub(Note* note, NoteSubEu* sub, NoteSubAttributes* attrs) {
+         volRight = gDefaultPanVolume[0x7F - pan];
+     }
+ 
+-    vel = 0.0f > vel ? 0.0f : vel;
+-    vel = 1.0f < vel ? 1.0f : vel;
++    vel = vel < 0.0f ? 0.0f : vel;
++    vel = vel > 1.0f ? 1.0f : vel;
+ 
+     float master_vol = (float)CVarGetInteger(CVAR_SETTING("Volume.Master"), 40) / 100.0f;
+     sub->targetVolLeft = (s32)((vel * volLeft) * (0x1000 - 0.001f)) * master_vol;
+@@ -110,7 +110,7 @@ void Audio_NoteSetResamplingRate(NoteSubEu* noteSubEu, f32 resamplingRateInput)
+     if (resamplingRateInput < 2.0f) {
+         noteSubEu->bitField1.hasTwoParts = false;
+ 
+-        if (1.99998f < resamplingRateInput) {
++        if (resamplingRateInput > 1.99998f) {
+             resamplingRate = 1.99998f;
+         } else {
+             resamplingRate = resamplingRateInput;
+@@ -118,7 +118,7 @@ void Audio_NoteSetResamplingRate(NoteSubEu* noteSubEu, f32 resamplingRateInput)
+ 
+     } else {
+         noteSubEu->bitField1.hasTwoParts = true;
+-        if (3.99996f < resamplingRateInput) {
++        if (resamplingRateInput > 3.99996f) {
+             if (CVarGetInteger(CVAR_AUDIO("ExperimentalOctaveDrop"), 0) || noteSubEu->bitField1.isSyntheticWave) {
+                 resamplingRate = resamplingRateInput * 0.5f;
+ 
+@@ -548,7 +548,7 @@ s32 Audio_BuildSyntheticWave(Note* note, SequenceLayer* layer, s32 waveId) {
+     }
+ 
+     freqScale = layer->freqScale;
+-    if (layer->portamento.mode != 0 && 0.0f < layer->portamento.extent) {
++    if (layer->portamento.mode != 0 && layer->portamento.extent > 0.0f) {
+         freqScale *= (layer->portamento.extent + 1.0f);
+     }
+     if (freqScale < 0.99999f) {
+diff --git a/soh/src/code/code_800A9F30.c b/soh/src/code/code_800A9F30.c
+index 512ad4940..fc399d163 100644
+--- a/soh/src/code/code_800A9F30.c
++++ b/soh/src/code/code_800A9F30.c
+@@ -15,7 +15,7 @@ void func_800A9F6C(f32 a, u8 b, u8 c, u8 d) {
+     s32 temp1;
+     s32 temp2;
+ 
+-    if (1000000.0f < a) {
++    if (a > 1000000.0f) {
+         temp1 = 1000;
+     } else {
+         temp1 = sqrtf(a);
+@@ -36,7 +36,7 @@ void Rumble_Request(f32 a, u8 b, u8 c, u8 d) {
+     s32 temp2;
+     s32 i;
+ 
+-    if (1000000.0f < a) {
++    if (a > 1000000.0f) {
+         temp1 = 1000;
+     } else {
+         temp1 = sqrtf(a);
+diff --git a/soh/src/code/jpegdecoder.c b/soh/src/code/jpegdecoder.c
+index 5e4c5b71d..4b7bb0032 100644
+--- a/soh/src/code/jpegdecoder.c
++++ b/soh/src/code/jpegdecoder.c
+@@ -113,7 +113,7 @@ s32 JpegDecoder_ProcessMcu(JpegHuffmanTable* hTable0, JpegHuffmanTable* hTable1,
+                 break;
+             }
+         } else {
+-            while (0 < zeroCount--) {
++            while (zeroCount-- > 0) {
+                 mcu[i++] = 0;
+             }
+             mcu[i++] = coeff;
+diff --git a/soh/src/code/sys_math3d.c b/soh/src/code/sys_math3d.c
+index bd0b57959..f355fcc4c 100644
+--- a/soh/src/code/sys_math3d.c
++++ b/soh/src/code/sys_math3d.c
+@@ -1665,7 +1665,7 @@ s32 Math3D_CylVsLineSeg(Cylinder16* cyl, Vec3f* linePointA, Vec3f* linePointB, V
+     if (!IS_ZERO(ptAToPtB.y)) {
+         // fraction of length along AB to reach y = 0
+         fracBase = -cylToPtA.y / ptAToPtB.y;
+-        if ((0.0f <= fracBase) && (fracBase <= 1.0f)) {
++        if ((fracBase >= 0.0f) && (fracBase <= 1.0f)) {
+             f32 baseIntX = (ptAToPtB.x * fracBase) + cylToPtA.x;
+             f32 baseIntZ = (ptAToPtB.z * fracBase) + cylToPtA.z;
+ 
+@@ -1679,7 +1679,7 @@ s32 Math3D_CylVsLineSeg(Cylinder16* cyl, Vec3f* linePointA, Vec3f* linePointB, V
+         }
+         // fraction of length along AB to reach y = cyl->height
+         fracA = (cyl->height - cylToPtA.y) / ptAToPtB.y;
+-        if ((0.0f <= fracA) && (fracA <= 1.0f)) {
++        if ((fracA >= 0.0f) && (fracA <= 1.0f)) {
+             f32 topIntX = ptAToPtB.x * fracA + cylToPtA.x;
+             f32 topIntZ = ptAToPtB.z * fracA + cylToPtA.z;
+ 
+@@ -1730,12 +1730,12 @@ s32 Math3D_CylVsLineSeg(Cylinder16* cyl, Vec3f* linePointA, Vec3f* linePointB, V
+     }
+     // checks for intersection points outside the bounds of the segment
+     if (!sideIntB) {
+-        if (fracA < 0.0f || 1.0f < fracA) {
++        if (fracA < 0.0f || fracA > 1.0f) {
+             return 0;
+         }
+     } else {
+-        intBeyondA = fracA < 0.0f || 1.0f < fracA;
+-        intBeyondB = fracB < 0.0f || 1.0f < fracB;
++        intBeyondA = fracA < 0.0f || fracA > 1.0f;
++        intBeyondB = fracB < 0.0f || fracB > 1.0f;
+         if (intBeyondA && intBeyondB) {
+             return 0;
+         }
+diff --git a/soh/src/code/sys_matrix.c b/soh/src/code/sys_matrix.c
+index a58e6dcc8..936871d11 100644
+--- a/soh/src/code/sys_matrix.c
++++ b/soh/src/code/sys_matrix.c
+@@ -901,7 +901,7 @@ MtxF* Matrix_CheckFloats(MtxF* mf, char* file, s32 line) {
+ 
+     for (i = 0; i < 4; i++) {
+         for (j = 0; j < 4; j++) {
+-            if (!(-32768.0f <= mf->mf[i][j]) || !(mf->mf[i][j] < 32768.0f)) {
++            if (!(mf->mf[i][j] >= -32768.0f) || !(mf->mf[i][j] < 32768.0f)) {
+                 osSyncPrintf("%s %d: [%s] =\n"
+                              "/ %12.6f %12.6f %12.6f %12.6f \\\n"
+                              "| %12.6f %12.6f %12.6f %12.6f |\n"
+diff --git a/soh/src/code/ucode_disas.c b/soh/src/code/ucode_disas.c
+index 3d84908e1..0a4e192ed 100644
+--- a/soh/src/code/ucode_disas.c
++++ b/soh/src/code/ucode_disas.c
+@@ -670,7 +670,7 @@ void UCodeDisas_Disassemble(UCodeDisas* this, GfxMod* ptr) {
+                     UCodeDisas_ParseRenderMode(this, s2);
+                     DISAS_LOG("\n),");
+                 } else {
+-                    for (i1 = 0; i1 * 1 < ARRAY_COUNTU(sUCodeDisasModeLMacros); i1++) {
++                    for (i1 = 0; i1 * ARRAY_COUNTU(sUCodeDisasModeLMacros) > 1; i1++) {
+                         if (sft == sUCodeDisasModeLMacros[i1].shift) {
+                             for (i2 = 0; i2 < 4; i2++) {
+                                 if (s2 == sUCodeDisasModeLMacros[i1].values[i2].value) {
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index df4604923..fbb997d91 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -223,7 +223,7 @@ void ActorShadow_DrawFeet(Actor* actor, Lights* lights, PlayState* play) {
+             actor->shape.feetFloorFlags <<= 1;
+             distToFloor = feetPosPtr->y - *floorHeightPtr;
+ 
+-            if ((-1.0f <= distToFloor) && (distToFloor < 500.0f)) {
++            if ((distToFloor >= -1.0f) && (distToFloor < 500.0f)) {
+                 if (distToFloor <= 0.0f) {
+                     actor->shape.feetFloorFlags++;
+                 }
+@@ -615,7 +615,7 @@ void Attention_Update(TargetContext* targetCtx, Player* player, Actor* actorArg,
+ 
+     if ((actorArg != NULL) && (targetCtx->unk_4B == 0)) {
+         Actor_ProjectPos(play, &actorArg->focus.pos, &sp50, &sp4C);
+-        if (((sp50.z <= 0.0f) || (1.0f <= fabsf(sp50.x * sp4C))) || (1.0f <= fabsf(sp50.y * sp4C))) {
++        if (((sp50.z <= 0.0f) || (fabsf(sp50.x * sp4C) >= 1.0f)) || (fabsf(sp50.y * sp4C) >= 1.0f)) {
+             actorArg = NULL;
+         }
+     }
+@@ -641,7 +641,7 @@ void Attention_Update(TargetContext* targetCtx, Player* player, Actor* actorArg,
+ 
+         if (targetCtx->unk_4B == 0) {
+             temp5 = (500.0f - targetCtx->unk_44) * 3.0f;
+-            temp6 = (temp5 < 30.0f) ? 30.0f : ((100.0f < temp5) ? 100.0f : temp5);
++            temp6 = (temp5 < 30.0f) ? 30.0f : ((temp5 > 100.0f) ? 100.0f : temp5);
+             if (Math_StepToF(&targetCtx->unk_44, 80.0f, temp6) != 0) {
+                 targetCtx->unk_4B++;
+             }
+diff --git a/soh/src/code/z_bg_item.c b/soh/src/code/z_bg_item.c
+index d36374b59..a7e9356d2 100644
+--- a/soh/src/code/z_bg_item.c
++++ b/soh/src/code/z_bg_item.c
+@@ -86,7 +86,7 @@ s32 func_800435D8(PlayState* play, DynaPolyActor* dynaActor, s16 arg2, s16 arg3,
+     CollisionPoly* poly;
+     f32 a2;
+     f32 a3;
+-    f32 sign = (0.0f <= dynaActor->unk_150) ? 1.0f : -1.0f;
++    f32 sign = (dynaActor->unk_150 >= 0.0f) ? 1.0f : -1.0f;
+ 
+     a2 = (f32)arg2 - 0.1f;
+     posA.x = dynaActor->actor.world.pos.x + (a2 * cos);
+diff --git a/soh/src/code/z_bgcheck.c b/soh/src/code/z_bgcheck.c
+index c3799a904..56071035a 100644
+--- a/soh/src/code/z_bgcheck.c
++++ b/soh/src/code/z_bgcheck.c
+@@ -3489,7 +3489,7 @@ s32 BgCheck_CheckDynaCeilingList(CollisionContext* colCtx, u16 xpFlags, DynaColl
+         if (CollisionPoly_CheckYIntersectApprox2(poly, dyna->vtxList, testPos.x, testPos.z, &ceilingY)) {
+             intersectDist = ceilingY - testPos.y;
+             if (testPos.y < ceilingY && intersectDist < checkHeight && intersectDist * ny <= 0.0f) {
+-                sign = (0.0f <= ny) ? 1.0f : -1.0f;
++                sign = (ny >= 0.0f) ? 1.0f : -1.0f;
+                 testPos.y = (sign * checkHeight) + ceilingY;
+                 result = true;
+                 *outPoly = poly;
+diff --git a/soh/src/code/z_camera.c b/soh/src/code/z_camera.c
+index 902281931..67939a1d3 100644
+--- a/soh/src/code/z_camera.c
++++ b/soh/src/code/z_camera.c
+@@ -5023,7 +5023,7 @@ s32 Camera_Unique0(Camera* camera) {
+         }
+ 
+         if ((!(player->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE)) &&
+-            ((0.001f < camera->xzSpeed) || CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
++            ((camera->xzSpeed > 0.001f) || CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_A) ||
+              CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_B) ||
+              CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CLEFT) ||
+              CHECK_BTN_ALL(D_8015BD7C->state.input[0].press.button, BTN_CDOWN) ||
+diff --git a/soh/src/code/z_collision_btltbls.c b/soh/src/code/z_collision_btltbls.c
+index 2d8a32ce3..5d8e30440 100644
+--- a/soh/src/code/z_collision_btltbls.c
++++ b/soh/src/code/z_collision_btltbls.c
+@@ -810,7 +810,7 @@ static DamageTable sDamageTablePresets[] = {
+ 
+ // Gets the pointer to one of the 23 preset damage tables. Returns NULL if index is out of range.
+ DamageTable* DamageTable_Get(s32 index) {
+-    if (!(0 <= index && index < ARRAY_COUNT(sDamageTablePresets))) {
++    if (!(index >= 0 && index < ARRAY_COUNT(sDamageTablePresets))) {
+         osSyncPrintf("CollisionBtlTbl_get():インデックスオーバー\n"); // "Index over"
+         return NULL;
+     }
+diff --git a/soh/src/code/z_collision_check.c b/soh/src/code/z_collision_check.c
+index 5015a6d5d..381b910f2 100644
+--- a/soh/src/code/z_collision_check.c
++++ b/soh/src/code/z_collision_check.c
+@@ -3559,8 +3559,8 @@ s32 CollisionCheck_CylSideVsLineSeg(f32 radius, f32 height, f32 offset, Vec3f* a
+         frac1 = -radSqDiff / DOTXZ(2.0f * itemStep, actorToItem);
+     } else {
+         if (radSqDiff <= 0.0f) {
+-            test1 = (0.0f < actorToItem.y) && (actorToItem.y < height);
+-            test2 = (0.0f < actorToItemProj.y) && (actorToItemProj.y < height);
++            test1 = (actorToItem.y > 0.0f) && (actorToItem.y < height);
++            test2 = (actorToItemProj.y > 0.0f) && (actorToItemProj.y < height);
+ 
+             if (test1 && test2) {
+                 *out1 = actorToItem;
+@@ -3580,12 +3580,12 @@ s32 CollisionCheck_CylSideVsLineSeg(f32 radius, f32 height, f32 offset, Vec3f* a
+     }
+ 
+     if (intersect2 == 0) {
+-        if (frac1 < 0.0f || 1.0f < frac1) {
++        if (frac1 < 0.0f || frac1 > 1.0f) {
+             return 0;
+         }
+     } else {
+-        test1 = (frac1 < 0.0f || 1.0f < frac1);
+-        test2 = (frac2 < 0.0f || 1.0f < frac2);
++        test1 = (frac1 < 0.0f || frac1 > 1.0f);
++        test2 = (frac2 < 0.0f || frac2 > 1.0f);
+ 
+         if (test1 && test2) {
+             return 0;
+diff --git a/soh/src/code/z_eff_blure.c b/soh/src/code/z_eff_blure.c
+index 686df569e..0b7e7f936 100644
+--- a/soh/src/code/z_eff_blure.c
++++ b/soh/src/code/z_eff_blure.c
+@@ -671,7 +671,7 @@ void EffectBlure_DrawElemHermiteInterpolation(EffectBlure* this, EffectBlureElem
+         Vec3f sp100;
+         Vec3f spF4;
+ 
+-        assert(index + 2 < this->numElements);
++        assert(index + this->numElements > 2);
+ 
+         ratio = (f32)(elem + 2)->timer / (f32)this->elemDuration;
+         EffectBlure_GetComputedValues(this, index + 2, ratio, &sp1EC, &sp1E4, &sp1DC, &sp1D8);
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index 37a657347..23d3b9007 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -767,7 +767,7 @@ s32 Player_IsBurningStickInRange(PlayState* play, Vec3f* pos, f32 xzRange, f32 y
+ 
+     if ((this->heldItemAction == PLAYER_IA_DEKU_STICK) && (this->unk_860 != 0)) {
+         Math_Vec3f_Diff(&this->meleeWeaponInfo[0].tip, pos, &diff);
+-        return ((SQ(diff.x) + SQ(diff.z)) <= SQ(xzRange)) && (0.0f <= diff.y) && (diff.y <= yRange);
++        return ((SQ(diff.x) + SQ(diff.z)) <= SQ(xzRange)) && (diff.y >= 0.0f) && (diff.y <= yRange);
+     } else {
+         return false;
+     }
+diff --git a/soh/src/code/z_view.c b/soh/src/code/z_view.c
+index b5a823d9d..d05b0b023 100644
+--- a/soh/src/code/z_view.c
++++ b/soh/src/code/z_view.c
+@@ -719,9 +719,9 @@ s32 func_800ABE74(f32 eyeX, f32 eyeY, f32 eyeZ) {
+         f32 absEyeY = ABS(eyeY);
+         f32 absEyeZ = ABS(eyeZ);
+ 
+-        if (((18900.0f < absEyeX) || (18900.0f < absEyeY)) || (18900.0f < absEyeZ)) {
++        if (((absEyeX > 18900.0f) || (absEyeY > 18900.0f)) || (absEyeZ > 18900.0f)) {
+             error = 2;
+-        } else if (((16000.0f < absEyeX) || (16000.0f < absEyeY)) || (16000.0f < absEyeZ)) {
++        } else if (((absEyeX > 16000.0f) || (absEyeY > 16000.0f)) || (absEyeZ > 16000.0f)) {
+             error = 1;
+         }
+     }
+diff --git a/soh/src/overlays/actors/ovl_Arrow_Fire/z_arrow_fire.c b/soh/src/overlays/actors/ovl_Arrow_Fire/z_arrow_fire.c
+index 48c203599..25ef920e2 100644
+--- a/soh/src/overlays/actors/ovl_Arrow_Fire/z_arrow_fire.c
++++ b/soh/src/overlays/actors/ovl_Arrow_Fire/z_arrow_fire.c
+@@ -100,7 +100,7 @@ void ArrowFire_Hit(ArrowFire* this, PlayState* play) {
+     if (this->actor.projectedW < 50.0f) {
+         scale = 10.0f;
+     } else {
+-        if (950.0f < this->actor.projectedW) {
++        if (this->actor.projectedW > 950.0f) {
+             scale = 310.0f;
+         } else {
+             scale = this->actor.projectedW;
+diff --git a/soh/src/overlays/actors/ovl_Arrow_Ice/z_arrow_ice.c b/soh/src/overlays/actors/ovl_Arrow_Ice/z_arrow_ice.c
+index 8a9bcea51..0213cb152 100644
+--- a/soh/src/overlays/actors/ovl_Arrow_Ice/z_arrow_ice.c
++++ b/soh/src/overlays/actors/ovl_Arrow_Ice/z_arrow_ice.c
+@@ -101,7 +101,7 @@ void ArrowIce_Hit(ArrowIce* this, PlayState* play) {
+     if (this->actor.projectedW < 50.0f) {
+         scale = 10.0f;
+     } else {
+-        if (950.0f < this->actor.projectedW) {
++        if (this->actor.projectedW > 950.0f) {
+             scale = 310.0f;
+         } else {
+             scale = this->actor.projectedW;
+diff --git a/soh/src/overlays/actors/ovl_Arrow_Light/z_arrow_light.c b/soh/src/overlays/actors/ovl_Arrow_Light/z_arrow_light.c
+index 3590fefd4..b1a6342dd 100644
+--- a/soh/src/overlays/actors/ovl_Arrow_Light/z_arrow_light.c
++++ b/soh/src/overlays/actors/ovl_Arrow_Light/z_arrow_light.c
+@@ -100,7 +100,7 @@ void ArrowLight_Hit(ArrowLight* this, PlayState* play) {
+     if (this->actor.projectedW < 50.0f) {
+         scale = 10.0f;
+     } else {
+-        if (950.0f < this->actor.projectedW) {
++        if (this->actor.projectedW > 950.0f) {
+             scale = 310.0f;
+         } else {
+             scale = this->actor.projectedW;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c b/soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c
+index 184c97401..85480352c 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c
++++ b/soh/src/overlays/actors/ovl_Bg_Haka/z_bg_haka.c
+@@ -78,7 +78,7 @@ void BgHaka_IdleClosed(BgHaka* this, PlayState* play) {
+                 this->dyna.actor.params = 100;
+                 this->actionFunc = BgHaka_IdleLockedClosed;
+             }
+-        } else if (0.0f < this->dyna.unk_150 ||
++        } else if (this->dyna.unk_150 > 0.0f ||
+                    (play->sceneNum == SCENE_LAKE_HYLIA && !LINK_IS_ADULT && !Flags_GetSwitch(play, 0x23))) {
+             this->dyna.unk_150 = 0.0f;
+             player->stateFlags2 &= ~PLAYER_STATE2_MOVING_DYNAPOLY;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Firewall/z_bg_hidan_firewall.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Firewall/z_bg_hidan_firewall.c
+index 2171b4c46..9fb8120b5 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Firewall/z_bg_hidan_firewall.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Firewall/z_bg_hidan_firewall.c
+@@ -150,7 +150,7 @@ void BgHidanFirewall_ColliderFollowPlayer(BgHidanFirewall* this, PlayState* play
+     if (sp30.x < -70.0f) {
+         sp30.x = -70.0f;
+     } else {
+-        if (70.0f < sp30.x) {
++        if (sp30.x > 70.0f) {
+             phi_f0 = 70.0f;
+         } else {
+             phi_f0 = sp30.x;
+@@ -158,7 +158,7 @@ void BgHidanFirewall_ColliderFollowPlayer(BgHidanFirewall* this, PlayState* play
+         sp30.x = phi_f0;
+     }
+     if (this->actor.params == 0) {
+-        if (0.0f < sp30.z) {
++        if (sp30.z > 0.0f) {
+             sp30.z = -25.0f;
+             this->actor.params = -1;
+         } else {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c b/soh/src/overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c
+index b70675131..d302375b8 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Lift/z_bg_jya_lift.c
+@@ -121,7 +121,7 @@ void BgJyaLift_Move(BgJyaLift* this, PlayState* play) {
+     Math_SmoothStepToF(&this->dyna.actor.velocity.y, 4.0f, 0.1f, 1.0f, 0.0f);
+     tempVelocity = (this->dyna.actor.velocity.y < 0.2f) ? 0.2f : this->dyna.actor.velocity.y;
+     distFromBottom = Math_SmoothStepToF(&this->dyna.actor.world.pos.y, 973.0f, 0.1f, tempVelocity, 0.2f);
+-    if ((this->dyna.actor.world.pos.y < 1440.0f) && (1440.0f <= this->dyna.actor.prevPos.y)) {
++    if ((this->dyna.actor.world.pos.y < 1440.0f) && (this->dyna.actor.prevPos.y >= 1440.0f)) {
+         func_8005B1A4(GET_ACTIVE_CAM(play));
+     }
+     if (fabsf(distFromBottom) < 0.001f) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c b/soh/src/overlays/actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c
+index 484501712..8ee216129 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mori_Elevator/z_bg_mori_elevator.c
+@@ -206,7 +206,7 @@ void BgMoriElevator_SetPosition(BgMoriElevator* this, PlayState* play) {
+     } else if ((play->roomCtx.curRoom.num == 2) && (this->dyna.actor.world.pos.y < -275.0f)) {
+         this->targetY = 233.0f;
+         BgMoriElevator_StopMovement(this);
+-    } else if ((play->roomCtx.curRoom.num == 17) && (-275.0f < this->dyna.actor.world.pos.y)) {
++    } else if ((play->roomCtx.curRoom.num == 17) && (this->dyna.actor.world.pos.y > -275.0f)) {
+         this->targetY = -779.0f;
+         BgMoriElevator_StopMovement(this);
+     } else if ((play->roomCtx.curRoom.num == 2) && Flags_GetSwitch(play, this->dyna.actor.params & 0x3F) &&
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mori_Rakkatenjo/z_bg_mori_rakkatenjo.c b/soh/src/overlays/actors/ovl_Bg_Mori_Rakkatenjo/z_bg_mori_rakkatenjo.c
+index 9c2c0f224..14fde1179 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mori_Rakkatenjo/z_bg_mori_rakkatenjo.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mori_Rakkatenjo/z_bg_mori_rakkatenjo.c
+@@ -86,13 +86,13 @@ void BgMoriRakkatenjo_Destroy(Actor* thisx, PlayState* play) {
+ s32 BgMoriRakkatenjo_IsLinkUnder(BgMoriRakkatenjo* this, PlayState* play) {
+     Vec3f* pos = &GET_PLAYER(play)->actor.world.pos;
+ 
+-    return (-3300.0f < pos->z) && (pos->z < -1840.0f) && (1791.0f < pos->x) && (pos->x < 2191.0f);
++    return (pos->z > -3300.0f) && (pos->z < -1840.0f) && (pos->x > 1791.0f) && (pos->x < 2191.0f);
+ }
+ 
+ s32 BgMoriRakkatenjo_IsLinkClose(BgMoriRakkatenjo* this, PlayState* play) {
+     Vec3f* pos = &GET_PLAYER(play)->actor.world.pos;
+ 
+-    return (-3360.0f < pos->z) && (pos->z < -1840.0f) && (1791.0f < pos->x) && (pos->x < 2191.0f);
++    return (pos->z > -3360.0f) && (pos->z < -1840.0f) && (pos->x > 1791.0f) && (pos->x < 2191.0f);
+ }
+ 
+ void BgMoriRakkatenjo_SetupWaitForMoriTex(BgMoriRakkatenjo* this) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c b/soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c
+index b0525e1ae..45640985e 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c
++++ b/soh/src/overlays/actors/ovl_Bg_Zg/z_bg_zg.c
+@@ -89,7 +89,7 @@ void BgZg_Update(Actor* thisx, PlayState* play) {
+     BgZg* this = (BgZg*)thisx;
+     s32 action = this->action;
+ 
+-    if (((action < 0) || (1 < action)) || (sActionFuncs[action] == NULL)) {
++    if (((action < 0) || (action > 1)) || (sActionFuncs[action] == NULL)) {
+         // "Main Mode is wrong!!!!!!!!!!!!!!!!!!!!!!!!!"
+         osSyncPrintf(VT_FGCOL(RED) "メインモードがおかしい!!!!!!!!!!!!!!!!!!!!!!!!!\n" VT_RST);
+     } else {
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index 323959231..c4e102af8 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -1426,7 +1426,7 @@ f32 func_808C50A8(BossDodongo* this, PlayState* play) {
+     rotation = Math_SinS(-0x8000 - this->actor.world.rot.y);
+     temp_f2 = (Math_CosS(-0x8000 - this->actor.world.rot.y) * zDiff) + (-rotation * xDiff);
+ 
+-    if ((fabsf(sp2C) < 150.0f) && (100.0f <= temp_f2) && (temp_f2 <= 2000.0f)) {
++    if ((fabsf(sp2C) < 150.0f) && (temp_f2 >= 100.0f) && (temp_f2 <= 2000.0f)) {
+         return temp_f2;
+     }
+ 
+@@ -1436,7 +1436,7 @@ f32 func_808C50A8(BossDodongo* this, PlayState* play) {
+ void BossDodongo_PlayerYawCheck(BossDodongo* this, PlayState* play) {
+     s16 yawDiff = Actor_WorldYawTowardActor(&this->actor, &GET_PLAYER(play)->actor) - this->actor.world.rot.y;
+ 
+-    if ((yawDiff < 0x38E3) && (-0x38E3 < yawDiff)) {
++    if ((yawDiff < 0x38E3) && (yawDiff > -0x38E3)) {
+         this->playerYawInRange = true;
+     } else {
+         this->playerYawInRange = false;
+@@ -1776,7 +1776,7 @@ void BossDodongo_DeathCutscene(BossDodongo* this, PlayState* play) {
+                     if (this->unk_238 < 450.0f) {
+                         this->unk_238 += 10.0f;
+                     }
+-                } else if (-450.0f < this->unk_238) {
++                } else if (this->unk_238 > -450.0f) {
+                     this->unk_238 -= 10.0f;
+                 }
+             } else {
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+index eca52a6fc..6a813ec8e 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+@@ -888,7 +888,7 @@ void BossFd_Fly(BossFd* this, PlayState* play) {
+             this->fwork[BFD_TURN_RATE] = this->fwork[BFD_TURN_RATE_MAX] = this->actor.speedXZ =
+                 this->fwork[BFD_FLY_SPEED] = 0.0f;
+ 
+-            if ((50 > this->timers[0]) && (this->timers[0] > 0)) {
++            if ((this->timers[0] < 50) && (this->timers[0] > 0)) {
+                 Vec3f sp120;
+                 Vec3f sp114 = { 0.0f, 0.0f, 0.0f };
+                 Vec3f sp108 = { 0.0f, 0.03f, 0.0f };
+@@ -973,21 +973,21 @@ void BossFd_Fly(BossFd* this, PlayState* play) {
+         this->rightMane.pos[i4] = this->rightMane.head;
+         this->leftMane.pos[i4] = this->leftMane.head;
+ 
+-        if ((0x3000 > this->actor.world.rot.x) && (this->actor.world.rot.x > -0x3000)) {
++        if ((this->actor.world.rot.x < 0x3000) && (this->actor.world.rot.x > -0x3000)) {
+             Math_ApproachF(&this->flattenMane, 1.0f, 1.0f, 0.05f);
+         } else {
+             Math_ApproachF(&this->flattenMane, 0.5f, 1.0f, 0.05f);
+         }
+ 
+         if (this->work[BFD_ACTION_STATE] < BOSSFD_SKULL_FALL) {
+-            if ((this->actor.prevPos.y < 90.0f) && (90.0f <= this->actor.world.pos.y)) {
++            if ((this->actor.prevPos.y < 90.0f) && (this->actor.world.pos.y >= 90.0f)) {
+                 this->timers[4] = 80;
+                 Actor_RequestQuakeWithSpeed(play, 1, 80, 0x5000);
+                 this->work[BFD_ROAR_TIMER] = 40;
+                 this->work[BFD_MANE_EMBERS_TIMER] = 30;
+                 this->work[BFD_SPLASH_TIMER] = 10;
+             }
+-            if ((this->actor.prevPos.y > 90.0f) && (90.0f >= this->actor.world.pos.y)) {
++            if ((this->actor.prevPos.y > 90.0f) && (this->actor.world.pos.y <= 90.0f)) {
+                 this->timers[4] = 80;
+                 Actor_RequestQuakeWithSpeed(play, 1, 80, 0x5000);
+                 this->work[BFD_MANE_EMBERS_TIMER] = 30;
+@@ -1268,7 +1268,7 @@ void BossFd_Effects(BossFd* this, PlayState* play) {
+         }
+     }
+ 
+-    if ((this->actor.world.pos.y < 90.0f) || (700.0f < this->actor.world.pos.y) || (this->actionFunc == BossFd_Wait)) {
++    if ((this->actor.world.pos.y < 90.0f) || (this->actor.world.pos.y > 700.0f) || (this->actionFunc == BossFd_Wait)) {
+         this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+     } else {
+         this->actor.flags |= ACTOR_FLAG_ATTENTION_ENABLED;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c b/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
+index a6fb2002d..229725914 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd2/z_boss_fd2.c
+@@ -345,10 +345,10 @@ void BossFd2_Idle(BossFd2* this, PlayState* play) {
+         Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 3, 0x7D0, 0);
+     osSyncPrintf("SW1 = %d\n", prevToLink);
+     osSyncPrintf("SW2 = %d\n", this->work[FD2_TURN_TO_LINK]);
+-    if ((fabsf(prevToLink) <= 1000.0f) && (1000.0f < fabsf(this->work[FD2_TURN_TO_LINK]))) {
++    if ((fabsf(prevToLink) <= 1000.0f) && (fabsf(this->work[FD2_TURN_TO_LINK]) > 1000.0f)) {
+         Animation_MorphToLoop(&this->skelAnime, &gHoleVolvagiaTurnAnim, -5.0f);
+     }
+-    if ((1000.0f < fabsf(prevToLink)) && (fabsf(this->work[FD2_TURN_TO_LINK]) <= 1000.0f)) {
++    if ((fabsf(prevToLink) > 1000.0f) && (fabsf(this->work[FD2_TURN_TO_LINK]) <= 1000.0f)) {
+         Animation_MorphToLoop(&this->skelAnime, &gHoleVolvagiaIdleAnim, -5.0f);
+     }
+     if (this->timers[0] == 0) {
+@@ -417,7 +417,7 @@ void BossFd2_BreatheFire(BossFd2* this, PlayState* play) {
+     if (Animation_OnFrame(&this->skelAnime, this->fwork[FD2_END_FRAME])) {
+         BossFd2_SetupBurrow(this, play);
+     }
+-    if ((25.0f <= this->skelAnime.curFrame) && (this->skelAnime.curFrame < 70.0f)) {
++    if ((this->skelAnime.curFrame >= 25.0f) && (this->skelAnime.curFrame < 70.0f)) {
+         if (this->skelAnime.curFrame == 25.0f) {
+             play->envCtx.unk_D8 = 0.0f;
+         }
+@@ -1038,7 +1038,7 @@ s32 BossFd2_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f*
+         gDPSetEnvColor(POLY_OPA_DISP++, 255, 255, 255, (s8)bossFd->fwork[BFD_BODY_TEX2_ALPHA]);
+         CLOSE_DISPS(play->state.gfxCtx);
+     }
+-    if ((0 < limbIndex) && (limbIndex < 16)) {
++    if ((limbIndex > 0) && (limbIndex < 16)) {
+         *dList = NULL;
+     }
+     return false;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+index 63975ae58..625349ac4 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+@@ -3799,7 +3799,7 @@ void BossGanon_GenShadowTexture(u8* tex, BossGanon* this, PlayState* play) {
+                 for (y = -1, addY = -0x40; y <= 1; y++, addY += 0x40) {
+                     for (x = -3; x <= 3; x++) {
+                         index = baseX + x + baseY + addY;
+-                        if (0 <= index && index < 0x1000) {
++                        if (index >= 0 && index < 0x1000) {
+                             tex[index] = 255;
+                         }
+                     }
+@@ -3808,7 +3808,7 @@ void BossGanon_GenShadowTexture(u8* tex, BossGanon* this, PlayState* play) {
+                 for (y = -1, addY = -0x40; y <= 1; y++, addY += 0x40) {
+                     for (x = -1; x <= 1; x++) {
+                         index = baseX + x + baseY + addY;
+-                        if (0 <= index && index < 0x1000) {
++                        if (index >= 0 && index < 0x1000) {
+                             tex[index] = 255;
+                         }
+                     }
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c b/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
+index 458461b75..c405a5f5e 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.c
+@@ -905,8 +905,8 @@ void BossGanondrof_Death(BossGanondrof* this, PlayState* play) {
+     osSyncPrintf("PYP %f\n", player->actor.floorHeight);
+     SkelAnime_Update(&this->skelAnime);
+     this->work[GND_DEATH_SFX_TIMER]++;
+-    if (((60 < this->work[GND_DEATH_SFX_TIMER]) && (this->work[GND_DEATH_SFX_TIMER] < 500)) ||
+-        ((501 < this->work[GND_DEATH_SFX_TIMER]) && (this->work[GND_DEATH_SFX_TIMER] < 620))) {
++    if (((this->work[GND_DEATH_SFX_TIMER] > 60) && (this->work[GND_DEATH_SFX_TIMER] < 500)) ||
++        ((this->work[GND_DEATH_SFX_TIMER] > 501) && (this->work[GND_DEATH_SFX_TIMER] < 620))) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_GOMA_LAST - SFX_FLAG);
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+index 129c79f1b..10b111d86 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+@@ -1686,7 +1686,7 @@ void BossMo_DeathCs(BossMo* this, PlayState* play) {
+                 sMorphaTent1->tentSpeed = sMorphaTent1->tentMaxAngle;
+             }
+             if (this->timers[0] == 0) {
+-                if (-100.0f < this->cameraEye.y) {
++                if (this->cameraEye.y > -100.0f) {
+                     Math_ApproachF(&this->cameraEye.y, sMorphaTent1->actor.world.pos.y - 100.0f, 0.1f, 2000.0f);
+                 } else {
+                     Math_ApproachF(&this->cameraEye.y, -200.0f, 0.1f, 2000.0f);
+@@ -2037,7 +2037,7 @@ void BossMo_Core(BossMo* this, PlayState* play) {
+         sp88 = sMorphaTent1->tentWidth[index] * sTentWidth[this->work[MO_CORE_POS_IN_TENT]];
+         for (j = -5; j < 6; j++) {
+             index = (this->work[MO_CORE_POS_IN_TENT] + j) - 2;
+-            if ((0 <= index) && (index < 41)) {
++            if ((index >= 0) && (index < 41)) {
+                 Math_ApproachF(&sMorphaTent1->tentScale[index].x, ((coreBulge[j + 5] * 300.0f) / 100.0f) + sp88, 0.75f,
+                                5.0f);
+             }
+@@ -2880,7 +2880,7 @@ void BossMo_UpdateEffects(BossMo* this, PlayState* play) {
+                             effect->vel.z = Rand_CenteredFloat(3.0f);
+                             effect->accel.y = -1.0f;
+                         }
+-                        if ((effect->pos.y <= -280.0f) || ((1.0f >= effect->pos.y) && (effect->pos.y >= -20.0f) &&
++                        if ((effect->pos.y <= -280.0f) || ((effect->pos.y <= 1.0f) && (effect->pos.y >= -20.0f) &&
+                                                            BossMo_NearLand(&effect->pos, 0.0f))) {
+                             effect->accel.y = 0.0f;
+                             effect->vel.z = 0.0f;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c b/soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c
+index 294fe68f2..f5a213c89 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c
++++ b/soh/src/overlays/actors/ovl_Boss_Sst/z_boss_sst.c
+@@ -2935,7 +2935,7 @@ void BossSst_DrawHead(Actor* thisx, PlayState* play) {
+                                BossSst_OverrideHeadDraw, BossSst_PostHeadDraw, this, POLY_XLU_DISP);
+     }
+ 
+-    if ((this->actionFunc == BossSst_HeadIntro) && (113 >= this->timer) && (this->timer > 20)) {
++    if ((this->actionFunc == BossSst_HeadIntro) && (this->timer <= 113) && (this->timer > 20)) {
+         s32 yOffset;
+         Vec3f vanishMaskPos;
+         Vec3f vanishMaskOffset;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+index 845501fdf..4d305fcd8 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
++++ b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+@@ -1226,7 +1226,7 @@ void BossTw_ShootBeam(BossTw* this, PlayState* play) {
+                 this->groundBlastPos.y = floorY;
+ 
+                 if (floorY >= 0.0f) {
+-                    if ((this->groundBlastPos.y != 35.0f) && (0.0f < this->beamReflectionPitch) &&
++                    if ((this->groundBlastPos.y != 35.0f) && (this->beamReflectionPitch > 0.0f) &&
+                         (this->timers[0] != 0)) {
+                         this->csState1 = 1;
+                         this->groundBlastPos.x = spBC.x;
+diff --git a/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c b/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
+index 05ac53bb4..107d106cb 100644
+--- a/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
++++ b/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
+@@ -153,7 +153,7 @@ void DoorAna_WaitOpen(DoorAna* this, PlayState* play) {
+             DoorAna_SetupAction(this, DoorAna_GrabPlayer);
+         } else {
+             if (!Player_InCsMode(play) && !(player->stateFlags1 & (PLAYER_STATE1_ON_HORSE | PLAYER_STATE1_IN_WATER)) &&
+-                this->actor.xzDistToPlayer <= 15.0f && -50.0f <= this->actor.yDistToPlayer &&
++                this->actor.xzDistToPlayer <= 15.0f && this->actor.yDistToPlayer >= -50.0f &&
+                 this->actor.yDistToPlayer <= 15.0f) {
+                 player->stateFlags1 |= PLAYER_STATE1_FLOOR_DISABLED;
+                 this->actor.targetMode = 1;
+@@ -169,7 +169,7 @@ void DoorAna_WaitOpen(DoorAna* this, PlayState* play) {
+ void DoorAna_GrabPlayer(DoorAna* this, PlayState* play) {
+     Player* player;
+ 
+-    if (this->actor.yDistToPlayer <= 0.0f && 15.0f < this->actor.xzDistToPlayer) {
++    if (this->actor.yDistToPlayer <= 0.0f && this->actor.xzDistToPlayer > 15.0f) {
+         player = GET_PLAYER(play);
+         player->actor.world.pos.x = Math_SinS(this->actor.yawTowardsPlayer) * 15.0f + this->actor.world.pos.x;
+         player->actor.world.pos.z = Math_CosS(this->actor.yawTowardsPlayer) * 15.0f + this->actor.world.pos.z;
+diff --git a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+index 3e135bc87..099bf3e80 100644
+--- a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
++++ b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+@@ -165,7 +165,7 @@ void func_809B064C(EnAni* this, PlayState* play) {
+             EnAni_SetupAction(this, func_809B04F0);
+         }
+     } else if (yawDiff >= -0x36AF && yawDiff < 0 && this->actor.xzDistToPlayer < 150.0f &&
+-               -80.0f < this->actor.yDistToPlayer) {
++               this->actor.yDistToPlayer > -80.0f) {
+         if (Flags_GetItemGetInf(ITEMGETINF_15)) {
+             EnAni_SetText(this, play, 0x5056);
+         } else {
+@@ -190,7 +190,7 @@ void func_809B07F8(EnAni* this, PlayState* play) {
+             EnAni_SetupAction(this, func_809B0524);
+         }
+     } else if (yawDiff > -0x36B0 && yawDiff < 0 && this->actor.xzDistToPlayer < 150.0f &&
+-               -80.0f < this->actor.yDistToPlayer) {
++               this->actor.yDistToPlayer > -80.0f) {
+         if (Flags_GetItemGetInf(ITEMGETINF_15)) {
+             EnAni_SetText(this, play, 0x5056);
+         } else {
+diff --git a/soh/src/overlays/actors/ovl_En_Dha/z_en_dha.c b/soh/src/overlays/actors/ovl_En_Dha/z_en_dha.c
+index 5e43c2fa5..5a52d52d5 100644
+--- a/soh/src/overlays/actors/ovl_En_Dha/z_en_dha.c
++++ b/soh/src/overlays/actors/ovl_En_Dha/z_en_dha.c
+@@ -353,7 +353,7 @@ void EnDha_Die(EnDha* this, PlayState* play) {
+         vec = this->actor.world.pos;
+ 
+         if (this->actionTimer != 0) {
+-            if (-12000.0f < this->actor.shape.yOffset) {
++            if (this->actor.shape.yOffset > -12000.0f) {
+                 this->actor.shape.yOffset -= 1000.0f;
+                 func_80033480(play, &vec, 7.0f, 1, 0x5A, 0x14, 1);
+             } else {
+diff --git a/soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c b/soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c
+index d8bb200c8..21096611a 100644
+--- a/soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c
++++ b/soh/src/overlays/actors/ovl_En_Dodongo/z_en_dodongo.c
+@@ -428,7 +428,7 @@ void EnDodongo_BreatheFire(EnDodongo* this, PlayState* play) {
+     if ((s32)this->skelAnime.curFrame == 24) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_DODO_J_CRY);
+     }
+-    if ((29.0f <= this->skelAnime.curFrame) && (this->skelAnime.curFrame <= 43.0f)) {
++    if ((this->skelAnime.curFrame >= 29.0f) && (this->skelAnime.curFrame <= 43.0f)) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_DODO_J_FIRE - SFX_FLAG);
+         fireFrame = this->skelAnime.curFrame - 29.0f;
+         pos = this->actor.world.pos;
+@@ -436,7 +436,7 @@ void EnDodongo_BreatheFire(EnDodongo* this, PlayState* play) {
+         EnDodongo_ShiftVecRadial(this->actor.world.rot.y, 30.0f, &pos);
+         EnDodongo_ShiftVecRadial(this->actor.world.rot.y, 2.5f, &accel);
+         EffectSsDFire_SpawnFixedScale(play, &pos, &velocity, &accel, 255 - (fireFrame * 10), fireFrame + 3);
+-    } else if ((2.0f <= this->skelAnime.curFrame) && (this->skelAnime.curFrame <= 20.0f)) {
++    } else if ((this->skelAnime.curFrame >= 2.0f) && (this->skelAnime.curFrame <= 20.0f)) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_DODO_J_BREATH - SFX_FLAG);
+     }
+     if (SkelAnime_Update(&this->skelAnime)) {
+@@ -779,7 +779,7 @@ void EnDodongo_Update(Actor* thisx, PlayState* play) {
+         EnDodongo_SetupSwallowBomb(this);
+     }
+     if (this->actionState == DODONGO_BREATHE_FIRE) {
+-        if ((29.0f < this->skelAnime.curFrame) && (this->skelAnime.curFrame < 43.0f)) {
++        if ((this->skelAnime.curFrame > 29.0f) && (this->skelAnime.curFrame < 43.0f)) {
+             CollisionCheck_SetAT(play, &play->colChkCtx, &this->colliderAT.base);
+         }
+     }
+@@ -834,7 +834,7 @@ void EnDodongo_PostLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3s*
+ 
+     switch (limbIndex) {
+         case 2:
+-            if ((this->actionState == DODONGO_BREATHE_FIRE) && (29.0f < this->skelAnime.curFrame) &&
++            if ((this->actionState == DODONGO_BREATHE_FIRE) && (this->skelAnime.curFrame > 29.0f) &&
+                 (this->skelAnime.curFrame < 43.0f)) {
+                 EnDodongo_UpdateQuad(this, play);
+             }
+diff --git a/soh/src/overlays/actors/ovl_En_Dog/z_en_dog.c b/soh/src/overlays/actors/ovl_En_Dog/z_en_dog.c
+index caba4aac0..6796721f3 100644
+--- a/soh/src/overlays/actors/ovl_En_Dog/z_en_dog.c
++++ b/soh/src/overlays/actors/ovl_En_Dog/z_en_dog.c
+@@ -440,7 +440,7 @@ void EnDog_FaceLink(EnDog* this, PlayState* play) {
+     f32 absAngleDiff;
+ 
+     // if the dog is more than 200 units away from Link, turn to face him then wait
+-    if (200.0f <= this->actor.xzDistToPlayer) {
++    if (this->actor.xzDistToPlayer >= 200.0f) {
+         this->nextBehavior = DOG_WALK;
+ 
+         Math_ApproachF(&this->actor.speedXZ, 1.0f, 0.6f, 1.0f);
+diff --git a/soh/src/overlays/actors/ovl_En_Eg/z_en_eg.c b/soh/src/overlays/actors/ovl_En_Eg/z_en_eg.c
+index 1e4292383..f40fab820 100644
+--- a/soh/src/overlays/actors/ovl_En_Eg/z_en_eg.c
++++ b/soh/src/overlays/actors/ovl_En_Eg/z_en_eg.c
+@@ -65,7 +65,7 @@ void EnEg_Update(Actor* thisx, PlayState* play) {
+     EnEg* this = (EnEg*)thisx;
+     s32 action = this->action;
+ 
+-    if (((action < 0) || (0 < action)) || (sActionFuncs[action] == NULL)) {
++    if (((action < 0) || (action > 0)) || (sActionFuncs[action] == NULL)) {
+         // "Main Mode is wrong!!!!!!!!!!!!!!!!!!!!!!!!!"
+         osSyncPrintf(VT_FGCOL(RED) "メインモードがおかしい!!!!!!!!!!!!!!!!!!!!!!!!!\n" VT_RST);
+     } else {
+diff --git a/soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c b/soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c
+index 5b1ad6bda..4ebf5a1d3 100644
+--- a/soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c
++++ b/soh/src/overlays/actors/ovl_En_Firefly/z_en_firefly.c
+@@ -395,7 +395,7 @@ void EnFirefly_FlyIdle(EnFirefly* this, PlayState* play) {
+             } else if (this->maxAltitude < this->actor.world.pos.y) {
+                 this->targetPitch = 0x2154;
+                 // Otherwise ascend or descend at random, biased towards ascending
+-            } else if (0.35f < Rand_ZeroOne()) {
++            } else if (Rand_ZeroOne() > 0.35f) {
+                 this->targetPitch = 0x954;
+             } else {
+                 this->targetPitch = 0x2154;
+diff --git a/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c b/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
+index fb894af8c..01134018f 100644
+--- a/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
++++ b/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
+@@ -1026,7 +1026,7 @@ void EnFloormas_Update(Actor* thisx, PlayState* play) {
+             this->collider.base.atFlags &= ~AT_HIT;
+             this->actor.speedXZ *= -0.5f;
+ 
+-            if (-5.0f < this->actor.speedXZ) {
++            if (this->actor.speedXZ > -5.0f) {
+                 this->actor.speedXZ = -5.0f;
+             } else {
+                 this->actor.speedXZ = this->actor.speedXZ;
+diff --git a/soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c b/soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c
+index 7b705e66e..2731cfe8f 100644
+--- a/soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c
++++ b/soh/src/overlays/actors/ovl_En_Ganon_Mant/z_en_ganon_mant.c
+@@ -135,7 +135,7 @@ void EnGanonMant_Tear(EnGanonMant* this) {
+     s16* tearAreaSizes = shape->tearAreaSizes;
+ 
+     for (i = 0; i < count; i++) {
+-        if ((0 <= tx && tx < MANT_TEX_WIDTH) && (0 <= ty && ty < MANT_TEX_HEIGHT)) {
++        if ((tx >= 0 && tx < MANT_TEX_WIDTH) && (ty >= 0 && ty < MANT_TEX_HEIGHT)) {
+             for (areaX = 0; areaX <= tearAreaSizes[i]; areaX++) {
+                 texIdx = 0;
+                 for (areaY = 0; areaY <= tearAreaSizes[i]; areaY++) {
+diff --git a/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c b/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
+index 4bd202421..23adb5ad7 100644
+--- a/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
++++ b/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
+@@ -452,7 +452,7 @@ void EnGeldB_Ready(EnGeldB* this, PlayState* play) {
+             EnGeldB_SetupCircle(this);
+         } else if (--this->timer == 0) {
+             if (Actor_IsFacingPlayer(&this->actor, 30 * 0x10000 / 360)) {
+-                if ((210.0f > this->actor.xzDistToPlayer) && (this->actor.xzDistToPlayer > 150.0f) &&
++                if ((this->actor.xzDistToPlayer < 210.0f) && (this->actor.xzDistToPlayer > 150.0f) &&
+                     (Rand_ZeroOne() < 0.3f)) {
+                     if (Actor_OtherIsTargeted(play, &this->actor) || (Rand_ZeroOne() > 0.5f) ||
+                         (ABS(angleToLink) < 0x38E0)) {
+@@ -531,7 +531,7 @@ void EnGeldB_Advance(EnGeldB* this, PlayState* play) {
+             }
+         }
+         if (!EnGeldB_ReactToPlayer(play, this, 0)) {
+-            if ((210.0f > this->actor.xzDistToPlayer) && (this->actor.xzDistToPlayer > 150.0f) &&
++            if ((this->actor.xzDistToPlayer < 210.0f) && (this->actor.xzDistToPlayer > 150.0f) &&
+                 Actor_IsFacingPlayer(&this->actor, 0x71C)) {
+                 if (Actor_IsTargeted(play, &this->actor)) {
+                     if (Rand_ZeroOne() > 0.5f) {
+@@ -715,7 +715,7 @@ void EnGeldB_Circle(EnGeldB* this, PlayState* play) {
+         prevKeyFrame = this->skelAnime.curFrame - ABS(this->skelAnime.playSpeed);
+         nextKeyFrame = (s32)ABS(this->skelAnime.playSpeed) + thisKeyFrame;
+         if ((thisKeyFrame != (s32)this->skelAnime.curFrame) &&
+-            ((prevKeyFrame < 0 && 0 < nextKeyFrame) || (prevKeyFrame < 5 && 5 < nextKeyFrame))) {
++            ((prevKeyFrame < 0 && nextKeyFrame > 0) || (prevKeyFrame < 5 && nextKeyFrame > 5))) {
+             Audio_PlayActorSound2(&this->actor, NA_SE_EN_MUSI_LAND);
+         }
+         if ((play->gameplayFrames & 0x5F) == 0) {
+@@ -807,7 +807,7 @@ void EnGeldB_SpinDodge(EnGeldB* this, PlayState* play) {
+     lastKeyFrame = this->skelAnime.curFrame - ABS(this->skelAnime.playSpeed);
+     nextKeyFrame = (s32)ABS(this->skelAnime.playSpeed) + thisKeyFrame;
+     if ((thisKeyFrame != (s32)this->skelAnime.curFrame) &&
+-        ((lastKeyFrame < 0 && 0 < nextKeyFrame) || (lastKeyFrame < 5 && 5 < nextKeyFrame))) {
++        ((lastKeyFrame < 0 && nextKeyFrame > 0) || (lastKeyFrame < 5 && nextKeyFrame > 5))) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_MUSI_LAND);
+     }
+     if ((play->gameplayFrames & 0x5F) == 0) {
+@@ -1282,7 +1282,7 @@ void EnGeldB_Sidestep(EnGeldB* this, PlayState* play) {
+                 if ((this->actor.xzDistToPlayer <= 45.0f) && !Actor_OtherIsTargeted(play, &this->actor) &&
+                     (!(play->gameplayFrames & 3) || (ABS(angleFacingPlayer2) < 0x38E0))) {
+                     EnGeldB_SetupSlash(this);
+-                } else if ((210.0f > this->actor.xzDistToPlayer) && (this->actor.xzDistToPlayer > 150.0f) &&
++                } else if ((this->actor.xzDistToPlayer < 210.0f) && (this->actor.xzDistToPlayer > 150.0f) &&
+                            !(play->gameplayFrames & 1)) {
+                     if (Actor_OtherIsTargeted(play, &this->actor) || (Rand_ZeroOne() > 0.5f) ||
+                         (ABS(angleFacingPlayer2) < 0x38E0)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c b/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
+index b3641e340..e5524b5cc 100644
+--- a/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
++++ b/soh/src/overlays/actors/ovl_En_Heishi2/z_en_heishi2.c
+@@ -426,7 +426,7 @@ void func_80A53AD4(EnHeishi2* this, PlayState* play) {
+     } else {
+         yawDiffTemp = this->actor.yawTowardsPlayer - this->actor.shape.rot.y;
+         yawDiff = ABS(yawDiffTemp);
+-        if (!(120.0f < this->actor.xzDistToPlayer) && (yawDiff < 0x4300)) {
++        if (!(this->actor.xzDistToPlayer > 120.0f) && (yawDiff < 0x4300)) {
+             Actor_OfferTalkExchangeEquiCylinder(&this->actor, play, 100.0f, EXCH_ITEM_LETTER_ZELDA);
+         }
+     }
+@@ -456,7 +456,7 @@ void func_80A53D0C(EnHeishi2* this, PlayState* play) {
+     frameCount = this->skelAnime.curFrame;
+     gate = (BgGateShutter*)play->actorCtx.actorLists[ACTORCAT_ITEMACTION].head;
+     SkelAnime_Update(&this->skelAnime);
+-    if (12.0f <= frameCount) {
++    if (frameCount >= 12.0f) {
+         if (this->audioFlag == 0) {
+             Audio_PlayActorSound2(&this->actor, NA_SE_EV_SPEAR_HIT);
+             this->audioFlag = 1;
+diff --git a/soh/src/overlays/actors/ovl_En_Hintnuts/z_en_hintnuts.c b/soh/src/overlays/actors/ovl_En_Hintnuts/z_en_hintnuts.c
+index 26e7f0129..05111b4e7 100644
+--- a/soh/src/overlays/actors/ovl_En_Hintnuts/z_en_hintnuts.c
++++ b/soh/src/overlays/actors/ovl_En_Hintnuts/z_en_hintnuts.c
+@@ -244,7 +244,7 @@ void EnHintnuts_Wait(EnHintnuts* this, PlayState* play) {
+             EnHintnuts_SetupStand(this);
+         }
+     }
+-    if (hasSlowPlaybackSpeed && 160.0f < this->actor.xzDistToPlayer && fabsf(this->actor.yDistToPlayer) < 120.0f &&
++    if (hasSlowPlaybackSpeed && this->actor.xzDistToPlayer > 160.0f && fabsf(this->actor.yDistToPlayer) < 120.0f &&
+         ((this->animFlagAndTimer == 0) || (this->actor.xzDistToPlayer < 480.0f))) {
+         this->skelAnime.playSpeed = 1.0f;
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Honotrap/z_en_honotrap.c b/soh/src/overlays/actors/ovl_En_Honotrap/z_en_honotrap.c
+index 42fe00aab..61fc6ac41 100644
+--- a/soh/src/overlays/actors/ovl_En_Honotrap/z_en_honotrap.c
++++ b/soh/src/overlays/actors/ovl_En_Honotrap/z_en_honotrap.c
+@@ -233,7 +233,7 @@ void EnHonotrap_SetupEyeIdle(EnHonotrap* this) {
+ void EnHonotrap_EyeIdle(EnHonotrap* this, PlayState* play) {
+     if (this->actor.child != NULL) {
+         this->timer = 200;
+-    } else if ((this->timer <= 0) && (this->actor.xzDistToPlayer < 750.0f) && (0.0f > this->actor.yDistToPlayer) &&
++    } else if ((this->timer <= 0) && (this->actor.xzDistToPlayer < 750.0f) && (this->actor.yDistToPlayer < 0.0f) &&
+                (this->actor.yDistToPlayer > -700.0f) &&
+                (-0x4000 < (this->actor.yawTowardsPlayer - this->actor.shape.rot.y)) &&
+                ((this->actor.yawTowardsPlayer - this->actor.shape.rot.y) < 0x4000)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c b/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
+index df66d1882..80e102d5e 100644
+--- a/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
++++ b/soh/src/overlays/actors/ovl_En_Nwc/z_en_nwc.c
+@@ -94,7 +94,7 @@ void EnNwc_ChickBgCheck(EnNwcChick* chick, PlayState* play) {
+     //       doesn't go through the floor and cause the chicks to ignore all floors.
+     chick->floorY = BgCheck_EntityRaycastFloor3(&play->colCtx, &outPoly, &bgId, &outPos);
+     dy = chick->floorY - chick->pos.y;
+-    if ((0.0f <= dy) && (dy < 40.0f)) {
++    if ((dy >= 0.0f) && (dy < 40.0f)) {
+         chick->pos.y = chick->floorY;
+         chick->bgFlags |= CHICK_BG_FLOOR;
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c b/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
+index 17d57bbdc..848be62f3 100644
+--- a/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
++++ b/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
+@@ -759,7 +759,7 @@ void func_80ACB748(EnOwl* this, PlayState* play) {
+         case 8:
+         case 9:
+             func_800F436C(&D_80ACD62C, NA_SE_EV_FLYING_AIR - SFX_FLAG, weight * 2.0f);
+-            if ((play->csCtx.frames >= 420) || ((0xC1 < play->csCtx.frames && (play->csCtx.frames <= 280)))) {
++            if ((play->csCtx.frames >= 420) || ((play->csCtx.frames > 0xC1 && (play->csCtx.frames <= 280)))) {
+                 func_800F4414(&D_80ACD62C, NA_SE_EN_OWL_FLUTTER, weight * 2.0f);
+             }
+             if (play->csCtx.frames == 217) {
+diff --git a/soh/src/overlays/actors/ovl_En_Peehat/z_en_peehat.c b/soh/src/overlays/actors/ovl_En_Peehat/z_en_peehat.c
+index 4abcf223b..b1b693b7e 100644
+--- a/soh/src/overlays/actors/ovl_En_Peehat/z_en_peehat.c
++++ b/soh/src/overlays/actors/ovl_En_Peehat/z_en_peehat.c
+@@ -671,7 +671,7 @@ void EnPeehat_Ground_StateHover(EnPeehat* this, PlayState* play) {
+     }
+     this->actor.world.pos.y += Math_CosF(this->unk_2E0) * 1.4f;
+     cos = Math_CosF(this->unk_2E0) * 0.18f;
+-    this->unk_2E0 += ((0.0f <= cos) ? cos : -cos) + 0.07f;
++    this->unk_2E0 += ((cos >= 0.0f) ? cos : -cos) + 0.07f;
+     this->unk_2D4--;
+     if (this->unk_2D4 <= 0) {
+         this->actor.speedXZ = Rand_ZeroOne() * 0.5f + 2.5f;
+@@ -720,7 +720,7 @@ void EnPeehat_Ground_StateReturnHome(EnPeehat* this, PlayState* play) {
+     }
+     this->actor.world.pos.y += Math_CosF(this->unk_2E0) * 1.4f;
+     cos = Math_CosF(this->unk_2E0) * 0.18f;
+-    this->unk_2E0 += ((0.0f <= cos) ? cos : -cos) + 0.07f;
++    this->unk_2E0 += ((cos >= 0.0f) ? cos : -cos) + 0.07f;
+     yRot = Math_Vec3f_Yaw(&this->actor.world.pos, &this->actor.home.pos);
+     Math_SmoothStepToS(&this->actor.world.rot.y, yRot, 1, 600, 0);
+     Math_SmoothStepToS(&this->actor.shape.rot.x, 4500, 1, 600, 0);
+diff --git a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+index e4e1060d0..78d6b8bb3 100644
+--- a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
++++ b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+@@ -736,7 +736,7 @@ void func_80ADAC70(EnPoSisters* this, PlayState* play) {
+         this->actor.world.rot.y = this->actor.shape.rot.y;
+         this->unk_199 |= 2;
+         func_80AD9718(this);
+-    } else if (this->unk_19A == 0 && 240.0f < this->actor.xzDistToPlayer) {
++    } else if (this->unk_19A == 0 && this->actor.xzDistToPlayer > 240.0f) {
+         this->actor.world.rot.y = this->actor.shape.rot.y;
+         func_80AD93C4(this);
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c b/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
+index 604c78198..45927b430 100644
+--- a/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
++++ b/soh/src/overlays/actors/ovl_En_Sw/z_en_sw.c
+@@ -644,7 +644,7 @@ void func_80B0DB00(EnSw* this, PlayState* play) {
+     this->actor.shape.rot.z += 0x1000;
+     Actor_UpdateBgCheckInfo(play, &this->actor, 20.0f, 20.0f, 0.0f, 5);
+ 
+-    if ((this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) && (!(0.0f <= this->actor.velocity.y))) {
++    if ((this->actor.bgCheckFlags & BGCHECKFLAG_GROUND) && (!(this->actor.velocity.y >= 0.0f))) {
+         if (this->actor.floorHeight <= BGCHECK_Y_MIN || this->actor.floorHeight >= 32000.0f) {
+             Actor_Kill(&this->actor);
+             return;
+diff --git a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+index c0d682f17..ee3c34ce5 100644
+--- a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
++++ b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+@@ -451,7 +451,7 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+ 
+                         sStickAngle = thisx->yawTowardsPlayer;
+                         sp50 = 0.0f;
+-                        if ((90.0f >= this->actor.xzDistToPlayer) && (this->actor.xzDistToPlayer > 70.0f) &&
++                        if ((this->actor.xzDistToPlayer <= 90.0f) && (this->actor.xzDistToPlayer > 70.0f) &&
+                             (ABS(sp5A) >= 0x7800) &&
+                             (this->actor.isTargeted || !(player->stateFlags1 & PLAYER_STATE1_SHIELDING))) {
+                             EnTorch2_SwingSword(play, input, this);
+diff --git a/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c b/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
+index 31422ad99..c15d059aa 100644
+--- a/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
++++ b/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
+@@ -318,7 +318,7 @@ void EnWallmas_WaitToDrop(EnWallmas* this, PlayState* play) {
+         }
+     } else if ((player->stateFlags1 & PLAYER_STATE1_FIRST_PERSON) || (player->stateFlags1 & PLAYER_STATE1_IN_WATER) ||
+                !(player->actor.bgCheckFlags & 1) ||
+-               ((this->actor.params == 1) && (320.0f < Math_Vec3f_DistXZ(&this->actor.home.pos, playerPos)))) {
++               ((this->actor.params == 1) && (Math_Vec3f_DistXZ(&this->actor.home.pos, playerPos) > 320.0f))) {
+         Audio_StopSfxById(NA_SE_EN_FALL_AIM);
+         this->timer = 0x82;
+     }
+diff --git a/soh/src/overlays/actors/ovl_Obj_Syokudai/z_obj_syokudai.c b/soh/src/overlays/actors/ovl_Obj_Syokudai/z_obj_syokudai.c
+index 17814f39c..bfc7acbc1 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Syokudai/z_obj_syokudai.c
++++ b/soh/src/overlays/actors/ovl_Obj_Syokudai/z_obj_syokudai.c
+@@ -198,7 +198,7 @@ void ObjSyokudai_Update(Actor* thisx, PlayState* play2) {
+                         arrow->collider.info.toucher.dmgFlags = 0x800;
+                     }
+                 }
+-                if ((0 <= this->litTimer) && (this->litTimer < (50 * litTimeScale + 100)) && (torchType != 0)) {
++                if ((this->litTimer >= 0) && (this->litTimer < (50 * litTimeScale + 100)) && (torchType != 0)) {
+                     this->litTimer = 50 * litTimeScale + 100;
+                 }
+             } else if ((torchType != 0) && (((interactionType > 0) && (dmgFlags & 0x20800)) ||
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 779e6900f..1611bff4a 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -12679,7 +12679,7 @@ void func_8084AEEC(Player* this, f32* arg1, f32 arg2, s16 arg3) {
+         *arg1 = temp2;
+     }
+ 
+-    if ((0.0f < temp1) && (temp1 < 10.0f)) {
++    if ((temp1 > 0.0f) && (temp1 < 10.0f)) {
+         temp1 *= 6.0f;
+     } else {
+         temp1 = 0.0f;
+@@ -12705,7 +12705,7 @@ void SurfaceWithoutSwimMod(Player* this, f32* arg1, f32 arg2, s16 arg3) {
+         *arg1 = temp2;
+     }
+ 
+-    if ((0.0f < temp1) && (temp1 < 10.0f)) {
++    if ((temp1 > 0.0f) && (temp1 < 10.0f)) {
+         temp1 *= 6.0f;
+     } else {
+         temp1 = 0.0f;
+@@ -15310,7 +15310,7 @@ void Player_Action_80850AEC(Player* this, PlayState* play) {
+         return;
+     }
+ 
+-    if ((this->skelAnime.animation != &gPlayerAnim_link_hook_fly_start) || (4.0f <= this->skelAnime.curFrame)) {
++    if ((this->skelAnime.animation != &gPlayerAnim_link_hook_fly_start) || (this->skelAnime.curFrame >= 4.0f)) {
+         this->actor.gravity = 0.0f;
+         Math_ScaledStepToS(&this->actor.shape.rot.x, this->actor.world.rot.x, 0x800);
+         Player_RequestRumble(this, 100, 2, 100, 0);
+-- 
+2.55.0
+

@@ -1,0 +1,89 @@
+From 5f4a6d155247108036701974335d08d76eece86a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:36:30 +0000
+Subject: [PATCH 14/36] code: `else` instead of a redundant `else if (X == 0)`
+ after `if (X != 0)` in Interface_Update
+
+Seven `restrictions.*` chains test a field and then its exact complement;
+nothing between the two tests writes `interfaceCtx->restrictions` (the
+arms write only `gSaveContext.buttonStatus[]` and a local), so the second
+test is `else`.
+
+Verified: z_parameter.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/z_parameter.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 69fd6ded3..cef4560ce 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -1128,7 +1128,7 @@ void func_80083108(PlayState* play) {
+                             gSaveContext.buttonStatus[BUTTON_STATUS_INDEX(i)] = BTN_DISABLED;
+                         }
+                     }
+-                } else if (interfaceCtx->restrictions.bottles == 0) {
++                } else {
+                     for (i = 1; i < ARRAY_COUNT(gSaveContext.equips.buttonItems); i++) {
+                         if ((gSaveContext.equips.buttonItems[i] >= ITEM_BOTTLE) &&
+                             (gSaveContext.equips.buttonItems[i] <= ITEM_POE)) {
+@@ -1158,7 +1158,7 @@ void func_80083108(PlayState* play) {
+                             gSaveContext.buttonStatus[BUTTON_STATUS_INDEX(i)] = BTN_DISABLED;
+                         }
+                     }
+-                } else if (interfaceCtx->restrictions.tradeItems == 0) {
++                } else {
+                     for (i = 1; i < ARRAY_COUNT(gSaveContext.equips.buttonItems); i++) {
+                         if ((gSaveContext.equips.buttonItems[i] >= ITEM_WEIRD_EGG) &&
+                             (gSaveContext.equips.buttonItems[i] <= ITEM_CLAIM_CHECK)) {
+@@ -1182,7 +1182,7 @@ void func_80083108(PlayState* play) {
+                             gSaveContext.buttonStatus[BUTTON_STATUS_INDEX(i)] = BTN_DISABLED;
+                         }
+                     }
+-                } else if (interfaceCtx->restrictions.hookshot == 0) {
++                } else {
+                     for (i = 1; i < ARRAY_COUNT(gSaveContext.equips.buttonItems); i++) {
+                         if ((gSaveContext.equips.buttonItems[i] == ITEM_HOOKSHOT) ||
+                             (gSaveContext.equips.buttonItems[i] == ITEM_LONGSHOT)) {
+@@ -1206,7 +1206,7 @@ void func_80083108(PlayState* play) {
+                             gSaveContext.buttonStatus[BUTTON_STATUS_INDEX(i)] = BTN_DISABLED;
+                         }
+                     }
+-                } else if (interfaceCtx->restrictions.ocarina == 0) {
++                } else {
+                     for (i = 1; i < ARRAY_COUNT(gSaveContext.equips.buttonItems); i++) {
+                         if ((gSaveContext.equips.buttonItems[i] == ITEM_OCARINA_FAIRY) ||
+                             (gSaveContext.equips.buttonItems[i] == ITEM_OCARINA_TIME)) {
+@@ -1230,7 +1230,7 @@ void func_80083108(PlayState* play) {
+                             osSyncPrintf("***(i=%d)***  ", i);
+                         }
+                     }
+-                } else if (interfaceCtx->restrictions.farores == 0) {
++                } else {
+                     for (i = 1; i < ARRAY_COUNT(gSaveContext.equips.buttonItems); i++) {
+                         if (gSaveContext.equips.buttonItems[i] == ITEM_FARORES_WIND) {
+                             if (gSaveContext.buttonStatus[BUTTON_STATUS_INDEX(i)] == BTN_DISABLED) {
+@@ -1253,7 +1253,7 @@ void func_80083108(PlayState* play) {
+                             gSaveContext.buttonStatus[BUTTON_STATUS_INDEX(i)] = BTN_DISABLED;
+                         }
+                     }
+-                } else if (interfaceCtx->restrictions.dinsNayrus == 0) {
++                } else {
+                     for (i = 1; i < ARRAY_COUNT(gSaveContext.equips.buttonItems); i++) {
+                         if ((gSaveContext.equips.buttonItems[i] == ITEM_DINS_FIRE) ||
+                             (gSaveContext.equips.buttonItems[i] == ITEM_NAYRUS_LOVE)) {
+@@ -1293,7 +1293,7 @@ void func_80083108(PlayState* play) {
+                             }
+                         }
+                     }
+-                } else if (interfaceCtx->restrictions.all == 0) {
++                } else {
+                     for (i = 1; i < ARRAY_COUNT(gSaveContext.equips.buttonItems); i++) {
+                         if ((gSaveContext.equips.buttonItems[i] != ITEM_DINS_FIRE) &&
+                             (gSaveContext.equips.buttonItems[i] != ITEM_HOOKSHOT) &&
+-- 
+2.55.0
+

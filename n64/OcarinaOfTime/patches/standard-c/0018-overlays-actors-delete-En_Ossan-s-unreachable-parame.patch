@@ -1,0 +1,46 @@
+From 1aa95671f4662a1581684b5c002c0e0c3da0836c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:42:28 +0000
+Subject: [PATCH 18/36] overlays/actors: delete En_Ossan's unreachable
+ parameter check
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`params > OSSAN_TYPE_MASK && params < OSSAN_TYPE_KOKIRI` is `> 10 && < 0`
+— empty (the decomp's own `//! @bug` note says the `&&` should have been
+`||`). The block cannot run and GCC already omits it; making it `||`
+would change behaviour, so this only removes what the ROM never did.
+
+Verified: z_en_ossan.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_En_Ossan/z_en_ossan.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Ossan/z_en_ossan.c b/soh/src/overlays/actors/ovl_En_Ossan/z_en_ossan.c
+index c92e3c995..f3bf82763 100644
+--- a/soh/src/overlays/actors/ovl_En_Ossan/z_en_ossan.c
++++ b/soh/src/overlays/actors/ovl_En_Ossan/z_en_ossan.c
+@@ -595,16 +595,6 @@ void EnOssan_Init(Actor* thisx, PlayState* play) {
+         this->actor.params = OSSAN_TYPE_INGO;
+     }
+ 
+-    //! @bug This check will always evaluate to false, it should be || not &&
+-    if (this->actor.params > OSSAN_TYPE_MASK && this->actor.params < OSSAN_TYPE_KOKIRI) {
+-        Actor_Kill(&this->actor);
+-        osSyncPrintf(VT_COL(RED, WHITE));
+-        osSyncPrintf("引数がおかしいよ(arg_data=%d)！！\n", this->actor.params);
+-        osSyncPrintf(VT_RST);
+-        assert(this->actor.params > OSSAN_TYPE_MASK && this->actor.params < OSSAN_TYPE_KOKIRI);
+-        return;
+-    }
+-
+     // If you haven't given Zelda's Letter to the Kakariko Guard
+     if (this->actor.params == OSSAN_TYPE_MASK && !Flags_GetInfTable(INFTABLE_SHOWED_ZELDAS_LETTER_TO_GATE_GUARD)) {
+         Actor_Kill(&this->actor);
+-- 
+2.55.0
+

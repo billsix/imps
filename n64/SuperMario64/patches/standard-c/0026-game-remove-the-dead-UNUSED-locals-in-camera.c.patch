@@ -1,0 +1,113 @@
+From eafbc9300e3bc5fdfe9d30465aa30f587d42b04d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:26:39 +0000
+Subject: [PATCH 26/46] game: remove the dead UNUSED locals in camera.c
+
+Locals that are declared, at most initialised or zeroed, and never read:
+`cenDistX/Z` (recomputed as `areaDistX/Z` two lines later), `unused1/2`,
+`unusedScale`, the zeroed `Vec3f unused`, three bare `unused`, and the
+`start`/`end` transition pointers in reset_camera. They were stack-frame
+padding to match; the `UNUSED u8 fillerN[]` arrays that do the same job
+are removed separately.
+
+Verified: camera.c compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/camera.c | 18 ------------------
+ 1 file changed, 18 deletions(-)
+
+diff --git a/src/game/camera.c b/src/game/camera.c
+index 103f71cc..88c1f31b 100644
+--- a/src/game/camera.c
++++ b/src/game/camera.c
+@@ -924,8 +924,6 @@ s32 update_radial_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
+  * Update the camera during 8 directional mode
+  */
+ s32 update_8_directions_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
+-    UNUSED f32 cenDistX = sMarioCamState->pos[0] - c->areaCenX;
+-    UNUSED f32 cenDistZ = sMarioCamState->pos[2] - c->areaCenZ;
+     s16 camYaw = s8DirModeBaseYaw + s8DirModeYawOffset;
+     s16 pitch = look_down_slopes(camYaw);
+     f32 posY;
+@@ -1005,8 +1003,6 @@ void radial_camera_move(struct Camera *c) {
+     s16 rotateSpeed = 0x1000;
+     s16 avoidYaw;
+     s32 avoidStatus;
+-    UNUSED s16 unused1 = 0;
+-    UNUSED s32 unused2 = 0;
+     f32 areaDistX = sMarioCamState->pos[0] - c->areaCenX;
+     f32 areaDistZ = sMarioCamState->pos[2] - c->areaCenZ;
+     UNUSED u8 filler[4];
+@@ -1409,12 +1405,10 @@ s32 update_parallel_tracking_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
+     UNUSED u8 filler2[8];
+     f32 pathLength;
+     UNUSED u8 filler3[8];
+-    UNUSED f32 unusedScale = 0.5f;
+     f32 parScale = 0.5f;
+     f32 marioFloorDist;
+     Vec3f marioPos;
+     UNUSED u8 filler4[12];
+-    UNUSED Vec3f unused;
+     Vec3s pathAngle;
+     // Variables for changing to the next/prev path in the list
+     Vec3f oldPos;
+@@ -1427,10 +1421,6 @@ s32 update_parallel_tracking_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
+     s16 prevYaw;
+     s16 nextYaw;
+ 
+-    unused[0] = 0.f;
+-    unused[1] = 0.f;
+-    unused[2] = 0.f;
+-
+     // Store camera pos, for changing between paths
+     vec3f_copy(oldPos, pos);
+ 
+@@ -1685,7 +1675,6 @@ s32 update_boss_fight_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
+     /// Floor originOffset
+     f32 oo;
+     UNUSED u8 filler4[4];
+-    UNUSED s16 unused;
+     s16 yaw;
+     s16 heldState;
+     struct Surface *floor;
+@@ -2550,7 +2539,6 @@ void mode_mario_camera(struct Camera *c) {
+  * Rotates the camera around the spiral staircase.
+  */
+ s32 update_spiral_stairs_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
+-    UNUSED s16 unused;
+     /// The returned yaw
+     s16 camYaw;
+     // unused
+@@ -3413,10 +3401,7 @@ void update_camera(struct Camera *c) {
+  * Reset all the camera variables to their arcane defaults
+  */
+ void reset_camera(struct Camera *c) {
+-    UNUSED s32 unused = 0;
+     UNUSED u8 filler[16];
+-    UNUSED struct LinearTransitionPoint *start = &sModeInfo.transitionStart;
+-    UNUSED struct LinearTransitionPoint *end = &sModeInfo.transitionEnd;
+ 
+     gCamera = c;
+     gCameraMovementFlags = 0;
+@@ -4547,8 +4532,6 @@ s32 clamp_positions_and_find_yaw(Vec3f pos, Vec3f origin, f32 xMax, f32 xMin, f3
+ s32 calc_avoid_yaw(s16 yawFromMario, s16 wallYaw) {
+     s16 yawDiff;
+     UNUSED u8 filler[34]; // Debug print buffer? ;)
+-    UNUSED s32 unused1 = 0;
+-    UNUSED s32 unused2 = 0;
+ 
+     yawDiff = wallYaw - yawFromMario + DEGREES(90);
+ 
+@@ -5515,7 +5498,6 @@ void stub_camera_4(UNUSED s32 a, UNUSED s32 b, UNUSED s32 c, UNUSED s32 d) {
+  */
+ void set_focus_rel_mario(struct Camera *c, f32 leftRight, f32 yOff, f32 forwBack, s16 yawOff) {
+     s16 yaw;
+-    UNUSED u16 unused;
+     f32 focFloorYOff;
+ 
+     calc_y_to_curr_floor(&focFloorYOff, 1.f, 200.f, &focFloorYOff, 0.9f, 200.f);
+-- 
+2.55.0
+

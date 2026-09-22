@@ -1,0 +1,79 @@
+From 3529dc59720f8639db6797c4ece0a38d373cde13 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:38:33 +0000
+Subject: [PATCH 15/36] code: `return` instead of `goto` to a label whose body
+ is a `return`
+
+z_player_lib.c `goto return_neg` / `return_neg: return -1;` and
+audio_heap.c two `goto fail` whose label lived inside an `if (0) {}`
+only so it had a home: each jump lands on a single `return` of a
+constant, so the jump is that return. Labels deleted with their last
+reference. (db_camera.c has three `goto block_2` of the same shape, but
+GCC then stops tail-merging the returns; that one is left for the
+explained-diff list.)
+
+Verified: both files compile to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/audio_heap.c   | 12 ++++--------
+ soh/src/code/z_player_lib.c |  5 +----
+ 2 files changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/soh/src/code/audio_heap.c b/soh/src/code/audio_heap.c
+index f0d1afb44..30f0b8760 100644
+--- a/soh/src/code/audio_heap.c
++++ b/soh/src/code/audio_heap.c
+@@ -439,24 +439,20 @@ void* AudioHeap_AllocCached(s32 tableType, ptrdiff_t size, s32 cache, s32 id) {
+             if (tp->nextSide == 0) {
+                 if (firstVal == 1) {
+                     if (secondVal == 1) {
+-                        goto fail;
++                        // Both sides are being loaded into.
++                        return NULL;
+                     }
+                     tp->nextSide = 1;
+                 }
+             } else {
+                 if (secondVal == 1) {
+                     if (firstVal == 1) {
+-                        goto fail;
++                        // Both sides are being loaded into.
++                        return NULL;
+                     }
+                     tp->nextSide = 0;
+                 }
+             }
+-
+-            if (0) {
+-            fail:
+-                // Both sides are being loaded into.
+-                return NULL;
+-            }
+         }
+     done:
+ 
+diff --git a/soh/src/code/z_player_lib.c b/soh/src/code/z_player_lib.c
+index ecc6dc266..e857db795 100644
+--- a/soh/src/code/z_player_lib.c
++++ b/soh/src/code/z_player_lib.c
+@@ -913,14 +913,11 @@ s32 func_8008F2BC(Player* this, s32 itemAction) {
+     if (itemAction != PLAYER_IA_SWORD_CS) {
+         sword = itemAction - PLAYER_IA_SWORD_MASTER;
+         if ((sword < 0) || (sword >= 3)) {
+-            goto return_neg;
++            return -1;
+         }
+     }
+ 
+     return sword;
+-
+-return_neg:
+-    return -1;
+ }
+ 
+ s32 Player_GetEnvironmentalHazard(PlayState* play) {
+-- 
+2.55.0
+

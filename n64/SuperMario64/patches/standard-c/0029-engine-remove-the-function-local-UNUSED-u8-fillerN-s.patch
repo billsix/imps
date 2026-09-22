@@ -1,0 +1,81 @@
+From 4c9f89792450f48381d8852cc27a7b60ad8229ca Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:27:40 +0000
+Subject: [PATCH 29/46] engine: remove the function-local `UNUSED u8 fillerN[]`
+ stack padding
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+These arrays exist to reproduce the ROM's stack-frame layout for the
+matching build; they are never read or written and the UNUSED attribute
+is the only reason the compiler tolerates them. 5 declarations across
+3 file(s) in engine/. Struct members are untouched — the fillers
+that fix a layout (save files, object rawData, audio structs) all live in
+headers, which this patch does not visit.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/engine/behavior_script.c   | 1 -
+ src/engine/surface_collision.c | 1 -
+ src/engine/surface_load.c      | 3 ---
+ 3 files changed, 5 deletions(-)
+
+diff --git a/src/engine/behavior_script.c b/src/engine/behavior_script.c
+index 972527ec..52ad3373 100644
+--- a/src/engine/behavior_script.c
++++ b/src/engine/behavior_script.c
+@@ -908,7 +908,6 @@ BhvCommandProc BehaviorCmdTable[] = {
+ 
+ // Execute the behavior script of the current object, process the object flags, and other miscellaneous code for updating objects.
+ void cur_obj_update(void) {
+-    UNUSED u8 filler[4];
+ 
+     CALL_EVENT(BehaviorTick, gCurrentObject);
+ 
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index 34751a11..370469c0 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -678,7 +678,6 @@ f32 find_water_level(f32 x, f32 z) {
+ f32 find_poison_gas_level(f32 x, f32 z) {
+     s32 i;
+     s32 numRegions;
+-    UNUSED u8 filler[4];
+     s16 val;
+     f32 loX, hiX, loZ, hiZ;
+     f32 gasLevel = FLOOR_LOWER_LIMIT;
+diff --git a/src/engine/surface_load.c b/src/engine/surface_load.c
+index 6ce60cab..3c17d2a6 100644
+--- a/src/engine/surface_load.c
++++ b/src/engine/surface_load.c
+@@ -482,7 +482,6 @@ void load_static_surfaces(s16 **data, s16 *vertexData, s16 surfaceType, s8 **sur
+  */
+ s16 *read_vertex_data(s16 **data) {
+     s32 numVertices;
+-    UNUSED u8 filler[16];
+     s16 *vertexData;
+ 
+     numVertices = *(*data);
+@@ -592,7 +591,6 @@ u32 get_area_terrain_size(s16 *data) {
+ void load_area_terrain(s16 index, s16 *data, s8 *surfaceRooms, s16 *macroObjects) {
+     s16 terrainLoadType;
+     s16 *vertexData;
+-    UNUSED u8 filler[4];
+ 
+     // Initialize the data for this.
+     gEnvironmentRegions = NULL;
+@@ -758,7 +756,6 @@ void load_object_surfaces(s16 **data, s16 *vertexData) {
+  * Transform an object's vertices, reload them, and render the object.
+  */
+ void load_object_collision_model(void) {
+-    UNUSED u8 filler[4];
+     s16 vertexData[600];
+ 
+     s16 *collisionData = segmented_to_virtual(gCurrentObject->collisionData);
+-- 
+2.55.0
+

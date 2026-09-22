@@ -9,7 +9,10 @@ runtime logs *and* to verify behavior is unchanged).
 Two intertwined jobs across the un-reverse-engineered parts of the decomp:
 1. **Name the meaningless functions/data.** Symbols still called `func_80xxxxxx`, `D_80xxxxxx`,
    `sub_…` — work out what each does, give it a good, meaningful name, and **update every caller**.
-2. **De-disassemble the ugly C.** Where a body reads like mechanically-lifted assembly (goto
+2. **De-disassemble the ugly C** — **now owned by `tasks/mario64-assembly-isms-to-standard-c.md`**
+   for every *pattern class* (the 2026-09-22 census + catalogue + `patches/standard-c/` stream);
+   this task keeps the per-function readability pass only where it is entangled with naming a
+   `func_80…` body. Where a body reads like mechanically-lifted assembly (goto
    chains, raw pointer/offset arithmetic, throwaway temp vars, an `if/else` ladder that's really a
    `switch`, redundant casts), rewrite it into readable, idiomatic C **without changing behavior**.
 

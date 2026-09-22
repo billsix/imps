@@ -1,0 +1,57 @@
+From e288e760b04df24e52fce6a5c9088edc6f5d5d70 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:23:56 +0000
+Subject: [PATCH 23/46] game: spell the EEPROM offset the same way in read and
+ write, and put the buffer first
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+read_eeprom_data divides the byte offset by 8 and write_eeprom_data shifts
+it right by 3; both are the same unsigned division. The two signature
+functions compute `(size - 4) + (u8 *) buffer` — integer first, pointer
+second — the reversed order `(u8 *) buffer + size - 4` is how the address
+of the trailing signature block reads.
+
+Verified: save_file.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/save_file.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/game/save_file.c b/src/game/save_file.c
+index 26ab9120..98b1f220 100644
+--- a/src/game/save_file.c
++++ b/src/game/save_file.c
+@@ -94,7 +94,7 @@ s32 write_eeprom_data(void *buffer, s32 size) {
+ 
+     if (gEepromProbe != 0) {
+         s32 triesLeft = 4;
+-        u32 offset = (u32)((u8 *) buffer - (u8 *) &gSaveBuffer) >> 3;
++        u32 offset = (u32)((u8 *) buffer - (u8 *) &gSaveBuffer) / 8;
+ 
+         do {
+ #if ENABLE_RUMBLE
+@@ -128,7 +128,7 @@ u16 calc_checksum(u8 *data, s32 size) {
+  * Verify the signature at the end of the block to check if the data is valid.
+  */
+ s32 verify_save_block_signature(void *buffer, s32 size, u16 magic) {
+-    struct SaveBlockSignature *sig = (struct SaveBlockSignature *) ((size - 4) + (u8 *) buffer);
++    struct SaveBlockSignature *sig = (struct SaveBlockSignature *) ((u8 *) buffer + size - 4);
+ 
+     if (sig->magic != magic) {
+         return FALSE;
+@@ -143,7 +143,7 @@ s32 verify_save_block_signature(void *buffer, s32 size, u16 magic) {
+  * Write a signature at the end of the block to make sure the data is valid
+  */
+ void add_save_block_signature(void *buffer, s32 size, u16 magic) {
+-    struct SaveBlockSignature *sig = (struct SaveBlockSignature *) ((size - 4) + (u8 *) buffer);
++    struct SaveBlockSignature *sig = (struct SaveBlockSignature *) ((u8 *) buffer + size - 4);
+ 
+     sig->magic = magic;
+     sig->chksum = calc_checksum(buffer, size);
+-- 
+2.55.0
+

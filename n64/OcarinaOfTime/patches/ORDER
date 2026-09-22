@@ -1,12 +1,18 @@
 # Stream apply order for this project, most-dependent-first.
 #
-# ACROSS streams order normally does NOT matter -- streams touch disjoint files
-# and commute (n64/CLAUDE.md). Ocarina of Time is the documented exception: the
-# `personal` stream renames ~206 decomp symbols and 18 files, so ANY later
-# stream must be written against the renamed tree. Applying a stream before the
-# renames would make it patch symbols that no longer exist by that name.
+# `standard-c` FIRST (2026-09-22): the upstream-bound rewrites of the decomp's
+# assembly-isms into standard C. They are meant to be merged upstream, so they
+# must be the BASE the personal stream sits on: the renames then apply to the
+# code as upstream would see it after merging, and a conflict surfaces here,
+# on our side, rather than in a rebase we cannot do. The two streams touch the
+# same files (477 rewritten, 509 renamed), so this order is load-bearing; the
+# `personal` patches were re-cut against the rewritten tree when standard-c
+# landed (tasks/ocarina-de-disassemble-ugly-c.md, Phase C).
 #
-# One stream per line; streams listed here apply first, in this order. Any
-# stream not listed applies afterwards, alphabetically. Comments and blank
-# lines are ignored.
+# `personal` = the 488-patch decomp rename (3,781 symbols + 18 file renames);
+# every later stream must be written against the renamed tree.
+#
+# One stream per line; listed streams apply first, in this order. Comments and
+# blank lines are ignored.
+standard-c
 personal

@@ -1,0 +1,79 @@
+From 80c28d7d1e04848b3f08fd2604e7519a56afed4a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:43:59 +0000
+Subject: [PATCH 22/36] code, overlays/actors: byte-pointer arithmetic as
+ `(u8*)`, and no cast into memset's void*
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+z_message_PAL.c adds an offset to `(uintptr_t)msgCtx->textboxSegment` and
+passes the integer to memcpy — a constraint violation that compiles only
+under `-Wno-int-conversion`; `(u8*)segment + offset` is the same address
+as a pointer. Boss_Va's `(u8*)` on memset's `void*` argument is dropped.
+
+Verified: both files compile to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/z_message_PAL.c                    | 8 ++++----
+ soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/code/z_message_PAL.c b/soh/src/code/z_message_PAL.c
+index 613fd3d9f..02ad76c03 100644
+--- a/soh/src/code/z_message_PAL.c
++++ b/soh/src/code/z_message_PAL.c
+@@ -1620,7 +1620,7 @@ void Message_LoadItemIcon(PlayState* play, u16 itemId, s16 y) {
+         R_TEXTBOX_ICON_XPOS = R_TEXT_INIT_XPOS - sIconItem32XOffsets[language];
+         R_TEXTBOX_ICON_YPOS = y + 6;
+         R_TEXTBOX_ICON_SIZE = 32;
+-        memcpy((uintptr_t)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE, gItemIcons[itemId],
++        memcpy((u8*)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE, gItemIcons[itemId],
+                strlen(gItemIcons[itemId]) + 1);
+         // "Item 32-0"
+         osSyncPrintf("アイテム32-0\n");
+@@ -1628,7 +1628,7 @@ void Message_LoadItemIcon(PlayState* play, u16 itemId, s16 y) {
+         R_TEXTBOX_ICON_XPOS = R_TEXT_INIT_XPOS - sIconItem24XOffsets[language];
+         R_TEXTBOX_ICON_YPOS = y + 10;
+         R_TEXTBOX_ICON_SIZE = 24;
+-        memcpy((uintptr_t)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE, gItemIcons[itemId],
++        memcpy((u8*)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE, gItemIcons[itemId],
+                strlen(gItemIcons[itemId]) + 1);
+         // "Item 24"
+         osSyncPrintf("アイテム24＝%d (%d) {%d}\n", itemId, itemId - ITEM_KOKIRI_EMERALD, 84);
+@@ -2200,7 +2200,7 @@ void Message_DecodeJPN(PlayState* play) {
+             msgCtx->textboxBackgroundBackColorIdx = (font->msgBufWide[msgCtx->msgBufPos + 2] & 0xF00) >> 8;
+             msgCtx->textboxBackgroundYOffsetIdx = (font->msgBufWide[msgCtx->msgBufPos + 2] & 0xF0) >> 4;
+             msgCtx->textboxBackgroundUnkArg = font->msgBufWide[msgCtx->msgBufPos + 2] & 0xF;
+-            memcpy((uintptr_t)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE, gRedMessageXLeftTex,
++            memcpy((u8*)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE, gRedMessageXLeftTex,
+                    strlen(gRedMessageXLeftTex) + 1);
+             memcpy((uintptr_t)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE + 0x900, gRedMessageXRightTex,
+                    strlen(gRedMessageXRightTex) + 1);
+@@ -2633,7 +2633,7 @@ void Message_Decode(PlayState* play) {
+             msgCtx->textboxBackgroundYOffsetIdx = (font->msgBuf[msgCtx->msgBufPos + 3] & 0xF0) >> 4;
+             msgCtx->textboxBackgroundUnkArg = font->msgBuf[msgCtx->msgBufPos + 3] & 0xF;
+ 
+-            memcpy((uintptr_t)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE, gRedMessageXLeftTex,
++            memcpy((u8*)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE, gRedMessageXLeftTex,
+                    strlen(gRedMessageXLeftTex) + 1);
+             memcpy((uintptr_t)msgCtx->textboxSegment + MESSAGE_STATIC_TEX_SIZE + 0x900, gRedMessageXRightTex,
+                    strlen(gRedMessageXRightTex) + 1);
+diff --git a/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c b/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
+index 966c7edc4..89a66ca88 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
++++ b/soh/src/overlays/actors/ovl_Boss_Va/z_boss_va.c
+@@ -728,7 +728,7 @@ void BossVa_Init(Actor* thisx, PlayState* play2) {
+                         sInitRot[i].y + this->actor.world.rot.y, sInitRot[i].z + this->actor.world.rot.z, i);
+                 }
+ 
+-                memset((u8*)sEffects, 0, ARRAY_COUNT(sEffects) * sizeof(BossVaEffect));
++                memset(sEffects, 0, ARRAY_COUNT(sEffects) * sizeof(BossVaEffect));
+                 if (sCsState < BOSSVA_BATTLE) {
+                     BossVa_SetupIntro(this);
+                 } else {
+-- 
+2.55.0
+

@@ -1,0 +1,38 @@
+From 8918a1222be1d66f1a148537c686bce3ca1c05bb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:23:52 +0000
+Subject: [PATCH 19/46] engine: drop the `& 0xFFFF` before the s16 stores in
+ obj_update_gfx_pos_and_angle
+
+`gfx.angle` is a Vec3s; storing an s32 into an s16 keeps the low 16 bits
+whether or not they were masked first, so the mask only restates what
+the assignment already does.
+
+Verified: behavior_script.c compiles to byte-identical assembly before
+and after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/engine/behavior_script.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/engine/behavior_script.c b/src/engine/behavior_script.c
+index d5549fd1..972527ec 100644
+--- a/src/engine/behavior_script.c
++++ b/src/engine/behavior_script.c
+@@ -87,9 +87,9 @@ void obj_update_gfx_pos_and_angle(struct Object *obj) {
+     obj->header.gfx.pos[1] = obj->oPosY + obj->oGraphYOffset;
+     obj->header.gfx.pos[2] = obj->oPosZ;
+ 
+-    obj->header.gfx.angle[0] = obj->oFaceAnglePitch & 0xFFFF;
+-    obj->header.gfx.angle[1] = obj->oFaceAngleYaw & 0xFFFF;
+-    obj->header.gfx.angle[2] = obj->oFaceAngleRoll & 0xFFFF;
++    obj->header.gfx.angle[0] = obj->oFaceAnglePitch;
++    obj->header.gfx.angle[1] = obj->oFaceAngleYaw;
++    obj->header.gfx.angle[2] = obj->oFaceAngleRoll;
+ }
+ 
+ // Push the address of a behavior command to the object's behavior stack.
+-- 
+2.55.0
+

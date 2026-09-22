@@ -1,0 +1,120 @@
+From 6a1a463302507ec737a684367b7314711f69aebb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:21:30 +0000
+Subject: [PATCH 17/46] goddard: drop `== TRUE` / `!= FALSE` comparisons on
+ boolean-valued expressions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Comparing a value that is already 0 or 1 against TRUE/FALSE is a MIPS-era
+habit; standard C tests the value. This patch covers only the 4 file(s)
+in goddard/ where every rewritten operand is a bitfield, a comparison result
+or a value the compiler already knows to be 0/1 — which is why the generated
+code is unchanged. Sites whose operand is a plain s32 field compared with 1
+are deliberately left for a separate patch: they are behaviour-preserving
+only by the (verified) invariant that the field is only ever assigned
+TRUE/FALSE, and their codegen changes (cmp $1 -> test).
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/goddard/debug_utils.c  | 4 ++--
+ src/goddard/draw_objects.c | 6 +++---
+ src/goddard/joints.c       | 2 +-
+ src/goddard/objects.c      | 4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/src/goddard/debug_utils.c b/src/goddard/debug_utils.c
+index b2ea3f8a..854c746b 100644
+--- a/src/goddard/debug_utils.c
++++ b/src/goddard/debug_utils.c
+@@ -81,7 +81,7 @@ struct MemTracker *get_memtracker(const char *name) {
+ 
+     for (i = 0; i < ARRAY_COUNT(sMemTrackers); i++) {
+         if (sMemTrackers[i].name != NULL) {
+-            if (gd_str_not_equal(sMemTrackers[i].name, name) == FALSE) {
++            if (!gd_str_not_equal(sMemTrackers[i].name, name)) {
+                 return &sMemTrackers[i];
+             }
+         }
+@@ -253,7 +253,7 @@ struct GdTimer *get_timer(const char *timerName) {
+ 
+     for (i = 0; i < ARRAY_COUNT(sTimers); i++) {
+         if (sTimers[i].name != NULL) {
+-            if (gd_str_not_equal(sTimers[i].name, timerName) == FALSE) {
++            if (!gd_str_not_equal(sTimers[i].name, timerName)) {
+                 return &sTimers[i];
+             }
+         }
+diff --git a/src/goddard/draw_objects.c b/src/goddard/draw_objects.c
+index a9a22432..0b0f3326 100644
+--- a/src/goddard/draw_objects.c
++++ b/src/goddard/draw_objects.c
+@@ -321,7 +321,7 @@ void draw_material(struct ObjMaterial *mtl) {
+             mtlType = GD_MTL_BREAK;
+         }
+     }
+-    if (sUseSelectedColor == FALSE) {
++    if (!sUseSelectedColor) {
+         gd_dl_material_lighting(mtl->gddlNumber, &mtl->Kd, mtlType);
+     } else {
+         gd_dl_material_lighting(mtl->gddlNumber, sSelectedColour, GD_MTL_LIGHTS);
+@@ -444,7 +444,7 @@ void draw_face(struct ObjFace *face) {
+ 
+     imin("draw_face");
+     hasTextCoords = FALSE;
+-    if (sUseSelectedColor == FALSE && face->mtlId >= 0) { // -1 == colored face
++    if (!sUseSelectedColor && face->mtlId >= 0) { // -1 == colored face
+         if (face->mtl != NULL) {
+             if ((i = face->mtl->gddlNumber) != 0) {
+                 if (i != sUpdateViewState.mtlDlNum) {
+@@ -1453,7 +1453,7 @@ void update_view(struct ObjView *view) {
+ 
+     if (view->components != NULL) {
+         if (gGdCtrl.dragging) {
+-            if (gd_getproperty(3, 0) != FALSE && gGdCtrl.startedDragging != FALSE) {
++            if (gd_getproperty(3, 0) && gGdCtrl.startedDragging) {
+                 init_pick_buf(sPickBuffer, ARRAY_COUNT(sPickBuffer));
+                 drawscene(FIND_PICKS, sUpdateViewState.view->components, NULL);
+                 pickOffset = get_cur_pickbuf_offset(sPickBuffer);
+diff --git a/src/goddard/joints.c b/src/goddard/joints.c
+index 5cf100ce..85f03528 100644
+--- a/src/goddard/joints.c
++++ b/src/goddard/joints.c
+@@ -70,7 +70,7 @@ void grabbable_joint_update_func(struct ObjJoint *self) {
+ 
+         self->flags |= 0x2000;
+     } else {
+-        if (gGdCtrl.trgR == FALSE) { // R trigger is released
++        if (!gGdCtrl.trgR) { // R trigger is released
+             // Set velocity so that the joint approaches its initial position
+             self->velocity.x -= offset.x * 0.5; //? 0.5f
+             self->velocity.y -= offset.y * 0.5; //? 0.5f
+diff --git a/src/goddard/objects.c b/src/goddard/objects.c
+index 7d580ac8..d66be4ca 100644
+--- a/src/goddard/objects.c
++++ b/src/goddard/objects.c
+@@ -1131,7 +1131,7 @@ void func_8017E584(struct ObjNet *a0, struct GdVec3f *a1, struct GdVec3f *a2) {
+     sp7C.y -= sp1C.y;
+     sp7C.z -= sp1C.z;
+ 
+-    if (gd_normalize_vec3f(&sp7C) == FALSE) {
++    if (!gd_normalize_vec3f(&sp7C)) {
+         sp7C.x = -sp70.x;
+         sp7C.y = -sp70.y;
+         sp7C.z = -sp70.z;
+@@ -1876,7 +1876,7 @@ void move_camera(struct ObjCamera *cam) {
+ 
+     sp2C = &cam->unk64;
+     if ((cam->flags & CAMERA_FLAG_CONTROLLABLE) != 0) {
+-        if (ctrl->btnB != FALSE && ctrl->prevFrame->btnB == FALSE) {  // new B press
++        if (ctrl->btnB && !ctrl->prevFrame->btnB) {  // new B press
+             cam->zoomLevel++;
+             if (cam->zoomLevel > cam->maxZoomLevel) {
+                 cam->zoomLevel = 0;
+-- 
+2.55.0
+

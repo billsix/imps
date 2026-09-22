@@ -1,0 +1,57 @@
+From 2f2748ff50e222d53f4c3845c2a228c4309a761c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:36:28 +0000
+Subject: [PATCH 13/36] overlays/actors: delete `break` after `return` and a
+ stray `;`
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Obj_Oshihiki's three `return …; break;` case arms and the `;` before the
+closing brace of ObjBean_UpdateLeaves.
+
+Verified: both files, through their translation units, compile to
+byte-identical assembly before and after with the port's own flags
+(asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c         | 1 -
+ soh/src/overlays/actors/ovl_Obj_Oshihiki/z_obj_oshihiki.c | 3 ---
+ 2 files changed, 4 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+index f2c1fde28..0e2f0d315 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
++++ b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+@@ -425,7 +425,6 @@ void ObjBean_Grow(ObjBean* this) {
+     Math_StepToS(&this->leafRotFactor, 0x33E9, 0x168);
+     this->dyna.actor.scale.y = Math_SinS(this->leafRotFactor) * 0.17434467f;
+     this->dyna.actor.scale.x = this->dyna.actor.scale.z = Math_CosS(this->leafRotFactor) * 0.12207746f;
+-    ;
+ }
+ 
+ void ObjBean_SetupFlattenLeaves(ObjBean* this) {
+diff --git a/soh/src/overlays/actors/ovl_Obj_Oshihiki/z_obj_oshihiki.c b/soh/src/overlays/actors/ovl_Obj_Oshihiki/z_obj_oshihiki.c
+index 16f592a7d..0c0904063 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Oshihiki/z_obj_oshihiki.c
++++ b/soh/src/overlays/actors/ovl_Obj_Oshihiki/z_obj_oshihiki.c
+@@ -121,15 +121,12 @@ s32 ObjOshihiki_StrongEnough(ObjOshihiki* this) {
+         case PUSHBLOCK_SMALL_START_OFF:
+         case PUSHBLOCK_MEDIUM_START_OFF:
+             return 1;
+-            break;
+         case PUSHBLOCK_LARGE_START_ON:
+         case PUSHBLOCK_LARGE_START_OFF:
+             return strength >= PLAYER_STR_BRACELET;
+-            break;
+         case PUSHBLOCK_HUGE_START_ON:
+         case PUSHBLOCK_HUGE_START_OFF:
+             return strength >= PLAYER_STR_SILVER_G;
+-            break;
+     }
+     return 0;
+ }
+-- 
+2.55.0
+

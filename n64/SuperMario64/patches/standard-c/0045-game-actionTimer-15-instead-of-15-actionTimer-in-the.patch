@@ -1,0 +1,43 @@
+From c225a3b74b6b1c3f4b050649efa38a954ded73bd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:34:23 +0000
+Subject: [PATCH 45/46] game: `actionTimer++ > 15` instead of `15 <
+ actionTimer++` in the two exit actions
+
+The constant-first spelling is the compiler's operand order, not the
+reader's.
+
+Verified: mario_actions_cutscene.c compiles to byte-identical assembly
+before and after with the port's own flags (asmdiff over
+compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/mario_actions_cutscene.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/game/mario_actions_cutscene.c b/src/game/mario_actions_cutscene.c
+index 73c65ea8..3262783c 100644
+--- a/src/game/mario_actions_cutscene.c
++++ b/src/game/mario_actions_cutscene.c
+@@ -1049,7 +1049,7 @@ s32 act_spawn_spin_landing(struct MarioState *m) {
+  * particle flag that generates sparkles.
+  */
+ s32 act_exit_airborne(struct MarioState *m) {
+-    if (15 < m->actionTimer++
++    if (m->actionTimer++ > 15
+         && launch_mario_until_land(m, ACT_EXIT_LAND_SAVE_DIALOG, MARIO_ANIM_GENERAL_FALL, -32.0f)) {
+         // heal Mario
+         m->healCounter = 31;
+@@ -1155,7 +1155,7 @@ s32 act_exit_land_save_dialog(struct MarioState *m) {
+ }
+ 
+ s32 act_death_exit(struct MarioState *m) {
+-    if (15 < m->actionTimer++
++    if (m->actionTimer++ > 15
+         && launch_mario_until_land(m, ACT_DEATH_EXIT_LAND, MARIO_ANIM_GENERAL_FALL, -32.0f)) {
+         play_sound(ROM_JP ? SOUND_MARIO_OOOF : SOUND_MARIO_OOOF2, m->marioObj->header.gfx.cameraToObject);
+ #if ENABLE_RUMBLE
+-- 
+2.55.0
+

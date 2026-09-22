@@ -1,0 +1,46 @@
+From a5784db21d69484ce8808deeedd9d6ad2b6baf54 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:30:00 +0000
+Subject: [PATCH 36/46] game: spell the render layers by name in
+ geo_switch_anim_state's opacity switch
+
+`0x600 | (flags & 0xFF)` and `0x100 | (flags & 0xFF)` set the layer byte
+to LAYER_TRANSPARENT_DECAL and LAYER_OPAQUE, which is how bowser.inc.c,
+mario_misc.c, paintings.c and intro_geo.c already write the same update.
+
+Verified: object_helpers.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/object_helpers.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/game/object_helpers.c b/src/game/object_helpers.c
+index 2d6c4e05..27716014 100644
+--- a/src/game/object_helpers.c
++++ b/src/game/object_helpers.c
+@@ -77,17 +77,17 @@ Gfx *geo_update_layer_transparency(s32 callContext, struct GraphNode *node, UNUS
+         if (objectOpacity == 0xFF) {
+             if (currentGraphNode->parameter == 20) {
+                 currentGraphNode->fnNode.node.flags =
+-                0x600 | (currentGraphNode->fnNode.node.flags & 0xFF);
++                (LAYER_TRANSPARENT_DECAL << 8) | (currentGraphNode->fnNode.node.flags & 0xFF);
+             } else {
+                 currentGraphNode->fnNode.node.flags =
+-                0x100 | (currentGraphNode->fnNode.node.flags & 0xFF);
++                (LAYER_OPAQUE << 8) | (currentGraphNode->fnNode.node.flags & 0xFF);
+             }
+ 
+             objectGraphNode->oAnimState = 0;
+         } else {
+             if (currentGraphNode->parameter == 20) {
+                 currentGraphNode->fnNode.node.flags =
+-                0x600 | (currentGraphNode->fnNode.node.flags & 0xFF);
++                (LAYER_TRANSPARENT_DECAL << 8) | (currentGraphNode->fnNode.node.flags & 0xFF);
+             } else {
+                 currentGraphNode->fnNode.node.flags =
+                 0x500 | (currentGraphNode->fnNode.node.flags & 0xFF);
+-- 
+2.55.0
+

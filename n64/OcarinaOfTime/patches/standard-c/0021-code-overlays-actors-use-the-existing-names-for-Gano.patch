@@ -1,0 +1,241 @@
+From 15acfd86749fd7318d97f9cb1c673e215170d043 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:43:56 +0000
+Subject: [PATCH 21/36] code, overlays/actors: use the existing names for
+ Ganon's fwork[1] and the horse-race save bits
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`this->fwork[1]` -> `fwork[GDF_FWORK_1]` (the file's own enum, used by
+87 other sites); `gSaveContext.eventInf[0] & 0xF` and the `& 0x10) >> 4`
+horse-type read -> `GET_EVENTINF_HORSES_STATE()` /
+`GET_EVENTINF_HORSES_HORSETYPE()`, and En_In's read-modify-write of the
+type bit -> `SET_EVENTINF_HORSES_HORSETYPE()` — the pure macros
+z64save.h already defines for exactly these expressions.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/z_horse.c                                |  6 +++---
+ soh/src/code/z_message_PAL.c                          |  4 ++--
+ soh/src/code/z_parameter.c                            |  2 +-
+ soh/src/overlays/actors/ovl_Bg_Ingate/z_bg_ingate.c   |  2 +-
+ soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c | 10 +++++-----
+ soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c     |  4 ++--
+ soh/src/overlays/actors/ovl_En_In/z_en_in.c           | 11 +++++------
+ soh/src/overlays/actors/ovl_Oceff_Spot/z_oceff_spot.c |  2 +-
+ 8 files changed, 20 insertions(+), 21 deletions(-)
+
+diff --git a/soh/src/code/z_horse.c b/soh/src/code/z_horse.c
+index 9c1521f6c..a95daa69a 100644
+--- a/soh/src/code/z_horse.c
++++ b/soh/src/code/z_horse.c
+@@ -168,7 +168,7 @@ void Horse_SetupInCutscene(PlayState* play, Player* player) {
+         Actor_MountHorse(play, player, player->rideActor);
+         Actor_RequestHorseCameraSetting(play, player);
+         gSaveContext.horseData.scene = play->sceneNum;
+-    } else if ((play->sceneNum == SCENE_LON_LON_RANCH) && ((gSaveContext.eventInf[0] & 0xF) == 6) &&
++    } else if ((play->sceneNum == SCENE_LON_LON_RANCH) && (GET_EVENTINF_HORSES_STATE() == 6) &&
+                (Flags_GetEventChkInf(EVENTCHKINF_EPONA_OBTAINED) == 0) && (DREG(1) == 0)) {
+         player->rideActor =
+             Actor_Spawn(&play->actorCtx, play, ACTOR_EN_HORSE, 894.0f, 0.0f, -2084.0f, 0, -0x7FFF, 0, 5);
+@@ -214,7 +214,7 @@ void Horse_SetupInCutscene(PlayState* play, Player* player) {
+                     Vec3f sp54;
+                     s32 temp = 0;
+ 
+-                    if (((gSaveContext.eventInf[0] & 0x10) >> 4) && D_8011F9B8[i].type == 6) {
++                    if (GET_EVENTINF_HORSES_HORSETYPE() && D_8011F9B8[i].type == 6) {
+                         temp = 0x8000;
+                     }
+ 
+@@ -264,7 +264,7 @@ void Horse_InitPlayerHorse(PlayState* play, Player* player) {
+                   gSaveContext.entranceIndex == ENTR_HYRULE_FIELD_13 ||
+                   gSaveContext.entranceIndex == ENTR_HYRULE_FIELD_15) &&
+                  (gSaveContext.respawnFlag == 0)) ||
+-                ((play->sceneNum == SCENE_LON_LON_RANCH) && ((gSaveContext.eventInf[0] & 0xF) == 6) &&
++                ((play->sceneNum == SCENE_LON_LON_RANCH) && (GET_EVENTINF_HORSES_STATE() == 6) &&
+                  !Flags_GetEventChkInf(EVENTCHKINF_EPONA_OBTAINED) && (DREG(1) == 0))) {
+                 Horse_SetupInCutscene(play, player);
+             } else {
+diff --git a/soh/src/code/z_message_PAL.c b/soh/src/code/z_message_PAL.c
+index f9362ee32..613fd3d9f 100644
+--- a/soh/src/code/z_message_PAL.c
++++ b/soh/src/code/z_message_PAL.c
+@@ -3753,7 +3753,7 @@ void Message_DrawMain(PlayState* play, Gfx** p) {
+                         if (msgCtx->disableWarpSongs || (interfaceCtx->restrictions.warpSongs == 3 && !IS_RANDO)) {
+                             Message_StartTextbox(play, 0x88C, NULL); // "You can't warp here!"
+                             play->msgCtx.ocarinaMode = OCARINA_MODE_04;
+-                        } else if ((gSaveContext.eventInf[0] & 0xF) != 1) {
++                        } else if (GET_EVENTINF_HORSES_STATE() != 1) {
+                             Message_StartTextbox(play, msgCtx->lastPlayedSong + 0x88D,
+                                                  NULL); // "Warp to [place name]?"
+                             play->msgCtx.ocarinaMode = OCARINA_MODE_01;
+@@ -4596,7 +4596,7 @@ void Message_Update(PlayState* play) {
+                     if (Message_ShouldAdvance(play)) {
+                         osSyncPrintf("OCARINA_MODE=%d -> ", play->msgCtx.ocarinaMode);
+                         play->msgCtx.ocarinaMode = (msgCtx->choiceIndex == 0) ? OCARINA_MODE_02 : OCARINA_MODE_04;
+-                        osSyncPrintf("InRaceSeq=%d(%d) OCARINA_MODE=%d  -->  ", gSaveContext.eventInf[0] & 0xF, 1,
++                        osSyncPrintf("InRaceSeq=%d(%d) OCARINA_MODE=%d  -->  ", GET_EVENTINF_HORSES_STATE(), 1,
+                                      play->msgCtx.ocarinaMode);
+                         Message_CloseTextbox(play);
+                         osSyncPrintf("OCARINA_MODE=%d\n", play->msgCtx.ocarinaMode);
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index cef4560ce..1c6196686 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -992,7 +992,7 @@ void func_80083108(PlayState* play) {
+                     gSaveContext.hudVisibilityMode = 0;
+                     Interface_ChangeHudVisibilityMode(50);
+                 }
+-            } else if ((gSaveContext.eventInf[0] & 0xF) == 1) {
++            } else if (GET_EVENTINF_HORSES_STATE() == 1) {
+                 if (player->stateFlags1 & PLAYER_STATE1_ON_HORSE) {
+                     if ((gSaveContext.equips.buttonItems[0] != ITEM_NONE) &&
+                         (gSaveContext.equips.buttonItems[0] != ITEM_BOW)) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ingate/z_bg_ingate.c b/soh/src/overlays/actors/ovl_Bg_Ingate/z_bg_ingate.c
+index 551b1634c..44fc24b01 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ingate/z_bg_ingate.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ingate/z_bg_ingate.c
+@@ -52,7 +52,7 @@ void BgInGate_Init(Actor* thisx, PlayState* play) {
+     }
+ 
+     Actor_SetScale(&this->dyna.actor, 0.1f);
+-    if (((this->dyna.actor.params & 1) != 0) && ((gSaveContext.eventInf[0] & 0xF) == 6)) {
++    if (((this->dyna.actor.params & 1) != 0) && (GET_EVENTINF_HORSES_STATE() == 6)) {
+         play->csCtx.frames = 0;
+         BgInGate_SetupAction(this, func_80892890);
+     } else {
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+index 9b9291497..f2007c3a6 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+@@ -1564,7 +1564,7 @@ void BossGanon_DeathAndTowerCutscene(BossGanon* this, PlayState* play) {
+             Play_ChangeCameraStatus(play, CAM_ID_MAIN, CAM_STAT_WAIT);
+             Play_ChangeCameraStatus(play, this->csCamIndex, CAM_STAT_ACTIVE);
+             Animation_MorphToPlayOnce(&this->skelAnime, &gGanondorfCollapseAnim, 0.0f);
+-            this->fwork[1] = Animation_GetLastFrame(&gGanondorfDefeatedStartAnim);
++            this->fwork[GDF_FWORK_1] = Animation_GetLastFrame(&gGanondorfDefeatedStartAnim);
+             this->skelAnime.playSpeed = 0.0f;
+             sZelda = (EnZl3*)Actor_SpawnAsChild(&play->actorCtx, &this->actor, play, ACTOR_EN_ZL3, 0.0f, 6000.0f, 0.0f,
+                                                 0, 0, 0, 0x2000);
+@@ -4423,7 +4423,7 @@ void func_808E2544(Actor* thisx, PlayState* play) {
+     switch (this->unk_1C2) {
+         case 0:
+             this->actor.speedXZ = 40.0f;
+-            Math_ApproachF(&this->fwork[1], 255.0f, 1.0f, 40.0f);
++            Math_ApproachF(&this->fwork[GDF_FWORK_1], 255.0f, 1.0f, 40.0f);
+             xDiff = dorf->unk_278.x - this->actor.world.pos.x;
+             yDiff = dorf->unk_278.y - this->actor.world.pos.y;
+             zDiff = dorf->unk_278.z - this->actor.world.pos.z;
+@@ -4449,9 +4449,9 @@ void func_808E2544(Actor* thisx, PlayState* play) {
+             break;
+ 
+         case 1:
+-            Math_ApproachZeroF(&this->fwork[1], 1.0f, 40.0f);
++            Math_ApproachZeroF(&this->fwork[GDF_FWORK_1], 1.0f, 40.0f);
+ 
+-            if (this->fwork[1] == 0.0f) {
++            if (this->fwork[GDF_FWORK_1] == 0.0f) {
+                 Actor_Kill(&this->actor);
+             }
+             break;
+@@ -4465,7 +4465,7 @@ void func_808E2544(Actor* thisx, PlayState* play) {
+             this->collider.dim.yShift = -10;
+ 
+             this->actor.speedXZ = 20.0f;
+-            this->fwork[1] = 255.0f;
++            this->fwork[GDF_FWORK_1] = 255.0f;
+             this->unk_1F0 = player->actor.world.pos;
+             new_var = this->unk_1F0.x - this->actor.world.pos.x;
+             this->actor.shape.rot.y = RADF_TO_BINANG(Math_FAtan2F(new_var, this->unk_1F0.z - this->actor.world.pos.z)) +
+diff --git a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+index 5ffb6fe2d..21ec03dd6 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
++++ b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+@@ -686,7 +686,7 @@ s32 EnHorse_Spawn(EnHorse* this, PlayState* play) {
+             if (play->sceneNum != SCENE_LON_LON_RANCH ||
+                 //! Same flag checked twice
+                 (Flags_GetEventChkInf(EVENTCHKINF_EPONA_OBTAINED) &&
+-                 ((gSaveContext.eventInf[0] & 0xF) != 6 || Flags_GetEventChkInf(EVENTCHKINF_EPONA_OBTAINED))) ||
++                 (GET_EVENTINF_HORSES_STATE() != 6 || Flags_GetEventChkInf(EVENTCHKINF_EPONA_OBTAINED))) ||
+                 // always load two spawns inside lon lon
+                 ((sHorseSpawns[i].pos.x == 856 && sHorseSpawns[i].pos.y == 0 && sHorseSpawns[i].pos.z == -918) ||
+                  (sHorseSpawns[i].pos.x == -1003 && sHorseSpawns[i].pos.y == 0 && sHorseSpawns[i].pos.z == -755))) {
+@@ -809,7 +809,7 @@ void EnHorse_Init(Actor* thisx, PlayState* play2) {
+         }
+     }
+ 
+-    if (play->sceneNum == SCENE_LON_LON_RANCH && (gSaveContext.eventInf[0] & 0xF) == 6 &&
++    if (play->sceneNum == SCENE_LON_LON_RANCH && GET_EVENTINF_HORSES_STATE() == 6 &&
+         Flags_GetEventChkInf(EVENTCHKINF_EPONA_OBTAINED) == 0 && !DREG(1)) {
+         this->stateFlags |= ENHORSE_FLAG_25;
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_In/z_en_in.c b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+index a65fd198d..640bd943c 100644
+--- a/soh/src/overlays/actors/ovl_En_In/z_en_in.c
++++ b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+@@ -144,7 +144,7 @@ u16 EnIn_GetTextIdAdult(PlayState* play) {
+     if (IS_NIGHT) {
+         return 0x204E;
+     }
+-    switch (gSaveContext.eventInf[0] & 0xF) {
++    switch GET_EVENTINF_HORSES_STATE() {
+         case 1:
+             if (!(player->stateFlags1 & PLAYER_STATE1_ON_HORSE)) {
+                 return 0x2036;
+@@ -545,7 +545,7 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+                 Actor_Kill(&this->actor);
+                 break;
+             default:
+-                switch (gSaveContext.eventInf[0] & 0xF) {
++                switch GET_EVENTINF_HORSES_STATE() {
+                     case 0:
+                     case 2:
+                     case 3:
+@@ -571,7 +571,7 @@ void EnIn_WaitForObject(EnIn* this, PlayState* play) {
+                     Actor_Kill(&this->actor);
+                     return;
+                 }
+-                switch (gSaveContext.eventInf[0] & 0xF) {
++                switch GET_EVENTINF_HORSES_STATE() {
+                     case 0:
+                     case 2:
+                         EnIn_ChangeAnim(this, ENIN_ANIM_2);
+@@ -673,8 +673,7 @@ void func_80A7A568(EnIn* this, PlayState* play) {
+                 this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
+                 return;
+             }
+-            gSaveContext.eventInf[0] =
+-                (gSaveContext.eventInf[0] & ~0x10) | (((EnHorse*)GET_PLAYER(play)->rideActor)->type << 4);
++            SET_EVENTINF_HORSES_HORSETYPE(((EnHorse*)GET_PLAYER(play)->rideActor)->type);
+             gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0xF) | 2;
+             phi_a2 = 2;
+             transitionType = TRANS_TYPE_FADE_BLACK;
+@@ -925,7 +924,7 @@ void EnIn_Update(Actor* thisx, PlayState* play) {
+     CollisionCheck_SetOC(play, &play->colChkCtx, &collider->base);
+     if (this->actionFunc != func_80A7A304) {
+         SkelAnime_Update(&this->skelAnime);
+-        if (this->skelAnime.animation == &object_in_Anim_001BE0 && ((gSaveContext.eventInf[0] & 0xF) != 6)) {
++        if (this->skelAnime.animation == &object_in_Anim_001BE0 && (GET_EVENTINF_HORSES_STATE() != 6)) {
+             func_80A79690(&this->skelAnime, this, play);
+         }
+         Actor_UpdateBgCheckInfo(play, &this->actor, 0.0f, 0.0f, 0.0f, 4);
+diff --git a/soh/src/overlays/actors/ovl_Oceff_Spot/z_oceff_spot.c b/soh/src/overlays/actors/ovl_Oceff_Spot/z_oceff_spot.c
+index a53eda84e..fcaeafcd9 100644
+--- a/soh/src/overlays/actors/ovl_Oceff_Spot/z_oceff_spot.c
++++ b/soh/src/overlays/actors/ovl_Oceff_Spot/z_oceff_spot.c
+@@ -81,7 +81,7 @@ void OceffSpot_End(OceffSpot* this, PlayState* play) {
+         this->unk_174 -= 0.05f;
+     } else {
+         Actor_Kill(&this->actor);
+-        if (gTimeSpeed != 400 && play->msgCtx.unk_E40E == 0 && (gSaveContext.eventInf[0] & 0xF) != 1) {
++        if (gTimeSpeed != 400 && play->msgCtx.unk_E40E == 0 && GET_EVENTINF_HORSES_STATE() != 1) {
+             if (play->msgCtx.ocarinaAction != OCARINA_ACTION_CHECK_NOWARP_DONE ||
+                 play->msgCtx.ocarinaMode != OCARINA_MODE_08) {
+                 gSaveContext.sunsSongState = SUNSSONG_START;
+-- 
+2.55.0
+

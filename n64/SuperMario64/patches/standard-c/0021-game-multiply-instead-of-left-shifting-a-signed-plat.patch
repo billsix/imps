@@ -1,0 +1,35 @@
+From ba768dae878fe427c095b01b9558a8ae4e61c792 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:23:54 +0000
+Subject: [PATCH 21/46] game: multiply instead of left-shifting a signed
+ platform speed
+
+`sp1F` is an s8 read from the top byte of oBehParams and is routinely
+negative (platforms rotate both ways); `sp1F << 4` on a negative value is
+undefined behaviour in C, `sp1F * 16` is not, and both produce the same
+bits on every target.
+
+Verified: rotating_platform.inc.c, through obj_behaviors.c, compiles to
+byte-identical assembly before and after with the port's own flags
+(asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/rotating_platform.inc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/game/behaviors/rotating_platform.inc.c b/src/game/behaviors/rotating_platform.inc.c
+index 5be9c399..f93267f6 100644
+--- a/src/game/behaviors/rotating_platform.inc.c
++++ b/src/game/behaviors/rotating_platform.inc.c
+@@ -38,6 +38,6 @@ void bhv_rotating_platform_loop(void) {
+         o->oCollisionDistance = sWFRotatingPlatformData[o->oBehParams2ndByte].collisionDistance;
+         cur_obj_scale(sWFRotatingPlatformData[o->oBehParams2ndByte].scale * 0.01f);
+     }
+-    o->oAngleVelYaw = sp1F << 4;
++    o->oAngleVelYaw = sp1F * 16;
+     o->oFaceAngleYaw += o->oAngleVelYaw;
+ }
+-- 
+2.55.0
+

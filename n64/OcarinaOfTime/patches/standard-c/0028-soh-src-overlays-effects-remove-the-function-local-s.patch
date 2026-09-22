@@ -1,0 +1,446 @@
+From 0a510bba22da976a562c09560b6ecc436a4b36c7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:49:46 +0000
+Subject: [PATCH 28/36] soh/src/overlays/effects: remove the function-local
+ `s32 pad;` stack padding
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+These declarations exist to reproduce the ROM's stack-frame layout for
+the matching build; none is referenced again in its function (checked
+per function by the survey, then by the compiler). 37 declaration(s) in
+27 file(s) under soh/src/overlays/effects. Struct members are untouched — the
+padding that fixes a layout (SaveContext, the audio structs, anything
+memcpy'd or saved) lives in headers, which this patch does not visit.
+Locals named `pad` that ARE used (z_camera.c, z_vr_box.c, …) are not on
+the list.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c  | 1 -
+ soh/src/overlays/effects/ovl_Effect_Ss_Bomb/z_eff_ss_bomb.c    | 1 -
+ soh/src/overlays/effects/ovl_Effect_Ss_Bomb2/z_eff_ss_bomb2.c  | 2 --
+ .../overlays/effects/ovl_Effect_Ss_D_Fire/z_eff_ss_d_fire.c    | 1 -
+ .../overlays/effects/ovl_Effect_Ss_Dead_Db/z_eff_ss_dead_db.c  | 1 -
+ .../overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c  | 3 ---
+ soh/src/overlays/effects/ovl_Effect_Ss_Dust/z_eff_ss_dust.c    | 1 -
+ .../overlays/effects/ovl_Effect_Ss_En_Fire/z_eff_ss_en_fire.c  | 1 -
+ .../overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c    | 1 -
+ soh/src/overlays/effects/ovl_Effect_Ss_Extra/z_eff_ss_extra.c  | 2 --
+ .../overlays/effects/ovl_Effect_Ss_Fcircle/z_eff_ss_fcircle.c  | 1 -
+ .../effects/ovl_Effect_Ss_Fhg_Flash/z_eff_ss_fhg_flash.c       | 3 ---
+ .../effects/ovl_Effect_Ss_Fire_Tail/z_eff_ss_fire_tail.c       | 1 -
+ .../effects/ovl_Effect_Ss_G_Magma2/z_eff_ss_g_magma2.c         | 2 --
+ .../effects/ovl_Effect_Ss_G_Ripple/z_eff_ss_g_ripple.c         | 2 --
+ soh/src/overlays/effects/ovl_Effect_Ss_G_Spk/z_eff_ss_g_spk.c  | 1 -
+ soh/src/overlays/effects/ovl_Effect_Ss_Hahen/z_eff_ss_hahen.c  | 2 --
+ .../overlays/effects/ovl_Effect_Ss_HitMark/z_eff_ss_hitmark.c  | 1 -
+ .../effects/ovl_Effect_Ss_Ice_Piece/z_eff_ss_ice_piece.c       | 1 -
+ .../effects/ovl_Effect_Ss_Ice_Smoke/z_eff_ss_ice_smoke.c       | 2 --
+ .../overlays/effects/ovl_Effect_Ss_K_Fire/z_eff_ss_k_fire.c    | 1 -
+ .../overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c    | 1 -
+ .../effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c         | 1 -
+ .../effects/ovl_Effect_Ss_Lightning/z_eff_ss_lightning.c       | 1 -
+ .../overlays/effects/ovl_Effect_Ss_Sibuki/z_eff_ss_sibuki.c    | 1 -
+ .../ovl_Effect_Ss_Solder_Srch_Ball/z_eff_ss_solder_srch_ball.c | 1 -
+ soh/src/overlays/effects/ovl_Effect_Ss_Stick/z_eff_ss_stick.c  | 1 -
+ 27 files changed, 37 deletions(-)
+
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c b/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
+index 6778a7cd1..6d1c7dccb 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Blast/z_eff_ss_blast.c
+@@ -58,7 +58,6 @@ u32 EffectSsBlast_Init(PlayState* play, u32 index, EffectSs* this, void* initPar
+ void EffectSsBlast_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+     MtxF mf;
+-    s32 pad;
+     f32 radius;
+ 
+     OPEN_DISPS(gfxCtx);
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Bomb/z_eff_ss_bomb.c b/soh/src/overlays/effects/ovl_Effect_Ss_Bomb/z_eff_ss_bomb.c
+index e01b6fb98..81f064011 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Bomb/z_eff_ss_bomb.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Bomb/z_eff_ss_bomb.c
+@@ -48,7 +48,6 @@ void EffectSsBomb_Draw(PlayState* play, u32 index, EffectSs* this) {
+     MtxF mfResult;
+     MtxF mfTrans11DA0;
+     Mtx* mtx;
+-    s32 pad;
+     f32 scale;
+     s16 color;
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Bomb2/z_eff_ss_bomb2.c b/soh/src/overlays/effects/ovl_Effect_Ss_Bomb2/z_eff_ss_bomb2.c
+index 0106bde95..39552a4de 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Bomb2/z_eff_ss_bomb2.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Bomb2/z_eff_ss_bomb2.c
+@@ -72,7 +72,6 @@ void EffectSsBomb2_DrawFade(PlayState* play, u32 index, EffectSs* this) {
+     MtxF mfResult;
+     MtxF mfTrans11DA0;
+     Mtx* mtx;
+-    s32 pad;
+     f32 scale;
+ 
+     OPEN_DISPS(gfxCtx);
+@@ -111,7 +110,6 @@ void EffectSsBomb2_DrawLayered(PlayState* play, u32 index, EffectSs* this) {
+     MtxF mtx2F;
+     Mtx* mtx2;
+     Mtx* mtx;
+-    s32 pad[3];
+     f32 scale;
+     f32 depth;
+     f32 layer2Scale = 0.925f;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_D_Fire/z_eff_ss_d_fire.c b/soh/src/overlays/effects/ovl_Effect_Ss_D_Fire/z_eff_ss_d_fire.c
+index 0ec7e58df..c285976fe 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_D_Fire/z_eff_ss_d_fire.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_D_Fire/z_eff_ss_d_fire.c
+@@ -64,7 +64,6 @@ void EffectSsDFire_Draw(PlayState* play, u32 index, EffectSs* this) {
+     MtxF mfScale;
+     MtxF mfResult;
+     MtxF mfTrans11DA0;
+-    s32 pad;
+     void* object;
+     Mtx* mtx;
+     f32 scale;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Db/z_eff_ss_dead_db.c b/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Db/z_eff_ss_dead_db.c
+index 4bfade807..d643aac7e 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Db/z_eff_ss_dead_db.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Db/z_eff_ss_dead_db.c
+@@ -95,7 +95,6 @@ void EffectSsDeadDb_Draw(PlayState* play, u32 index, EffectSs* this) {
+ 
+ void EffectSsDeadDb_Update(PlayState* play, u32 index, EffectSs* this) {
+     f32 w;
+-    f32 pad;
+ 
+     this->rTextIdx = (f32)((this->rReg11 - this->life) * 9) / this->rReg11;
+     this->rScale += this->rScaleStep;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c b/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
+index 6466f9606..1d34a158c 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Dead_Ds/z_eff_ss_dead_ds.c
+@@ -46,10 +46,7 @@ u32 EffectSsDeadDs_Init(PlayState* play, u32 index, EffectSs* this, void* initPa
+ }
+ 
+ void EffectSsDeadDs_Draw(PlayState* play, u32 index, EffectSs* this) {
+-    s32 pad;
+     f32 scale;
+-    s32 pad1;
+-    s32 pad2;
+     MtxF mf;
+     f32 temp;
+     Vec3f pos;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Dust/z_eff_ss_dust.c b/soh/src/overlays/effects/ovl_Effect_Ss_Dust/z_eff_ss_dust.c
+index fee75f447..6113b0d62 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Dust/z_eff_ss_dust.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Dust/z_eff_ss_dust.c
+@@ -85,7 +85,6 @@ void EffectSsDust_Draw(PlayState* play, u32 index, EffectSs* this) {
+     MtxF mfScale;
+     MtxF mfResult;
+     MtxF mfTrans11DA0;
+-    s32 pad;
+     Mtx* mtx;
+     f32 scale;
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_En_Fire/z_eff_ss_en_fire.c b/soh/src/overlays/effects/ovl_Effect_Ss_En_Fire/z_eff_ss_en_fire.c
+index 89622b099..7250f1625 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_En_Fire/z_eff_ss_en_fire.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_En_Fire/z_eff_ss_en_fire.c
+@@ -67,7 +67,6 @@ void EffectSsEnFire_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+     f32 scale;
+     s16 camYaw;
+-    s32 pad[3];
+     s16 redGreen;
+ 
+     OPEN_DISPS(gfxCtx);
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c b/soh/src/overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c
+index f301a5d22..a0f48f832 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_En_Ice/z_eff_ss_en_ice.c
+@@ -87,7 +87,6 @@ u32 EffectSsEnIce_Init(PlayState* play, u32 index, EffectSs* this, void* initPar
+ 
+ void EffectSsEnIce_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 scale;
+     Vec3f hiliteLightDir;
+     u32 gameplayFrames;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Extra/z_eff_ss_extra.c b/soh/src/overlays/effects/ovl_Effect_Ss_Extra/z_eff_ss_extra.c
+index a7727566b..51f0c6262 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Extra/z_eff_ss_extra.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Extra/z_eff_ss_extra.c
+@@ -25,7 +25,6 @@ EffectSsInit Effect_Ss_Extra_InitVars = {
+ 
+ u32 EffectSsExtra_Init(PlayState* play, u32 index, EffectSs* this, void* initParamsx) {
+     EffectSsExtraInitParams* initParams = (EffectSsExtraInitParams*)initParamsx;
+-    s32 pad;
+     s32 objBankIndex;
+     u32 oldSeg6;
+ 
+@@ -59,7 +58,6 @@ static void* sTextures[] = {
+ };
+ 
+ void EffectSsExtra_Draw(PlayState* play, u32 index, EffectSs* this) {
+-    s32 pad;
+     f32 scale = this->rScale / 100.0f;
+     void* object = play->objectCtx.status[this->rObjBankIdx].segment;
+     u8 mirroredWorld = CVarGetInteger(CVAR_ENHANCEMENT("MirroredWorld"), 0);
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Fcircle/z_eff_ss_fcircle.c b/soh/src/overlays/effects/ovl_Effect_Ss_Fcircle/z_eff_ss_fcircle.c
+index ab9a549a4..a748de033 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Fcircle/z_eff_ss_fcircle.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Fcircle/z_eff_ss_fcircle.c
+@@ -44,7 +44,6 @@ u32 EffectSsFcircle_Init(PlayState* play, u32 index, EffectSs* this, void* initP
+ 
+ void EffectSsFcircle_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 yScale;
+     f32 xzScale;
+     f32 scale;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Fhg_Flash/z_eff_ss_fhg_flash.c b/soh/src/overlays/effects/ovl_Effect_Ss_Fhg_Flash/z_eff_ss_fhg_flash.c
+index edfa4492e..a6758f6fb 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Fhg_Flash/z_eff_ss_fhg_flash.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Fhg_Flash/z_eff_ss_fhg_flash.c
+@@ -30,7 +30,6 @@ static Gfx D_809A5100[15];
+ 
+ u32 EffectSsFhgFlash_Init(PlayState* play, u32 index, EffectSs* this, void* initParamsx) {
+     EffectSsFhgFlashInitParams* initParams = (EffectSsFhgFlashInitParams*)initParamsx;
+-    s32 pad;
+     s32 objBankIdx;
+     Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
+     Vec3f sp34 = { 0.0f, -1000.0f, 0.0f };
+@@ -86,7 +85,6 @@ static Color_RGB8 sColors[] = {
+ 
+ void EffectSsFhgFlash_DrawLightBall(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 scale;
+     void* object;
+ 
+@@ -113,7 +111,6 @@ void EffectSsFhgFlash_DrawLightBall(PlayState* play, u32 index, EffectSs* this)
+ 
+ void EffectSsFhgFlash_DrawShock(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 scale;
+ 
+     scale = this->rScale / 100.0f;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Fire_Tail/z_eff_ss_fire_tail.c b/soh/src/overlays/effects/ovl_Effect_Ss_Fire_Tail/z_eff_ss_fire_tail.c
+index ada355540..11321d679 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Fire_Tail/z_eff_ss_fire_tail.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Fire_Tail/z_eff_ss_fire_tail.c
+@@ -67,7 +67,6 @@ u32 EffectSsFireTail_Init(PlayState* play, u32 index, EffectSs* this, void* init
+ 
+ void EffectSsFireTail_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     s16 yaw;
+     Vec3f scale;
+     f32 temp1;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_G_Magma2/z_eff_ss_g_magma2.c b/soh/src/overlays/effects/ovl_Effect_Ss_G_Magma2/z_eff_ss_g_magma2.c
+index 5dc598fed..9e4ca464b 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_G_Magma2/z_eff_ss_g_magma2.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_G_Magma2/z_eff_ss_g_magma2.c
+@@ -39,7 +39,6 @@ EffectSsInit Effect_Ss_G_Magma2_InitVars = {
+ 
+ u32 EffectSsGMagma2_Init(PlayState* play, u32 index, EffectSs* this, void* initParamsx) {
+     s32 objBankIndex = Object_GetIndex(&play->objectCtx, OBJECT_KINGDODONGO);
+-    s32 pad;
+ 
+     if ((objBankIndex >= 0) && Object_IsLoaded(&play->objectCtx, objBankIndex)) {
+         Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
+@@ -73,7 +72,6 @@ u32 EffectSsGMagma2_Init(PlayState* play, u32 index, EffectSs* this, void* initP
+ 
+ void EffectSsGMagma2_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 scale;
+     void* object;
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_G_Ripple/z_eff_ss_g_ripple.c b/soh/src/overlays/effects/ovl_Effect_Ss_G_Ripple/z_eff_ss_g_ripple.c
+index e240aa83a..6687f94c9 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_G_Ripple/z_eff_ss_g_ripple.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_G_Ripple/z_eff_ss_g_ripple.c
+@@ -30,7 +30,6 @@ EffectSsInit Effect_Ss_G_Ripple_InitVars = {
+ };
+ 
+ u32 EffectSsGRipple_Init(PlayState* play, u32 index, EffectSs* this, void* initParamsx) {
+-    s32 pad;
+     Vec3f zeroVec = { 0.0f, 0.0f, 0.0f };
+     WaterBox* waterBox;
+     EffectSsGRippleInitParams* initParams = (EffectSsGRippleInitParams*)initParamsx;
+@@ -62,7 +61,6 @@ u32 EffectSsGRipple_Init(PlayState* play, u32 index, EffectSs* this, void* initP
+ void EffectSsGRipple_DrawRipple(PlayState* play, EffectSs* this, void* segment) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+     f32 radius;
+-    s32 pad;
+     MtxF mfTrans;
+     MtxF mfScale;
+     MtxF mfResult;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_G_Spk/z_eff_ss_g_spk.c b/soh/src/overlays/effects/ovl_Effect_Ss_G_Spk/z_eff_ss_g_spk.c
+index 94468dc5a..199df335d 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_G_Spk/z_eff_ss_g_spk.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_G_Spk/z_eff_ss_g_spk.c
+@@ -79,7 +79,6 @@ void EffectSsGSpk_Draw(PlayState* play, u32 index, EffectSs* this) {
+     MtxF mfTrans11DA0;
+     Mtx* mtx;
+     f32 scale;
+-    s32 pad;
+ 
+     OPEN_DISPS(gfxCtx);
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Hahen/z_eff_ss_hahen.c b/soh/src/overlays/effects/ovl_Effect_Ss_Hahen/z_eff_ss_hahen.c
+index 457d0352c..f42dea03a 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Hahen/z_eff_ss_hahen.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Hahen/z_eff_ss_hahen.c
+@@ -68,7 +68,6 @@ u32 EffectSsHahen_Init(PlayState* play, u32 index, EffectSs* this, void* initPar
+ 
+ void EffectSsHahen_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 scale = this->rScale * 0.001f;
+ 
+     OPEN_DISPS(gfxCtx);
+@@ -91,7 +90,6 @@ void EffectSsHahen_Draw(PlayState* play, u32 index, EffectSs* this) {
+ // in the original game this function is hardcoded to be used only by the skull pots in Shadow Temple
+ void EffectSsHahen_DrawGray(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 scale = this->rScale * 0.001f;
+ 
+     OPEN_DISPS(gfxCtx);
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_HitMark/z_eff_ss_hitmark.c b/soh/src/overlays/effects/ovl_Effect_Ss_HitMark/z_eff_ss_hitmark.c
+index 3c1a4ef18..f08da567f 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_HitMark/z_eff_ss_hitmark.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_HitMark/z_eff_ss_hitmark.c
+@@ -77,7 +77,6 @@ void EffectSsHitMark_Draw(PlayState* play, u32 index, EffectSs* this) {
+     MtxF mfTrans11DA0;
+     Mtx* mtx;
+     f32 scale;
+-    s32 pad;
+ 
+     OPEN_DISPS(gfxCtx);
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Ice_Piece/z_eff_ss_ice_piece.c b/soh/src/overlays/effects/ovl_Effect_Ss_Ice_Piece/z_eff_ss_ice_piece.c
+index 5e02161fd..055347671 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Ice_Piece/z_eff_ss_ice_piece.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Ice_Piece/z_eff_ss_ice_piece.c
+@@ -44,7 +44,6 @@ u32 EffectSsIcePiece_Init(PlayState* play, u32 index, EffectSs* this, void* init
+ 
+ void EffectSsIcePiece_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 scale;
+     u32 frames;
+     f32 alpha;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Ice_Smoke/z_eff_ss_ice_smoke.c b/soh/src/overlays/effects/ovl_Effect_Ss_Ice_Smoke/z_eff_ss_ice_smoke.c
+index f4003c686..b920a1b8f 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Ice_Smoke/z_eff_ss_ice_smoke.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Ice_Smoke/z_eff_ss_ice_smoke.c
+@@ -22,7 +22,6 @@ EffectSsInit Effect_Ss_Ice_Smoke_InitVars = {
+ 
+ u32 EffectSsIceSmoke_Init(PlayState* play, u32 index, EffectSs* this, void* initParamsx) {
+     EffectSsIceSmokeInitParams* initParams = (EffectSsIceSmokeInitParams*)initParamsx;
+-    s32 pad;
+     s32 objBankIdx;
+     void* oldSeg6;
+ 
+@@ -51,7 +50,6 @@ u32 EffectSsIceSmoke_Init(PlayState* play, u32 index, EffectSs* this, void* init
+ }
+ 
+ void EffectSsIceSmoke_Draw(PlayState* play, u32 index, EffectSs* this) {
+-    s32 pad;
+     void* object;
+     Mtx* mtx;
+     f32 scale;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_K_Fire/z_eff_ss_k_fire.c b/soh/src/overlays/effects/ovl_Effect_Ss_K_Fire/z_eff_ss_k_fire.c
+index 4f1c1997b..431715b1b 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_K_Fire/z_eff_ss_k_fire.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_K_Fire/z_eff_ss_k_fire.c
+@@ -42,7 +42,6 @@ u32 EffectSsKFire_Init(PlayState* play, u32 index, EffectSs* this, void* initPar
+ 
+ void EffectSsKFire_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 xzScale;
+     f32 yScale;
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c b/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
+index eca73e011..28cde3825 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Kakera/z_eff_ss_kakera.c
+@@ -89,7 +89,6 @@ f32 func_809A9818(f32 arg0, f32 arg1) {
+ void EffectSsKakera_Draw(PlayState* play, u32 index, EffectSs* this) {
+     static Color_RGB8 colors[] = { { 255, 255, 255 }, { 235, 170, 130 } };
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+     f32 scale;
+     s32 colorIdx;
+ 
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c b/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
+index 83b412a07..81c5e9cc6 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_KiraKira/z_eff_ss_kirakira.c
+@@ -77,7 +77,6 @@ u32 EffectSsKiraKira_Init(PlayState* play, u32 index, EffectSs* this, void* init
+ void EffectSsKiraKira_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx;
+     f32 scale;
+-    s32 pad;
+     MtxF mfTrans;
+     MtxF mfRotY;
+     MtxF mfScale;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Lightning/z_eff_ss_lightning.c b/soh/src/overlays/effects/ovl_Effect_Ss_Lightning/z_eff_ss_lightning.c
+index 8e0e35f01..8f45240f0 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Lightning/z_eff_ss_lightning.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Lightning/z_eff_ss_lightning.c
+@@ -118,7 +118,6 @@ void EffectSsLightning_Draw(PlayState* play, u32 index, EffectSs* this) {
+ }
+ 
+ void EffectSsLightning_Update(PlayState* play, u32 index, EffectSs* this) {
+-    s32 pad;
+     Vec3f pos;
+     s16 yaw;
+     f32 scale;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Sibuki/z_eff_ss_sibuki.c b/soh/src/overlays/effects/ovl_Effect_Ss_Sibuki/z_eff_ss_sibuki.c
+index 2e016e6a1..8816647ce 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Sibuki/z_eff_ss_sibuki.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Sibuki/z_eff_ss_sibuki.c
+@@ -78,7 +78,6 @@ void EffectSsSibuki_Draw(PlayState* play, u32 index, EffectSs* this) {
+ }
+ 
+ void EffectSsSibuki_Update(PlayState* play, u32 index, EffectSs* this) {
+-    s32 pad[3];
+     f32 xzVelScale;
+     s16 yaw;
+     Player* player = GET_PLAYER(play);
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Solder_Srch_Ball/z_eff_ss_solder_srch_ball.c b/soh/src/overlays/effects/ovl_Effect_Ss_Solder_Srch_Ball/z_eff_ss_solder_srch_ball.c
+index 631fa9ab9..0ff4ab2fe 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Solder_Srch_Ball/z_eff_ss_solder_srch_ball.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Solder_Srch_Ball/z_eff_ss_solder_srch_ball.c
+@@ -34,7 +34,6 @@ u32 EffectSsSolderSrchBall_Init(PlayState* play, u32 index, EffectSs* this, void
+ }
+ 
+ void EffectSsSolderSrchBall_Update(PlayState* play, u32 index, EffectSs* this) {
+-    s32 pad;
+     f32 playerPosDiffX;
+     f32 playerPosDiffY;
+     f32 playerPosDiffZ;
+diff --git a/soh/src/overlays/effects/ovl_Effect_Ss_Stick/z_eff_ss_stick.c b/soh/src/overlays/effects/ovl_Effect_Ss_Stick/z_eff_ss_stick.c
+index c82d49a55..1d8b591b1 100644
+--- a/soh/src/overlays/effects/ovl_Effect_Ss_Stick/z_eff_ss_stick.c
++++ b/soh/src/overlays/effects/ovl_Effect_Ss_Stick/z_eff_ss_stick.c
+@@ -50,7 +50,6 @@ u32 EffectSsStick_Init(PlayState* play, u32 index, EffectSs* this, void* initPar
+ 
+ void EffectSsStick_Draw(PlayState* play, u32 index, EffectSs* this) {
+     GraphicsContext* gfxCtx = play->state.gfxCtx;
+-    s32 pad;
+ 
+     OPEN_DISPS(gfxCtx);
+ 
+-- 
+2.55.0
+

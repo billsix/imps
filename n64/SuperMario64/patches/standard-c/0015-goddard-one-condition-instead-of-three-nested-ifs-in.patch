@@ -1,0 +1,47 @@
+From 89550a2c68ae38884b97b02f0b9fc670d24ea5e8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:16:17 +0000
+Subject: [PATCH 15/46] goddard: one condition instead of three nested ifs in
+ gd_dl_load_trg_buf vertex lookup
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+"the ifs need to be separate to match..." — they no longer do. Three
+nested single-statement ifs over side-effect-free struct reads are one
+`&&` chain, which short-circuits in the same order the nesting did.
+
+Verified: renderer.c compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/goddard/renderer.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/src/goddard/renderer.c b/src/goddard/renderer.c
+index 49279b39..41ff4a5a 100644
+--- a/src/goddard/renderer.c
++++ b/src/goddard/renderer.c
+@@ -1812,14 +1812,10 @@ Vtx *gd_dl_make_vertex(f32 x, f32 y, f32 z, f32 alpha) {
+ 
+     // Add the vertex index to the buffer if it doesn't already exist
+     for (i = sVertexBufStartIndex; i < (sVertexBufStartIndex + sVertexBufCount); i++) {
+-        // the ifs need to be separate to match...
+-        if (sCurrentGdDl->vtx[i].n.ob[0] == (s16) x) {
+-            if (sCurrentGdDl->vtx[i].n.ob[1] == (s16) y) {
+-                if (sCurrentGdDl->vtx[i].n.ob[2] == (s16) z) {
+-                    sTriangleBuf[sTriangleBufCount][D_801BB0B4++] = (s16) i;
+-                    return NULL;
+-                }
+-            }
++        if (sCurrentGdDl->vtx[i].n.ob[0] == (s16) x && sCurrentGdDl->vtx[i].n.ob[1] == (s16) y
++            && sCurrentGdDl->vtx[i].n.ob[2] == (s16) z) {
++            sTriangleBuf[sTriangleBufCount][D_801BB0B4++] = (s16) i;
++            return NULL;
+         }
+     }
+ 
+-- 
+2.55.0
+

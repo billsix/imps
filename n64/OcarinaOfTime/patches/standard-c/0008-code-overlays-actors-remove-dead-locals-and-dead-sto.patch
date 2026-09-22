@@ -1,0 +1,101 @@
+From 21bd93807a0747a5a9c85891c502646bc48e0139 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:36:07 +0000
+Subject: [PATCH 08/36] code, overlays/actors: remove dead locals and dead
+ stores kept "to match"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`waterBoxList` (z_bgcheck.c), `unused` (En_Trap), `thisx` (En_Zl3
+func_80B59AD0) are never read; `z16 = 0` (Bg_Ice_Objects) is overwritten
+before every read; `xz = sinZ` / `xy = sinY` (z_skin_matrix.c) are
+locals re-assigned before their next read — the `mf->` stores beside
+them are fields and stay.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/z_bgcheck.c                                      | 1 -
+ soh/src/code/z_skin_matrix.c                                  | 2 --
+ soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c | 2 +-
+ soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c               | 1 -
+ soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c                 | 3 ---
+ 5 files changed, 1 insertion(+), 8 deletions(-)
+
+diff --git a/soh/src/code/z_bgcheck.c b/soh/src/code/z_bgcheck.c
+index d3c183571..098e921fb 100644
+--- a/soh/src/code/z_bgcheck.c
++++ b/soh/src/code/z_bgcheck.c
+@@ -4264,7 +4264,6 @@ s32 WaterBox_GetSurface2(PlayState* play, CollisionContext* colCtx, Vec3f* pos,
+     s32 room;
+     s32 i;
+     WaterBox* waterBox;
+-    WaterBox* waterBoxList = colHeader->waterBoxes; // unused, needed for matching
+ 
+     if (colHeader->numWaterBoxes == 0 || colHeader->waterBoxes == PHYSICAL_TO_VIRTUAL(gSegments[0])) {
+         *outWaterBox = NULL;
+diff --git a/soh/src/code/z_skin_matrix.c b/soh/src/code/z_skin_matrix.c
+index 6e8078dd1..2acc37196 100644
+--- a/soh/src/code/z_skin_matrix.c
++++ b/soh/src/code/z_skin_matrix.c
+@@ -351,7 +351,6 @@ void SkinMatrix_SetRotateZYX(MtxF* mf, s16 x, s16 y, s16 z) {
+ 
+     } else {
+         mf->xx = cosZ;
+-        xz = sinZ; // required to match
+         mf->yx = sinZ;
+         mf->zx = mf->xz = mf->yz = 0;
+         mf->zz = 1;
+@@ -415,7 +414,6 @@ void SkinMatrix_SetRotateYXZ(MtxF* mf, s16 x, s16 y, s16 z) {
+ 
+     } else {
+         mf->zz = cosY;
+-        xy = sinY; // required to match
+         mf->xz = sinY;
+         mf->xy = mf->zy = mf->yz = 0;
+         mf->yy = 1;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c b/soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c
+index 16d92e9b8..961944951 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ice_Objects/z_bg_ice_objects.c
+@@ -82,7 +82,7 @@ static s16 sXStops[7][2] = {
+  */
+ void BgIceObjects_SetNextTarget(BgIceObjects* this, PlayState* play) {
+     s16 x16;
+-    s16 z16 = 0; // needed to match
++    s16 z16;
+     s32 i;
+ 
+     if ((this->dyna.unk_158 == 0) || (this->dyna.unk_158 == -0x8000)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c b/soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c
+index 210977374..f90b5eebe 100644
+--- a/soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c
++++ b/soh/src/overlays/actors/ovl_En_Trap/z_en_trap.c
+@@ -66,7 +66,6 @@ void EnTrap_Init(Actor* thisx, PlayState* play) {
+     s16 zSpeed;
+     s16 xSpeed;
+     EnTrap* this = (EnTrap*)thisx;
+-    ColliderCylinder* unused = &this->collider; // required to match
+ 
+     this->upperParams = (thisx->params >> 8) & 0xFF;
+     thisx->params &= 0xFF;
+diff --git a/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c b/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
+index b07f13863..53ae01c46 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
++++ b/soh/src/overlays/actors/ovl_En_Zl3/z_en_zl3.c
+@@ -2586,9 +2586,6 @@ void func_80B59A80(EnZl3* this, PlayState* play) {
+ }
+ 
+ void func_80B59AD0(EnZl3* this, PlayState* play) {
+-    // todo look into
+-    Actor* thisx = &this->actor; // unused, necessary to use 'this' first to fix regalloc
+-
+     Flags_SetSwitch(play, 0x36);
+     Interface_SetSubTimer(180);
+     func_80B54EA4(this, play);
+-- 
+2.55.0
+

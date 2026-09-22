@@ -1,0 +1,173 @@
+From 7bf8400f71a7f0c070b373c6d5854dfeba592fd1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:33:12 +0000
+Subject: [PATCH 03/36] soh/src/code: delete the empty `if (x) {}` statements
+ kept "to match"
+
+An `if` with an empty body and a side-effect-free condition does nothing;
+the decomp kept them because the original compiler needed the read to
+reproduce the ROM's register allocation ("Needed to match", "fixes
+regalloc, may be fake", "Very fake, but needed to get the s registers
+right"). GCC at -O2 already drops the dead load, so the generated code is
+unchanged. 14 line(s) in 9 file(s) under soh/src/code; the comment that
+excused each one goes with it.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/audio_load.c      | 3 ---
+ soh/src/code/audio_seqplayer.c | 1 -
+ soh/src/code/code_800E4FE0.c   | 2 --
+ soh/src/code/code_800FC620.c   | 2 --
+ soh/src/code/db_camera.c       | 1 -
+ soh/src/code/z_lifemeter.c     | 1 -
+ soh/src/code/z_message_PAL.c   | 1 -
+ soh/src/code/z_onepointdemo.c  | 1 -
+ soh/src/code/z_skin_matrix.c   | 2 --
+ 9 files changed, 14 deletions(-)
+
+diff --git a/soh/src/code/audio_load.c b/soh/src/code/audio_load.c
+index 239e312f3..af264b22d 100644
+--- a/soh/src/code/audio_load.c
++++ b/soh/src/code/audio_load.c
+@@ -1904,7 +1904,6 @@ void AudioLoad_RelocateFontAndPreloadSamples(s32 fontId, SoundFontData* mem, Rel
+     for (i = 0; i < gAudioContext.numUsedSamples; i++) {
+         size += ALIGN16(gAudioContext.usedSamples[i]->size);
+     }
+-    if (size && size) {}
+ 
+     for (i = 0; i < gAudioContext.numUsedSamples; i++) {
+         if (gAudioContext.preloadSampleStackTop == 120) {
+@@ -1956,7 +1955,6 @@ void AudioLoad_RelocateFontAndPreloadSamples(s32 fontId, SoundFontData* mem, Rel
+                     sample->sampleAddr = addr;
+                     sample->medium = MEDIUM_RAM;
+                 }
+-                if (sample->medium == MEDIUM_DISK_DRIVE) {}
+                 break;
+ 
+             case true:
+@@ -2167,7 +2165,6 @@ void AudioLoad_PreloadSamplesForFont(s32 fontId, s32 async, RelocInfo* relocInfo
+     for (i = 0; i < gAudioContext.numUsedSamples; i++) {
+         size += ALIGN16(gAudioContext.usedSamples[i]->size);
+     }
+-    if (size) {}
+ 
+     for (i = 0; i < gAudioContext.numUsedSamples; i++) {
+         if (gAudioContext.preloadSampleStackTop == 120) {
+diff --git a/soh/src/code/audio_seqplayer.c b/soh/src/code/audio_seqplayer.c
+index b99d29e1e..1ad7a7add 100644
+--- a/soh/src/code/audio_seqplayer.c
++++ b/soh/src/code/audio_seqplayer.c
+@@ -1571,7 +1571,6 @@ void AudioSeq_SequencePlayerProcessSequence(SequencePlayer* seqPlayer) {
+                         if (dummy > 1) {
+                             dummy = 1;
+                         }
+-                        if (dummy) {}
+                         break;
+                     case 0xF0:
+                         Audio_NotePoolClear(&seqPlayer->notePool);
+diff --git a/soh/src/code/code_800E4FE0.c b/soh/src/code/code_800E4FE0.c
+index 3d6c9c571..026ea490a 100644
+--- a/soh/src/code/code_800E4FE0.c
++++ b/soh/src/code/code_800E4FE0.c
+@@ -112,8 +112,6 @@ AudioTask* func_800E5000(void) {
+     if (gAudioContext.resetTimer < 16) {
+         if (gAudioContext.aiBufLengths[index] != 0) {
+             osAiSetNextBuffer(gAudioContext.aiBuffers[index], gAudioContext.aiBufLengths[index] * 4);
+-            if (gAudioContext.aiBuffers[index]) {}
+-            if (gAudioContext.aiBufLengths[index]) {}
+         }
+     }
+ 
+diff --git a/soh/src/code/code_800FC620.c b/soh/src/code/code_800FC620.c
+index 32197b417..6e0b2e505 100644
+--- a/soh/src/code/code_800FC620.c
++++ b/soh/src/code/code_800FC620.c
+@@ -158,14 +158,12 @@ void func_800FCA18(void* blk, u32 nBlk, u32 blkSize, arg3_800FCA18 arg3, s32 arg
+         masked_arg2 = (s32)(blkSize & ~0);
+         pos = (uintptr_t)end + (nBlk * blkSize);
+ 
+-        if (masked_arg2) {}
+ 
+         while (pos > end) {
+             pos -= masked_arg2;
+             arg3((void*)pos, 2);
+         }
+ 
+-        if (!masked_arg2) {}
+     }
+ 
+     if (arg4 != 0) {
+diff --git a/soh/src/code/db_camera.c b/soh/src/code/db_camera.c
+index b973db540..e42e936b3 100644
+--- a/soh/src/code/db_camera.c
++++ b/soh/src/code/db_camera.c
+@@ -1230,7 +1230,6 @@ void DbCamera_Update(DbCamera* dbCamera, Camera* cam) {
+                                 } else {
+                                     dbCamera->sub.nFrames++;
+                                 }
+-                                if (&dbCamera->at) {}
+                                 break;
+                         }
+                     }
+diff --git a/soh/src/code/z_lifemeter.c b/soh/src/code/z_lifemeter.c
+index cd6de967e..7c745aef3 100644
+--- a/soh/src/code/z_lifemeter.c
++++ b/soh/src/code/z_lifemeter.c
+@@ -245,7 +245,6 @@ void HealthMeter_Update(PlayState* play) {
+     gFactor = sHeartsEnvFactors[0][1] * factor;
+     bFactor = sHeartsEnvFactors[0][2] * factor;
+ 
+-    if (1) {}
+     ddType = type;
+ 
+     interfaceCtx->beatingHeartEnv[0] = (u8)(rFactor + mainBorder.r) & 0xFF;
+diff --git a/soh/src/code/z_message_PAL.c b/soh/src/code/z_message_PAL.c
+index 66a7baae2..f9362ee32 100644
+--- a/soh/src/code/z_message_PAL.c
++++ b/soh/src/code/z_message_PAL.c
+@@ -2533,7 +2533,6 @@ void Message_Decode(PlayState* play) {
+                         digits[2]++;
+                         digits[3] -= 10;
+                     }
+-                    if (temp_s2) {}
+ 
+                     loadChar = false;
+                     for (i = 0; i < 4; i++) {
+diff --git a/soh/src/code/z_onepointdemo.c b/soh/src/code/z_onepointdemo.c
+index 62194a758..562c2daa6 100644
+--- a/soh/src/code/z_onepointdemo.c
++++ b/soh/src/code/z_onepointdemo.c
+@@ -58,7 +58,6 @@ void OnePointCutscene_AddVecSphToVec3f(Vec3f* dst, Vec3f* src, VecSph* vecSph) {
+     out.x = src->x + vec.x;
+     out.y = src->y + vec.y;
+     out.z = src->z + vec.z;
+-    if (dst) {}
+     *dst = out;
+ }
+ 
+diff --git a/soh/src/code/z_skin_matrix.c b/soh/src/code/z_skin_matrix.c
+index 51b414853..6e8078dd1 100644
+--- a/soh/src/code/z_skin_matrix.c
++++ b/soh/src/code/z_skin_matrix.c
+@@ -371,7 +371,6 @@ void SkinMatrix_SetRotateZYX(MtxF* mf, s16 x, s16 y, s16 z) {
+         mf->yy = (yy * cos) + (yz * sin);
+         mf->yz = (yz * cos) - (yy * sin);
+ 
+-        if (cos) {}
+         mf->zy = mf->zz * sin;
+         mf->zz = mf->zz * cos;
+     } else {
+@@ -433,7 +432,6 @@ void SkinMatrix_SetRotateYXZ(MtxF* mf, s16 x, s16 y, s16 z) {
+         zx = mf->zx;
+         mf->zx = (zx * cos) + (zy * sin);
+         mf->zy = (zy * cos) - (zx * sin);
+-        if (cos) {}
+         mf->yx = mf->yy * sin;
+         mf->yy = mf->yy * cos;
+     } else {
+-- 
+2.55.0
+

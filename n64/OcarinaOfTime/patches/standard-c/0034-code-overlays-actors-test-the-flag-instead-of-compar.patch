@@ -1,0 +1,48 @@
+From 987411770f08196f12537eff449f4b186ecd76fb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:54:27 +0000
+Subject: [PATCH 34/36] code, overlays/actors: test the flag instead of
+ comparing a 1-bit field / u8 flag with 1
+
+`enabled == 1` on `u8 enabled : 1` bitfields (code_800EC960.c,
+audio_effects.c), `isRelocated == 1` (`u32 isRelocated : 1`) and Fishing's
+`u8 isLoach == 1`.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/audio_effects.c | 2 +-
+ soh/src/code/audio_load.c    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/soh/src/code/audio_effects.c b/soh/src/code/audio_effects.c
+index 476e8e3ba..a8a31800e 100644
+--- a/soh/src/code/audio_effects.c
++++ b/soh/src/code/audio_effects.c
+@@ -77,7 +77,7 @@ void Audio_SequencePlayerProcessSound(SequencePlayer* seqPlayer) {
+     }
+ 
+     for (i = 0; i < 16; i++) {
+-        if (seqPlayer->channels[i]->enabled == 1) {
++        if (seqPlayer->channels[i]->enabled) {
+             Audio_SequenceChannelProcessSound(seqPlayer->channels[i], seqPlayer->recalculateVolume, seqPlayer->unk_0b1);
+         }
+     }
+diff --git a/soh/src/code/audio_load.c b/soh/src/code/audio_load.c
+index 5802d246f..626ba2ac7 100644
+--- a/soh/src/code/audio_load.c
++++ b/soh/src/code/audio_load.c
+@@ -423,7 +423,7 @@ void AudioLoad_SyncLoadSeqParts(s32 seqId, s32 arg1) {
+ s32 AudioLoad_SyncLoadSample(SoundFontSample* sample, s32 fontId) {
+     void* sampleAddr;
+ 
+-    if (sample->isRelocated == 1) {
++    if (sample->isRelocated) {
+         if (sample->medium != MEDIUM_RAM) {
+             sampleAddr = AudioHeap_AllocSampleCache(sample->size, fontId, (void*)sample->sampleAddr, sample->medium,
+                                                     CACHE_PERSISTENT);
+-- 
+2.55.0
+

@@ -1,0 +1,366 @@
+From 652e1c56764b3f2dafaa1c5de92b8ade537a3988 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:07:03 +0000
+Subject: [PATCH 02/46] goddard: drop the `register` storage class and its
+ register-map comments (no codegen change)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+goddard is the most disassembly-shaped code in the tree: many locals were
+declared `register` with the MIPS register they lived in as a trailing
+comment (`register s16 *cbufOff; // a0`). The keyword is ignored by GCC and
+Clang, forbids only `&x` (never applied to these), and is gone from C++17;
+the comments name registers that no longer exist. Remove both — 55 lines
+across 9 files — leaving the declarations themselves untouched.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/goddard/draw_objects.c  | 14 +++++++-------
+ src/goddard/gd_memory.c     |  4 ++--
+ src/goddard/joints.c        |  4 ++--
+ src/goddard/objects.c       |  4 ++--
+ src/goddard/particles.c     | 10 +++++-----
+ src/goddard/renderer.c      | 24 ++++++++++++------------
+ src/goddard/shape_helper.c  |  4 ++--
+ src/goddard/skin.c          | 32 ++++++++++++++++----------------
+ src/goddard/skin_movement.c | 14 +++++++-------
+ 9 files changed, 55 insertions(+), 55 deletions(-)
+
+diff --git a/src/goddard/draw_objects.c b/src/goddard/draw_objects.c
+index 77d30be6..8a951e76 100644
+--- a/src/goddard/draw_objects.c
++++ b/src/goddard/draw_objects.c
+@@ -132,7 +132,7 @@ void Unknown801781DC(struct ObjZone *zone) {
+     f32 sp30;
+     f32 sp2C;
+     struct ObjLight *light;
+-    register struct ListNode *link = zone->unk30->firstMember; // s0 (24)
++    struct ListNode *link = zone->unk30->firstMember;
+     struct GdObj *obj;                                 // 20
+ 
+     while (link != NULL) {
+@@ -1105,7 +1105,7 @@ void create_shape_mtl_gddls(struct ObjShape *shape) {
+  * @note Not called
+  */
+ void unref_8017AEDC(struct ObjGroup *grp) {
+-    register struct ListNode *link = grp->firstMember;
++    struct ListNode *link = grp->firstMember;
+ 
+     while (link != NULL) {
+         struct GdObj *obj = link->obj;
+@@ -1176,9 +1176,9 @@ void create_gddl_for_shapes(struct ObjGroup *grp) {
+  */
+ void map_face_materials(struct ObjGroup *faces, struct ObjGroup *mtls) {
+     struct ObjFace *face;
+-    register struct ListNode *linkFaces;
++    struct ListNode *linkFaces;
+     struct GdObj *temp;
+-    register struct ListNode *linkMtls;
++    struct ListNode *linkMtls;
+     struct ObjMaterial *mtl;
+ 
+     linkFaces = faces->firstMember;
+@@ -1216,7 +1216,7 @@ void map_face_materials(struct ObjGroup *faces, struct ObjGroup *mtls) {
+ static void calc_vtx_normal(struct ObjVertex *vtx, struct ObjGroup *facegrp) {
+     s32 i;
+     s32 faceCount;
+-    register struct ListNode *node;
++    struct ListNode *node;
+     struct ObjFace *curFace;
+ 
+     vtx->normal.x = vtx->normal.y = vtx->normal.z = 0.0f;
+@@ -1296,9 +1296,9 @@ static void find_thisface_verts(struct ObjFace *face, struct ObjGroup *vertexGrp
+  *       a very similar task...
+  */
+ void map_vertices(struct ObjGroup *facegrp, struct ObjGroup *vtxgrp) {
+-    register struct ListNode *faceNode;
++    struct ListNode *faceNode;
+     struct ObjFace *curFace;
+-    register struct ListNode *vtxNode;
++    struct ListNode *vtxNode;
+     struct ObjVertex *vtx;
+ 
+     imin("map_vertices");
+diff --git a/src/goddard/gd_memory.c b/src/goddard/gd_memory.c
+index 9b2556e4..478bc8ea 100644
+--- a/src/goddard/gd_memory.c
++++ b/src/goddard/gd_memory.c
+@@ -150,9 +150,9 @@ struct GMemBlock *make_mem_block(u32 blockType, u8 permFlag) {
+  * @retval  0    `ptr` did not point to a valid memory block
+  */
+ u32 gd_free_mem(void *ptr) {
+-    register struct GMemBlock *curBlock;
++    struct GMemBlock *curBlock;
+     u32 bytesFreed;
+-    register u8 *targetBlock = ptr;
++    u8 *targetBlock = ptr;
+ 
+     for (curBlock = sUsedBlockListHead; curBlock != NULL; curBlock = curBlock->next) {
+         if (targetBlock == curBlock->ptr) {
+diff --git a/src/goddard/joints.c b/src/goddard/joints.c
+index bd4191b1..ff136877 100644
+--- a/src/goddard/joints.c
++++ b/src/goddard/joints.c
+@@ -52,7 +52,7 @@ void grabbable_joint_update_func(struct ObjJoint *self) {
+     UNUSED u8 filler2[4];
+     struct GdVec3f offset;  // difference between current position and initial position
+     UNUSED u8 filler3[16];
+-    register struct ListNode *att;
++    struct ListNode *att;
+     UNUSED u8 filler4[8];
+     struct GdObj *attobj;
+ 
+@@ -135,7 +135,7 @@ void eye_joint_update_func(struct ObjJoint *self) {
+     struct GdVec3f sp50;
+     struct GdVec3f sp44;
+     UNUSED u8 filler[24];
+-    register struct ListNode *att;
++    struct ListNode *att;
+     struct GdObj *attobj;
+ 
+     if (sCurrentMoveCamera == NULL) {
+diff --git a/src/goddard/objects.c b/src/goddard/objects.c
+index 52e191d2..7d580ac8 100644
+--- a/src/goddard/objects.c
++++ b/src/goddard/objects.c
+@@ -434,7 +434,7 @@ void reset_plane(struct ObjPlane *plane) {
+     UNUSED u8 filler[12];
+     s32 i;
+     s32 sp30;
+-    register f32 sp28;
++    f32 sp28;
+ 
+     imin("reset_plane");
+ 
+@@ -1525,7 +1525,7 @@ void move_animator(struct ObjAnimator *animObj) {
+     f32 dt;
+     f32 scale = 0.1f;
+     struct AnimMtxVec *sp28;
+-    register struct ListNode *link;
++    struct ListNode *link;
+     struct GdObj *linkedObj;
+ 
+     if (animObj->controlFunc != NULL) {
+diff --git a/src/goddard/particles.c b/src/goddard/particles.c
+index 303e13ea..c7e7c13f 100644
+--- a/src/goddard/particles.c
++++ b/src/goddard/particles.c
+@@ -55,7 +55,7 @@ void Unknown801835C8(struct ObjParticle *ptc);
+ 
+ static void connect_vertices(struct ObjVertex *vtx1, struct ObjVertex *vtx2) {
+     struct Connection *newConn;
+-    register struct ListNode *link;
++    struct ListNode *link;
+ 
+     if (vtx1 == vtx2) {
+         return;
+@@ -177,7 +177,7 @@ void func_80182088(struct Connection *cxn) {
+ 
+ /* 230B70 -> 230CC0 */
+ void func_801823A0(struct ObjNet *net) {
+-    register struct ListNode *link;
++    struct ListNode *link;
+     struct Connection *cxn;
+ 
+     gGdSkinNet = net;
+@@ -285,7 +285,7 @@ int func_80182778(struct ObjParticle *ptc) {
+ 
+ /* 2311D8 -> 231454 */
+ void func_80182A08(struct ObjParticle *ptc, struct GdVec3f *b) {
+-    register struct ListNode *link;
++    struct ListNode *link;
+     struct ObjParticle *sp20;
+ 
+     if (ptc->subParticlesGrp != NULL) {
+@@ -407,7 +407,7 @@ void move_particle(struct ObjParticle *ptc) {
+         switch (ptc->unk64) {
+             case 1:
+                 if (func_80182778(ptc) && ptc->subParticlesGrp != NULL) {
+-                    register struct ListNode *link;
++                    struct ListNode *link;
+ 
+                     if (ptc->unk80 != NULL) {
+                         ptc->unk80->unk3C |= 1;
+@@ -468,7 +468,7 @@ void move_particles_in_grp(struct ObjGroup *group) {
+ void Unknown801835C8(struct ObjParticle *ptc) {
+     struct GdVec3f sp54;
+     f32 sp50;
+-    register struct ListNode *link;
++    struct ListNode *link;
+ 
+     gd_printf("p(%d)=", ptc->attachedObjsGrp->memberCount);
+     link = ptc->attachedObjsGrp->firstMember;
+diff --git a/src/goddard/renderer.c b/src/goddard/renderer.c
+index dafe27cd..2616a20f 100644
+--- a/src/goddard/renderer.c
++++ b/src/goddard/renderer.c
+@@ -2968,14 +2968,14 @@ void update_cursor(void) {
+ 
+ /* 253728 -> 2538E0 */
+ void Unknown801A4F58(void) {
+-    register s16 *cbufOff; // a0
+-    register s16 *cbufOn;  // a1
+-    register u16 *zbuf;    // a2
+-    register s16 colour;   // a3
+-    register s16 r;        // t0
+-    register s16 g;        // t1
+-    register s16 b;        // t2
+-    register s32 i;        // t3
++    s16 *cbufOff;
++    s16 *cbufOn;
++    u16 *zbuf;
++    s16 colour;
++    s16 r;
++    s16 g;
++    s16 b;
++    s32 i;
+ 
+     cbufOff = sScreenView->colourBufs[gGdFrameBufNum ^ 1];
+     cbufOn = sScreenView->colourBufs[gGdFrameBufNum];
+@@ -3621,12 +3621,12 @@ void func_801A71CC(struct ObjNet *net) {
+     struct GdBoundingBox bbox;
+     UNUSED u8 filler1[4];
+     struct ObjZone *sp88;
+-    register struct ListNode *link;  // s0 (84)
++    struct ListNode *link;
+     s32 sp80;                     // linked planes contained in zone?
+     s32 sp7C;                     // linked planes in net count?
+-    register struct ListNode *link1; // s1 (78)
+-    register struct ListNode *link2; // s2 (74)
+-    register struct ListNode *link3; // s3 (70)
++    struct ListNode *link1;
++    struct ListNode *link2;
++    struct ListNode *link3;
+     struct GdVec3f sp64;
+     UNUSED u8 filler2[4];
+     struct ObjPlane *plane; // 5c
+diff --git a/src/goddard/shape_helper.c b/src/goddard/shape_helper.c
+index 1b41a987..cd45c454 100644
+--- a/src/goddard/shape_helper.c
++++ b/src/goddard/shape_helper.c
+@@ -817,7 +817,7 @@ struct ObjGroup *group_faces_in_mtl_grp(struct ObjGroup *mtlGroup, struct GdObj
+     struct ObjMaterial *curObjAsMtl;
+     struct ObjGroup *newGroup;
+     struct GdObj *curObj;
+-    register struct ListNode *node;
++    struct ListNode *node;
+     struct GdObj *curLinkedObj;
+ 
+     newGroup = make_group(0);
+@@ -847,7 +847,7 @@ struct ObjGroup *group_faces_in_mtl_grp(struct ObjGroup *mtlGroup, struct GdObj
+ /* @ 247884 for 0x13c; orig name: func_801990B4 */
+ struct ObjMaterial *find_or_add_new_mtl(struct ObjGroup *group, UNUSED s32 a1, f32 r, f32 g, f32 b) {
+     struct ObjMaterial *newMtl;
+-    register struct ListNode *node;
++    struct ListNode *node;
+     struct ObjMaterial *foundMtl;
+ 
+     for (node = group->firstMember; node != NULL; node = node->next) {
+diff --git a/src/goddard/skin.c b/src/goddard/skin.c
+index ab327eb4..1667c1a7 100644
+--- a/src/goddard/skin.c
++++ b/src/goddard/skin.c
+@@ -303,15 +303,15 @@ void convert_gd_verts_to_Vn(struct ObjGroup *grp) {
+     Vtx *vn;       // 28
+     u8 nx, ny, nz; // 24, 25, 26
+     UNUSED u8 filler2[4];
+-    register struct VtxLink *vtxlink; // a1
++    struct VtxLink *vtxlink;
+ #ifndef GBI_FLOATS
+-    register s16 *vnPos;              // a2
++    s16 *vnPos;
+ #endif
+-    register s16 x;                   // a3
+-    register s16 y;                   // t0
+-    register s16 z;                   // t1
+-    register struct ObjVertex *vtx;   // t2
+-    register struct ListNode *link;      // t3
++    s16 x;
++    s16 y;
++    s16 z;
++    struct ObjVertex *vtx;
++    struct ListNode *link;
+     struct GdObj *obj;                // sp4
+ 
+     for (link = grp->firstMember; link != NULL; link = link->next) {
+@@ -348,15 +348,15 @@ void convert_gd_verts_to_Vn(struct ObjGroup *grp) {
+ /* 241AB4 -> 241BCC; orig name: func_801932E4 */
+ void convert_gd_verts_to_Vtx(struct ObjGroup *grp) {
+     UNUSED u8 filler[24];
+-    register struct VtxLink *vtxlink; // a1
++    struct VtxLink *vtxlink;
+ #ifndef GBI_FLOATS
+-    register s16 *vtxcoords;          // a2
++    s16 *vtxcoords;
+ #endif
+-    register s16 x;                   // a3
+-    register s16 y;                   // t0
+-    register s16 z;                   // t1
+-    register struct ObjVertex *vtx;   // t2
+-    register struct ListNode *link;      // t3
++    s16 x;
++    s16 y;
++    s16 z;
++    struct ObjVertex *vtx;
++    struct ListNode *link;
+     struct GdObj *obj;                // sp4
+ 
+     for (link = grp->firstMember; link != NULL; link = link->next) {
+@@ -401,7 +401,7 @@ void convert_net_verts(struct ObjNet *net) {
+ /* 241CA0 -> 241D6C */
+ static void move_joints_in_net(struct ObjNet *net) {
+     struct ObjGroup *grp;        // 2c
+-    register struct ListNode *link; // s0
++    struct ListNode *link;
+     struct GdObj *obj;           // 24
+ 
+     if ((grp = net->unk1C8) != NULL) {
+@@ -464,7 +464,7 @@ void move_nets(struct ObjGroup *group) {
+ 
+ /* 241F0C -> 242018 */
+ void func_8019373C(struct ObjNet *net) {
+-    register struct ListNode *link;
++    struct ListNode *link;
+     struct ObjVertex *vtx;
+ 
+     switch (net->netType) {
+diff --git a/src/goddard/skin_movement.c b/src/goddard/skin_movement.c
+index fb8a8384..90ace8f3 100644
+--- a/src/goddard/skin_movement.c
++++ b/src/goddard/skin_movement.c
+@@ -47,8 +47,8 @@ void func_801815E0(Mat4f *mtx) {
+ /* called with ObjNext->unk1A8 (variable obj ptr?) ->unk20 or ->unk24 ptr*/
+ // TODO: figure out the proper object type for a0
+ void scale_verts(struct ObjGroup *a0) {
+-    register f32 sp1C;
+-    register struct ListNode *link;
++    f32 sp1C;
++    struct ListNode *link;
+     struct ObjVertex *vtx;
+ 
+     for (link = a0->firstMember; link != NULL; link = link->next) {
+@@ -75,12 +75,12 @@ void move_skin(struct ObjNet *net) {
+ 
+ /* @ 230064 for 0x13C*/
+ void func_80181894(struct ObjJoint *joint) {
+-    register struct ObjGroup *weightGroup; // baseGroup? weights Only?
++    struct ObjGroup *weightGroup; // baseGroup? weights Only?
+     struct GdVec3f stackVec;
+-    register struct ObjWeight *curWeight;
+-    register struct ObjVertex *connectedVtx;
+-    register struct ListNode *link;
+-    register f32 scaleFactor;
++    struct ObjWeight *curWeight;
++    struct ObjVertex *connectedVtx;
++    struct ListNode *link;
++    f32 scaleFactor;
+     struct GdObj *linkedObj;
+ 
+     weightGroup = joint->weightGrp;
+-- 
+2.55.0
+

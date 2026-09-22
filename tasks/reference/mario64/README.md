@@ -28,6 +28,16 @@ Docs are written deepest-first (L2), then summarized upward (each level
 ~half the lines of the one below). The scheme is evolvable — see the
 umbrella's deviations log for changes.
 
+## Code-quality reference (not a topic capsule)
+
+- `assembly-isms-in-the-decomp.md` — the 20 patterns the matching-era decomp left in the C
+  (`goto`-as-`break`, `register`, stack-slot names, `== TRUE`, `& 0xFFFF` before an `s16`
+  store, double literals, …), why each exists, the rewrite, and the semantic rule that decides
+  whether the rewrite is behaviour-preserving; plus the assembly-diff proof gate and the
+  upstream posture. Companion to `tasks/mario64-assembly-isms-to-standard-c.md`. The gate and
+  the per-class rewrite tools now live in `tools/` — map: `tasks/reference/imps/standard-c-tooling.md`;
+  the OoT twin's findings: `tasks/reference/ocarina/assembly-isms-in-soh.md`.
+
 ## Architecture docs (orientation — "where does X live")
 
 These predate this set and map the code, not the concepts. Read the

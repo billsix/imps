@@ -1,0 +1,56 @@
+From b0e343b5e0edf51f21b7dc1b607b9546d323d20d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:11:43 +0000
+Subject: [PATCH 08/46] audio: remove the unreferenced `struct vNote` and
+ refresh the comment that described it
+
+`struct vNote` (a twin of `struct Note` with a `volatile` bitfield) existed
+so synthesis_process_notes could be cast to it and read `enabled` through a
+volatile access, reproducing IDO's codegen. Nothing references the type any
+more; the two `//!` lines in synthesis.c describe a workaround that is not
+in the tree. Delete the struct and say what the comment used to mean.
+
+Verified: synthesis.c compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/audio/internal.h  | 6 ------
+ src/audio/synthesis.c | 4 ++--
+ 2 files changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/src/audio/internal.h b/src/audio/internal.h
+index f4e44b12..966db70f 100644
+--- a/src/audio/internal.h
++++ b/src/audio/internal.h
+@@ -670,12 +670,6 @@ struct Note {
+     /*    , 0xB0, 0xB4*/ struct NoteSubEu noteSubEu;
+ }; // size = 0xC0, known to be 0xC8 on SH
+ #else
+-// volatile Note, needed in synthesis_process_notes
+-struct vNote {
+-    /* U/J, EU  */
+-    /*0x00*/ volatile u8 enabled : 1;
+-    long long int force_structure_alignment;
+-}; // size = 0xC0
+ struct Note {
+     /* U/J, EU  */
+     /*0x00*/ u8 enabled : 1;
+diff --git a/src/audio/synthesis.c b/src/audio/synthesis.c
+index 846e4b37..55b5d6cc 100644
+--- a/src/audio/synthesis.c
++++ b/src/audio/synthesis.c
+@@ -674,8 +674,8 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+     for (noteIndex = 0; noteIndex < gMaxSimultaneousNotes; noteIndex++) {
+         note = &gNotes[noteIndex];
+ #ifdef VERSION_US
+-        //! This function requires note->enabled to be volatile, but it breaks other functions like note_enable.
+-        //! Casting to a struct with just the volatile bitfield works, but there may be a better way to match.
++        // The matching build read note->enabled through a volatile-bitfield twin of struct Note
++        // (`struct vNote`) to reproduce IDO's codegen; the port reads the field directly.
+         if (note->enabled == TRUE && IS_BANK_LOAD_COMPLETE(note->bankId) == FALSE) {
+ #else
+         if (IS_BANK_LOAD_COMPLETE(note->bankId) == FALSE) {
+-- 
+2.55.0
+

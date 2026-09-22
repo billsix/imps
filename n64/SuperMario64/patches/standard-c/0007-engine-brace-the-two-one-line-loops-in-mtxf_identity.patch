@@ -1,0 +1,43 @@
+From f5f470149ac21954698a9e5d68e9674f6b480a23 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:11:42 +0000
+Subject: [PATCH 07/46] engine: brace the two one-line loops in mtxf_identity
+
+"These loops must be one line to match on -O2" no longer applies; give
+each loop body its braces and drop the comment.
+
+Verified: math_util.c compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/engine/math_util.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index cf38bffa..38314cb6 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -171,13 +171,15 @@ void mtxf_copy(Mat4 dest, Mat4 src) {
+ void mtxf_identity(Mat4 mtx) {
+     s32 i;
+     f32 *dest;
+-    // These loops must be one line to match on -O2
+-
+     // initialize everything except the first and last cells to 0
+-    for (dest = (f32 *) mtx + 1, i = 0; i < 14; dest++, i++) *dest = 0;
++    for (dest = (f32 *) mtx + 1, i = 0; i < 14; dest++, i++) {
++        *dest = 0;
++    }
+ 
+     // initialize the diagonal cells to 1
+-    for (dest = (f32 *) mtx, i = 0; i < 4; dest += 5, i++) *dest = 1;
++    for (dest = (f32 *) mtx, i = 0; i < 4; dest += 5, i++) {
++        *dest = 1;
++    }
+ }
+ 
+ /**
+-- 
+2.55.0
+

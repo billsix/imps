@@ -1,0 +1,135 @@
+From 674a4f0960a9780bd1028045bdb8948ff8d3e082 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:11:42 +0000
+Subject: [PATCH 06/46] game: braces and one statement per line where "one line
+ to match on -O2" was the only reason
+
+Five sites keep a statement on the `if`/`for`/`case` line (two of them
+fenced with `// clang-format off`) because IDO only produced the ROM's code
+that way. The port does not match a ROM; write them as ordinary braced
+statements, one per line, and delete the comments and fences with them.
+fish.inc.c's four column-aligned multi-assignment cases become four
+assignments each.
+
+Verified: every file (fish.inc.c through the translation unit that includes
+it) compiles to byte-identical assembly before and after with the port's
+own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/fish.inc.c      | 21 ++++++++++++++++-----
+ src/game/game_init.c               |  5 +++--
+ src/game/level_update.c            |  3 ++-
+ src/game/mario_actions_airborne.c  |  7 +++----
+ src/game/mario_actions_submerged.c |  5 +++--
+ 5 files changed, 27 insertions(+), 14 deletions(-)
+
+diff --git a/src/game/behaviors/fish.inc.c b/src/game/behaviors/fish.inc.c
+index 1e56171d..37ef8ecb 100644
+--- a/src/game/behaviors/fish.inc.c
++++ b/src/game/behaviors/fish.inc.c
+@@ -16,21 +16,32 @@ static void fish_spawner_act_spawn(void) {
+     const struct Animation * const *fishAnimation;
+ 
+     switch (o->oBehParams2ndByte) {
+-        // Cases need to be on one line to match with and without optimizations.
+         case FISH_SPAWNER_BP_MANY_BLUE:
+-            model = MODEL_FISH;      schoolQuantity = 20; minDistToMario = 1500.0f; fishAnimation = blue_fish_seg3_anims_0301C2B0;
++            model = MODEL_FISH;
++            schoolQuantity = 20;
++            minDistToMario = 1500.0f;
++            fishAnimation = blue_fish_seg3_anims_0301C2B0;
+             break;
+ 
+         case FISH_SPAWNER_BP_FEW_BLUE:
+-            model = MODEL_FISH;      schoolQuantity = 5;  minDistToMario = 1500.0f; fishAnimation = blue_fish_seg3_anims_0301C2B0;
++            model = MODEL_FISH;
++            schoolQuantity = 5;
++            minDistToMario = 1500.0f;
++            fishAnimation = blue_fish_seg3_anims_0301C2B0;
+             break;
+ 
+         case FISH_SPAWNER_BP_MANY_CYAN:
+-            model = MODEL_CYAN_FISH; schoolQuantity = 20; minDistToMario = 1500.0f; fishAnimation = cyan_fish_seg6_anims_0600E264;
++            model = MODEL_CYAN_FISH;
++            schoolQuantity = 20;
++            minDistToMario = 1500.0f;
++            fishAnimation = cyan_fish_seg6_anims_0600E264;
+             break;
+ 
+         case FISH_SPAWNER_BP_FEW_CYAN:
+-            model = MODEL_CYAN_FISH; schoolQuantity = 5;  minDistToMario = 1500.0f; fishAnimation = cyan_fish_seg6_anims_0600E264;
++            model = MODEL_CYAN_FISH;
++            schoolQuantity = 5;
++            minDistToMario = 1500.0f;
++            fishAnimation = cyan_fish_seg6_anims_0600E264;
+             break;
+     }
+ 
+diff --git a/src/game/game_init.c b/src/game/game_init.c
+index 073fb7f4..ba802509 100644
+--- a/src/game/game_init.c
++++ b/src/game/game_init.c
+@@ -322,8 +322,9 @@ void draw_reset_bars(void) {
+         fbPtr += gNmiResetBarsTimer++ * (SCREEN_WIDTH / 4);
+ 
+         for (width = 0; width < ((SCREEN_HEIGHT / 16) + 1); width++) {
+-            // Loop must be one line to match on -O2
+-            for (height = 0; height < (SCREEN_WIDTH / 4); height++) *fbPtr++ = 0;
++            for (height = 0; height < (SCREEN_WIDTH / 4); height++) {
++                *fbPtr++ = 0;
++            }
+             fbPtr += ((SCREEN_WIDTH / 4) * 14);
+         }
+     }
+diff --git a/src/game/level_update.c b/src/game/level_update.c
+index 0f7a4546..7bc97e77 100644
+--- a/src/game/level_update.c
++++ b/src/game/level_update.c
+@@ -708,7 +708,8 @@ s16 level_trigger_warp(struct MarioState *m, s32 warpOp) {
+ 
+         switch (warpOp) {
+             case WARP_OP_DEMO_NEXT:
+-            case WARP_OP_DEMO_END: sDelayedWarpTimer = 20; // Must be one line to match on -O2
++            case WARP_OP_DEMO_END:
++                sDelayedWarpTimer = 20;
+                 sSourceWarpNodeId = WARP_NODE_F0;
+                 gSavedCourseNum = COURSE_NONE;
+                 val04 = FALSE;
+diff --git a/src/game/mario_actions_airborne.c b/src/game/mario_actions_airborne.c
+index 85445d89..1278e9cf 100644
+--- a/src/game/mario_actions_airborne.c
++++ b/src/game/mario_actions_airborne.c
+@@ -609,10 +609,9 @@ s32 act_side_flip(struct MarioState *m) {
+         m->marioObj->header.gfx.angle[1] += 0x8000;
+     }
+ 
+-    // This must be one line to match on -O2
+-    // clang-format off
+-    if (m->marioObj->header.gfx.animInfo.animFrame == 6) play_sound(SOUND_ACTION_SIDE_FLIP_UNK, m->marioObj->header.gfx.cameraToObject);
+-    // clang-format on
++    if (m->marioObj->header.gfx.animInfo.animFrame == 6) {
++        play_sound(SOUND_ACTION_SIDE_FLIP_UNK, m->marioObj->header.gfx.cameraToObject);
++    }
+     return FALSE;
+ }
+ 
+diff --git a/src/game/mario_actions_submerged.c b/src/game/mario_actions_submerged.c
+index f085ab10..368a6143 100644
+--- a/src/game/mario_actions_submerged.c
++++ b/src/game/mario_actions_submerged.c
+@@ -485,8 +485,9 @@ void common_swimming_step(struct MarioState *m, s16 swimStrength) {
+ void play_swimming_noise(struct MarioState *m) {
+     s16 animFrame = m->marioObj->header.gfx.animInfo.animFrame;
+ 
+-    // This must be one line to match on -O2
+-    if (animFrame == 0 || animFrame == 12) play_sound(SOUND_ACTION_UNKNOWN434, m->marioObj->header.gfx.cameraToObject);
++    if (animFrame == 0 || animFrame == 12) {
++        play_sound(SOUND_ACTION_UNKNOWN434, m->marioObj->header.gfx.cameraToObject);
++    }
+ }
+ 
+ s32 check_water_jump(struct MarioState *m) {
+-- 
+2.55.0
+

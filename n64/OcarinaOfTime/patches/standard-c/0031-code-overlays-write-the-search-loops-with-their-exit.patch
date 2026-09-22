@@ -1,0 +1,134 @@
+From e49a4c9ca0eeeee2261fc14c8a12d365dcaeaaff Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:51:05 +0000
+Subject: [PATCH 31/36] code, overlays: write the search loops with their exit
+ test in the header
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`while (true) { if (!c) break; … }` where the test is the first statement
+is `while (c) { … }`: audio_load.c's DMA chunk loop (`size >= 0x400`),
+z_jpeg.c (`!exit`), the two map-mark walks (`markType != NONE`), the two
+digit loops in z_file_choose.c (`*ones >= 100` / `>= 10` — an s16
+promoted to int, so `(*ones - 100) < 0` is exactly `*ones < 100`),
+Bg_Spot16_Bombstone's table walk (De Morgan on integer tests, bounds
+check still first), and code_800EC960.c's `while (f()) {}`. z_eff_blure.c's
+`if (c) { … } else { break; }` is the same inversion.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/audio_load.c                                   | 5 +----
+ soh/src/code/code_800EC960.c                                | 5 +----
+ soh/src/code/z_jpeg.c                                       | 6 +-----
+ soh/src/code/z_map_mark.c                                   | 6 +-----
+ .../actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c  | 6 +-----
+ soh/src/overlays/misc/ovl_kaleido_scope/z_lmap_mark.c       | 6 +-----
+ 6 files changed, 6 insertions(+), 28 deletions(-)
+
+diff --git a/soh/src/code/audio_load.c b/soh/src/code/audio_load.c
+index f5b52a105..5802d246f 100644
+--- a/soh/src/code/audio_load.c
++++ b/soh/src/code/audio_load.c
+@@ -949,10 +949,7 @@ void AudioLoad_SyncDma(uintptr_t devAddr, u8* addr, size_t size, s32 medium) {
+ 
+     Audio_InvalDCache(addr, size);
+ 
+-    while (true) {
+-        if (size < 0x400) {
+-            break;
+-        }
++    while (size >= 0x400) {
+         AudioLoad_Dma(ioMesg, OS_MESG_PRI_HIGH, OS_READ, devAddr, addr, 0x400, msgQueue, medium, "FastCopy");
+         osRecvMesg(msgQueue, NULL, OS_MESG_BLOCK);
+         size -= 0x400;
+diff --git a/soh/src/code/code_800EC960.c b/soh/src/code/code_800EC960.c
+index 16e30c23b..bd8122f05 100644
+--- a/soh/src/code/code_800EC960.c
++++ b/soh/src/code/code_800EC960.c
+@@ -5407,10 +5407,7 @@ s8 func_800F6BB8(void) {
+ void func_800F6BDC(void) {
+     Audio_DisableAllSeq();
+     Audio_ScheduleProcessCmds();
+-    while (true) {
+-        if (!func_800F6BB8()) {
+-            return;
+-        }
++    while (func_800F6BB8()) {
+     }
+ }
+ 
+diff --git a/soh/src/code/z_jpeg.c b/soh/src/code/z_jpeg.c
+index 785ed3901..bf8270f11 100644
+--- a/soh/src/code/z_jpeg.c
++++ b/soh/src/code/z_jpeg.c
+@@ -123,11 +123,7 @@ void Jpeg_ParseMarkers(u8* ptr, JpegContext* ctx) {
+     ctx->dqtCount = 0;
+     ctx->dhtCount = 0;
+ 
+-    while (true) {
+-        if (exit) {
+-            break;
+-        }
+-
++    while (!exit) {
+         // 0xFF indicates the start of a JPEG marker, so look for the next.
+         if (*ptr++ == 0xFF) {
+             switch (*ptr++) {
+diff --git a/soh/src/code/z_map_mark.c b/soh/src/code/z_map_mark.c
+index 02712089f..f8851be5c 100644
+--- a/soh/src/code/z_map_mark.c
++++ b/soh/src/code/z_map_mark.c
+@@ -110,11 +110,7 @@ void MapMark_DrawForDungeon(PlayState* play) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-    while (true) {
+-        if (mapMarkIconData->markType == MAP_MARK_NONE) {
+-            break;
+-        }
+-
++    while (mapMarkIconData->markType != MAP_MARK_NONE) {
+         gDPPipeSync(OVERLAY_DISP++);
+         gDPSetTextureLUT(OVERLAY_DISP++, G_TT_NONE);
+         gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 255, 255, 255, interfaceCtx->minimapAlpha);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c b/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
+index a45f3dc8e..e34c9580d 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
+@@ -290,11 +290,7 @@ void func_808B5240(BgSpot16Bombstone* this, PlayState* play) {
+     Vec3f position;
+     Vec3f* actorPosition = &this->actor.world.pos;
+ 
+-    while (true) {
+-        if ((u32)this->unk_158 >= ARRAY_COUNTU(D_808B5EB0) || this->unk_154 < D_808B5EB0[this->unk_158][0]) {
+-            break;
+-        }
+-
++    while ((u32)this->unk_158 < ARRAY_COUNTU(D_808B5EB0) && this->unk_154 >= D_808B5EB0[this->unk_158][0]) {
+         index = this->unk_158;
+ 
+         tempUnk2 = D_808B5EB0[index][1];
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_lmap_mark.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_lmap_mark.c
+index 3209a6c5c..b800a7049 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_lmap_mark.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_lmap_mark.c
+@@ -59,11 +59,7 @@ void PauseMapMark_DrawForDungeon(PlayState* play) {
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+-    while (true) {
+-        if (mapMarkData->markType == PAUSE_MAP_MARK_NONE) {
+-            break;
+-        }
+-
++    while (mapMarkData->markType != PAUSE_MAP_MARK_NONE) {
+         if ((mapMarkData->markType == PAUSE_MAP_MARK_BOSS) && (play->sceneNum >= SCENE_DEKU_TREE_BOSS) &&
+             (play->sceneNum <= SCENE_GANONS_TOWER_COLLAPSE_EXTERIOR)) {
+             if (gBossMarkState == 0) {
+-- 
+2.55.0
+

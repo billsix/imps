@@ -1,0 +1,147 @@
+From 38479ca684cb0a914cd6033765afbd15d70992a6 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:36:03 +0000
+Subject: [PATCH 07/36] code, overlays/actors: write the constant instead of a
+ "needed to match" temporary
+
+irqmgr.c `u64 temp = STATUS_PRENMI; gIrqMgrResetStatus = temp;` (and the
+NMI twin), z_kaleido_setup.c `u64 temp = 0` used as a 0 twice, En_Nb and
+En_Ru2 `s32 one; one = 1; D = one;`, and Boss_Tw's `s32 zero = 0; if
+(zero) { accel.x *= 2.0; }` ("tricks the compiler into allocating more
+stack"). The stores are the same width and value without the detour.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/irqmgr.c                           | 7 ++-----
+ soh/src/code/z_kaleido_setup.c                  | 5 ++---
+ soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c | 6 ------
+ soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c     | 5 +----
+ soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c   | 5 +----
+ 5 files changed, 6 insertions(+), 22 deletions(-)
+
+diff --git a/soh/src/code/irqmgr.c b/soh/src/code/irqmgr.c
+index df036d5ea..947cb48a9 100644
+--- a/soh/src/code/irqmgr.c
++++ b/soh/src/code/irqmgr.c
+@@ -101,9 +101,7 @@ void IrqMgr_JamMesgForClient(IrqMgr* this, OSMesg msg) {
+ }
+ 
+ void IrqMgr_HandlePreNMI(IrqMgr* this) {
+-    u64 temp = STATUS_PRENMI; // required to match
+-
+-    gIrqMgrResetStatus = temp;
++    gIrqMgrResetStatus = STATUS_PRENMI;
+     this->resetStatus = STATUS_PRENMI;
+     sIrqMgrResetTime = this->resetTime = osGetTime();
+ 
+@@ -127,8 +125,7 @@ void IrqMgr_CheckStack() {
+ }
+ 
+ void IrqMgr_HandlePRENMI450(IrqMgr* this) {
+-    u64 temp = STATUS_NMI; // required to match
+-    gIrqMgrResetStatus = temp;
++    gIrqMgrResetStatus = STATUS_NMI;
+     this->resetStatus = STATUS_NMI;
+ 
+     osSetTimer(&this->timer, OS_USEC_TO_CYCLES(30000), 0ull, &this->queue, OS_MESG_32(PRENMI480_MSG));
+diff --git a/soh/src/code/z_kaleido_setup.c b/soh/src/code/z_kaleido_setup.c
+index 9beda9e5a..dfe2a27d7 100644
+--- a/soh/src/code/z_kaleido_setup.c
++++ b/soh/src/code/z_kaleido_setup.c
+@@ -70,7 +70,6 @@ void KaleidoSetup_Update(PlayState* play) {
+ 
+ void KaleidoSetup_Init(PlayState* play) {
+     PauseContext* pauseCtx = &play->pauseCtx;
+-    u64 temp = 0; // Necessary to match
+ 
+     pauseCtx->state = 0;
+     pauseCtx->debugState = 0;
+@@ -99,8 +98,8 @@ void KaleidoSetup_Init(PlayState* play) {
+     pauseCtx->cursorY[PAUSE_ITEM] = 0;
+     pauseCtx->cursorX[PAUSE_MAP] = 0;
+     pauseCtx->cursorY[PAUSE_MAP] = 0;
+-    pauseCtx->cursorX[PAUSE_QUEST] = temp;
+-    pauseCtx->cursorY[PAUSE_QUEST] = temp;
++    pauseCtx->cursorX[PAUSE_QUEST] = 0;
++    pauseCtx->cursorY[PAUSE_QUEST] = 0;
+     pauseCtx->cursorX[PAUSE_EQUIP] = 1;
+     pauseCtx->cursorY[PAUSE_EQUIP] = 0;
+ 
+diff --git a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+index 3e01c9fce..2bda8c543 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
++++ b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+@@ -2724,7 +2724,6 @@ void BossTw_TwinrovaDeathCS(BossTw* this, PlayState* play) {
+                 Vec3f pos;
+                 Vec3f velocity;
+                 Vec3f accel = { 0.0f, 0.0f, 0.0f };
+-                s32 zero = 0;
+ 
+                 for (i = 0; i < 50; i++) {
+                     velocity.x = Rand_CenteredFloat(3.0f);
+@@ -2736,11 +2735,6 @@ void BossTw_TwinrovaDeathCS(BossTw* this, PlayState* play) {
+                     pos.z += velocity.z * 2.0f;
+                     BossTw_AddFlameEffect(play, &pos, &velocity, &accel, Rand_ZeroFloat(2.0f) + 5, 1);
+ 
+-                    // fake code needed to match, tricks the compiler into allocating more stack
+-                    if (zero) {
+-                        accel.x *= 2.0;
+-                    }
+-
+                     velocity.x = Rand_CenteredFloat(3.0f);
+                     velocity.y = Rand_CenteredFloat(3.0f);
+                     velocity.z = Rand_CenteredFloat(3.0f);
+diff --git a/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c b/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
+index 5840798b0..381df7157 100644
+--- a/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
++++ b/soh/src/overlays/actors/ovl_En_Nb/z_en_nb.c
+@@ -204,8 +204,6 @@ void func_80AB11EC(EnNb* this) {
+ }
+ 
+ void func_80AB1210(EnNb* this, PlayState* play) {
+-    s32 one; // required to match
+-
+     if (play->csCtx.state == CS_STATE_IDLE) {
+         if (D_80AB4318) {
+             if (this->actor.params == NB_TYPE_DEMO02) {
+@@ -215,9 +213,8 @@ void func_80AB1210(EnNb* this, PlayState* play) {
+             D_80AB4318 = 0;
+         }
+     } else {
+-        one = 1;
+         if (!D_80AB4318) {
+-            D_80AB4318 = one;
++            D_80AB4318 = 1;
+         }
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c b/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
+index 4a82b26e2..35c790768 100644
+--- a/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
++++ b/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
+@@ -194,8 +194,6 @@ void func_80AF26AC(EnRu2* this) {
+ }
+ 
+ void func_80AF26D0(EnRu2* this, PlayState* play) {
+-    s32 one; // Needed to match
+-
+     if (play->csCtx.state == CS_STATE_IDLE) {
+         if (D_80AF4118 != 0) {
+             // Seems like this state is never reached
+@@ -206,9 +204,8 @@ void func_80AF26D0(EnRu2* this, PlayState* play) {
+             return;
+         }
+     } else {
+-        one = 1;
+         if (D_80AF4118 == 0) {
+-            D_80AF4118 = one;
++            D_80AF4118 = 1;
+         }
+     }
+ }
+-- 
+2.55.0
+

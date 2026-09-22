@@ -1,0 +1,126 @@
+From b0f6e88f0e2d352790c5e100c125b52f881c4577 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:21:30 +0000
+Subject: [PATCH 16/46] game: drop `== TRUE` / `!= FALSE` comparisons on
+ boolean-valued expressions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Comparing a value that is already 0 or 1 against TRUE/FALSE is a MIPS-era
+habit; standard C tests the value. This patch covers only the 7 file(s)
+in game/ where every rewritten operand is a bitfield, a comparison result
+or a value the compiler already knows to be 0/1 — which is why the generated
+code is unchanged. Sites whose operand is a plain s32 field compared with 1
+are deliberately left for a separate patch: they are behaviour-preserving
+only by the (verified) invariant that the field is only ever assigned
+TRUE/FALSE, and their codegen changes (cmp $1 -> test).
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/activated_bf_plat.inc.c     | 2 +-
+ src/game/behaviors/bbh_haunted_bookshelf.inc.c | 2 +-
+ src/game/behaviors/bbh_merry_go_round.inc.c    | 2 +-
+ src/game/behaviors/bowser.inc.c                | 2 +-
+ src/game/behaviors/camera_lakitu.inc.c         | 2 +-
+ src/game/behaviors/door.inc.c                  | 2 +-
+ src/game/object_helpers.c                      | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/src/game/behaviors/activated_bf_plat.inc.c b/src/game/behaviors/activated_bf_plat.inc.c
+index 8b6399b7..7edf94e5 100644
+--- a/src/game/behaviors/activated_bf_plat.inc.c
++++ b/src/game/behaviors/activated_bf_plat.inc.c
+@@ -127,7 +127,7 @@ void bhv_activated_back_and_forth_platform_update(void) {
+ 
+     // Update the object's position.
+     // If the platform moves vertically...
+-    if (o->oActivatedBackAndForthPlatformVertical != FALSE) {
++    if (o->oActivatedBackAndForthPlatformVertical) {
+         // ...set its position to its original position + the offset.
+         o->oPosY = o->oHomeY + o->oActivatedBackAndForthPlatformOffset;
+     } else {
+diff --git a/src/game/behaviors/bbh_haunted_bookshelf.inc.c b/src/game/behaviors/bbh_haunted_bookshelf.inc.c
+index e6591217..073124ad 100644
+--- a/src/game/behaviors/bbh_haunted_bookshelf.inc.c
++++ b/src/game/behaviors/bbh_haunted_bookshelf.inc.c
+@@ -25,7 +25,7 @@ void bhv_haunted_bookshelf_loop(void) {
+             // This code never runs, since the action is set to 1 directly
+             // by bhvHauntedBookshelfManager. Maybe this was
+             // intended to be used to set the action instead?
+-            if (o->oHauntedBookshelfShouldOpen != FALSE) {
++            if (o->oHauntedBookshelfShouldOpen) {
+                 o->oAction++;
+             }
+ 
+diff --git a/src/game/behaviors/bbh_merry_go_round.inc.c b/src/game/behaviors/bbh_merry_go_round.inc.c
+index 5b634428..34415d4a 100644
+--- a/src/game/behaviors/bbh_merry_go_round.inc.c
++++ b/src/game/behaviors/bbh_merry_go_round.inc.c
+@@ -13,7 +13,7 @@
+ static void handle_merry_go_round_music(void) {
+     // If the music should play, play it and check whether it still should.
+     // Otherwise, don't play it and check whether it should.
+-    if (o->oMerryGoRoundMusicShouldPlay == FALSE) {
++    if (!o->oMerryGoRoundMusicShouldPlay) {
+         if (gMarioCurrentRoom == BBH_NEAR_MERRY_GO_ROUND_ROOM) {
+             // Play the merry-go-round and BBH music at the same time
+             play_secondary_music(SEQ_EVENT_MERRY_GO_ROUND, 45, 20, 200);
+diff --git a/src/game/behaviors/bowser.inc.c b/src/game/behaviors/bowser.inc.c
+index bdbcbcab..dff1102a 100644
+--- a/src/game/behaviors/bowser.inc.c
++++ b/src/game/behaviors/bowser.inc.c
+@@ -1095,7 +1095,7 @@ void bowser_act_jump_onto_stage(void) {
+                 o->oDragStrength = 10.0f;
+                 o->oSubAction++;
+                 // Spawn shockwave (BitS only) if is not on a platform
+-                if (onDynamicFloor == FALSE) {
++                if (!onDynamicFloor) {
+                     bowser_spawn_shockwave();
+                 // If is on a dynamic floor in BitS, then jump
+                 // because of the falling platform
+diff --git a/src/game/behaviors/camera_lakitu.inc.c b/src/game/behaviors/camera_lakitu.inc.c
+index a1a3ca02..25d56bb5 100644
+--- a/src/game/behaviors/camera_lakitu.inc.c
++++ b/src/game/behaviors/camera_lakitu.inc.c
+@@ -13,7 +13,7 @@
+ void bhv_camera_lakitu_init(void) {
+     if (o->oBehParams2ndByte != CAMERA_LAKITU_BP_FOLLOW_CAMERA) {
+         // Despawn unless this is the very beginning of the game
+-        if (gNeverEnteredCastle != TRUE) {
++        if (!gNeverEnteredCastle) {
+             obj_mark_for_deletion(o);
+         }
+     } else {
+diff --git a/src/game/behaviors/door.inc.c b/src/game/behaviors/door.inc.c
+index c25626c7..5a68ce7b 100644
+--- a/src/game/behaviors/door.inc.c
++++ b/src/game/behaviors/door.inc.c
+@@ -140,7 +140,7 @@ void bhv_star_door_loop_2(void) {
+         sp4 = TRUE;
+     }
+ 
+-    if (sp4 == TRUE) {
++    if (sp4) {
+         o->header.gfx.node.flags |= GRAPH_RENDER_ACTIVE;
+         D_8035FEE4++;
+     }
+diff --git a/src/game/object_helpers.c b/src/game/object_helpers.c
+index 8df2765b..4f456c66 100644
+--- a/src/game/object_helpers.c
++++ b/src/game/object_helpers.c
+@@ -1810,7 +1810,7 @@ void cur_obj_move_standard(s16 steepSlopeAngleDegrees) {
+             negativeSpeed = TRUE;
+         }
+         o->oForwardVel = sqrtf(sqr(o->oVelX) + sqr(o->oVelZ));
+-        if (negativeSpeed == TRUE) {
++        if (negativeSpeed) {
+             o->oForwardVel = -o->oForwardVel;
+         }
+     }
+-- 
+2.55.0
+

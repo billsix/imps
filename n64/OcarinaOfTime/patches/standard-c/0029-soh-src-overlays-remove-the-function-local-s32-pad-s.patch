@@ -1,0 +1,186 @@
+From 51fae11b6188f766401164fbe282b42bb93e1ce3 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:49:46 +0000
+Subject: [PATCH 29/36] soh/src/overlays: remove the function-local `s32 pad;`
+ stack padding
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+These declarations exist to reproduce the ROM's stack-frame layout for
+the matching build; none is referenced again in its function (checked
+per function by the survey, then by the compiler). 16 declaration(s) in
+399 file(s) under soh/src/overlays. Struct members are untouched — the
+padding that fixes a layout (SaveContext, the audio structs, anything
+memcpy'd or saved) lives in headers, which this patch does not visit.
+Locals named `pad` that ARE used (z_camera.c, z_vr_box.c, …) are not on
+the list.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c   | 4 ----
+ .../overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c  | 2 --
+ soh/src/overlays/gamestates/ovl_select/z_select.c             | 2 --
+ soh/src/overlays/gamestates/ovl_title/z_title.c               | 2 --
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c   | 2 --
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_debug.c     | 1 -
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c | 2 --
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c | 1 -
+ 8 files changed, 16 deletions(-)
+
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+index 190442a17..62fcf1024 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_choose.c
+@@ -83,7 +83,6 @@ void FileChoose_DrawImageRGBA32(GraphicsContext* gfxCtx, s16 centerX, s16 center
+     u32 textureHeight;
+     s32 remainingSize;
+     s32 textureSize;
+-    s32 pad;
+     s32 i;
+ 
+     OPEN_DISPS(gfxCtx);
+@@ -1706,7 +1705,6 @@ void FileChoose_DrawWindowContents(GameState* thisx) {
+     s16 i;
+     s16 quadVtxIndex;
+     s16 isActive;
+-    s16 pad;
+     char* tex;
+ 
+     switch (this->configMode) {
+@@ -2541,7 +2539,6 @@ void FileChoose_FadeOut(GameState* thisx) {
+ void FileChoose_LoadGame(GameState* thisx) {
+     FileChooseContext* this = (FileChooseContext*)thisx;
+     u16 swordEquipValue;
+-    s32 pad;
+ 
+     Audio_PlaySfxGeneral(NA_SE_SY_FSEL_DECIDE_L, &gSfxDefaultPos, 4, &gSfxDefaultFreqAndVolScale,
+                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+@@ -3142,7 +3139,6 @@ void FileChoose_Destroy(GameState* thisx) {
+ void FileChoose_Init(GameState* thisx) {
+     FileChooseContext* this = (FileChooseContext*)thisx;
+     size_t size = (u32)_title_staticSegmentRomEnd - (u32)_title_staticSegmentRomStart;
+-    s32 pad;
+     this->logoAlpha = 0;
+     this->questType[0] = MIN_QUEST;
+     this->questType[1] = MIN_QUEST;
+diff --git a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
+index 9598dabbb..b05a514c0 100644
+--- a/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
++++ b/soh/src/overlays/gamestates/ovl_file_choose/z_file_nameset_NES.c
+@@ -419,7 +419,6 @@ s32 func_80808480_ne0(GameState* thisx, s16 arg1, s16 arg2) {
+ 
+ s32 func_80808688_ne0(GameState* thisx, s16 arg1) {
+     FileChooseContext* this = (FileChooseContext*)thisx;
+-    s32 pad;
+ 
+     if (!func_80808480_ne0(&this->state, arg1, this->newFileNameCharCount)) {
+         if (this->newFileNameCharCount != 0) {
+@@ -777,7 +776,6 @@ void FileChoose_UpdateKeyboardCursorNES(GameState* thisx) {
+     FileChooseContext* this = (FileChooseContext*)thisx;
+     Input* input = &this->state.input[0];
+     s16 prevKbdX;
+-    s32 pad;
+     bool dpad = CVarGetInteger(CVAR_SETTING("DpadInText"), 0);
+ 
+     if (this->charPage < 3) {
+diff --git a/soh/src/overlays/gamestates/ovl_select/z_select.c b/soh/src/overlays/gamestates/ovl_select/z_select.c
+index ff69ada90..48d94d283 100644
+--- a/soh/src/overlays/gamestates/ovl_select/z_select.c
++++ b/soh/src/overlays/gamestates/ovl_select/z_select.c
+@@ -867,7 +867,6 @@ static BetterSceneSelectGrottoData sBetterGrottos[] = {
+ 
+ void Select_UpdateMenu(SelectContext* this) {
+     Input* input = &this->state.input[0];
+-    s32 pad;
+     SceneSelectEntry* selectedScene;
+ 
+     if (this->verticalInputAccumulator == 0) {
+@@ -1074,7 +1073,6 @@ void Select_UpdateMenu(SelectContext* this) {
+ 
+ void Better_Select_UpdateMenu(SelectContext* this) {
+     Input* input = &this->state.input[0];
+-    s32 pad;
+     BetterSceneSelectEntry* selectedScene;
+     uint8_t sceneChanged = 0;
+ 
+diff --git a/soh/src/overlays/gamestates/ovl_title/z_title.c b/soh/src/overlays/gamestates/ovl_title/z_title.c
+index c701d117c..267129e1e 100644
+--- a/soh/src/overlays/gamestates/ovl_title/z_title.c
++++ b/soh/src/overlays/gamestates/ovl_title/z_title.c
+@@ -64,11 +64,9 @@ void Title_Draw(TitleContext* this) {
+ 
+     u16 y;
+     u16 idx;
+-    s32 pad1;
+     Vec3f v3;
+     Vec3f v1;
+     Vec3f v2;
+-    s32 pad2[2];
+ 
+     OPEN_DISPS(this->state.gfxCtx);
+ 
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
+index 16d7609fa..63f5b6adb 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_collect.c
+@@ -74,9 +74,7 @@ void KaleidoScope_DrawQuestStatus(PlayState* play, GraphicsContext* gfxCtx) {
+     s16 sp21A;
+     s16 sp218;
+     s16 sp216;
+-    s16 pad1;
+     s16 phi_v1;
+-    s16 pad2;
+     s16 phi_s0_2;
+     s16 sp208[3];
+ 
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_debug.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_debug.c
+index b79da892f..31e657fd7 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_debug.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_debug.c
+@@ -36,7 +36,6 @@ static s16 sSlotItems[] = {
+ 
+ void KaleidoScope_DrawDebugEditorText(Gfx** gfxp) {
+     GfxPrint printer;
+-    s32 pad[2];
+ 
+     GfxPrint_Init(&printer);
+     GfxPrint_Open(&printer, *gfxp);
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c
+index 443fb3ce8..66786d031 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c
+@@ -38,7 +38,6 @@ void KaleidoScope_DrawEquipmentImage(PlayState* play, void* source, u32 width, u
+     s32 textureHeight;
+     s32 remainingSize;
+     s32 textureSize;
+-    s32 pad;
+     s32 i;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+@@ -176,7 +175,6 @@ void KaleidoScope_DrawEquipment(PlayState* play) {
+     u16 temp;
+     u16 point;
+     u16 rowStart;
+-    u16 pad;
+     s16 cursorMoveResult;
+     u16 cursorItem;
+     u16 cursorSlot = 0;
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+index 5144c8331..612ff7af3 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_scope_PAL.c
+@@ -3846,7 +3846,6 @@ void KaleidoScope_Update(PlayState* play) {
+     s16 stepG;
+     s16 stepB;
+     s16 stepA;
+-    s32 pad;
+ 
+     if ((R_PAUSE_MENU_MODE >= 3) && (((pauseCtx->state >= 4) && (pauseCtx->state <= 7)) ||
+                                      ((pauseCtx->state >= 0xA) && (pauseCtx->state <= 0x12)))) {
+-- 
+2.55.0
+

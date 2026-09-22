@@ -1,0 +1,37 @@
+From a459b034fb313ae0cda90ba5260a96d45856a5bd Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:29:59 +0000
+Subject: [PATCH 35/46] game: read and write the angle slot as s32 in
+ obj_turn_toward_object
+
+`angleIndex` selects one of the oMoveAngle*/oFaceAngle* fields, all of
+which are OBJECT_FIELD_S32; going through `asU32` only to assign into an
+s16 and back is the same 32-bit load and store spelled with the wrong
+sign.
+
+Verified: object_helpers.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/object_helpers.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/game/object_helpers.c b/src/game/object_helpers.c
+index ad336821..2d6c4e05 100644
+--- a/src/game/object_helpers.c
++++ b/src/game/object_helpers.c
+@@ -412,8 +412,8 @@ s16 obj_turn_toward_object(struct Object *obj, struct Object *target, s16 angleI
+             break;
+     }
+ 
+-    startAngle = o->rawData.asU32[angleIndex];
+-    o->rawData.asU32[angleIndex] = approach_s16_symmetric(startAngle, targetAngle, turnAmount);
++    startAngle = o->rawData.asS32[angleIndex];
++    o->rawData.asS32[angleIndex] = approach_s16_symmetric(startAngle, targetAngle, turnAmount);
+     return targetAngle;
+ }
+ 
+-- 
+2.55.0
+

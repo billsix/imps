@@ -1,0 +1,37 @@
+From b7dba59549f5eadb33a684830b87f6ea5a246b9d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:23:53 +0000
+Subject: [PATCH 20/46] game: drop the `& 0xFFFF` before the s16 stores in
+ obj_set_gfx_pos_at_obj_pos
+
+Same as the engine twin (obj_update_gfx_pos_and_angle): `gfx.angle` is a
+Vec3s, so the store keeps the low 16 bits with or without the mask.
+
+Verified: object_helpers.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/object_helpers.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/game/object_helpers.c b/src/game/object_helpers.c
+index 4f456c66..6fbd3adf 100644
+--- a/src/game/object_helpers.c
++++ b/src/game/object_helpers.c
+@@ -1875,9 +1875,9 @@ void obj_set_gfx_pos_at_obj_pos(struct Object *obj1, struct Object *obj2) {
+     obj1->header.gfx.pos[1] = obj2->oPosY + obj2->oGraphYOffset;
+     obj1->header.gfx.pos[2] = obj2->oPosZ;
+ 
+-    obj1->header.gfx.angle[0] = obj2->oMoveAnglePitch & 0xFFFF;
+-    obj1->header.gfx.angle[1] = obj2->oMoveAngleYaw & 0xFFFF;
+-    obj1->header.gfx.angle[2] = obj2->oMoveAngleRoll & 0xFFFF;
++    obj1->header.gfx.angle[0] = obj2->oMoveAnglePitch;
++    obj1->header.gfx.angle[1] = obj2->oMoveAngleYaw;
++    obj1->header.gfx.angle[2] = obj2->oMoveAngleRoll;
+ }
+ 
+ /**
+-- 
+2.55.0
+

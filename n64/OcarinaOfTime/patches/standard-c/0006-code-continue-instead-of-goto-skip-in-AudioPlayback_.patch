@@ -1,0 +1,42 @@
+From 02e494590fa6547224731e6a6f8bc63b6db413a7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:35:54 +0000
+Subject: [PATCH 06/36] code: `continue` instead of `goto skip` in
+ AudioPlayback_ProcessNotes
+
+`skip:;` is the last statement of the loop body (the `if
+(playbackState->priority != 0)` block that ends it), so the jump is a
+`continue`. Label deleted.
+
+Verified: audio_playback.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/audio_playback.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/soh/src/code/audio_playback.c b/soh/src/code/audio_playback.c
+index f5c3f367a..d9fa0c8ce 100644
+--- a/soh/src/code/audio_playback.c
++++ b/soh/src/code/audio_playback.c
+@@ -236,7 +236,7 @@ void Audio_ProcessNotes(void) {
+                             Audio_AudioListRemove(&note->listItem);
+                             AudioSeq_AudioListPushBack(&note->listItem.pool->disabled, &note->listItem);
+                             playbackState->wantedParentLayer = NO_LAYER;
+-                            goto skip;
++                            continue;
+                         }
+                     } else {
+                         if (playbackState->parentLayer != NO_LAYER) {
+@@ -306,7 +306,6 @@ void Audio_ProcessNotes(void) {
+             subAttrs.velocity *= scale;
+             Audio_InitNoteSub(note, noteSubEu2, &subAttrs);
+             noteSubEu->bitField1.bookOffset = bookOffset;
+-        skip:;
+         }
+     }
+ }
+-- 
+2.55.0
+

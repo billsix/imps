@@ -32,11 +32,31 @@ cheat ships with upstream and needs no patch.
 
 ## Patches
 
-**Stream order is pinned — `cheats` before `book`** (`patches/ORDER`). These two
-streams both touch `src/game/mario.c`, the one place this project's streams are
-not disjoint; the markers belong on the cheated tree, not the other way round.
+**Stream order is pinned — `standard-c`, then `cheats`, then `book`**
+(`patches/ORDER`, with the rationale inline). `standard-c` is upstream-bound and
+touches many decomp files, so it is the base the personal streams sit on (a
+conflict then surfaces here, not in a rebase we cannot do); `cheats` and `book`
+both touch `src/game/mario.c`, and the markers belong on the cheated tree.
 `upstream-candidates` is unlisted (docs only, disjoint) and applies last.
 
+- `patches/standard-c/0001..0046` (46 patches, 2026-09-22; **upstream-bound**) —
+  rewrites the decomp's assembly-isms into standard C, one class per patch, per
+  directory: `register` removal, matching residue (lone `;`, `do{}while(0)`,
+  one-line-to-match), `goto`→`break`/`return`, redundant `else if`, `== TRUE`/
+  `!= FALSE` on boolean-valued operands, 16-bit residue (`& 0xFFFF` before s16
+  stores, signed `<<` as multiply), `UNUSED` residue + the 321 function-local
+  `fillerN[]` arrays, `rawData` indices → field names + behaviour-param masks,
+  argN/register-named parameters, boolean `++`/Yoda tests. **Every patch is
+  gate-proven: the touched files compile to byte-identical assembly before and
+  after** (`../../tools/asmdiff.sh`, over the port's
+  own `compile_commands.json`). Rewrites that are behaviour-preserving by
+  argument but change codegen (the s32-field `== TRUE`s, `<< 16 >> 16` → `(s16)`,
+  memset loops at `-O1`, the spindel `switch`, …) are deliberately NOT in the
+  stream — they are the "explained-diff" list in the task. Catalogue, per-batch
+  log and the B.11 list: `../../tasks/mario64-assembly-isms-to-standard-c.md`;
+  the patterns: `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
+  Rebuilt on the checkout branch `imps-standard-c` (exported with
+  `git format-patch --base=<pin>`); at a pin bump replay AND re-run the gate.
 - `patches/cheats/0001-cheat-high-jump.patch` — "Super Jump"
   (`gCheats.SuperJump`): all upward jumps launch 3× higher via a
   `MarioHighJumpLaunch` event in `set_mario_action_airborne`, with a
@@ -152,7 +172,11 @@ against the pinned checkout.
 
 Migrated cheat-idea stubs from the old fork, all `mario64-`-prefixed under
 `../../tasks/`: decomp-rename-and-cleanup, endless-stairs-wallkick-unlock,
-infinite-wall-kicks, one-hit-ko, rubber-mario, time-scale-bullet-time.
+infinite-wall-kicks, one-hit-ko, rubber-mario, time-scale-bullet-time. Plus
+(2026-09-22) `mario64-assembly-isms-to-standard-c` — the upstream-first
+`patches/standard-c/` stream that rewrites the decomp's assembly-isms into
+standard C, proved with an assembly-diff gate; its patterns reference is
+`../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
 The archived moon-gravity and ice-everywhere tasks were deliberately left
 in the old fork (their code was not ported).
 

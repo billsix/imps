@@ -12,10 +12,17 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/HarbourMasters/PaperBoat.git
 
-# The pinned base commit: tip of upstream's 'develop' branch as of
-# 2026-09-21 (commit dated 2026-09-20).  First step for this port is a
-# pristine compile-as-is — no patches carried yet.
-PIN_SHA=611f5b685750e3e7f3a99eefe90fd874e8f1eb7b
+# The pinned base commit: the stable release tag 1.0.1 (dated 2026-09-18).
+# NOTE: 1.0.1 vs tip-of-develop does NOT affect ROM O2R extraction — the
+# extraction code (Engine.cpp, GameExtractor, Torch pin) is byte-identical
+# between them, and the one libultraship-commit difference is HD-art
+# rendering only.  The "extraction does nothing" symptom was a ROM problem,
+# not a pin problem (see CLAUDE.md "ROM requirements").  1.0.1 is pinned
+# simply because it is the newest tagged release; tip-of-develop
+# (611f5b685750e3e7f3a99eefe90fd874e8f1eb7b) is the alternative if the newer
+# gameplay fixes are wanted.  First step for this port is a pristine
+# compile-as-is — no patches carried yet.
+PIN_SHA=424c220f0863c29b9fe55cc674baceff88e9e14f
 
 if [ ! -d PaperBoat ]; then
     git clone "$UPSTREAM" PaperBoat

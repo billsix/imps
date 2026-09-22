@@ -1,9 +1,13 @@
 # PaperMario: add PaperBoat as a new n64-family port (compile-as-is first)
 
-**Status:** in progress — first step (pristine compile-as-is) built green in
-the sandbox 2026-09-21; awaiting the maintainer's host run-verify, then the
-follow-on units. (William Emerison Six <billsix@gmail.com> requested it
-2026-09-17; executed 2026-09-21.)
+**Status:** in progress — first step (pristine compile-as-is) built AND
+extraction-verified in the sandbox 2026-09-21 (pin moved to stable `1.0.1`).
+The reported "extraction does nothing / No ROM O2R" was diagnosed to an
+over-dumped ROM, not a build/pin issue — fix + proof recorded in
+`n64/PaperMario/CLAUDE.md` ("ROM requirements"). Pin confirmed as `1.0.1`
+(2026-09-22). Remaining: the maintainer's interactive gameplay verify
+(display/audio), then the follow-on units. (William Emerison Six
+<billsix@gmail.com> requested it 2026-09-17; executed 2026-09-21.)
 **Priority:** 5
 **Difficulty:** 6
 **Project key:** papermario (a new `n64/PaperMario/` folder)
@@ -118,9 +122,15 @@ Follow-on (separate units, once the bare build works — do NOT bundle):
 Both resolved at execution (2026-09-21) via their recommendations — no
 maintainer input was needed for the bare build:
 
-1. **Pin choice.** → Pinned the tip of `develop` at execution,
-   `611f5b685750e3e7f3a99eefe90fd874e8f1eb7b` (dated 2026-09-20), matching how
-   the other four were pinned. Revisit only if the maintainer wants a tag.
+1. **Pin choice.** → First pinned tip-of-`develop`
+   (`611f5b685750e3e7f3a99eefe90fd874e8f1eb7b`, 2026-09-20); then moved to the
+   stable release tag **`1.0.1`** (`424c220f0`, 2026-09-18) at the maintainer's
+   request while diagnosing the extraction failure. That failure turned out to
+   be a ROM problem, NOT pin-related (extraction code is byte-identical between
+   the two pins), so the pin is now a plain stable-vs-develop preference.
+   **Decided (William Emerison Six <billsix@gmail.com>, 2026-09-22): keep
+   `1.0.1`.** Bump to develop later only if a develop-only gameplay fix is
+   wanted.
 2. **libultraship lane.** → **Deferred.** PaperBoat pins a JeodC LUS fork
    (`601f7002`, `lus-converge`) not covered by the
    `tasks/reference/libultraship/` crawl, but the bare build needs no LUS

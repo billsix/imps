@@ -18,7 +18,7 @@ rm -rf PaperBoat        # add runDir to also wipe saves + the extracted pm64.o2r
 ```
 
 - Upstream: <https://github.com/HarbourMasters/PaperBoat>, pinned in
-  `fetch.sh` (`PIN_SHA`, tip of `develop` as of 2026-09-21).
+  `fetch.sh` (`PIN_SHA`) at the stable release tag `1.0.1`.
 - **No `apply.sh`/`patches/` yet** — a pristine upstream build needs neither;
   they get scaffolded once a first patch is carried (see `CLAUDE.md`).
 - The game binary runs from the **build tree**
@@ -29,4 +29,11 @@ rm -rf PaperBoat        # add runDir to also wipe saves + the extracted pm64.o2r
 - > `runDir/` holds your saves, config, and the in-app-extracted `pm64.o2r`.
   > On a first run the game asks for a legally-acquired Paper Mario (US) ROM
   > and extracts it. ROMs are out of scope here — see the repo README.
+- > **The ROM must be EXACTLY the 40 MB US dump** (SHA-1
+  > `3837f44cda784b466c9a2d99df70d77c322b97a0`, big-endian `.z64`). PaperBoat
+  > hashes the whole file, so a padded/over-dumped ROM (e.g. a 64 MB full-cart
+  > dump) matches no recipe and fails with the misleading *"No ROM O2R file
+  > detected"* — extraction never runs. Trim an over-dump with
+  > `head -c 41943040 in.z64 > pm64.z64` and check `sha1sum`. Details:
+  > `CLAUDE.md` → "ROM requirements".
 - Build facts, submodule pins, and dependency notes: `CLAUDE.md` here.

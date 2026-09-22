@@ -170,5 +170,10 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   (https://github.com/HarbourMasters/Lighthouse), pin `6d30df9a`. 4-patch
   `fixOnFedora` series (a submitted upstream PR); builds and runs; podman build.
   Details: `n64/BanjoKazooie/CLAUDE.md`.
+- `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
+  pin `1.0.1` (`424c220f0`). **No patches** — pristine compile-as-is stage;
+  builds + in-app ROM extraction verified (2026-09-21). Uses JeodC LUS/Torch
+  forks (`external/`), NOT the crawl's engine pin. Gotcha: needs an exactly-40MB
+  US ROM (over-dumps fail). Details: `n64/PaperMario/CLAUDE.md`.
 - `n64/libultraship/` — the shared engine (see the "libultraship" section above).
   Docs-only; the reference crawl lives at `tasks/reference/libultraship/`.

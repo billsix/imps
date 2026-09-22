@@ -208,8 +208,9 @@ Its `<family>/CLAUDE.md` (tier 2) holds that family's concrete build/patch
 contract and its per-project index; open it when working in that family.
 
 - **`n64/`** — the HarbourMasters N64 PC ports (Ocarina of Time, Majora's
-  Mask, Super Mario 64, Banjo-Kazooie) plus the shared `libultraship`
-  engine. Contract, drift table, and project index: `n64/CLAUDE.md`.
+  Mask, Super Mario 64, Banjo-Kazooie, Paper Mario) plus the shared
+  `libultraship` engine. Contract, drift table, and project index:
+  `n64/CLAUDE.md`.
 - **`games/`** — buildable open-source game/engine ports (a code-patch family
   like `n64/`): **GZDoom**, the Doom-engine source port (built with its ZMusic
   dependency), natively on the host or in a Fedora-44 container. Contract +

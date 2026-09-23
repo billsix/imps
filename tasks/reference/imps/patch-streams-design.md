@@ -58,6 +58,28 @@ Two live cases (William Emerison Six <billsix@gmail.com>, 2026-09-07):
   rather than the reverse: the cheats are the substantive code, the markers are
   commentary on whatever that code ends up being. Verified the reorder changes
   history only — the applied tree hash is unchanged.
+- **SuperMario64 again, `standard-c` FIRST** (2026-09-22): the upstream-bound
+  assembly-isms→standard-C stream rewrites many decomp files that the personal
+  streams (`cheats`: `mario.c`; `book`: its marker files) also touch. Because it
+  is meant to be merged upstream, it must be the BASE the personal streams sit
+  on — then the personal patches apply to the code as upstream would see it
+  after merging, and any conflict surfaces here, on our side, rather than in a
+  rebase we cannot do. `patches/ORDER` lists `standard-c`, `cheats`, `book`
+  (rationale inline in the file); `tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`
+  Phase C is the replay that keeps the personal streams applying on top.
+- **OcarinaOfTime, `standard-c` UNDER `personal`** (2026-09-22): the same
+  upstream-first argument, but here the personal stream is the 488-patch decomp
+  rename, which touches 509 files against the rewrites' 477. The rename patches
+  were **re-cut** on top of `standard-c` (the maintainer's call: "I version
+  control all of these patches, so I will lose nothing"): `git am --3way` with
+  diff3 markers, and every conflict resolved mechanically — our side of the
+  block, that patch's `old -> new` renames applied to it, the patch's added
+  provenance lines re-inserted — by
+  `tools/resolve_rename_conflicts.py`; 87 of 488
+  needed it. Proof the re-cut changed nothing: `tools/check_renames.py`
+  (series/traceable/declarations) on the new tree, and an assembly gate of every
+  file that differs between the old applied tree and the new one. `ORDER` lists
+  `standard-c`, `personal`. Method: `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`.
 
 ## apply.sh internals
 

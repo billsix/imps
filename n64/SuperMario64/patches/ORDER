@@ -1,19 +1,29 @@
 # Stream apply order for this project, most-dependent-first.
 #
 # ACROSS streams order normally does NOT matter -- streams touch disjoint files
-# and commute (n64/CLAUDE.md). SuperMario64 is an exception: `cheats` and `book`
-# BOTH touch src/game/mario.c. They do not collide today (the hunks sit ~370
-# lines apart), but the book grows a doc-region per chapter and covers Mario's
-# action machine, which is exactly what the cheats edit -- so the two will meet.
+# and commute (n64/CLAUDE.md). SuperMario64 is the exception, twice over:
 #
-# `cheats` first, so the book's markers are placed against the cheated tree
-# rather than the other way round: the cheats are the substantive code, the
+# `standard-c` FIRST (2026-09-22). It rewrites the decomp's assembly-isms into
+# standard C and is bound for upstream, so it must be the BASE the personal
+# streams sit on: the personal patches then apply to the code as upstream would
+# see it after merging, and a conflict surfaces here, on our side, rather than
+# in a rebase we cannot do. It touches many src/game, src/engine, src/goddard
+# and src/audio files -- including mario.c, mario_actions_airborne.c and the
+# book's marker files -- so it overlaps both streams below. When it changes,
+# replay: ./fetch.sh && ./apply.sh, then re-export whichever personal patch
+# stopped applying (tasks/mario64-assembly-isms-to-standard-c.md, Phase C).
+#
+# `cheats` before `book`: both touch src/game/mario.c. They do not collide
+# today (the hunks sit ~370 lines apart), but the book grows a doc-region per
+# chapter and covers Mario's action machine, which is exactly what the cheats
+# edit -- so the two will meet. The cheats are the substantive code, the
 # markers are commentary on whatever the code ends up being.
 #
 # `upstream-candidates` is not listed -- it only touches docs/building.md, so it
-# is disjoint from both and applies afterwards, alphabetically.
+# is disjoint from everything and applies afterwards, alphabetically.
 #
 # One stream per line; listed streams apply first, in this order. Comments and
 # blank lines are ignored.
+standard-c
 cheats
 book

@@ -1,4 +1,4 @@
-From ef1045758871e743d5a80a8bb63ac8d14657807c Mon Sep 17 00:00:00 2001
+From 0cb265711b76144ee7d257187b3e574ebc66f77e Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Tue, 8 Sep 2026 03:25:24 +0000
 Subject: [PATCH 305/488] soh: name the 8 address-named symbols defined in
@@ -104,7 +104,7 @@ index 1adc478ea..ac4cb511a 100644
          }
      });
 diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
-index 3a8d4a6e0..9d0fe4177 100644
+index ad7a78673..9fbe54a93 100644
 --- a/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
 +++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
 @@ -14,10 +14,14 @@ void BgHidanHamstep_Destroy(Actor* thisx, PlayState* play);
@@ -135,7 +135,7 @@ index 3a8d4a6e0..9d0fe4177 100644
  };
  
  static InitChainEntry sInitChain[] = {
-@@ -206,7 +210,8 @@ void BgHidanHamstep_Destroy(Actor* thisx, PlayState* play) {
+@@ -204,7 +208,8 @@ void BgHidanHamstep_Destroy(Actor* thisx, PlayState* play) {
      }
  }
  
@@ -145,7 +145,7 @@ index 3a8d4a6e0..9d0fe4177 100644
      Vec3f pos = step->dyna.actor.world.pos;
      s32 i;
      f32 sin;
-@@ -228,18 +233,20 @@ void func_808884C8(BgHidanHamstep* step, PlayState* play) {
+@@ -226,18 +231,20 @@ void func_808884C8(BgHidanHamstep* step, PlayState* play) {
      }
  }
  
@@ -169,7 +169,7 @@ index 3a8d4a6e0..9d0fe4177 100644
      BgHidanHamstep* child;
  
      if ((this->dyna.actor.params & 0xFF) >= 2) {
-@@ -260,7 +267,8 @@ void func_80888694(BgHidanHamstep* this, BgHidanHamstep* parent) {
+@@ -258,7 +265,8 @@ void func_80888694(BgHidanHamstep* this, BgHidanHamstep* parent) {
      }
  }
  
@@ -179,7 +179,7 @@ index 3a8d4a6e0..9d0fe4177 100644
      BgHidanHamstep* parent = (BgHidanHamstep*)this->dyna.actor.parent;
      f32 frameDivisor = R_UPDATE_RATE * 0.5f;
  
-@@ -273,11 +281,11 @@ void func_80888734(BgHidanHamstep* this) {
+@@ -271,11 +279,11 @@ void func_80888734(BgHidanHamstep* this) {
              this->dyna.actor.world.pos.y += (this->dyna.actor.velocity.y * frameDivisor);
          }
  
@@ -193,16 +193,16 @@ index 3a8d4a6e0..9d0fe4177 100644
      if (this->collider.base.acFlags & AC_HIT) {
          OnePointCutscene_Init(play, 3310, 100, &this->dyna.actor, CAM_ID_MAIN);
          Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_HAMMER_SWITCH);
-@@ -289,7 +297,7 @@ void func_808887C4(BgHidanHamstep* this, PlayState* play) {
+@@ -287,7 +295,7 @@ void func_808887C4(BgHidanHamstep* this, PlayState* play) {
      }
  }
  
 -void func_80888860(BgHidanHamstep* this, PlayState* play) {
 +void BgHidanHamstep_Fall(BgHidanHamstep* this, PlayState* play) {
-     s32 pad;
-     s32 pad2;
      s32 quakeIndex;
-@@ -313,18 +321,18 @@ void func_80888860(BgHidanHamstep* this, PlayState* play) {
+ 
+     Actor_MoveXZGravity(&this->dyna.actor);
+@@ -309,17 +317,17 @@ void func_80888860(BgHidanHamstep* this, PlayState* play) {
                  Quake_SetCountdown(quakeIndex, 20);
                  Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_BLOCK_BOUND);
                  Rumble_Request(this->dyna.actor.xyzDistToPlayerSq, 255, 20, 150);
@@ -216,7 +216,6 @@ index 3a8d4a6e0..9d0fe4177 100644
  
 -void func_808889B8(BgHidanHamstep* this, PlayState* play) {
 +void BgHidanHamstep_WaitForParent(BgHidanHamstep* this, PlayState* play) {
-     s32 pad;
      BgHidanHamstep* parent = (BgHidanHamstep*)this->dyna.actor.parent;
  
 -    func_80888734(this);
@@ -224,14 +223,12 @@ index 3a8d4a6e0..9d0fe4177 100644
  
      if ((parent->action == 4) || ((parent->action == 3) && (parent->unk_244 >= 5))) {
          if ((this->dyna.actor.params & 0xFF) == 1) {
-@@ -337,13 +345,13 @@ void func_808889B8(BgHidanHamstep* this, PlayState* play) {
+@@ -332,11 +340,11 @@ void func_808889B8(BgHidanHamstep* this, PlayState* play) {
      }
  }
  
 -void func_80888A58(BgHidanHamstep* this, PlayState* play) {
 +void BgHidanHamstep_FallAsChild(BgHidanHamstep* this, PlayState* play) {
-     s32 pad;
-     s32 pad2;
      s32 quakeIndex;
  
      Actor_MoveXZGravity(&this->dyna.actor);
@@ -240,7 +237,7 @@ index 3a8d4a6e0..9d0fe4177 100644
  
      if (((this->dyna.actor.params & 0xFF) <= 0) || ((this->dyna.actor.params & 0xFF) >= 6)) {
          // "[Hammer Step] arg_data strange (arg_data = %d)"
-@@ -371,7 +379,7 @@ void func_80888A58(BgHidanHamstep* this, PlayState* play) {
+@@ -364,7 +372,7 @@ void func_80888A58(BgHidanHamstep* this, PlayState* play) {
  
                  Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_BLOCK_BOUND);
                  Rumble_Request(10000.0f, 255, 20, 150);

@@ -1,0 +1,63 @@
+From 14d53dca58ce47fe33d58a4a134d2f3ae6db1454 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:14:13 +0000
+Subject: [PATCH 11/46] goddard: invert the guard in gd_broken_quat_to_vec3f
+ instead of jumping over its body
+
+`if (run < 0) goto end;` skipped a body whose only writes are to UNUSED
+locals; the three stores after the label run on both paths. Nest the body
+under `if (run >= 0)` and drop the label.
+
+Verified: gd_math.c compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/goddard/gd_math.c | 27 ++++++++++++---------------
+ 1 file changed, 12 insertions(+), 15 deletions(-)
+
+diff --git a/src/goddard/gd_math.c b/src/goddard/gd_math.c
+index cae7804a..5c8c498e 100644
+--- a/src/goddard/gd_math.c
++++ b/src/goddard/gd_math.c
+@@ -569,25 +569,22 @@ void UNUSED gd_broken_quat_to_vec3f(f32 quat[4], struct GdVec3f *vec, f32 zHalf,
+     tVec.y = vec->y;
+     tVec.z = vec->z;
+ 
+-    if (run < 0) {
+-        goto end;
+-    }
++    if (run >= 0) {
++        if ((j = i + 1) >= 4) {
++            j = 1;
++        }
+ 
+-    if ((j = i + 1) >= 4) {
+-        j = 1;
+-    }
++        if ((k = j + 1) >= 4) {
++            k = 1;
++        }
+ 
+-    if ((k = j + 1) >= 4) {
+-        k = 1;
++        jVal = quat[j];
++        kVal = quat[k];
++        uVec.x = quat[0];
++        uVec.y = quat[i];
++        uVec.z = zHalf + zHalf;
+     }
+ 
+-    jVal = quat[j];
+-    kVal = quat[k];
+-    uVec.x = quat[0];
+-    uVec.y = quat[i];
+-    uVec.z = zHalf + zHalf;
+-
+-end:
+     vec->x = tVec.x;
+     vec->y = tVec.y;
+     vec->z = tVec.z;
+-- 
+2.55.0
+

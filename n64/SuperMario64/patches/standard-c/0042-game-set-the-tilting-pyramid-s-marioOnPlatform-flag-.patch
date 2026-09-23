@@ -1,0 +1,35 @@
+From df56a9229ea963fb1c06b436355e42360eb450e8 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:34:19 +0000
+Subject: [PATCH 42/46] game: set the tilting pyramid's marioOnPlatform flag
+ instead of incrementing it
+
+`marioOnPlatform` starts FALSE and is tested with `if (marioOnPlatform)`;
+the `++` that turns it on is a boolean assignment written for a MIPS
+`addiu`.
+
+Verified: tilting_inverted_pyramid.inc.c, through its including
+translation unit, compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/tilting_inverted_pyramid.inc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/game/behaviors/tilting_inverted_pyramid.inc.c b/src/game/behaviors/tilting_inverted_pyramid.inc.c
+index 062a8310..b686011a 100644
+--- a/src/game/behaviors/tilting_inverted_pyramid.inc.c
++++ b/src/game/behaviors/tilting_inverted_pyramid.inc.c
+@@ -107,7 +107,7 @@ void bhv_tilting_inverted_pyramid_loop(void) {
+         }
+ 
+         if (o->oTiltingPyramidMarioOnPlatform == TRUE) {
+-            marioOnPlatform++;
++            marioOnPlatform = TRUE;
+         }
+ 
+         o->oTiltingPyramidMarioOnPlatform = TRUE;
+-- 
+2.55.0
+

@@ -1,0 +1,97 @@
+From 4e9d065df5092d736ee15f09fde26d69f9d2b90d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:14:10 +0000
+Subject: [PATCH 09/46] audio: replace goto-as-break in the copt sequence-layer
+ script with `break`
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The US/JP sequence-layer interpreter (copt/…_copt.inc.c) jumps out of
+three `switch` statements with `goto l1090` / `goto l1138` / `goto l13cc`
+— labels named after ROM offsets — where the label is the statement that
+immediately follows the `switch`. `break` transfers control to exactly the
+same point with no intervening statement, so the eight gotos become
+`break` and the three labels go away.
+
+Verified: the including translation unit (seqplayer.c) compiles to
+byte-identical assembly before and after with the port's own flags
+(asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ ...eq_channel_layer_process_script_copt.inc.c | 19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
+
+diff --git a/src/audio/copt/seq_channel_layer_process_script_copt.inc.c b/src/audio/copt/seq_channel_layer_process_script_copt.inc.c
+index 32fa3bc7..1c72a0ba 100644
+--- a/src/audio/copt/seq_channel_layer_process_script_copt.inc.c
++++ b/src/audio/copt/seq_channel_layer_process_script_copt.inc.c
+@@ -318,22 +318,21 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
+                     vel = *((*state).pc++);
+                     layer->noteDuration = *((*state).pc++);
+                     layer->playPercentage = sp3A;
+-                    goto l1090;
++                    break;
+ 
+                 case 0x40: // layer_note1 (play percentage, velocity)
+                     M64_READ_COMPRESSED_U16(state, sp3A);
+                     vel = *((*state).pc++);
+                     layer->noteDuration = 0;
+                     layer->playPercentage = sp3A;
+-                    goto l1090;
++                    break;
+ 
+                 case 0x80: // layer_note2 (velocity, duration; uses last play percentage)
+                     sp3A = layer->playPercentage;
+                     vel = *((*state).pc++);
+                     layer->noteDuration = *((*state).pc++);
+-                    goto l1090;
++                    break;
+             }
+-l1090:
+             cmdSemitone = cmd - (cmd & 0xc0);
+             layer->velocitySquare = vel * vel;
+         } else {
+@@ -341,17 +340,16 @@ l1090:
+                 case 0x00: // play note, type 0 (play percentage)
+                     M64_READ_COMPRESSED_U16(state, sp3A);
+                     layer->playPercentage = sp3A;
+-                    goto l1138;
++                    break;
+ 
+                 case 0x40: // play note, type 1 (uses default play percentage)
+                     sp3A = layer->shortNoteDefaultPlayPercentage;
+-                    goto l1138;
++                    break;
+ 
+                 case 0x80: // play note, type 2 (uses last play percentage)
+                     sp3A = layer->playPercentage;
+-                    goto l1138;
++                    break;
+             }
+-l1138:
+ 
+             cmdSemitone = cmd - (cmd & 0xc0);
+         }
+@@ -432,15 +430,14 @@ l1138:
+                             case PORTAMENTO_MODE_5:
+                                 sp24 = temp_f2;
+                                 freqScale = temp_f12;
+-                                goto l13cc;
++                                break;
+ 
+                             case PORTAMENTO_MODE_2:
+                             case PORTAMENTO_MODE_4:
+                                 freqScale = temp_f2;
+                                 sp24 = temp_f12;
+-                                goto l13cc;
++                                break;
+                         }
+-l13cc:
+                         portamento->extent = sp24 / freqScale - US_FLOAT(1.0);
+                         if (PORTAMENTO_IS_SPECIAL((*layer).portamento)) {
+                             portamento->speed = US_FLOAT(32512.0) * FLOAT_CAST((*seqPlayer).tempo)
+-- 
+2.55.0
+

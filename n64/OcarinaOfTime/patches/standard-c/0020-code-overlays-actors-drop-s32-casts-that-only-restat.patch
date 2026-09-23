@@ -1,0 +1,112 @@
+From 0cb273f201f9af4979fd7cb833da79e2742a94e4 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:42:50 +0000
+Subject: [PATCH 20/36] code, overlays/actors: drop `(s32)` casts that only
+ restate integer promotion
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+An s16 or u8 operand of `>>`, `+`, `<` or an array index is promoted to
+int anyway; the seven casts (Bg_Hidan_Kousi, Bg_Spot01_Objects2 ×2,
+En_Wallmas — the outer `(s16)` wrap stays — Obj_Bean, En_Fr,
+z_skin_awb.c) change nothing.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/z_skin_awb.c                                     | 2 +-
+ soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c | 2 +-
+ .../actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c      | 4 ++--
+ soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c                   | 2 +-
+ soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c         | 2 +-
+ soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c             | 2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/soh/src/code/z_skin_awb.c b/soh/src/code/z_skin_awb.c
+index 504b6376d..833438f81 100644
+--- a/soh/src/code/z_skin_awb.c
++++ b/soh/src/code/z_skin_awb.c
+@@ -120,7 +120,7 @@ s32 func_800A698C(Skin* skin, SkinLimb** skeleton, MtxF* limbMatrices, u8 parent
+     if (parentIndex == LIMB_DONE) {
+         SkinMatrix_GetClear(&mtx);
+     } else {
+-        mtx = &limbMatrices[(s32)parentIndex];
++        mtx = &limbMatrices[parentIndex];
+     }
+ 
+     SkinMatrix_MtxFMtxFMult(mtx, &limbMatrices[limbIndex], &sp28);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+index e992b1a8b..80d93d11a 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Kousi/z_bg_hidan_kousi.c
+@@ -71,7 +71,7 @@ void BgHidanKousi_Init(Actor* thisx, PlayState* play) {
+     DynaPolyActor_Init(&this->dyna, DPM_UNK);
+     Actor_SetFocus(thisx, 50.0f);
+     osSyncPrintf("◯◯◯炎の神殿オブジェクト【格子(arg_data : %0x)】出現 (%d %d)\n", thisx->params, thisx->params & 0xFF,
+-                 ((s32)thisx->params >> 8) & 0xFF);
++                 (thisx->params >> 8) & 0xFF);
+ 
+     Actor_ProcessInitChain(thisx, sInitChain);
+     if (((thisx->params & 0xFF) < 0) || ((thisx->params & 0xFF) >= 3)) {
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c b/soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c
+index c72be812e..4bf57f9b9 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot01_Objects2/z_bg_spot01_objects2.c
+@@ -109,10 +109,10 @@ void func_808AC2BC(BgSpot01Objects2* this, PlayState* play) {
+                 CollisionHeader_GetVirtual(&object_spot01_matoyab_col, &colHeader);
+                 this->dyna.bgId = DynaPoly_SetBgActor(play, &play->colCtx.dyna, thisx, colHeader);
+                 if (IS_DAY) {
+-                    func_808AC22C(play->setupPathList, &position, ((s32)thisx->params >> 8) & 0xFF, 0);
++                    func_808AC22C(play->setupPathList, &position, (thisx->params >> 8) & 0xFF, 0);
+                     Actor_SpawnAsChild(&play->actorCtx, thisx, play, ACTOR_EN_DAIKU_KAKARIKO, position.x, position.y,
+                                        position.z, thisx->world.rot.x, thisx->world.rot.y, thisx->world.rot.z,
+-                                       ((((s32)thisx->params >> 8) & 0xFF) << 8) + 1);
++                                       (((thisx->params >> 8) & 0xFF) << 8) + 1);
+                 }
+                 break;
+             case 0: // Potion Shop Poster
+diff --git a/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c b/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
+index 17e796369..bf00c390c 100644
+--- a/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
++++ b/soh/src/overlays/actors/ovl_En_Fr/z_en_fr.c
+@@ -847,7 +847,7 @@ s32 EnFr_IsFrogSongComplete(EnFr* this, PlayState* play) {
+             return true;
+         }
+         // The first four notes have more frames to receive an input
+-        index = ocarinaNoteIndex < 4 ? (s32)ocarinaNoteIndex : 4;
++        index = ocarinaNoteIndex < 4 ? ocarinaNoteIndex : 4;
+         ocarinaNote = EnFr_GetNextNoteFrogSong(ocarinaNoteIndex);
+         this->ocarinaNote = ocarinaNote;
+         EnFr_CheckOcarinaInputFrogSong(ocarinaNote);
+diff --git a/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c b/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
+index 223ca6349..4ed12d5db 100644
+--- a/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
++++ b/soh/src/overlays/actors/ovl_En_Wallmas/z_en_wallmas.c
+@@ -365,7 +365,7 @@ void EnWallmas_Walk(EnWallmas* this, PlayState* play) {
+         EnWallmas_SetupJumpToCeiling(this);
+     }
+ 
+-    Math_ScaledStepToS(&this->actor.world.rot.y, (s16)((s32)this->actor.yawTowardsPlayer + 0x8000), 0xB6);
++    Math_ScaledStepToS(&this->actor.world.rot.y, (s16)(this->actor.yawTowardsPlayer + 0x8000), 0xB6);
+ 
+     if (Animation_OnFrame(&this->skelAnime, 0.0f) || Animation_OnFrame(&this->skelAnime, 12.0f) ||
+         Animation_OnFrame(&this->skelAnime, 24.0f) || Animation_OnFrame(&this->skelAnime, 36.0f)) {
+diff --git a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+index 0e2f0d315..fa69fbea8 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
++++ b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+@@ -412,7 +412,7 @@ void ObjBean_ShakeLeavesFast(ObjBean* this) {
+         this->unk_1CA = Rand_S16Offset(0x2EE0, 0x1F40);
+     }
+     ObjBean_UpdateLeaves(this);
+-    if ((s32)this->unk_1C0 < 0) {
++    if (this->unk_1C0 < 0) {
+         ObjBean_SetupGrow(this);
+     }
+ }
+-- 
+2.55.0
+

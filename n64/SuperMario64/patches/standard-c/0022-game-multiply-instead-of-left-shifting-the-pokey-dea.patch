@@ -1,0 +1,35 @@
+From 54d15f4924c13990eb77dd0c2fabf4f18d25738e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:23:55 +0000
+Subject: [PATCH 22/46] game: multiply instead of left-shifting the pokey
+ death-delay parameter
+
+`oBehParams2ndByte << 2` is a multiplication written for the MIPS `sll`;
+`* 4` says so and is defined for negative values too (the field is an
+s32 that other spawners fill from an s16 behaviour-command operand).
+
+Verified: pokey.inc.c, through obj_behaviors_2.c, compiles to
+byte-identical assembly before and after with the port's own flags
+(asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/pokey.inc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/game/behaviors/pokey.inc.c b/src/game/behaviors/pokey.inc.c
+index 355b8714..e037ef79 100644
+--- a/src/game/behaviors/pokey.inc.c
++++ b/src/game/behaviors/pokey.inc.c
+@@ -130,7 +130,7 @@ void bhv_pokey_body_part_update(void) {
+                 // Die in order from top to bottom
+                 // If a new body part spawns after the head has been killed, its
+                 // death delay will be 0
+-                o->oPokeyBodyPartDeathDelayAfterHeadKilled = (o->oBehParams2ndByte << 2) + 20;
++                o->oPokeyBodyPartDeathDelayAfterHeadKilled = o->oBehParams2ndByte * 4 + 20;
+             }
+ 
+             cur_obj_move_standard(-78);
+-- 
+2.55.0
+

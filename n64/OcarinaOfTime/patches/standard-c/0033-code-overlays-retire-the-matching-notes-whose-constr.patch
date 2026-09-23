@@ -1,0 +1,201 @@
+From fa720c25010a27c7974aedf9ce810bc724f5bc6c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:51:44 +0000
+Subject: [PATCH 33/36] code, overlays: retire the matching notes whose
+ construct is gone, and three stale `//!` bug notes
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+"required to match" comments on constructs that no longer need to match
+(Bg_Gnd_Soulmeiro, Bg_Ydan_Maruta, Demo_Ik, En_Zl4, z_actor.c,
+z_en_item00.c, z_kaleido_item.c ×2, z_lights.c, z_player.c's BAD_RETURN
+note — the macro is `void` in the port), and `//! @bug` notes describing
+what the port already fixed: audio_heap.c has its explicit `return ret;`,
+En_Po_Sisters zeroes `spE7`, En_Tana's table has its third entry, and
+z_kaleido_equipment.c's note guarded a commented-out call (the empty
+`if` goes with it).
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/audio_heap.c                                     | 3 +--
+ soh/src/code/z_actor.c                                        | 1 -
+ soh/src/code/z_en_item00.c                                    | 1 -
+ soh/src/code/z_lights.c                                       | 1 -
+ .../overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c | 1 -
+ soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c | 2 +-
+ soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c               | 1 -
+ soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c   | 2 +-
+ soh/src/overlays/actors/ovl_En_Tana/z_en_tana.c               | 4 +---
+ soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c                 | 1 -
+ soh/src/overlays/actors/ovl_player_actor/z_player.c           | 1 -
+ soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_item.c      | 4 +---
+ 12 files changed, 5 insertions(+), 17 deletions(-)
+
+diff --git a/soh/src/code/audio_heap.c b/soh/src/code/audio_heap.c
+index b2898350a..7ddd4ed39 100644
+--- a/soh/src/code/audio_heap.c
++++ b/soh/src/code/audio_heap.c
+@@ -1027,8 +1027,7 @@ void* AudioHeap_AllocPermanent(s32 tableType, s32 id, size_t size) {
+     gAudioContext.permanentCache[index].tableType = tableType;
+     gAudioContext.permanentCache[index].id = id;
+     gAudioContext.permanentCache[index].size = size;
+-    //! @bug UB: missing return. "ret" is in v0 at this point, but doing an
+-    // explicit return uses an additional register.
++    // The ROM fell off the end here with `ret` still in v0; the port returns it explicitly.
+     return ret;
+ }
+ 
+diff --git a/soh/src/code/z_actor.c b/soh/src/code/z_actor.c
+index 801a82b97..df4604923 100644
+--- a/soh/src/code/z_actor.c
++++ b/soh/src/code/z_actor.c
+@@ -1955,7 +1955,6 @@ u32 Actor_ProcessTalkRequest(Actor* actor, PlayState* play) {
+ s32 Actor_OfferTalkExchange(Actor* actor, PlayState* play, f32 arg2, f32 arg3, u32 exchangeItemId) {
+     Player* player = GET_PLAYER(play);
+ 
+-    // This is convoluted but it seems like it must be a single if statement to match
+     if ((player->actor.flags & ACTOR_FLAG_TALK) || ((exchangeItemId != EXCH_ITEM_NONE) && Player_InCsMode(play)) ||
+         (!actor->isTargeted &&
+          ((arg3 < fabsf(actor->yDistToPlayer)) || (player->talkActorDistance < actor->xzDistToPlayer) ||
+diff --git a/soh/src/code/z_en_item00.c b/soh/src/code/z_en_item00.c
+index 5770281ce..e78f85ded 100644
+--- a/soh/src/code/z_en_item00.c
++++ b/soh/src/code/z_en_item00.c
+@@ -1543,7 +1543,6 @@ s16 func_8001F404(s16 dropId) {
+     }
+     // #endregion
+ 
+-    // This is convoluted but it seems like it must be a single condition to match
+     // clang-format off
+     if (((dropId == ITEM00_BOMBS_A      || dropId == ITEM00_BOMBS_SPECIAL || dropId == ITEM00_BOMBS_B)      && INV_CONTENT(ITEM_BOMB) == ITEM_NONE) ||
+         ((dropId == ITEM00_ARROWS_SMALL || dropId == ITEM00_ARROWS_MEDIUM || dropId == ITEM00_ARROWS_LARGE) && INV_CONTENT(ITEM_BOW) == ITEM_NONE) ||
+diff --git a/soh/src/code/z_lights.c b/soh/src/code/z_lights.c
+index da5e0e905..b21747cc7 100644
+--- a/soh/src/code/z_lights.c
++++ b/soh/src/code/z_lights.c
+@@ -197,7 +197,6 @@ LightNode* Lights_FindBufSlot() {
+     return node;
+ }
+ 
+-// return type must not be void to match
+ s32 Lights_FreeNode(LightNode* light) {
+     if (light != NULL) {
+         sLightsBuffer.numOccupied--;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c b/soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c
+index 8a7d15816..a1c711922 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c
++++ b/soh/src/overlays/actors/ovl_Bg_Gnd_Soulmeiro/z_bg_gnd_soulmeiro.c
+@@ -116,7 +116,6 @@ void func_8087AF38(BgGndSoulmeiro* this, PlayState* play) {
+         thisx->draw = NULL;
+     }
+ 
+-    // This should be this->unk_198 == 0, this is required to match
+     if (!this->unk_198) {
+         Flags_SetSwitch(play, (thisx->params >> 8) & 0x3F);
+         Actor_Kill(&this->actor);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c b/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
+index f11e3054b..a363dadef 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
+@@ -89,7 +89,7 @@ void BgYdanMaruta_Init(Actor* thisx, PlayState* play) {
+     Collider_SetTris(play, &this->collider, &this->dyna.actor, &sTrisInit, this->elements);
+ 
+     this->switchFlag = this->dyna.actor.params;
+-    thisx->params = (thisx->params >> 8) & 0xFF; // thisx is required to match here
++    thisx->params = (thisx->params >> 8) & 0xFF;
+ 
+     if (this->dyna.actor.params == 0) {
+         triInit = &sTrisElementsInit[0];
+diff --git a/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c b/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
+index a05dc9f4e..328e72297 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
++++ b/soh/src/overlays/actors/ovl_Demo_Ik/z_demo_ik.c
+@@ -174,7 +174,6 @@ void DemoIk_Type1Init(DemoIk* this, PlayState* play) {
+             skeleton = &object_ik_Skel_000380;
+             animation = &object_ik_Anim_00035C;
+             phi_f0 = 20.0f;
+-            // No break is required for matching
+     }
+     ActorShape_Init(&this->actor.shape, 0.0f, ActorShadow_DrawCircle, phi_f0);
+     SkelAnime_Init(play, &this->skelAnime, skeleton, NULL, this->jointTable, this->morphTable, 2);
+diff --git a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+index 5e4270955..e4e1060d0 100644
+--- a/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
++++ b/soh/src/overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.c
+@@ -1385,7 +1385,7 @@ void EnPoSisters_Draw(Actor* thisx, PlayState* play) {
+         phi_s5 = ((32 - this->unk_19A) * 255) / 32;
+         phi_f20 = 0.0035f;
+     } else if (this->actionFunc == func_80ADBC88) {
+-        //! @bug uninitialised spE7
++        // spE7 was uninitialised in the ROM; the port zeroes it at its declaration.
+         phi_s5 = spE7;
+         phi_f20 = 0.0027f;
+     } else {
+diff --git a/soh/src/overlays/actors/ovl_En_Tana/z_en_tana.c b/soh/src/overlays/actors/ovl_En_Tana/z_en_tana.c
+index fe418c5ea..ff21ff626 100644
+--- a/soh/src/overlays/actors/ovl_En_Tana/z_en_tana.c
++++ b/soh/src/overlays/actors/ovl_En_Tana/z_en_tana.c
+@@ -28,9 +28,7 @@ const ActorInit En_Tana_InitVars = {
+     NULL,
+ };
+ 
+-//! @bug A third entry is missing here. When printing the string indexed by `params` for type 2, the
+-//! next data entry will be dereferenced and print garbage, stopping any future printing.
+-//! In a non-matching context, this can cause a crash if the next item isn't a valid pointer.
++// The ROM's table had only two entries, so type 2 printed whatever followed; the port adds the third.
+ static const char* sShelfTypes[] = {
+     "木の棚", // "Wooden Shelves"
+     "石の棚", // "Stone Shelves"
+diff --git a/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c b/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c
+index 79fae6734..794402008 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c
++++ b/soh/src/overlays/actors/ovl_En_Zl4/z_en_zl4.c
+@@ -1120,7 +1120,6 @@ s32 EnZl4_CsMakePlan(EnZl4* this, PlayState* play) {
+                 Actor_OfferGetItem(&this->actor, play, GI_LETTER_ZELDA, fabsf(this->actor.xzDistToPlayer) + 1.0f,
+                                    fabsf(this->actor.yDistToPlayer) + 1.0f);
+             }
+-            // no break here is required for matching
+     }
+     return (this->talkState == 8) ? 1 : 0;
+ }
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 0f5420b90..779e6900f 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -1580,7 +1580,6 @@ BAD_RETURN(s32) Player_ZeroSpeedXZ(Player* this) {
+     this->linearVelocity = 0.0f;
+ }
+ 
+-// return type can't be void due to regalloc in func_8083F72C
+ BAD_RETURN(s32) func_80832224(Player* this) {
+     Player_ZeroSpeedXZ(this);
+     this->unk_6AD = 0;
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_item.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_item.c
+index 4d777e383..7e09a2f67 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_item.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_item.c
+@@ -446,8 +446,6 @@ void KaleidoScope_DrawItemSelect(PlayState* play) {
+ 
+                 osSyncPrintf("now=%d  ccc=%d\n", cursorPoint, cursorItem);
+ 
+-                // Seem necessary to match
+-
+                 while (moveCursorResult == 0) {
+                     if ((pauseCtx->stickRelX < -30) || (dpad && CHECK_BTN_ALL(input->press.button, BTN_DLEFT))) {
+                         if (pauseCtx->cursorX[PAUSE_ITEM] != 0) {
+@@ -663,7 +661,7 @@ void KaleidoScope_DrawItemSelect(PlayState* play) {
+             }
+ 
+             if (cursorItem != PAUSE_ITEM_NONE) {
+-                index = cursorSlot * 4; // required to match?
++                index = cursorSlot * 4;
+                 KaleidoScope_SetCursorVtx(pauseCtx, index, pauseCtx->itemVtx);
+ 
+                 if ((pauseCtx->debugState == 0) && (pauseCtx->state == 6) && (pauseCtx->unk_1E4 == 0)) {
+-- 
+2.55.0
+

@@ -1,0 +1,129 @@
+From 4fcfd38b9463b06ffde4320e5c310f4c41708a21 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:32:24 +0000
+Subject: [PATCH 39/46] game: name the argN parameters of the shared landing
+ and knockback steps
+
+landing_step's `arg1` is the animation it sets. In
+common_ground_knockback_action, `arg2` is the frame up to which landing
+deceleration applies, `arg3` says whether to play the heavy-landing
+sound, and `arg4` is the action argument forwarded to the air-knockback
+actions (positive = Mario was attacked, which also grants the
+invincibility frames); common_water_knockback_step's `arg3` is that same
+action argument (every caller passes m->actionArg).
+
+Verified: all three files compile to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/mario_actions_moving.c     | 14 +++++++-------
+ src/game/mario_actions_stationary.c |  4 ++--
+ src/game/mario_actions_stationary.h |  2 +-
+ src/game/mario_actions_submerged.c  |  4 ++--
+ 4 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/src/game/mario_actions_moving.c b/src/game/mario_actions_moving.c
+index cc9c88eb..835673bf 100644
+--- a/src/game/mario_actions_moving.c
++++ b/src/game/mario_actions_moving.c
+@@ -1590,14 +1590,14 @@ s32 act_dive_slide(struct MarioState *m) {
+     return FALSE;
+ }
+ 
+-s32 common_ground_knockback_action(struct MarioState *m, s32 animation, s32 arg2, s32 arg3, s32 arg4) {
++s32 common_ground_knockback_action(struct MarioState *m, s32 animation, s32 accelEndFrame, s32 playHeavyLandingSound, s32 actionArg) {
+     s32 animFrame;
+ 
+-    if (arg3) {
++    if (playHeavyLandingSound) {
+         play_mario_heavy_landing_sound_once(m, SOUND_ACTION_TERRAIN_BODY_HIT_GROUND);
+     }
+ 
+-    if (arg4 > 0) {
++    if (actionArg > 0) {
+         play_sound_if_no_flag(m, SOUND_MARIO_ATTACKED, MARIO_MARIO_SOUND_PLAYED);
+     } else {
+         play_sound_if_no_flag(m, ROM_JP ? SOUND_MARIO_OOOF : SOUND_MARIO_OOOF2, MARIO_MARIO_SOUND_PLAYED);
+@@ -1611,7 +1611,7 @@ s32 common_ground_knockback_action(struct MarioState *m, s32 animation, s32 arg2
+     }
+ 
+     animFrame = set_mario_animation(m, animation);
+-    if (animFrame < arg2) {
++    if (animFrame < accelEndFrame) {
+         apply_landing_accel(m, 0.9f);
+     } else if (m->forwardVel >= 0.0f) {
+         mario_set_forward_vel(m, 0.1f);
+@@ -1621,15 +1621,15 @@ s32 common_ground_knockback_action(struct MarioState *m, s32 animation, s32 arg2
+ 
+     if (perform_ground_step(m) == GROUND_STEP_LEFT_GROUND) {
+         if (m->forwardVel >= 0.0f) {
+-            set_mario_action(m, ACT_FORWARD_AIR_KB, arg4);
++            set_mario_action(m, ACT_FORWARD_AIR_KB, actionArg);
+         } else {
+-            set_mario_action(m, ACT_BACKWARD_AIR_KB, arg4);
++            set_mario_action(m, ACT_BACKWARD_AIR_KB, actionArg);
+         }
+     } else if (is_anim_at_end(m)) {
+         if (m->health < 0x100) {
+             set_mario_action(m, ACT_STANDING_DEATH, 0);
+         } else {
+-            if (arg4 > 0) {
++            if (actionArg > 0) {
+                 m->invincTimer = 30;
+             }
+             set_mario_action(m, ACT_IDLE, 0);
+diff --git a/src/game/mario_actions_stationary.c b/src/game/mario_actions_stationary.c
+index c34ed10f..643022be 100644
+--- a/src/game/mario_actions_stationary.c
++++ b/src/game/mario_actions_stationary.c
+@@ -813,9 +813,9 @@ s32 act_shockwave_bounce(struct MarioState *m) {
+     return FALSE;
+ }
+ 
+-s32 landing_step(struct MarioState *m, s32 arg1, u32 action) {
++s32 landing_step(struct MarioState *m, s32 animation, u32 action) {
+     stationary_ground_step(m);
+-    set_mario_animation(m, arg1);
++    set_mario_animation(m, animation);
+     if (is_anim_at_end(m)) {
+         return set_mario_action(m, action, 0);
+     }
+diff --git a/src/game/mario_actions_stationary.h b/src/game/mario_actions_stationary.h
+index 7ae828a4..0d882d3e 100644
+--- a/src/game/mario_actions_stationary.h
++++ b/src/game/mario_actions_stationary.h
+@@ -28,7 +28,7 @@ s32 act_stop_crouching(struct MarioState *m);
+ s32 act_start_crawling(struct MarioState *m);
+ s32 act_stop_crawling(struct MarioState *m);
+ s32 act_shockwave_bounce(struct MarioState *m);
+-s32 landing_step(struct MarioState *m, s32 arg1, u32 action);
++s32 landing_step(struct MarioState *m, s32 animation, u32 action);
+ s32 check_common_landing_cancels(struct MarioState *m, u32 action);
+ s32 act_jump_land_stop(struct MarioState *m);
+ s32 act_double_jump_land_stop(struct MarioState *m);
+diff --git a/src/game/mario_actions_submerged.c b/src/game/mario_actions_submerged.c
+index b2285d48..81b2599c 100644
+--- a/src/game/mario_actions_submerged.c
++++ b/src/game/mario_actions_submerged.c
+@@ -867,7 +867,7 @@ s32 act_water_punch(struct MarioState *m) {
+     return FALSE;
+ }
+ 
+-void common_water_knockback_step(struct MarioState *m, s32 animation, u32 endAction, s32 arg3) {
++void common_water_knockback_step(struct MarioState *m, s32 animation, u32 endAction, s32 actionArg) {
+     stationary_slow_down(m);
+     perform_water_step(m);
+     set_mario_animation(m, animation);
+@@ -875,7 +875,7 @@ void common_water_knockback_step(struct MarioState *m, s32 animation, u32 endAct
+     m->marioBodyState->headAngle[0] = 0;
+ 
+     if (is_anim_at_end(m)) {
+-        if (arg3 > 0) {
++        if (actionArg > 0) {
+             m->invincTimer = 30;
+         }
+ 
+-- 
+2.55.0
+

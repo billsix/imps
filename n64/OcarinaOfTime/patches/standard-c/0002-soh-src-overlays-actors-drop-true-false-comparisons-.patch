@@ -1,0 +1,257 @@
+From b5a3a32fb6c2b2c724b96279214ab83d1b4e1b21 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:30:51 +0000
+Subject: [PATCH 02/36] soh/src/overlays/actors: drop `== true` / `!= false`
+ comparisons on boolean-valued expressions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Comparing a value that is already 0 or 1 against true/false is a MIPS-era
+habit; C tests the value. This patch covers only the 10 file(s) in
+soh/src/overlays/actors where every rewritten operand is a bitfield, a `u8`, a comparison
+result or a local the compiler already knows to be 0/1 — which is why the
+generated code is unchanged. Sites whose operand is a plain `s32` field or
+an `s32` function result compared with 1 are deliberately left for a
+separate patch: they are behaviour-preserving only by the (verified)
+invariant that the value is only ever 0/1, and their codegen changes
+(cmp $1 -> test).
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ .../actors/ovl_Boss_Ganon/z_boss_ganon.c       |  4 ++--
+ .../overlays/actors/ovl_Demo_Gj/z_demo_gj.c    |  6 +++---
+ .../actors/ovl_En_Bubble/z_en_bubble.c         |  2 +-
+ .../overlays/actors/ovl_En_Daiku/z_en_daiku.c  |  4 ++--
+ soh/src/overlays/actors/ovl_En_Fz/z_en_fz.c    |  2 +-
+ soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c    | 18 +++++++++---------
+ soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c    |  2 +-
+ soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c  |  2 +-
+ .../overlays/actors/ovl_Fishing/z_fishing.c    |  2 +-
+ .../actors/ovl_player_actor/z_player.c         |  2 +-
+ 10 files changed, 22 insertions(+), 22 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+index 034b7dc4a..9b9291497 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
++++ b/soh/src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.c
+@@ -4024,7 +4024,7 @@ void BossGanon_LightBall_Update(Actor* thisx, PlayState* play2) {
+ 
+                     this->collider.base.acFlags &= ~2;
+ 
+-                    if ((hitWithBottle == false) && (acHitInfo->toucher.dmgFlags & 0x100000)) {
++                    if ((!hitWithBottle) && (acHitInfo->toucher.dmgFlags & 0x100000)) {
+                         spBA = 2;
+                         Audio_PlaySfxGeneral(NA_SE_IT_SHIELD_REFLECT_MG, &player->actor.projectedPos, 4,
+                                              &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale,
+@@ -4042,7 +4042,7 @@ void BossGanon_LightBall_Update(Actor* thisx, PlayState* play2) {
+                                              &gSfxDefaultReverb);
+                         Rumble_Request(this->actor.xyzDistToPlayerSq, 0xB4, 0x14, 0x64);
+ 
+-                        if (hitWithBottle == false) {
++                        if (!hitWithBottle) {
+                             // if ganondorf is 250 units away from link, at least 3 volleys are required
+                             if ((ganondorf->actor.xyzDistToPlayerSq > 62500.0f) && (this->unk_1A4 < 3)) {
+                                 this->unk_1C2 = 1;
+diff --git a/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c b/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
+index 7e917f65e..4768cf398 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
++++ b/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
+@@ -1053,7 +1053,7 @@ s32 DemoGj_HasCylinderAnyExploded(DemoGj* this, PlayState* play) {
+ 
+ /*
+  * Checks if should kill the actor and drop collectibles
+- * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag==true
++ * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag
+  * Used by DEMOGJ_TYPE_DESTRUCTABLE_RUBBLE_1
+  */
+ void func_8097B22C(DemoGj* this, PlayState* play) {
+@@ -1184,7 +1184,7 @@ void func_8097B6C4(DemoGj* this, PlayState* play) {
+ 
+ /*
+  * Checks if should kill the actor and drop collectibles
+- * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag==true
++ * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag
+  * Used by DEMOGJ_TYPE_DESTRUCTABLE_RUBBLE_2
+  */
+ void func_8097B750(DemoGj* this, PlayState* play) {
+@@ -1267,7 +1267,7 @@ void func_8097B9BC(DemoGj* this, PlayState* play) {
+ 
+ /*
+  * Checks if should kill the actor and drop collectibles
+- * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag==true
++ * Kills the actor if ganon->unk_314==4 (Ganon killed), this rubble was hit by an explosion or killFlag
+  * Used by DEMOGJ_TYPE_DESTRUCTABLE_RUBBLE_TALL
+  */
+ void func_8097BA48(DemoGj* this, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c b/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
+index c0d167ab5..eca67fa70 100644
+--- a/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
++++ b/soh/src/overlays/actors/ovl_En_Bubble/z_en_bubble.c
+@@ -284,7 +284,7 @@ void EnBubble_Fly(EnBubble* this, PlayState* play) {
+ }
+ 
+ u32 func_809CC648(EnBubble* this) {
+-    if (((this->colliderSphere.base.acFlags & AC_HIT) != 0) == false) {
++    if (!((this->colliderSphere.base.acFlags & AC_HIT) != 0)) {
+         return false;
+     }
+     this->colliderSphere.base.acFlags &= ~AC_HIT;
+diff --git a/soh/src/overlays/actors/ovl_En_Daiku/z_en_daiku.c b/soh/src/overlays/actors/ovl_En_Daiku/z_en_daiku.c
+index 950ee6ee2..2baa536d1 100644
+--- a/soh/src/overlays/actors/ovl_En_Daiku/z_en_daiku.c
++++ b/soh/src/overlays/actors/ovl_En_Daiku/z_en_daiku.c
+@@ -164,9 +164,9 @@ void EnDaiku_Init(Actor* thisx, PlayState* play) {
+         isFree = true;
+     }
+ 
+-    if (isFree == true && play->sceneNum == SCENE_THIEVES_HIDEOUT) {
++    if (isFree && play->sceneNum == SCENE_THIEVES_HIDEOUT) {
+         noKill = false;
+-    } else if (isFree == false && play->sceneNum == SCENE_CARPENTERS_TENT) {
++    } else if (!isFree && play->sceneNum == SCENE_CARPENTERS_TENT) {
+         noKill = false;
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Fz/z_en_fz.c b/soh/src/overlays/actors/ovl_En_Fz/z_en_fz.c
+index 9c037ad6c..1ef7a55be 100644
+--- a/soh/src/overlays/actors/ovl_En_Fz/z_en_fz.c
++++ b/soh/src/overlays/actors/ovl_En_Fz/z_en_fz.c
+@@ -686,7 +686,7 @@ void EnFz_Update(Actor* thisx, PlayState* play) {
+     Actor_SetFocus(&this->actor, 50.0f);
+     EnFz_ApplyDamage(this, play);
+     this->actionFunc(this, play);
+-    if (this->isDespawning == false) {
++    if (!this->isDespawning) {
+         Collider_UpdateCylinder(&this->actor, &this->collider1);
+         Collider_UpdateCylinder(&this->actor, &this->collider2);
+         if (this->isFreezing) {
+diff --git a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+index 9cc1c4379..771da6cbe 100644
+--- a/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
++++ b/soh/src/overlays/actors/ovl_En_Ko/z_en_ko.c
+@@ -689,12 +689,12 @@ s32 func_80A97D68(EnKo* this, PlayState* play) {
+     s16 trackingMode;
+ 
+     if (this->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+-        if ((this->skelAnime.animation == &gKokiriWipingForeheadAnim) == false) {
++        if (!(this->skelAnime.animation == &gKokiriWipingForeheadAnim)) {
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_WIPING_FOREHEAD);
+         }
+         trackingMode = NPC_TRACKING_HEAD_AND_TORSO;
+     } else {
+-        if ((this->skelAnime.animation == &gKokiriLiftingRockAnim) == false) {
++        if (!(this->skelAnime.animation == &gKokiriLiftingRockAnim)) {
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_LIFTING_ROCK);
+         }
+         trackingMode = NPC_TRACKING_NONE;
+@@ -707,7 +707,7 @@ s32 func_80A97E18(EnKo* this, PlayState* play) {
+     s16 trackingMode;
+ 
+     Actor_UpdateFidgetTables(play, this->fidgetTableY, this->fidgetTableZ, 16);
+-    if (EnKo_IsWithinTalkAngle(this) == true) {
++    if (EnKo_IsWithinTalkAngle(this)) {
+         trackingMode = NPC_TRACKING_HEAD_AND_TORSO;
+     } else {
+         trackingMode = NPC_TRACKING_NONE;
+@@ -727,7 +727,7 @@ s32 func_80A97EB0(EnKo* this, PlayState* play) {
+ 
+     Actor_UpdateFidgetTables(play, this->fidgetTableY, this->fidgetTableZ, 16);
+     result = EnKo_IsWithinTalkAngle(this);
+-    trackingMode = (result == true) ? NPC_TRACKING_HEAD_AND_TORSO : NPC_TRACKING_NONE;
++    trackingMode = (result) ? NPC_TRACKING_HEAD_AND_TORSO : NPC_TRACKING_NONE;
+     Npc_TrackPoint(&this->actor, &this->interactInfo, 2, trackingMode);
+     return result;
+ }
+@@ -742,13 +742,13 @@ s32 func_80A97F70(EnKo* this, PlayState* play) {
+     s16 trackingMode;
+ 
+     if (this->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+-        if ((this->skelAnime.animation == &gKokiriBlockingAnim) == false) {
++        if (!(this->skelAnime.animation == &gKokiriBlockingAnim)) {
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_BLOCKING_STATIC);
+         }
+         Actor_UpdateFidgetTables(play, this->fidgetTableY, this->fidgetTableZ, 16);
+         trackingMode = NPC_TRACKING_HEAD_AND_TORSO;
+     } else {
+-        if ((this->skelAnime.animation == &gKokiriCuttingGrassAnim) == false) {
++        if (!(this->skelAnime.animation == &gKokiriCuttingGrassAnim)) {
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_CUTTING_GRASS);
+         }
+         trackingMode = NPC_TRACKING_NONE;
+@@ -762,14 +762,14 @@ s32 func_80A98034(EnKo* this, PlayState* play) {
+     s32 result;
+ 
+     if (this->interactInfo.talkState != NPC_TALK_STATE_IDLE) {
+-        if ((this->skelAnime.animation == &gKokiriBlockingAnim) == false) {
++        if (!(this->skelAnime.animation == &gKokiriBlockingAnim)) {
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_BLOCKING_STATIC);
+         }
+         Actor_UpdateFidgetTables(play, this->fidgetTableY, this->fidgetTableZ, 16);
+         result = EnKo_IsWithinTalkAngle(this);
+-        trackingMode = (result == true) ? NPC_TRACKING_HEAD_AND_TORSO : NPC_TRACKING_NONE;
++        trackingMode = (result) ? NPC_TRACKING_HEAD_AND_TORSO : NPC_TRACKING_NONE;
+     } else {
+-        if ((this->skelAnime.animation == &gKokiriPunchingAnim) == false) {
++        if (!(this->skelAnime.animation == &gKokiriPunchingAnim)) {
+             Animation_ChangeByInfo(&this->skelAnime, sAnimationInfo, ENKO_ANIM_PUNCHING);
+         }
+         trackingMode = NPC_TRACKING_NONE;
+diff --git a/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c b/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
+index edc387e5f..e4853693c 100644
+--- a/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
++++ b/soh/src/overlays/actors/ovl_En_Ny/z_en_ny.c
+@@ -234,7 +234,7 @@ void EnNy_Move(EnNy* this, PlayState* play) {
+     func_80ABCD40(this);
+     stoneTimer = this->stoneTimer;
+     this->stoneTimer--;
+-    if ((stoneTimer <= 0) || (this->hitPlayer != false)) {
++    if ((stoneTimer <= 0) || (this->hitPlayer)) {
+         EnNy_SetupTurnToStone(this);
+     } else {
+         Math_SmoothStepToS(&this->actor.shape.rot.y, this->actor.yawTowardsPlayer, 0xA, this->unk_1F4, 0);
+diff --git a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+index d39bd708c..bd01ac502 100644
+--- a/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
++++ b/soh/src/overlays/actors/ovl_En_Skj/z_en_skj.c
+@@ -1260,7 +1260,7 @@ void EnSkj_Appear(EnSkj* this) {
+ void EnSkj_OcarinaGameIdle(EnSkj* this, PlayState* play) {
+     EnSkj_Appear(this);
+ 
+-    if ((EnSkj_IsLeavingGame(this) == false) && (this->minigameState != 0)) {
++    if ((!EnSkj_IsLeavingGame(this)) && (this->minigameState != 0)) {
+         EnSkj_SetupPlayOcarinaGame(this);
+     }
+ }
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index b6829f235..a1620280e 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -2836,7 +2836,7 @@ void Fishing_FishLeapSfx(Fishing* this, u8 outOfWater) {
+         length = 2.0f * this->fishLength;
+     }
+ 
+-    if (outOfWater == false) {
++    if (!outOfWater) {
+         if (length >= 50) {
+             sfxId = NA_SE_EV_DIVE_INTO_WATER;
+         } else if (length >= 40) {
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 0786319c4..696998fa1 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -13338,7 +13338,7 @@ void Player_Action_DismountLadder(Player* this, PlayState* play) {
+ 
+     frame = sUpDismountLadderFrames;
+ 
+-    if (this->av2.actionVar2 != false) {
++    if (this->av2.actionVar2) {
+         Player_ProcessAnimSfxList(this, sDownDismountLadderAnimSfx);
+         frame = sDownDismountLadderFrames;
+     }
+-- 
+2.55.0
+

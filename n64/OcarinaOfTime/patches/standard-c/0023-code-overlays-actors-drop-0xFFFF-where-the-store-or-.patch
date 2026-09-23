@@ -1,0 +1,278 @@
+From 6375424e150bea85cfe6a8c3f6bfe1f61138912b Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:45:40 +0000
+Subject: [PATCH 23/36] code, overlays/actors: drop `& 0xFFFF` where the store
+ or the operand is already 16-bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Stores into u8/s8/s16/Vec3s fields (Bg_Ydan_Maruta, Door_Ana, En_Elf,
+z_player.c ×2, En_GeldB, En_Wf, En_Zl2, z_room.c's triple mask), masks on
+u16 operands (z_kaleido_scope_call.c, Bg_Spot02_Objects, En_Ani, En_In,
+En_Ru2's u16 argument, code_800EC960.c's non-negative s8), masks on the
+u16 argument of coss() (z_scene_table.c ×4), and fault.c's `<< 0x10 >>
+0x10` on a 5-bit field. Each mask was the MIPS `andi` before a half-word
+store or of a value the type system already bounds.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/code_800EC960.c                              | 2 +-
+ soh/src/code/z_kaleido_scope_call.c                       | 4 ++--
+ soh/src/code/z_room.c                                     | 2 +-
+ soh/src/code/z_scene_table.c                              | 8 ++++----
+ .../actors/ovl_Bg_Spot02_Objects/z_bg_spot02_objects.c    | 3 +--
+ .../overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c | 2 +-
+ soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c         | 2 +-
+ soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c             | 2 +-
+ soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c             | 2 +-
+ soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c         | 2 +-
+ soh/src/overlays/actors/ovl_En_In/z_en_in.c               | 4 ++--
+ soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c             | 2 +-
+ soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c               | 2 +-
+ soh/src/overlays/actors/ovl_En_Zl2/z_en_zl2.c             | 2 +-
+ soh/src/overlays/actors/ovl_player_actor/z_player.c       | 4 ++--
+ 15 files changed, 21 insertions(+), 22 deletions(-)
+
+diff --git a/soh/src/code/code_800EC960.c b/soh/src/code/code_800EC960.c
+index e5cd54cef..5a27ea940 100644
+--- a/soh/src/code/code_800EC960.c
++++ b/soh/src/code/code_800EC960.c
+@@ -4140,7 +4140,7 @@ u8 func_800F37B8(f32 behindScreenZ, SoundBankEntry* arg1, s8 arg2) {
+         if (phi_v0 < 30) {
+             phi_v1 = 0;
+         } else {
+-            phi_v1 = (((phi_v0 & 0xFFFF) * 10) - 300) / 34;
++            phi_v1 = ((phi_v0 * 10) - 300) / 34;
+             if (phi_v1 != 0) {
+                 phi_v1 = 0x10 - phi_v1;
+             }
+diff --git a/soh/src/code/z_kaleido_scope_call.c b/soh/src/code/z_kaleido_scope_call.c
+index b685fa0ae..8c2adb3dc 100644
+--- a/soh/src/code/z_kaleido_scope_call.c
++++ b/soh/src/code/z_kaleido_scope_call.c
+@@ -71,7 +71,7 @@ void KaleidoScopeCall_Update(PlayState* play) {
+                 R_PAUSE_MENU_MODE = 1;
+                 pauseCtx->unk_1E4 = 0;
+                 pauseCtx->unk_1EC = 0;
+-                pauseCtx->state = (pauseCtx->state & 0xFFFF) + 1;
++                pauseCtx->state = pauseCtx->state + 1;
+                 gSaveContext.ship.stats.count[COUNT_PAUSES]++;
+             }
+         } else if (pauseCtx->state == 8) {
+@@ -80,7 +80,7 @@ void KaleidoScopeCall_Update(PlayState* play) {
+             R_PAUSE_MENU_MODE = 1;
+             pauseCtx->unk_1E4 = 0;
+             pauseCtx->unk_1EC = 0;
+-            pauseCtx->state = (pauseCtx->state & 0xFFFF) + 1;
++            pauseCtx->state = pauseCtx->state + 1;
+         } else if ((pauseCtx->state == 2) || (pauseCtx->state == 9)) {
+             osSyncPrintf("PR_KAREIDOSCOPE_MODE=%d\n", R_PAUSE_MENU_MODE);
+ 
+diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
+index cfdedcdaa..92dda8ebd 100644
+--- a/soh/src/code/z_room.c
++++ b/soh/src/code/z_room.c
+@@ -178,7 +178,7 @@ void func_80095D04(PlayState* play, Room* room, u32 flags) {
+         }
+     }
+ 
+-    iREG(87) = polygon2->num & 0xFFFF & 0xFFFF & 0xFFFF; // if this is real then I might not be
++    iREG(87) = polygon2->num;
+ 
+     for (sp9C = 1; spB4 != NULL; spB4 = spB4->unk_0C, sp9C++) {
+         Gfx* temp2;
+diff --git a/soh/src/code/z_scene_table.c b/soh/src/code/z_scene_table.c
+index b48e59354..e5cef3341 100644
+--- a/soh/src/code/z_scene_table.c
++++ b/soh/src/code/z_scene_table.c
+@@ -591,7 +591,7 @@ void func_8009BC44(PlayState* play) {
+     u32 gameplayFrames;
+     s8 sp83;
+ 
+-    sp83 = coss((play->gameplayFrames * 1500) & 0xFFFF) >> 8;
++    sp83 = coss(play->gameplayFrames * 1500) >> 8;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+@@ -647,7 +647,7 @@ void func_8009C0AC(PlayState* play) {
+     u32 gameplayFrames;
+     s8 sp7B;
+ 
+-    sp7B = coss((play->gameplayFrames * 1500) & 0xFFFF) >> 8;
++    sp7B = coss(play->gameplayFrames * 1500) >> 8;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+ 
+@@ -1443,8 +1443,8 @@ void func_8009F5D4(PlayState* play) {
+ 
+ // Scene Draw Config 15
+ void func_8009F7D4(PlayState* play) {
+-    s8 sp6F = coss((play->gameplayFrames * 1500) & 0xFFFF) >> 8;
+-    s8 sp6E = coss((play->gameplayFrames * 1500) & 0xFFFF) >> 8;
++    s8 sp6F = coss(play->gameplayFrames * 1500) >> 8;
++    s8 sp6E = coss(play->gameplayFrames * 1500) >> 8;
+     u32 gameplayFrames;
+ 
+     OPEN_DISPS(play->state.gfxCtx);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot02_Objects/z_bg_spot02_objects.c b/soh/src/overlays/actors/ovl_Bg_Spot02_Objects/z_bg_spot02_objects.c
+index 5da98c7b2..3e14fd723 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot02_Objects/z_bg_spot02_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot02_Objects/z_bg_spot02_objects.c
+@@ -308,8 +308,7 @@ void func_808AD450(Actor* thisx, PlayState* play) {
+         lerp = Environment_LerpWeight(play->csCtx.npcActions[2]->endFrame, play->csCtx.npcActions[2]->startFrame,
+                                       play->csCtx.frames);
+ 
+-        // should be able to remove & 0xFFFF with some other change
+-        if ((play->csCtx.npcActions[2]->action & 0xFFFF) == 2) {
++        if (play->csCtx.npcActions[2]->action == 2) {
+             Matrix_Translate(play->csCtx.npcActions[2]->startPos.x, play->csCtx.npcActions[2]->startPos.y,
+                              play->csCtx.npcActions[2]->startPos.z, MTXMODE_NEW);
+             Matrix_RotateX(play->csCtx.npcActions[2]->urot.x * (M_PI / (f32)0x8000), MTXMODE_APPLY);
+diff --git a/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c b/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
+index 11565b5c3..daa4d1234 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
++++ b/soh/src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.c
+@@ -89,7 +89,7 @@ void BgYdanMaruta_Init(Actor* thisx, PlayState* play) {
+     Collider_InitTris(play, &this->collider);
+     Collider_SetTris(play, &this->collider, &this->dyna.actor, &sTrisInit, this->elements);
+ 
+-    this->switchFlag = this->dyna.actor.params & 0xFFFF;
++    this->switchFlag = this->dyna.actor.params;
+     thisx->params = (thisx->params >> 8) & 0xFF; // thisx is required to match here
+ 
+     if (this->dyna.actor.params == 0) {
+diff --git a/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c b/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
+index 7e02eb734..05ac53bb4 100644
+--- a/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
++++ b/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
+@@ -139,7 +139,7 @@ void DoorAna_WaitOpen(DoorAna* this, PlayState* play) {
+             Play_SetupRespawnPoint(play, RESPAWN_MODE_RETURN, 0x4FF);
+             gSaveContext.respawn[RESPAWN_MODE_RETURN].pos.y = this->actor.world.pos.y;
+             gSaveContext.respawn[RESPAWN_MODE_RETURN].yaw = this->actor.home.rot.y;
+-            gSaveContext.respawn[RESPAWN_MODE_RETURN].data = this->actor.params & 0xFFFF;
++            gSaveContext.respawn[RESPAWN_MODE_RETURN].data = this->actor.params;
+             if (destinationIdx < 0) {
+                 destinationIdx = this->actor.home.rot.z + 1;
+             }
+diff --git a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+index ba9b2f813..d1d2244f2 100644
+--- a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
++++ b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+@@ -149,7 +149,7 @@ void func_809B064C(EnAni* this, PlayState* play) {
+     u16 textId2;
+ 
+     textId2 = Text_GetFaceReaction(play, 0xA);
+-    textId = textId2 & 0xFFFF;
++    textId = textId2;
+ 
+ 
+     if (textId2 == 0) {
+diff --git a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+index a55c5a5d6..dfdc930ae 100644
+--- a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
++++ b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
+@@ -467,7 +467,7 @@ void func_80A02AA4(EnElf* this, PlayState* play) {
+ void func_80A02B38(EnElf* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+ 
+-    this->unk_2AA = (this->unk_2AC * 2) & 0xFFFF;
++    this->unk_2AA = this->unk_2AC * 2;
+     this->unk_28C.x = Math_SinS(this->unk_2AC) * this->unk_2B8;
+     this->unk_28C.y = Math_SinS(this->unk_2AA) * this->unk_2B4;
+     this->unk_28C.z = -Math_SinS(player->actor.shape.rot.y) * this->unk_28C.x;
+diff --git a/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c b/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
+index c7327782c..bcca9a8bd 100644
+--- a/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
++++ b/soh/src/overlays/actors/ovl_En_GeldB/z_en_geldb.c
+@@ -1630,7 +1630,7 @@ s32 EnGeldB_DodgeRanged(PlayState* play, EnGeldB* this) {
+         f32 dist;
+ 
+         angleToFacing = Actor_WorldYawTowardActor(&this->actor, actor) - this->actor.shape.rot.y;
+-        this->actor.world.rot.y = (u16)this->actor.shape.rot.y & 0xFFFF;
++        this->actor.world.rot.y = this->actor.shape.rot.y;
+         dist = Actor_WorldDistXYZToPoint(&this->actor, &actor->world.pos);
+         //! @bug
+         // Actor_WorldDistXYZToPoint already sqrtfs the distance, so this actually checks for a
+diff --git a/soh/src/overlays/actors/ovl_En_In/z_en_in.c b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+index 640bd943c..b4a2e7456 100644
+--- a/soh/src/overlays/actors/ovl_En_In/z_en_in.c
++++ b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+@@ -710,7 +710,7 @@ void func_80A7A770(EnIn* this, PlayState* play) {
+         this->actionFunc = func_80A7A848;
+         gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & ~0x0F) | 7;
+         this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
+-        gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & 0xFFFF) | 0x20;
++        gSaveContext.eventInf[0] = gSaveContext.eventInf[0] | 0x20;
+         if (!(gSaveContext.eventInf[0] & 0x40)) {
+             play->msgCtx.stateTimer = 4;
+             play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
+@@ -759,7 +759,7 @@ void func_80A7A940(EnIn* this, PlayState* play) {
+         play->msgCtx.stateTimer = 0;
+         play->msgCtx.msgMode = MSGMODE_TEXT_CLOSING;
+         this->interactInfo.talkState = NPC_TALK_STATE_IDLE;
+-        gSaveContext.eventInf[0] = (gSaveContext.eventInf[0] & 0xFFFF) | 0x40;
++        gSaveContext.eventInf[0] = gSaveContext.eventInf[0] | 0x40;
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c b/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
+index 35c790768..18760ae87 100644
+--- a/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
++++ b/soh/src/overlays/actors/ovl_En_Ru2/z_en_ru2.c
+@@ -742,7 +742,7 @@ void EnRu2_SwimUpProgress(EnRu2* this) {
+     f32 funcFloat;
+ 
+     this->swimmingUpFrame++;
+-    funcFloat = Environment_LerpWeightAccelDecel((kREG(2) + 0x96) & 0xFFFF, 0, this->swimmingUpFrame, 8, 0);
++    funcFloat = Environment_LerpWeightAccelDecel(kREG(2) + 0x96, 0, this->swimmingUpFrame, 8, 0);
+     this->actor.world.pos.y = this->actor.home.pos.y + (300.0f * funcFloat);
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c b/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
+index b666421a8..758f7a9ce 100644
+--- a/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
++++ b/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
+@@ -1478,7 +1478,7 @@ s32 EnWf_DodgeRanged(PlayState* play, EnWf* this) {
+         f32 dist;
+ 
+         angleToFacing = Actor_WorldYawTowardActor(&this->actor, actor) - this->actor.shape.rot.y;
+-        this->actor.world.rot.y = (u16)this->actor.shape.rot.y & 0xFFFF;
++        this->actor.world.rot.y = this->actor.shape.rot.y;
+         dist = Actor_WorldDistXYZToPoint(&this->actor, &actor->world.pos);
+ 
+         if ((ABS(angleToFacing) < 0x2EE0) && (sqrt(dist) < 400.0)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Zl2/z_en_zl2.c b/soh/src/overlays/actors/ovl_En_Zl2/z_en_zl2.c
+index b2b8e2ace..cedc6bc27 100644
+--- a/soh/src/overlays/actors/ovl_En_Zl2/z_en_zl2.c
++++ b/soh/src/overlays/actors/ovl_En_Zl2/z_en_zl2.c
+@@ -303,7 +303,7 @@ void func_80B4EF64(EnZl2* this, s16 arg1, s32 arg2) {
+ 
+     if (this->unk_24C != 0) {
+         phi_v0 = this->unk_1DC[temp_t0] + arg1;
+-        temp_v1 = (s16)(phi_v0 & 0xFFFF);
++        temp_v1 = (s16)phi_v0;
+         temp_t2 = arg1 - this->unk_20C[temp_t0];
+         phi_v0 = this->unk_1AC[temp_t0];
+ 
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index b1d380aec..720644954 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -15004,8 +15004,8 @@ void Player_UpdateBunnyEars(Player* this) {
+ 
+     // Forcing from motion relative to shape frame
+     angle = this->actor.world.rot.y - this->actor.shape.rot.y;
+-    force.x = (s32)(this->actor.speedXZ * -200.0f * Math_CosS(angle) * (Rand_CenteredFloat(2.0f) + 10.0f)) & 0xFFFF;
+-    force.y = (s32)(this->actor.speedXZ * 100.0f * Math_SinS(angle) * (Rand_CenteredFloat(2.0f) + 10.0f)) & 0xFFFF;
++    force.x = (s32)(this->actor.speedXZ * -200.0f * Math_CosS(angle) * (Rand_CenteredFloat(2.0f) + 10.0f));
++    force.y = (s32)(this->actor.speedXZ * 100.0f * Math_SinS(angle) * (Rand_CenteredFloat(2.0f) + 10.0f));
+ 
+     sBunnyEarKinematics.angVel.x += force.x >> 2;
+     sBunnyEarKinematics.angVel.y += force.y >> 2;
+-- 
+2.55.0
+

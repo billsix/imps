@@ -58,6 +58,10 @@ each lane, patches are NOT one numbered series but are grouped into
 **purpose streams** — subfolders by intent:
 
 - `patches/cheats/` — personal gameplay cheats/enhancements (SuperMario64).
+- `patches/standard-c/` — upstream-bound code-quality rewrites of the decomp's
+  assembly-isms, every patch proven codegen-identical (SuperMario64 46 patches,
+  OcarinaOfTime 36 patches, 2026-09-22; listed FIRST in each `ORDER` so the
+  personal streams sit on it — OoT's 488-patch rename stream was re-cut on top).
 - `patches/upstream-candidates/` — fixes shaped for upstream submission
   (MM audio + doc fixes; Banjo's fixOnFedora PR; SM64's libshaderc doc fix).
 - `patches/personal/` — personal refactors not bound for upstream
@@ -92,8 +96,8 @@ checkout is at the pin, and refuses if an interrupted `git am` left
 stream:** rebuild just that stream's commits and `git format-patch --base=<pin>`
 them into their subfolder — the others are untouched.
 
-The two live ORDER cases (OcarinaOfTime's decomp rename, SuperMario64's
-cheats-before-book) and the `apply.sh` internals:
+The live ORDER cases (OcarinaOfTime's standard-c-then-rename, SuperMario64's
+standard-c-first and cheats-before-book) and the `apply.sh` internals:
 `tasks/reference/imps/patch-streams-design.md`.
 
 ### The series must still apply — gated across all projects
@@ -159,16 +163,20 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
 `tasks/reference/imps/game-port-history.md`.
 
 - `n64/OcarinaOfTime/` — Ship of Harkinian
-  (https://github.com/HarbourMasters/Shipwright), pin `acdbc651d`. 488-patch
-  decomp-rename series; build/AppImage/run-verified; podman build. Details:
+  (https://github.com/HarbourMasters/Shipwright), pin `acdbc651d`. 36-patch
+  upstream-bound `standard-c` stream (assembly-isms → standard C, all
+  codegen-identical, 2026-09-22) under the 488-patch decomp-rename series
+  (re-cut on top of it); build/AppImage/run-verified; podman build. Details:
   `n64/OcarinaOfTime/CLAUDE.md`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
   (https://github.com/HarbourMasters/2ship2harkinian), pin `04a1a4319`. Two
   patches (64-bit audio/scheduler fixes + BUILDING.md audio-libs fix); build/run
   + AppImage verified. Details: `n64/MajorasMask/CLAUDE.md`.
 - `n64/SuperMario64/` — Ghostship (https://github.com/HarbourMasters/Ghostship),
-  pin `49c5312a`. 3-patch cheat series + libshaderc doc fix; fully verified;
-  podman build; carries a Sphinx book (`SuperMario64/book/`). Details:
+  pin `49c5312a`. 46-patch upstream-bound `standard-c` stream (assembly-isms →
+  standard C, all codegen-identical, 2026-09-22) + 3-patch cheat series +
+  libshaderc doc fix; fully verified; podman build; carries a Sphinx book
+  (`SuperMario64/book/`). Details:
   `n64/SuperMario64/CLAUDE.md`.
 - `n64/BanjoKazooie/` — Lighthouse
   (https://github.com/HarbourMasters/Lighthouse), pin `6d30df9a`. 4-patch

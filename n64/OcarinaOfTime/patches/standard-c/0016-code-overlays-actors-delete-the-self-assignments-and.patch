@@ -1,0 +1,89 @@
+From 86dda88847fb5c10ce13df0734102ec73bcd3608 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:38:35 +0000
+Subject: [PATCH 16/36] code, overlays/actors: delete the self-assignments and
+ the lone `;` kept "to match"
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`sp30 = sp30;`, `pos = pos;`, `spE8 = spE8;`, `normalVec = normalVec;`
+(z_eff_blure.c, Bg_Hidan_Hamstep, Mir_Ray) and the empty statement after
+Audio_SetSequenceMode in code_800EC960.c. Each existed only to shape the
+ROM's stack frame or register allocation. (The pointer-spelled twin in
+En_Ma3 is NOT a no-op in the generated code — the store back through
+the pointer survives — so it is left for the explained-diff list.)
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/code_800EC960.c                                  | 1 -
+ soh/src/code/z_eff_blure.c                                    | 2 --
+ .../overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c | 1 -
+ soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c               | 4 ----
+ 4 files changed, 8 deletions(-)
+
+diff --git a/soh/src/code/code_800EC960.c b/soh/src/code/code_800EC960.c
+index 1cc4dbf44..e5cd54cef 100644
+--- a/soh/src/code/code_800EC960.c
++++ b/soh/src/code/code_800EC960.c
+@@ -3695,7 +3695,6 @@ void AudioDebug_ProcessInput_BlkChgBgm(void) {
+         sAudioBlkChgBgmWork[sAudioBlkChgBgmSel]--;
+         if (sAudioBlkChgBgmSel == 1) {
+             Audio_SetSequenceMode(sAudioBlkChgBgmWork[1]);
+-            ; // might be a fake match?
+         }
+     }
+ 
+diff --git a/soh/src/code/z_eff_blure.c b/soh/src/code/z_eff_blure.c
+index 56e595149..bd861fef8 100644
+--- a/soh/src/code/z_eff_blure.c
++++ b/soh/src/code/z_eff_blure.c
+@@ -490,8 +490,6 @@ void EffectBlure_GetComputedValues(EffectBlure* this, s32 index, f32 ratio, Vec3
+             break;
+     }
+ 
+-    sp30 = sp30; // Optimized out but seems necessary to match stack usage
+-
+     if (this->flags & 0x10) {
+         color1->r = color1->g = color1->b = color1->a = 255;
+         color2->r = color2->g = color2->b = color2->a = 255;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c b/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
+index 3a8d4a6e0..6a0a9ccb6 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
++++ b/soh/src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.c
+@@ -103,7 +103,6 @@ s32 BgHidanHamstep_SpawnChildren(BgHidanHamstep* this, PlayState* play2) {
+     s16 params;
+     PlayState* play = play2;
+ 
+-    pos = pos; // Required to match
+     pos.y = this->dyna.actor.home.pos.y - 100.0f;
+     sin = Math_SinS(this->dyna.actor.shape.rot.y + 0x8000);
+     cos = Math_CosS(this->dyna.actor.shape.rot.y + 0x8000);
+diff --git a/soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c b/soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c
+index ae1b130bd..bef3ba625 100644
+--- a/soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c
++++ b/soh/src/overlays/actors/ovl_Mir_Ray/z_mir_ray.c
+@@ -428,8 +428,6 @@ void MirRay_ReflectedBeam(MirRay* this, PlayState* play, MirRayShieldReflection*
+                     currentReflection->opacity = (s32)(800.0f - temp_f0);
+                 }
+ 
+-                spE8 = spE8; // Required to match
+-
+                 sp10C.x = (shieldMtx->xx * 100.0f) + vecB.x;
+                 sp10C.y = (shieldMtx->yx * 100.0f) + vecB.y;
+                 sp10C.z = (shieldMtx->zx * 100.0f) + vecB.z;
+@@ -438,8 +436,6 @@ void MirRay_ReflectedBeam(MirRay* this, PlayState* play, MirRayShieldReflection*
+                 sp100.y = (spE8.y * 4.0f) + sp10C.y;
+                 sp100.z = (spE8.z * 4.0f) + sp10C.z;
+ 
+-                normalVec = normalVec; // Required to match
+-
+                 currentReflection->mtx.zw = 0.0f;
+ 
+                 currentReflection->mtx.xx = currentReflection->mtx.yy = currentReflection->mtx.zz =
+-- 
+2.55.0
+

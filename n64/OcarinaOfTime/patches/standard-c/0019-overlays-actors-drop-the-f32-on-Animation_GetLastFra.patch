@@ -1,0 +1,339 @@
+From b49054bd1bec028c4e2fadef89fdd6abcb66a464 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:42:47 +0000
+Subject: [PATCH 19/36] overlays/actors: drop the `(f32)` on
+ Animation_GetLastFrame() calls
+
+The function returns an s16; the 32 casts feed an f32 parameter or an
+f32/s16 variable, and the conversion the assignment performs is the
+same one the cast spelled out (an s16 round-trips through f32 exactly).
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ .../actors/ovl_Boss_Dodongo/z_boss_dodongo.c  |  2 +-
+ .../ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c   |  6 ++--
+ .../actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c    | 18 +++++------
+ .../actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c  | 30 +++++++++----------
+ soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c |  2 +-
+ soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c |  4 +--
+ .../overlays/actors/ovl_En_Tite/z_en_tite.c   |  2 +-
+ 7 files changed, 32 insertions(+), 32 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index 7d53295b5..4a1f8a806 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -1683,7 +1683,7 @@ void BossDodongo_DeathCutscene(BossDodongo* this, PlayState* play) {
+         case 9:
+             if (this->unk_1DA == 884) {
+                 Animation_Change(&this->skelAnime, &object_kingdodongo_Anim_0042A8, 1.0f, 0.0f,
+-                                 (f32)Animation_GetLastFrame(&object_kingdodongo_Anim_0042A8), ANIMMODE_LOOP, -20.0f);
++                                 Animation_GetLastFrame(&object_kingdodongo_Anim_0042A8), ANIMMODE_LOOP, -20.0f);
+                 tempSin = this->cameraEye.x - this->actor.world.pos.x;
+                 tempCos = this->cameraEye.z - this->actor.world.pos.z;
+                 this->unk_22C = sqrtf(SQ(tempSin) + SQ(tempCos));
+diff --git a/soh/src/overlays/actors/ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c b/soh/src/overlays/actors/ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c
+index baf0a27d0..da0e28e59 100644
+--- a/soh/src/overlays/actors/ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c
++++ b/soh/src/overlays/actors/ovl_En_Bom_Bowl_Man/z_en_bom_bowl_man.c
+@@ -97,7 +97,7 @@ void EnBomBowlMan_Destroy(Actor* thisx, PlayState* play) {
+ }
+ 
+ void EnBomBowMan_SetupWaitAsleep(EnBomBowlMan* this, PlayState* play) {
+-    this->frameCount = (f32)Animation_GetLastFrame(&gChuGirlNoddingOffAnim);
++    this->frameCount = Animation_GetLastFrame(&gChuGirlNoddingOffAnim);
+     Animation_Change(&this->skelAnime, &gChuGirlNoddingOffAnim, 1.0f, 0.0f, this->frameCount, ANIMMODE_LOOP, -10.0f);
+     this->actor.textId = 0xC0;
+     this->dialogState = TEXT_STATE_EVENT;
+@@ -130,7 +130,7 @@ void EnBomBowMan_TalkAsleep(EnBomBowlMan* this, PlayState* play) {
+ }
+ 
+ void EnBomBowMan_WakeUp(EnBomBowlMan* this, PlayState* play) {
+-    this->frameCount = (f32)Animation_GetLastFrame(&gChuGirlWakeUpAnim);
++    this->frameCount = Animation_GetLastFrame(&gChuGirlWakeUpAnim);
+     Animation_Change(&this->skelAnime, &gChuGirlWakeUpAnim, 1.0f, 0.0f, this->frameCount, ANIMMODE_ONCE, -10.0f);
+     this->eyeMode = CHU_GIRL_EYES_OPEN_SLOWLY;
+     this->actionFunc = EnBomBowMan_BlinkAwake;
+@@ -168,7 +168,7 @@ void EnBomBowMan_CheckBeatenDC(EnBomBowlMan* this, PlayState* play) {
+ 
+     if ((Message_GetState(&play->msgCtx) == this->dialogState) && Message_ShouldAdvance(play)) {
+         Message_CloseTextbox(play);
+-        this->frameCount = (f32)Animation_GetLastFrame(&gChuGirlLeanOverCounterAnim);
++        this->frameCount = Animation_GetLastFrame(&gChuGirlLeanOverCounterAnim);
+         Animation_Change(&this->skelAnime, &gChuGirlLeanOverCounterAnim, 1.0f, 0.0f, this->frameCount, ANIMMODE_LOOP,
+                          -10.0f);
+         this->eyeMode = CHU_GIRL_EYES_AWAKE;
+diff --git a/soh/src/overlays/actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c b/soh/src/overlays/actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c
+index f48a4e26e..a9664bfdd 100644
+--- a/soh/src/overlays/actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c
++++ b/soh/src/overlays/actors/ovl_En_Dnt_Jiji/z_en_dnt_jiji.c
+@@ -106,7 +106,7 @@ void EnDntJiji_SetFlower(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupWait(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiBurrowAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiBurrowAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiBurrowAnim, 0.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->skelAnime.curFrame = 8.0f;
+     this->isSolid = this->action = DNT_LEADER_ACTION_NONE;
+@@ -127,7 +127,7 @@ void EnDntJiji_Wait(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupUp(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiUpAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiUpAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiUpAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+     EffectSsHahen_SpawnBurst(play, &this->actor.world.pos, 6.0f, 0, 15, 5, 20, HAHEN_OBJECT_DEFAULT, 10, NULL);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_NUTS_UP);
+@@ -143,7 +143,7 @@ void EnDntJiji_Up(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupUnburrow(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiUnburrowAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiUnburrowAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiUnburrowAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+     EffectSsHahen_SpawnBurst(play, &this->actor.world.pos, 6.0f, 0, 15, 5, 20, HAHEN_OBJECT_DEFAULT, 10, NULL);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_NUTS_UP);
+@@ -164,7 +164,7 @@ void EnDntJiji_Unburrow(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupWalk(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiWalkAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiWalkAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiWalkAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->actor.speedXZ = 1.0f;
+     this->isSolid = true;
+@@ -200,7 +200,7 @@ void EnDntJiji_Walk(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupBurrow(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiBurrowAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiBurrowAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiBurrowAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+     EffectSsHahen_SpawnBurst(play, &this->actor.world.pos, 6.0f, 0, 15, 5, 20, HAHEN_OBJECT_DEFAULT, 10, NULL);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_NUTS_UP);
+@@ -213,7 +213,7 @@ void EnDntJiji_Burrow(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupCower(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiCowerAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiCowerAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiCowerAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+     EffectSsHahen_SpawnBurst(play, &this->actor.world.pos, 3.0f, 0, 9, 3, 10, HAHEN_OBJECT_DEFAULT, 10, NULL);
+     Audio_PlayActorSound2(&this->actor, NA_SE_EN_NUTS_UP);
+@@ -244,7 +244,7 @@ void EnDntJiji_Cower(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupTalk(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiTalkAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiTalkAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiTalkAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->actionFunc = EnDntJiji_Talk;
+ }
+@@ -317,7 +317,7 @@ void EnDntJiji_GivePrize(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupHide(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiHideAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiHideAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiHideAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+     this->actionFunc = EnDntJiji_Hide;
+ }
+@@ -332,7 +332,7 @@ void EnDntJiji_Hide(EnDntJiji* this, PlayState* play) {
+ }
+ 
+ void EnDntJiji_SetupReturn(EnDntJiji* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntJijiWalkAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntJijiWalkAnim);
+     Animation_Change(&this->skelAnime, &gDntJijiWalkAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->actor.speedXZ = 2.0f;
+     this->isSolid = this->unburrow = true;
+diff --git a/soh/src/overlays/actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c b/soh/src/overlays/actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c
+index cf403996d..81ca56f10 100644
+--- a/soh/src/overlays/actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c
++++ b/soh/src/overlays/actors/ovl_En_Dnt_Nomal/z_en_dnt_nomal.c
+@@ -202,7 +202,7 @@ void EnDntNomal_SetFlower(EnDntNomal* this, PlayState* play) {
+ }
+ 
+ void EnDntNomal_SetupTargetWait(EnDntNomal* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gHintNutsBurrowAnim);
++    this->endFrame = Animation_GetLastFrame(&gHintNutsBurrowAnim);
+     Animation_Change(&this->skelAnime, &gHintNutsBurrowAnim, 0.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+     this->skelAnime.curFrame = 8.0f;
+     this->actionFunc = EnDntNomal_TargetWait;
+@@ -275,7 +275,7 @@ void EnDntNomal_SetupTargetUnburrow(EnDntNomal* this, PlayState* play) {
+     Vec3f spawnPos;
+ 
+     if (this->timer4 == 0) {
+-        this->endFrame = (f32)Animation_GetLastFrame(&gHintNutsUnburrowAnim);
++        this->endFrame = Animation_GetLastFrame(&gHintNutsUnburrowAnim);
+         Animation_Change(&this->skelAnime, &gHintNutsUnburrowAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+         spawnPos = this->actor.world.pos;
+         spawnPos.y = this->actor.world.pos.y + 50.0f;
+@@ -295,7 +295,7 @@ void EnDntNomal_TargetUnburrow(EnDntNomal* this, PlayState* play) {
+ }
+ 
+ void EnDntNomal_SetupTargetWalk(EnDntNomal* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gHintNutsRunAnim);
++    this->endFrame = Animation_GetLastFrame(&gHintNutsRunAnim);
+     Animation_Change(&this->skelAnime, &gHintNutsRunAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->actor.speedXZ = 1.0f;
+     this->actor.colChkInfo.mass = 0;
+@@ -332,7 +332,7 @@ void EnDntNomal_TargetFacePlayer(EnDntNomal* this, PlayState* play) {
+ }
+ 
+ void EnDntNomal_SetupTargetTalk(EnDntNomal* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gHintNutsTalkAnim);
++    this->endFrame = Animation_GetLastFrame(&gHintNutsTalkAnim);
+     Animation_Change(&this->skelAnime, &gHintNutsTalkAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->actor.textId = 0x10AF;
+     Message_StartTextbox(play, this->actor.textId, NULL);
+@@ -351,7 +351,7 @@ void EnDntNomal_TargetTalk(EnDntNomal* this, PlayState* play) {
+ }
+ 
+ void EnDntNomal_SetupTargetGivePrize(EnDntNomal* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gHintNutsSpitAnim);
++    this->endFrame = Animation_GetLastFrame(&gHintNutsSpitAnim);
+     Animation_Change(&this->skelAnime, &gHintNutsSpitAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+     this->actionFunc = EnDntNomal_TargetGivePrize;
+ }
+@@ -374,7 +374,7 @@ void EnDntNomal_TargetGivePrize(EnDntNomal* this, PlayState* play) {
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_NUTS_THROW);
+     }
+     if (frame >= this->endFrame) {
+-        this->endFrame = (f32)Animation_GetLastFrame(&gHintNutsRunAnim);
++        this->endFrame = Animation_GetLastFrame(&gHintNutsRunAnim);
+         Animation_Change(&this->skelAnime, &gHintNutsRunAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+         this->actionFunc = EnDntNomal_TargetReturn;
+     }
+@@ -397,7 +397,7 @@ void EnDntNomal_TargetReturn(EnDntNomal* this, PlayState* play) {
+     }
+     this->actor.world.rot.y = this->actor.shape.rot.y;
+     if (this->actor.world.pos.z < -172.0f) {
+-        this->endFrame = (f32)Animation_GetLastFrame(&gHintNutsBurrowAnim);
++        this->endFrame = Animation_GetLastFrame(&gHintNutsBurrowAnim);
+         Animation_Change(&this->skelAnime, &gHintNutsBurrowAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+         this->actor.world.pos.z = -173.0f;
+         this->actor.speedXZ = 0.0f;
+@@ -416,7 +416,7 @@ void EnDntNomal_TargetBurrow(EnDntNomal* this, PlayState* play) {
+ 
+ void EnDntNomal_SetupStageWait(EnDntNomal* this, PlayState* play) {
+     if (this->timer3 == 0) {
+-        this->endFrame = (f32)Animation_GetLastFrame(&gDntStageHideAnim);
++        this->endFrame = Animation_GetLastFrame(&gDntStageHideAnim);
+         Animation_Change(&this->skelAnime, &gDntStageHideAnim, 0.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+         this->skelAnime.curFrame = 8.0f;
+         this->isSolid = false;
+@@ -430,7 +430,7 @@ void EnDntNomal_StageWait(EnDntNomal* this, PlayState* play) {
+ 
+ void EnDntNomal_SetupStageUp(EnDntNomal* this, PlayState* play) {
+     if (this->timer3 == 0) {
+-        this->endFrame = (f32)Animation_GetLastFrame(&gDntStageUpAnim);
++        this->endFrame = Animation_GetLastFrame(&gDntStageUpAnim);
+         Animation_Change(&this->skelAnime, &gDntStageUpAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+         if (this->action != DNT_ACTION_ATTACK) {
+             this->rotDirection = -1;
+@@ -487,7 +487,7 @@ void EnDntNomal_StageUp(EnDntNomal* this, PlayState* play) {
+ 
+ void EnDntNomal_SetupStageUnburrow(EnDntNomal* this, PlayState* play) {
+     if (this->timer3 == 0) {
+-        this->endFrame = (f32)Animation_GetLastFrame(&gDntStageUnburrowAnim);
++        this->endFrame = Animation_GetLastFrame(&gDntStageUnburrowAnim);
+         Animation_Change(&this->skelAnime, &gDntStageUnburrowAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+         this->isSolid = false;
+         EffectSsHahen_SpawnBurst(play, &this->actor.world.pos, 4.0f, 0, 10, 3, 15, HAHEN_OBJECT_DEFAULT, 10, NULL);
+@@ -512,7 +512,7 @@ void EnDntNomal_StageUnburrow(EnDntNomal* this, PlayState* play) {
+ }
+ 
+ void EnDntNomal_SetupStageCelebrate(EnDntNomal* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntStageWalkAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntStageWalkAnim);
+     Animation_Change(&this->skelAnime, &gDntStageWalkAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->actor.speedXZ = 3.0f;
+     this->isSolid = true;
+@@ -554,7 +554,7 @@ void EnDntNomal_StageCelebrate(EnDntNomal* this, PlayState* play) {
+ }
+ 
+ void EnDntNomal_SetupStageDance(EnDntNomal* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntStageDanceAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntStageDanceAnim);
+     Animation_Change(&this->skelAnime, &gDntStageDanceAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->isSolid = true;
+     this->timer3 = (s16)Rand_ZeroFloat(20.0f) + 20.0f;
+@@ -595,7 +595,7 @@ void EnDntNomal_SetupStageHide(EnDntNomal* this, PlayState* play) {
+             Sfx_PlaySfxCentered(NA_SE_SY_ERROR);
+         }
+     } else {
+-        this->endFrame = (f32)Animation_GetLastFrame(&gDntStageHideAnim);
++        this->endFrame = Animation_GetLastFrame(&gDntStageHideAnim);
+         Animation_Change(&this->skelAnime, &gDntStageHideAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+         this->isSolid = false;
+         Audio_PlayActorSound2(&this->actor, NA_SE_EN_NUTS_DOWN);
+@@ -650,7 +650,7 @@ void EnDntNomal_StageAttackHide(EnDntNomal* this, PlayState* play) {
+ 
+ void EnDntNomal_SetupStageAttack(EnDntNomal* this, PlayState* play) {
+     if (this->timer3 == 0) {
+-        this->endFrame = (f32)Animation_GetLastFrame(&gDntStageSpitAnim);
++        this->endFrame = Animation_GetLastFrame(&gDntStageSpitAnim);
+         Animation_Change(&this->skelAnime, &gDntStageSpitAnim, 1.0f, 0.0f, this->endFrame, ANIMMODE_ONCE, -10.0f);
+         this->actor.colChkInfo.mass = 0xFF;
+         this->isSolid = true;
+@@ -712,7 +712,7 @@ void EnDntNomal_StageAttack(EnDntNomal* this, PlayState* play) {
+ }
+ 
+ void EnDntNomal_StageSetupReturn(EnDntNomal* this, PlayState* play) {
+-    this->endFrame = (f32)Animation_GetLastFrame(&gDntStageWalkAnim);
++    this->endFrame = Animation_GetLastFrame(&gDntStageWalkAnim);
+     Animation_Change(&this->skelAnime, &gDntStageWalkAnim, 1.5f, 0.0f, this->endFrame, ANIMMODE_LOOP, -10.0f);
+     this->actor.speedXZ = 4.0f;
+     this->isSolid = false;
+diff --git a/soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c b/soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c
+index 0c50e4e8f..44acc8ab9 100644
+--- a/soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c
++++ b/soh/src/overlays/actors/ovl_En_Ge3/z_en_ge3.c
+@@ -59,7 +59,7 @@ static u8 sAnimationModes[] = { ANIMMODE_LOOP };
+ void EnGe3_ChangeAction(EnGe3* this, s32 i) {
+     this->actionFunc = sActionFuncs[i];
+ 
+-    Animation_Change(&this->skelAnime, sAnimations[i], 1.0f, 0.0f, (f32)Animation_GetLastFrame(sAnimations[i]),
++    Animation_Change(&this->skelAnime, sAnimations[i], 1.0f, 0.0f, Animation_GetLastFrame(sAnimations[i]),
+                      sAnimationModes[i], -8.0f);
+ 
+     this->unk_30C &= ~2;
+diff --git a/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c b/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
+index 8787d1e01..8e86534c3 100644
+--- a/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
++++ b/soh/src/overlays/actors/ovl_En_Mm2/z_en_mm2.c
+@@ -90,11 +90,11 @@ void EnMm2_ChangeAnim(EnMm2* this, s32 index, s32* currentIndex) {
+ 
+     if (sAnimationInfo[index].playSpeed >= 0.0f) {
+         Animation_Change(&this->skelAnime, sAnimationInfo[index].animation, sAnimationInfo[index].playSpeed, 0.0f,
+-                         (f32)Animation_GetLastFrame(sAnimationInfo[index].animation), sAnimationInfo[index].mode,
++                         Animation_GetLastFrame(sAnimationInfo[index].animation), sAnimationInfo[index].mode,
+                          phi_f0);
+     } else {
+         Animation_Change(&this->skelAnime, sAnimationInfo[index].animation, sAnimationInfo[index].playSpeed,
+-                         (f32)Animation_GetLastFrame(sAnimationInfo[index].animation), 0.0f, sAnimationInfo[index].mode,
++                         Animation_GetLastFrame(sAnimationInfo[index].animation), 0.0f, sAnimationInfo[index].mode,
+                          phi_f0);
+     }
+     *currentIndex = index;
+diff --git a/soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c b/soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c
+index 2b9896f9b..df05b0a98 100644
+--- a/soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c
++++ b/soh/src/overlays/actors/ovl_En_Tite/z_en_tite.c
+@@ -672,7 +672,7 @@ void EnTite_Recoil(EnTite* this, PlayState* play) {
+ 
+ void EnTite_SetupStunned(EnTite* this) {
+     Animation_Change(&this->skelAnime, &object_tite_Anim_0012E4, 0.0f, 0.0f,
+-                     (f32)Animation_GetLastFrame(&object_tite_Anim_0012E4), ANIMMODE_LOOP, 4.0f);
++                     Animation_GetLastFrame(&object_tite_Anim_0012E4), ANIMMODE_LOOP, 4.0f);
+     this->action = TEKTITE_STUNNED;
+     this->actor.speedXZ = -6.0f;
+     this->actor.world.rot.y = this->actor.yawTowardsPlayer;
+-- 
+2.55.0
+

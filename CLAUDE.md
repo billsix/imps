@@ -145,6 +145,14 @@ A companion at the same level, **not** a gate: `tools/squash_series.py` regroups
 one-change-per-commit series into review units without losing the reasoning;
 method in `tasks/reference/imps/squashing-a-produced-series-for-review.md`.
 
+**The `standard-c` streams have their own gate** (2026-09-22): a rewrite of a decomp's
+assembly-isms goes in only if every touched file compiles to byte-identical assembly before and
+after — `tools/asmdiff.sh` (one file vs a ref, `ASMDIFF_PROJECT` + `ASMDIFF_BUILD`) and
+`tools/asmdiff_tree.sh` (every file that differs between two refs); the per-class rewrite tools
+live in `tools/standard-c/`, and `tools/resolve_rename_conflicts.py` re-cuts a pure-rename stream
+under a new base. Map + how to add a project: `tasks/reference/imps/standard-c-tooling.md`;
+re-cut method: `tasks/reference/imps/recutting-a-stream-under-a-new-base.md`.
+
 **The comment-only gate** proves a doc/marker stream (`docs`/`book`) changes nothing the compiler sees —
 the invariant behind the docs-only carriers (and n64's `book/` markers). One shared, family-agnostic entry
 point: `tools/check_comment_only_streams.sh [project ...]` discovers projects across every family, reads

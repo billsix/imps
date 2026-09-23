@@ -1,0 +1,519 @@
+From ba880a9e1c2a2d4598d358565e10f35a8846f260 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:33:12 +0000
+Subject: [PATCH 04/36] soh/src/overlays/actors: delete the empty `if (x) {}`
+ statements kept "to match"
+
+An `if` with an empty body and a side-effect-free condition does nothing;
+the decomp kept them because the original compiler needed the read to
+reproduce the ROM's register allocation ("Needed to match", "fixes
+regalloc, may be fake", "Very fake, but needed to get the s registers
+right"). GCC at -O2 already drops the dead load, so the generated code is
+unchanged. 42 line(s) in 33 file(s) under soh/src/overlays/actors; the comment that
+excused each one goes with it.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c      | 1 -
+ soh/src/overlays/actors/ovl_Bg_Mizu_Bwall/z_bg_mizu_bwall.c    | 1 -
+ .../actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c     | 1 -
+ .../overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c  | 1 -
+ soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c      | 2 --
+ soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c                | 1 -
+ soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c                | 1 -
+ soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c                | 1 -
+ soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c                | 3 ---
+ soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c        | 1 -
+ soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c                | 3 ---
+ soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c        | 2 --
+ soh/src/overlays/actors/ovl_Eff_Dust/z_eff_dust.c              | 1 -
+ soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c                  | 1 -
+ soh/src/overlays/actors/ovl_En_Anubice/z_en_anubice.c          | 2 --
+ soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c          | 1 -
+ soh/src/overlays/actors/ovl_En_Fish/z_en_fish.c                | 1 -
+ soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c        | 1 -
+ soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c                    | 1 -
+ soh/src/overlays/actors/ovl_En_Go/z_en_go.c                    | 1 -
+ soh/src/overlays/actors/ovl_En_Holl/z_en_holl.c                | 2 --
+ soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c              | 1 -
+ .../actors/ovl_En_Horse_Game_Check/z_en_horse_game_check.c     | 1 -
+ soh/src/overlays/actors/ovl_En_In/z_en_in.c                    | 1 -
+ soh/src/overlays/actors/ovl_En_Kz/z_en_kz.c                    | 1 -
+ soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c                  | 1 -
+ soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c            | 2 --
+ soh/src/overlays/actors/ovl_En_Tp/z_en_tp.c                    | 1 -
+ soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c            | 1 -
+ soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c                    | 1 -
+ soh/src/overlays/actors/ovl_Fishing/z_fishing.c                | 1 -
+ soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c              | 1 -
+ soh/src/overlays/actors/ovl_player_actor/z_player.c            | 1 -
+ 33 files changed, 42 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c b/soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c
+index e504b58e9..41d40efaf 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c
++++ b/soh/src/overlays/actors/ovl_Bg_Jya_Cobra/z_bg_jya_cobra.c
+@@ -351,7 +351,6 @@ void BgJyaCobra_UpdateShadowFromSide(BgJyaCobra* this) {
+         shadowTex[j * 0x40 + 0] = 0;
+         shadowTex[j * 0x40 + 0x3F] = 0;
+     }
+-    if (D_80897398[0][0]) {}
+ }
+ 
+ /*
+diff --git a/soh/src/overlays/actors/ovl_Bg_Mizu_Bwall/z_bg_mizu_bwall.c b/soh/src/overlays/actors/ovl_Bg_Mizu_Bwall/z_bg_mizu_bwall.c
+index b29b9c983..46721ee79 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Mizu_Bwall/z_bg_mizu_bwall.c
++++ b/soh/src/overlays/actors/ovl_Bg_Mizu_Bwall/z_bg_mizu_bwall.c
+@@ -380,7 +380,6 @@ void BgMizuBwall_Destroy(Actor* thisx, PlayState* play) {
+ void BgMizuBwall_SetAlpha(BgMizuBwall* this, PlayState* play) {
+     f32 waterLevel = play->colCtx.colHeader->waterBoxes[2].ySurface;
+ 
+-    if (play->colCtx.colHeader->waterBoxes) {}
+ 
+     if (waterLevel < WATER_TEMPLE_WATER_F1_Y) {
+         this->scrollAlpha1 = 255;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c b/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
+index 5e3cc47d9..f96c12fc0 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.c
+@@ -430,7 +430,6 @@ void func_808B5950(BgSpot16Bombstone* this, PlayState* play) {
+     func_808B56BC(this, play);
+     func_808B57E0(this, play);
+ 
+-    if (play) {}
+ 
+     if (this->colliderCylinder.base.acFlags & AC_HIT) {
+         this->colliderCylinder.base.acFlags &= ~AC_HIT;
+diff --git a/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c b/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
+index d6063f709..ec2600fc5 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
++++ b/soh/src/overlays/actors/ovl_Bg_Spot18_Basket/z_bg_spot18_basket.c
+@@ -103,7 +103,6 @@ void BgSpot18Basket_SpawnDustClouds(BgSpot18Basket* this, PlayState* play, f32 a
+     s32 count;
+ 
+     for (i = 0, count = 2; i != count; i++) {
+-        if (play) {}
+         if (!(arg2 < Rand_ZeroOne())) {
+             spawnPos += 0x7530;
+ 
+diff --git a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+index a0ee1c5a7..7d53295b5 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.c
+@@ -1114,7 +1114,6 @@ void BossDodongo_Update(Actor* thisx, PlayState* play2) {
+         } else if (this->unk_224 > 1.7f) {
+             phi_s0_3 = 3;
+             sp90 = 1;
+-            if (play) {}
+             magma2DrawMode = 0;
+         } else if (this->unk_224 > 1.4f) {
+             phi_s0_3 = 7;
+@@ -1286,7 +1285,6 @@ s32 BossDodongo_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Ve
+ 
+     // required for matching
+     if ((limbIndex == 6) || (limbIndex == 7)) {
+-        if (this->unk_25C) {}
+         goto block_1;
+     }
+ block_1:
+diff --git a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+index b32ff5880..eaf7b4010 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
++++ b/soh/src/overlays/actors/ovl_Boss_Mo/z_boss_mo.c
+@@ -960,7 +960,6 @@ void BossMo_Tentacle(BossMo* this, PlayState* play) {
+                 this->actor.flags &= ~ACTOR_FLAG_ATTENTION_ENABLED;
+                 Math_ApproachF(&this->baseAlpha, 0.0, 1.0f, 5.0f);
+                 for (indS1 = 0; indS1 < 40; indS1++) {
+-                    if (sMorphaTent2 && sMorphaTent2->tentSpawnPos) {}
+                     indT5 = Rand_ZeroFloat(20.9f);
+                     indS0 = sTentSpawnIndex[indT5];
+                     spFC.x = 0;
+diff --git a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+index 7741cf645..3e01c9fce 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
++++ b/soh/src/overlays/actors/ovl_Boss_Tw/z_boss_tw.c
+@@ -3089,7 +3089,6 @@ void BossTw_TwinrovaUpdate(Actor* thisx, PlayState* play2) {
+                 ColliderInfo* info = this->collider.info.acHitInfo;
+ 
+                 this->collider.base.acFlags &= ~AC_HIT;
+-                if (info->toucher.dmgFlags & (DMG_SLINGSHOT | DMG_ARROW)) {}
+             }
+         } else if (this->collider.base.acFlags & AC_HIT) {
+             u8 damage;
+diff --git a/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c b/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
+index 63de6e2da..014b0b8f1 100644
+--- a/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
++++ b/soh/src/overlays/actors/ovl_Demo_6K/z_demo_6k.c
+@@ -603,7 +603,6 @@ void func_80967FFC(Actor* thisx, PlayState* play) {
+         }
+ 
+         // required to avoid optimizing out i
+-        if ((s16)i) {}
+     }
+ 
+     CLOSE_DISPS(play->state.gfxCtx);
+diff --git a/soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c b/soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c
+index 29debf9d6..56bb63281 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c
++++ b/soh/src/overlays/actors/ovl_Demo_Ec/z_demo_ec.c
+@@ -320,7 +320,6 @@ void DemoEc_UseDrawObject(DemoEc* this, PlayState* play) {
+ 
+     gSPSegment(POLY_OPA_DISP++, 0x06, play->objectCtx.status[drawObjBankIndex].segment);
+     gSegments[6] = VIRTUAL_TO_PHYSICAL(play->objectCtx.status[drawObjBankIndex].segment);
+-    if (!play) {}
+ 
+     CLOSE_DISPS(gfxCtx);
+ }
+@@ -827,7 +826,6 @@ void func_8096F2B0(DemoEc* this, PlayState* play, s32 arg2) {
+     if (npcAction != NULL) {
+         sp18 = npcAction->action;
+         if ((sp18 != this->npcAction)) {
+-            if (this->npcAction) {}
+             if (sp18 == 2) {
+                 func_8096F224(this, play);
+             }
+@@ -900,7 +898,6 @@ void func_8096F578(DemoEc* this, PlayState* play, s32 arg2) {
+     if (npcAction != NULL) {
+         sp18 = npcAction->action;
+         if ((sp18 != this->npcAction)) {
+-            if (this->npcAction) {}
+             if (sp18 == 2) {
+                 func_8096F4FC(this, play);
+             }
+diff --git a/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c b/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
+index 182a36a11..d107b23dd 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
++++ b/soh/src/overlays/actors/ovl_Demo_Effect/z_demo_effect.c
+@@ -1758,7 +1758,6 @@ void DemoEffect_DrawJewel(Actor* thisx, PlayState* play2) {
+                     break;
+             }
+ 
+-            if (!frames) {}
+ 
+             gSPSegment(POLY_OPA_DISP++, 8, Gfx_TexScrollEx(play->state.gfxCtx, (u8)frames, (u8)frames, 16, 16, 1, 1));
+             gSPMatrix(POLY_XLU_DISP++, MATRIX_NEWMTX(play->state.gfxCtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+diff --git a/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c b/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
+index 4768cf398..fb0220286 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
++++ b/soh/src/overlays/actors/ovl_Demo_Gj/z_demo_gj.c
+@@ -587,7 +587,6 @@ void DemoGj_SpawnSmokePreBattle1(DemoGj* this, PlayState* play) {
+         gameplayFrames = play->gameplayFrames % 3;
+ 
+         if (gameplayFrames == 0) {
+-            if (!play->gameplayFrames) {}
+             DemoGj_SpawnSmoke(play, &pos, 300.0f);
+         }
+ 
+@@ -651,7 +650,6 @@ void DemoGj_SpawnSmokePreBattle2(DemoGj* this, PlayState* play) {
+         gameplayFrames = play->gameplayFrames % 3;
+ 
+         if (gameplayFrames == 1) {
+-            if (!play->gameplayFrames) {}
+             DemoGj_SpawnSmoke(play, &pos, 300.0f);
+         }
+ 
+@@ -907,7 +905,6 @@ void DemoGj_SpawnSmokePreBattle3(DemoGj* this, PlayState* play) {
+         gameplayFrames = play->gameplayFrames % 3;
+ 
+         if (gameplayFrames == 2) {
+-            if (!play->gameplayFrames) {}
+             DemoGj_SpawnSmoke(play, &pos, 300.0f);
+         }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c b/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
+index 971aa8d07..d97405bec 100644
+--- a/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
++++ b/soh/src/overlays/actors/ovl_Demo_Kankyo/z_demo_kankyo.c
+@@ -275,7 +275,6 @@ void DemoKankyo_Init(Actor* thisx, PlayState* play) {
+ }
+ 
+ void DemoKankyo_Destroy(Actor* thisx, PlayState* play) {
+-    if (thisx) {}
+ }
+ 
+ void DemoKankyo_SetupType(DemoKankyo* this, PlayState* play) {
+@@ -867,7 +866,6 @@ void DemoKankyo_DrawWarpSparkles(Actor* thisx, PlayState* play) {
+             if (linkAge != 0) {
+                 Matrix_Translate(translateX, translateY, translateZ, MTXMODE_NEW);
+             } else {
+-                if (translateY) {}
+                 Matrix_Translate(translateX, translateY + 15.0f, translateZ, MTXMODE_NEW);
+             }
+             Matrix_Scale(this->unk_150[i].unk_18 * (0.018f * temp_f22), this->unk_150[i].unk_18 * (0.018f * temp_f22),
+diff --git a/soh/src/overlays/actors/ovl_Eff_Dust/z_eff_dust.c b/soh/src/overlays/actors/ovl_Eff_Dust/z_eff_dust.c
+index b092a57d7..c213aa0af 100644
+--- a/soh/src/overlays/actors/ovl_Eff_Dust/z_eff_dust.c
++++ b/soh/src/overlays/actors/ovl_Eff_Dust/z_eff_dust.c
+@@ -343,7 +343,6 @@ void EffDust_DrawFunc_8099E784(Actor* thisx, PlayState* play2) {
+             gDPSetPrimColor(POLY_XLU_DISP++, 0, 0, 255, 255, 255, *distanceTraveled * 255);
+ 
+             // Needed to match.
+-            if (!this) {}
+ 
+             aux = 1.0f - (*distanceTraveled * *distanceTraveled);
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+index 19ac91854..ba9b2f813 100644
+--- a/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
++++ b/soh/src/overlays/actors/ovl_En_Ani/z_en_ani.c
+@@ -151,7 +151,6 @@ void func_809B064C(EnAni* this, PlayState* play) {
+     textId2 = Text_GetFaceReaction(play, 0xA);
+     textId = textId2 & 0xFFFF;
+ 
+-    if (!textId) {}
+ 
+     if (textId2 == 0) {
+         textId = !IS_DAY ? 0x5051 : 0x5050;
+diff --git a/soh/src/overlays/actors/ovl_En_Anubice/z_en_anubice.c b/soh/src/overlays/actors/ovl_En_Anubice/z_en_anubice.c
+index 21c8fecb6..1151da28c 100644
+--- a/soh/src/overlays/actors/ovl_En_Anubice/z_en_anubice.c
++++ b/soh/src/overlays/actors/ovl_En_Anubice/z_en_anubice.c
+@@ -161,7 +161,6 @@ void EnAnubice_Destroy(Actor* thisx, PlayState* play) {
+     Collider_DestroyCylinder(play, &this->collider);
+ 
+     if (this->actor.params != 0) {
+-        if (this->actor.parent) {}
+ 
+         tag = (EnAnubiceTag*)this->actor.parent;
+         if (tag != NULL && tag->actor.update != NULL) {
+@@ -422,7 +421,6 @@ void EnAnubice_Update(Actor* thisx, PlayState* play) {
+             Math_ApproachF(&this->actor.velocity.z, this->knockbackRecoveryVelocity.z, 0.3f, 1.0f);
+ 
+             zero = 0.0f;
+-            if (zero) {}
+ 
+             if (this->knockbackTimer == 0) {
+                 this->actor.velocity.x = this->actor.velocity.z = 0.0f;
+diff --git a/soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c b/soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c
+index 7df9ca25e..ad07e50c6 100644
+--- a/soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c
++++ b/soh/src/overlays/actors/ovl_En_Ex_Item/z_en_ex_item.c
+@@ -487,7 +487,6 @@ void EnExItem_DrawItems(EnExItem* this, PlayState* play) {
+     if (this->unk_17C != NULL) {
+         this->unk_17C(&this->actor, play, 0);
+     }
+-    if (this) {}
+     func_8002ED80(&this->actor, play, 0);
+ 
+     GetItem_Draw(play, this->giDrawId);
+diff --git a/soh/src/overlays/actors/ovl_En_Fish/z_en_fish.c b/soh/src/overlays/actors/ovl_En_Fish/z_en_fish.c
+index c48398c97..d346d2c85 100644
+--- a/soh/src/overlays/actors/ovl_En_Fish/z_en_fish.c
++++ b/soh/src/overlays/actors/ovl_En_Fish/z_en_fish.c
+@@ -293,7 +293,6 @@ void EnFish_Respawning_FleePlayer(EnFish* this, PlayState* play) {
+                 yaw -= 0x2000;
+             }
+         }
+-        if (play) {}
+         Math_StepToAngleS(&this->actor.world.rot.y, yaw, 2000);
+     }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c b/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
+index baa854991..9c468f887 100644
+--- a/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
++++ b/soh/src/overlays/actors/ovl_En_Floormas/z_en_floormas.c
+@@ -543,7 +543,6 @@ void EnFloormas_Turn(EnFloormas* this, PlayState* play) {
+         }
+     }
+     // Needed to match
+-    if (!this->skelAnime.curFrame) {}
+     if (this->skelAnime.curFrame >= 7.0f && this->skelAnime.curFrame < 22.0f) {
+         sp30 = Math_SinS(this->actor.shape.rot.y + 0x4268);
+         sp2C = Math_CosS(this->actor.shape.rot.y + 0x4268);
+diff --git a/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c b/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
+index c8d499ab0..72018b210 100644
+--- a/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
++++ b/soh/src/overlays/actors/ovl_En_Gb/z_en_gb.c
+@@ -395,7 +395,6 @@ void func_80A2FC70(EnGb* this, PlayState* play) {
+         if (this->actionFunc) {} // these ifs cannot just contain a constant
+         this->cagedSouls[0].unk_1 = 3;
+         this->cagedSouls[0].unk_3 = 1;
+-        if (this->actionFunc) {}
+         this->actionTimer = (s16)Rand_ZeroFloat(600.0f) + 600;
+         Audio_PlayActorSound2(&this->dyna.actor, NA_SE_EV_WOOD_HIT);
+     }
+diff --git a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+index e762a4bb9..8f10f7c91 100644
+--- a/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
++++ b/soh/src/overlays/actors/ovl_En_Go/z_en_go.c
+@@ -207,7 +207,6 @@ s16 EnGo_UpdateTalkState(PlayState* play, Actor* thisx) {
+ 
+     xzRange = thisx->xzDistToPlayer + 1.0f;
+     switch (Message_GetState(&play->msgCtx)) {
+-        if (play) {}
+         case TEXT_STATE_CLOSING:
+             switch (thisx->textId) {
+                 case 0x3008:
+diff --git a/soh/src/overlays/actors/ovl_En_Holl/z_en_holl.c b/soh/src/overlays/actors/ovl_En_Holl/z_en_holl.c
+index ec859ee18..b3b5e347a 100644
+--- a/soh/src/overlays/actors/ovl_En_Holl/z_en_holl.c
++++ b/soh/src/overlays/actors/ovl_En_Holl/z_en_holl.c
+@@ -243,9 +243,7 @@ void EnHoll_HorizontalInvisible(EnHoll* this, PlayState* play) {
+         s32 room = transitionEntry->sides[side].room;
+ 
+         this->actor.room = room;
+-        if (isKokiriLayer8) {}
+         if (this->actor.room != play->roomCtx.curRoom.num) {
+-            if (room) {}
+             if (Room_RequestNewRoom(play, &play->roomCtx, this->actor.room)) {
+                 EnHoll_SetupAction(this, EnHoll_WaitRoomLoaded);
+             }
+diff --git a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+index 0ac346f8d..a849fff0d 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
++++ b/soh/src/overlays/actors/ovl_En_Horse/z_en_horse.c
+@@ -696,7 +696,6 @@ s32 EnHorse_Spawn(EnHorse* this, PlayState* play) {
+                 spawnPos.z = sHorseSpawns[i].pos.z;
+                 dist = Math3D_Vec3f_DistXYZ(&player->actor.world.pos, &spawnPos);
+ 
+-                if (play->sceneNum) {}
+                 if (!(minDist < dist) && !func_80A5BBBC(play, this, &spawnPos)) {
+                     minDist = dist;
+                     this->actor.world.pos.x = sHorseSpawns[i].pos.x;
+diff --git a/soh/src/overlays/actors/ovl_En_Horse_Game_Check/z_en_horse_game_check.c b/soh/src/overlays/actors/ovl_En_Horse_Game_Check/z_en_horse_game_check.c
+index f0f5b65da..a8ec1e50f 100644
+--- a/soh/src/overlays/actors/ovl_En_Horse_Game_Check/z_en_horse_game_check.c
++++ b/soh/src/overlays/actors/ovl_En_Horse_Game_Check/z_en_horse_game_check.c
+@@ -251,7 +251,6 @@ s32 EnHorseGameCheck_UpdateGerudoArchery(EnHorseGameCheckBase* base, PlayState*
+     }
+ 
+     if (this->startTimer > 90) {
+-        if (play) {}
+         horse->hbaStarted = 1;
+     }
+     this->startTimer++;
+diff --git a/soh/src/overlays/actors/ovl_En_In/z_en_in.c b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+index 8f2cddbb7..a65fd198d 100644
+--- a/soh/src/overlays/actors/ovl_En_In/z_en_in.c
++++ b/soh/src/overlays/actors/ovl_En_In/z_en_in.c
+@@ -267,7 +267,6 @@ s16 EnIn_UpdateTalkStateOnChoice(PlayState* play, Actor* thisx) {
+             }
+             break;
+     }
+-    if (!gSaveContext.rupees) {}
+ 
+     return sp18;
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Kz/z_en_kz.c b/soh/src/overlays/actors/ovl_En_Kz/z_en_kz.c
+index 506678ea1..0e440e6f4 100644
+--- a/soh/src/overlays/actors/ovl_En_Kz/z_en_kz.c
++++ b/soh/src/overlays/actors/ovl_En_Kz/z_en_kz.c
+@@ -532,7 +532,6 @@ s32 EnKz_OverrideLimbDraw(PlayState* play, s32 limbIndex, Gfx** dList, Vec3f* po
+         rot->y += Math_SinS(this->fidgetTableY[limbIndex]) * 200.0f;
+         rot->z += Math_CosS(this->fidgetTableZ[limbIndex]) * 200.0f;
+     }
+-    if (limbIndex) {}
+     return false;
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c b/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
+index 59bdd84c6..6eb07ff91 100644
+--- a/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
++++ b/soh/src/overlays/actors/ovl_En_Owl/z_en_owl.c
+@@ -1256,7 +1256,6 @@ void EnOwl_Update(Actor* thisx, PlayState* play) {
+                 }
+             }
+         }
+-        if (phi_a1) {}
+         this->unk_3F0 = (u16)((this->unk_3EE << 2) << 8) + phi_a1;
+         this->unk_3EC = ABS(this->unk_3F0) >> 3;
+     } else {
+diff --git a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+index 62d478836..6e0624232 100644
+--- a/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
++++ b/soh/src/overlays/actors/ovl_En_Torch2/z_en_torch2.c
+@@ -276,7 +276,6 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+                     sp66 = camera->camDir.y - sStickAngle;
+                     sInput.cur.stick_x = sStickTilt * Math_SinS(sp66);
+                     stickY = sStickTilt * Math_CosS(sp66);
+-                    if (stickY) {}
+                     sInput.cur.stick_y = stickY;
+                 }
+                 // Disable miniboss music with Enemy Randomizer because the music would keep
+@@ -518,7 +517,6 @@ void EnTorch2_Update(Actor* thisx, PlayState* play2) {
+             sp66 = camera->camDir.y - sStickAngle;
+             sInput.cur.stick_x = sStickTilt * Math_SinS(sp66);
+             stickY = sStickTilt * Math_CosS(sp66);
+-            if (sAlpha) {}
+             sInput.cur.stick_y = stickY;
+ 
+             if ((sAlpha != 255) && ((play->gameplayFrames % 8) == 0)) {
+diff --git a/soh/src/overlays/actors/ovl_En_Tp/z_en_tp.c b/soh/src/overlays/actors/ovl_En_Tp/z_en_tp.c
+index 5d60cf8dd..777ce776a 100644
+--- a/soh/src/overlays/actors/ovl_En_Tp/z_en_tp.c
++++ b/soh/src/overlays/actors/ovl_En_Tp/z_en_tp.c
+@@ -179,7 +179,6 @@ void EnTp_Init(Actor* thisx, PlayState* play2) {
+                 next->timer = next->unk_15C = i * -5;
+                 next->horizontalVariation = 6.0f - (i * 0.75f);
+                 now = next;
+-                if (0 * i) {}
+             }
+         }
+     } else if (this->actor.params == TAILPASARAN_TAIL) {
+diff --git a/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c b/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
+index 370593376..64189a2fb 100644
+--- a/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
++++ b/soh/src/overlays/actors/ovl_En_Viewer/z_en_viewer.c
+@@ -806,7 +806,6 @@ void EnViewer_InitFireEffect(EnViewer* this, PlayState* play, s16 i) {
+         eff->scale = (Rand_ZeroOne() * 5.0f + 12.0f) * 0.001f;
+         eff->epoch++;
+     }
+-    if (this) {}
+ }
+ 
+ void EnViewer_DrawFireEffects(EnViewer* this2, PlayState* play) {
+diff --git a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+index 368d955b3..36c4a68d0 100644
+--- a/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
++++ b/soh/src/overlays/actors/ovl_En_Xc/z_en_xc.c
+@@ -546,7 +546,6 @@ void EnXc_SetupFlamePos(EnXc* this, PlayState* play) {
+ 
+     if (this->flameActor != NULL) {
+         attachedPos = &this->flameActor->world.pos;
+-        if (!this) {}
+         attachedPos->x = npcAction->startPos.x;
+         attachedPos->y = npcAction->startPos.y;
+         attachedPos->z = npcAction->startPos.z;
+diff --git a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+index a1620280e..521e43391 100644
+--- a/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
++++ b/soh/src/overlays/actors/ovl_Fishing/z_fishing.c
+@@ -5106,7 +5106,6 @@ void Fishing_HandleOwnerDialog(Fishing* this, PlayState* play) {
+             break;
+ 
+         case 22:
+-            if (play) {}
+ 
+             if (Message_GetState(&play->msgCtx) == TEXT_STATE_NONE) {
+                 this->stateAndTimer = 0;
+diff --git a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+index fa6fe0289..f2c1fde28 100644
+--- a/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
++++ b/soh/src/overlays/actors/ovl_Obj_Bean/z_obj_bean.c
+@@ -646,7 +646,6 @@ void ObjBean_WaitForWater(ObjBean* this, PlayState* play) {
+ 
+     if ((D_80B90E30 == this) && !Flags_GetEnv(play, 5)) {
+         D_80B90E30 = NULL;
+-        if (D_80B90E30) {}
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+index 696998fa1..b1d380aec 100644
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+@@ -6321,7 +6321,6 @@ void func_8083BCD0(Player* this, PlayState* play, s32 controlStickDirection) {
+     func_80838940(this, D_80853D4C[controlStickDirection][0], !(controlStickDirection & 1) ? 5.8f : 3.5f, play,
+                   NA_SE_VO_LI_SWORD_N);
+ 
+-    if (controlStickDirection) {}
+ 
+     this->av2.actionVar2 = 1;
+     this->av1.actionVar1 = controlStickDirection;
+-- 
+2.55.0
+

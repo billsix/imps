@@ -1,0 +1,56 @@
+From 1b02d7620567943e3fddd4727eb1b24b9e57ffed Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:26:39 +0000
+Subject: [PATCH 28/46] goddard: remove the unreferenced stub animation data
+ and the two sUnref arrays
+
+Three one-frame `GdAnimTransform` tables, their `AnimDataInfo` headers
+and two zeroed s32 arrays, all `static`, none referenced anywhere in
+goddard. They reproduced the ROM's data layout; the compiler drops them
+either way.
+
+Verified: shape_helper.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/goddard/shape_helper.c | 22 ----------------------
+ 1 file changed, 22 deletions(-)
+
+diff --git a/src/goddard/shape_helper.c b/src/goddard/shape_helper.c
+index cd45c454..ce91be5a 100644
+--- a/src/goddard/shape_helper.c
++++ b/src/goddard/shape_helper.c
+@@ -25,29 +25,7 @@ struct ObjShape *gShapeSilverSpark = NULL;    // @ 801A82F0
+ struct ObjShape *gShapeRedStar = NULL;     // @ 801A82F4
+ struct ObjShape *gShapeSilverStar = NULL;  // @ 801A82F8
+ 
+-// Not sure what this data is, but it looks like stub animation data
+-
+-static struct GdAnimTransform unusedAnimData1[] = {
+-    { {1.0, 1.0, 1.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0} },
+-};
+-
+-UNUSED static struct AnimDataInfo unusedAnim1 = { ARRAY_COUNT(unusedAnimData1), GD_ANIM_SCALE3F_ROT3F_POS3F_2, unusedAnimData1 };
+-
+-static struct GdAnimTransform unusedAnimData2[] = {
+-    { {1.0, 1.0, 1.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0} },
+-};
+-
+-UNUSED static struct AnimDataInfo unusedAnim2 = { ARRAY_COUNT(unusedAnimData2), GD_ANIM_SCALE3F_ROT3F_POS3F_2, unusedAnimData2 };
+-
+-static struct GdAnimTransform unusedAnimData3[] = {
+-    { {1.0, 1.0, 1.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0} },
+-};
+-
+-UNUSED static struct AnimDataInfo unusedAnim3 = { ARRAY_COUNT(unusedAnimData3), GD_ANIM_SCALE3F_ROT3F_POS3F_2, unusedAnimData3 };
+-
+-UNUSED static s32 sUnref801A838C[6] = { 0 };
+ struct ObjShape *sSimpleShape = NULL;
+-UNUSED static s32 sUnref801A83A8[31] = { 0 };
+ UNUSED static struct DynList sSimpleDylist[8] = {  // unused
+     BeginList(),
+     StartGroup("simpleg"),
+-- 
+2.55.0
+

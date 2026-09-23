@@ -1,0 +1,39 @@
+From ab3bfc27c3a45baac093c45e003a5824574de535 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:27:40 +0000
+Subject: [PATCH 32/46] menu: remove the function-local `UNUSED u8 fillerN[]`
+ stack padding
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+These arrays exist to reproduce the ROM's stack-frame layout for the
+matching build; they are never read or written and the UNUSED attribute
+is the only reason the compiler tolerates them. 1 declarations across
+1 file(s) in menu/. Struct members are untouched — the fillers
+that fix a layout (save files, object rawData, audio structs) all live in
+headers, which this patch does not visit.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/menu/file_select.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/menu/file_select.c b/src/menu/file_select.c
+index 76a8e4b4..3cfeedff 100644
+--- a/src/menu/file_select.c
++++ b/src/menu/file_select.c
+@@ -2706,7 +2706,6 @@ void print_save_file_scores(s8 fileIndex) {
+  * Also checks if all saves exists and defines text and main menu timers.
+  */
+ void print_file_select_strings(void) {
+-    UNUSED u8 filler[8];
+ 
+     create_dl_ortho_matrix();
+     switch (sSelectedButtonID) {
+-- 
+2.55.0
+

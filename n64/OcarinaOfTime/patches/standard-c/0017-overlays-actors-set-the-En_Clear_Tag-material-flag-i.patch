@@ -1,0 +1,69 @@
+From b8c550e789a0665459338d351bf2911b1ad3109e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:42:16 +0000
+Subject: [PATCH 17/36] overlays/actors: set the En_Clear_Tag material flag
+ instead of incrementing it
+
+`u8 isMaterialApplied = false;` then `isMaterialApplied++` under
+`if (!isMaterialApplied)` five times: the increment always goes 0 -> 1.
+
+Verified: z_en_clear_tag.c compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c  | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c b/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
+index 170307df7..f18aa5b5e 100644
+--- a/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
++++ b/soh/src/overlays/actors/ovl_En_Clear_Tag/z_en_clear_tag.c
+@@ -924,7 +924,7 @@ void EnClearTag_DrawEffects(PlayState* play) {
+         if (effect->type == CLEAR_TAG_EFFECT_DEBRIS) {
+             // Apply the debris effect material if it has not already been applied.
+             if (!isMaterialApplied) {
+-                isMaterialApplied++;
++                isMaterialApplied = true;
+                 gSPDisplayList(POLY_OPA_DISP++, gArwingDebrisEffectMaterialDL);
+             }
+ 
+@@ -951,7 +951,7 @@ void EnClearTag_DrawEffects(PlayState* play) {
+             if (!isMaterialApplied) {
+                 gDPPipeSync(POLY_XLU_DISP++);
+                 gDPSetEnvColor(POLY_XLU_DISP++, 255, 255, 200, 0);
+-                isMaterialApplied++;
++                isMaterialApplied = true;
+             }
+ 
+             // Draw the ground flash effect.
+@@ -977,7 +977,7 @@ void EnClearTag_DrawEffects(PlayState* play) {
+             // Apply the smoke effect material if it has not already been applied.
+             if (!isMaterialApplied) {
+                 gSPDisplayList(POLY_XLU_DISP++, gArwingFireEffectMaterialDL);
+-                isMaterialApplied++;
++                isMaterialApplied = true;
+             }
+ 
+             // Draw the smoke effect.
+@@ -1011,7 +1011,7 @@ void EnClearTag_DrawEffects(PlayState* play) {
+             if (!isMaterialApplied) {
+                 gSPDisplayList(POLY_XLU_DISP++, gArwingFireEffectMaterialDL);
+                 gDPSetEnvColor(POLY_XLU_DISP++, 255, 215, 255, 128);
+-                isMaterialApplied++;
++                isMaterialApplied = true;
+             }
+ 
+             // Draw the fire effect.
+@@ -1040,7 +1040,7 @@ void EnClearTag_DrawEffects(PlayState* play) {
+             if (!isMaterialApplied) {
+                 gDPPipeSync(POLY_XLU_DISP++);
+                 gDPSetEnvColor(POLY_XLU_DISP++, 255, 255, 200, 0);
+-                isMaterialApplied++;
++                isMaterialApplied = true;
+             }
+ 
+             // Draw the flash billboard effect.
+-- 
+2.55.0
+

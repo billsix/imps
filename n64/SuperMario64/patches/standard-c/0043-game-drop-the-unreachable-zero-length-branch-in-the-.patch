@@ -1,0 +1,50 @@
+From fada984d61a46d7a9248d860206136919dabacb1 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:34:20 +0000
+Subject: [PATCH 43/46] game: drop the unreachable zero-length branch in the
+ tilting pyramid normaliser
+
+`d = sqrtf(dx*dx + 500*500 + dz*dz)` is at least 500, which the decomp's
+own `//!` note already says; the `else` that would handle d == 0 cannot
+run.
+
+Verified: tilting_inverted_pyramid.inc.c, through its including
+translation unit, compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ .../behaviors/tilting_inverted_pyramid.inc.c    | 17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
+
+diff --git a/src/game/behaviors/tilting_inverted_pyramid.inc.c b/src/game/behaviors/tilting_inverted_pyramid.inc.c
+index b686011a..c726de0f 100644
+--- a/src/game/behaviors/tilting_inverted_pyramid.inc.c
++++ b/src/game/behaviors/tilting_inverted_pyramid.inc.c
+@@ -93,18 +93,11 @@ void bhv_tilting_inverted_pyramid_loop(void) {
+         dz = gMarioObject->oPosZ - o->oPosZ;
+         d = sqrtf(dx * dx + dy * dy + dz * dz);
+     
+-        //! Always true since dy = 500, making d >= 500.
+-        if (d != 0.0f) {
+-            // Normalizing
+-            d = 1.0 / d;
+-            dx *= d;
+-            dy *= d;
+-            dz *= d;
+-        } else {
+-            dx = 0.0f;
+-            dy = 1.0f;
+-            dz = 0.0f;
+-        }
++        // Normalizing (d >= 500 since dy = 500, so no zero check is needed)
++        d = 1.0 / d;
++        dx *= d;
++        dy *= d;
++        dz *= d;
+ 
+         if (o->oTiltingPyramidMarioOnPlatform == TRUE) {
+             marioOnPlatform = TRUE;
+-- 
+2.55.0
+

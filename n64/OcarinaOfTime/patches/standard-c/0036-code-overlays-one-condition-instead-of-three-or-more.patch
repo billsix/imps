@@ -1,0 +1,207 @@
+From 8f37f33ee71beb78b7e0111afcaf8e7d4f94c49f Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:56:14 +0000
+Subject: [PATCH 36/36] code, overlays: one `&&` condition instead of three or
+ more nested single-statement ifs
+
+`if (A) { if (B) { if (C) { body } } }` with no `else` on any arm is
+`if (A && B && C) { body }`; `&&` evaluates the tests left to right and
+stops at the first false one, exactly as the nesting did, so calls with
+side effects keep their order and their guards.
+
+Verified: every file compiles to byte-identical assembly before and
+after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/code/code_800E4FE0.c                  |  8 ++-----
+ soh/src/code/z_collision_check.c              | 20 +++++++----------
+ .../ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c   |  8 ++-----
+ .../actors/ovl_Door_Warp1/z_door_warp1.c      |  8 ++-----
+ .../actors/ovl_En_Insect/z_en_insect.c        |  8 ++-----
+ .../overlays/actors/ovl_En_Kusa/z_en_kusa.c   |  8 ++-----
+ soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c   |  8 ++-----
+ .../ovl_kaleido_scope/z_kaleido_equipment.c   | 22 ++++++++-----------
+ 8 files changed, 29 insertions(+), 61 deletions(-)
+
+diff --git a/soh/src/code/code_800E4FE0.c b/soh/src/code/code_800E4FE0.c
+index c7cc0d2b2..1bf17695e 100644
+--- a/soh/src/code/code_800E4FE0.c
++++ b/soh/src/code/code_800E4FE0.c
+@@ -47,12 +47,8 @@ void AudioMgr_CreateNextAudioBuffer(s16* samples, u32 num_samples) {
+     AudioLoad_ProcessLoads(gAudioContext.resetStatus);
+     AudioLoad_ProcessScriptLoads();
+ 
+-    if (gAudioContext.resetStatus != 0) {
+-        if (AudioHeap_ResetStep() == 0) {
+-            if (gAudioContext.resetStatus == 0) {
+-                osSendMesg8(gAudioContext.audioResetQueueP, gAudioContext.audioResetSpecIdToLoad, OS_MESG_NOBLOCK);
+-            }
+-        }
++    if (gAudioContext.resetStatus != 0 && AudioHeap_ResetStep() == 0 && gAudioContext.resetStatus == 0) {
++        osSendMesg8(gAudioContext.audioResetQueueP, gAudioContext.audioResetSpecIdToLoad, OS_MESG_NOBLOCK);
+     }
+ 
+     int j = 0;
+diff --git a/soh/src/code/z_collision_check.c b/soh/src/code/z_collision_check.c
+index 381b910f2..d30957469 100644
+--- a/soh/src/code/z_collision_check.c
++++ b/soh/src/code/z_collision_check.c
+@@ -2841,18 +2841,14 @@ void CollisionCheck_OC_CylVsCyl(PlayState* play, CollisionCheckContext* colChkCt
+     ColliderCylinder* right = (ColliderCylinder*)r;
+     f32 deadSpace;
+ 
+-    if ((left->base.ocFlags1 & OC1_ON) && (right->base.ocFlags1 & OC1_ON)) {
+-        if ((left->info.ocElemFlags & OCELEM_ON) && (right->info.ocElemFlags & OCELEM_ON)) {
+-            if (Math3D_CylOutsideCyl(&left->dim, &right->dim, &deadSpace) == 1) {
+-                Vec3f leftPos;
+-                Vec3f rightPos;
+-
+-                Math_Vec3s_ToVec3f(&leftPos, &left->dim.pos);
+-                Math_Vec3s_ToVec3f(&rightPos, &right->dim.pos);
+-                CollisionCheck_SetOCvsOC(&left->base, &left->info, &leftPos, &right->base, &right->info, &rightPos,
+-                                         deadSpace);
+-            }
+-        }
++    if ((left->base.ocFlags1 & OC1_ON) && (right->base.ocFlags1 & OC1_ON) && (left->info.ocElemFlags & OCELEM_ON) && (right->info.ocElemFlags & OCELEM_ON) && Math3D_CylOutsideCyl(&left->dim, &right->dim, &deadSpace) == 1) {
++        Vec3f leftPos;
++        Vec3f rightPos;
++
++        Math_Vec3s_ToVec3f(&leftPos, &left->dim.pos);
++        Math_Vec3s_ToVec3f(&rightPos, &right->dim.pos);
++        CollisionCheck_SetOCvsOC(&left->base, &left->info, &leftPos, &right->base, &right->info, &rightPos,
++                                 deadSpace);
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c b/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
+index ed28dc240..2e2db0640 100644
+--- a/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
++++ b/soh/src/overlays/actors/ovl_Bg_Bdan_Objects/z_bg_bdan_objects.c
+@@ -445,12 +445,8 @@ void BgBdanObjects_Update(Actor* thisx, PlayState* play) {
+ void BgBdanObjects_Draw(Actor* thisx, PlayState* play) {
+     BgBdanObjects* this = (BgBdanObjects*)thisx;
+ 
+-    if (thisx->params == 0) {
+-        if (this->actionFunc == BgBdanObjects_OctoPlatform_WaitForRutoToStartCutscene) {
+-            if (((thisx->home.pos.y + -79.0f) - 5.0f) < thisx->world.pos.y) {
+-                Matrix_Translate(0.0f, -50.0f, 0.0f, MTXMODE_APPLY);
+-            }
+-        }
++    if (thisx->params == 0 && this->actionFunc == BgBdanObjects_OctoPlatform_WaitForRutoToStartCutscene && ((thisx->home.pos.y + -79.0f) - 5.0f) < thisx->world.pos.y) {
++        Matrix_Translate(0.0f, -50.0f, 0.0f, MTXMODE_APPLY);
+     }
+ 
+     if (thisx->params == 2) {
+diff --git a/soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c b/soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c
+index 99a136d9a..a10cbd568 100644
+--- a/soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c
++++ b/soh/src/overlays/actors/ovl_Door_Warp1/z_door_warp1.c
+@@ -470,12 +470,8 @@ s32 DoorWarp1_PlayerInRange(DoorWarp1* this, PlayState* play) {
+     Player* player = GET_PLAYER(play);
+     s32 ret = false;
+ 
+-    if (fabsf(this->actor.xzDistToPlayer) < 60.0f) {
+-        if ((player->actor.world.pos.y - 20.0f) < this->actor.world.pos.y) {
+-            if (this->actor.world.pos.y < (player->actor.world.pos.y + 20.0f)) {
+-                ret = true;
+-            }
+-        }
++    if (fabsf(this->actor.xzDistToPlayer) < 60.0f && (player->actor.world.pos.y - 20.0f) < this->actor.world.pos.y && this->actor.world.pos.y < (player->actor.world.pos.y + 20.0f)) {
++        ret = true;
+     }
+     return ret;
+ }
+diff --git a/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c b/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
+index e1ef0dbd3..7086acccd 100644
+--- a/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
++++ b/soh/src/overlays/actors/ovl_En_Insect/z_en_insect.c
+@@ -718,12 +718,8 @@ void EnInsect_Update(Actor* thisx, PlayState* play) {
+     EnInsect* this = (EnInsect*)thisx;
+     s32 phi_v0;
+ 
+-    if (this->actor.child != NULL) {
+-        if (this->actor.child->update == NULL) {
+-            if (&this->actor != this->actor.child) {
+-                this->actor.child = NULL;
+-            }
+-        }
++    if (this->actor.child != NULL && this->actor.child->update == NULL && &this->actor != this->actor.child) {
++        this->actor.child = NULL;
+     }
+ 
+     if (this->actionTimer > 0) {
+diff --git a/soh/src/overlays/actors/ovl_En_Kusa/z_en_kusa.c b/soh/src/overlays/actors/ovl_En_Kusa/z_en_kusa.c
+index 32cbbfa0f..a4196b411 100644
+--- a/soh/src/overlays/actors/ovl_En_Kusa/z_en_kusa.c
++++ b/soh/src/overlays/actors/ovl_En_Kusa/z_en_kusa.c
+@@ -458,12 +458,8 @@ void EnKusa_SetupUprootedWaitRegrow(EnKusa* this) {
+ }
+ 
+ void EnKusa_UprootedWaitRegrow(EnKusa* this, PlayState* play) {
+-    if (this->timer > 120) {
+-        if (Math_StepToF(&this->actor.world.pos.y, this->actor.home.pos.y, 0.6f)) {
+-            if (this->timer >= 170) {
+-                EnKusa_SetupRegrow(this);
+-            }
+-        }
++    if (this->timer > 120 && Math_StepToF(&this->actor.world.pos.y, this->actor.home.pos.y, 0.6f) && this->timer >= 170) {
++        EnKusa_SetupRegrow(this);
+     }
+ }
+ 
+diff --git a/soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c b/soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c
+index 45e29524b..c860ad347 100644
+--- a/soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c
++++ b/soh/src/overlays/actors/ovl_En_Ta/z_en_ta.c
+@@ -784,12 +784,8 @@ void EnTa_ThrowSuperCuccos(EnTa* this, PlayState* play) {
+         }
+     } else {
+         for (i = 0; i < ARRAY_COUNT(this->superCuccos); i++) {
+-            if (this->timer < 35 - this->superCuccoTimers[i]) {
+-                if (this->superCuccos[i] != NULL) {
+-                    if (this->superCuccos[i]->actor.gravity > -2.0f) {
+-                        this->superCuccos[i]->actor.gravity -= 0.03f;
+-                    }
+-                }
++            if (this->timer < 35 - this->superCuccoTimers[i] && this->superCuccos[i] != NULL && this->superCuccos[i]->actor.gravity > -2.0f) {
++                this->superCuccos[i]->actor.gravity -= 0.03f;
+             }
+         }
+     }
+diff --git a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c
+index 66786d031..23819f2bd 100644
+--- a/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c
++++ b/soh/src/overlays/misc/ovl_kaleido_scope/z_kaleido_equipment.c
+@@ -730,19 +730,15 @@ void KaleidoScope_DrawEquipment(PlayState* play) {
+ 
+         for (k = 0, temp = rowStart + 1, bit = rowStart, j = point; k < 3; k++, bit++, j += 4, temp++) {
+ 
+-            if ((gBitFlags[bit] & gSaveContext.inventory.equipment) && (pauseCtx->cursorSpecialPos == 0)) {
+-                if (CHECK_AGE_REQ_EQUIP(i, k + 1)) {
+-                    if (temp == cursorSlot) {
+-                        pauseCtx->equipVtx[j].v.ob[0] = pauseCtx->equipVtx[j + 2].v.ob[0] =
+-                            pauseCtx->equipVtx[j].v.ob[0] - 2;
+-                        pauseCtx->equipVtx[j + 1].v.ob[0] = pauseCtx->equipVtx[j + 3].v.ob[0] =
+-                            pauseCtx->equipVtx[j + 1].v.ob[0] + 4;
+-                        pauseCtx->equipVtx[j].v.ob[1] = pauseCtx->equipVtx[j + 1].v.ob[1] =
+-                            pauseCtx->equipVtx[j].v.ob[1] + 2;
+-                        pauseCtx->equipVtx[j + 2].v.ob[1] = pauseCtx->equipVtx[j + 3].v.ob[1] =
+-                            pauseCtx->equipVtx[j + 2].v.ob[1] - 4;
+-                    }
+-                }
++            if ((gBitFlags[bit] & gSaveContext.inventory.equipment) && (pauseCtx->cursorSpecialPos == 0) && CHECK_AGE_REQ_EQUIP(i, k + 1) && temp == cursorSlot) {
++                pauseCtx->equipVtx[j].v.ob[0] = pauseCtx->equipVtx[j + 2].v.ob[0] =
++                    pauseCtx->equipVtx[j].v.ob[0] - 2;
++                pauseCtx->equipVtx[j + 1].v.ob[0] = pauseCtx->equipVtx[j + 3].v.ob[0] =
++                    pauseCtx->equipVtx[j + 1].v.ob[0] + 4;
++                pauseCtx->equipVtx[j].v.ob[1] = pauseCtx->equipVtx[j + 1].v.ob[1] =
++                    pauseCtx->equipVtx[j].v.ob[1] + 2;
++                pauseCtx->equipVtx[j + 2].v.ob[1] = pauseCtx->equipVtx[j + 3].v.ob[1] =
++                    pauseCtx->equipVtx[j + 2].v.ob[1] - 4;
+             }
+         }
+     }
+-- 
+2.55.0
+

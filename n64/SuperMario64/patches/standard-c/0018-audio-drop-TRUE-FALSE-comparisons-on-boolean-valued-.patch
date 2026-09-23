@@ -1,0 +1,322 @@
+From a277d3f5e86d87e1df417b910f837bc1725b4070 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:21:30 +0000
+Subject: [PATCH 18/46] audio: drop `== TRUE` / `!= FALSE` comparisons on
+ boolean-valued expressions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Comparing a value that is already 0 or 1 against TRUE/FALSE is a MIPS-era
+habit; standard C tests the value. This patch covers only the 3 file(s)
+in audio/ where every rewritten operand is a bitfield, a comparison result
+or a value the compiler already knows to be 0/1 — which is why the generated
+code is unchanged. Sites whose operand is a plain s32 field compared with 1
+are deliberately left for a separate patch: they are behaviour-preserving
+only by the (verified) invariant that the field is only ever assigned
+TRUE/FALSE, and their codegen changes (cmp $1 -> test).
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/audio/effects.c   |  4 ++--
+ src/audio/seqplayer.c | 34 +++++++++++++++++-----------------
+ src/audio/synthesis.c | 36 ++++++++++++++++++------------------
+ 3 files changed, 37 insertions(+), 37 deletions(-)
+
+diff --git a/src/audio/effects.c b/src/audio/effects.c
+index 1aa10a32..39f7ac95 100644
+--- a/src/audio/effects.c
++++ b/src/audio/effects.c
+@@ -130,8 +130,8 @@ void sequence_player_process_sound(struct SequencePlayer *seqPlayer) {
+ 
+     // Process channels
+     for (i = 0; i < CHANNELS_MAX; i++) {
+-        if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[i]) == TRUE
+-            && seqPlayer->channels[i]->enabled == TRUE) {
++        if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[i])
++            && seqPlayer->channels[i]->enabled) {
+ #if defined(VERSION_EU) || defined(VERSION_SH)
+             sequence_channel_process_sound(seqPlayer->channels[i], seqPlayer->recalculateVolume);
+ #else
+diff --git a/src/audio/seqplayer.c b/src/audio/seqplayer.c
+index ce283ddb..8feeae26 100644
+--- a/src/audio/seqplayer.c
++++ b/src/audio/seqplayer.c
+@@ -218,12 +218,12 @@ void sequence_player_init_channels(struct SequencePlayer *seqPlayer, u16 channel
+     for (i = 0; i < CHANNELS_MAX; i++) {
+         if (channelBits & 1) {
+             seqChannel = seqPlayer->channels[i];
+-            if (IS_SEQUENCE_CHANNEL_VALID(seqChannel) == TRUE && seqChannel->seqPlayer == seqPlayer) {
++            if (IS_SEQUENCE_CHANNEL_VALID(seqChannel) && seqChannel->seqPlayer == seqPlayer) {
+                 sequence_channel_disable(seqChannel);
+                 seqChannel->seqPlayer = NULL;
+             }
+             seqChannel = allocate_sequence_channel();
+-            if (IS_SEQUENCE_CHANNEL_VALID(seqChannel) == FALSE) {
++            if (!IS_SEQUENCE_CHANNEL_VALID(seqChannel)) {
+                 eu_stubbed_printf_0("Audio:Track:Warning: No Free Notetrack\n");
+                 gAudioErrorFlags = i + 0x10000;
+                 seqPlayer->channels[i] = seqChannel;
+@@ -252,7 +252,7 @@ void sequence_player_disable_channels(struct SequencePlayer *seqPlayer, u16 chan
+     for (i = 0; i < CHANNELS_MAX; i++) {
+         if (channelBits & 1) {
+             seqChannel = seqPlayer->channels[i];
+-            if (IS_SEQUENCE_CHANNEL_VALID(seqChannel) == TRUE) {
++            if (IS_SEQUENCE_CHANNEL_VALID(seqChannel)) {
+                 if (seqChannel->seqPlayer == seqPlayer) {
+                     sequence_channel_disable(seqChannel);
+                     seqChannel->seqPlayer = NULL;
+@@ -278,7 +278,7 @@ void sequence_player_disable_channels(struct SequencePlayer *seqPlayer, u16 chan
+ void sequence_channel_enable(struct SequencePlayer *seqPlayer, u8 channelIndex, void *script) {
+     struct SequenceChannel *seqChannel = seqPlayer->channels[channelIndex];
+     s32 i;
+-    if (IS_SEQUENCE_CHANNEL_VALID(seqChannel) == FALSE) {
++    if (!IS_SEQUENCE_CHANNEL_VALID(seqChannel)) {
+ #ifdef VERSION_EU
+         struct SequencePlayer *bgMusic = &gSequencePlayers[0];
+         struct SequencePlayer *miscMusic = &gSequencePlayers[1];
+@@ -414,7 +414,7 @@ u16 m64_read_compressed_u16(struct M64ScriptState *state) {
+ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
+     s32 cmd;
+ 
+-    if (layer->enabled == FALSE) {
++    if (!layer->enabled) {
+         return;
+     }
+ 
+@@ -438,7 +438,7 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
+             seq_channel_layer_process_script_part5(layer, cmd);
+         }
+ 
+-        if (layer->stopSomething == TRUE) {
++        if (layer->stopSomething) {
+             if (layer->note != NULL || layer->continuousNotes) {
+                 seq_channel_layer_note_decay(layer);
+             }
+@@ -482,7 +482,7 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
+     f32 temp_f2;
+ 
+     sameSound = TRUE;
+-    if (layer->enabled == FALSE) {
++    if (!layer->enabled) {
+         return;
+     }
+ 
+@@ -696,7 +696,7 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
+     } else {
+         layer->stopSomething = FALSE;
+ 
+-        if (seqChannel->largeNotes == TRUE) {
++        if (seqChannel->largeNotes) {
+             switch (cmd & 0xc0) {
+                 case 0x00: // layer_note0 (play percentage, velocity, duration)
+                     sp3A = m64_read_compressed_u16(state);
+@@ -913,7 +913,7 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
+         }
+     }
+ 
+-    if (layer->stopSomething == TRUE) {
++    if (layer->stopSomething) {
+         if (layer->note != NULL || layer->continuousNotes) {
+             seq_channel_layer_note_decay(layer);
+         }
+@@ -925,7 +925,7 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
+         cmd = TRUE;
+     } else if (layer->note == NULL || layer->status == SOUND_LOAD_STATUS_NOT_LOADED) {
+         cmd = TRUE;
+-    } else if (sameSound == FALSE) {
++    } else if (!sameSound) {
+         seq_channel_layer_note_decay(layer);
+         cmd = TRUE;
+     }
+@@ -938,7 +938,7 @@ void seq_channel_layer_process_script(struct SequenceChannelLayer *layer) {
+         init_synthetic_wave(layer->note, layer);
+     }
+ 
+-    if (cmd != FALSE) {
++    if (cmd) {
+         layer->note = alloc_note(layer);
+     }
+ 
+@@ -1331,7 +1331,7 @@ s32 seq_channel_layer_process_script_part3(struct SequenceChannelLayer *layer, s
+ 
+     layer->stopSomething = FALSE;
+ 
+-    if (seqChannel->largeNotes == TRUE) {
++    if (seqChannel->largeNotes) {
+         switch (cmd & 0xc0) {
+             case 0x00: // layer_note0 (play percentage, velocity, duration)
+                 sp3A = m64_read_compressed_u16(state);
+@@ -2198,12 +2198,12 @@ void sequence_player_process_sequence(struct SequencePlayer *seqPlayer) {
+     u8 *seqData;
+     struct M64ScriptState *state;
+ 
+-    if (seqPlayer->enabled == FALSE) {
++    if (!seqPlayer->enabled) {
+         return;
+     }
+ 
+     // If discarded, bail out.
+-    if (IS_SEQ_LOAD_COMPLETE(seqPlayer->seqId) == FALSE || IS_BANK_LOAD_COMPLETE(seqPlayer->defaultBank[0]) == FALSE ){
++    if (!IS_SEQ_LOAD_COMPLETE(seqPlayer->seqId) || !IS_BANK_LOAD_COMPLETE(seqPlayer->defaultBank[0]) ){
+         eu_stubbed_printf_1("Disappear Sequence or Bank %d\n", seqPlayer->seqId);
+         sequence_player_disable(seqPlayer);
+         return;
+@@ -2538,7 +2538,7 @@ void sequence_player_process_sequence(struct SequencePlayer *seqPlayer) {
+ #if defined(VERSION_EU) || defined(VERSION_SH)
+                         value = seqPlayer->channels[loBits]->finished;
+ #else
+-                        if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[loBits]) == TRUE) {
++                        if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[loBits])) {
+                             value = seqPlayer->channels[loBits]->finished;
+                         }
+ #endif
+@@ -2595,7 +2595,7 @@ void sequence_player_process_sequence(struct SequencePlayer *seqPlayer) {
+ 
+     for (i = 0; i < CHANNELS_MAX; i++) {
+ #if defined(VERSION_EU) || defined(VERSION_SH)
+-        if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[i]) == TRUE) {
++        if (IS_SEQUENCE_CHANNEL_VALID(seqPlayer->channels[i])) {
+             sequence_channel_process_script(seqPlayer->channels[i]);
+         }
+ #else
+@@ -2610,7 +2610,7 @@ void sequence_player_process_sequence(struct SequencePlayer *seqPlayer) {
+ void process_sequences(UNUSED s32 iterationsRemaining) {
+     s32 i;
+     for (i = 0; i < SEQUENCE_PLAYERS; i++) {
+-        if (gSequencePlayers[i].enabled == TRUE) {
++        if (gSequencePlayers[i].enabled) {
+             sequence_player_process_sequence(&gSequencePlayers[i]);
+             sequence_player_process_sound(&gSequencePlayers[i]);
+         }
+diff --git a/src/audio/synthesis.c b/src/audio/synthesis.c
+index 55b5d6cc..ae11eb53 100644
+--- a/src/audio/synthesis.c
++++ b/src/audio/synthesis.c
+@@ -488,7 +488,7 @@ u64 *synthesis_do_one_audio_update(s16 *aiBuf, s32 bufLen, u64 *cmd, s32 updateI
+     }
+     for (; i < notePos; i++) {
+         temp = updateIndex * gMaxSimultaneousNotes;
+-        if (IS_BANK_LOAD_COMPLETE(gNoteSubsEu[temp + noteIndices[i]].bankId) == TRUE) {
++        if (IS_BANK_LOAD_COMPLETE(gNoteSubsEu[temp + noteIndices[i]].bankId)) {
+             cmd = synthesis_process_note(&gNotes[noteIndices[i]],
+                                          &gNoteSubsEu[temp + noteIndices[i]],
+                                          &gNotes[noteIndices[i]].synthesisState,
+@@ -676,14 +676,14 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+ #ifdef VERSION_US
+         // The matching build read note->enabled through a volatile-bitfield twin of struct Note
+         // (`struct vNote`) to reproduce IDO's codegen; the port reads the field directly.
+-        if (note->enabled == TRUE && IS_BANK_LOAD_COMPLETE(note->bankId) == FALSE) {
++        if (note->enabled && !IS_BANK_LOAD_COMPLETE(note->bankId)) {
+ #else
+-        if (IS_BANK_LOAD_COMPLETE(note->bankId) == FALSE) {
++        if (!IS_BANK_LOAD_COMPLETE(note->bankId)) {
+ #endif
+             gAudioErrorFlags = (note->bankId << 8) + noteIndex + 0x1000000;
+-        } else if (note->enabled == TRUE && note->synthesisBuffers != NULL) {
++        } else if (note->enabled && note->synthesisBuffers != NULL) {
+ #else
+-        if (note->noteSubEu.enabled == FALSE) {
++        if (!note->noteSubEu.enabled) {
+             return cmd;
+         } else {
+ #endif
+@@ -693,9 +693,9 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+ #endif
+ 
+ #ifdef VERSION_EU
+-            if (noteSubEu->needsInit == TRUE) {
++            if (noteSubEu->needsInit) {
+ #else
+-            if (note->needsInit == TRUE) {
++            if (note->needsInit) {
+ #endif
+                 flags = A_INIT;
+ #ifndef VERSION_EU
+@@ -869,11 +869,11 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+ #endif
+ 
+ #ifdef VERSION_EU
+-                        if (s2 == 0 && synthesisState->restart == FALSE) {
++                        if (s2 == 0 && !synthesisState->restart) {
+                             s2 = 16;
+                         }
+ #else
+-                        if (s2 == 0 && note->restart == FALSE) {
++                        if (s2 == 0 && !note->restart) {
+                             s2 = 16;
+                         }
+ #endif
+@@ -946,13 +946,13 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+                         }
+ 
+ #ifdef VERSION_EU
+-                        if (synthesisState->restart != FALSE) {
++                        if (synthesisState->restart) {
+                             aSetLoop(cmd++, VIRTUAL_TO_PHYSICAL2(audioBookSample->loop->state));
+                             flags = A_LOOP; // = 2
+                             synthesisState->restart = FALSE;
+                         }
+ #else
+-                        if (note->restart != FALSE) {
++                        if (note->restart) {
+                             aSetLoop(cmd++, VIRTUAL_TO_PHYSICAL2(audioBookSample->loop->state));
+                             flags = A_LOOP; // = 2
+                             note->restart = FALSE;
+@@ -1058,9 +1058,9 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+                                     resampledTempLen = samplesLenAdjusted + 4;
+                                     noteSamplesDmemAddrBeforeResampling = DMEM_ADDR_RESAMPLED + 4;
+ #ifdef VERSION_EU
+-                                    if (noteSubEu->finished != FALSE) {
++                                    if (noteSubEu->finished) {
+ #else
+-                                    if (note->finished != FALSE) {
++                                    if (note->finished) {
+ #endif
+                                         aClearBuffer(cmd++, DMEM_ADDR_RESAMPLED + resampledTempLen, samplesLenAdjusted + 0x10);
+                                     }
+@@ -1089,9 +1089,9 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+                     }
+ 
+ #ifdef VERSION_EU
+-                    if (noteSubEu->finished != FALSE) {
++                    if (noteSubEu->finished) {
+ #else
+-                    if (note->finished != FALSE) {
++                    if (note->finished) {
+ #endif
+                         break;
+                     }
+@@ -1102,7 +1102,7 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+             flags = 0;
+ 
+ #ifdef VERSION_EU
+-            if (noteSubEu->needsInit == TRUE) {
++            if (noteSubEu->needsInit) {
+                 flags = A_INIT;
+                 noteSubEu->needsInit = FALSE;
+             }
+@@ -1110,7 +1110,7 @@ u64 *synthesis_process_notes(s16 *aiBuf, s32 bufLen, u64 *cmd) {
+             cmd = final_resample(cmd, synthesisState, bufLen * 2, resamplingRateFixedPoint,
+                                  noteSamplesDmemAddrBeforeResampling, flags);
+ #else
+-            if (note->needsInit == TRUE) {
++            if (note->needsInit) {
+                 flags = A_INIT;
+                 note->needsInit = FALSE;
+             }
+@@ -1765,7 +1765,7 @@ void note_enable(struct Note *note) {
+ }
+ 
+ void note_disable(struct Note *note) {
+-    if (note->needsInit == TRUE) {
++    if (note->needsInit) {
+         note->needsInit = FALSE;
+     } else {
+         note_set_vel_pan_reverb(note, 0, .5, 0);
+-- 
+2.55.0
+

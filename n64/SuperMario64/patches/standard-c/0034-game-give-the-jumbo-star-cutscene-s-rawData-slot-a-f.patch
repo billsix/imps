@@ -1,0 +1,68 @@
+From 0a3e6e34bbbbb8ae9545b7338bc781db74cd683e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:29:59 +0000
+Subject: [PATCH 34/46] game: give the jumbo-star cutscene's rawData slot a
+ field name
+
+`marioObj->rawData.asF32[0x22]` holds Mario's Z position while he floats
+up during the final-Bowser star cutscene (it is zeroed, decremented, and
+passed as the Z of vec3f_set). Every other cutscene alias of slot 0x22
+has a name in object_fields.h; this adds `oMarioJumboStarCutscenePosZ`
+beside them and uses it at the three sites.
+
+Verified: mario_actions_cutscene.c compiles to byte-identical assembly
+before and after with the port's own flags (asmdiff over
+compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ include/object_fields.h           | 1 +
+ src/game/mario_actions_cutscene.c | 6 +++---
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/include/object_fields.h b/include/object_fields.h
+index 8159f4aa..64984562 100644
+--- a/include/object_fields.h
++++ b/include/object_fields.h
+@@ -164,6 +164,7 @@
+ #define /*0x110*/ oMarioLongJumpIsSlow   OBJECT_FIELD_S32(0x22)
+ #define /*0x110*/ oMarioSteepJumpYaw     OBJECT_FIELD_S32(0x22)
+ #define /*0x110*/ oMarioWalkingPitch     OBJECT_FIELD_S32(0x22)
++#define /*0x110*/ oMarioJumboStarCutscenePosZ OBJECT_FIELD_F32(0x22)
+ 
+ /* 1-Up Hidden */
+ #define /*0x0F4*/ o1UpHiddenUnkF4 OBJECT_FIELD_S32(0x1B)
+diff --git a/src/game/mario_actions_cutscene.c b/src/game/mario_actions_cutscene.c
+index 62dc77d0..73c65ea8 100644
+--- a/src/game/mario_actions_cutscene.c
++++ b/src/game/mario_actions_cutscene.c
+@@ -1841,7 +1841,7 @@ s32 jumbo_star_cutscene_taking_off(struct MarioState *m) {
+ 
+     if (m->actionState == 0) {
+         set_mario_animation(m, MARIO_ANIM_FINAL_BOWSER_RAISE_HAND_SPIN);
+-        marioObj->rawData.asF32[0x22] = 0.0f;
++        marioObj->oMarioJumboStarCutscenePosZ = 0.0f;
+ 
+         if (is_anim_past_end(m)) {
+             play_mario_landing_sound(m, SOUND_ACTION_TERRAIN_LANDING);
+@@ -1853,7 +1853,7 @@ s32 jumbo_star_cutscene_taking_off(struct MarioState *m) {
+             play_sound_and_spawn_particles(m, SOUND_ACTION_TERRAIN_JUMP, 1);
+         }
+         if (animFrame >= 3) {
+-            marioObj->rawData.asF32[0x22] -= 32.0f;
++            marioObj->oMarioJumboStarCutscenePosZ -= 32.0f;
+         }
+ 
+         switch (animFrame) {
+@@ -1877,7 +1877,7 @@ s32 jumbo_star_cutscene_taking_off(struct MarioState *m) {
+         }
+     }
+ 
+-    vec3f_set(m->pos, 0.0f, 307.0, marioObj->rawData.asF32[0x22]);
++    vec3f_set(m->pos, 0.0f, 307.0, marioObj->oMarioJumboStarCutscenePosZ);
+     update_mario_pos_for_anim(m);
+     vec3f_copy(marioObj->header.gfx.pos, m->pos);
+     vec3s_set(marioObj->header.gfx.angle, 0, m->faceAngle[1], 0);
+-- 
+2.55.0
+

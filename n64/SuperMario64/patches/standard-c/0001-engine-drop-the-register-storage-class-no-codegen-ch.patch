@@ -1,0 +1,244 @@
+From 5504fbd148fa3882f1074b3e6df59373ecab4c19 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:07:00 +0000
+Subject: [PATCH 01/46] engine: drop the `register` storage class (no codegen
+ change)
+
+The decompiler emitted `register` wherever the original held a value in a
+MIPS register; the keyword has had no effect on allocation in GCC or Clang
+for decades, its only remaining C semantics is forbidding `&x` (no such
+variable has its address taken here), and C++17 removed it. Remove the 48
+uses in engine/ (math_util.c 28, surface_collision.c 13, surface_load.c 7).
+
+Verified: each file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/engine/math_util.c         | 56 +++++++++++++++++-----------------
+ src/engine/surface_collision.c | 26 ++++++++--------
+ src/engine/surface_load.c      | 14 ++++-----
+ 3 files changed, 48 insertions(+), 48 deletions(-)
+
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index a5a491b9..cf38bffa 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -156,9 +156,9 @@ void *vec3f_normalize(Vec3f dest) {
+ 
+ /// Copy matrix 'src' to 'dest'
+ void mtxf_copy(Mat4 dest, Mat4 src) {
+-    register s32 i;
+-    register u32 *d = (u32 *) dest;
+-    register u32 *s = (u32 *) src;
++    s32 i;
++    u32 *d = (u32 *) dest;
++    u32 *s = (u32 *) src;
+ 
+     for (i = 0; i < 16; i++) {
+         *d++ = *s++;
+@@ -169,8 +169,8 @@ void mtxf_copy(Mat4 dest, Mat4 src) {
+  * Set mtx to the identity matrix
+  */
+ void mtxf_identity(Mat4 mtx) {
+-    register s32 i;
+-    register f32 *dest;
++    s32 i;
++    f32 *dest;
+     // These loops must be one line to match on -O2
+ 
+     // initialize everything except the first and last cells to 0
+@@ -199,7 +199,7 @@ void mtxf_translate(Mat4 dest, Vec3f b) {
+  * angle allows a bank rotation of the camera.
+  */
+ void mtxf_lookat(Mat4 mtx, Vec3f from, Vec3f to, s16 roll) {
+-    register f32 invLength;
++    f32 invLength;
+     f32 dx;
+     f32 dz;
+     f32 xColY;
+@@ -278,14 +278,14 @@ void mtxf_lookat(Mat4 mtx, Vec3f from, Vec3f to, s16 roll) {
+  */
+ void mtxf_rotate_zxy_and_translate(Mat4 dest, Vec3f translate, Vec3s rotate) {
+     FrameInterpolation_RecordMatrixPosRotZXY(dest, translate, rotate);
+-    register f32 sx = sins(rotate[0]);
+-    register f32 cx = coss(rotate[0]);
++    f32 sx = sins(rotate[0]);
++    f32 cx = coss(rotate[0]);
+ 
+-    register f32 sy = sins(rotate[1]);
+-    register f32 cy = coss(rotate[1]);
++    f32 sy = sins(rotate[1]);
++    f32 cy = coss(rotate[1]);
+ 
+-    register f32 sz = sins(rotate[2]);
+-    register f32 cz = coss(rotate[2]);
++    f32 sz = sins(rotate[2]);
++    f32 cz = coss(rotate[2]);
+ 
+     dest[0][0] = cy * cz + sx * sy * sz;
+     dest[1][0] = -cy * sz + sx * sy * cz;
+@@ -313,14 +313,14 @@ void mtxf_rotate_zxy_and_translate(Mat4 dest, Vec3f translate, Vec3s rotate) {
+ void mtxf_rotate_xyz_and_translate(Mat4 dest, Vec3f b, Vec3s c) {
+     // TODO: FrameInterpolation is broken, fix it
+     // FrameInterpolation_RecordMatrixPosRotXYZ(dest, b, c);
+-    register f32 sx = sins(c[0]);
+-    register f32 cx = coss(c[0]);
++    f32 sx = sins(c[0]);
++    f32 cx = coss(c[0]);
+ 
+-    register f32 sy = sins(c[1]);
+-    register f32 cy = coss(c[1]);
++    f32 sy = sins(c[1]);
++    f32 cy = coss(c[1]);
+ 
+-    register f32 sz = sins(c[2]);
+-    register f32 cz = coss(c[2]);
++    f32 sz = sins(c[2]);
++    f32 cz = coss(c[2]);
+ 
+     dest[0][0] = cy * cz;
+     dest[0][1] = cy * sz;
+@@ -502,9 +502,9 @@ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+     // TODO: FrameInterpolation is broken, fix it
+     // FrameInterpolation_RecordMatrixMult(dest, dest, 0);
+     Mat4 temp;
+-    register f32 entry0;
+-    register f32 entry1;
+-    register f32 entry2;
++    f32 entry0;
++    f32 entry1;
++    f32 entry2;
+ 
+     // column 0
+     entry0 = a[0][0];
+@@ -548,7 +548,7 @@ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+  * Set matrix 'dest' to 'mtx' scaled by vector s
+  */
+ void mtxf_scale_vec3f(Mat4 dest, Mat4 mtx, Vec3f s) {
+-    register s32 i;
++    s32 i;
+ 
+     for (i = 0; i < 4; i++) {
+         dest[0][i] = mtx[0][i] * s[0];
+@@ -564,9 +564,9 @@ void mtxf_scale_vec3f(Mat4 dest, Mat4 mtx, Vec3f s) {
+  * true for transformation matrices if the translation has a w component of 1.
+  */
+ void mtxf_mul_vec3s(Mat4 mtx, Vec3s b) {
+-    register f32 x = b[0];
+-    register f32 y = b[1];
+-    register f32 z = b[2];
++    f32 x = b[0];
++    f32 y = b[1];
++    f32 z = b[2];
+ 
+     b[0] = x * mtx[0][0] + y * mtx[1][0] + z * mtx[2][0] + mtx[3][0];
+     b[1] = x * mtx[0][1] + y * mtx[1][1] + z * mtx[2][1] + mtx[3][1];
+@@ -631,9 +631,9 @@ void get_pos_from_transform_mtx(Vec3f dest, Mat4 objMtx, Mat4 camMtx) {
+  * Basically it converts the direction to spherical coordinates.
+  */
+ void vec3f_get_dist_and_angle(Vec3f from, Vec3f to, f32 *dist, s16 *pitch, s16 *yaw) {
+-    register f32 x = to[0] - from[0];
+-    register f32 y = to[1] - from[1];
+-    register f32 z = to[2] - from[2];
++    f32 x = to[0] - from[0];
++    f32 y = to[1] - from[1];
++    f32 z = to[2] - from[2];
+ 
+     *dist = sqrtf(x * x + y * y + z * z);
+     *pitch = atan2s(sqrtf(x * x + z * z), y);
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index 71bb0d98..34751a11 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -19,15 +19,15 @@
+  */
+ s32 find_wall_collisions_from_list(struct SurfaceNode *surfaceNode,
+                                           struct WallCollisionData *data) {
+-    register struct Surface *surf;
+-    register f32 offset;
+-    register f32 radius = data->radius;
+-    register f32 x = data->x;
+-    register f32 y = data->y + data->offsetY;
+-    register f32 z = data->z;
+-    register f32 px, pz;
+-    register f32 w1, w2, w3;
+-    register f32 y1, y2, y3;
++    struct Surface *surf;
++    f32 offset;
++    f32 radius = data->radius;
++    f32 x = data->x;
++    f32 y = data->y + data->offsetY;
++    f32 z = data->z;
++    f32 px, pz;
++    f32 w1, w2, w3;
++    f32 y1, y2, y3;
+     s32 numCols = 0;
+ 
+     // Max collision radius = 200
+@@ -225,8 +225,8 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
+  * Iterate through the list of ceilings and find the first ceiling over a given point.
+  */
+ struct Surface *find_ceil_from_list(struct SurfaceNode *surfaceNode, s32 x, s32 y, s32 z, f32 *pheight) {
+-    register struct Surface *surf;
+-    register s32 x1, z1, x2, z2, x3, z3;
++    struct Surface *surf;
++    s32 x1, z1, x2, z2, x3, z3;
+     struct Surface *ceil = NULL;
+ 
+     ceil = NULL;
+@@ -402,8 +402,8 @@ u8 gInterpolatingSurfaces;
+  * Iterate through the list of floors and find the first floor under a given point.
+  */
+ struct Surface *find_floor_from_list(struct SurfaceNode *surfaceNode, s32 x, s32 y, s32 z, f32 *pheight) {
+-    register struct Surface *surf;
+-    register f32 x1, z1, x2, z2, x3, z3;
++    struct Surface *surf;
++    f32 x1, z1, x2, z2, x3, z3;
+     f32 nx, ny, nz;
+     f32 oo;
+     f32 height;
+diff --git a/src/engine/surface_load.c b/src/engine/surface_load.c
+index 3efeff9b..6ce60cab 100644
+--- a/src/engine/surface_load.c
++++ b/src/engine/surface_load.c
+@@ -83,7 +83,7 @@ struct Surface *alloc_surface(void) {
+  * Iterates through the entire partition, clearing the surfaces.
+  */
+ void clear_spatial_partition(SpatialPartitionCell *cells) {
+-    register s32 i = NUM_CELLS * NUM_CELLS;
++    s32 i = NUM_CELLS * NUM_CELLS;
+ 
+     while (i--) {
+         (*cells)[SPATIAL_PARTITION_FLOORS].next = NULL;
+@@ -301,9 +301,9 @@ UNUSED void stub_surface_load_1(void) {
+  */
+ struct Surface *read_surface_data(s16 *vertexData, s16 **vertexIndices) {
+     struct Surface *surface;
+-    register s32 x1, y1, z1;
+-    register s32 x2, y2, z2;
+-    register s32 x3, y3, z3;
++    s32 x1, y1, z1;
++    s32 x2, y2, z2;
++    s32 x3, y3, z3;
+     s32 maxY, minY;
+     f32 nx, ny, nz;
+     f32 mag;
+@@ -662,9 +662,9 @@ UNUSED void unused_80383604(void) {
+  * Applies an object's transformation to the object's vertices.
+  */
+ void transform_object_vertices(s16 **data, s16 *vertexData) {
+-    register s16 *vertices;
+-    register f32 vx, vy, vz;
+-    register s32 numVertices;
++    s16 *vertices;
++    f32 vx, vy, vz;
++    s32 numVertices;
+ 
+     Mat4 *objectTransform;
+     Mat4 m;
+
+base-commit: 49c5312a0f3c0a28e1974be1923babd4f869f719
+-- 
+2.55.0
+

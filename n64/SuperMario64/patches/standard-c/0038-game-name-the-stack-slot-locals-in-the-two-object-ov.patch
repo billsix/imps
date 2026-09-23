@@ -1,0 +1,96 @@
+From 2c4da46a4f6b6df5bdaa2d5409a01fa0c4dd4308 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:32:22 +0000
+Subject: [PATCH 38/46] game: name the stack-slot locals in the two
+ object-overlap tests
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+detect_object_hurtbox_overlap is detect_object_hitbox_overlap with the
+hurtbox radius/height; the hitbox version already names `dx`, `dz`,
+`collisionRadius` and `distance`, so the hurtbox twin takes the same
+names, and the four Y extents in both become `aBottomY`/`bBottomY`/
+`aTopY`/`bTopY` (bottom = position minus the down offset, top = bottom
+plus height — the vertical-overlap test below reads as such).
+
+Verified: object_collision.c compiles to byte-identical assembly before
+and after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/object_collision.c | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/src/game/object_collision.c b/src/game/object_collision.c
+index a26f53ce..406731ed 100644
+--- a/src/game/object_collision.c
++++ b/src/game/object_collision.c
+@@ -22,21 +22,21 @@ struct Object *debug_print_obj_collision(struct Object *a) {
+ }
+ 
+ s32 detect_object_hitbox_overlap(struct Object *a, struct Object *b) {
+-    f32 sp3C = a->oPosY - a->hitboxDownOffset;
+-    f32 sp38 = b->oPosY - b->hitboxDownOffset;
++    f32 aBottomY = a->oPosY - a->hitboxDownOffset;
++    f32 bBottomY = b->oPosY - b->hitboxDownOffset;
+     f32 dx = a->oPosX - b->oPosX;
+     f32 dz = a->oPosZ - b->oPosZ;
+     f32 collisionRadius = a->hitboxRadius + b->hitboxRadius;
+     f32 distance = sqrtf(dx * dx + dz * dz);
+ 
+     if (collisionRadius > distance) {
+-        f32 sp20 = a->hitboxHeight + sp3C;
+-        f32 sp1C = b->hitboxHeight + sp38;
++        f32 aTopY = a->hitboxHeight + aBottomY;
++        f32 bTopY = b->hitboxHeight + bBottomY;
+ 
+-        if (sp3C > sp1C) {
++        if (aBottomY > bTopY) {
+             return 0;
+         }
+-        if (sp20 < sp38) {
++        if (aTopY < bBottomY) {
+             return 0;
+         }
+         if (a->numCollidedObjs >= 4) {
+@@ -58,25 +58,25 @@ s32 detect_object_hitbox_overlap(struct Object *a, struct Object *b) {
+ }
+ 
+ s32 detect_object_hurtbox_overlap(struct Object *a, struct Object *b) {
+-    f32 sp3C = a->oPosY - a->hitboxDownOffset;
+-    f32 sp38 = b->oPosY - b->hitboxDownOffset;
+-    f32 sp34 = a->oPosX - b->oPosX;
+-    f32 sp2C = a->oPosZ - b->oPosZ;
+-    f32 sp28 = a->hurtboxRadius + b->hurtboxRadius;
+-    f32 sp24 = sqrtf(sp34 * sp34 + sp2C * sp2C);
++    f32 aBottomY = a->oPosY - a->hitboxDownOffset;
++    f32 bBottomY = b->oPosY - b->hitboxDownOffset;
++    f32 dx = a->oPosX - b->oPosX;
++    f32 dz = a->oPosZ - b->oPosZ;
++    f32 collisionRadius = a->hurtboxRadius + b->hurtboxRadius;
++    f32 distance = sqrtf(dx * dx + dz * dz);
+ 
+     if (a == gMarioObject) {
+         b->oInteractionSubtype |= INT_SUBTYPE_DELAY_INVINCIBILITY;
+     }
+ 
+-    if (sp28 > sp24) {
+-        f32 sp20 = a->hitboxHeight + sp3C;
+-        f32 sp1C = b->hurtboxHeight + sp38;
++    if (collisionRadius > distance) {
++        f32 aTopY = a->hitboxHeight + aBottomY;
++        f32 bTopY = b->hurtboxHeight + bBottomY;
+ 
+-        if (sp3C > sp1C) {
++        if (aBottomY > bTopY) {
+             return 0;
+         }
+-        if (sp20 < sp38) {
++        if (aTopY < bBottomY) {
+             return 0;
+         }
+         if (a == gMarioObject) {
+-- 
+2.55.0
+

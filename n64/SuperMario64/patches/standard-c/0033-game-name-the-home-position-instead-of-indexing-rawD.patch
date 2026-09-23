@@ -1,0 +1,38 @@
+From fda80706f7b9ab0abc8f909f7a12ee742a327876 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:29:58 +0000
+Subject: [PATCH 33/46] game: name the home position instead of indexing
+ rawData in the exclamation box
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+`o->rawData.asF32[0x37..0x39]` is `oHomeX/Y/Z` — the same three slots
+every other behaviour reads through the field macros.
+
+Verified: exclamation_box.inc.c, through its including translation unit,
+compiles to byte-identical assembly before and after with the port's own
+flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/exclamation_box.inc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/src/game/behaviors/exclamation_box.inc.c b/src/game/behaviors/exclamation_box.inc.c
+index e64f91a8..7d5fee77 100644
+--- a/src/game/behaviors/exclamation_box.inc.c
++++ b/src/game/behaviors/exclamation_box.inc.c
+@@ -120,8 +120,7 @@ void exclamation_box_spawn_contents(struct Struct802C0DF0 *a0, u8 a1) {
+ 
+     while (a0->unk0 != 99) {
+         if (a1 == a0->unk0) {
+-            CALL_CANCELLABLE_EVENT(MacroObjectOverride, a0->model, o->rawData.asF32[0x37], o->rawData.asF32[0x38],
+-                                   o->rawData.asF32[0x39]) {
++            CALL_CANCELLABLE_EVENT(MacroObjectOverride, a0->model, o->oHomeX, o->oHomeY, o->oHomeZ) {
+                 sp1C = spawn_object(o, a0->model, a0->behavior);
+                 sp1C->oVelY = 20.0f;
+                 sp1C->oForwardVel = 3.0f;
+-- 
+2.55.0
+

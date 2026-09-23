@@ -1,0 +1,70 @@
+From a6404dd0c1cc62fc07e8e88d868e8299b1ce0d7d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:10:08 +0000
+Subject: [PATCH 05/46] =?UTF-8?q?camera:=20unwrap=20four=20`do=20{=20?=
+ =?UTF-8?q?=E2=80=A6=20}=20while=20(0);`=20and=20two=20same-line-to-match?=
+ =?UTF-8?q?=20statements?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+copy_spline_segment (already marked "TODO: (Scrub C)") wraps four single
+init_spline_point calls in `do { … } while (0);` — a constant-false loop with
+no break/continue inside is the statement it wraps. Two other sites kept a
+statement on the `if` line or two statements on one line "to match on -O2";
+give them braces and one statement per line and drop the comments.
+
+Verified: camera.c compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/camera.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/src/game/camera.c b/src/game/camera.c
+index b39eac8d..103f71cc 100644
+--- a/src/game/camera.c
++++ b/src/game/camera.c
+@@ -1756,9 +1756,10 @@ s32 update_boss_fight_camera(struct Camera *c, Vec3f focus, Vec3f pos) {
+         }
+     }
+ 
+-    //! Must be same line to match on -O2
+     // Prevent the camera from going to the ground in the outside boss fight
+-    if (gCurrLevelNum == LEVEL_BBH) { pos[1] = 2047.f; }
++    if (gCurrLevelNum == LEVEL_BBH) {
++        pos[1] = 2047.f;
++    }
+ 
+     // Rotate from C-Button input
+     if (sCSideButtonYaw < 0) {
+@@ -4494,8 +4495,8 @@ s16 reduce_by_dist_from_camera(s16 value, f32 maxDist, f32 posX, f32 posY, f32 p
+         vec3f_get_dist_and_angle(gLakituState.goalPos, pos, &dist, &pitch, &yaw);
+         if (dist < maxDist) {
+             calculate_angles(gLakituState.goalPos, gLakituState.goalFocus, &goalPitch, &goalYaw);
+-            //! Must be same line to match on -O2
+-            pitch -= goalPitch; yaw -= goalYaw;
++            pitch -= goalPitch;
++            yaw -= goalYaw;
+             dist -= 2000.f;
+             if (dist < 0.f) {
+                 dist = 0.f;
+@@ -7186,10 +7187,10 @@ void copy_spline_segment(struct CutsceneSplinePoint dst[], struct CutsceneSpline
+     } while (j > 16);
+ 
+     // Create the end of the spline by duplicating the last point
+-    do { init_spline_point(&dst[i], 0, src[j].speed, src[j].point); } while (0);
+-    do { init_spline_point(&dst[i + 1], 0, 0, src[j].point); } while (0);
+-    do { init_spline_point(&dst[i + 2], 0, 0, src[j].point); } while (0);
+-    do { init_spline_point(&dst[i + 3], -1, 0, src[j].point); } while (0);
++    init_spline_point(&dst[i], 0, src[j].speed, src[j].point);
++    init_spline_point(&dst[i + 1], 0, 0, src[j].point);
++    init_spline_point(&dst[i + 2], 0, 0, src[j].point);
++    init_spline_point(&dst[i + 3], -1, 0, src[j].point);
+ }
+ 
+ /**
+-- 
+2.55.0
+

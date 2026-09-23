@@ -1,0 +1,97 @@
+From f94f969d4ae95d6d6b560bd3dfe5b25debbfc75e Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:26:36 +0000
+Subject: [PATCH 24/46] game: call the side-effecting initialisers directly
+ instead of through an UNUSED local
+
+`UNUSED f32 sp30 = random_float();` is there for the call, not the value:
+the RNG must advance, `object_step()` must move the object, `find_floor`
+must run. Writing the call as a statement says so; the dead local said
+the opposite.
+
+Verified: each file, through its including translation unit, compiles to
+byte-identical assembly before and after with the port's own flags
+(asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/bowling_ball.inc.c | 2 +-
+ src/game/behaviors/end_birds_1.inc.c  | 3 ++-
+ src/game/behaviors/end_birds_2.inc.c  | 2 +-
+ src/game/behaviors/red_coin.inc.c     | 2 +-
+ src/game/behaviors/snowman.inc.c      | 2 +-
+ 5 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/src/game/behaviors/bowling_ball.inc.c b/src/game/behaviors/bowling_ball.inc.c
+index 055a09eb..97ca2e20 100644
+--- a/src/game/behaviors/bowling_ball.inc.c
++++ b/src/game/behaviors/bowling_ball.inc.c
+@@ -228,8 +228,8 @@ void bhv_bob_pit_bowling_ball_init(void) {
+ 
+ void bhv_bob_pit_bowling_ball_loop(void) {
+     struct FloorGeometry *sp1c;
+-    UNUSED s16 collisionFlags = object_step();
+ 
++    object_step();
+     find_floor_height_and_data(o->oPosX, o->oPosY, o->oPosZ, &sp1c);
+     if ((sp1c->normalX == 0) && (sp1c->normalZ == 0)) {
+         o->oForwardVel = 28.0f;
+diff --git a/src/game/behaviors/end_birds_1.inc.c b/src/game/behaviors/end_birds_1.inc.c
+index 69889724..5f14c928 100644
+--- a/src/game/behaviors/end_birds_1.inc.c
++++ b/src/game/behaviors/end_birds_1.inc.c
+@@ -2,7 +2,8 @@
+ 
+ void bhv_end_birds_1_loop(void) {
+     Vec3f sp34;
+-    UNUSED f32 sp30 = random_float();
++
++    random_float();
+ 
+     switch (o->oAction) {
+         case 0:
+diff --git a/src/game/behaviors/end_birds_2.inc.c b/src/game/behaviors/end_birds_2.inc.c
+index 388a4781..cb296806 100644
+--- a/src/game/behaviors/end_birds_2.inc.c
++++ b/src/game/behaviors/end_birds_2.inc.c
+@@ -2,10 +2,10 @@
+ 
+ void bhv_end_birds_2_loop(void) {
+     Vec3f sp3C;
+-    UNUSED f32 sp38 = random_float();
+     f32 sp34;
+     s16 sp32, sp30;
+ 
++    random_float();
+     o->oForwardVel = (random_float() * 10.0f) + 25.0f;
+ 
+     switch (o->oAction) {
+diff --git a/src/game/behaviors/red_coin.inc.c b/src/game/behaviors/red_coin.inc.c
+index 4a317c5a..1663c05c 100644
+--- a/src/game/behaviors/red_coin.inc.c
++++ b/src/game/behaviors/red_coin.inc.c
+@@ -26,7 +26,7 @@ static struct ObjectHitbox sRedCoinHitbox = {
+ void bhv_red_coin_init(void) {
+     // This floor and floor height are unused. Perhaps for orange number spawns originally?
+     struct Surface *dummyFloor;
+-    UNUSED f32 floorHeight = find_floor(o->oPosX, o->oPosY, o->oPosZ, &dummyFloor);
++    find_floor(o->oPosX, o->oPosY, o->oPosZ, &dummyFloor);
+ 
+     // Set the red coins to have a parent of the closest red coin star.
+     struct Object *hiddenRedCoinStar;
+diff --git a/src/game/behaviors/snowman.inc.c b/src/game/behaviors/snowman.inc.c
+index a89dc0d6..0c2160cf 100644
+--- a/src/game/behaviors/snowman.inc.c
++++ b/src/game/behaviors/snowman.inc.c
+@@ -78,7 +78,7 @@ void snowmans_bottom_act_1(void) {
+ }
+ 
+ void snowmans_bottom_act_2(void) {
+-    UNUSED s16 collisionFlags = object_step_without_floor_orient();
++    object_step_without_floor_orient();
+ 
+     if (o->oForwardVel > 70.0) {
+         o->oForwardVel = 70.0f;
+-- 
+2.55.0
+

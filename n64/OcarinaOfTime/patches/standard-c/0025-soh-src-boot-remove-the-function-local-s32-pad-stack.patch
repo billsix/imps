@@ -1,0 +1,55 @@
+From b4d9c4ec6f8cfd2afc17f6bdaf19f39a6dda918d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:49:46 +0000
+Subject: [PATCH 25/36] soh/src/boot: remove the function-local `s32 pad;`
+ stack padding
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+These declarations exist to reproduce the ROM's stack-frame layout for
+the matching build; none is referenced again in its function (checked
+per function by the survey, then by the compiler). 3 declaration(s) in
+2 file(s) under soh/src/boot. Struct members are untouched — the
+padding that fixes a layout (SaveContext, the audio structs, anything
+memcpy'd or saved) lives in headers, which this patch does not visit.
+Locals named `pad` that ARE used (z_camera.c, z_vr_box.c, …) are not on
+the list.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ soh/src/boot/yaz0.c      | 2 --
+ soh/src/boot/z_std_dma.c | 1 -
+ 2 files changed, 3 deletions(-)
+
+diff --git a/soh/src/boot/yaz0.c b/soh/src/boot/yaz0.c
+index 25829ad5b..dbb568f12 100644
+--- a/soh/src/boot/yaz0.c
++++ b/soh/src/boot/yaz0.c
+@@ -8,8 +8,6 @@ u32 sYaz0CurSize;
+ uintptr_t sYaz0MaxPtr;
+ 
+ void* Yaz0_FirstDMA(void) {
+-    u32 pad0;
+-    u32 pad1;
+     u32 dmaSize;
+     u32 curSize;
+ 
+diff --git a/soh/src/boot/z_std_dma.c b/soh/src/boot/z_std_dma.c
+index 898f5547a..5c27eacc8 100644
+--- a/soh/src/boot/z_std_dma.c
++++ b/soh/src/boot/z_std_dma.c
+@@ -51,7 +51,6 @@ s32 DmaMgr_DmaRomToRam(uintptr_t rom, uintptr_t ram, size_t size) {
+     OSMesg msg;
+     s32 ret;
+     u32 buffSize = gDmaMgrDmaBuffSize;
+-    s32 pad[2];
+ 
+     if (buffSize == 0) {
+         buffSize = 0x2000;
+-- 
+2.55.0
+

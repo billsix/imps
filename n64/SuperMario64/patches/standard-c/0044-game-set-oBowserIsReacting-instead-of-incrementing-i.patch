@@ -1,0 +1,42 @@
+From 7162cea38a7b653a8447a3529bf3f652f4135e53 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:34:21 +0000
+Subject: [PATCH 44/46] game: set oBowserIsReacting instead of incrementing it
+
+Both `++` sites sit under `if (!o->oBowserIsReacting)`, so they take the
+flag from FALSE to TRUE; every other write is `= TRUE` / `= FALSE`.
+
+Verified: bowser.inc.c, through its including translation unit, compiles
+to byte-identical assembly before and after with the port's own flags
+(asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/bowser.inc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/game/behaviors/bowser.inc.c b/src/game/behaviors/bowser.inc.c
+index f00632dd..e3491dda 100644
+--- a/src/game/behaviors/bowser.inc.c
++++ b/src/game/behaviors/bowser.inc.c
+@@ -326,7 +326,7 @@ void bowser_bitdw_actions(void) {
+             // Keep walking
+             o->oAction = BOWSER_ACT_WALK_TO_MARIO;
+         }
+-        o->oBowserIsReacting++;
++        o->oBowserIsReacting = TRUE;
+     } else {
+         o->oBowserIsReacting = FALSE;
+         // Set starting Bowser level actions, randomly he can also start
+@@ -369,7 +369,7 @@ void bowser_bitfs_actions(void) {
+             // Keep walking
+             o->oAction = BOWSER_ACT_WALK_TO_MARIO;
+         }
+-        o->oBowserIsReacting++;
++        o->oBowserIsReacting = TRUE;
+     } else {
+         // Keep walking
+         o->oBowserIsReacting = FALSE;
+-- 
+2.55.0
+

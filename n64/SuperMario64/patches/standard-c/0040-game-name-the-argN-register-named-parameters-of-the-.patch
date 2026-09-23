@@ -1,0 +1,138 @@
+From 0d65cff94bc262b36b41db805241f2424f3fb387 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:32:29 +0000
+Subject: [PATCH 40/46] game: name the argN / register-named parameters of the
+ small object helpers
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+mario_is_far_below_object(minDistBelow), eyerok_check_mario_relative_z
+(maxRelZ), the five cur_obj_*anim* wrappers in obj_behaviors_2.c
+(animIndex, animFrame, frame1/frame2 and the per-tick frameStep derived
+from animAccel), and bub_move_vertically(increment — the step handed to
+approach_f32_symmetric; parentY for the parent's height it clamps
+around).
+
+Verified: every file, through its including translation unit where it is
+an .inc.c, compiles to byte-identical assembly before and after with the
+port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/bub.inc.c         | 10 +++++-----
+ src/game/behaviors/eyerok.inc.c      |  4 ++--
+ src/game/behaviors/king_bobomb.inc.c |  4 ++--
+ src/game/obj_behaviors_2.c           | 28 ++++++++++++++--------------
+ 4 files changed, 23 insertions(+), 23 deletions(-)
+
+diff --git a/src/game/behaviors/bub.inc.c b/src/game/behaviors/bub.inc.c
+index e0890909..52b4cfb7 100644
+--- a/src/game/behaviors/bub.inc.c
++++ b/src/game/behaviors/bub.inc.c
+@@ -44,11 +44,11 @@ void bhv_bub_spawner_loop(void) {
+     cur_obj_call_action_function(sBirdChirpChirpActions);
+ }
+ 
+-void bub_move_vertically(s32 a0) {
+-    f32 sp1C = o->parentObj->oPosY;
+-    if (sp1C - 100.0f - o->oCheepCheepUnk104 < o->oPosY
+-        && o->oPosY < sp1C + 1000.0f + o->oCheepCheepUnk104) {
+-        o->oPosY = approach_f32_symmetric(o->oPosY, o->oCheepCheepUnkF8, a0);
++void bub_move_vertically(s32 increment) {
++    f32 parentY = o->parentObj->oPosY;
++    if (parentY - 100.0f - o->oCheepCheepUnk104 < o->oPosY
++        && o->oPosY < parentY + 1000.0f + o->oCheepCheepUnk104) {
++        o->oPosY = approach_f32_symmetric(o->oPosY, o->oCheepCheepUnkF8, increment);
+     } else {
+     }
+ }
+diff --git a/src/game/behaviors/eyerok.inc.c b/src/game/behaviors/eyerok.inc.c
+index cb036dda..1824f880 100644
+--- a/src/game/behaviors/eyerok.inc.c
++++ b/src/game/behaviors/eyerok.inc.c
+@@ -14,8 +14,8 @@ struct ObjectHitbox sEyerokHitbox = {
+ 
+ s8 D_80331BA4[] = { 0, 1, 3, 2, 1, 0 };
+ 
+-static s32 eyerok_check_mario_relative_z(s32 arg0) {
+-    if (gMarioObject->oPosZ - o->oHomeZ < arg0) {
++static s32 eyerok_check_mario_relative_z(s32 maxRelZ) {
++    if (gMarioObject->oPosZ - o->oHomeZ < maxRelZ) {
+         return TRUE;
+     } else {
+         return FALSE;
+diff --git a/src/game/behaviors/king_bobomb.inc.c b/src/game/behaviors/king_bobomb.inc.c
+index 9c317fce..aa4f2d9d 100644
+--- a/src/game/behaviors/king_bobomb.inc.c
++++ b/src/game/behaviors/king_bobomb.inc.c
+@@ -43,8 +43,8 @@ void king_bobomb_act_0(void) {
+     }
+ }
+ 
+-s32 mario_is_far_below_object(f32 arg0) {
+-    if (arg0 < o->oPosY - gMarioObject->oPosY) {
++s32 mario_is_far_below_object(f32 minDistBelow) {
++    if (minDistBelow < o->oPosY - gMarioObject->oPosY) {
+         return TRUE;
+     } else {
+         return FALSE;
+diff --git a/src/game/obj_behaviors_2.c b/src/game/obj_behaviors_2.c
+index a2d7e55a..9ead7b6d 100644
+--- a/src/game/obj_behaviors_2.c
++++ b/src/game/obj_behaviors_2.c
+@@ -337,37 +337,37 @@ s32 clamp_f32(f32 *value, f32 minimum, f32 maximum) {
+     return TRUE;
+ }
+ 
+-void cur_obj_init_anim_extend(s32 arg0) {
+-    cur_obj_init_animation_with_sound(arg0);
++void cur_obj_init_anim_extend(s32 animIndex) {
++    cur_obj_init_animation_with_sound(animIndex);
+     cur_obj_extend_animation_if_at_end();
+ }
+ 
+-s32 cur_obj_init_anim_and_check_if_end(s32 arg0) {
+-    cur_obj_init_animation_with_sound(arg0);
++s32 cur_obj_init_anim_and_check_if_end(s32 animIndex) {
++    cur_obj_init_animation_with_sound(animIndex);
+     return cur_obj_check_if_near_animation_end();
+ }
+ 
+-s32 cur_obj_init_anim_check_frame(s32 arg0, s32 arg1) {
+-    cur_obj_init_animation_with_sound(arg0);
+-    return cur_obj_check_anim_frame(arg1);
++s32 cur_obj_init_anim_check_frame(s32 animIndex, s32 animFrame) {
++    cur_obj_init_animation_with_sound(animIndex);
++    return cur_obj_check_anim_frame(animFrame);
+ }
+ 
+-s32 cur_obj_set_anim_if_at_end(s32 arg0) {
++s32 cur_obj_set_anim_if_at_end(s32 animIndex) {
+     if (cur_obj_check_if_at_animation_end()) {
+-        cur_obj_init_animation_with_sound(arg0);
++        cur_obj_init_animation_with_sound(animIndex);
+         return TRUE;
+     }
+     return FALSE;
+ }
+ 
+-s32 cur_obj_play_sound_at_anim_range(s8 arg0, s8 arg1, u32 sound) {
+-    s32 val04;
++s32 cur_obj_play_sound_at_anim_range(s8 frame1, s8 frame2, u32 sound) {
++    s32 frameStep;
+ 
+-    if ((val04 = o->header.gfx.animInfo.animAccel / 0x10000) <= 0) {
+-        val04 = 1;
++    if ((frameStep = o->header.gfx.animInfo.animAccel / 0x10000) <= 0) {
++        frameStep = 1;
+     }
+ 
+-    if (cur_obj_check_anim_frame_in_range(arg0, val04) || cur_obj_check_anim_frame_in_range(arg1, val04)) {
++    if (cur_obj_check_anim_frame_in_range(frame1, frameStep) || cur_obj_check_anim_frame_in_range(frame2, frameStep)) {
+         cur_obj_play_sound_2(sound);
+         return TRUE;
+     }
+-- 
+2.55.0
+

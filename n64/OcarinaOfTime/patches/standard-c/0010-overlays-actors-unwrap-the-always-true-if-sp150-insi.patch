@@ -1,0 +1,67 @@
+From 97242c08ec7030624fb275f7c145c762c0de2daf Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 16:36:15 +0000
+Subject: [PATCH 10/36] overlays/actors: unwrap the always-true `if (sp150)`
+ inside `for (i1 = 0; i1 < sp150; i1++)` in Boss_Fd
+
+Inside the loop `i1 < sp150` with `i1 >= 0` already means `sp150 != 0`.
+
+Verified: z_boss_fd.c, through its translation unit, compiles to
+byte-identical assembly before and after with the port's own flags
+(asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ .../overlays/actors/ovl_Boss_Fd/z_boss_fd.c   | 30 +++++++++----------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
+
+diff --git a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+index b8f866ea7..ec0ab18f3 100644
+--- a/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
++++ b/soh/src/overlays/actors/ovl_Boss_Fd/z_boss_fd.c
+@@ -786,28 +786,26 @@ void BossFd_Fly(BossFd* this, PlayState* play) {
+                                          &gSfxDefaultFreqAndVolScale, &gSfxDefaultFreqAndVolScale, &gSfxDefaultReverb);
+                 }
+                 for (i1 = 0; i1 < sp150; i1++) {
+-                    if (sp150) { // Needed for matching
+-                        temp_rand2 = Rand_ZeroFloat(99.9f);
++                    temp_rand2 = Rand_ZeroFloat(99.9f);
+ 
+-                        sp188.x = this->bodySegsPos[temp_rand2].x;
+-                        sp188.y = this->bodySegsPos[temp_rand2].y - 10.0f;
+-                        sp188.z = this->bodySegsPos[temp_rand2].z;
++                    sp188.x = this->bodySegsPos[temp_rand2].x;
++                    sp188.y = this->bodySegsPos[temp_rand2].y - 10.0f;
++                    sp188.z = this->bodySegsPos[temp_rand2].z;
+ 
+-                        sp164.y = 0.03f;
++                    sp164.y = 0.03f;
+ 
+-                        EffectSsKFire_Spawn(play, &sp188, &sp17C, &sp164, (s16)Rand_ZeroFloat(20.0f) + 40, 0x64);
++                    EffectSsKFire_Spawn(play, &sp188, &sp17C, &sp164, (s16)Rand_ZeroFloat(20.0f) + 40, 0x64);
+ 
+-                        for (i2 = 0; i2 < 15; i2++) {
+-                            sp170.x = Rand_CenteredFloat(20.0f);
+-                            sp170.y = Rand_CenteredFloat(20.0f);
+-                            sp170.z = Rand_CenteredFloat(20.0f);
++                    for (i2 = 0; i2 < 15; i2++) {
++                        sp170.x = Rand_CenteredFloat(20.0f);
++                        sp170.y = Rand_CenteredFloat(20.0f);
++                        sp170.z = Rand_CenteredFloat(20.0f);
+ 
+-                            sp158.y = 0.4f;
+-                            sp158.x = Rand_CenteredFloat(0.5f);
+-                            sp158.z = Rand_CenteredFloat(0.5f);
++                        sp158.y = 0.4f;
++                        sp158.x = Rand_CenteredFloat(0.5f);
++                        sp158.z = Rand_CenteredFloat(0.5f);
+ 
+-                            BossFd_SpawnEmber(this->effects, &sp188, &sp170, &sp158, (s16)Rand_ZeroFloat(3.0f) + 8);
+-                        }
++                        BossFd_SpawnEmber(this->effects, &sp188, &sp170, &sp158, (s16)Rand_ZeroFloat(3.0f) + 8);
+                     }
+                 }
+             }
+-- 
+2.55.0
+

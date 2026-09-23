@@ -24,14 +24,37 @@ personal branches — the patch series is the whole delta.
 
 ## Patches
 
-**Stream order is pinned here — `personal` FIRST** (`patches/ORDER`; `apply.sh`
-honours it). The renames touch 3,781 symbols and 18 filenames, so **any stream
-added later must be written against the renamed tree** — without the pin a future
-`book/` stream would sort alphabetically ahead of `personal/` and try to patch
-symbols that no longer exist. Stream folders stay separate regardless (keeps
-`upstream-candidates/` submittable on its own; see `../CLAUDE.md`).
+**Stream order is pinned here — `standard-c`, then `personal`** (`patches/ORDER`,
+rationale inline; `apply.sh` honours it). `standard-c` is upstream-bound, so it is
+the base the renames sit on; the renames touch 3,781 symbols and 18 filenames, so
+**any stream added later must be written against the renamed tree** — without
+the pin a future `book/` stream would sort alphabetically ahead of `personal/`
+and try to patch symbols that no longer exist. Stream folders stay separate
+regardless (keeps `upstream-candidates/` submittable on its own; see `../CLAUDE.md`).
 
-- `patches/personal/0001…0488-*.patch` — the decomp rename series, **one file
+- `patches/standard-c/0001…0036-*.patch` (36 patches, 2026-09-22; **upstream-
+  bound**) — rewrites the decomp's assembly-isms into standard C, one class per
+  patch: `== true` on boolean-valued operands, the 72 empty `if (x) {}` matching
+  artefacts, `goto`→`return`/`continue`, self-assignments / fake temps / dead
+  locals / `(*p).f` / `((void)0, x)`, `if (1) {` unwraps, empty arms, unreachable
+  `break`, the seven redundant `else if` tails, `& 0xFFFF` before 16-bit stores,
+  UB left shifts → `*`, promotion casts, the existing names for `fwork[1]` and the
+  horse-race save bits, `(u8*)` byte arithmetic, **the 1,710 function-local
+  `s32 pad;` fillers**, test-first loops, Yoda comparisons, nested-if `&&` merges,
+  stale matching notes. **Every patch is gate-proven: each touched file compiles
+  to byte-identical assembly before and after** with SoH's own flags
+  (`../../tools/asmdiff.sh`, `ASMDIFF_PROJECT=OcarinaOfTime`),
+  and the whole stream was re-gated file-by-file against the pin (486/486). Not in
+  the stream: rewrites whose codegen differs (`../../tasks/ocarina-standard-c-explained-diffs.md`)
+  and the naming classes (stack-slot locals, `argN`, per-actor `params` macros).
+  Catalogue + per-batch log: `../../tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`;
+  patterns: `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
+  Checkout branch `imps-standard-c`; at a pin bump replay AND re-run the gate.
+- `patches/personal/0001…0488-*.patch` — the decomp rename series, **re-cut
+  2026-09-22 against the `standard-c` tree** (87 patches needed a 3-way conflict
+  resolved, mechanically: our side + that patch's renames + its provenance tags —
+  `../../tools/resolve_rename_conflicts.py`; the
+  `--base` footer now names the `standard-c` tip). Still **one file
   per patch**: 0001 renames the 18 address-named `soh/src/code/code_<addr>.c`
   files, and each other patch names the address-named symbols in one definition
   file (156 files hold a single symbol). Every renamed symbol carries a
@@ -98,6 +121,12 @@ details against the pinned checkout.
 - [`decomp-renaming.md`](../../tasks/reference/ocarina/decomp-renaming.md) —
   how to rename `func_/D_` symbols safely; read before touching the
   decomp-rename task.
+- [`assembly-isms-in-soh.md`](../../tasks/reference/ocarina/assembly-isms-in-soh.md) —
+  what SoH's decomp has that SM64's does not (matching blocks, `s32 pad;`,
+  `PARAMS_GET_*`, the angle macros), what the `standard-c` stream rewrote, the
+  gate results that surprised, and what remains (naming, explained diffs, bugs).
+  Tooling map: `../../tasks/reference/imps/standard-c-tooling.md`; how the rename
+  stream was re-cut under it: `../../tasks/reference/imps/recutting-a-stream-under-a-new-base.md`.
 - [`../../tasks/reference/imps/squashing-a-produced-series-for-review.md`](../../tasks/reference/imps/squashing-a-produced-series-for-review.md)
   — repo-wide: how a series produced at one change per commit is regrouped into
   reviewable units without losing the per-commit reasoning, and how to prove the

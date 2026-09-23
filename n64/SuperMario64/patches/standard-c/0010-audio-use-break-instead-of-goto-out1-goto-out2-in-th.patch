@@ -1,0 +1,70 @@
+From df4bccb9a9c4c94ba83be5e2de0ce7d59f0f9f7a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:14:11 +0000
+Subject: [PATCH 10/46] audio: use `break` instead of `goto out1`/`goto out2`
+ in the sample-DMA init loops
+
+Both loops already say `break` in their EU arm; the JP/US arm used a
+`goto` to a label placed immediately after the loop, which is the same
+control transfer. Use `break` unconditionally and drop the two
+version-guarded labels.
+
+Verified: load.c compiles to byte-identical assembly before and after with
+the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/audio/load.c | 14 --------------
+ 1 file changed, 14 deletions(-)
+
+diff --git a/src/audio/load.c b/src/audio/load.c
+index 49d0d9d9..60c42ffa 100644
+--- a/src/audio/load.c
++++ b/src/audio/load.c
+@@ -321,11 +321,7 @@ void init_sample_dma_buffers(UNUSED s32 arg0) {
+     {
+         sSampleDmas[gSampleDmaNumListItems].buffer = soundAlloc(&gNotesAndBuffersPool, sDmaBufSize);
+         if (sSampleDmas[gSampleDmaNumListItems].buffer == NULL) {
+-#if defined(VERSION_EU)
+             break;
+-#else
+-            goto out1;
+-#endif
+         }
+         sSampleDmas[gSampleDmaNumListItems].bufSize = sDmaBufSize;
+         sSampleDmas[gSampleDmaNumListItems].source = 0;
+@@ -334,9 +330,6 @@ void init_sample_dma_buffers(UNUSED s32 arg0) {
+         sSampleDmas[gSampleDmaNumListItems].ttl = 0;
+         gSampleDmaNumListItems++;
+     }
+-#if defined(VERSION_JP) || defined(VERSION_US)
+-out1:
+-#endif
+ 
+     for (i = 0; (u32) i < gSampleDmaNumListItems; i++) {
+         sSampleDmaReuseQueue1[i] = (u8) i;
+@@ -359,11 +352,7 @@ out1:
+     for (i = 0; i < gMaxSimultaneousNotes; i++) {
+         sSampleDmas[gSampleDmaNumListItems].buffer = soundAlloc(&gNotesAndBuffersPool, sDmaBufSize);
+         if (sSampleDmas[gSampleDmaNumListItems].buffer == NULL) {
+-#if defined(VERSION_EU)
+             break;
+-#else
+-            goto out2;
+-#endif
+         }
+         sSampleDmas[gSampleDmaNumListItems].bufSize = sDmaBufSize;
+         sSampleDmas[gSampleDmaNumListItems].source = 0;
+@@ -372,9 +361,6 @@ out1:
+         sSampleDmas[gSampleDmaNumListItems].ttl = 0;
+         gSampleDmaNumListItems++;
+     }
+-#if defined(VERSION_JP) || defined(VERSION_US)
+-out2:
+-#endif
+ 
+     for (i = sSampleDmaListSize1; (u32) i < gSampleDmaNumListItems; i++) {
+         sSampleDmaReuseQueue2[i - sSampleDmaListSize1] = (u8) i;
+-- 
+2.55.0
+

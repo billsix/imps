@@ -1,0 +1,1072 @@
+From ffdd45a2efc81f16df274e9454b56e1c1c082f3c Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:27:40 +0000
+Subject: [PATCH 31/46] goddard: remove the function-local `UNUSED u8
+ fillerN[]` stack padding
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+These arrays exist to reproduce the ROM's stack-frame layout for the
+matching build; they are never read or written and the UNUSED attribute
+is the only reason the compiler tolerates them. 144 declarations across
+13 file(s) in goddard/. Struct members are untouched — the fillers
+that fix a layout (save files, object rawData, audio structs) all live in
+headers, which this patch does not visit.
+
+Verified: every file compiles to byte-identical assembly before and after
+with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/goddard/debug_utils.c   |  4 ----
+ src/goddard/draw_objects.c  | 16 ----------------
+ src/goddard/dynlist_proc.c  | 19 -------------------
+ src/goddard/gd_main.c       |  1 -
+ src/goddard/gd_math.c       |  3 ---
+ src/goddard/joints.c        | 20 --------------------
+ src/goddard/objects.c       | 22 ----------------------
+ src/goddard/old_menu.c      |  3 ---
+ src/goddard/particles.c     |  6 ------
+ src/goddard/renderer.c      | 27 ---------------------------
+ src/goddard/shape_helper.c  | 13 -------------
+ src/goddard/skin.c          |  7 -------
+ src/goddard/skin_movement.c |  3 ---
+ 13 files changed, 144 deletions(-)
+
+diff --git a/src/goddard/debug_utils.c b/src/goddard/debug_utils.c
+index 854c746b..25dbe462 100644
+--- a/src/goddard/debug_utils.c
++++ b/src/goddard/debug_utils.c
+@@ -468,7 +468,6 @@ void print_stack_trace(void) {
+  */
+ void fatal_printf(const char *fmt, ...) {
+     char cur;
+-    UNUSED u8 filler[4];
+     va_list vl;
+ 
+     va_start(vl, fmt);
+@@ -698,7 +697,6 @@ char *sprint_val_withspecifiers(char *str, union PrintVal val, char *specifiers)
+     s32 intPart;  // sp38
+     s32 intPrec;  // sp34
+     s32 fracPrec; // sp30
+-    UNUSED u8 filler[4];
+     char cur; // sp2B
+ 
+     fracPrec = 6;
+@@ -834,7 +832,6 @@ struct GdFile *gd_fopen(const char *filename, const char *mode) {
+     struct GdFile *f; // sp74
+     char *loadedname; // sp70
+     u32 i;            // sp6C
+-    UNUSED u8 filler[4];
+     struct UnkBufThing buf; // sp24
+     u8 *bufbytes;           // sp20
+     u8 *fileposptr;         // sp1C
+@@ -926,7 +923,6 @@ s32 is_newline(char c) {
+ s32 gd_fread_line(char *buf, u32 size, struct GdFile *f) {
+     signed char c;
+     u32 pos = 0;
+-    UNUSED u8 filler[4];
+ 
+     do {
+         if (gd_fread(&c, 1, 1, f) == -1) {
+diff --git a/src/goddard/draw_objects.c b/src/goddard/draw_objects.c
+index 0b0f3326..35bc128d 100644
+--- a/src/goddard/draw_objects.c
++++ b/src/goddard/draw_objects.c
+@@ -168,7 +168,6 @@ void draw_shape(struct ObjShape *shape, s32 flag, f32 c, f32 d, f32 e, // "sweep
+                 f32 i, f32 j, f32 k, // translate shape
+                 f32 l, f32 m, f32 n, // rotate x, y, z
+                 s32 colorIdx, Mat4f *rotMtx) {
+-    UNUSED u8 filler[8];
+     struct GdVec3f sp1C;
+ 
+     restart_timer("drawshape");
+@@ -245,7 +244,6 @@ void draw_shape(struct ObjShape *shape, s32 flag, f32 c, f32 d, f32 e, // "sweep
+ void draw_shape_2d(struct ObjShape *shape, s32 flag, UNUSED f32 c, UNUSED f32 d, UNUSED f32 e, f32 f,
+                    f32 g, f32 h, UNUSED f32 i, UNUSED f32 j, UNUSED f32 k, UNUSED f32 l, UNUSED f32 m,
+                    UNUSED f32 n, UNUSED s32 color, UNUSED s32 p) {
+-    UNUSED u8 filler[8];
+     struct GdVec3f sp1C;
+ 
+     restart_timer("drawshape2d");
+@@ -437,7 +435,6 @@ void draw_face(struct ObjFace *face) {
+     f32 z;                 // 38
+     f32 y;                 // 34
+     f32 x;                 // 30
+-    UNUSED u8 filler[12];
+     s32 i;             // 20; also used to store mtl's gddl number
+     s32 hasTextCoords; // 1c
+     Vtx *gbiVtx;       // 18
+@@ -535,7 +532,6 @@ void Unknown801792F0(struct GdObj *obj) {
+ void draw_label(struct ObjLabel *label) {
+     struct GdVec3f position;
+     char strbuf[0x100];
+-    UNUSED u8 filler[16];
+     struct ObjValPtr *valptr;
+     union ObjVarVal varval;
+     valptrproc_t valfn = label->valfn;
+@@ -593,7 +589,6 @@ void draw_label(struct ObjLabel *label) {
+ void draw_net(struct ObjNet *self) {
+     struct ObjNet *net = self;
+     s32 netColor;
+-    UNUSED u8 filler[80];
+ 
+     if (sSceneProcessType == FIND_PICKS) {
+         return;
+@@ -728,7 +723,6 @@ void world_pos_to_screen_coords(struct GdVec3f *pos, struct ObjCamera *cam, stru
+  */
+ void check_grabbable_click(struct GdObj *input) {
+     struct GdVec3f objPos;
+-    UNUSED u8 filler[12];
+     struct GdObj *obj;
+     Mat4f *mtx;
+ 
+@@ -771,7 +765,6 @@ void check_grabbable_click(struct GdObj *input) {
+  * @param lightgrp lights of `ObjView
+  */
+ void drawscene(enum SceneType process, struct ObjGroup *interactables, struct ObjGroup *lightgrp) {
+-    UNUSED u8 filler[16];
+ 
+     restart_timer("drawscene");
+     imin("draw_scene()");
+@@ -867,11 +860,9 @@ void draw_shape_faces(struct ObjShape *shape) {
+  */
+ void draw_particle(struct GdObj *obj) {
+     struct ObjParticle *ptc = (struct ObjParticle *) obj;
+-    UNUSED u8 filler1[16];
+     struct GdColour *white;
+     struct GdColour *black;
+     f32 brightness;
+-    UNUSED u8 filler2[16];
+ 
+     if (ptc->timeout > 0) {
+         white = sColourPalette[0];
+@@ -906,9 +897,7 @@ void draw_particle(struct GdObj *obj) {
+  */
+ void draw_bone(struct GdObj *obj) {
+     struct ObjBone *bone = (struct ObjBone *) obj;
+-    UNUSED u8 filler1[4];
+     s32 colour;
+-    UNUSED u8 filler2[4];
+     struct GdVec3f scale; // guess
+ 
+     return;
+@@ -937,14 +926,10 @@ void draw_bone(struct GdObj *obj) {
+  */
+ void draw_joint(struct GdObj *obj) {
+     struct ObjJoint *joint = (struct ObjJoint *) obj;
+-    UNUSED u8 filler1[4];
+     UNUSED f32 sp7C = 70.0f;
+-    UNUSED u8 filler2[4];
+     UNUSED s32 sp74 = 1;
+     s32 colour;
+-    UNUSED u8 filler3[8];
+     struct ObjShape *boneShape;
+-    UNUSED u8 filler4[28];
+ 
+     if ((boneShape = joint->shapePtr) == NULL) {
+         return;
+@@ -1345,7 +1330,6 @@ void unpick_obj(struct GdObj *obj) {
+  */
+ void find_closest_pickable_obj(struct GdObj *input) {
+     struct GdObj *obj = input;
+-    UNUSED u8 filler[12];
+     f32 distance;
+ 
+     if (obj->drawFlags & OBJ_IS_GRABBABLE) {
+diff --git a/src/goddard/dynlist_proc.c b/src/goddard/dynlist_proc.c
+index 713eb857..d7eef8a8 100644
+--- a/src/goddard/dynlist_proc.c
++++ b/src/goddard/dynlist_proc.c
+@@ -159,7 +159,6 @@ void reset_dynlist(void) {
+  *          Normally the dynlist specifically sets an object for return.
+  */
+ struct GdObj *proc_dynlist(struct DynList *dylist) {
+-    UNUSED u8 filler[8];
+ 
+     if (dylist++->cmd != 0xD1D4) {
+         fatal_printf("proc_dynlist() not a valid dyn list");
+@@ -433,7 +432,6 @@ static struct DynObjInfo *get_dynobj_info(DynObjName name) {
+  * @note Not called
+  */
+ void reset_dynamic_objs(void) {
+-    UNUSED u8 filler[4];
+ 
+     if (sLoadedDynObjs == 0) {
+         return;
+@@ -485,7 +483,6 @@ void d_end_net_with_subgroup(DynObjName name) {
+  */
+ void d_attach_joint_to_net(UNUSED s32 arg0, DynObjName name) {
+     UNUSED struct DynObjInfo *curInfo = sDynListCurInfo;
+-    UNUSED u8 filler[8];
+ 
+     d_makeobj(D_JOINT, name);
+     d_set_type(3);
+@@ -516,7 +513,6 @@ void d_make_netfromshapeid(DynObjName name) {
+  * the shape is not moved into the dynamic list.
+  */
+ void d_make_netfromshape_ptrptr(struct ObjShape **shapePtr) {
+-    UNUSED u8 filler[4];
+     struct ObjNet *net = make_netfromshape(*shapePtr);
+ 
+     printf("dMakeNetFromShapePtrPtr\n");
+@@ -530,7 +526,6 @@ void d_make_netfromshape_ptrptr(struct ObjShape **shapePtr) {
+  * needed later.
+  */
+ void add_to_dynobj_list(struct GdObj *newobj, DynObjName name) {
+-    UNUSED u8 filler[4];
+     char idbuf[0x100];
+ 
+     start_memtracker("dynlist");
+@@ -713,9 +708,7 @@ void d_attach(DynObjName name) {
+  * the "attach flags" of the current dynamic object to `flag`
+  */
+ void d_attach_to(s32 flag, struct GdObj *obj) {
+-    UNUSED u8 filler1[4];
+     struct ObjGroup *attgrp;
+-    UNUSED u8 filler2[8];
+     UNUSED struct DynObjInfo *curInfo = sDynListCurInfo;
+     struct GdVec3f currObjPos; // transformed into attach offset
+     struct GdVec3f objPos;
+@@ -837,7 +830,6 @@ void copy_bytes(u8 *src, u8 *dst, s32 num) {
+  * rather than solely byted copied like the other types.
+  */
+ void alloc_animdata(struct ObjAnimator *animator) {
+-    UNUSED u8 filler1[4];
+     // probably should be three GdVec3fs, not triangle...
+     // vec0 = position; vec1 = scale? rotation?; vec2 = translation
+     struct GdTriangleF tri;           //+58; temp float for converting half to f32?
+@@ -853,7 +845,6 @@ void alloc_animdata(struct ObjAnimator *animator) {
+     void *allocSpace;                 //+30; allocated animdata space
+     f32 allocMtxScale = 0.1f;         //+2C; scale postion/rotation of GD_ANIM_SCALE3S_POS3S_ROT3S data
+     struct AnimMtxVec *curMtxVec;     //+28
+-    UNUSED u8 filler2[4];
+ 
+     start_memtracker("animdata");
+ 
+@@ -969,7 +960,6 @@ void chk_shapegen(struct ObjShape *shape) {
+     struct ObjGroup *shapeMtls;  // sp50
+     struct ObjGroup *shapeFaces; // sp4C
+     struct ObjGroup *shapeVtx;   // sp48
+-    UNUSED u8 filler[4];
+     struct ObjGroup *madeFaces;  // sp40
+     struct ObjGroup *madeVtx;    // sp3C
+     u32 i;                       // sp38
+@@ -1075,7 +1065,6 @@ void chk_shapegen(struct ObjShape *shape) {
+  */
+ void d_set_nodegroup(DynObjName name) {
+     struct DynObjInfo *info; // sp2C
+-    UNUSED u8 filler[8];
+ 
+     if (sDynListCurObj == NULL) {
+         fatal_printf("proc_dynlist(): No current object");
+@@ -1141,7 +1130,6 @@ void d_set_matgroup(DynObjName name) {
+  * ST coordinates.
+  */
+ void d_set_texture_st(UNUSED f32 s, UNUSED f32 t) {
+-    UNUSED u8 filler[8];
+ 
+     if (sDynListCurObj == NULL) {
+         fatal_printf("proc_dynlist(): No current object");
+@@ -1252,7 +1240,6 @@ void d_map_vertices(DynObjName name) {
+  */
+ void d_set_planegroup(DynObjName name) {
+     struct DynObjInfo *info;
+-    UNUSED u8 filler[8];
+ 
+     if (sDynListCurObj == NULL) {
+         fatal_printf("proc_dynlist(): No current object");
+@@ -1393,7 +1380,6 @@ void d_start_group(DynObjName name) {
+  * and this call.
+  */
+ void d_end_group(DynObjName name) {
+-    UNUSED u8 filler[4];
+     struct DynObjInfo *info = get_dynobj_info(name);
+     struct ObjGroup *dynGrp;
+     s32 i;
+@@ -1414,7 +1400,6 @@ void d_end_group(DynObjName name) {
+  * Add the current dynamic object to the dynamic `ObjGroup` `name`.
+  */
+ void d_addto_group(DynObjName name) {
+-    UNUSED u8 filler[4];
+     struct DynObjInfo *info = get_dynobj_info(name);
+     struct ObjGroup *targetGrp;
+ 
+@@ -1441,9 +1426,7 @@ void d_use_integer_names(s32 isIntBool) {
+  * to `(x, y, z)`.
+  */
+ void d_set_init_pos(f32 x, f32 y, f32 z) {
+-    UNUSED u8 filler1[12];
+     struct GdObj *dynobj = sDynListCurObj; // sp28
+-    UNUSED u8 filler2[4];
+ 
+     if (sDynListCurObj == NULL) {
+         fatal_printf("proc_dynlist(): No current object");
+@@ -1900,7 +1883,6 @@ void d_set_att_offset(const struct GdVec3f *off) {
+  */
+ void d_set_att_to_offset(UNUSED u32 a) {
+     struct GdObj *dynobj; // sp3c
+-    UNUSED u8 filler[24];
+ 
+     if (sDynListCurObj == NULL) {
+         fatal_printf("proc_dynlist(): No current object");
+@@ -2239,7 +2221,6 @@ void d_set_scale(f32 x, f32 y, f32 z) {
+  */
+ void d_set_rotation(f32 x, f32 y, f32 z) {
+     struct GdObj *dynobj; // sp2C
+-    UNUSED u8 filler[4];
+ 
+     if (sDynListCurObj == NULL) {
+         fatal_printf("proc_dynlist(): No current object");
+diff --git a/src/goddard/gd_main.c b/src/goddard/gd_main.c
+index a33910fa..835b3c49 100644
+--- a/src/goddard/gd_main.c
++++ b/src/goddard/gd_main.c
+@@ -28,7 +28,6 @@ struct GdControl gGdCtrlPrev; // @ 801B9A18; previous frame's controller info
+  * Unused main function possibly from when this was a standalone demo
+  */
+ u32 __main__(void) {
+-    UNUSED u8 filler[4];
+ 
+     gd_printf("%x, %x\n", (u32) (uintptr_t) &D_801A8058, (u32) (uintptr_t) &gGdMoveScene);
+     imin("main");
+diff --git a/src/goddard/gd_math.c b/src/goddard/gd_math.c
+index 5c8c498e..826ab507 100644
+--- a/src/goddard/gd_math.c
++++ b/src/goddard/gd_math.c
+@@ -598,7 +598,6 @@ void UNUSED gd_quat_rotation(f32 quat[4], UNUSED s32 unused, f32 c, f32 s, s32 i
+     s32 j;
+     s32 k;
+     f32 quatVal;
+-    UNUSED u8 filler[8];
+ 
+     if ((j = i + 1) >= 4) {
+         j = 1;
+@@ -872,7 +871,6 @@ void gd_mult_mat4f(const Mat4f *mA, const Mat4f *mB, Mat4f *dst) {
+  * Printed the prefix at some point, as shown by how the function is used.
+  */
+ void gd_print_vec(UNUSED const char *prefix, const struct GdVec3f *vec) {
+-    UNUSED u8 filler[8];
+ 
+     printf("%f,%f,%f\n", vec->x, vec->y, vec->z);
+     printf("\n");
+@@ -884,7 +882,6 @@ void gd_print_vec(UNUSED const char *prefix, const struct GdVec3f *vec) {
+  * Printed a prefix at some point, as shone by how the function is used.
+  */
+ void gd_print_bounding_box(UNUSED const char *prefix, UNUSED const struct GdBoundingBox *p) {
+-    UNUSED u8 filler[8];
+ 
+     printf("Min X = %f, Max X = %f \n", p->minX, p->maxX);
+     printf("Min Y = %f, Max Y = %f \n", p->minY, p->maxY);
+diff --git a/src/goddard/joints.c b/src/goddard/joints.c
+index 85f03528..4fae9551 100644
+--- a/src/goddard/joints.c
++++ b/src/goddard/joints.c
+@@ -47,13 +47,9 @@ void set_joint_vecs(struct ObjJoint *, f32, f32, f32);
+  * Controls movement of grabbable joints
+  */
+ void grabbable_joint_update_func(struct ObjJoint *self) {
+-    UNUSED u8 filler1[80];
+     Mat4f *attObjMtx;
+-    UNUSED u8 filler2[4];
+     struct GdVec3f offset;  // difference between current position and initial position
+-    UNUSED u8 filler3[16];
+     struct ListNode *att;
+-    UNUSED u8 filler4[8];
+     struct GdObj *attobj;
+ 
+     // The joint acts somewhat like a spring in that the further it is moved
+@@ -133,7 +129,6 @@ void eye_joint_update_func(struct ObjJoint *self) {
+     Mat4f *sp5C;
+     struct GdVec3f sp50;
+     struct GdVec3f sp44;
+-    UNUSED u8 filler[24];
+     struct ListNode *att;
+     struct GdObj *attobj;
+ 
+@@ -226,7 +221,6 @@ void set_joint_vecs(struct ObjJoint *j, f32 x, f32 y, f32 z) {
+ struct ObjJoint *make_joint(s32 flags, f32 x, f32 y, f32 z) {
+     struct ObjJoint *j; // sp24
+     struct ObjJoint *oldhead;
+-    UNUSED u8 filler[4];
+ 
+     j = (struct ObjJoint *) make_object(OBJ_TYPE_JOINTS);
+     sJointCount++;
+@@ -327,7 +321,6 @@ void func_8018F4CC(struct ObjJoint *j) {
+ void func_8018F520(struct ObjBone *b) {
+     struct ObjJoint *joint1;
+     struct ObjJoint *joint2;
+-    UNUSED u8 filler[12];
+     struct GdVec3f sp90;
+     struct GdVec3f sp84;
+     struct GdVec3f sp78;
+@@ -393,7 +386,6 @@ void func_8018F520(struct ObjBone *b) {
+ void func_8018F89C(struct ObjBone *b) {
+     struct ObjJoint *spAC;
+     struct ObjJoint *spA8;
+-    UNUSED u8 filler[68];
+     struct ObjGroup *grp; // sp60
+     struct ListNode *link;   // sp5c
+     Mat4f mtx;            // sp1c
+@@ -490,7 +482,6 @@ void add_joint2bone(struct ObjBone *b, struct ObjJoint *j) {
+ struct ObjBone *make_bone(s32 a0, struct ObjJoint *j1, struct ObjJoint *j2, UNUSED s32 a3) {
+     struct ObjBone *b; // sp34
+     struct ObjBone *oldhead;
+-    UNUSED u8 filler[20];
+ 
+     b = (struct ObjBone *) make_object(OBJ_TYPE_BONES);
+     sBoneCount++;
+@@ -592,11 +583,9 @@ s32 func_8018FFE8(struct ObjBone **a0, struct ObjJoint **a1, struct ObjJoint *a2
+ void func_80190168(struct ObjBone *b, UNUSED struct ObjJoint *a1, UNUSED struct ObjJoint *a2,
+                    struct GdVec3f *a3) {
+     struct GdVec3f sp7C;
+-    UNUSED u8 filler1[24];
+     f32 sp60;
+     f32 sp5C;
+     f32 sp58;
+-    UNUSED u8 filler2[60];
+ 
+     return;
+ 
+@@ -672,16 +661,13 @@ void func_80190574(s32 a0, struct ObjJoint *a1, struct ObjJoint *a2, f32 x, f32
+     struct ObjJoint *sp274; // = a2?
+     struct ObjJoint *sp270; // mid-point of stack array?
+     struct ObjJoint *sp26C; // jointstackarr[i]? curjoint?
+-    UNUSED u8 filler1[4];
+     UNUSED u32 unused = 0;
+     UNUSED u8 filler2[12]; // unused vec?
+     struct GdVec3f sp24C;
+     struct GdVec3f sp240;
+-    UNUSED u8 filler3[8];
+     s32 sp234; // i?
+     s32 sp230;
+     s32 sp22C = 1;
+-    UNUSED u8 filler4[4];
+     s32 sp224;
+     s32 sp220;
+     struct ObjJoint *sp120[0x40];
+@@ -783,7 +769,6 @@ void func_801909B4(void) {
+ /* 23F1F0 -> 23F324; not called */
+ void func_80190A20(void) {
+     struct ObjJoint *j; // sp3c
+-    UNUSED u8 filler[4];
+     struct GdVec3f vec; // sp2C
+     struct ObjGroup *grp;
+     struct ListNode *link;
+@@ -809,13 +794,11 @@ void func_80190A20(void) {
+ /* 23F324 -> 23F638 */
+ void func_80190B54(struct ObjJoint *a0, struct ObjJoint *a1, struct GdVec3f *a2) { // b0
+     struct GdVec3f spA4;
+-    UNUSED u8 filler1[12];
+     struct GdVec3f sp8C;
+     struct GdVec3f sp80;
+     f32 sp7C;
+     f32 sp78;
+     Mat4f sp38;
+-    UNUSED u8 filler2[28];
+ 
+     if (a1 != NULL) {
+         spA4.x = a1->unk3C.x;
+@@ -872,7 +855,6 @@ void func_80190E68(struct GdObj *obj, f32 x, f32 y, f32 z) {
+     struct ObjJoint *sp44;
+     struct GdObj *sp40;
+     struct GdVec3f vec;
+-    UNUSED u8 filler[24];
+ 
+     vec.x = x;
+     vec.y = y;
+@@ -962,7 +944,6 @@ void func_80191220(struct ObjJoint *j) {
+ 
+ /* 23FB90 -> 23FBC0 */
+ void func_801913C0(struct ObjJoint *j) {
+-    UNUSED u8 filler[16];
+     func_80181894(j);
+ }
+ 
+@@ -1034,7 +1015,6 @@ void reset_joint(struct ObjJoint *j) {
+ /* 23FFF4 -> 2400C4 */
+ void func_80191824(struct ObjJoint *j) {
+     UNUSED struct ObjNet *sp14;
+-    UNUSED u8 filler[16];
+ 
+     sp14 = gGdSkinNet->unk1F0;
+     if (j->flags & 0x1) {
+diff --git a/src/goddard/objects.c b/src/goddard/objects.c
+index d66be4ca..17a71bf8 100644
+--- a/src/goddard/objects.c
++++ b/src/goddard/objects.c
+@@ -431,7 +431,6 @@ void reset_plane(struct ObjPlane *plane) {
+     struct ObjFace *sp4C;
+     f32 sp48;
+     f32 sp44;
+-    UNUSED u8 filler[12];
+     s32 i;
+     s32 sp30;
+     f32 sp28;
+@@ -508,7 +507,6 @@ void reset_plane(struct ObjPlane *plane) {
+ 
+ /* @ 22B60C for 0x94; orig name: func_8017CE3C */
+ struct ObjPlane *make_plane(s32 inZone, struct ObjFace *a1) {
+-    UNUSED u8 filler[4];
+     struct ObjPlane *newPlane = (struct ObjPlane *) make_object(OBJ_TYPE_PLANES);
+ 
+     gGdPlaneCount++;
+@@ -749,9 +747,7 @@ void format_object_id(char *str, struct GdObj *obj) {
+ struct ObjGroup *make_group(s32 count, ...) {
+     va_list args;
+     s32 i;
+-    UNUSED u8 filler1[4];
+     struct GdObj *curObj;
+-    UNUSED u8 filler2[12];
+     struct ObjGroup *newGroup;
+     struct ObjGroup *oldGroupListHead;
+     struct GdObj *vargObj;
+@@ -811,7 +807,6 @@ struct ObjGroup *make_group(s32 count, ...) {
+  */
+ void addto_group(struct ObjGroup *group, struct GdObj *obj) {
+     char strbuf[0x20];
+-    UNUSED u8 filler[8];
+ 
+     imin("addto_group");
+ 
+@@ -1024,7 +1019,6 @@ void menu_cb_reset_positions(void) {
+  * Unused (not called) - does nothing useful
+  */
+ struct GdObj *func_8017E2F0(struct GdObj *obj, enum ObjTypeFlag type) {
+-    UNUSED u8 filler[4];
+     enum ObjTypeFlag curObjType;
+     struct ListNode *node;
+ 
+@@ -1061,7 +1055,6 @@ s32 apply_to_obj_types_in_group(s32 types, applyproc_t func, struct ObjGroup *gr
+     struct GdObj *linkedObj;
+     enum ObjTypeFlag linkedObjType;
+     applyproc_t objFn;
+-    UNUSED u8 filler[32];
+     s32 fnAppliedCount;
+ 
+     fnAppliedCount = 0;
+@@ -1108,7 +1101,6 @@ void func_8017E584(struct ObjNet *a0, struct GdVec3f *a1, struct GdVec3f *a2) {
+     struct GdVec3f sp70;
+     UNUSED u8 filler1[64]; // unused MyMatrix4x4? f32[4][4]
+     f32 sp2C;
+-    UNUSED u8 filler2[4];
+     struct GdVec3f sp1C;
+ 
+     sp70.x = a2->x;
+@@ -1158,10 +1150,8 @@ void func_8017E584(struct ObjNet *a0, struct GdVec3f *a1, struct GdVec3f *a2) {
+ 
+ /* @ 22D008 for 0x1B4 */
+ void func_8017E838(struct ObjNet *a0, struct GdVec3f *a1, struct GdVec3f *a2) {
+-    UNUSED u8 filler1[12];
+     struct GdVec3f sp70;
+     struct GdVec3f sp64;
+-    UNUSED u8 filler2[64];
+     struct GdVec3f sp18;
+ 
+     sp64.x = a1->x;
+@@ -1356,13 +1346,11 @@ s32 gd_plane_point_within(struct GdBoundingBox *box1, struct GdBoundingBox *box2
+ s32 transform_child_objects_recursive(struct GdObj *obj, struct GdObj *parentObj) {
+     struct ListNode *curLink;
+     struct ObjGroup *curGroup;
+-    UNUSED u8 filler1[4];
+     Mat4f *parentUnkMtx;
+     Mat4f *iMtx;
+     Mat4f *unkMtx;
+     Mat4f *rotMtx;
+     Mat4f *rotMtx2;
+-    UNUSED u8 filler2[24];
+     struct GdVec3f scale;
+ 
+     if (parentObj != NULL) {
+@@ -1410,13 +1398,11 @@ s32 transform_child_objects_recursive(struct GdObj *obj, struct GdObj *parentObj
+ s32 func_8017F210(struct GdObj *a0, struct GdObj *a1) {
+     struct ListNode *sp6C;
+     struct ObjGroup *sp68;
+-    UNUSED u8 filler1[4];
+     UNUSED Mat4f *sp60;
+     Mat4f *sp5C;
+     UNUSED Mat4f *sp58;
+     Mat4f *sp54;
+     Mat4f *sp50;
+-    UNUSED u8 filler2[24];
+     struct GdVec3f sp2C;
+     s32 count = 0;
+ 
+@@ -1465,7 +1451,6 @@ void func_8017F3CC(struct Unk8017F3CC *a0) {
+ 
+ /* @ 22DBD4 for 0x20 */
+ void stub_objects_3(UNUSED f32 a0, UNUSED struct GdObj *a1, UNUSED struct GdObj *a2) {
+-    UNUSED u8 filler[48];
+ }
+ 
+ /**
+@@ -1518,7 +1503,6 @@ void move_animator(struct ObjAnimator *animObj) {
+     s16(*animDataCam)[6];         // camera GdPlaneH[]?
+     struct GdObj *stubObj1 = NULL; // used only for call to stubbed function
+     struct GdObj *stubObj2 = NULL; // used only for call to stubbed function
+-    UNUSED u8 filler[12];
+     UNUSED struct GdVec3f unusedVec;
+     s32 currKeyFrame;
+     s32 nextKeyFrame;
+@@ -1751,15 +1735,12 @@ void move_animator(struct ObjAnimator *animObj) {
+ 
+ /* @ 22EDF4 for 0x300; orig name: func_80180624 */
+ void drag_picked_object(struct GdObj *inputObj) {
+-    UNUSED u8 filler1[12];
+     struct GdVec3f displacement;
+     struct GdVec3f spC4;
+     struct GdControl *ctrl;
+     Mat4f sp80;
+     Mat4f sp40;
+-    UNUSED u8 filler2[12];
+     struct GdObj *obj;
+-    UNUSED u8 filler3[4];
+     f32 dispMag;
+ 
+     ctrl = &gGdCtrl;
+@@ -1830,10 +1811,8 @@ void move_camera(struct ObjCamera *cam) {
+     struct GdVec3f spE0;
+     struct GdVec3f spD4;
+     struct GdVec3f spC8;
+-    UNUSED u8 filler1[12];
+     struct GdVec3f spB0;
+     Mat4f sp70;
+-    UNUSED u8 filler2[64];
+     Mat4f *sp2C;
+     struct GdControl *ctrl;
+ 
+@@ -1953,7 +1932,6 @@ void move_cameras_in_grp(struct ObjGroup *group) {
+ /* @ 22F7DC for 0x36C*/
+ void func_8018100C(struct ObjLight *light) {
+     Mat4f mtx;
+-    UNUSED u8 filler[12];
+ 
+     if (light->unk40 == 3) {
+         if (light->unk30 > 0.0) { //? 0.0f
+diff --git a/src/goddard/old_menu.c b/src/goddard/old_menu.c
+index 5a589fb7..85ca0581 100644
+--- a/src/goddard/old_menu.c
++++ b/src/goddard/old_menu.c
+@@ -173,7 +173,6 @@ void set_static_gdgt_value(struct ObjValPtr *vp) {
+ 
+ /* 23A488 -> 23A4D0 */
+ static void reset_gadget_default(struct ObjGadget *gdgt) {
+-    UNUSED u8 filler[4];
+ 
+     sCurGadgetPtr = gdgt;
+     apply_to_obj_types_in_group(OBJ_TYPE_VALPTRS, (applyproc_t) set_static_gdgt_value, gdgt->valueGrp);
+@@ -181,7 +180,6 @@ static void reset_gadget_default(struct ObjGadget *gdgt) {
+ 
+ /* 23A4D0 -> 23A784 */
+ void adjust_gadget(struct ObjGadget *gdgt, s32 a1, s32 a2) {
+-    UNUSED u8 filler[8];
+     f32 range;
+     struct ObjValPtr *vp;
+ 
+@@ -220,7 +218,6 @@ void adjust_gadget(struct ObjGadget *gdgt, s32 a1, s32 a2) {
+ 
+ /* 23A784 -> 23A940; orig name: Unknown8018BFB4 */
+ void reset_gadget(struct ObjGadget *gdgt) {
+-    UNUSED u8 filler[8];
+     f32 range;
+     struct ObjValPtr *vp;
+ 
+diff --git a/src/goddard/particles.c b/src/goddard/particles.c
+index afa1ddd2..c02ef382 100644
+--- a/src/goddard/particles.c
++++ b/src/goddard/particles.c
+@@ -105,7 +105,6 @@ void Unknown80181D14(struct ObjFace *face) {
+ /* 230680 -> 230858 */
+ void func_80181EB0(struct Connection *cxn) {
+     struct GdVec3f sp34;
+-    UNUSED u8 filler[44];
+     struct ObjParticle *sp4 = cxn->node1.ptc;
+     struct ObjParticle *sp0 = cxn->node2.ptc;
+ 
+@@ -134,7 +133,6 @@ void func_80181EB0(struct Connection *cxn) {
+ /* @ 230858 -> 230B70 */
+ void func_80182088(struct Connection *cxn) {
+     struct GdVec3f sp4C;
+-    UNUSED u8 filler[36];
+     f32 sp24;
+     f32 sp20;
+     struct ObjParticle *sp1C;
+@@ -208,7 +206,6 @@ void func_801823A0(struct ObjNet *net) {
+ /* 230CC0 -> 230DCC */
+ struct ObjParticle *make_particle(u32 flags, s32 colourNum, f32 x, f32 y, f32 z) {
+     struct ObjParticle *particle = (struct ObjParticle *) make_object(OBJ_TYPE_PARTICLES);
+-    UNUSED u8 filler[8];
+ 
+     particle->pos.x = x;
+     particle->pos.y = y;
+@@ -317,12 +314,9 @@ void func_80182A08(struct ObjParticle *ptc, struct GdVec3f *b) {
+ /* 231454 -> 231D40; orig name: Unknown80182C84 */
+ void move_particle(struct ObjParticle *ptc) {
+     f32 sp7C;
+-    UNUSED u8 filler1[12];
+     struct GdVec3f sp64;
+     struct ObjParticle *sp60;
+-    UNUSED u8 filler2[4];
+     s32 i;
+-    UNUSED u8 filler3[8];
+     struct ObjCamera *sp4C;
+     struct GdVec3f sp40;
+     struct GdVec3f sp34;
+diff --git a/src/goddard/renderer.c b/src/goddard/renderer.c
+index 41ff4a5a..bedb5797 100644
+--- a/src/goddard/renderer.c
++++ b/src/goddard/renderer.c
+@@ -764,14 +764,11 @@ f64 stub_renderer_1(UNUSED f64 x) {
+ /* 249BCC -> 24A19C */
+ void gd_printf(const char *format, ...) {
+     s32 i;
+-    UNUSED u8 filler1[4];
+     char c;
+     char f;
+-    UNUSED u8 filler2[4];
+     char buf[0x100];
+     char *csr = buf;
+     char spec[8];    // specifier string
+-    UNUSED u8 filler3[4];
+     union PrintVal val;
+     va_list args;
+ 
+@@ -944,7 +941,6 @@ void draw_indexed_dl(s32 dlNum, s32 gfxIdx) {
+ /* 24A598 -> 24A610; orig name: func_8019BDC8 */
+ void branch_cur_dl_to_num(s32 dlNum) {
+     Gfx *dl;
+-    UNUSED u8 filler[8];
+ 
+     dl = sGdDLArray[dlNum]->gfx;
+     gSPDisplayList(next_gfx(), GD_VIRTUAL_TO_PHYSICAL(dl));
+@@ -1043,7 +1039,6 @@ void gd_add_to_heap(void *addr, u32 size) {
+ 
+ /* 24AAE0 -> 24AB7C */
+ void gdm_init(void *blockpool, u32 size) {
+-    UNUSED u8 filler[4];
+ 
+     imin("gdm_init");
+     // Align downwards?
+@@ -1063,7 +1058,6 @@ void gdm_init(void *blockpool, u32 size) {
+  * Initializes the Mario head demo
+  */
+ void gdm_setup(void) {
+-    UNUSED u8 filler[4];
+ 
+     imin("gdm_setup");
+     sYoshiSceneGrp = NULL;
+@@ -1104,7 +1098,6 @@ struct ObjView *make_view_withgrp(char *name, struct ObjGroup *grp) {
+ 
+ /* 24AD14 -> 24AEB8 */
+ void gdm_maketestdl(s32 id) {
+-    UNUSED u8 filler[12];
+ 
+     imin("gdm_maketestdl");
+     switch (id) {
+@@ -1198,7 +1191,6 @@ s32 gd_sfx_to_play(void) {
+ Gfx *gdm_gettestdl(s32 id) {
+     struct GdObj *dobj;
+     struct GdDisplayList *gddl;
+-    UNUSED u8 filler[8];
+     struct GdVec3f vec;
+ 
+     start_timer("dlgen");
+@@ -1872,7 +1864,6 @@ void func_801A0038(void) {
+ 
+ /* 24E840 -> 24E9BC */
+ void gd_dl_flush_vertices(void) {
+-    UNUSED u8 filler[4];
+     s32 i;
+     UNUSED s32 startvtx = sVertexBufStartIndex;
+ 
+@@ -1957,13 +1948,11 @@ void gd_dl_hilite(s32 idx, // material GdDl number; offsets into hilite array
+                    struct GdVec3f *arg4,   // vector to light source?
+                    struct GdColour *colour // light color
+ ) {
+-    UNUSED u8 filler1[96];
+     Hilite *hilite; // 4c
+     struct GdVec3f sp40;
+     f32 sp3C; // magnitude of sp40
+     f32 sp38;
+     f32 sp34;
+-    UNUSED u8 filler2[24];
+ 
+     sp38 = 32.0f; // x scale factor?
+     sp34 = 32.0f; // y scale factor?
+@@ -2002,7 +1991,6 @@ void gd_dl_hilite(s32 idx, // material GdDl number; offsets into hilite array
+  * Adds some display list commands that perform lighting for a material
+  */
+ s32 gd_dl_material_lighting(s32 id, struct GdColour *colour, s32 material) {
+-    UNUSED u8 filler[8];
+     s32 i;
+     s32 numLights = sNumLights;
+     s32 scaledColours[3];
+@@ -2213,7 +2201,6 @@ void gd_set_one_cycle(void) {
+ 
+ /* 250B30 -> 250B44 */
+ void stub_renderer_3(void) {
+-    UNUSED u8 filler[16];
+ }
+ 
+ /* 250B44 -> 250B58 */
+@@ -2603,10 +2590,8 @@ void gd_create_ortho_matrix(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+ /* 25245C -> 25262C */
+ void gd_create_perspective_matrix(f32 fovy, f32 aspect, f32 near, f32 far) {
+     u16 perspNorm;
+-    UNUSED u8 filler1[4];
+     uintptr_t perspecMtx;
+     uintptr_t rotMtx;
+-    UNUSED u8 filler2[4];
+     UNUSED f32 unused = 0.0625f;
+ 
+     sGdPerspTimer += 0.1;
+@@ -2864,9 +2849,7 @@ void stub_renderer_10(UNUSED u32 arg0) {
+ 
+ /* 2530A8 -> 2530C0 */
+ void stub_draw_label_text(UNUSED char *s) {
+-    UNUSED u8 filler1[4];
+     UNUSED char *save = s;
+-    UNUSED u8 filler2[24];
+ }
+ 
+ /* 2530C0 -> 2530D8; orig name: func_801A48F0 */
+@@ -3010,7 +2993,6 @@ void Proc801A5110(struct ObjView *view) {
+ 
+ /* 253938 -> 2539DC; orig name: func_801A5168 */
+ void update_view_and_dl(struct ObjView *view) {
+-    UNUSED u8 filler[4];
+     s32 prevFlags; // 18
+ 
+     prevFlags = view->flags;
+@@ -3027,7 +3009,6 @@ void update_view_and_dl(struct ObjView *view) {
+  * Unused - called by __main__
+  */
+ void func_801A520C(void) {
+-    UNUSED u8 filler[8];
+ 
+     start_timer("1frame");
+     start_timer("cpu");
+@@ -3077,7 +3058,6 @@ void Unknown801A5344(void) {
+ /* 253BC8 -> 2540E0 */
+ void gd_init(void) {
+     s32 i; // 34
+-    UNUSED u8 filler[4];
+     s8 *data; // 2c
+ 
+     imin("gd_init");
+@@ -3359,7 +3339,6 @@ void Unknown801A5FF8(struct ObjGroup *arg0) {
+     struct ObjView *menuview;      // 3c
+     UNUSED struct ObjLabel *label; // 38
+     struct ObjGroup *menugrp;      // 34
+-    UNUSED u8 filler[8];
+ 
+     d_start_group("menug");
+     sMenuGadgets[0] = d_makeobj(D_GADGET, "menu0");
+@@ -3470,7 +3449,6 @@ void view_proc_print_timers(struct ObjView *self) {
+ void make_timer_gadgets(void) {
+     struct ObjLabel *timerLabel;
+     struct ObjGroup *timerg;
+-    UNUSED u8 filler[4];
+     struct ObjView *timersview;
+     struct ObjGadget *bar1;
+     struct ObjGadget *bar2;
+@@ -3614,7 +3592,6 @@ void func_801A71CC(struct ObjNet *net) {
+     f32 spAC;
+     f32 spA8;
+     struct GdBoundingBox bbox;
+-    UNUSED u8 filler1[4];
+     struct ObjZone *sp88;
+     struct ListNode *link;
+     s32 sp80;                     // linked planes contained in zone?
+@@ -3623,13 +3600,9 @@ void func_801A71CC(struct ObjNet *net) {
+     struct ListNode *link2;
+     struct ListNode *link3;
+     struct GdVec3f sp64;
+-    UNUSED u8 filler2[4];
+     struct ObjPlane *plane; // 5c
+-    UNUSED u8 filler3[4];
+     struct ObjZone *linkedZone; // 54
+-    UNUSED u8 filler4[4];
+     struct ObjPlane *planeL2; // 4c
+-    UNUSED u8 filler5[4];
+     struct ObjPlane *planeL3; // 44
+ 
+     if (net->unk21C == NULL) {
+diff --git a/src/goddard/shape_helper.c b/src/goddard/shape_helper.c
+index ce91be5a..08d1d19a 100644
+--- a/src/goddard/shape_helper.c
++++ b/src/goddard/shape_helper.c
+@@ -105,7 +105,6 @@ void func_80197280(void) {
+  * Computes the normal vector for a face based on three of its vertices.
+  */
+ void calc_face_normal(struct ObjFace *face) {
+-    UNUSED u8 filler1[4];
+     struct GdVec3f p1;
+     struct GdVec3f p2;
+     struct GdVec3f p3;
+@@ -113,7 +112,6 @@ void calc_face_normal(struct ObjFace *face) {
+     struct ObjVertex *vtx1;
+     struct ObjVertex *vtx2;
+     struct ObjVertex *vtx3;
+-    UNUSED u8 filler2[4];
+     f32 mul = 1000.0f;
+ 
+     imin("calc_facenormal");
+@@ -234,7 +232,6 @@ void add_3_vtx_to_face(struct ObjFace *face, struct ObjVertex *vtx1, struct ObjV
+ struct ObjShape *make_shape(s32 flag, const char *name) {
+     struct ObjShape *newShape;
+     struct ObjShape *curShapeHead;
+-    UNUSED u8 filler[4];
+ 
+     newShape = (struct ObjShape *) make_object(OBJ_TYPE_SHAPES);
+ 
+@@ -578,7 +575,6 @@ void Unknown801985E8(struct ObjShape *shape) {
+ 
+ /* @ 246ED4 for 0x4FC; orig name: func_80198704 */
+ void get_3DG1_shape(struct ObjShape *shape) {
+-    UNUSED u8 filler[8];
+     struct GdVec3f tempNormal; /* maybe? */
+     s32 curFaceVtx;
+     s32 faceVtxID;
+@@ -697,7 +693,6 @@ void get_3DG1_shape(struct ObjShape *shape) {
+ 
+ /* @ 2473D0 for 0x390; orig name: func_80198C00 */
+ void get_OBJ_shape(struct ObjShape *shape) {
+-    UNUSED u8 filler[4];
+     struct GdColour faceClr;
+     s32 curFaceVtx;
+     s32 faceVtxIndex;
+@@ -885,7 +880,6 @@ void read_ARK_shape(struct ObjShape *shape, char *fileName) {
+         } data;
+     } vtx;
+ 
+-    UNUSED u8 filler[4];
+     struct GdVec3f sp48;
+     struct ObjFace *sp44;          // newly made face with mtl sp34;
+     struct ObjFace *sp40 = NULL;   // first made face
+@@ -1022,12 +1016,10 @@ struct GdFile *get_shape_from_file(struct ObjShape *shape, char *fileName) {
+ 
+ /* @ 247F78 for 0x69c; orig name: Unknown801997A8 */
+ struct ObjShape *make_grid_shape(enum ObjTypeFlag gridType, s32 a1, s32 a2, s32 a3, s32 a4) {
+-    UNUSED u8 filler1[4];
+     void *objBuf[32][32]; // vertex or particle depending on gridType
+     f32 sp70;
+     f32 sp6C;
+     f32 sp68;
+-    UNUSED u8 filler2[8];
+     f32 sp5C;
+     s32 parI;
+     s32 row;
+@@ -1037,13 +1029,11 @@ struct ObjShape *make_grid_shape(enum ObjTypeFlag gridType, s32 a1, s32 a2, s32
+     f32 sp44;
+     struct ObjFace *sp40 = NULL;  // first made shape?
+     struct ObjGroup *parOrVtxGrp; // group of made particles or vertices (based on gridType)
+-    UNUSED u8 filler3[4];
+     struct ObjGroup *mtlGroup;
+     struct GdVec3f *sp30;     // GdVec3f* ? from gd_get_colour
+     struct GdVec3f *sp2C;     //^
+     struct ObjMaterial *mtl1; // first made material
+     struct ObjMaterial *mtl2; // second made material
+-    UNUSED u8 filler4[4];
+ 
+     sp30 = (struct GdVec3f *) gd_get_colour(a1);
+     sp2C = (struct GdVec3f *) gd_get_colour(a2);
+@@ -1273,9 +1263,7 @@ void animate_mario_head_normal(struct ObjAnimator *self) {
+  */
+ s32 load_mario_head(void (*aniFn)(struct ObjAnimator *)) {
+     struct ObjNet *sp54; // net made with sp48 group
+-    UNUSED u8 filler1[8];
+     struct ObjGroup *sp48; // Joint group
+-    UNUSED u8 filler2[8];
+     struct ObjGroup *mainShapesGrp;
+     struct GdObj *sp38;       // object list head before making a bunch of joints
+     struct GdObj *faceJoint;        // joint on the face that `grabberJoint` pulls
+@@ -1501,7 +1489,6 @@ struct ObjGroup *Unknown8019ADC4(UNUSED u32 a0) {
+ 
+ /* @ 249694 for 0x5c */
+ struct ObjGroup *Unknown8019AEC4(UNUSED u32 a0) {
+-    UNUSED u8 filler[8];
+     UNUSED struct GdObj *sp1C = gGdObjectList;
+ 
+     gGdLightGroup = make_group(0);
+diff --git a/src/goddard/skin.c b/src/goddard/skin.c
+index 1667c1a7..2072e565 100644
+--- a/src/goddard/skin.c
++++ b/src/goddard/skin.c
+@@ -92,7 +92,6 @@ void func_80192294(struct ObjNet *net) {
+ /* 240ACC -> 240B84 */
+ void func_801922FC(struct ObjNet *net) {
+     struct ObjGroup *group; // 24
+-    UNUSED u8 filler[8];
+ 
+     gGdSkinNet = net;
+     // TODO: netype constants?
+@@ -200,9 +199,7 @@ void collision_something_801926A4(struct ObjNet *net) {
+ 
+ /* 2412A0 -> 24142C; not called */
+ void func_80192AD0(struct ObjNet *net) {
+-    UNUSED u8 filler1[4];
+     struct ObjGroup *sp60;
+-    UNUSED u8 filler2[68];
+     struct ObjNet *sp18;
+ 
+     if ((sp60 = net->unk1C8) == NULL) {
+@@ -231,7 +228,6 @@ void func_80192AD0(struct ObjNet *net) {
+ /* 24142C -> 24149C; orig name: func_80192C5C */
+ void move_bonesnet(struct ObjNet *net) {
+     struct ObjGroup *sp24;
+-    UNUSED u8 filler[12];
+ 
+     imin("move_bonesnet");
+     gd_set_identity_mat4(&D_801B9DC8);
+@@ -299,10 +295,8 @@ void func_80192CCC(struct ObjNet *net) {
+ 
+ /* 241768 -> 241AB4; orig name: func_80192F98 */
+ void convert_gd_verts_to_Vn(struct ObjGroup *grp) {
+-    UNUSED u8 filler1[20];
+     Vtx *vn;       // 28
+     u8 nx, ny, nz; // 24, 25, 26
+-    UNUSED u8 filler2[4];
+     struct VtxLink *vtxlink;
+ #ifndef GBI_FLOATS
+     s16 *vnPos;
+@@ -347,7 +341,6 @@ void convert_gd_verts_to_Vn(struct ObjGroup *grp) {
+ 
+ /* 241AB4 -> 241BCC; orig name: func_801932E4 */
+ void convert_gd_verts_to_Vtx(struct ObjGroup *grp) {
+-    UNUSED u8 filler[24];
+     struct VtxLink *vtxlink;
+ #ifndef GBI_FLOATS
+     s16 *vtxcoords;
+diff --git a/src/goddard/skin_movement.c b/src/goddard/skin_movement.c
+index 90ace8f3..151ee3d8 100644
+--- a/src/goddard/skin_movement.c
++++ b/src/goddard/skin_movement.c
+@@ -66,7 +66,6 @@ void scale_verts(struct ObjGroup *a0) {
+ 
+ /* @ 23000C for 0x58; orig name: func8018183C*/
+ void move_skin(struct ObjNet *net) {
+-    UNUSED u8 filler[8];
+ 
+     if (net->shapePtr != NULL) {
+         scale_verts(net->shapePtr->scaledVtxGroup);
+@@ -109,7 +108,6 @@ void func_80181894(struct ObjJoint *joint) {
+ /* @ 2301A0 for 0x110 */
+ void reset_weight_vtx(struct ObjVertex *vtx) {
+     struct GdVec3f localVec;
+-    UNUSED u8 filler[16];
+ 
+     if (sResetWeightVtxNum++ == sResetCurWeight->vtxId) {  // found matching vertex
+         sResetCurWeight->vtx = vtx;
+@@ -128,7 +126,6 @@ void reset_weight_vtx(struct ObjVertex *vtx) {
+ 
+ void reset_weight(struct ObjWeight *weight) {
+     UNUSED u32 vtxCount;
+-    UNUSED u8 filler[4];
+     struct ObjGroup *skinGroup;
+ 
+     sResetCurWeight = weight;
+-- 
+2.55.0
+

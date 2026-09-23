@@ -1,0 +1,41 @@
+From 3c712f98b583173ae16258929e7ab7de2488ea25 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:26:39 +0000
+Subject: [PATCH 27/46] game: remove the dead `sp30` in the two hitbox-overlap
+ functions
+
+`sp30 = sp3C - sp38` is the vertical distance between the two objects'
+bottoms, computed and never read in either function (the overlap test
+below uses `sp3C`/`sp38` directly).
+
+Verified: object_collision.c compiles to byte-identical assembly before
+and after with the port's own flags (asmdiff over compile_commands.json).
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/object_collision.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/src/game/object_collision.c b/src/game/object_collision.c
+index 500af456..779cdb79 100644
+--- a/src/game/object_collision.c
++++ b/src/game/object_collision.c
+@@ -26,7 +26,6 @@ s32 detect_object_hitbox_overlap(struct Object *a, struct Object *b) {
+     f32 sp3C = a->oPosY - a->hitboxDownOffset;
+     f32 sp38 = b->oPosY - b->hitboxDownOffset;
+     f32 dx = a->oPosX - b->oPosX;
+-    UNUSED f32 sp30 = sp3C - sp38;
+     f32 dz = a->oPosZ - b->oPosZ;
+     f32 collisionRadius = a->hitboxRadius + b->hitboxRadius;
+     f32 distance = sqrtf(dx * dx + dz * dz);
+@@ -63,7 +62,6 @@ s32 detect_object_hurtbox_overlap(struct Object *a, struct Object *b) {
+     f32 sp3C = a->oPosY - a->hitboxDownOffset;
+     f32 sp38 = b->oPosY - b->hitboxDownOffset;
+     f32 sp34 = a->oPosX - b->oPosX;
+-    UNUSED f32 sp30 = sp3C - sp38;
+     f32 sp2C = a->oPosZ - b->oPosZ;
+     f32 sp28 = a->hurtboxRadius + b->hurtboxRadius;
+     f32 sp24 = sqrtf(sp34 * sp34 + sp2C * sp2C);
+-- 
+2.55.0
+

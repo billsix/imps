@@ -1,0 +1,46 @@
+From 9943ca7fc811f729661e111a0de9fcdbd046263d Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Tue, 22 Sep 2026 12:15:23 +0000
+Subject: [PATCH 12/46] game: `return` instead of `goto end` at the end of
+ koopa_shelled_act_lying
+
+The label `end:;` is the last statement of a void function, so the goto
+is a return; write it as one and drop the label (and the `:;` that C89
+needed to place a label before `}`).
+
+Verified: koopa.inc.c, through the translation unit that includes it,
+compiles to an identical instruction stream before and after with the
+port's own flags (asmdiff over compile_commands.json); the only textual
+difference in the raw assembly is that the compiler-local label the goto
+targeted no longer needs a name, so later labels renumber.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ src/game/behaviors/koopa.inc.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/game/behaviors/koopa.inc.c b/src/game/behaviors/koopa.inc.c
+index 04b345c9..8e46ee7a 100644
+--- a/src/game/behaviors/koopa.inc.c
++++ b/src/game/behaviors/koopa.inc.c
+@@ -412,7 +412,7 @@ static void koopa_unshelled_act_dive(void) {
+ 
+             cur_obj_set_model(MODEL_KOOPA_WITH_SHELL);
+             obj_mark_for_deletion(shell);
+-            goto end;
++            return;
+         }
+     }
+ 
+@@ -430,8 +430,6 @@ static void koopa_unshelled_act_dive(void) {
+     } else if (cur_obj_init_anim_and_check_if_end(6)) {
+         o->oAction = KOOPA_UNSHELLED_ACT_RUN;
+     }
+-
+-end:;
+ }
+ 
+ /**
+-- 
+2.55.0
+

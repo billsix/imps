@@ -208,6 +208,17 @@ tradeoff, and the patch-lifecycle consequence:
   throwaway scratch clones, do the same by hand (`git config
   commit.gpgsign false`, or per-command `git -c commit.gpgsign=false`).
   These commits are scaffolding; the durable product is the patch files.
+  **This authorisation stops at the checkouts. imps itself is NEVER configured
+  unsigned** (William Emerison Six <billsix@gmail.com>, 2026-09-23): commits in
+  imps are the maintainer's, made on the host, signed with his key. Never run
+  `git config commit.gpgsign false` in the imps repo (its `.git/config` is
+  bind-mounted, so the override leaks to the host and silently unsigns his
+  commits — that happened between 2026-09-01 and 2026-09-23, 67 unsigned commits,
+  found when he asked why signing had stopped). If a session finds
+  `commit.gpgsign=false` in `imps/.git/config`, report it and leave it for the
+  maintainer to unset; do not rely on it. The agent does not commit in imps at
+  all (it stages; see the master conventions), so it never needs the override
+  there.
 
 ## Families
 

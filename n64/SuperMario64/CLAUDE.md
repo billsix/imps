@@ -53,7 +53,7 @@ both touch `src/game/mario.c`, and the markers belong on the cheated tree.
   argument but change codegen (the s32-field `== TRUE`s, `<< 16 >> 16` → `(s16)`,
   memset loops at `-O1`, the spindel `switch`, …) are deliberately NOT in the
   stream — they are the "explained-diff" list in the task. Catalogue, per-batch
-  log and the B.11 list: `../../tasks/mario64-assembly-isms-to-standard-c.md`;
+  log and the B.11 list: `../../tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`;
   the patterns: `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
   Rebuilt on the checkout branch `imps-standard-c` (exported with
   `git format-patch --base=<pin>`); at a pin bump replay AND re-run the gate.

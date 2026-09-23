@@ -7,7 +7,7 @@ from pathlib import Path
 
 target: Path = Path(sys.argv[1])
 if target.is_dir():
-    target = target / "tasks/mario64-assembly-isms-to-standard-c.md"
+    target = target / "tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md"
 entry: str = Path(sys.argv[2]).read_text().rstrip("\n")
 s: str = target.read_text()
 marker: str = "\n## Notes / decisions\n"

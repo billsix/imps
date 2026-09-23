@@ -2,7 +2,7 @@
 
 **Pin:** `acdbc651d` ("Fix compat issues loading pre-9.1 saves on 9.2+ (#7132)"), branch `imps-standard-c`,
 working tree clean. **Date:** 2026-09-22. **Reader:** agent-assisted survey for
-`tasks/ocarina-de-disassemble-ugly-c.md`; sister of `tasks/adhoc/mario64-assembly-isms/reports/raw-memory-and-numeric.md`.
+`tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`; sister of `tasks/adhoc/mario64-assembly-isms/reports/raw-memory-and-numeric.md`.
 Anchors are `soh/src/...:line` (or `soh/include/...`) at this pin; every type quoted was read from the header/definition
 named beside it. Census logs: `tasks/adhoc/ocarina-assembly-isms/data/` (paths there carry a
 `../../../n64/OcarinaOfTime/Shipwright/` prefix).

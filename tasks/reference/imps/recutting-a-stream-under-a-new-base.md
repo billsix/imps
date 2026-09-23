@@ -1,7 +1,7 @@
 # Reference: re-cutting a patch stream when a new stream lands UNDER it
 
 > **Provenance:** written 2026-09-23 from the OoT `standard-c` landing (2026-09-22,
-> `tasks/ocarina-de-disassemble-ugly-c.md` Phase C), where the 488-patch `personal` rename stream
+> `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md` Phase C), where the 488-patch `personal` rename stream
 > had to move on top of 36 new rewrite patches. The maintainer's ruling that made it possible:
 > "re-cut … sure. I version control all of these patches, so I will lose nothing" (William
 > Emerison Six <billsix@gmail.com>, 2026-09-22). Tooling: `tools/resolve_rename_conflicts.py`,

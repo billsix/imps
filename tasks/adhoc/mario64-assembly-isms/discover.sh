@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # discover.sh — census of "assembly-isms" (mechanically-lifted-from-MIPS idioms) in the Ghostship
 # (Super Mario 64 decomp + port) tree, one log per pattern class under data/. The logs are the
-# worklog of tasks/mario64-assembly-isms-to-standard-c.md; the catalogue in the task and the
+# worklog of tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md; the catalogue in the task and the
 # patterns reference doc (tasks/reference/mario64/assembly-isms-in-the-decomp.md) were written from
 # them. Re-run after a pin bump to see what moved. Paths are relative to the repo root; the
 # checkout is expected at n64/SuperMario64/Ghostship (fetch.sh). Port-layer code (src/port/) is

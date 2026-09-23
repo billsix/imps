@@ -4,7 +4,7 @@
 # tasks/adhoc/mario64-assembly-isms/discover.sh: same classes (so the two projects' SUMMARY.txt
 # compare line for line) plus the zeldaret idioms that SM64 does not have (`if (1) {}`, `temp_`/
 # `phi_`/`sp` names, `PAD`/`padding` fillers, `UNK_TYPE`, `! @bug`, block-comment matching notes).
-# The logs are the worklog of tasks/ocarina-de-disassemble-ugly-c.md. Paths are relative to the
+# The logs are the worklog of tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md. Paths are relative to the
 # repo root; the checkout is expected at n64/OcarinaOfTime/Shipwright (fetch.sh), on the BARE PIN
 # (the `personal` rename stream changes names and file names — census the tree the standard-c
 # stream is written against). Port-layer C++ (soh/soh/) is excluded on purpose: not decomp output.

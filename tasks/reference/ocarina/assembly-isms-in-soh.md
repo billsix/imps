@@ -1,7 +1,7 @@
 # Reference: assembly-isms in Ship of Harkinian's OoT decomp — what they are, what was rewritten, what remains
 
 > **Provenance:** written 2026-09-23 from the survey and first cut of
-> `tasks/ocarina-de-disassemble-ugly-c.md` (2026-09-22, pin `acdbc651d`). The four reader reports
+> `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md` (2026-09-22, pin `acdbc651d`). The four reader reports
 > under `tasks/adhoc/ocarina-assembly-isms/reports/` hold the per-site tables and grep commands;
 > this is the durable summary. The patterns and semantic rules shared with SM64 are in
 > `tasks/reference/mario64/assembly-isms-in-the-decomp.md` — read that first; this doc records only

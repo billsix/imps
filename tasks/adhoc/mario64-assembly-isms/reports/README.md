@@ -3,7 +3,7 @@
 Four read-only readers, one per pattern group, each sampled the `../data/*.txt` census logs against
 the source at pin `49c5312a` (+ the imps series) on 2026-09-22 and reported what the hits really
 are, with `file:line` anchors, proposed rewrites and risk ratings. These files are their reports,
-kept verbatim as the evidence the task catalogue (`tasks/mario64-assembly-isms-to-standard-c.md`)
+kept verbatim as the evidence the task catalogue (`tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`)
 and the patterns reference (`tasks/reference/mario64/assembly-isms-in-the-decomp.md`) were
 distilled from. A claim in those docs that is not in a report was verified directly.
 

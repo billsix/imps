@@ -4,7 +4,7 @@
 for 2026-09-23); the agent has prepared the material, the decision is the maintainer's
 **Priority:** 2 · **Difficulty:** 3 (reading 120 patch diffs with a known shape; nothing to write)
 **Project key:** ocarina
-**Depends on:** `tasks/ocarina-de-disassemble-ugly-c.md` (Phase C: the re-cut, 2026-09-22)
+**Depends on:** `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md` (Phase C: the re-cut, 2026-09-22)
 
 ## BLUF
 

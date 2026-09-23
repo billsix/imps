@@ -6,7 +6,7 @@ own task, 2026-09-22 — the SM64 twin is `tasks/mario64-standard-c-explained-di
 **Priority:** 5 · **Difficulty:** 5 (each item is small; none can be proven by the gate, so every
 one needs the maintainer's in-game oracle)
 **Project key:** ocarina
-**Depends on:** `tasks/ocarina-de-disassemble-ugly-c.md` (the stream; this is its explained-diff list).
+**Depends on:** `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md` (the stream; this is its explained-diff list).
 
 ## BLUF
 

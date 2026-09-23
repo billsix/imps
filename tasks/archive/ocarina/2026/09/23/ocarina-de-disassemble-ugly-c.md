@@ -1,5 +1,12 @@
 # OcarinaOfTime: rewrite the decomp's assembly-isms into standard C — the `standard-c` stream, UNDER the rename stream
 
+> **Archived 2026-09-23** (first cut complete, committed by the maintainer). Durable knowledge lives in
+> `tasks/reference/ocarina/assembly-isms-in-soh.md`, `tasks/reference/imps/standard-c-tooling.md` and
+> `tasks/reference/imps/recutting-a-stream-under-a-new-base.md`; the live follow-ons are
+> `tasks/ocarina-review-recut-rename-patches.md` (the maintainer's review), `tasks/ocarina-standard-c-explained-diffs.md`,
+> `tasks/ocarina-standard-c-naming.md`, `tasks/ocarina-upstream-standard-c.md`, `tasks/ocarina-decomp-bugs-found-by-survey.md`.
+> This file is the work record (catalogue + per-batch progress log), kept whole.
+
 **Status:** first cut COMPLETE 2026-09-22 — awaiting the maintainer's review and host play.
 Result: **36 codegen-identical patches** in `patches/standard-c/`, `ORDER` = `standard-c`,
 `personal`; the 488-patch rename stream **re-cut on top** (87 conflicts resolved mechanically, zero
@@ -18,7 +25,7 @@ change codegen go to an explained-diff task; the rewrites apply FIRST, the renam
 **Priority:** 4 · **Difficulty:** 8 (the rewrites are the same job as SM64's; the 488 rename
 patches sitting on top are what makes this hard) · **Project key:** ocarina
 **Started:** 2026-09-08 as a `proposed` stub (goal 3 of the rename effort); rewritten 2026-09-22
-into the working task, modelled on `tasks/mario64-assembly-isms-to-standard-c.md`.
+into the working task, modelled on `tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`.
 
 ## BLUF
 
@@ -40,7 +47,7 @@ Read first, in order:
    `//! @bug` conventions, same `sp24`/`temp_v0`/`phi_s3` naming, same padding fillers), so
    the 20 patterns and "What the first cut found" apply almost verbatim. OoT differences are
    listed below.
-2. `tasks/mario64-assembly-isms-to-standard-c.md` — the method that worked: batches per class ×
+2. `tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md` — the method that worked: batches per class ×
    directory, the gate, per-file revert of anything not IDENTICAL, per-directory commits.
 3. `tasks/reference/ocarina/decomp-renaming.md` — the rename effort's **Guardrails** (OoT has more
    name-based indirection: `ActorDB`, gamestate tables, function-pointer tables) and the file-rename

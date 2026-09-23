@@ -1,5 +1,12 @@
 # SuperMario64: rewrite the decomp's assembly-isms into standard C — a catalogue, an upstream-first patch stream, and a proof gate
 
+> **Archived 2026-09-23** (first cut complete, committed by the maintainer). Durable knowledge lives in
+> `tasks/reference/mario64/assembly-isms-in-the-decomp.md` (patterns, rules, what the cut found) and
+> `tasks/reference/imps/standard-c-tooling.md` (the gate and tools, now in `tools/`); the live follow-ons are
+> `tasks/mario64-standard-c-explained-diffs.md`, `tasks/mario64-standard-c-naming.md`,
+> `tasks/mario64-upstream-standard-c.md`, `tasks/mario64-surface-collision-dangling-pointer.md`.
+> This file is the work record (catalogue + per-batch progress log), kept whole.
+
 **Status:** first cut COMPLETE 2026-09-22 — awaiting the maintainer's review. Survey (34 regex
 classes + 24 constructs found by reading; four reader reports under
 `tasks/adhoc/mario64-assembly-isms/reports/`), then Phases B.1–B.10, C and D done the same day,
@@ -49,7 +56,7 @@ Read first, in order:
    standalone, reviewer-facing patch, never entangled with personal changes.
 5. The sibling tasks: `tasks/mario64-decomp-rename-and-cleanup.md` (owns naming the `func_80…` /
    `D_80…` symbols — **not this task**; it also has a goddard-first "readability pass" that this
-   task now subsumes for the pattern classes) and `tasks/ocarina-de-disassemble-ugly-c.md` (the OoT
+   task now subsumes for the pattern classes) and `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md` (the OoT
    twin; its Guardrails apply here too).
 6. The survey kit: `tasks/adhoc/mario64-assembly-isms/discover.sh` (the census; re-run after a pin
    bump), `data/*.txt` (one `file:line` log per class, `SUMMARY.txt` with counts), `reports/*.md`

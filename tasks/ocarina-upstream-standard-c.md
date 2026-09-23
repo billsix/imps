@@ -4,7 +4,7 @@
 just want to store them in this repo for now, with eventually looking to upstream them")
 **Priority:** 6 · **Difficulty:** 4
 **Project key:** ocarina
-**Depends on:** `tasks/ocarina-de-disassemble-ugly-c.md` (the stream: 36 codegen-identical patches
+**Depends on:** `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md` (the stream: 36 codegen-identical patches
 at 2026-09-22). Sister: `tasks/mario64-upstream-standard-c.md` (same decisions: per-class PRs,
 `Co-Authored-By` trailers kept).
 

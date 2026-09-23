@@ -6,9 +6,9 @@ rewrite, and — the part that matters — states the semantic rule that decides
 changes behaviour. Distilled 2026-09-22 from a full census of Ghostship's decomp directories
 (`src/game engine audio goddard menu`, 338 files, 137k lines, pin `49c5312a`) and four verified
 reads (`tasks/adhoc/mario64-assembly-isms/`); the work record and the per-site lists are in
-`tasks/mario64-assembly-isms-to-standard-c.md`. Written by William Emerison Six
+`tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`. Written by William Emerison Six
 <billsix@gmail.com> (agent-assisted). Update in place; re-census at a pin bump. The OoT twin is
-`tasks/ocarina-de-disassemble-ugly-c.md`; most rules here transfer.
+`tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`; most rules here transfer.
 
 ## Why the code looks like this
 
@@ -267,7 +267,7 @@ per-class patches with the gate result quoted; never bundle a personal change.
 
 ## What the first cut found (2026-09-22, 46 patches, all codegen-identical)
 
-The batch loop above ran once over the whole catalogue (task: `tasks/mario64-assembly-isms-to-standard-c.md`,
+The batch loop above ran once over the whole catalogue (task: `tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`,
 progress log per batch). What the gate taught, beyond the per-pattern rules above:
 
 - **The identical/differing line falls exactly where the compiler's knowledge ends.** `x == TRUE`
@@ -290,7 +290,7 @@ progress log per batch). What the gate taught, beyond the per-pattern rules abov
   → `= TRUE` (constant-folded from the `= FALSE` initialiser). Let the gate decide; do not
   pre-sort by intuition.
 - **The OoT twin (Ship of Harkinian, same day, 36 patches) confirmed the rules and added three**
-  (`tasks/ocarina-de-disassemble-ugly-c.md`): (1) a rename stream that must sit ON TOP of the
+  (`tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`): (1) a rename stream that must sit ON TOP of the
   rewrites can be re-cut mechanically — `git am --3way` with diff3 markers, and each conflict
   block resolved as *our side + that patch's `old -> new` substitutions + its added provenance
   lines* (`tools/resolve_rename_conflicts.py`; 87 of 488 patches,

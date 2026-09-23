@@ -65,7 +65,7 @@ Two live cases (William Emerison Six <billsix@gmail.com>, 2026-09-07):
   on — then the personal patches apply to the code as upstream would see it
   after merging, and any conflict surfaces here, on our side, rather than in a
   rebase we cannot do. `patches/ORDER` lists `standard-c`, `cheats`, `book`
-  (rationale inline in the file); `tasks/mario64-assembly-isms-to-standard-c.md`
+  (rationale inline in the file); `tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`
   Phase C is the replay that keeps the personal streams applying on top.
 - **OcarinaOfTime, `standard-c` UNDER `personal`** (2026-09-22): the same
   upstream-first argument, but here the personal stream is the 488-patch decomp
@@ -79,7 +79,7 @@ Two live cases (William Emerison Six <billsix@gmail.com>, 2026-09-07):
   needed it. Proof the re-cut changed nothing: `tools/check_renames.py`
   (series/traceable/declarations) on the new tree, and an assembly gate of every
   file that differs between the old applied tree and the new one. `ORDER` lists
-  `standard-c`, `personal`. Method: `tasks/ocarina-de-disassemble-ugly-c.md`.
+  `standard-c`, `personal`. Method: `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`.
 
 ## apply.sh internals
 

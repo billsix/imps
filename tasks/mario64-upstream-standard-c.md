@@ -5,7 +5,7 @@ grouping and whether to submit at all; nothing here is to be started before that
 **Priority:** 5 · **Difficulty:** 4 (the patches exist and are proven; the work is the PR
 conversation and re-cutting whatever upstream asks to regroup)
 **Project key:** mario64
-**Depends on:** `tasks/mario64-assembly-isms-to-standard-c.md` (the stream — its Phase B identical
+**Depends on:** `tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md` (the stream — its Phase B identical
 set is done, 46 patches at 2026-09-22; Phase B.11's explained-diff items are NOT part of this)
 
 ## BLUF

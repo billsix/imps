@@ -47,7 +47,7 @@ regardless (keeps `upstream-candidates/` submittable on its own; see `../CLAUDE.
   and the whole stream was re-gated file-by-file against the pin (486/486). Not in
   the stream: rewrites whose codegen differs (`../../tasks/ocarina-standard-c-explained-diffs.md`)
   and the naming classes (stack-slot locals, `argN`, per-actor `params` macros).
-  Catalogue + per-batch log: `../../tasks/ocarina-de-disassemble-ugly-c.md`;
+  Catalogue + per-batch log: `../../tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`;
   patterns: `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
   Checkout branch `imps-standard-c`; at a pin bump replay AND re-run the gate.
 - `patches/personal/0001…0488-*.patch` — the decomp rename series, **re-cut

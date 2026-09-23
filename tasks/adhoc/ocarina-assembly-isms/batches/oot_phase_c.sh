@@ -22,7 +22,7 @@ cat > "$P/patches/ORDER" <<'EOF'
 # on our side, rather than in a rebase we cannot do. The two streams touch the
 # same files (477 rewritten, 509 renamed), so this order is load-bearing; the
 # `personal` patches were re-cut against the rewritten tree when standard-c
-# landed (tasks/ocarina-de-disassemble-ugly-c.md, Phase C).
+# landed (tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md, Phase C).
 #
 # `personal` = the 488-patch decomp rename (3,781 symbols + 18 file renames);
 # every later stream must be written against the renamed tree.

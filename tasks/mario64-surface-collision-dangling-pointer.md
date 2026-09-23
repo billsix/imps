@@ -4,7 +4,7 @@
 **Priority:** 3 · **Difficulty:** 2 (one static per function; the hard part is deciding the
 lifetime the callers need)
 **Project key:** mario64
-**Found by:** the assembly-isms survey (`tasks/mario64-assembly-isms-to-standard-c.md`, "Out of
+**Found by:** the assembly-isms survey (`tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`, "Out of
 scope but found: a real bug"), 2026-09-22. Not a decomp artefact — it is in Ghostship's own
 port-authored interpolation code, so it is an **upstream bug**, to be shaped as an
 `upstream-candidates` patch, not part of the `standard-c` stream.

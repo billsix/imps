@@ -13,14 +13,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # from the workflow's "Install dependencies" step at the pin, plus the
 # packages a bare ubuntu image lacks that the GitHub runner pre-provides
 # (toolchain, download utilities, AppImage packaging).
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && \
+    apt-get update && apt-get install -y --no-install-recommends \
         gcc g++ git cmake ninja-build lsb-release libsdl2-dev libpng-dev \
         libsdl2-net-dev libzip-dev zipcmp zipmerge ziptool \
         nlohmann-json3-dev libtinyxml2-dev libspdlog-dev libboost-dev \
         libopengl-dev libogg-dev libvorbis-dev \
         ca-certificates wget curl file patchelf desktop-file-utils \
-        build-essential pkg-config python3 \
-    && rm -rf /var/lib/apt/lists/*
+        build-essential pkg-config python3
 
 # SDL 2.30.3 from source (CI step "Install latest SDL").
 RUN mkdir -p /deps && cd /deps \

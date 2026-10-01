@@ -22,7 +22,6 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
  && dnf upgrade -y \
  && dnf install -y \
         gcc make autoconf automake \
-        git diffutils findutils gawk sed grep \
- && dnf clean all
+        git diffutils findutils gawk sed grep
 
 WORKDIR /src

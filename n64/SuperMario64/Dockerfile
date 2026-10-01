@@ -13,15 +13,17 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # The CI job's apt list verbatim (main.yml "Install dependencies"), plus the
 # packages a bare ubuntu:24.04 lacks that the GitHub runner pre-provides
 # (toolchain, download utilities, python3/pip, AppImage packaging).
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && \
+    apt-get update && apt-get install -y --no-install-recommends \
         gcc g++ git cmake ninja-build lsb-release libsdl2-dev libpng-dev \
         libsdl2-net-dev libzip-dev zipcmp zipmerge ziptool \
         nlohmann-json3-dev libtinyxml2-dev libspdlog-dev libboost-dev \
         libopengl-dev libogg-dev libvorbis-dev libmbedtls-dev \
         libvulkan-dev libshaderc-dev glslang-dev spirv-tools \
         ca-certificates wget curl gnupg file patchelf desktop-file-utils \
-        build-essential pkg-config python3 python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+        build-essential pkg-config python3 python3-pip
 
 # libultraship prefers linking `shaderc_shared`, but Ubuntu ships the shared
 # lib as plain libshaderc.so — without this compat name, cmake falls back to
@@ -35,10 +37,13 @@ RUN ln -s /usr/lib/x86_64-linux-gnu/libshaderc.so \
 # needs CMake >= 3.30; noble's apt ships 3.28 (the GitHub ubuntu-latest
 # runner pre-provides a modern cmake, so CI never notices).  Install
 # Kitware's build — same fix as the OcarinaOfTime Dockerfile on jammy.
-RUN wget -O /tmp/kitware-archive.sh https://apt.kitware.com/kitware-archive.sh \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean \
+    && wget -O /tmp/kitware-archive.sh https://apt.kitware.com/kitware-archive.sh \
     && bash /tmp/kitware-archive.sh \
     && apt-get install -y --no-install-recommends cmake \
-    && rm -rf /var/lib/apt/lists/* /tmp/kitware-archive.sh
+    && rm -rf /tmp/kitware-archive.sh
 
 # Python deps for the Torch/asset tooling, read straight from the checkout's
 # libultraship/requirements.txt (the build context is the Ghostship checkout)
@@ -53,7 +58,8 @@ RUN wget -O /tmp/kitware-archive.sh https://apt.kitware.com/kitware-archive.sh \
 # of the on-disk label.  --break-system-packages because 24.04's python is
 # PEP668-managed and this is a single-purpose container.
 COPY libultraship/requirements.txt /tmp/requirements.txt
-RUN pip3 install --break-system-packages -r /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip3 install --break-system-packages -r /tmp/requirements.txt
 
 # SDL 2.30.3 from source (CI step "Install latest SDL").
 RUN mkdir -p /deps && cd /deps \

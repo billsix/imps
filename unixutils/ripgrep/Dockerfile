@@ -35,8 +35,7 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
  && dnf install -y \
         rust cargo \
         git \
-        python3 \
- && dnf clean all
+        python3
 
 # --- Warm the Cargo dependency cache (the /venv analogue) ---------------------
 # Clone ripgrep at RIPGREP_PIN and `cargo fetch --locked` every crate in its

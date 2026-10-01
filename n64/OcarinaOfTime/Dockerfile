@@ -23,20 +23,25 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # and a build mount has no relabel step.  COPY is read by buildah as the
 # unconfined host user, immune to the label.
 COPY linux-build-deps/apt.txt /tmp/apt.txt
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && \
+    apt-get update && apt-get install -y --no-install-recommends \
         $(cat /tmp/apt.txt) \
         ca-certificates wget curl gnupg git file patchelf desktop-file-utils \
-        build-essential gcc g++ pkg-config python3 imagemagick \
-    && rm -rf /var/lib/apt/lists/*
+        build-essential gcc g++ pkg-config python3 imagemagick
 
 # The project requires CMake >= 3.26; jammy's apt ships 3.22 (the GitHub
 # ubuntu-22.04 runner pre-provides a modern cmake, so CI never notices).
 # Install Kitware's build — the same fix the maintainer's original 2ship
 # Dockerfile used for jammy.
-RUN wget -O /tmp/kitware-archive.sh https://apt.kitware.com/kitware-archive.sh \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean \
+    && wget -O /tmp/kitware-archive.sh https://apt.kitware.com/kitware-archive.sh \
     && bash /tmp/kitware-archive.sh \
     && apt-get install -y --no-install-recommends cmake \
-    && rm -rf /var/lib/apt/lists/* /tmp/kitware-archive.sh
+    && rm -rf /tmp/kitware-archive.sh
 
 # SDL 2.30.3 from source (CI step "Install latest SDL").
 RUN mkdir -p /deps && cd /deps \

@@ -27,7 +27,6 @@ RUN --mount=type=cache,target=/var/cache/libdnf5 \
         libvpx-devel \
         mesa-libGL-devel vulkan-loader-devel vulkan-headers \
         gtk3-devel \
-        xorg-x11-server-Xvfb mesa-dri-drivers \
-    && dnf clean all
+        xorg-x11-server-Xvfb mesa-dri-drivers
 
 WORKDIR /work

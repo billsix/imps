@@ -168,6 +168,17 @@ the rebase (the hard, conflict-prone part) is confirmed clean. See the open ques
   it, not in isolation (a game's pin and its LUS submodule move together).
 - ROM/asset acquisition stays out of scope; `runDir/` is sacred and untouched throughout.
 
+## Execution log (2026-10-08, agent)
+
+**Clean game bumps DONE (patches/pin/derived-artifacts/docs updated; gate green; BUILD + play-test are
+the maintainer's):**
+- **PaperMario `1.0.1` → `1.0.2`** (`b721efd6`) — **CORRECTION: PaperMario is tag-pinned, not develop**
+  (the overnight target was develop HEAD, wrong); bumped to the newest release tag. Both lanes clean.
+  **torch submodule moved upstream** (JeodC/Torch-LH `pm64` → HarbourMasters/Torch `main` `72960ca1`; the
+  fork is no longer public) → added `git submodule sync` to `fetch.sh`. libultraship `7aa03b6c`→`3e3cd2ed`.
+  Also **fixed a pre-existing bug in `tools/check_patches_apply.sh`** (it hardcoded the LUS submodule path
+  as `libultraship`; PaperMario's is `external/libultraship`) → now read from `.gitmodules`.
+
 ## Next actions (DECIDED 2026-10-08 by the maintainer — all "yes"; NOT started)
 
 1. **Bump the three clean-rebasing games — PaperMario, BanjoKazooie, SuperMario64 — the agent does it**

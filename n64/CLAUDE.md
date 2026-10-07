@@ -183,7 +183,7 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   `fixOnFedora` series (a submitted upstream PR); builds and runs; podman build.
   Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
-  pin `1.0.1` (`424c220f0`). 3-patch series on two lanes (2026-09-22): game
+  pin `1.0.2` (`b721efd6`, bumped from 1.0.1 2026-10-08). 3-patch series on two lanes (2026-09-22): game
   tree — CLI ROM import on Linux + a precise refusal of unsupported ROMs;
   libultraship lane — the Vulkan first-frame crash fix (two null Context objects).
   All upstream candidates; headless-verified + host-verified 2026-09-22. Uses JeodC

@@ -88,12 +88,19 @@ for name in "${projects[@]}"; do
     git -C "$repo" reset -q --hard "$pin"
     git -C "$repo" clean -qfd
 
+    # The libultraship submodule's path varies per project (most ports put it at
+    # <checkout>/libultraship; PaperBoat uses external/libultraship), so read it
+    # from the checkout's .gitmodules rather than assuming a path.
+    lus_path=$(git -C "$repo" config -f .gitmodules --get-regexp '\.path$' 2>/dev/null \
+        | awk '/libultraship/{print $2; exit}')
+    lus_path=${lus_path:-libultraship}
+
     # Reset the libultraship submodule too, when that lane carries patches.
     if ls "$proj"/patches-libultraship/*/*.patch >/dev/null 2>&1; then
-        lus_pin=$(git -C "$repo" rev-parse "${pin}:libultraship" 2>/dev/null)
+        lus_pin=$(git -C "$repo" rev-parse "${pin}:${lus_path}" 2>/dev/null)
         if [ -n "${lus_pin:-}" ]; then
-            git -C "$repo/libultraship" checkout -q --detach "$lus_pin"
-            git -C "$repo/libultraship" reset -q --hard "$lus_pin"
+            git -C "$repo/$lus_path" checkout -q --detach "$lus_pin"
+            git -C "$repo/$lus_path" reset -q --hard "$lus_pin"
         fi
     fi
 
@@ -101,7 +108,7 @@ for name in "${projects[@]}"; do
         game=$(git -C "$repo" rev-list --count "${pin}..HEAD")
         line="  ok: $game patch(es) applied to the game tree"
         if ls "$proj"/patches-libultraship/*/*.patch >/dev/null 2>&1; then
-            lus=$(git -C "$repo/libultraship" rev-list --count "${lus_pin}..HEAD" 2>/dev/null || echo 0)
+            lus=$(git -C "$repo/$lus_path" rev-list --count "${lus_pin}..HEAD" 2>/dev/null || echo 0)
             line="$line, $lus to libultraship"
         fi
         echo "$line"

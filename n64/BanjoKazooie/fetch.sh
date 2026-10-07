@@ -12,9 +12,15 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/HarbourMasters/Lighthouse.git
 
-# The pinned base commit: tip of upstream's 'develop' branch as of
-# 2026-09-01 ("Add project description", shortly after the 1.0.0 release).
-PIN_SHA=6d30df9aa9240b2da393d7a8ac1194fcbfc89156
+# The pinned base commit: tip of upstream's 'develop' branch. Bumped to the
+# 2026-10-03 develop HEAD on 2026-10-08 (overnight sweep follow-up,
+# tasks/imps-check-upstreams-and-rebase-patches.md): the 4-patch fixOnFedora
+# series replays clean; upstream only restructured its CI (consolidated the
+# per-OS workflow files into main.yml -- the Dockerfile already mirrors main.yml's
+# build-linux job, whose Linux apt list is unchanged) and bumped the project
+# version 1.0.0 -> 1.1.0. BUILD + play-test pending (the maintainer's).
+# (Was 6d30df9a, the 2026-09-01 develop HEAD after the 1.0.0 release.)
+PIN_SHA=5c948c59e046a2a194dfb7e1d7d2b3046b3fbab7
 
 if [ ! -d Lighthouse ]; then
     git clone "$UPSTREAM" Lighthouse

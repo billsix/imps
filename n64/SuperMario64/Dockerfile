@@ -1,5 +1,5 @@
 # Mirrors the Ghostship Linux CI build environment — the build-linux job of
-# .github/workflows/main.yml at the imps pin (49c5312a): one big apt list
+# .github/workflows/main.yml at the imps pin (40eef138): one big apt list
 # (including the Vulkan/shaderc toolchain), SDL2 / tinyxml2 / libzip built
 # from source, python deps from libultraship/requirements.txt, Release build,
 # `cpack -G External` AppImage (plus the .tcc scripting runtime dir shipped

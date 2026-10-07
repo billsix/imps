@@ -1,0 +1,426 @@
+From 023be043b0a901c14e7eba544f35b06bd8b0bd89 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Sun, 6 Sep 2026 16:32:16 +0000
+Subject: [PATCH] docs: add doc-region markers for the book's literalinclude
+
+Comment-only markers (// doc-region-begin/end <name>) so the Mario 64 book can
+literalinclude exact spans by name instead of drift-prone line numbers. First
+region: euler_zxy_to_matrix (the Euler-angle rotation matrix builder).
+---
+ data/behavior_data.c             |  2 ++
+ src/engine/graph_node.c          |  2 ++
+ src/engine/math_util.c           |  4 ++++
+ src/engine/math_util.h           |  2 ++
+ src/engine/surface_collision.c   |  2 ++
+ src/game/camera.h                |  2 ++
+ src/game/game_init.c             |  2 ++
+ src/game/mario.c                 |  2 ++
+ src/game/object_list_processor.c |  2 ++
+ src/game/paintings.c             |  2 ++
+ src/game/rendering_graph_node.c  | 10 ++++++++++
+ src/game/skybox.c                |  2 ++
+ src/port/Engine.cpp              |  2 ++
+ src/port/Game.cpp                |  2 ++
+ 14 files changed, 38 insertions(+)
+
+diff --git a/data/behavior_data.c b/data/behavior_data.c
+index 22d03da5..ba4fcb24 100644
+--- a/data/behavior_data.c
++++ b/data/behavior_data.c
+@@ -4894,6 +4894,7 @@ const BehaviorScript bhvFlyGuy[] = {
+     END_LOOP(),
+ };
+ 
++// doc-region-begin goomba_behavior_script
+ const BehaviorScript bhvGoomba[] = {
+     BEGIN(OBJ_LIST_PUSHABLE),
+     OR_INT(oFlags, (OBJ_FLAG_COMPUTE_ANGLE_TO_MARIO | OBJ_FLAG_COMPUTE_DIST_TO_MARIO | OBJ_FLAG_SET_FACE_YAW_TO_MOVE_YAW | OBJ_FLAG_UPDATE_GFX_POS_AND_ANGLE)),
+@@ -4906,6 +4907,7 @@ const BehaviorScript bhvGoomba[] = {
+         CALL_NATIVE(bhv_goomba_update),
+     END_LOOP(),
+ };
++// doc-region-end goomba_behavior_script
+ 
+ const BehaviorScript bhvGoombaTripletSpawner[] = {
+     BEGIN(OBJ_LIST_PUSHABLE),
+diff --git a/src/engine/graph_node.c b/src/engine/graph_node.c
+index db6954bf..639fd05b 100644
+--- a/src/engine/graph_node.c
++++ b/src/engine/graph_node.c
+@@ -742,6 +742,7 @@ void geo_obj_init_spawninfo(struct GraphNodeObject *graphNode, struct SpawnInfo
+ /**
+  * Initialize the animation of an object node
+  */
++// doc-region-begin bind_animation
+ void geo_obj_init_animation(struct GraphNodeObject *graphNode, struct Animation **animPtrAddr) {
+     struct Animation **animSegmented = animPtrAddr;
+ 
+@@ -759,6 +760,7 @@ void geo_obj_init_animation(struct GraphNodeObject *graphNode, struct Animation
+         graphNode->animInfo.animYTrans = 0;
+     }
+ }
++// doc-region-end bind_animation
+ 
+ /**
+  * Initialize the animation of an object node
+diff --git a/src/engine/math_util.c b/src/engine/math_util.c
+index 38314cb6..4fad5ac7 100644
+--- a/src/engine/math_util.c
++++ b/src/engine/math_util.c
+@@ -278,6 +278,7 @@ void mtxf_lookat(Mat4 mtx, Vec3f from, Vec3f to, s16 roll) {
+  * Build a matrix that rotates around the z axis, then the x axis, then the y
+  * axis, and then translates.
+  */
++// doc-region-begin euler_zxy_to_matrix
+ void mtxf_rotate_zxy_and_translate(Mat4 dest, Vec3f translate, Vec3s rotate) {
+     FrameInterpolation_RecordMatrixPosRotZXY(dest, translate, rotate);
+     f32 sx = sins(rotate[0]);
+@@ -307,6 +308,7 @@ void mtxf_rotate_zxy_and_translate(Mat4 dest, Vec3f translate, Vec3s rotate) {
+     dest[0][3] = dest[1][3] = dest[2][3] = 0.0f;
+     dest[3][3] = 1.0f;
+ }
++// doc-region-end euler_zxy_to_matrix
+ 
+ /**
+  * Build a matrix that rotates around the x axis, then the y axis, then the z
+@@ -500,6 +502,7 @@ void mtxf_align_terrain_triangle(Mat4 mtx, Vec3f pos, s16 yaw, f32 radius) {
+  * The resulting matrix represents first applying transformation b and
+  * then a.
+  */
++// doc-region-begin mtxf_mul_affine
+ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+     // TODO: FrameInterpolation is broken, fix it
+     // FrameInterpolation_RecordMatrixMult(dest, dest, 0);
+@@ -545,6 +548,7 @@ void mtxf_mul(Mat4 dest, Mat4 a, Mat4 b) {
+ 
+     mtxf_copy(dest, temp);
+ }
++// doc-region-end mtxf_mul_affine
+ 
+ /**
+  * Set matrix 'dest' to 'mtx' scaled by vector s
+diff --git a/src/engine/math_util.h b/src/engine/math_util.h
+index 9bb7b162..e962afcc 100644
+--- a/src/engine/math_util.h
++++ b/src/engine/math_util.h
+@@ -17,11 +17,13 @@
+  * exploits array sizes for range analysis-based optimizations as well).
+  * Thus, for non-IDO compilers we use the standard-compliant version.
+  */
++// doc-region-begin sine_lookup
+ extern_s f32 gSineTable[];
+ #define gCosineTable (gSineTable + 0x400)
+ 
+ #define sins(x) gSineTable[(u16) (x) >> 4]
+ #define coss(x) gCosineTable[(u16) (x) >> 4]
++// doc-region-end sine_lookup
+ 
+ #define min(a, b) ((a) <= (b) ? (a) : (b))
+ #define max(a, b) ((a) > (b) ? (a) : (b))
+diff --git a/src/engine/surface_collision.c b/src/engine/surface_collision.c
+index 370469c0..bf46ddce 100644
+--- a/src/engine/surface_collision.c
++++ b/src/engine/surface_collision.c
+@@ -182,6 +182,7 @@ s32 f32_find_wall_collision(f32 *xPtr, f32 *yPtr, f32 *zPtr, f32 offsetY, f32 ra
+ /**
+  * Find wall collisions and receive their push.
+  */
++// doc-region-begin spatial_partition_lookup
+ s32 find_wall_collisions(struct WallCollisionData *colData) {
+     struct SurfaceNode *node;
+     s16 cellX, cellZ;
+@@ -216,6 +217,7 @@ s32 find_wall_collisions(struct WallCollisionData *colData) {
+ 
+     return numCollisions;
+ }
++// doc-region-end spatial_partition_lookup
+ 
+ /**************************************************
+  *                     CEILINGS                   *
+diff --git a/src/game/camera.h b/src/game/camera.h
+index 4d16db8d..e208763f 100644
+--- a/src/game/camera.h
++++ b/src/game/camera.h
+@@ -98,6 +98,7 @@
+ #define CAM_ANGLE_MARIO  1
+ #define CAM_ANGLE_LAKITU 2
+ 
++// doc-region-begin camera_modes
+ #define CAMERA_MODE_NONE              0x00
+ #define CAMERA_MODE_RADIAL            0x01
+ #define CAMERA_MODE_OUTWARD_RADIAL    0x02
+@@ -113,6 +114,7 @@
+ #define CAMERA_MODE_8_DIRECTIONS      0x0E // AKA Parallel Camera, Bowser Courses & Rainbow Ride
+ #define CAMERA_MODE_FREE_ROAM         0x10
+ #define CAMERA_MODE_SPIRAL_STAIRS     0x11
++// doc-region-end camera_modes
+ 
+ #define CAM_MOVE_RETURN_TO_MIDDLE       0x0001
+ #define CAM_MOVE_ZOOMED_OUT             0x0002
+diff --git a/src/game/game_init.c b/src/game/game_init.c
+index fea0a70c..99de0428 100644
+--- a/src/game/game_init.c
++++ b/src/game/game_init.c
+@@ -565,6 +565,7 @@ void run_demo_inputs(void) {
+ /**
+  * Update the controller struct with available inputs if present.
+  */
++// doc-region-begin read_controller
+ void read_controller_inputs(void) {
+     s32 i;
+ 
+@@ -628,6 +629,7 @@ void read_controller_inputs(void) {
+     gPlayer3Controller->buttonPressed = gPlayer1Controller->buttonPressed;
+     gPlayer3Controller->buttonDown = gPlayer1Controller->buttonDown;
+ }
++// doc-region-end read_controller
+ 
+ /**
+  * Initialize the controller structs to point at the OSCont information.
+diff --git a/src/game/mario.c b/src/game/mario.c
+index 40ac8da0..0aafa3ba 100644
+--- a/src/game/mario.c
++++ b/src/game/mario.c
+@@ -1250,6 +1250,7 @@ void debug_print_speed_action_normal(struct MarioState *m) {
+  * Update the button inputs for Mario.
+  */
+ void update_mario_button_inputs(struct MarioState *m) {
++    // doc-region-begin button_to_input
+     if (m->controller->buttonPressed & A_BUTTON) {
+         m->input |= INPUT_A_PRESSED;
+     }
+@@ -1257,6 +1258,7 @@ void update_mario_button_inputs(struct MarioState *m) {
+     if (m->controller->buttonDown & A_BUTTON) {
+         m->input |= INPUT_A_DOWN;
+     }
++    // doc-region-end button_to_input
+ 
+     // Don't update for these buttons if squished.
+     if (m->squishTimer == 0) {
+diff --git a/src/game/object_list_processor.c b/src/game/object_list_processor.c
+index bb301e0a..49d33f01 100644
+--- a/src/game/object_list_processor.c
++++ b/src/game/object_list_processor.c
+@@ -326,9 +326,11 @@ s32 update_objects_during_time_stop(struct ObjectNode *objList, struct ObjectNod
+ 
+         // Selectively unfreeze certain objects
+         if (!(gTimeStopState & TIME_STOP_ALL_OBJECTS)) {
++            // doc-region-begin mario_is_special
+             if (gCurrentObject == gMarioObject && !(gTimeStopState & TIME_STOP_MARIO_AND_DOORS)) {
+                 unfrozen = TRUE;
+             }
++            // doc-region-end mario_is_special
+ 
+             if ((gCurrentObject->oInteractType & (INTERACT_DOOR | INTERACT_WARP_DOOR))
+                 && !(gTimeStopState & TIME_STOP_MARIO_AND_DOORS)) {
+diff --git a/src/game/paintings.c b/src/game/paintings.c
+index 13d72c46..d64edfcd 100644
+--- a/src/game/paintings.c
++++ b/src/game/paintings.c
+@@ -611,6 +611,7 @@ void painting_update_ripple_state(struct Painting *painting) {
+  * @return the ripple function at posX, posY
+  * note that posX and posY correspond to a point on the face of the painting, not actual axes
+  */
++// doc-region-begin ripple_traveling_wave
+ s16 calculate_ripple_at_point(struct Painting *painting, f32 posX, f32 posY) {
+     /// Controls the peaks of the ripple.
+     f32 rippleMag = painting->currRippleMag;
+@@ -644,6 +645,7 @@ s16 calculate_ripple_at_point(struct Painting *painting, f32 posX, f32 posY) {
+         return round_float(rippleZ);
+     }
+ }
++// doc-region-end ripple_traveling_wave
+ 
+ /**
+  * If movable, return the ripple function at (posX, posY)
+diff --git a/src/game/rendering_graph_node.c b/src/game/rendering_graph_node.c
+index e3b773f2..5cf1395f 100644
+--- a/src/game/rendering_graph_node.c
++++ b/src/game/rendering_graph_node.c
+@@ -144,6 +144,7 @@ LookAt lookAt;
+ /**
+  * Process a master list node.
+  */
++// doc-region-begin render_layer_buckets
+ void geo_process_master_list_sub(struct GraphNodeMasterList *node) {
+     struct DisplayListNode *currList;
+     s32 i;
+@@ -182,6 +183,7 @@ void geo_process_master_list_sub(struct GraphNodeMasterList *node) {
+     }
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end render_layer_buckets
+ 
+ /**
+  * Appends the display list to one of the master lists based on the layer
+@@ -233,6 +235,7 @@ void geo_process_master_list(struct GraphNodeMasterList *node) {
+ /**
+  * Process an orthographic projection node.
+  */
++// doc-region-begin guOrtho_hud
+ void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
+     if (node->node.children != NULL) {
+         Mtx *mtx = alloc_display_list(sizeof(*mtx));
+@@ -250,10 +253,12 @@ void geo_process_ortho_projection(struct GraphNodeOrthoProjection *node) {
+         FrameInterpolation_RecordCloseChild();
+     }
+ }
++// doc-region-end guOrtho_hud
+ 
+ /**
+  * Process a perspective projection node.
+  */
++// doc-region-begin guPerspective_setup
+ void geo_process_perspective(struct GraphNodePerspective *node) {
+     if (node->fnNode.func != NULL) {
+         FrameInterpolation_RecordOpenChild("geo_process_perspective", (uintptr_t)node);
+@@ -288,6 +293,7 @@ void geo_process_perspective(struct GraphNodePerspective *node) {
+         FrameInterpolation_RecordCloseChild();
+     }
+ }
++// doc-region-end guPerspective_setup
+ 
+ /**
+  * Process a level of detail node. From the current transformation matrix,
+@@ -342,6 +348,7 @@ void geo_process_switch(struct GraphNodeSwitchCase *node) {
+ /**
+  * Process a camera node.
+  */
++// doc-region-begin camera_view_matrix
+ void geo_process_camera(struct GraphNodeCamera *node) {
+     Mat4 cameraTransform;
+     Mtx *rollMtx = alloc_display_list(sizeof(*rollMtx));
+@@ -370,6 +377,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+     gMatStackIndex--;
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end camera_view_matrix
+ 
+ /**
+  * Process a translation / rotation node. A transformation matrix based
+@@ -377,6 +385,7 @@ void geo_process_camera(struct GraphNodeCamera *node) {
+  * the float and fixed point matrix stacks.
+  * For the rest it acts as a normal display list node.
+  */
++// doc-region-begin compose_local_onto_parent
+ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node) {
+     Mat4 mtxf;
+     Vec3f translation;
+@@ -401,6 +410,7 @@ void geo_process_translation_rotation(struct GraphNodeTranslationRotation *node)
+     gMatStackIndex--;
+     FrameInterpolation_RecordCloseChild();
+ }
++// doc-region-end compose_local_onto_parent
+ 
+ /**
+  * Process a translation node. A transformation matrix based on the node's
+diff --git a/src/game/skybox.c b/src/game/skybox.c
+index e7f41e09..3fdfb9b5 100644
+--- a/src/game/skybox.c
++++ b/src/game/skybox.c
+@@ -136,6 +136,7 @@ u8 sSkyboxColors[][3] = {
+  *                 (how far is the camera rotated from 0, scaled 0 to 1)   *
+  *                 (the screen width)
+  */
++// doc-region-begin skybox_yaw_scroll
+ f32 calculate_skybox_scaled_x(s8 player, f32 fov) {
+     f32 yaw = sSkyBoxInfo[player].yaw;
+ 
+@@ -160,6 +161,7 @@ f32 calculate_skybox_scaled_x(s8 player, f32 fov) {
+ 
+     return SKYBOX_WIDTH - scaledX;
+ }
++// doc-region-end skybox_yaw_scroll
+ 
+ /**
+  * Convert the camera's pitch into a y position in the scaled skybox image.
+diff --git a/src/port/Engine.cpp b/src/port/Engine.cpp
+index 6304d01e..5b3dc227 100644
+--- a/src/port/Engine.cpp
++++ b/src/port/Engine.cpp
+@@ -1733,6 +1733,7 @@ void GameEngine::RunCommands(Gfx* Commands, const std::vector<FrameInterpolation
+     }
+ }
+ 
++// doc-region-begin replay_loop
+ void GameEngine::ProcessGfxCommands(Gfx* commands) {
+     std::vector<FrameInterpolationResult> mtx_replacements;
+     auto wnd = std::dynamic_pointer_cast<Fast::Fast3dWindow>(ShipCompat::GetWindow());
+@@ -1771,6 +1772,7 @@ void GameEngine::ProcessGfxCommands(Gfx* commands) {
+ 
+     last_fps = fps;
+ }
++// doc-region-end replay_loop
+ 
+ bool GameEngine::IsAltAssetsEnabled() {
+     return prevAltAssets;
+diff --git a/src/port/Game.cpp b/src/port/Game.cpp
+index aec1a3e8..eaa699eb 100644
+--- a/src/port/Game.cpp
++++ b/src/port/Game.cpp
+@@ -28,9 +28,11 @@ extern "C" void alloc_pool(void) {
+     gEffectsMemoryPool = mem_pool_init(0x4000, MEMORY_POOL_LEFT);
+ }
+ 
++// doc-region-begin graphics_seam
+ extern "C" void exec_display_list(SPTask* spTask) {
+     GameEngine::ProcessGfxCommands((Gfx*)spTask->task.t.data_ptr);
+ }
++// doc-region-end graphics_seam
+ 
+ void push_frame() {
+     GameEngine::StartAudioFrame();
+
+base-commit: 40eef13823a954a466574dc78e73187a17a2dd42
+prerequisite-patch-id: c55efa5b7a59f11fa4c1222a8bc1d9d75aa27d54
+prerequisite-patch-id: 795ad6b54e7c22e11f3737f9a43f5ece1e234874
+prerequisite-patch-id: 4b1f0350c3409b11e7aa7016927a6d4c2ed527e2
+prerequisite-patch-id: e5bb4a594a5928731722ab4d0babc2899aa0f7ee
+prerequisite-patch-id: cb93171d969b4cdbfd2f9a0cc0307b894e962acd
+prerequisite-patch-id: 4f78a3194cb5681a3e4e7b188b12056982b63556
+prerequisite-patch-id: 41068b18c0778e5c4fd7122871b999d5844d5d43
+prerequisite-patch-id: 9200e72f79671e847df246ca9e900345c0649fa6
+prerequisite-patch-id: efdf3ed149ea070edf5162ac066325deeda2bbe0
+prerequisite-patch-id: fbe58cc9d81195cb572eb97023f6c129a5738b1d
+prerequisite-patch-id: 3b2af69e318281001f3811c8ccaf51d7f32943a4
+prerequisite-patch-id: a46ddd8c3f17c6ad4985c87d0e0815951bccb184
+prerequisite-patch-id: 33ea3ca8cb6406cee99f73a4a6f20ac64dfe9244
+prerequisite-patch-id: 3fd2455584e1169be95e4ba8106dcc67586d5b7e
+prerequisite-patch-id: e4ca27c92a7d4a282807401e2c99148cddf12590
+prerequisite-patch-id: 395332e1a87ffac3516f0b765e5133303cf8009a
+prerequisite-patch-id: b1e128d7dd37e432022277bb1ec5f6933d4684f1
+prerequisite-patch-id: 1a8afda2953b9475976c5a3bbb78b8daf8e64ac3
+prerequisite-patch-id: 40fdc323537dc6423e5b827b11e2cccc88b786d0
+prerequisite-patch-id: 6464831f9959976ee86fb395c55cd1d0d72b36cd
+prerequisite-patch-id: af8ee3ba0f35f626c3cd3894045d52d9dd618ef3
+prerequisite-patch-id: 4c671947a608c0ac4bf9b3ece24842f6d5eee74b
+prerequisite-patch-id: 30b7f9e79a54c6d5fefa0a8f4b0b5bc19255eb85
+prerequisite-patch-id: bf58061f7e09e178e758375df312ce91869a5468
+prerequisite-patch-id: 0bd8a223a0c464cec0cf3140de3e124d3ea8dcb0
+prerequisite-patch-id: 0b57546f5c32d128eb042d08ce57e4f285a180c7
+prerequisite-patch-id: 5bc2c9a72e1bfd39de6152a177bc9937f75cf708
+prerequisite-patch-id: ee0e0d76efd7d2d1f1d3d5dc0f075a00865d1948
+prerequisite-patch-id: 2d95289449b810b18cf891a0aa98f2c60689b08d
+prerequisite-patch-id: d6edbf8a63de042d021367666aa1cd77c9182f96
+prerequisite-patch-id: 289c7b041f7a2990516ddae61fb6a3351c738153
+prerequisite-patch-id: f74d95bd729b5fe676a515ad10171d1c303b5fbb
+prerequisite-patch-id: 26e4e9edf7d4ade1e33edc469a1934a30fa41700
+prerequisite-patch-id: ebbb423ad5a2ce90832c6de841347aba21376825
+prerequisite-patch-id: 72d83ec9e4bb4721e42eab2f4e4efd8ab2a793e5
+prerequisite-patch-id: c61bccf6489c1c20bf8c26b80f2f31796cf7930f
+prerequisite-patch-id: cfd8914148c4066c176f207e8d9a4fb89b71f8fc
+prerequisite-patch-id: 8df3659e55c83673ecc61ff107b373cf5b75f472
+prerequisite-patch-id: a3f14e9cbb06a84b1f0a23047513e55042e58b17
+prerequisite-patch-id: 84336c951511cb8b18b88d6df642bc8807695a1d
+prerequisite-patch-id: eec8773409c6518ee358f374fe024047397b030c
+prerequisite-patch-id: 20d937f9cdf5ab6e830f2ed6eddf777c5fef045f
+prerequisite-patch-id: 322211ade36b1a1d3a7be8b5a3c2107aa58d642c
+prerequisite-patch-id: f5810e424bc80917732e56d1e00bb4b385d326f9
+prerequisite-patch-id: 22c1bfb4953441fd6d9a131808fdb702138c7b0a
+prerequisite-patch-id: 358a0d78549285493ba162816ed6119cdae138b1
+prerequisite-patch-id: cd4c6cd31c7c80d2e9c6ba3668f719bd67e33d9b
+prerequisite-patch-id: d7f7fccdb7e10422a01f771a9eb1880e604354b7
+prerequisite-patch-id: 58237b507621b7cfb4cd75193c704c0f3e0dc8bc
+-- 
+2.55.0
+

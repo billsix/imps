@@ -8,9 +8,11 @@ runtime + **Torch** asset extractor as submodules.
 
 Managed by imps: `Ghostship/` here is a pristine clone of
 https://github.com/HarbourMasters/Ghostship, pinned by `fetch.sh` at
-`49c5312a` (tip of upstream `develop` as of 2026-09-01), with the
-maintainer's patches applied by `apply.sh`. Not a fork; the patch series
-is the whole delta. The pin was chosen deliberately modern because
+`40eef138` (tip of upstream `develop` as of 2026-09-10; bumped from `49c5312a`
+on 2026-10-08 — all 51 game-tree patches + the libultraship doc-region lane
+replay clean; derived artifacts unchanged), with the maintainer's patches
+applied by `apply.sh`. Not a fork; the patch series is the whole delta. The pin
+was chosen deliberately modern because
 upstream had merged the maintainer's always-fly-on-triple-jump cheat
 (restructured into the events layer as `SetTripleJumpAction` /
 `FlyingTripleJumpLaunch` under `gCheats.AlwaysFlyTripleJump`) — so that
@@ -90,14 +92,12 @@ widget in `src/port/ui/GhostshipMenuEnhancements.cpp` (upstream's
 
 ## Version notes
 
-- Submodules at the pin: **libultraship `c151cc91` (1.3.1-544)** — the newest
-  LUS of any imps project — and Torch `4c8ef537` (v1.0.0-409). **Caveat:
-  `c151cc91` is a KiritoDv FORK branch of LUS, not Kenix3 mainline** — it lacks
-  ~23 mainline commits after its branch point (1.3.1-463) and carries 81 fork
-  commits (Vulkan backend, GPU-side T&L, etc.). The crawl's docs at
-  `../../tasks/reference/libultraship/` cover this pin as iteration 18 — the
-  current working-tree state of that doc set, so no git-history digging is needed
-  here. Fork-topology detail: `../../tasks/reference/imps/game-port-history.md`.
+- Submodules at the pin: **libultraship `93a1a417`** (was `c151cc91`/1.3.1-544 at
+  the old pin; moved with the develop bump, URL unchanged — Kenix3/libultraship)
+  and Torch (moves with the bump too). The LUS doc-region lane replays clean onto
+  `93a1a417`. The crawl's docs at `../../tasks/reference/libultraship/` describe the
+  old `c151cc91` pin (iteration 18); a re-crawl at `93a1a417` is a future task.
+  Fork-topology detail: `../../tasks/reference/imps/game-port-history.md`.
 - Sandbox note: building in the runClaudeInContainer sandbox needs
   `mbedtls-devel` (ixwebsocket's cmake configure) and `libshaderc-devel`
   (the new LUS Vulkan backend) installed — neither is in the base image.
@@ -199,7 +199,7 @@ draws its detail from `../../tasks/reference/mario64/`. Design + status:
 ### libultraship doc-region lane (`patches-libultraship/`)
 
 The book also `literalinclude`s libultraship code, so a SECOND patch lane
-lives in `patches-libultraship/` (streamed the same way — `patches-libultraship/book/`) (base = the submodule pin `c151cc91`),
+lives in `patches-libultraship/` (streamed the same way — `patches-libultraship/book/`) (base = the submodule pin `93a1a417`),
 applied INSIDE `Ghostship/libultraship/`. `patches-libultraship/book/0001-...` adds comment-only
 doc-region markers (currently `combiner_input_to_glsl`, `set_combine_mode`,
 `light_dir_to_normal_space`, `tile_wrap_modes`), verified to `git am` clean onto

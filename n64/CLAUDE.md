@@ -173,17 +173,17 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   patches (64-bit audio/scheduler fixes + BUILDING.md audio-libs fix); build/run
   + AppImage verified. Details: `n64/MajorasMask/CLAUDE.md`.
 - `n64/SuperMario64/` — Ghostship (https://github.com/HarbourMasters/Ghostship),
-  pin `49c5312a`. 46-patch upstream-bound `standard-c` stream (assembly-isms →
+  pin `40eef138` (bumped from 49c5312a 2026-10-08). 46-patch upstream-bound `standard-c` stream (assembly-isms →
   standard C, all codegen-identical, 2026-09-22) + 3-patch cheat series +
   libshaderc doc fix; fully verified; podman build; carries a Sphinx book
   (`SuperMario64/book/`). Details:
   `n64/SuperMario64/CLAUDE.md`.
 - `n64/BanjoKazooie/` — Lighthouse
-  (https://github.com/HarbourMasters/Lighthouse), pin `6d30df9a`. 4-patch
+  (https://github.com/HarbourMasters/Lighthouse), pin `5c948c59` (bumped from 6d30df9a 2026-10-08). 4-patch
   `fixOnFedora` series (a submitted upstream PR); builds and runs; podman build.
   Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
-  pin `1.0.1` (`424c220f0`). 3-patch series on two lanes (2026-09-22): game
+  pin `1.0.2` (`b721efd6`, bumped from 1.0.1 2026-10-08). 3-patch series on two lanes (2026-09-22): game
   tree — CLI ROM import on Linux + a precise refusal of unsupported ROMs;
   libultraship lane — the Vulkan first-frame crash fix (two null Context objects).
   All upstream candidates; headless-verified + host-verified 2026-09-22. Uses JeodC

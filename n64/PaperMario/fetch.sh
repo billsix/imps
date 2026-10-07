@@ -12,17 +12,19 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/HarbourMasters/PaperBoat.git
 
-# The pinned base commit: the stable release tag 1.0.1 (dated 2026-09-18).
-# NOTE: 1.0.1 vs tip-of-develop does NOT affect ROM O2R extraction — the
-# extraction code (Engine.cpp, GameExtractor, Torch pin) is byte-identical
-# between them, and the one libultraship-commit difference is HD-art
-# rendering only.  The "extraction does nothing" symptom was a ROM problem,
-# not a pin problem (see CLAUDE.md "ROM requirements").  1.0.1 is pinned
-# simply because it is the newest tagged release; tip-of-develop
-# (611f5b685750e3e7f3a99eefe90fd874e8f1eb7b) is the alternative if the newer
-# gameplay fixes are wanted.  First step for this port is a pristine
-# compile-as-is — no patches carried yet.
-PIN_SHA=424c220f0863c29b9fe55cc674baceff88e9e14f
+# The pinned base commit: the stable release tag 1.0.2.
+# Bumped 1.0.1 -> 1.0.2 on 2026-10-08 (overnight sweep follow-up,
+# tasks/imps-check-upstreams-and-rebase-patches.md): PaperMario is tag-pinned
+# (newest tagged release), NOT tip-of-develop.  Both patch lanes replay clean
+# onto 1.0.2 (game-tree + the libultraship-lane Vulkan fix, still unmerged
+# upstream); config.yml (ROM hashes) is unchanged, the CMakeLists change is
+# internal to the o2r-staging step (build.sh uses the ninja-release preset, so
+# it is unaffected), and the CI dep list is unchanged.  The external/libultraship
+# submodule moves 7aa03b6c -> 3e3cd2ed with the tag; apply.sh derives that from
+# the pin's tree, so only this SHA changes here.  BUILD + play-test pending
+# (the maintainer's).  tip-of-develop (newer, unreleased) is the alternative if
+# the latest gameplay fixes are wanted.
+PIN_SHA=b721efd6b5ad6dce9cdef25a6b93b2fdc8b04309
 
 if [ ! -d PaperBoat ]; then
     git clone "$UPSTREAM" PaperBoat
@@ -36,10 +38,16 @@ fi
 git -C PaperBoat config commit.gpgsign false
 
 git -C PaperBoat checkout "$PIN_SHA"
+# A pin bump can change a submodule's URL (the 1.0.1 -> 1.0.2 bump moved torch
+# from the JeodC fork to upstream HarbourMasters/Torch); `sync` rewrites each
+# already-initialized submodule's remote from the checked-out .gitmodules before
+# `update`, so it fetches from the new remote instead of the stale one.
+git -C PaperBoat submodule sync --recursive
 git -C PaperBoat submodule update --init --recursive
 
-# PaperBoat pins JeodC forks for both submodules (see docs/BUILDING.md and
-# .gitmodules): external/libultraship on branch lus-converge, external/torch
-# on branch pm64 — distinct from the other n64/ ports' engine pins.
+# At 1.0.2 PaperBoat pins external/libultraship to the JeodC fork (branch
+# lus-converge) but external/torch to upstream HarbourMasters/Torch (branch
+# main) — torch moved upstream from the JeodC/Torch-LH `pm64` fork at this tag
+# (see .gitmodules); the `submodule sync` above picks up that URL change.
 git -C PaperBoat submodule foreach --recursive \
     'git config commit.gpgsign false || true'

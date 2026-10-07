@@ -8,14 +8,17 @@ ROM-derived) plus a C++ port layer (`src/port/`), with **libultraship**
 
 Managed by imps: `PaperBoat/` here is a clone of
 https://github.com/HarbourMasters/PaperBoat, pinned by `fetch.sh` at the
-stable release tag **`1.0.1`** (`424c220f0`, dated 2026-09-18), carrying a
-**three-patch series on two lanes** (below) since 2026-09-22. Task history:
+stable release tag **`1.0.2`** (`b721efd6`; bumped from `1.0.1` 2026-10-08),
+carrying a **three-patch series on two lanes** (below) since 2026-09-22. Task history:
 `../../tasks/archive/papermario/2026/09/22/papermario-add-port.md`; the ROM-import investigation that
 produced the series: `../../tasks/reference/papermario/rom-import-investigation.md` (the full account; the ROM facts alone: `rom-overdump-and-trimming.md`).
 
 > Pin history: first pinned at tip-of-`develop` (`611f5b68`) 2026-09-21, then
-> moved to `1.0.1` while diagnosing an extraction failure; `1.0.1` is kept as
-> the newest tagged release.
+> moved to `1.0.1` while diagnosing an extraction failure; bumped to `1.0.2`
+> (`b721efd6`) 2026-10-08 as the newest tagged release (both lanes replayed
+> clean; config.yml/ROM hashes unchanged; submodules moved with the tag —
+> libultraship `7aa03b6c`→`3e3cd2ed`, torch `106f4e30`→`72960ca1`). BUILD +
+> play-test pending (the maintainer's).
 
 ## Scripts
 
@@ -132,18 +135,20 @@ ROMs stay out of imps' scope.
 
 ## Version notes
 
-- **Pin:** PaperBoat `1.0.1` (`424c220f0`, tagged release, dated 2026-09-18).
+- **Pin:** PaperBoat `1.0.2` (`b721efd6`, tagged release; bumped from `1.0.1`
+  `424c220f0` on 2026-10-08).
 - **Submodules at the pin** (JeodC forks — distinct from every other n64/
   port's engine pins, confirmed against `.gitmodules` + `docs/BUILDING.md`):
-  - `external/libultraship` @ `7aa03b6c` — JeodC/libultraship, branch
-    `lus-converge` (`port-maintenance-45`). Tip-of-`develop` pinned
-    `601f7002` (`-46`); the single-commit delta is HD-art rendering only and
-    does not affect extraction. **The LUS lane carries one patch against this
-    SHA** (above); the libultraship reference crawl
+  - `external/libultraship` @ `3e3cd2ed` (was `7aa03b6c` at 1.0.1) —
+    JeodC/libultraship, branch `lus-converge`. **The LUS lane carries one patch
+    against this SHA** (above), replayed clean at the 1.0.2 bump (still unmerged
+    upstream). The libultraship reference crawl
     (`../../tasks/reference/libultraship/`, Ghostship's `c151cc91`) does not
     cover this fork and was not reopened for a one-function fix.
-  - `external/torch` @ `106f4e30` — JeodC/Torch-LH, branch `pm64` (same at
-    both `1.0.1` and tip-of-develop).
+  - `external/torch` @ `72960ca1` (was `106f4e30` at 1.0.1) — **moved upstream at
+    1.0.2**: now `HarbourMasters/Torch` branch `main` (was the JeodC/Torch-LH `pm64`
+    fork, which is no longer public). `fetch.sh` runs `git submodule sync` so the
+    URL change is picked up on a re-fetch.
 - **Build (Linux):** CMake presets (`ninja-release`), binary
   `build/ninja-release/Paperboat`. Upstream CI uses gcc-14 on Ubuntu and
   builds SDL 2.30.3 / tinyxml2 10.0.0 / libzip 1.10.1 from source only

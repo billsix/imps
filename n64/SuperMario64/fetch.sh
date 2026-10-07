@@ -12,11 +12,18 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/HarbourMasters/Ghostship.git
 
-# The pinned base commit: tip of upstream's 'develop' branch as of
-# 2026-09-01.  Notably this is AFTER upstream merged the maintainer's
-# always-fly-on-triple-jump cheat (restructured into the events/ layer),
-# so that cheat needs no patch here.
-PIN_SHA=49c5312a0f3c0a28e1974be1923babd4f869f719
+# The pinned base commit: tip of upstream's 'develop' branch. Bumped to the
+# 2026-09-10 develop HEAD on 2026-10-08 (overnight sweep follow-up,
+# tasks/imps-check-upstreams-and-rebase-patches.md): all 51 game-tree patches
+# (standard-c 46 + cheats 3 + book 1 + upstream-candidates 1) AND the
+# libultraship doc-region lane replay clean. Derived artifacts unchanged (Linux
+# apt list, docs/BUILDING.md, the GeneratePortO2R target). The libultraship
+# submodule moves c151cc91 -> 93a1a417 (URL unchanged, Kenix3). BUILD + play-test
+# pending (the maintainer's), AND the standard-c codegen-identity re-verification
+# (tools/asmdiff.sh per patch) must be re-run once built -- see the task.
+# (Was 49c5312a, the 2026-09-01 develop HEAD; still AFTER upstream merged the
+# maintainer's always-fly-on-triple-jump cheat, so that cheat needs no patch.)
+PIN_SHA=40eef13823a954a466574dc78e73187a17a2dd42
 
 if [ ! -d Ghostship ]; then
     git clone "$UPSTREAM" Ghostship

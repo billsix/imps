@@ -45,6 +45,35 @@ Compose/Views migration is mid-flight suite-wide, so pins are deliberately at
 released tags; note in a doc which UI stack the code you anchor uses (open
 question 5 in the task).
 
+### Carried apps (pinned, empty streams) — added 2026-10-07
+
+The rest of the Fossify suite is now **carried** (fetched + pinned at its latest
+release tag, with empty `.keep` `docs`/`book` streams) so the whole suite is
+present; documentation depth is the refdocs task's call, not a fetch concern
+(`../../tasks/fossify-add-remaining-apps.md`). UI-stack notes are TBD per app
+(set when each is first documented).
+
+| repo | tag | commit date |
+|------|-----|-------------|
+| Calculator | 1.4.0 | 2026-01-30 |
+| Calendar | 1.11.0 | 2026-09-23 |
+| Camera | 1.5.0 | 2026-01-30 |
+| Clock | 1.6.0 | 2026-01-30 |
+| Contacts | 1.6.0 | 2026-01-30 |
+| Documents | 1.0.1 | 2026-08-01 |
+| File-Manager | 1.6.1 | 2026-02-17 |
+| Launcher | 1.10.0 | 2026-02-17 |
+| Music-Player | 1.8.1 | 2026-02-17 |
+| Notes | 1.7.0 | 2026-01-30 |
+| Paint | 1.4.0 | 2026-01-30 |
+| Thank-You | 1.3.0 | 2026-01-30 |
+| Voice-Recorder | 1.7.1 | 2026-02-17 |
+
+SHAs are in the [`repos`](repos) manifest. **Flashlight** is omitted — it has no
+released tag yet; add it when it cuts a release. Not-yet-cloned: run `./fetch.sh`
+to pull all (the comment-only gate skips un-cloned repos; the 13 SHAs were
+confirmed to exist via `git ls-remote` when added).
+
 Commons 6.2.0 build toolchain (from `gradle/libs.versions.toml`): Gradle 9.6.1
 (project wrapper), Kotlin 2.3.10, AGP 9.3.1, compileSdk/targetSdk 36,
 kotlinJVMTarget 17.

@@ -19,7 +19,7 @@ FROM registry.fedoraproject.org/fedora:44
 # pin, so its Cargo.lock matches and every dep it needs is cached here. On a pin
 # bump, move PIN_SHA in fetch.sh AND this default together (or pass
 # --build-arg RIPGREP_PIN=<sha>), then rebuild the image to re-warm the cache.
-ARG RIPGREP_PIN=4649aa9700619f94cf9c66876e9549d83420e16c
+ARG RIPGREP_PIN=e89fff89ac9af12e8d4ce9d5fd07beb408ca730f
 
 # CARGO_HOME is a FIXED, committed path (not $HOME/.cargo) so the warmed registry
 # cache survives into the image layer and the runtime `cargo build --offline`

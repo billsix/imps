@@ -10,14 +10,18 @@ repo-root `../../CLAUDE.md` (the carrier model) first.
 ## Pin
 
 - Upstream: <https://github.com/BurntSushi/ripgrep>, license MIT OR Unlicense.
-- `PIN_SHA` (in `fetch.sh`) = `4649aa9700619f94cf9c66876e9549d83420e16c`, the
-  commit tag **14.1.1** points at (released 2024-09-08), the latest stable
-  release. Pinned to a released tag's commit so reference-doc `file:line`
-  anchors and (later) book doc-region spans stay valid.
-  - `14.1.1` is an **annotated** tag: `PIN_SHA` is the commit it peels to
-    (`git rev-parse 14.1.1^{}`), NOT the tag-object SHA. `git rev-parse HEAD`
-    equals `PIN_SHA`, so `apply.sh`'s pin guard matches. Do not "correct" it to
-    the tag-object SHA `0e8390a…` — that would break the guard.
+- `PIN_SHA` (in `fetch.sh`) = `e89fff89ac9af12e8d4ce9d5fd07beb408ca730f`, the
+  commit tag **15.2.0** points at, the latest stable release (bumped from 14.1.1
+  on 2026-10-08 — a major-version jump; the 3 comment-only docs patches replay,
+  patch 0003's `glue.rs` doc comment re-placed after upstream inserted a
+  `consume_remaining()` method 14->15). Pinned to a released tag's commit so
+  reference-doc `file:line` anchors and (later) book doc-region spans stay valid.
+  - `15.2.0` is an **annotated** tag: `PIN_SHA` is the commit it peels to
+    (`git rev-parse 15.2.0^{}`), NOT the tag-object SHA `6ec72de…`. `git rev-parse
+    HEAD` equals `PIN_SHA`, so `apply.sh`'s pin guard matches.
+  - **The pin lives twice** — also `RIPGREP_PIN` in the `Dockerfile` (kept in
+    sync, 2026-10-08). After a bump, rebuild `make image` to re-warm the offline
+    Cargo cache for the new `Cargo.lock` (NOT yet done at this bump — pending).
 
 ## Scripts & build
 

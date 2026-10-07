@@ -190,6 +190,25 @@ tradeoff, and the patch-lifecycle consequence:
   against its source at each bump** — the family `CLAUDE.md` lists the
   drift pairs (e.g. the drift table in `n64/CLAUDE.md`).
 
+### Staying current with upstream — the pin-bump sweep
+
+A recurring upkeep job the maintainer asks for: **periodically check every carried upstream for
+updates, see what changed, and rebase our `patches/` onto the new head** (the pin-bump operation
+above, applied across all projects). Two things make it more than a mechanical bump:
+
+- **Upstream may have merged (part of) the maintainer's GitHub pull requests** — possibly without
+  our noticing. When replaying the series, a patch upstream has absorbed applies **empty** (`git
+  am`: "No changes") or conflicts because the code is already there; the right move is to **drop or
+  trim that patch** (and note it in the per-project `CLAUDE.md` patch list), never force it. Part
+  of the sweep is actively checking `<pin>..<head>` for our subjects / the maintainer's authored
+  commits.
+- **The fossify carrier should stay complete** — new Fossify apps appear in the FossifyOrg org;
+  carrying them is the same manifest-line + pinned-release-tag pattern as the existing apps.
+
+Recon is read-only; moving any pin is a deliberate act that waits for the maintainer's go-ahead.
+Current sweep tasks: `tasks/imps-check-upstreams-and-rebase-patches.md` (all families) and
+`tasks/fossify-add-remaining-apps.md` (the missing Fossify apps).
+
 ## Rules
 
 - Scripts start with `cd "$(dirname "$0")"` and use only relative paths —

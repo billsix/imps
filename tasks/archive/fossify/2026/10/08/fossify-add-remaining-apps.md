@@ -1,6 +1,6 @@
 # fossify — find and add the remaining Fossify apps to the carrier
 
-**Status:** core DONE 2026-10-07 (overnight) — 13 apps added to the manifest + `.keep` streams; manifest parses, gate green (skips uncloned). Full `./fetch.sh` clone of the 13 is a cheap follow-up. One omission (Flashlight, no release).
+**Status:** DONE 2026-10-08 — 13 apps added to the manifest + `.keep` streams AND all cloned (`./fetch.sh`, 1.9 GB, 18 checkouts); comment-only gate green (3 real streams proven, the 13 new apps have empty streams). One omission (Flashlight, no release). Archived.
 **Priority:** 6
 **Difficulty:** 4 (mechanical per app — discover the released tag, append the manifest, scaffold streams — but ~12 apps and the Android build is heavy)
 **Created:** 2026-10-07 (William Emerison Six <billsix@gmail.com>: "for fossify, there are many more fossify apps that you didn't include, make a task to find them and to add them in the same way as the other fossify apps")

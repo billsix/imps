@@ -53,20 +53,24 @@ green (empty streams are trivially comment-only), and the docs reflect the fulle
    wording; note each app's UI stack (Views vs Compose) at its pinned tag per the family contract.
 5. **Stage** the manifest + `.keep` dirs + doc updates.
 
+## Decisions (William Emerison Six <billsix@gmail.com>, 2026-10-07)
+
+- **Run autonomously:** enumerate and add every missing Fossify app (manifest line at its latest
+  stable release tag + the two empty `.keep` stream dirs + doc index update) without asking per
+  app. **When an item requires too much discretion, STOP on it and log it as a new open question**
+  rather than guessing.
+- **Scope = carry-and-pin only** (the mechanical path): this task makes every app fetchable/pinned
+  with empty comment-only streams; it does **not** decide how deeply each app gets documented.
+  Whether the new apps get documented chapters (vs. keeping the Commons + four-exemplar focus) is a
+  doc-philosophy call that is "too much discretion" for this mechanical task — it is **logged and
+  deferred to `tasks/fossify-refdocs-and-book.md`**, not decided here.
+
 ## Notes / decisions (my discretion, adjustable)
 
 - Pin each new app at its **latest stable release tag** (not a pre-release, not a branch tip),
   consistent with the existing five.
-- Depth of documentation for the newly-added apps is the one real decision — see Open question 1;
-  this task only *carries* them (manifest + fetch + empty streams). Writing doc/book streams for
-  them is follow-on work under `tasks/fossify-refdocs-and-book.md`, not here.
 
 ## Open questions
 
-1. **The family doc's current design is "document Commons + the shared skeleton in depth, a few
-   exemplar apps (Gallery/Phone/Messages/Keyboard) thinly" — so should the newly-added apps be
-   (a) carried-and-pinned only (fetchable, empty doc streams, docs still centered on Commons + the
-   four exemplars), or (b) each also get at least a thin documented chapter?** Recommendation: (a)
-   now — land the full manifest so every app is fetchable/pinned, and leave per-app documentation
-   to `tasks/fossify-refdocs-and-book.md`, so this task stays mechanical and the doc philosophy is
-   a separate decision. (One ask; "a" / "b" decodes.)
+None at filing — scope is decided (carry-and-pin only; documentation depth deferred to the fossify
+refdocs task). New open questions get appended here during the work for any app that needs a call.

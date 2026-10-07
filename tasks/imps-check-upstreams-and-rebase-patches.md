@@ -94,6 +94,15 @@ force it.
 4. **Report exceptions afterward** (bulk done / opted-out / outright-skipped and why), per the
    "use your discretion" contract.
 
+## Decisions (William Emerison Six <billsix@gmail.com>, 2026-10-07)
+
+- **Run autonomously:** after the read-only recon, proceed and bump every upstream whose rebase is
+  clean — dropping/trimming PR-absorbed patches — without asking per upstream. **But when an item
+  requires too much discretion, STOP on that item and log it in this task as a new open question**
+  (don't guess, and don't force it); keep going on the rest. A standard-c re-cut, a large
+  HarbourMasters refactor, or an ambiguous "did upstream really absorb this patch?" call are the
+  typical stop-and-log cases.
+
 ## Notes / decisions (my discretion, adjustable)
 
 - **Recon spans all families**, but the **rebase effort is ranked**: the code-patch families
@@ -105,9 +114,5 @@ force it.
 
 ## Open questions
 
-1. **After the read-only recon report, do you want me to proceed autonomously and bump every
-   upstream whose rebase is clean (dropping PR-absorbed patches), stopping to ask only on
-   conflicts/refactors — or hold and bump only the specific upstreams you name?** Recommendation:
-   autonomous on the clean ones (it's the "use your discretion" bulk), ask on anything that
-   conflicts, needs a standard-c re-cut, or is a large HarbourMasters refactor. (One ask; a short
-   reply — "autonomous" / "name them" — decodes.)
+None at filing — the execution mode is decided (autonomous, stop-and-log). New open questions get
+appended here *during* the sweep for any item that needs the maintainer's call.

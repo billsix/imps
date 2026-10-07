@@ -205,8 +205,11 @@ above, applied across all projects). Two things make it more than a mechanical b
 - **The fossify carrier should stay complete** — new Fossify apps appear in the FossifyOrg org;
   carrying them is the same manifest-line + pinned-release-tag pattern as the existing apps.
 
-Recon is read-only; moving any pin is a deliberate act that waits for the maintainer's go-ahead.
-Current sweep tasks: `tasks/imps-check-upstreams-and-rebase-patches.md` (all families) and
+Recon is read-only; moving any pin is a deliberate act that waits for the maintainer's go-ahead,
+after which the sweep runs **autonomously on the clean bulk, stopping to log an open question in
+the task on any item that needs a real judgment call** (a conflicting rebase, a standard-c re-cut,
+a large upstream refactor, an ambiguous "did upstream absorb this patch?"). Current sweep tasks:
+`tasks/imps-check-upstreams-and-rebase-patches.md` (all families) and
 `tasks/fossify-add-remaining-apps.md` (the missing Fossify apps).
 
 ## Rules

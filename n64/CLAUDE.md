@@ -173,7 +173,7 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   patches (64-bit audio/scheduler fixes + BUILDING.md audio-libs fix); build/run
   + AppImage verified. Details: `n64/MajorasMask/CLAUDE.md`.
 - `n64/SuperMario64/` — Ghostship (https://github.com/HarbourMasters/Ghostship),
-  pin `49c5312a`. 46-patch upstream-bound `standard-c` stream (assembly-isms →
+  pin `40eef138` (bumped from 49c5312a 2026-10-08). 46-patch upstream-bound `standard-c` stream (assembly-isms →
   standard C, all codegen-identical, 2026-09-22) + 3-patch cheat series +
   libshaderc doc fix; fully verified; podman build; carries a Sphinx book
   (`SuperMario64/book/`). Details:

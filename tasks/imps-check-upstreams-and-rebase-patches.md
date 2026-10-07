@@ -181,6 +181,15 @@ the maintainer's):**
 - **BanjoKazooie develop `6d30df9a` → `5c948c59`** (2026-10-03 HEAD) — 4 patches clean; derived artifacts
   unchanged (Linux apt list, `GeneratePortO2R`, `BUILDING.md`); upstream only restructured CI + bumped
   version 1.0.0→1.1.0; libultraship `2917d0f4`→`62e973ae`.
+- **SuperMario64 develop `49c5312a` → `40eef138`** (2026-09-10 HEAD) — all 51 game-tree patches + the
+  libultraship doc-region lane replay clean; both book streams still PROVEN comment-only; derived artifacts
+  unchanged; libultraship `c151cc91`→`93a1a417`. **STILL PENDING (needs a build):** the standard-c
+  **codegen-identity re-verification** (`tools/asmdiff.sh` per standard-c patch at the new compile flags) —
+  patches APPLY clean but codegen-identity is not yet re-proven at this pin.
+
+General finding: **per-game pin policy matters** — PaperMario is tag-pinned; BK/SM64/MM are develop-pinned
+(each `fetch.sh` says which). A submodule can change URL on a bump (PaperMario's torch) — `git submodule
+sync` in `fetch.sh` handles it.
 
 ## Next actions (DECIDED 2026-10-08 by the maintainer — all "yes"; NOT started)
 

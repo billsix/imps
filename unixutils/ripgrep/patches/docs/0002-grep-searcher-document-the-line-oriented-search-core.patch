@@ -1,4 +1,4 @@
-From abb1d93df899c2748632afb08ca641058a661fdf Mon Sep 17 00:00:00 2001
+From bf0b8b85c210f5657936421435dda434d56622bb Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Sun, 20 Sep 2026 03:24:50 +0000
 Subject: [PATCH 2/3] grep-searcher: document the line-oriented search core
@@ -22,7 +22,7 @@ Comment-only: no code changes.
  1 file changed, 157 insertions(+)
 
 diff --git a/crates/searcher/src/searcher/core.rs b/crates/searcher/src/searcher/core.rs
-index 7d7e5cd..ec6d188 100644
+index e0693c0..632d453 100644
 --- a/crates/searcher/src/searcher/core.rs
 +++ b/crates/searcher/src/searcher/core.rs
 @@ -1,3 +1,33 @@
@@ -119,9 +119,9 @@ index 7d7e5cd..ec6d188 100644
      has_sunk: bool,
 +    /// Whether any match has occurred so far (drives `stop_on_nonmatch`).
      has_matched: bool,
+     count: u64,
  }
- 
-@@ -116,6 +180,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -167,6 +231,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          )
      }
  
@@ -135,7 +135,7 @@ index 7d7e5cd..ec6d188 100644
      pub(crate) fn match_by_line(
          &mut self,
          buf: &[u8],
-@@ -131,6 +202,22 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -182,6 +253,22 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          }
      }
  
@@ -158,7 +158,7 @@ index 7d7e5cd..ec6d188 100644
      pub(crate) fn roll(&mut self, buf: &[u8]) -> usize {
          let consumed = if self.config.max_context() == 0 {
              buf.len()
-@@ -157,6 +244,14 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -212,6 +299,14 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          consumed
      }
  
@@ -173,7 +173,7 @@ index 7d7e5cd..ec6d188 100644
      pub(crate) fn detect_binary(
          &mut self,
          buf: &[u8],
-@@ -182,6 +277,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -237,6 +332,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          }
      }
  
@@ -187,7 +187,7 @@ index 7d7e5cd..ec6d188 100644
      pub(crate) fn before_context_by_line(
          &mut self,
          buf: &[u8],
-@@ -218,6 +320,11 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -273,6 +375,11 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          Ok(true)
      }
  
@@ -199,7 +199,7 @@ index 7d7e5cd..ec6d188 100644
      pub(crate) fn after_context_by_line(
          &mut self,
          buf: &[u8],
-@@ -243,6 +350,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -308,6 +415,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          Ok(true)
      }
  
@@ -212,7 +212,7 @@ index 7d7e5cd..ec6d188 100644
      pub(crate) fn other_context_by_line(
          &mut self,
          buf: &[u8],
-@@ -262,6 +375,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -327,6 +440,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          Ok(true)
      }
  
@@ -226,7 +226,7 @@ index 7d7e5cd..ec6d188 100644
      fn match_by_line_slow(&mut self, buf: &[u8]) -> Result<bool, S::Error> {
          debug_assert!(!self.searcher.multi_line_with_matcher(&self.matcher));
  
-@@ -312,6 +432,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -382,6 +502,13 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          Ok(true)
      }
  
@@ -240,7 +240,7 @@ index 7d7e5cd..ec6d188 100644
      fn match_by_line_fast(
          &mut self,
          buf: &[u8],
-@@ -394,6 +521,15 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -472,6 +599,15 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          Ok(true)
      }
  
@@ -255,8 +255,8 @@ index 7d7e5cd..ec6d188 100644
 +    /// buffer.
      #[inline(always)]
      fn find_by_line_fast(
-         &self,
-@@ -575,6 +711,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+         &mut self,
+@@ -643,6 +779,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          Ok(true)
      }
  
@@ -269,7 +269,7 @@ index 7d7e5cd..ec6d188 100644
      fn sink_break_context(
          &mut self,
          start_of_line: usize,
-@@ -590,6 +732,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -658,6 +800,12 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          }
      }
  
@@ -282,7 +282,7 @@ index 7d7e5cd..ec6d188 100644
      fn count_lines(&mut self, buf: &[u8], upto: usize) {
          if let Some(ref mut line_number) = self.line_number {
              if self.last_line_counted >= upto {
-@@ -602,6 +750,15 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
+@@ -670,6 +818,15 @@ impl<'s, M: Matcher, S: Sink> Core<'s, M, S> {
          }
      }
  

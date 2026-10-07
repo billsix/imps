@@ -191,6 +191,12 @@ General finding: **per-game pin policy matters** — PaperMario is tag-pinned; B
 (each `fetch.sh` says which). A submodule can change URL on a bump (PaperMario's torch) — `git submodule
 sync` in `fetch.sh` handles it.
 
+**ripgrep 14.1.1 → 15.2.0 DONE** (tag-pinned, bumped to latest release — a major jump). The 3 comment-only
+docs patches replay; patch 0003's `glue.rs` doc comment re-placed after upstream inserted a
+`consume_remaining()` method 14→15 (the `fill()` docstring still describes the code). **PROVEN comment-only**
+(glue.rs tokenizes identically after stripping comments). Pin updated in BOTH `fetch.sh` and the Dockerfile
+`RIPGREP_PIN` ARG. PENDING (maintainer): `make image` to re-warm the offline Cargo cache.
+
 ## Next actions (DECIDED 2026-10-08 by the maintainer — all "yes"; NOT started)
 
 1. **Bump the three clean-rebasing games — PaperMario, BanjoKazooie, SuperMario64 — the agent does it**

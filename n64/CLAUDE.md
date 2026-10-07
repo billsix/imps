@@ -179,7 +179,7 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   (`SuperMario64/book/`). Details:
   `n64/SuperMario64/CLAUDE.md`.
 - `n64/BanjoKazooie/` — Lighthouse
-  (https://github.com/HarbourMasters/Lighthouse), pin `6d30df9a`. 4-patch
+  (https://github.com/HarbourMasters/Lighthouse), pin `5c948c59` (bumped from 6d30df9a 2026-10-08). 4-patch
   `fixOnFedora` series (a submitted upstream PR); builds and runs; podman build.
   Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),

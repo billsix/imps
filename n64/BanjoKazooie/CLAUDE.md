@@ -10,9 +10,10 @@ extracted in-app to `bk.o2r`; port assets ship in `lighthouse.o2r`.
 
 Managed by imps: `Lighthouse/` here is a pristine clone of
 https://github.com/HarbourMasters/Lighthouse, pinned by `fetch.sh` at
-`6d30df9a` (tip of upstream `develop` as of 2026-09-01), with the
-maintainer's patches applied by `apply.sh`. Not a fork; the patch series is
-the whole delta.
+`5c948c59` (tip of upstream `develop` as of 2026-10-03; bumped from `6d30df9a`
+on 2026-10-08 — the 4-patch series replays clean, upstream only restructured
+its CI and bumped the version 1.0.0 -> 1.1.0), with the maintainer's patches
+applied by `apply.sh`. Not a fork; the patch series is the whole delta.
 
 ## Scripts
 
@@ -52,10 +53,10 @@ Export & verification history:
 
 ## Version notes
 
-- Submodules at the pin: **libultraship `2917d0f4` (1.3.1-482)** — newer
-  than both ocarina's (486) and mm's (397) pins — and Torch `b4b75e66`
-  (v1.0.0-419). Asset extraction is Torch-based (like ocarina's pin, unlike
-  mm's ZAPD pipeline).
+- Submodules at the pin: **libultraship `62e973ae`** (was `2917d0f4`/1.3.1-482 at
+  the old pin; moved with the develop bump, URL unchanged) and Torch (moves with
+  the bump too). Asset extraction is Torch-based (like ocarina's pin, unlike mm's
+  ZAPD pipeline).
 - `ExtractAssets` (the build-time extraction) wants `baserom.z64` in the
   `Lighthouse/` source root — out of imps' scope; in-app extraction is the
   supported path. Headless/sandbox builds may need `-DUSE_NETWORKING=OFF`

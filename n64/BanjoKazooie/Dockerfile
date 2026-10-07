@@ -1,5 +1,5 @@
 # Mirrors the Lighthouse Linux CI build environment — the `build-linux` job of
-# .github/workflows/main.yml at the imps pin (6d30df9a): SDL/tinyxml2/libzip
+# .github/workflows/main.yml at the imps pin (5c948c59): SDL/tinyxml2/libzip
 # from source, then a Release build + `cpack -G External` AppImage.
 # CI runs on `ubuntu-latest`; GitHub's ubuntu-latest has resolved to the 24.04
 # LTS since early 2025 (26.04 is not an LTS runner image), so this pins 24.04.

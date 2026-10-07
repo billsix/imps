@@ -178,6 +178,9 @@ the maintainer's):**
   fork is no longer public) → added `git submodule sync` to `fetch.sh`. libultraship `7aa03b6c`→`3e3cd2ed`.
   Also **fixed a pre-existing bug in `tools/check_patches_apply.sh`** (it hardcoded the LUS submodule path
   as `libultraship`; PaperMario's is `external/libultraship`) → now read from `.gitmodules`.
+- **BanjoKazooie develop `6d30df9a` → `5c948c59`** (2026-10-03 HEAD) — 4 patches clean; derived artifacts
+  unchanged (Linux apt list, `GeneratePortO2R`, `BUILDING.md`); upstream only restructured CI + bumped
+  version 1.0.0→1.1.0; libultraship `2917d0f4`→`62e973ae`.
 
 ## Next actions (DECIDED 2026-10-08 by the maintainer — all "yes"; NOT started)
 

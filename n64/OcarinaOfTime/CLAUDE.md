@@ -8,9 +8,10 @@ central glue), and the **libultraship** runtime (`libultraship/` submodule).
 
 Managed by imps: `Shipwright/` here is a pristine clone of
 https://github.com/HarbourMasters/Shipwright, pinned by `fetch.sh` at
-`acdbc651d` (9.2.3-421, tip of upstream `develop` as of 2026-09-01), with the
-maintainer's patches applied by `apply.sh`. It is not a fork and has no
-personal branches — the patch series is the whole delta.
+`ecd889c2` (9.3.0, tip of upstream `develop` as of 2026-10-06, which upstream
+tagged as the 9.3.0 release), with the maintainer's patches applied by
+`apply.sh`. It is not a fork and has no personal branches — the patch series is
+the whole delta.
 
 ## Scripts
 
@@ -44,20 +45,34 @@ regardless (keeps `upstream-candidates/` submittable on its own; see `../CLAUDE.
   stale matching notes. **Every patch is gate-proven: each touched file compiles
   to byte-identical assembly before and after** with SoH's own flags
   (`../../tools/asmdiff.sh`, `ASMDIFF_PROJECT=OcarinaOfTime`),
-  and the whole stream was re-gated file-by-file against the pin (486/486). Not in
-  the stream: rewrites whose codegen differs (`../../tasks/ocarina-standard-c-explained-diffs.md`)
+  and the whole stream was re-gated file-by-file at the original pin (486/486).
+  **Re-applied onto the `9.3.0` pin (`ecd889c2`) 2026-10-07 — two 3-way conflicts
+  (`audio_playback.c`, `z_door_ana.c`) hand-resolved. Re-gated nested at 9.3.0
+  2026-10-08: 486 files, 478 byte-identical, 8 now DIFFER
+  behavior-equivalently** (removing an unused `s32 pad;` shrinks the frame and GCC
+  re-allocates the whole function at 9.3.0's rewritten versions; also
+  reorders/register-realloc/narrower-equal-loads). **The maintainer accepted these
+  8 in-stream and they are documented in
+  `../../tasks/ocarina-standard-c-explained-diffs.md`** ("Accepted IN the stream"
+  section) — so the invariant at 9.3.0 is "byte-identical OR a behavior-equivalent
+  diff explained there". Re-run the tree gate at the next bump. Also not in
+  the stream: rewrites whose codegen differs (same doc, the 18-item excluded list)
   and the naming classes (stack-slot locals, `argN`, per-actor `params` macros).
   Catalogue + per-batch log: `../../tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`;
   patterns: `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
   Checkout branch `imps-standard-c`; at a pin bump replay AND re-run the gate.
-- `patches/personal/0001…0488-*.patch` — the decomp rename series, **re-cut
-  2026-09-22 against the `standard-c` tree** (87 patches needed a 3-way conflict
-  resolved, mechanically: our side + that patch's renames + its provenance tags —
-  `../../tools/resolve_rename_conflicts.py`; the
-  `--base` footer now names the `standard-c` tip). Still **one file
-  per patch**: 0001 renames the 18 address-named `soh/src/code/code_<addr>.c`
-  files, and each other patch names the address-named symbols in one definition
-  file (156 files hold a single symbol). Every renamed symbol carries a
+- `patches/personal/0001…0489-*.patch` — the decomp rename series, originally
+  **re-cut 2026-09-22 against the `standard-c` tree** and **re-cut again
+  2026-10-07 onto the `9.3.0` pin's `standard-c` tip** (`resolve_rename_conflicts.py`
+  resolved the rename-conflict blocks mechanically — our side + that patch's
+  renames + its provenance tags; a handful of conflicts where upstream changed a
+  call signature next to a renamed symbol were hand-resolved; the `--base` footer
+  names the `standard-c` tip `e6647b4d`). Still **one file per patch** (0001 renames
+  the 18 address-named `soh/src/code/code_<addr>.c` files, each other patch names the
+  address-named symbols in one definition file), **plus a tail patch 0489** that
+  reconciles the renamed cutscene symbols with call sites new at the `9.3.0` pin
+  (`SkipCutscene/QuickBossDeaths.cpp`, `CutsceneTime.cpp`) and repositions one
+  displaced `audio_thread.c` provenance comment. Every renamed symbol carries a
   provenance comment at its definition **and** a short `// was func_… [oot]` /
   `[LLM:HIGH]` tag at each header declaration (and, for a guess, at every call
   site), so a reader of `functions.h` can tell an upstream name from a deduction;

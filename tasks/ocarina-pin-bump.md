@@ -1,6 +1,7 @@
 # OcarinaOfTime — pin bump to current develop HEAD (the big one)
 
-**Status:** proposed — todo (filed 2026-10-08 from the upstream sweep's findings).
+**Status:** in progress — both streams replayed, all gates green (incl. the asmdiff re-gate, run
+nested 2026-10-08), staged; awaiting only the maintainer's build + play-test, then archive.
 **Priority:** 5
 **Difficulty:** 9 (524 patches across two streams; the 488-patch rename stream must be re-cut — the
 maintainer's "most problems" project)
@@ -41,20 +42,57 @@ artifacts re-verified, pin + patches + docs updated and staged, and the maintain
 
 ## Plan
 
-- [ ] Fetch `ecd889c2`, branch at it, `git am --3way` the `standard-c` stream; **resolve conflicts**
-      (starting at `z_kaleido_collect.c`), reading the new upstream for each.
-- [ ] Re-run `tools/asmdiff.sh` per `standard-c` patch against the new compile flags; fix any that are no
-      longer codegen-identical (a new flag/GCC may require re-doing a rewrite).
-- [ ] **Re-cut `personal`** on the new standard-c tip (`tools/resolve_rename_conflicts.py`), then
-      `tools/check_renames.py all` green.
-- [ ] Re-verify the derived artifacts (above); update any that drifted (esp. build-target renames).
-- [ ] Update `PIN_SHA` + pin comment in `fetch.sh`, regenerate both streams
-      (`git format-patch --base=<tip> … -o patches/<stream>/`), refresh the per-project `CLAUDE.md`,
-      **stage**.
-- [ ] `tools/check_patches_apply.sh OcarinaOfTime` green (both lanes, stream order, pin guard).
-- [ ] **Maintainer:** build + play-test; then archive.
+- [x] Fetch `ecd889c2`, branch at it, `git am --3way` the `standard-c` stream; **resolve conflicts**.
+      Two 3-way conflicts hand-resolved (`soh/src/code/audio_playback.c`, `ovl_Door_Ana/z_door_ana.c`) —
+      each kept upstream's new wrapper/refactor and applied our rewrite; `z_kaleido_collect.c` (the probe's
+      ~20-patch conflict) resolved too. standard-c tip = `e6647b4d`.
+- [x] **Ran the asmdiff stream gate nested** (full SoH build in `soh-builder`, gcc-11; configured at the
+      standard-c tip with `CMAKE_EXPORT_COMPILE_COMMANDS=ON`; `asmdiff_tree.sh ecd889c2 89273b1f`).
+      Result: **486 files, 478 identical, 8 DIFFER** — `audio_heap.c` (1212 asm lines), `z_message_PAL.c`
+      (2878), `audio_synthesis.c` (32), `z_bgcheck.c` (20), `z_en_owl.c` (36), `z_en_torch2.c` (6),
+      `z_en_trap.c` (15), `z_en_wood02.c` (4). **Each file's *source* diff is exactly the intended cleanup,
+      cleanly applied — no reverted upstream code.** The codegen differs because the cleanups
+      (`s32 pad;` removal, `goto`→`return`, `<<`→`*`, `== false`→`!`, `(uintptr_t)`→`(u8*)`, the eventInf
+      macro) were byte-identical on the *old* pin's versions of these functions but not on 9.3.0's: removing
+      an unused `pad` shrinks the frame and GCC re-allocates slots/registers across the whole function, a
+      behavior-equivalent reschedule (verified: the C expressions are unchanged; e.g. `z_en_wood02` is only
+      `movswl`→`movzbl/movzwl`, a narrower load of the same small non-negative value). The build tree
+      persists at `Shipwright/build-cmake` (gitignored) for a re-gate after the decision below.
+- [x] **Re-cut `personal`** on the new standard-c tip with `tools/resolve_rename_conflicts.py` (driver:
+      `scratchpad/oot_recut_resume.sh` — a resume-mode replay; the resolver handled the rename-conflict
+      blocks, a few "upstream changed a call signature next to a renamed symbol" conflicts were
+      hand-resolved). `tools/check_renames.py all` → **green** (3778 renames, all traceable/tagged/total).
+      `tools/remaining_address_names.py` → only the 4 declared-exclusion symbols, i.e. **no new unnamed
+      address symbols from the bump**.
+- [x] Re-verify derived artifacts: `generate-builds.yml` Linux job changed only cosmetically
+      (readme-artifact move) between pins, `linux-build-deps/apt.txt` unchanged, from-source dep versions
+      unchanged → `Dockerfile` accurate (only its pin-SHA comment updated). LUS submodule unchanged
+      (`62e973ae`, 1.3.1-486), torch `2ab12fe9`.
+- [x] Update `PIN_SHA` + comment in `fetch.sh` (`ecd889c2`, git describe `9.3.0`), regenerate the
+      `personal` stream (`--base=e6647b4d`, now **489** patches incl. the tail reconciliation 0489), refresh
+      `n64/OcarinaOfTime/CLAUDE.md` + `n64/CLAUDE.md` + `Dockerfile`, **staged**. (standard-c patches were
+      already regenerated/committed at `ecd889c2` in a prior session.)
+- [x] `tools/check_patches_apply.sh OcarinaOfTime` → **green** (525 patches, stream order + pin guard).
+- [ ] **Maintainer:** build + play-test (and the asmdiff re-gate above); then archive.
+
+## New-at-pin reconciliation (patch personal/0489)
+
+The 9.3.0 pin added references to symbols the rename series renames, in call sites the per-definition-file
+commits could not have seen: `SkipCutscene/QuickBossDeaths.cpp` calls `func_800C08AC`
+(`Play_ReturnToMainCam`) + `func_80064534` (`Cutscene_StopManual`); `CutsceneTime.cpp` names `func_80064824`
+(`CutsceneCmd_Misc`) + `func_80065134` (`Cutscene_Command_SetTime`) in comments. All four are oot-adopted
+names (no call-site tag). Patch 0489 also repositions one `audio_thread.c` provenance comment the 3-way
+replay dropped inside a function body (it mis-paired `AudioLoad_GetFontsForSequence`). Kept as a dedicated
+tail patch so the 488 re-cut patches stay byte-stable for review; interactive rebase to fold it into the
+defining commits was unavailable (sandbox blocks `rebase -i`).
 
 ## Open questions
 
-None — the decision to tackle it is made. This is a large dedicated task; expect it to span a focused
-session (standard-c conflicts + asmdiff, then the 488-patch re-cut).
+None remaining. (Resolved 2026-10-08, William Emerison Six <billsix@gmail.com>: the 8 behavior-equivalent
+codegen diffs are **accepted in-stream and documented** in `tasks/ocarina-standard-c-explained-diffs.md`
+— "Accepted IN the stream" section, with per-file mechanism, asm hunks, and the re-gate command. The OoT
+`standard-c` invariant at 9.3.0 is now "byte-identical OR a behavior-equivalent diff explained there".)
+
+Optional follow-up (not required for a correct bump): re-run `tools/oot_oracle.py` against
+zeldaret/oot at 9.3.0 to upgrade `[LLM:HIGH]` guesses to `[oot]`-adopted names where upstream has since
+named them — a provenance-comment enhancement, needs network + review, filed here as a note rather than done.

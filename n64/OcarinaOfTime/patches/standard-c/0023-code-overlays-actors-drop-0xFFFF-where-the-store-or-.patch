@@ -1,4 +1,4 @@
-From 6375424e150bea85cfe6a8c3f6bfe1f61138912b Mon Sep 17 00:00:00 2001
+From f197e06c39bd9c8a6729099cfeeb6b513efaabf6 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Tue, 22 Sep 2026 16:45:40 +0000
 Subject: [PATCH 23/36] code, overlays/actors: drop `& 0xFFFF` where the store
@@ -38,10 +38,10 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
  15 files changed, 21 insertions(+), 22 deletions(-)
 
 diff --git a/soh/src/code/code_800EC960.c b/soh/src/code/code_800EC960.c
-index e5cd54cef..5a27ea940 100644
+index bee578b86..660cd244d 100644
 --- a/soh/src/code/code_800EC960.c
 +++ b/soh/src/code/code_800EC960.c
-@@ -4140,7 +4140,7 @@ u8 func_800F37B8(f32 behindScreenZ, SoundBankEntry* arg1, s8 arg2) {
+@@ -4142,7 +4142,7 @@ u8 func_800F37B8(f32 behindScreenZ, SoundBankEntry* arg1, s8 arg2) {
          if (phi_v0 < 30) {
              phi_v1 = 0;
          } else {
@@ -73,10 +73,10 @@ index b685fa0ae..8c2adb3dc 100644
              osSyncPrintf("PR_KAREIDOSCOPE_MODE=%d\n", R_PAUSE_MENU_MODE);
  
 diff --git a/soh/src/code/z_room.c b/soh/src/code/z_room.c
-index cfdedcdaa..92dda8ebd 100644
+index d74e2841e..8e22ffe64 100644
 --- a/soh/src/code/z_room.c
 +++ b/soh/src/code/z_room.c
-@@ -178,7 +178,7 @@ void func_80095D04(PlayState* play, Room* room, u32 flags) {
+@@ -179,7 +179,7 @@ void func_80095D04(PlayState* play, Room* room, u32 flags) {
          }
      }
  
@@ -146,10 +146,10 @@ index 11565b5c3..daa4d1234 100644
  
      if (this->dyna.actor.params == 0) {
 diff --git a/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c b/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
-index 7e02eb734..05ac53bb4 100644
+index ad9f1916f..33647df73 100644
 --- a/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
 +++ b/soh/src/overlays/actors/ovl_Door_Ana/z_door_ana.c
-@@ -139,7 +139,7 @@ void DoorAna_WaitOpen(DoorAna* this, PlayState* play) {
+@@ -140,7 +140,7 @@ void DoorAna_WaitOpen(DoorAna* this, PlayState* play) {
              Play_SetupRespawnPoint(play, RESPAWN_MODE_RETURN, 0x4FF);
              gSaveContext.respawn[RESPAWN_MODE_RETURN].pos.y = this->actor.world.pos.y;
              gSaveContext.respawn[RESPAWN_MODE_RETURN].yaw = this->actor.home.rot.y;
@@ -172,10 +172,10 @@ index ba9b2f813..d1d2244f2 100644
  
      if (textId2 == 0) {
 diff --git a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
-index a55c5a5d6..dfdc930ae 100644
+index c30c3cf25..f64e0c81c 100644
 --- a/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
 +++ b/soh/src/overlays/actors/ovl_En_Elf/z_en_elf.c
-@@ -467,7 +467,7 @@ void func_80A02AA4(EnElf* this, PlayState* play) {
+@@ -468,7 +468,7 @@ void func_80A02AA4(EnElf* this, PlayState* play) {
  void func_80A02B38(EnElf* this, PlayState* play) {
      Player* player = GET_PLAYER(play);
  
@@ -233,10 +233,10 @@ index 35c790768..18760ae87 100644
  }
  
 diff --git a/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c b/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
-index b666421a8..758f7a9ce 100644
+index 9a3d0c688..cfd211fb4 100644
 --- a/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
 +++ b/soh/src/overlays/actors/ovl_En_Wf/z_en_wf.c
-@@ -1478,7 +1478,7 @@ s32 EnWf_DodgeRanged(PlayState* play, EnWf* this) {
+@@ -1479,7 +1479,7 @@ s32 EnWf_DodgeRanged(PlayState* play, EnWf* this) {
          f32 dist;
  
          angleToFacing = Actor_WorldYawTowardActor(&this->actor, actor) - this->actor.shape.rot.y;
@@ -259,10 +259,10 @@ index b2b8e2ace..cedc6bc27 100644
          phi_v0 = this->unk_1AC[temp_t0];
  
 diff --git a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
-index b1d380aec..720644954 100644
+index 72dfb6e3f..347c3c5c9 100644
 --- a/soh/src/overlays/actors/ovl_player_actor/z_player.c
 +++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c
-@@ -15004,8 +15004,8 @@ void Player_UpdateBunnyEars(Player* this) {
+@@ -14980,8 +14980,8 @@ void Player_UpdateBunnyEars(Player* this) {
  
      // Forcing from motion relative to shape frame
      angle = this->actor.world.rot.y - this->actor.shape.rot.y;

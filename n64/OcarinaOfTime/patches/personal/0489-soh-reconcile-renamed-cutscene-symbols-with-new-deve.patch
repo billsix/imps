@@ -1,0 +1,97 @@
+From f2966f5687d7439294de6b27381949f480f635c7 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Wed, 7 Oct 2026 22:23:47 +0000
+Subject: [PATCH 489/489] soh: reconcile renamed cutscene symbols with new
+ develop pin references
+
+The pin bump to upstream develop (ecd889c2) surfaced references to symbols the
+rename series renames, in call sites that are new at this pin (the re-cut's
+per-definition-file commits could not have seen them):
+
+  * SkipCutscene/QuickBossDeaths.cpp calls func_800C08AC (Play_ReturnToMainCam)
+    and func_80064534 (Cutscene_StopManual).
+  * SkipCutscene/CutsceneTime.cpp names func_80064824 (CutsceneCmd_Misc) and
+    func_80065134 (Cutscene_Command_SetTime) in explanatory comments.
+
+All four names are adopted from zeldaret/oot, so the call sites carry no tag
+(per the renaming convention; only guessed names are tagged at call sites).
+
+Also moves the func_800E5E84 (AudioThread_GetFontsForSequence) provenance
+comment back above its definition in audio_thread.c: the 3-way replay of the
+audio_thread.c rename placed it below the opening brace, which mis-paired
+AudioLoad_GetFontsForSequence as a renamed symbol. Comment-only move.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+---
+ .../Enhancements/TimeSavers/SkipCutscene/CutsceneTime.cpp | 4 ++--
+ .../TimeSavers/SkipCutscene/QuickBossDeaths.cpp           | 8 ++++----
+ soh/src/code/audio_thread.c                               | 2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/soh/soh/Enhancements/TimeSavers/SkipCutscene/CutsceneTime.cpp b/soh/soh/Enhancements/TimeSavers/SkipCutscene/CutsceneTime.cpp
+index 2f69c9382..409669151 100644
+--- a/soh/soh/Enhancements/TimeSavers/SkipCutscene/CutsceneTime.cpp
++++ b/soh/soh/Enhancements/TimeSavers/SkipCutscene/CutsceneTime.cpp
+@@ -177,7 +177,7 @@ static uint16_t RunScript(const uint32_t* data, uint16_t dayTime, uint16_t timeS
+             actorUpdate(dayTime, timeSpeed);
+         }
+ 
+-        // func_80064824, only the cases that touch the clock
++        // CutsceneCmd_Misc, only the cases that touch the clock
+         for (auto& cmd : script.misc) {
+             if (frame < cmd.startFrame || (frame >= cmd.endFrame && cmd.endFrame != cmd.startFrame)) {
+                 continue;
+@@ -203,7 +203,7 @@ static uint16_t RunScript(const uint32_t* data, uint16_t dayTime, uint16_t timeS
+             }
+         }
+ 
+-        // func_80065134
++        // Cutscene_Command_SetTime
+         for (auto& cmd : script.setTimes) {
+             if (frame == cmd.startFrame) {
+                 s16 hours = (s16)((cmd.hour * 60.0f) / (360.0f / 0x4000));
+diff --git a/soh/soh/Enhancements/TimeSavers/SkipCutscene/QuickBossDeaths.cpp b/soh/soh/Enhancements/TimeSavers/SkipCutscene/QuickBossDeaths.cpp
+index afaf001c5..3dceabeca 100644
+--- a/soh/soh/Enhancements/TimeSavers/SkipCutscene/QuickBossDeaths.cpp
++++ b/soh/soh/Enhancements/TimeSavers/SkipCutscene/QuickBossDeaths.cpp
+@@ -125,9 +125,9 @@ void RegisterQuickBossDeaths() {
+             mainCam->eye = fd2->camData.eye;
+             mainCam->eyeNext = fd2->camData.eye;
+             mainCam->at = fd2->camData.at;
+-            func_800C08AC(gPlayState, fd2->deathCamera, 0);
++            Play_ReturnToMainCam(gPlayState, fd2->deathCamera, 0);
+             fd2->deathCamera = 0;
+-            func_80064534(gPlayState, &gPlayState->csCtx);
++            Cutscene_StopManual(gPlayState, &gPlayState->csCtx);
+             Player_SetCsActionWithHaltedActors(gPlayState, &fd2->actor, 7);
+ 
+             if (GameInteractor_Should(VB_SPAWN_BLUE_WARP, true, fd2)) {
+@@ -159,9 +159,9 @@ void RegisterQuickBossDeaths() {
+             mainCam->eye = core->cameraEye;
+             mainCam->eyeNext = core->cameraEye;
+             mainCam->at = core->cameraAt;
+-            func_800C08AC(gPlayState, core->csCamera, 0);
++            Play_ReturnToMainCam(gPlayState, core->csCamera, 0);
+             core->csCamera = 0;
+-            func_80064534(gPlayState, &gPlayState->csCtx);
++            Cutscene_StopManual(gPlayState, &gPlayState->csCtx);
+             Player_SetCsActionWithHaltedActors(gPlayState, &core->actor, 7);
+ 
+             if (GameInteractor_Should(VB_SPAWN_BLUE_WARP, true, tent)) {
+diff --git a/soh/src/code/audio_thread.c b/soh/src/code/audio_thread.c
+index 342bf776f..194b27dce 100644
+--- a/soh/src/code/audio_thread.c
++++ b/soh/src/code/audio_thread.c
+@@ -524,8 +524,8 @@ u32 AudioThread_GetExternalLoadQueueMsg(u32* out) {
+     return sp1C >> 0x18;
+ }
+ 
+-u16* AudioThread_GetFontsForSequence(s32 arg0, u32* arg1) {
+ // Name from zeldaret/oot, was func_800E5E84: forwards to AudioLoad_GetFontsForSequence [oot: https://github.com/zeldaret/oot/blob/main/src/audio/internal/thread.c]
++u16* AudioThread_GetFontsForSequence(s32 arg0, u32* arg1) {
+     return AudioLoad_GetFontsForSequence(arg0, arg1);
+ }
+ 
+-- 
+2.55.0
+

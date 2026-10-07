@@ -61,7 +61,7 @@ each lane, patches are NOT one numbered series but are grouped into
 - `patches/standard-c/` — upstream-bound code-quality rewrites of the decomp's
   assembly-isms, every patch proven codegen-identical (SuperMario64 46 patches,
   OcarinaOfTime 36 patches, 2026-09-22; listed FIRST in each `ORDER` so the
-  personal streams sit on it — OoT's 488-patch rename stream was re-cut on top).
+  personal streams sit on it — OoT's 489-patch rename stream was re-cut on top).
 - `patches/upstream-candidates/` — fixes shaped for upstream submission
   (MM audio + doc fixes; Banjo's fixOnFedora PR; SM64's libshaderc doc fix).
 - `patches/personal/` — personal refactors not bound for upstream
@@ -163,10 +163,12 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
 `tasks/reference/imps/game-port-history.md`.
 
 - `n64/OcarinaOfTime/` — Ship of Harkinian
-  (https://github.com/HarbourMasters/Shipwright), pin `acdbc651d`. 36-patch
-  upstream-bound `standard-c` stream (assembly-isms → standard C, all
-  codegen-identical, 2026-09-22) under the 488-patch decomp-rename series
-  (re-cut on top of it); build/AppImage/run-verified; podman build. Details:
+  (https://github.com/HarbourMasters/Shipwright), pin `ecd889c2` (9.3.0, bumped
+  from acdbc651d 2026-10-07). 36-patch upstream-bound `standard-c` stream
+  (assembly-isms → standard C; re-gated at 9.3.0: 478/486 byte-identical, 8
+  accepted behavior-equivalent explained diffs) under the 489-patch decomp-rename series
+  (re-cut on top of it; +1 tail patch reconciling new-at-pin call sites);
+  build/AppImage/run-verified at the prior pin, host re-verify pending. Details:
   `n64/OcarinaOfTime/CLAUDE.md`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
   (https://github.com/HarbourMasters/2ship2harkinian), pin `04a1a4319`. Two

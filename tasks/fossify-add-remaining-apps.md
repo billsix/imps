@@ -1,6 +1,6 @@
 # fossify — find and add the remaining Fossify apps to the carrier
 
-**Status:** proposed — needs go-ahead (filed 2026-10-07 at the maintainer's request).
+**Status:** core DONE 2026-10-07 (overnight) — 13 apps added to the manifest + `.keep` streams; manifest parses, gate green (skips uncloned). Full `./fetch.sh` clone of the 13 is a cheap follow-up. One omission (Flashlight, no release).
 **Priority:** 6
 **Difficulty:** 4 (mechanical per app — discover the released tag, append the manifest, scaffold streams — but ~12 apps and the Android build is heavy)
 **Created:** 2026-10-07 (William Emerison Six <billsix@gmail.com>: "for fossify, there are many more fossify apps that you didn't include, make a task to find them and to add them in the same way as the other fossify apps")
@@ -65,12 +65,37 @@ green (empty streams are trivially comment-only), and the docs reflect the fulle
   doc-philosophy call that is "too much discretion" for this mechanical task — it is **logged and
   deferred to `tasks/fossify-refdocs-and-book.md`**, not decided here.
 
+## Results (2026-10-07, overnight run)
+
+Enumerated the FossifyOrg org; the **apps** (vs. support libraries like GestureViews/mmslib/reprint/
+java-mammoth and the website/meta repos) not already carried were **14**. **13 added** to the `repos`
+manifest, each pinned at its latest release tag's commit with `# tag date`, plus `patches/<app>/docs/.keep`
+and `patches/<app>/book/.keep`: Calculator 1.4.0, Calendar 1.11.0, Camera 1.5.0, Clock 1.6.0, Contacts
+1.6.0, Documents 1.0.1, File-Manager 1.6.1, Launcher 1.10.0, Music-Player 1.8.1, Notes 1.7.0, Paint 1.4.0,
+Thank-You 1.3.0, Voice-Recorder 1.7.1.
+
+- **Flashlight omitted** — no semver release tag exists yet (noted in the manifest + tier-3 CLAUDE.md;
+  add when it releases).
+- **Verified:** manifest parses (URL+SHA extract cleanly for all 14 incl. Keyboard); 26 new `.keep` files;
+  `tools/check_comment_only_streams.sh fossify` → "all PROVEN comment-only" (the 3 real streams), the 13
+  new apps **cleanly skipped** ("no checkout — run ./fetch.sh"), so the gate handles the additions.
+- **Not done (cheap follow-up):** the actual `./fetch.sh` clone of the 13 (~GBs of Android repos) — the
+  SHAs were confirmed to exist via `git ls-remote`, so this is mechanical. See open question 1.
+- Tier-3 `android/fossify/CLAUDE.md` updated with a "Carried apps" table; manifest comment reframed
+  (documented exemplars vs carried suite).
+
 ## Notes / decisions (my discretion, adjustable)
 
 - Pin each new app at its **latest stable release tag** (not a pre-release, not a branch tip),
   consistent with the existing five.
 
-## Open questions
+## Open questions (logged during the overnight run)
 
-None at filing — scope is decided (carry-and-pin only; documentation depth deferred to the fossify
-refdocs task). New open questions get appended here during the work for any app that needs a call.
+1. **The 13 added apps are pinned but not yet cloned** (`./fetch.sh` pulls ~GBs of Android repos; I left
+   it to avoid a large clone overnight and because the gate skips uncloned repos gracefully). Run
+   `cd android/fossify && ./fetch.sh` on the host when convenient to materialize the checkouts; the SHAs
+   are confirmed-valid. Want me to run the full fetch on a later pass, or will you?
+2. **Flashlight has no release tag** — omitted for now. Add it when FossifyOrg cuts a Flashlight release
+   (or if you want it pinned to a branch tip despite the "released tag" convention, say so).
+3. (Deferred, unchanged) Documentation depth for the carried apps is the refdocs task's call
+   (`tasks/fossify-refdocs-and-book.md`), not this mechanical carry-and-pin task.

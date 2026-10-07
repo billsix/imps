@@ -89,13 +89,15 @@ Thank-You 1.3.0, Voice-Recorder 1.7.1.
 - Pin each new app at its **latest stable release tag** (not a pre-release, not a branch tip),
   consistent with the existing five.
 
-## Open questions (logged during the overnight run)
+## Next action (DECIDED 2026-10-08 by the maintainer — "yes, for you to do"; NOT started)
 
-1. **The 13 added apps are pinned but not yet cloned** (`./fetch.sh` pulls ~GBs of Android repos; I left
-   it to avoid a large clone overnight and because the gate skips uncloned repos gracefully). Run
-   `cd android/fossify && ./fetch.sh` on the host when convenient to materialize the checkouts; the SHAs
-   are confirmed-valid. Want me to run the full fetch on a later pass, or will you?
-2. **Flashlight has no release tag** — omitted for now. Add it when FossifyOrg cuts a Flashlight release
-   (or if you want it pinned to a branch tip despite the "released tag" convention, say so).
-3. (Deferred, unchanged) Documentation depth for the carried apps is the refdocs task's call
-   (`tasks/fossify-refdocs-and-book.md`), not this mechanical carry-and-pin task.
+**The agent runs `cd android/fossify && ./fetch.sh`** to clone all carried apps (the 13 new + the 5
+existing) at their pins — materializing the gitignored `checkout/<app>/` dirs (~GBs of Android repos; the
+SHAs are confirmed-valid). Then confirm `./apply.sh` is a no-op on the empty streams and
+`tools/check_comment_only_streams.sh fossify` passes with the new apps now cloned (they currently skip as
+"no checkout"). After this, the task can be archived.
+
+## Open questions
+
+None open. (Flashlight stays omitted until FossifyOrg cuts a release tag; documentation depth for the
+carried apps remains the refdocs task's call — `tasks/fossify-refdocs-and-book.md`.)

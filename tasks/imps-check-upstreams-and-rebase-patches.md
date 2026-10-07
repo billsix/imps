@@ -168,22 +168,29 @@ the rebase (the hard, conflict-prone part) is confirmed clean. See the open ques
   it, not in isolation (a game's pin and its LUS submodule move together).
 - ROM/asset acquisition stays out of scope; `runDir/` is sacred and untouched throughout.
 
-## Open questions (logged during the overnight sweep)
+## Next actions (DECIDED 2026-10-08 by the maintainer — all "yes"; NOT started)
 
-1. **The three clean-rebasing games (PaperMario, BanjoKazooie, SuperMario64) are ready to bump — do you
-   want me to stage the mechanical bump (new `PIN_SHA` + `git format-patch`-regenerated patches + pin
-   comment), leaving you the derived-artifact re-check + build + play-test, or do the whole bump yourself
-   in a focused session?** I did not stage it autonomously because a wrong derived-artifact (Dockerfile
-   deps from the new CI, run.sh OpenGL-seed vs the new LUS enum, etc.) would only surface in the build I
-   can't run — so staging it blind risks handing you a broken bump. The rebase itself is confirmed clean.
-   (SM64 additionally needs `tools/asmdiff.sh` re-run per standard-c patch once built.)
-2. **ripgrep 14.1.1 → 15.2.0 conflicts on patch 0003** (the "three search strategies" doc comment) because
-   `crates/searcher/src/searcher/glue.rs` was restructured across the major version. Resolving it means
-   re-placing that doc comment in the new code — a small but real judgment call. Want me to resolve it and
-   bump ripgrep, or leave it? (Doc-only carrier, low urgency.)
-3. **MajorasMask and OcarinaOfTime conflict and are left at their pins.** MM's audio-crash-fix patch
-   collides with upstream's reworked `playback.c`; OoT's standard-c collides at `z_kaleido_collect.c` ~20
-   patches in, and its 488-patch `personal` rename stream would then need re-cutting
-   (`tools/resolve_rename_conflicts.py`) on the new standard-c tip — a substantial dedicated task each.
-   These are the "expected problems" (OoT especially). File them as their own pin-bump tasks when you want
-   them tackled.
+1. **Bump the three clean-rebasing games — PaperMario, BanjoKazooie, SuperMario64 — the agent does it**
+   ("yes you do it"). Per game: set the new `PIN_SHA` in `fetch.sh` (+ pin comment), replay the series
+   (`git am --3way`), `git format-patch --no-cover-letter --base=<new> <new>..HEAD -o patches/<stream>/`
+   to regenerate, re-verify the derived artifacts against the new upstream
+   (`tasks/reference/imps/derived-artifact-drift.md`: Dockerfile vs new CI, `installdependencies.sh` vs
+   new docs, `build.sh`/Makefile target names, `run.sh` OpenGL-seed vs the new LUS enum + ROM hashes),
+   refresh the per-project `CLAUDE.md`, and **stage** it. **SM64 additionally:** re-run `tools/asmdiff.sh`
+   per standard-c patch (needs a build) to re-prove codegen-identity. The **build + play-test is the
+   maintainer's** — the agent hands over a staged, derived-artifact-checked bump; the maintainer confirms
+   by building/playing. Targets: PaperMario `089ffd17`, BanjoKazooie `5c948c59`, SuperMario64 `40eef138`.
+2. **ripgrep 14.1.1 → 15.2.0 — the agent resolves and bumps it** ("yes"). Patches 0001/0002 apply; 0003
+   conflicts because `crates/searcher/src/searcher/glue.rs` was restructured 14→15. Re-place the "three
+   search strategies" doc comment in the new code, re-prove comment-only
+   (`tools/check_comment_only_streams.sh ripgrep`), regenerate the docs stream, bump the pin + comments to
+   `15.2.0` (`e89fff89`), update the ripgrep reference docs, stage.
+3. **MajorasMask and OcarinaOfTime get their own dedicated pin-bump tasks** ("yes, write it as a todo").
+   Filed: `tasks/mm-pin-bump.md` and `tasks/ocarina-pin-bump.md` (both `proposed — todo`). MM's audio-crash
+   fix collides with upstream's reworked `playback.c`; OoT's standard-c collides at `z_kaleido_collect.c`
+   and its 488-patch `personal` rename stream then needs re-cutting — a substantial task each.
+
+## Open questions
+
+None open — all three decisions are answered above and queued (1 and 2 for the agent to execute next; 3
+filed as their own task docs).

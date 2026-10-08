@@ -28,6 +28,21 @@ cache never recorded the library. Re-run the configure step (`build.sh` does)
 after installing. Symptom to recognise: a clean compile of 3,600 objects, then
 `undefined reference to shaderc_compile_into_spv` in `Paperboat`.
 
+## After a pin bump that also moves libultraship, do a CLEAN rebuild — an incremental one garbles textures
+
+A game pin bump usually moves the `libultraship` submodule too (it is pinned per
+game). An **incremental** rebuild then links stale LUS object files against the new
+game code — or new LUS against stale game objects — and the ABI/struct skew shows up
+at **runtime, not as a build error**: garbled textures and fonts, visible from the
+opening scene. Bit us on the MajorasMask bump (2026-10-08, LUS 1.3.1-397 →
+1.3.1-490, whose 93 commits rewrote the fast3d texture-upload path — which made the
+symptom look like an upstream rendering regression). A clean rebuild fixed it.
+Rules: after a bump, run `./fetch.sh` (it re-detaches the pin AND updates submodules
+— confirm `git -C <checkout> submodule status libultraship` shows the NEW commit),
+then wipe the build dir (`make clean` or `rm -rf <checkout>/build-cmake`) before
+rebuilding. Don't debug post-bump graphics corruption until you've ruled this out —
+it is far more common than an upstream regression.
+
 ## Headless runs of a built port: hard-kill, never plain `timeout`
 
 The games ignore SIGTERM and a forgotten instance can grow to tens of GB. The

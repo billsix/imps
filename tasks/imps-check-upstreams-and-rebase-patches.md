@@ -135,7 +135,7 @@ was **restored to its prior applied state** afterward; no pins were moved.
 | **BanjoKazooie** | develop `5c948c59` | 4 (upstream-candidates) | **CLEAN** — all apply, still unmerged |
 | **SuperMario64** | develop `40eef138` | 51 (standard-c 46 + cheats 3 + book 1 + cand 1) | **CLEAN textually** — all 51 apply; the standard-c codegen-identity (asmdiff) invariant still needs a build to re-verify |
 | **ripgrep** | tag `15.2.0` (`e89fff89`) | 3 (docs) | **CONFLICT** — 0001/0002 apply, 0003 conflicts in `crates/searcher/src/searcher/glue.rs` (code restructured 14→15) |
-| **MajorasMask** | develop `e8757c14` | 2 (upstream-candidates) | **CONFLICT** — 0001 (audio crash fix) conflicts in `mm/src/audio/lib/playback.c` |
+| **MajorasMask** | develop `e8757c14` | 1 (upstream-candidates) | **DONE 2026-10-08** — 0001 replayed (playback.c guard conflict resolved); 0002 (BUILDING.md audio libs) dropped, upstream absorbed it; LUS bumped to 1.3.1-490; gate green, built + play-tested (needed a clean rebuild); archived `tasks/archive/mm/2026/10/08/mm-pin-bump.md` |
 | **OcarinaOfTime** | develop `ecd889c2` (9.3.0) | 525 (standard-c 36 + personal 489) | **DONE 2026-10-08** — both streams re-cut onto `ecd889c2`, re-gated (478/486 byte-identical + 8 accepted explained diffs), built + play-tested; archived `tasks/archive/ocarina/2026/10/08/ocarina-pin-bump.md` |
 | gzdoom / ZMusic / dash | — | — | **UP-TO-DATE** (latest release tag already pinned) |
 | libultraship (carrier) | — | — | **out of scope** — a tag-by-tag documentation crawl (no patch series), advanced deliberately by the maintainer, not a rebase target |
@@ -215,10 +215,10 @@ docs patches replay; patch 0003's `glue.rs` doc comment re-placed after upstream
    (`tools/check_comment_only_streams.sh ripgrep`), regenerate the docs stream, bump the pin + comments to
    `15.2.0` (`e89fff89`), update the ripgrep reference docs, stage.
 3. **MajorasMask and OcarinaOfTime get their own dedicated pin-bump tasks** ("yes, write it as a todo").
-   Filed: `tasks/mm-pin-bump.md` (still `proposed — todo`) and `tasks/ocarina-pin-bump.md`
-   (**DONE 2026-10-08**, archived `tasks/archive/ocarina/2026/10/08/ocarina-pin-bump.md`). MM's audio-crash
-   fix collides with upstream's reworked `playback.c`; OoT's standard-c collided at `z_kaleido_collect.c`
-   and its rename stream was re-cut on the new standard-c tip — both substantial tasks (OoT now done).
+   Both **DONE 2026-10-08** and archived: `tasks/archive/mm/2026/10/08/mm-pin-bump.md` and
+   `tasks/archive/ocarina/2026/10/08/ocarina-pin-bump.md`. MM's audio-crash fix collided with upstream's
+   reworked `playback.c` (resolved) and its docs patch was absorbed upstream; OoT's standard-c collided at
+   `z_kaleido_collect.c` and its rename stream was re-cut on the new standard-c tip — both now done.
 
 ## Open questions
 

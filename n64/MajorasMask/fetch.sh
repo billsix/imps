@@ -13,8 +13,8 @@ cd "$(dirname "$0")"
 UPSTREAM=https://github.com/HarbourMasters/2ship2harkinian.git
 
 # The pinned base commit: tip of upstream's 'develop' branch as of
-# 2026-05-31 ("Lazy load sort DL Viewer unfiltered results (#1718)").
-PIN_SHA=04a1a43197f067afd60a9043512755edc14f4f19
+# 2026-09-25 ("Update build doc and readme"; develop is unversioned — no tag).
+PIN_SHA=e8757c14a0fc8701461b0458c9ed72c118bcfc67
 
 if [ ! -d 2ship2harkinian ]; then
     git clone "$UPSTREAM" 2ship2harkinian

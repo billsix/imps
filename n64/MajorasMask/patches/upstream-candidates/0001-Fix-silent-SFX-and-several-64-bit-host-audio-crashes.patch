@@ -1,8 +1,8 @@
-From b5074e6e85dac2e249009a748bdc8a330415ea3b Mon Sep 17 00:00:00 2001
+From 30cae3b6b3d19a8a84f77058674b53108f9e873c Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Tue, 16 Jun 2026 00:04:58 -0400
-Subject: [PATCH 1/2] Fix silent SFX and several 64-bit-host audio crashes
- (non-PIE builds)
+Subject: [PATCH] Fix silent SFX and several 64-bit-host audio crashes (non-PIE
+ builds)
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -92,15 +92,15 @@ into multiple commits if preferred. Squashed here for review.
  .../resource/importer/AudioSampleFactory.cpp  | 15 +++++++++++++
  mm/2s2h/resource/type/AudioSample.h           |  8 ++++++-
  mm/src/audio/lib/load.c                       | 18 ++++++++++-----
- mm/src/audio/lib/playback.c                   | 19 +++++++++++-----
+ mm/src/audio/lib/playback.c                   | 22 ++++++++++++-------
  mm/src/audio/lib/synthesis.c                  | 22 ++++++++++++++++++-
  mm/src/audio/lib/thread.c                     | 11 +++++-----
  mm/src/code/sched.c                           |  8 +++++--
  mm/src/code/z_scene.c                         |  7 +++---
- 8 files changed, 84 insertions(+), 24 deletions(-)
+ 8 files changed, 85 insertions(+), 26 deletions(-)
 
 diff --git a/mm/2s2h/resource/importer/AudioSampleFactory.cpp b/mm/2s2h/resource/importer/AudioSampleFactory.cpp
-index 2263dced2..fdaaf2092 100644
+index 8948a6793..05461595d 100644
 --- a/mm/2s2h/resource/importer/AudioSampleFactory.cpp
 +++ b/mm/2s2h/resource/importer/AudioSampleFactory.cpp
 @@ -216,6 +216,20 @@ ResourceFactoryBinaryAudioSampleV2::ReadResource(std::shared_ptr<Ship::File> fil
@@ -152,10 +152,10 @@ index a3b24f778..0c8b33b1d 100644
  } AdpcmLoop;                  // size = 0x30 (or 0x10)
  
 diff --git a/mm/src/audio/lib/load.c b/mm/src/audio/lib/load.c
-index 6e3b1b9ec..0f88da43f 100644
+index ff856d62e..7c5359a71 100644
 --- a/mm/src/audio/lib/load.c
 +++ b/mm/src/audio/lib/load.c
-@@ -1932,6 +1932,7 @@ s32 AudioLoad_ProcessSamplePreloads(s32 resetStatus) {
+@@ -1936,6 +1936,7 @@ s32 AudioLoad_ProcessSamplePreloads(s32 resetStatus) {
      Sample* sample;
      AudioPreloadReq* preload;
      u32 preloadIndex;
@@ -163,7 +163,7 @@ index 6e3b1b9ec..0f88da43f 100644
      u32 key;
      u32 nChunks;
      s32 pad;
-@@ -1939,16 +1940,16 @@ s32 AudioLoad_ProcessSamplePreloads(s32 resetStatus) {
+@@ -1943,16 +1944,16 @@ s32 AudioLoad_ProcessSamplePreloads(s32 resetStatus) {
      if (gAudioCtx.preloadSampleStackTop > 0) {
          if (resetStatus != 0) {
              // Clear result queue and preload stack and return.
@@ -183,7 +183,7 @@ index 6e3b1b9ec..0f88da43f 100644
          preload = &gAudioCtx.preloadSampleStack[preloadIndex];
  
          if (preload->isFree == false) {
-@@ -2247,11 +2248,16 @@ void AudioLoad_ScriptLoad(s32 tableType, s32 id, s8* isDone) {
+@@ -2251,11 +2252,16 @@ void AudioLoad_ScriptLoad(s32 tableType, s32 id, s8* isDone) {
  
  void AudioLoad_ProcessScriptLoads(void) {
      u32 temp;
@@ -204,19 +204,22 @@ index 6e3b1b9ec..0f88da43f 100644
          if (isDone != NULL) {
              *isDone = false;
 diff --git a/mm/src/audio/lib/playback.c b/mm/src/audio/lib/playback.c
-index 377e04780..0876367ff 100644
+index c0ce16ef7..ccc245cb2 100644
 --- a/mm/src/audio/lib/playback.c
 +++ b/mm/src/audio/lib/playback.c
-@@ -197,12 +197,19 @@ void AudioPlayback_ProcessNotes(void) {
+@@ -196,14 +196,20 @@ void AudioPlayback_ProcessNotes(void) {
+         sampleState = &gAudioCtx.sampleStateList[gAudioCtx.sampleStateOffset + i];
          playbackState = &note->playbackState;
          if (playbackState->parentLayer != NO_LAYER) {
- 
+-#ifndef __WIIU__
 -            // OTRTODO: This skips playback if the pointer is below where memory on the N64 normally would be.
 -            // This does not translate well to modern platforms and how they map memory.
 -            // Considering that this check is not present in OoT/SoH, we may be able to remove this altogether.
 -            if ((uintptr_t)playbackState->parentLayer < 0x7FFFFFFF) {
 -                continue;
 -            }
+-#endif
++
 +            // 2S2H [Port] Removed the original guard that stood here:
 +            //     if ((uintptr_t)playbackState->parentLayer < 0x7FFFFFFF) { continue; }
 +            // Its intent (skip "below where N64 RAM would be" pointers) is reasonable on the
@@ -269,7 +272,7 @@ index c78a043b3..824fcb29d 100644
                  numSamplesToProcess = numSamplesToLoadAdj - numSamplesProcessed;
  
 diff --git a/mm/src/audio/lib/thread.c b/mm/src/audio/lib/thread.c
-index 4128ffc0b..7c5c2fe7e 100644
+index c278900c7..8f77d5bb5 100644
 --- a/mm/src/audio/lib/thread.c
 +++ b/mm/src/audio/lib/thread.c
 @@ -486,15 +486,16 @@ void AudioThread_ProcessCmds(u32 msg) {
@@ -292,7 +295,7 @@ index 4128ffc0b..7c5c2fe7e 100644
 +    return msg.data32 >> 0x18;
  }
  
- u8* AudioThread_GetFontsForSequence(s32 seqId, u32* outNumFonts, u8* buff) {
+ u16* AudioThread_GetFontsForSequence(s32 seqId, u32* outNumFonts, u16* buff) {
 @@ -522,7 +523,7 @@ s32 func_80193C5C(void) {
  void AudioThread_WaitForAudioResetQueueP(void) {
      // macro?
@@ -347,7 +350,7 @@ index 52def8ff0..bb5fa5a9d 100644
  
      return (void*)addr;
 
-base-commit: 04a1a43197f067afd60a9043512755edc14f4f19
+base-commit: e8757c14a0fc8701461b0458c9ed72c118bcfc67
 -- 
 2.55.0
 

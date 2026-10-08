@@ -36,16 +36,16 @@
   `installdependencies.sh`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
   (https://github.com/HarbourMasters/2ship2harkinian), pinned at
-  `04a1a4319` (tip of `develop`, 2026-05-31; submodules libultraship +
-  ZAPDTR + OTRExporter — pre-torch pipeline). Details:
-  `n64/MajorasMask/CLAUDE.md`. Status: two patches — the 64-bit audio/scheduler
-  fixes (a strong upstream-submission candidate), exported verbatim from
-  the maintainer's old `fedora44Fixes` fork branch and verified
-  byte-identical on apply, plus a BUILDING.md fix adding the four
-  required audio libraries (upstream candidate, found 2026-09-01 by the
-  install-script container verification); patched tree **build- and
-  run-verified on-host 2026-09-01 (William Emerison Six
-  <billsix@gmail.com>)**. Also carries a
+  `e8757c14` (tip of `develop`, 2026-09-25; bumped 2026-10-08 from `04a1a4319`;
+  submodules libultraship `7f9b86a5` (1.3.1-490) + ZAPDTR + OTRExporter — still
+  pre-torch pipeline). Details:
+  `n64/MajorasMask/CLAUDE.md`. Status: one patch — the 64-bit audio/scheduler
+  fixes (a strong upstream-submission candidate), originally exported verbatim
+  from the maintainer's old `fedora44Fixes` fork branch, replayed onto the 9.3.0-era
+  pin 2026-10-08 with the `playback.c` guard conflict resolved. (A BUILDING.md
+  patch adding the four required audio libraries was dropped at that bump — upstream
+  absorbed it.) Patched tree **build- and run-verified on-host 2026-09-01 and again
+  at the 2026-10-08 bump (William Emerison Six <billsix@gmail.com>)**. Also carries a
   podman build (`Dockerfile` + `Makefile` → AppImage), ported from the old
   fork's `podmanBuildAppImage` branch as native imps files — the first
   container build in imps; the `ci` variant's AppImage built on-host

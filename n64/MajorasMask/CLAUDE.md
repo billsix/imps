@@ -7,9 +7,9 @@ Ship of Harkinian family — same shape as SoH (see
 
 Managed by imps: `2ship2harkinian/` here is a pristine clone of
 https://github.com/HarbourMasters/2ship2harkinian, pinned by `fetch.sh` at
-`04a1a4319` (tip of upstream `develop` as of 2026-05-31), with the
-maintainer's patches applied by `apply.sh`. Not a fork; the patch series is
-the whole delta.
+`e8757c14` (tip of upstream `develop` as of 2026-09-25; bumped from
+`04a1a4319` 2026-10-08), with the maintainer's patches applied by `apply.sh`.
+Not a fork; the patch series is the whole delta.
 
 ## Scripts
 
@@ -23,11 +23,15 @@ the whole delta.
 
 ## Patches
 
-- `patches/0001-Fix-silent-SFX-and-several-64-bit-host-audio-crashes.patch` —
+- `patches/upstream-candidates/0001-Fix-silent-SFX-and-several-64-bit-host-audio-crashes.patch` —
   8 files in the audio stack + scheduler. Fixes, per its commit message:
   (a) removes a `(uintptr_t)parentLayer < 0x7FFFFFFF` port guard in
   `AudioPlayback_ProcessNotes` that silently skipped ALL note playback in
-  non-PIE 64-bit builds (upstream CI builds PIE, which masks it);
+  non-PIE 64-bit builds (upstream CI builds PIE, which masks it). **At the
+  `e8757c14` pin upstream had wrapped that guard in `#ifndef __WIIU__`** —
+  which excludes WiiU but leaves it live on desktop, so it does NOT fix our
+  case; the 3-way resolution removes the guard entirely (a superset of
+  upstream's WiiU exclusion). An upstream submission should note this;
   (b) `osRecvMesg` receiving an 8-byte `OSMesg` into a 4-byte `u32` — a
   stack overwrite that crashed `AudioLoad_ProcessScriptLoads`;
   (c) `sched.c` reading `.ptr` where `.data32` is meant;
@@ -36,28 +40,29 @@ the whole delta.
   message as a stopgap, not a root-cause fix.
   **Good upstream-submission candidate** — surgical, well-documented, fixes real
   64-bit portability bugs.
-- `patches/0002-docs-add-the-required-audio-libraries-...patch` —
-  adds libogg/libvorbis/opus/opusfile dev packages to BUILDING.md's
-  Ubuntu and Fedora lines (the build hard-requires all four; the Nix
-  section already listed them). Found by the install-script
-  fresh-container verification. **Upstream-submission candidate.**
+- *(A second patch added libogg/libvorbis/opus/opusfile to BUILDING.md's
+  Ubuntu and Fedora dependency lines. **Dropped at the 2026-10-08 bump** —
+  upstream independently added all four to the Ubuntu, Fedora and Arch lists in
+  its "Update build doc and readme" commit, so our patch was fully absorbed.)*
 
 Export & build/run verification history:
 `../../tasks/reference/imps/game-port-history.md`.
 
 ## Version notes
 
-- Submodules at the pin: **libultraship `7f2baa10` (1.3.1-397)**, plus
-  ZAPDTR `ee3397a3` and OTRExporter `32e088e2` — this pin predates the
-  torch asset-pipeline migration that OcarinaOfTime's newer pin has; 2S2H
-  still extracts via ZAPD/OTRExporter here.
+- Submodules at the pin: **libultraship `7f9b86a5` (1.3.1-490)** (bumped from
+  `7f2baa10`/1.3.1-397 with the pin), plus ZAPDTR `ee3397a3` and OTRExporter
+  `32e088e2` (both unchanged) — this pin still predates the torch
+  asset-pipeline migration that OcarinaOfTime's newer pin has; 2S2H still
+  extracts via ZAPD/OTRExporter here.
 - No 2S2H-specific reference-doc set exists yet (the old fork carried
   none). The ocarina docs in `../../tasks/reference/ocarina/` describe the
   sibling architecture (directionally useful, not authoritative) — and
-  the LUS crawl set at `../../tasks/reference/libultraship/` documents this
-  project's exact libultraship pin (`7f2baa10`, 1.3.1-397) as
-  **iteration 15**: read it via git history (commit "1.3.1-397
-  (7f2baa10)"); the working tree shows a newer pin.
+  the LUS crawl set at `../../tasks/reference/libultraship/` does NOT document
+  this project's current libultraship pin (`7f9b86a5`, 1.3.1-490): its closest
+  iteration is **15** (`7f2baa10`, 1.3.1-397, our previous pin) — read that via
+  git history (commit "1.3.1-397 (7f2baa10)"), but it predates this pin by ~93
+  LUS commits, so spot-check against the checkout.
 
 ## Podman build (Dockerfile + Makefile)
 

@@ -171,9 +171,11 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   build/AppImage/run-verified at the prior pin, host re-verify pending. Details:
   `n64/OcarinaOfTime/CLAUDE.md`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
-  (https://github.com/HarbourMasters/2ship2harkinian), pin `04a1a4319`. Two
-  patches (64-bit audio/scheduler fixes + BUILDING.md audio-libs fix); build/run
-  + AppImage verified. Details: `n64/MajorasMask/CLAUDE.md`.
+  (https://github.com/HarbourMasters/2ship2harkinian), pin `e8757c14`
+  (bumped from 04a1a4319 2026-10-08). One patch (the 64-bit audio/scheduler
+  fixes; the BUILDING.md audio-libs patch was dropped — upstream absorbed it);
+  build/run + AppImage verified at the prior pin, host re-verify pending.
+  Details: `n64/MajorasMask/CLAUDE.md`.
 - `n64/SuperMario64/` — Ghostship (https://github.com/HarbourMasters/Ghostship),
   pin `40eef138` (bumped from 49c5312a 2026-10-08). 46-patch upstream-bound `standard-c` stream (assembly-isms →
   standard C, all codegen-identical, 2026-09-22) + 3-patch cheat series +

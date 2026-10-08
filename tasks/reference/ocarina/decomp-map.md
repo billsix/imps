@@ -1,7 +1,7 @@
 # Reference: The OoT decomp core — "where does X live"
 
 > **Provenance:** authored 2026-07 against Shipwright `988b53665` (9.2.3-320, the old
-> fork base) — 101 commits behind the current imps pin `acdbc651d` (9.2.3-421). Spot-check
+> fork base) — 204 commits behind the current imps pin `ecd889c2` (9.3.0). Spot-check
 > details against the pinned checkout before trusting them.
 
 *Standing reference. What the reverse-engineered Ocarina of Time code (`soh/src/`) is and where

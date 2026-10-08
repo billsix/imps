@@ -13,10 +13,12 @@
 ## Projects
 
 - `n64/OcarinaOfTime/` — Ship of Harkinian
-  (https://github.com/HarbourMasters/Shipwright), pinned at `acdbc651d`
-  (tip of `develop`, 2026-09-01; submodules libultraship + torch). Details:
-  `n64/OcarinaOfTime/CLAUDE.md`. Status: a **488-patch decomp-rename series**
-  (3,781 symbols + 18 file renames, one patch per definition file), originally
+  (https://github.com/HarbourMasters/Shipwright), pinned at `ecd889c2`
+  (9.3.0, tip of `develop`; bumped 2026-10-07 from `acdbc651d`/9.2.3-421;
+  submodules libultraship + torch). Details:
+  `n64/OcarinaOfTime/CLAUDE.md`. Status: a **489-patch `personal` stream**
+  (488 decomp renames of 3,781 symbols + 18 file renames, one patch per
+  definition file, plus a 9.3.0 pin-bump reconciliation tail), originally
   ported from the maintainer's old fork as a single 145-file commit, then split
   one-rename-per-commit and finally regrouped for review on 2026-09-08 — the
   regroup is content-neutral (identical tree SHA). Patched tree

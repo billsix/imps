@@ -1,8 +1,8 @@
 # MajorasMask — pin bump to current develop HEAD
 
-**Status:** in progress — series replayed onto `e8757c14`, `check_patches_apply` green, derived
-artifacts re-verified, pin + patch + docs staged; awaiting the maintainer's build + play-test, then
-archive. (2026-10-08.)
+**Status:** DONE 2026-10-08 — series replayed onto `e8757c14`, `check_patches_apply` green, derived
+artifacts re-verified, pin + patch + docs committed; maintainer built and play-tested (after a clean
+rebuild — see below). Archived.
 **Priority:** 5
 **Difficulty:** 5 (2 patches, but the audio-crash fix collides with reworked upstream code)
 **Created:** 2026-10-08 (William Emerison Six <billsix@gmail.com>: "yes, write it as a todo")
@@ -59,7 +59,12 @@ Upstream's `develop` had been force-updated since the 2026-10-07 recon; the curr
       (now 1 patch), refreshed `n64/MajorasMask/CLAUDE.md` (pin, patch list, LUS version) + `n64/CLAUDE.md`
       index. All staged.
 - [x] `tools/check_patches_apply.sh MajorasMask` → **green** (1 patch applies cleanly from the pin).
-- [ ] **Maintainer:** build + play-test (SFX especially — that is the fix's oracle); then this task archives.
+- [x] **Maintainer built + play-tested 2026-10-08.** First rebuild showed garbled textures/fonts from the
+      opening scene — this was an **incremental build linking stale libultraship objects against the new
+      game code** (the LUS bump 1.3.1-397 → 1.3.1-490 rewrote the fast3d texture path, which made it look
+      like an upstream rendering regression). A **clean rebuild fixed it**; the bump and patch are sound.
+      Lesson harvested to `tasks/reference/imps/n64-build-gotchas.md` ("After a pin bump that also moves
+      libultraship, do a CLEAN rebuild").
 
 ## Open questions
 

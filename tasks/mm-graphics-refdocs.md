@@ -22,10 +22,10 @@ them, do not re-derive.** This doc records only what is DIFFERENT for MajorasMas
 The mario64 set at `tasks/reference/mario64/` (23 topics, L0-L2, a `README.md`
 map) is the worked exemplar to imitate for voice and structure.
 
-- **Code under study:** `n64/MajorasMask/2ship2harkinian/` at pin `04a1a4319` (read the exact
+- **Code under study:** `n64/MajorasMask/2ship2harkinian/` at pin `e8757c14` (read the exact
   SHA + upstream from `n64/MajorasMask/fetch.sh`; upstream `https://github.com/HarbourMasters/2ship2harkinian`), three bodies of
   code — the game decomp, the port layer (`src/`), and **this game's own
-  pinned libultraship submodule** at `7f2baa10 (1.3.1-397, pre-torch: ZAPDTR + OTRExporter)`. Study THAT submodule.
+  pinned libultraship submodule** at `7f9b86a5 (1.3.1-490, pre-torch: ZAPDTR + OTRExporter)`. Study THAT submodule.
 - **Existing reference docs:** `tasks/reference/mm/ (create it)` (per `n64/MajorasMask/CLAUDE.md`) —
   architecture/orientation docs the new topic docs cross-link, never
   duplicate.
@@ -36,7 +36,7 @@ map) is the worked exemplar to imitate for voice and structure.
   camera, and effect systems — the file:line anchors WILL differ from SM64's.
   **The FIRST sub-step is a per-game seam-map survey** (fan out readers,
   verify, distinguish live/dead) before writing docs.
-- **Different libultraship pin** (`7f2baa10 (1.3.1-397, pre-torch: ZAPDTR + OTRExporter)`). Pipeline/shader/texture/audio
+- **Different libultraship pin** (`7f9b86a5 (1.3.1-490, pre-torch: ZAPDTR + OTRExporter)`). Pipeline/shader/texture/audio
   topics are shared-engine, so their PROSE can largely be reused from mario64,
   but the anchors differ (older mainline LUS here, NOT the SM64 1.3.1-544
   fork), so re-verify every LUS anchor against THIS submodule. Fork-only

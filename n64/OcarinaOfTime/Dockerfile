@@ -1,5 +1,5 @@
 # Mirrors the Ship of Harkinian Linux CI build environment — the linux job of
-# .github/workflows/generate-builds.yml at the imps pin (acdbc651d), which runs
+# .github/workflows/generate-builds.yml at the imps pin (ecd889c2), which runs
 # on ubuntu-22.04: apt deps from the repo's own linux-build-deps/apt.txt, then
 # SDL2 / SDL2_net / tinyxml2 / libzip built from source, Release build with
 # BUILD_REMOTE_CONTROL=1, `cpack -G External` AppImage.

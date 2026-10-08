@@ -14,8 +14,8 @@ cd "$(dirname "$0")"
 UPSTREAM=https://github.com/HarbourMasters/Shipwright.git
 
 # The pinned base commit: tip of upstream's 'develop' branch as of
-# 2026-09-01 (git describe: 9.2.3-421-gacdbc651d).
-PIN_SHA=acdbc651d4b11e29518442d6875a3ec181414cfc
+# 2026-10-06, which upstream tagged as the 9.3.0 release (git describe: 9.3.0).
+PIN_SHA=ecd889c2019b87e78b0a3d942a6a3fe98b7efaed
 
 if [ ! -d Shipwright ]; then
     git clone "$UPSTREAM" Shipwright

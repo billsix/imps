@@ -59,6 +59,49 @@ personal stream is re-cut under `standard-c` — OoT 478/478 plus the 18 renamed
 `ASMDIFF_CMD_FROM`). Files the build does not compile are skipped and listed — they cannot be
 gated, so the rule is "leave them alone".
 
+### Producing `ASMDIFF_BUILD` — a configured tree with generated headers (the nested OoT recipe)
+
+Both gates need `$ASMDIFF_BUILD/compile_commands.json`, and asmdiff compiles individual TUs that
+`#include` the port's **generated** headers — so the tree must be not just configured but **built**
+far enough to generate them. Two traps make a from-scratch setup fail silently:
+
+- **Configure against the SAME checkout path the gate resolves**, or every lookup misses. The gate
+  computes `gsabs=$(cd <checkout> && pwd)` and looks up `"$gsabs/<file>"` in `compile_commands.json`.
+  If you configure with `-S /src` (as `make build` does) but run the gate with the checkout at
+  `/imps/n64/OcarinaOfTime/Shipwright`, the recorded `/src/...` paths won't match and **every file is
+  SKIPped**. Configure with `-S <that same absolute checkout path>`.
+- **Configure at `<ref-new>`, not the full applied series.** The `personal` rename stream renames 18
+  files and 3,781 symbols; a tree configured on the renamed tree records renamed paths/symbols that
+  the `standard-c`-tip files don't have. Check out `<ref-new>` *before* configuring.
+
+Nested recipe used for the OoT 9.3.0 re-gate (2026-10-08), run inside the project's own build image
+(`make image` → `soh-builder:latest`), with imps mounted at `/imps` so `tools/`, the checkout, and the
+`compile_commands.json` paths all agree:
+
+```sh
+podman run --rm --cgroups=disabled -v /path/to/imps:/imps:z -e HOME=/tmp soh-builder:latest bash -c '
+  git config --global --add safe.directory "*"
+  GS=/imps/n64/OcarinaOfTime/Shipwright; B=$GS/build-cmake
+  git -C "$GS" checkout -q <standard-c tip>                    # ref-new; NOT the full series
+  rm -rf "$B"
+  cmake --no-warn-unused-cli -S "$GS" -B "$B" -GNinja \
+        -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_REMOTE_CONTROL=1 \
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON                      # the ship flags + export
+  cmake --build "$B" --target GenerateSohOtr -j"$(nproc)"       # assets
+  cmake --build "$B" -j"$(nproc)"                               # generates all headers
+  cd /imps
+  ASMDIFF_PROJECT=OcarinaOfTime ASMDIFF_BUILD="$B" bash tools/asmdiff_tree.sh <pin> <standard-c tip>
+'
+```
+
+Notes: the image default compiler is gcc-11 (the ubuntu-22.04 `soh-builder`; CI's `CC=gcc-12` isn't
+forced by `make build`) — the gate is self-consistent whichever it is, so it doesn't matter. `build-cmake`
+lands in the bind-mounted checkout and **persists** (gitignored, ~1.1 GB), so a follow-up `asmdiff.sh`
+on one file reuses it with no rebuild; `make clean` in `n64/OcarinaOfTime/` removes it. Run `asmdiff.sh`
+/ `asmdiff_tree.sh` **inside** the container too — gcc-12/11 and the `/imps/...` compile paths exist only
+there. SM64's `Ghostship` tree is the same shape under `ASMDIFF_PROJECT=SuperMario64` (`-S .../Ghostship`,
+no `BUILD_REMOTE_CONTROL`).
+
 ## `tools/standard-c/` — the per-class rewrite tools
 
 Each edits files in place, prints every change, is idempotent, and rewrites **only the one exact

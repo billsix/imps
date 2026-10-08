@@ -1,7 +1,7 @@
 # Reference: The feature layer — GameInteractor, SohGui, Randomizer
 
 > **Provenance:** authored 2026-07 against Shipwright `988b53665` (9.2.3-320, the old
-> fork base) — 101 commits behind the current imps pin `acdbc651d` (9.2.3-421). Spot-check
+> fork base) — 204 commits behind the current imps pin `ecd889c2` (9.3.0). Spot-check
 > details against the pinned checkout before trusting them.
 
 *Standing reference. SoH's defining and largest area: the GameInteractor hook system, the ImGui menu

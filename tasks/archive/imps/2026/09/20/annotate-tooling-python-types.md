@@ -51,7 +51,7 @@ to meet the "ruff/ty-clean" done-criterion — all behavior-neutral):
 
 ## Context (cold-start)
 
-- **The standard:** `~/.claude/reference/python-coding-standard.md` ("annotate generously — locals +
+- **The standard:** `github.com/billsix/runClaudeInContainer:tasks/reference/python-coding-standard.md` ("annotate generously — locals +
   globals too"). The exemplar to match for density is the sibling **impo** repo's trench tools
   (`trench/elementary-differential-equations/tools/*.py`), recently done to this standard.
 - **Only one file is in scope.** `tools/squash_series.py` — the git-history squash helper (walks
@@ -71,7 +71,7 @@ to meet the "ruff/ty-clean" done-criterion — all behavior-neutral):
    `--help` still works).
 
 ## Related
-- Standard: `~/.claude/reference/python-coding-standard.md`.
+- Standard: `github.com/billsix/runClaudeInContainer:tasks/reference/python-coding-standard.md`.
 - Exemplar density: impo `trench/elementary-differential-equations/tools/*.py`.
 - Sibling: `impo/tasks/annotate-tooling-python-types.md` (impo's `convert.py`, `build_nav.py`,
   `preprocess.py`, `fetch_exercises.py`, tests).

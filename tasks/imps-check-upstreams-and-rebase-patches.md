@@ -224,3 +224,28 @@ docs patches replay; patch 0003's `glue.rs` doc comment re-placed after upstream
 
 None open — all three decisions are answered above and queued (1 and 2 for the agent to execute next; 3
 filed as their own task docs).
+
+## Resync 2026-10-19 (agent, unattended batch — "resync like you did before, rebase my patches")
+
+Fresh recon (`git ls-remote` vs each `fetch.sh` PIN_SHA / latest release tag) and the clean bumps
+done per the autonomous contract (bump clean replays, stop-and-log the hard ones; BUILD + play-test
+remain the maintainer's).
+
+| upstream | prior pin | current | action |
+|---|---|---|---|
+| **BanjoKazooie** (Lighthouse develop) | `5c948c59` | `4e8dfd23` | **BUMPED + committed** — 4-patch series replays clean (content byte-identical, gate green), LUS gitlink unchanged `62e973ae`, Torch→`72960ca1`, CI change was plumbing-only. |
+| **MajorasMask** (2ship develop) | `e8757c14` | `f1dda4c2` | **BUMPED + committed** — 1-patch audio fix replays clean (byte-identical, gate green, upstream has NOT absorbed it), LUS gitlink unchanged `7f9b86a5`. |
+| **SuperMario64** (Ghostship develop) | `40eef138` | `40eef138` | **UP-TO-DATE** — no change since the 2026-10-08 bump. |
+| ripgrep | `e89fff89` (15.2.0) | 15.2.0 | **UP-TO-DATE**. |
+| gzdoom / ZMusic | g4.14.2 / 1.3.0 | same | **UP-TO-DATE** (latest release tags). |
+| dash | v0.5.13.5 | — | **UP-TO-DATE** (GitHub mirror carries no tags; kernel.org authoritative, unchanged since the 2026-10-07 recon). |
+| **OcarinaOfTime** (Shipwright develop) | `ecd889c2` (9.3.0) | `41ae6cd3` | **STOP-AND-LOG — not attempted.** 525-patch series (36 `standard-c` + 489 `personal` rename). A bump needs the standard-c **asmdiff** re-verification (a build) and likely a **re-cut** of the rename stream if upstream touched those files — the hard, build-requiring case the contract says to defer. The rebase-feasibility probe + re-cut is the next session's job. |
+| **PaperMario** (PaperBoat, tag-pinned) | `1.0.2` (`b721efd6`) | **`1.0.3`** (`7f038b85`) | **DEFERRED — not attempted.** A new release tag is out, but there is **no local checkout** (needs a fresh clone of PaperBoat + the JeodC LUS/Torch forks), and the series is two-lane (game tree + the libultraship Vulkan crash fix). Clean-looking tag bump, but the fresh clone + 2-lane replay + headless verify was not done unattended. |
+| fossify (android, multi-repo) | — | — | **NOT SWEPT** this round (manifest `repos` pins + the "add remaining Fossify apps" task are a separate effort). |
+
+**What the agent did:** bumped the two clean develop games (BanjoKazooie `4e8dfd23`, MajorasMask
+`f1dda4c2`) — each its own staged+committed unit, patches regenerated, `check_patches_apply` green,
+derived artifacts re-checked, docs refreshed. Everything else is up-to-date, or stopped-and-logged
+above (OoT standard-c re-cut; PaperMario fresh-clone tag bump). The commits are the agent's under the
+maintainer's unattended-batch authorization (per-command `commit.gpgsign=false`, never written to
+imps's `.git/config`).

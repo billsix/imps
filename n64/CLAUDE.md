@@ -183,9 +183,11 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   (`SuperMario64/book/`). Details:
   `n64/SuperMario64/CLAUDE.md`.
 - `n64/BanjoKazooie/` — Lighthouse
-  (https://github.com/HarbourMasters/Lighthouse), pin `5c948c59` (bumped from 6d30df9a 2026-10-08). 4-patch
-  `fixOnFedora` series (a submitted upstream PR); builds and runs; podman build.
-  Details: `n64/BanjoKazooie/CLAUDE.md`.
+  (https://github.com/HarbourMasters/Lighthouse), pin `4e8dfd23` (re-bumped from
+  5c948c59 2026-10-19; before that 6d30df9a 2026-10-08). 4-patch `fixOnFedora`
+  series (a submitted upstream PR); replays clean at the new pin (gate green, LUS
+  gitlink unchanged 62e973ae); build/run re-verify pending (maintainer's). Podman
+  build. Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
   pin `1.0.2` (`b721efd6`, bumped from 1.0.1 2026-10-08). 3-patch series on two lanes (2026-09-22): game
   tree — CLI ROM import on Linux + a precise refusal of unsupported ROMs;

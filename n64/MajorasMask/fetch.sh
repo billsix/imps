@@ -12,9 +12,12 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/HarbourMasters/2ship2harkinian.git
 
-# The pinned base commit: tip of upstream's 'develop' branch as of
-# 2026-09-25 ("Update build doc and readme"; develop is unversioned — no tag).
-PIN_SHA=e8757c14a0fc8701461b0458c9ed72c118bcfc67
+# The pinned base commit: tip of upstream's 'develop' branch (unversioned — no tag).
+# Re-bumped to the current develop HEAD on 2026-10-19 (agent resync,
+# ../../tasks/imps-check-upstreams-and-rebase-patches.md); the libultraship gitlink
+# is unchanged (7f9b86a5). BUILD + play-test pending (the maintainer's).
+# (Was e8757c14, the 2026-09-25 develop HEAD bumped 2026-10-08.)
+PIN_SHA=f1dda4c28cb9ed7cc80d8c78337ee31a8d2c7d0e
 
 if [ ! -d 2ship2harkinian ]; then
     git clone "$UPSTREAM" 2ship2harkinian

@@ -126,6 +126,20 @@ Two goals, ranked:
    personal tweaks carried in the same series and replayed onto newer pins (the
    pin-bump operation).
 
+**Do NOT apply the shared C coding standard — or any formatting / C-style /
+modern-C-idiom sweep — to imps-carried code** (William Emerison Six
+<billsix@gmail.com>, 2026-10-20). Because the goal for imps projects is to
+eventually **upstream** changes, each patch must stay minimal and match *that
+upstream's own* style; a style, formatting, or modernization sweep (e.g.
+`for (;;)` → `while (true)`, declare-at-use, `nullptr`, designated initializers)
+would bloat the series and diverge from upstream, making a PR harder to land —
+the opposite of goal 0/1. The `~/.claude/reference/c-coding-standard.md` and
+`c-modernization-sweep.md` conventions govern the maintainer's **own** projects
+(apue, Craft, spimulator, …), **not** third-party code carried as patches here.
+A genuine bug/portability fix shaped for upstream (goal 1) is still welcome;
+gratuitous restyling is not. Touch the *style* of carried code only when the
+maintainer specifically asks.
+
 **That invariant is gated** (2026-09-07). `tools/check_patches_apply.sh` resets
 every project to its pin and runs the project's own `apply.sh` — the real path,
 including stream order, both lanes, and the pin guard — then reports the commit

@@ -190,10 +190,11 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   gitlink unchanged 62e973ae); build/run re-verify pending (maintainer's). Podman
   build. Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
-  pin `1.0.2` (`b721efd6`, bumped from 1.0.1 2026-10-08). 3-patch series on two lanes (2026-09-22): game
-  tree — CLI ROM import on Linux + a precise refusal of unsupported ROMs;
-  libultraship lane — the Vulkan first-frame crash fix (two null Context objects).
-  All upstream candidates; headless-verified + host-verified 2026-09-22. Uses JeodC
+  pin `1.0.3` (`7f038b85`, bumped from 1.0.2 2026-10-20). 2-patch game-tree series
+  (CLI ROM import on Linux + a precise refusal of unsupported ROMs); the former
+  libultraship-lane Vulkan crash fix was **DROPPED at 1.0.3** (upstream absorbed the
+  identical null-Context guard — LUS `3e3cd2ed`→`7f1bd60e`). Upstream candidates;
+  build-verified in-sandbox at 1.0.3, play-test the maintainer's. Uses JeodC
   LUS/Torch forks (`external/`), NOT the crawl's engine pin. `run.sh <ROM>`
   verifies the SHA-1 and trims a padded dump. Details: `n64/PaperMario/CLAUDE.md`.
 - `n64/libultraship/` — the shared engine (see the "libultraship" section above).

@@ -12,19 +12,23 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/HarbourMasters/PaperBoat.git
 
-# The pinned base commit: the stable release tag 1.0.2.
-# Bumped 1.0.1 -> 1.0.2 on 2026-10-08 (overnight sweep follow-up,
+# The pinned base commit: the stable release tag 1.0.3.
+# Bumped 1.0.2 -> 1.0.3 on 2026-10-20 (agent resync,
 # tasks/imps-check-upstreams-and-rebase-patches.md): PaperMario is tag-pinned
-# (newest tagged release), NOT tip-of-develop.  Both patch lanes replay clean
-# onto 1.0.2 (game-tree + the libultraship-lane Vulkan fix, still unmerged
-# upstream); config.yml (ROM hashes) is unchanged, the CMakeLists change is
-# internal to the o2r-staging step (build.sh uses the ninja-release preset, so
-# it is unaffected), and the CI dep list is unchanged.  The external/libultraship
-# submodule moves 7aa03b6c -> 3e3cd2ed with the tag; apply.sh derives that from
-# the pin's tree, so only this SHA changes here.  BUILD + play-test pending
-# (the maintainer's).  tip-of-develop (newer, unreleased) is the alternative if
-# the latest gameplay fixes are wanted.
-PIN_SHA=b721efd6b5ad6dce9cdef25a6b93b2fdc8b04309
+# (newest tagged release), NOT tip-of-develop.  The game-tree lane (2 patches)
+# replays CLEAN onto 1.0.3 (Engine.cpp changed elsewhere, not in the patched
+# regions).  The libultraship-lane Vulkan fix is DROPPED at this bump: upstream
+# (JeodC lus-converge) independently implemented the identical null-Context
+# guard (vk_resource_manager() + ConsoleVariables() with a Context fallback,
+# same call-site rewrites incl. DrawTriangles), so the patch is absorbed — see
+# PaperMario/CLAUDE.md.  config.yml (ROM hashes) and the ninja-release preset
+# are unchanged; the CI apt line now lists libvulkan-dev/glslang-dev/spirv-tools
+# explicitly (installdependencies.sh covers these via libshaderc-devel + the
+# Fedora Vulkan stack).  Submodules at 1.0.3: external/libultraship moves
+# 3e3cd2ed -> 7f1bd60e (JeodC fork), external/torch is UNCHANGED (72960ca1,
+# HarbourMasters/Torch); apply.sh derives both from the pin's tree, so only this
+# SHA changes here.  BUILD + play-test pending (the maintainer's).
+PIN_SHA=7f038b8552b1bf5c297a5fd06738d8f245851833
 
 if [ ! -d PaperBoat ]; then
     git clone "$UPSTREAM" PaperBoat

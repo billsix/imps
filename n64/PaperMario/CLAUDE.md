@@ -8,8 +8,10 @@ ROM-derived) plus a C++ port layer (`src/port/`), with **libultraship**
 
 Managed by imps: `PaperBoat/` here is a clone of
 https://github.com/HarbourMasters/PaperBoat, pinned by `fetch.sh` at the
-stable release tag **`1.0.2`** (`b721efd6`; bumped from `1.0.1` 2026-10-08),
-carrying a **three-patch series on two lanes** (below) since 2026-09-22. Task history:
+stable release tag **`1.0.3`** (`7f038b85`; bumped from `1.0.2` 2026-10-20),
+carrying a **two-patch series on one lane** (the game tree; the former
+libultraship-lane Vulkan fix was absorbed upstream at the 1.0.3 bump — below)
+since 2026-09-22. Task history:
 `../../tasks/archive/papermario/2026/09/22/papermario-add-port.md`; the ROM-import investigation that
 produced the series: `../../tasks/reference/papermario/rom-import-investigation.md` (the full account; the ROM facts alone: `rom-overdump-and-trimming.md`).
 
@@ -17,8 +19,11 @@ produced the series: `../../tasks/reference/papermario/rom-import-investigation.
 > moved to `1.0.1` while diagnosing an extraction failure; bumped to `1.0.2`
 > (`b721efd6`) 2026-10-08 as the newest tagged release (both lanes replayed
 > clean; config.yml/ROM hashes unchanged; submodules moved with the tag —
-> libultraship `7aa03b6c`→`3e3cd2ed`, torch `106f4e30`→`72960ca1`). BUILD +
-> play-test pending (the maintainer's).
+> libultraship `7aa03b6c`→`3e3cd2ed`, torch `106f4e30`→`72960ca1`). Bumped to
+> `1.0.3` (`7f038b85`) 2026-10-20: the 2 game-tree patches replay clean, the
+> libultraship Vulkan-fix patch was DROPPED (upstream absorbed it), submodules
+> libultraship `3e3cd2ed`→`7f1bd60e` and torch unchanged (`72960ca1`);
+> build-verified in-sandbox. Play-test pending (the maintainer's).
 
 ## Scripts
 
@@ -68,20 +73,22 @@ PaperBoat PR; they touch only `src/port/Engine.cpp` and
   the hash there (the same test `RunStandalone` already makes) and show why
   the file was refused (size, byte order, "trim a padded dump").
 
-libultraship lane, stream `patches-libultraship/upstream-candidates/` (for
-the JeodC fork PaperBoat pins, `lus-converge`):
-
-- `0001-fast3d-vulkan-do-not-depend-on-constructor-injected-.patch`
-  — the **Vulkan crash**: `GfxRenderingAPIVK` takes a console-variable store
-  and a resource manager in its constructor (CVAR lookups, shader templates),
-  but `Fast3dWindow` constructs the backend with the default (null) arguments,
-  so the first shader build and the first draw dereference null
-  (`BuildVulkanShader → ResourceManager::LoadResource`, then
-  `DrawTriangles → ConsoleVariable::GetInteger`; both SIGSEGV). libultraship
-  picks Vulkan first on Linux whenever `Vulkan_IsSupported()`, so **every
-  Linux box crashed on the first frame after extraction** — the maintainer's
-  RADV host and Xvfb/lavapipe alike. Resolve both through the Context on
-  use, the way the OpenGL backend does.
+libultraship lane — **DROPPED at the 1.0.3 bump (upstream absorbed the fix).**
+The lane carried one patch for the JeodC-fork **Vulkan crash**: `GfxRenderingAPIVK`
+took a console-variable store and a resource manager in its constructor, but
+`Fast3dWindow` constructed the backend with default (null) arguments, so the first
+shader build and the first draw dereferenced null (`BuildVulkanShader →
+ResourceManager::LoadResource`, `DrawTriangles → ConsoleVariable::GetInteger`; both
+SIGSEGV on every Vulkan-capable Linux box). **At the 1.0.3 submodule SHA
+(`7f1bd60e`, JeodC `lus-converge`, bumped from `3e3cd2ed`) upstream independently
+implemented the identical guard** — a `vk_resource_manager()` helper and a
+`ConsoleVariables()` accessor, each falling back to `Ship::Context::GetRawInstance()`
+when the injected object is null, with the same call-site rewrites (including
+`DrawTriangles`). It differs from our patch only in spelling (upstream returns
+`shared_ptr`; ours returned raw pointers). The fix is therefore fully absorbed, so
+the patch and the `patches-libultraship/` lane were removed at this bump
+(2026-10-20). `run.sh` still seeds OpenGL (below) — an independent
+belt-and-suspenders default, not dependent on this patch.
 
 Verification 2026-09-22 (sandbox, headless; the test script is
 `../../tasks/adhoc/papermario-rom-import/test_paperboat.sh`): with the series
@@ -105,14 +112,13 @@ capturable, so xdotool has nothing to aim at), which is why they exist.
 
 ## Vulkan crash — why `run.sh` seeds OpenGL
 
-Even with the LUS patch applied, `run.sh` seeds `Window.Backend.Id = 2`
-(`FAST3D_SDL_OPENGL` in this fork) into `runDir/paperboat.cfg.json` when no
-config exists, like Ghostship's `run.sh`: OpenGL is the backend that is
-proven end-to-end here, and a later in-menu switch is preserved. Without the
-patch and without the seed, a first launch on a Vulkan-capable Linux box
-segfaults at the first frame (`Fast::BuildVulkanShader →
-ResourceManager::LoadResource`), which reads as "the game crashed right after
-importing the ROM". Gotcha for headless testing: with `SHIP_HOME` set,
+`run.sh` seeds `Window.Backend.Id = 2` (`FAST3D_SDL_OPENGL`, enum value unchanged
+at the 1.0.3 LUS SHA) into `runDir/paperboat.cfg.json` when no config exists, like
+Ghostship's `run.sh`: OpenGL is the backend proven end-to-end here, and a later
+in-menu switch is preserved. This is now a belt-and-suspenders default — the Vulkan
+null-Context crash itself is fixed in the 1.0.3 libultraship (see Patches), so a
+first launch no longer segfaults even without the seed; OpenGL stays the path
+verified end-to-end. Gotcha for headless testing: with `SHIP_HOME` set,
 libultraship doubles the config path (`<dir>//<dir>/paperboat.cfg.json`) and
 never reads a seeded config — run with cwd as the app directory instead
 (`NON_PORTABLE` is off, so the app dir is `.`).
@@ -135,20 +141,22 @@ ROMs stay out of imps' scope.
 
 ## Version notes
 
-- **Pin:** PaperBoat `1.0.2` (`b721efd6`, tagged release; bumped from `1.0.1`
-  `424c220f0` on 2026-10-08).
+- **Pin:** PaperBoat `1.0.3` (`7f038b85`, tagged release; bumped from `1.0.2`
+  `b721efd6` on 2026-10-20). Build-verified in-sandbox at this pin (host
+  `./build.sh` → a 38 MB `Paperboat` ELF, link step green); play-test is the
+  maintainer's.
 - **Submodules at the pin** (JeodC forks — distinct from every other n64/
   port's engine pins, confirmed against `.gitmodules` + `docs/BUILDING.md`):
-  - `external/libultraship` @ `3e3cd2ed` (was `7aa03b6c` at 1.0.1) —
-    JeodC/libultraship, branch `lus-converge`. **The LUS lane carries one patch
-    against this SHA** (above), replayed clean at the 1.0.2 bump (still unmerged
-    upstream). The libultraship reference crawl
-    (`../../tasks/reference/libultraship/`, Ghostship's `c151cc91`) does not
-    cover this fork and was not reopened for a one-function fix.
-  - `external/torch` @ `72960ca1` (was `106f4e30` at 1.0.1) — **moved upstream at
-    1.0.2**: now `HarbourMasters/Torch` branch `main` (was the JeodC/Torch-LH `pm64`
-    fork, which is no longer public). `fetch.sh` runs `git submodule sync` so the
-    URL change is picked up on a re-fetch.
+  - `external/libultraship` @ `7f1bd60e` (was `3e3cd2ed` at 1.0.2) —
+    JeodC/libultraship, branch `lus-converge`. **The LUS lane was DROPPED at the
+    1.0.3 bump** (above): upstream independently implemented the identical
+    null-Context Vulkan guard, so the one-patch lane is absorbed. The libultraship
+    reference crawl (`../../tasks/reference/libultraship/`, Ghostship's `c151cc91`)
+    does not cover this fork and was not reopened.
+  - `external/torch` @ `72960ca1` — **unchanged** at 1.0.3 (still
+    `HarbourMasters/Torch` branch `main`, moved there at 1.0.2 from the
+    JeodC/Torch-LH `pm64` fork, which is no longer public). `fetch.sh` runs
+    `git submodule sync` so a URL change would be picked up on a re-fetch.
 - **Build (Linux):** CMake presets (`ninja-release`), binary
   `build/ninja-release/Paperboat`. Upstream CI uses gcc-14 on Ubuntu and
   builds SDL 2.30.3 / tinyxml2 10.0.0 / libzip 1.10.1 from source only
@@ -167,8 +175,8 @@ ROMs stay out of imps' scope.
   and not independently reconfirmed; keep it unless a future audit shows this
   LUS fork drops ixwebsocket.
 - **Build-stamp note:** CMake runs `git describe --tags` for a version stamp.
-  At `1.0.1` this resolves cleanly (the pin IS the tag). On an untagged pin
-  such as tip-of-develop it prints a harmless `fatal: no tag exactly matches
-  <sha>` and continues.
+  At a tagged pin (e.g. `1.0.3`) this resolves cleanly (the pin IS the tag). On an
+  untagged pin such as tip-of-develop it prints a harmless `fatal: no tag exactly
+  matches <sha>` and continues.
 - **Windows/macOS** are supported by upstream (clang-cl + vcpkg on Windows,
   MacPorts on macOS) but out of scope here — imps builds the Linux target.

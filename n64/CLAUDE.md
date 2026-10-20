@@ -163,13 +163,14 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
 `tasks/reference/imps/game-port-history.md`.
 
 - `n64/OcarinaOfTime/` — Ship of Harkinian
-  (https://github.com/HarbourMasters/Shipwright), pin `ecd889c2` (9.3.0, bumped
-  from acdbc651d 2026-10-07). 36-patch upstream-bound `standard-c` stream
-  (assembly-isms → standard C; re-gated at 9.3.0: 478/486 byte-identical, 8
-  accepted behavior-equivalent explained diffs) under the 489-patch decomp-rename series
-  (re-cut on top of it; +1 tail patch reconciling new-at-pin call sites);
-  build/AppImage/run-verified at the prior pin, host re-verify pending. Details:
-  `n64/OcarinaOfTime/CLAUDE.md`.
+  (https://github.com/HarbourMasters/Shipwright), pin `41ae6cd3` (develop HEAD,
+  bumped from ecd889c2/9.3.0 2026-10-20). 36-patch upstream-bound `standard-c`
+  stream (assembly-isms → standard C) under the 490-patch decomp-rename series
+  (re-cut onto the new base 2026-10-20: 2 conflicts / 8 blocks mechanical, 0 by
+  hand; +2 tail patches reconciling new-at-pin references). `check_renames all`
+  + `check_patches_apply` green (526 patches from the bare pin); LUS
+  `62e973ae`→`da6daf1a`. **asmdiff codegen re-gate + build + play-test pending**
+  (the maintainer's). Details: `n64/OcarinaOfTime/CLAUDE.md`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
   (https://github.com/HarbourMasters/2ship2harkinian), pin `f1dda4c2`
   (re-bumped from e8757c14 2026-10-19; before that 04a1a4319 2026-10-08). One

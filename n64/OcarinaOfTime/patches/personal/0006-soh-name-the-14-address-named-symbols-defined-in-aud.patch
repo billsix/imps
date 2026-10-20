@@ -1,7 +1,7 @@
-From 447dc64dce6bff6a79d7fafdc46a39556ff49bad Mon Sep 17 00:00:00 2001
+From aa20d48e6f4f351cac1dde012fc1560d0b0fe994 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Tue, 8 Sep 2026 03:24:57 +0000
-Subject: [PATCH 006/489] soh: name the 14 address-named symbols defined in
+Subject: [PATCH 006/490] soh: name the 14 address-named symbols defined in
  audio_seq.c
 
 SoH carries the Ocarina of Time decomp, in which several thousand symbols are
@@ -83,14 +83,13 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 ---
  soh/include/functions.h                       | 16 ++--
  soh/include/variables.h                       |  6 +-
- soh/soh/Enhancements/audio/AudioEditor.cpp    | 14 +--
  .../GameInteractor_RawAction.cpp              |  2 +-
  soh/soh/stubs.c                               |  2 +-
  soh/src/code/audio_general.c                  | 66 +++++++-------
  soh/src/code/audio_seq.c                      | 89 +++++++++++--------
  soh/src/code/z_kankyo.c                       |  2 +-
  .../z_en_okarina_effect.c                     |  2 +-
- 9 files changed, 107 insertions(+), 92 deletions(-)
+ 8 files changed, 100 insertions(+), 85 deletions(-)
 
 diff --git a/soh/include/functions.h b/soh/include/functions.h
 index 0cd65a60d..b4b211cd4 100644
@@ -142,73 +141,6 @@ index 87ef3e473..094097354 100644
  	extern AudioSpec gAudioSpecs[18];
  	extern s32 gOverlayLogSeverity;
  	extern s32 gSystemArenaLogSeverity;
-diff --git a/soh/soh/Enhancements/audio/AudioEditor.cpp b/soh/soh/Enhancements/audio/AudioEditor.cpp
-index d223b55b3..70b71823c 100644
---- a/soh/soh/Enhancements/audio/AudioEditor.cpp
-+++ b/soh/soh/Enhancements/audio/AudioEditor.cpp
-@@ -96,7 +96,7 @@ static const std::map<int32_t, const char*> audioRandomizerModes = {
- // Grabs the current BGM sequence ID and replays it
- // which will lookup the proper override, or reset back to vanilla
- void ReplayCurrentBGM() {
--    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
-+    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
-     // TODO: replace with Audio_StartSeq when the macro is shared
-     // The fade time and audio player flags will always be 0 in the case of replaying the BGM, so they are not set here
-     Audio_QueueSeqCmd(0x00000000 | curSeqId);
-@@ -109,7 +109,7 @@ void UpdateCurrentBGM(u16 seqKey, SeqType seqType) {
-         return;
-     }
- 
--    u16 curSeqId = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
-+    u16 curSeqId = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
-     if (curSeqId == seqKey) {
-         ReplayCurrentBGM();
-     }
-@@ -265,7 +265,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
-     ImGui::SeparatorText(tabName.c_str());
-     if (UIWidgets::Button(resetAllButton.c_str(),
-                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
--        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
-+        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
-         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
-         ResetGroup(map, type);
-         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
-@@ -277,7 +277,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
-     ImGui::SameLine();
-     if (UIWidgets::Button(randomizeAllButton.c_str(),
-                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
--        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
-+        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
-         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
-         RandomizeGroup(type);
-         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
-@@ -289,7 +289,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
-     ImGui::SameLine();
-     if (UIWidgets::Button(lockAllButton.c_str(),
-                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
--        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
-+        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
-         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
-         LockGroup(map, type);
-         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
-@@ -301,7 +301,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
-     ImGui::SameLine();
-     if (UIWidgets::Button(unlockAllButton.c_str(),
-                           UIWidgets::ButtonOptions().Size(UIWidgets::Sizes::Inline).Color(THEME_COLOR))) {
--        auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
-+        auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
-         auto prevReplacement = AudioCollection::Instance->GetReplacementSequence(currentBGM);
-         UnlockGroup(map, type);
-         Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
-@@ -312,7 +312,7 @@ void Draw_SfxTab(const std::string& tabId, SeqType type, const std::string& tabN
-     }
- 
-     auto playingFromMenu = CVarGetInteger(CVAR_AUDIO("Playing"), 0);
--    auto currentBGM = func_800FA0B4(SEQ_PLAYER_BGM_MAIN);
-+    auto currentBGM = Audio_GetActiveSeqId(SEQ_PLAYER_BGM_MAIN);
- 
-     // Longest text in Audio Editor
-     ImVec2 columnSize = ImGui::CalcTextSize("Navi - Look/Hey/Watchout (Target Enemy)");
 diff --git a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp b/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
 index 9338f8098..c92101e72 100644
 --- a/soh/soh/Enhancements/game-interactor/GameInteractor_RawAction.cpp
@@ -769,5 +701,5 @@ index 89ef1b781..bcca98270 100644
              Audio_SetNatureAmbienceChannelIO(NATURE_CHANNEL_RAIN, CHANNEL_IO_PORT_1, 0);
          }
 -- 
-2.55.0
+2.56.0
 

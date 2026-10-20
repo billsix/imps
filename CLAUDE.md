@@ -167,6 +167,26 @@ live in `tools/standard-c/`, and `tools/resolve_rename_conflicts.py` re-cuts a p
 under a new base. Map + how to add a project: `tasks/reference/imps/standard-c-tooling.md`;
 re-cut method: `tasks/reference/imps/recutting-a-stream-under-a-new-base.md`.
 
+**What the asmdiff gate actually needs (2026-10-20, from the OoT 9.3.0→develop re-cut):**
+`asmdiff.sh` wants a **configured cmake tree** (`$ASMDIFF_BUILD` containing `compile_commands.json`),
+**not a completed build** — it recompiles one source file at a time to assembly with that file's
+recorded flags and diffs the two. So the gate's real cost is a cmake *configure* of the checkout
+(deps + submodules), not a full `ninja`. For a file the series RENAMED after the tree was
+configured, pass `ASMDIFF_CMD_FROM=<pre-rename path>` so it reuses that file's recorded command.
+**At a pin bump the codegen proof is TWO separate checks** (the re-cut lands on a new base, so
+old-applied-vs-new-applied is dominated by real upstream changes and is not the gate): (1) re-prove
+`standard-c` byte-identity against the *new* pin's pristine tree —
+`asmdiff_tree.sh <new-pin> <new-pin+standard-c>`; and (2) prove the rename re-cut changed no code —
+`asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`. Both need the configured build; a nested
+`make`-configure of the project supplies `compile_commands.json`. **Caveat (OoT, 2026-10-20):** when
+the maintainer's *host* build tree (`build-cmake/`, `bldInstall/`) is bind-mounted into the sandbox,
+a fresh in-sandbox `build.sh` fails — cmake refuses the host-path `CMakeCache.txt` (`the current
+CMakeCache.txt directory … is different than the directory … where CMakeCache.txt was created`), and
+clearing it would destroy the host cache. So run the asmdiff gate **on the host** (where `build-cmake/`
+is valid), or configure into a *separate* sandbox-only build dir (`cmake -S <checkout> -B build-asmdiff
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON …`) and point `ASMDIFF_BUILD` at that — never clear the bind-mounted
+`build-cmake/`.
+
 **The comment-only gate** proves a doc/marker stream (`docs`/`book`) changes nothing the compiler sees —
 the invariant behind the docs-only carriers (and n64's `book/` markers). One shared, family-agnostic entry
 point: `tools/check_comment_only_streams.sh [project ...]` discovers projects across every family, reads

@@ -13,9 +13,15 @@ cd "$(dirname "$0")"
 
 UPSTREAM=https://github.com/HarbourMasters/Shipwright.git
 
-# The pinned base commit: tip of upstream's 'develop' branch as of
-# 2026-10-06, which upstream tagged as the 9.3.0 release (git describe: 9.3.0).
-PIN_SHA=ecd889c2019b87e78b0a3d942a6a3fe98b7efaed
+# The pinned base commit: tip of upstream's 'develop' branch.
+# Bumped from 9.3.0 (ecd889c2, 2026-10-06) -> develop HEAD 41ae6cd3 on 2026-10-20
+# (agent resync, ../../tasks/imps-check-upstreams-and-rebase-patches.md). The
+# standard-c stream (36) replays byte-clean onto the new base; the rename stream
+# was RE-CUT onto it (resolve_rename_conflicts.py: 2 conflicts / 8 blocks, all
+# mechanical) + a new tail patch reconciling one develop-new reference
+# (func_800FA0B4 -> Audio_GetActiveSeqId). check_renames all green,
+# check_patches_apply green. asmdiff codegen gate + build + play-test pending.
+PIN_SHA=41ae6cd3b68c7cf1855bd865f3d00bd2013667da
 
 if [ ! -d Shipwright ]; then
     git clone "$UPSTREAM" Shipwright

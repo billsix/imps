@@ -8,8 +8,8 @@ central glue), and the **libultraship** runtime (`libultraship/` submodule).
 
 Managed by imps: `Shipwright/` here is a pristine clone of
 https://github.com/HarbourMasters/Shipwright, pinned by `fetch.sh` at
-`ecd889c2` (9.3.0, tip of upstream `develop` as of 2026-10-06, which upstream
-tagged as the 9.3.0 release), with the maintainer's patches applied by
+`41ae6cd3` (tip of upstream `develop`, bumped from `ecd889c2`/9.3.0 on
+2026-10-20), with the maintainer's patches applied by
 `apply.sh`. It is not a fork and has no personal branches — the patch series is
 the whole delta.
 
@@ -55,24 +55,29 @@ regardless (keeps `upstream-candidates/` submittable on its own; see `../CLAUDE.
   8 in-stream and they are documented in
   `../../tasks/ocarina-standard-c-explained-diffs.md`** ("Accepted IN the stream"
   section) — so the invariant at 9.3.0 is "byte-identical OR a behavior-equivalent
-  diff explained there". Re-run the tree gate at the next bump. Also not in
+  diff explained there". Re-run the tree gate at the next bump. **Re-applied onto
+  develop HEAD `41ae6cd3` 2026-10-20** — the 36 replay with no conflict (`git am`),
+  but the asmdiff codegen re-gate at this pin is **PENDING** (needs a configured
+  Shipwright build; see the imps master `CLAUDE.md` asmdiff note). Also not in
   the stream: rewrites whose codegen differs (same doc, the 18-item excluded list)
   and the naming classes (stack-slot locals, `argN`, per-actor `params` macros).
   Catalogue + per-batch log: `../../tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`;
   patterns: `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
   Checkout branch `imps-standard-c`; at a pin bump replay AND re-run the gate.
-- `patches/personal/0001…0489-*.patch` — the decomp rename series, originally
-  **re-cut 2026-09-22 against the `standard-c` tree** and **re-cut again
-  2026-10-07 onto the `9.3.0` pin's `standard-c` tip** (`resolve_rename_conflicts.py`
-  resolved the rename-conflict blocks mechanically — our side + that patch's
-  renames + its provenance tags; a handful of conflicts where upstream changed a
-  call signature next to a renamed symbol were hand-resolved; the `--base` footer
-  names the `standard-c` tip `e6647b4d`). Still **one file per patch** (0001 renames
+- `patches/personal/0001…0490-*.patch` — the decomp rename series, originally
+  **re-cut 2026-09-22 against the `standard-c` tree**, **re-cut 2026-10-07 onto the
+  `9.3.0` pin's `standard-c` tip**, and **re-cut again 2026-10-20 onto develop HEAD
+  `41ae6cd3`'s `standard-c` tip `2feabad0`** (`resolve_rename_conflicts.py` resolved
+  the rename-conflict blocks mechanically — our side + that patch's renames + its
+  provenance tags; the 2026-10-20 re-cut had 2 conflicts / 8 blocks, all mechanical,
+  0 by hand; `check_renames all` green). Still **one file per patch** (0001 renames
   the 18 address-named `soh/src/code/code_<addr>.c` files, each other patch names the
-  address-named symbols in one definition file), **plus a tail patch 0489** that
+  address-named symbols in one definition file), **plus two tail patches**: **0489**
   reconciles the renamed cutscene symbols with call sites new at the `9.3.0` pin
   (`SkipCutscene/QuickBossDeaths.cpp`, `CutsceneTime.cpp`) and repositions one
-  displaced `audio_thread.c` provenance comment. Every renamed symbol carries a
+  displaced `audio_thread.c` provenance comment; **0490** (new 2026-10-20)
+  reconciles a develop-new reference — a comment in `AudioEditor.cpp` that named
+  `func_800FA0B4`, carried to its stream name `Audio_GetActiveSeqId`. Every renamed symbol carries a
   provenance comment at its definition **and** a short `// was func_… [oot]` /
   `[LLM:HIGH]` tag at each header declaration (and, for a guess, at every call
   site), so a reader of `functions.h` can tell an upstream name from a deduction;
@@ -93,7 +98,8 @@ regardless (keeps `upstream-candidates/` submittable on its own; see `../CLAUDE.
 
 ## Version notes
 
-- **libultraship pinned at `1.3.1-486` (`62e973ae`)**, `torch` at
+- **libultraship pinned at `da6daf1a`** (bumped from `1.3.1-486`/`62e973ae` with
+  the 2026-10-20 develop-HEAD pin bump), `torch` at
   `v1.0.0-427`. Upstream replaced the old ZAPDTR/OTRExporter asset pipeline
   with torch (`soh-torch` extractor + `soh-o2r-packer`) between the old fork
   base and this pin — the asset-pipeline and build-system reference docs

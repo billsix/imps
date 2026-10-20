@@ -7,9 +7,12 @@ Ship of Harkinian family — same shape as SoH (see
 
 Managed by imps: `2ship2harkinian/` here is a pristine clone of
 https://github.com/HarbourMasters/2ship2harkinian, pinned by `fetch.sh` at
-`e8757c14` (tip of upstream `develop` as of 2026-09-25; bumped from
-`04a1a4319` 2026-10-08), with the maintainer's patches applied by `apply.sh`.
-Not a fork; the patch series is the whole delta.
+`f1dda4c2` (tip of upstream `develop`; re-bumped from `e8757c14` 2026-10-19,
+which was bumped from `04a1a4319` 2026-10-08), with the maintainer's patches
+applied by `apply.sh`. Not a fork; the patch series is the whole delta. The
+1-patch audio series replays **clean** at `f1dda4c2` (content byte-identical,
+`tools/check_patches_apply.sh MajorasMask` green; upstream has not absorbed it);
+the libultraship gitlink is unchanged (`7f9b86a5`). BUILD + play-test pending.
 
 ## Scripts
 

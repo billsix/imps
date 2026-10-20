@@ -10,10 +10,14 @@ extracted in-app to `bk.o2r`; port assets ship in `lighthouse.o2r`.
 
 Managed by imps: `Lighthouse/` here is a pristine clone of
 https://github.com/HarbourMasters/Lighthouse, pinned by `fetch.sh` at
-`5c948c59` (tip of upstream `develop` as of 2026-10-03; bumped from `6d30df9a`
-on 2026-10-08 — the 4-patch series replays clean, upstream only restructured
-its CI and bumped the version 1.0.0 -> 1.1.0), with the maintainer's patches
-applied by `apply.sh`. Not a fork; the patch series is the whole delta.
+`4e8dfd23` (tip of upstream `develop`; re-bumped from `5c948c59` on 2026-10-19,
+which was itself bumped from `6d30df9a` on 2026-10-08), with the maintainer's
+patches applied by `apply.sh`. Not a fork; the patch series is the whole delta.
+The 4-patch series replays **clean** at `4e8dfd23` (content byte-identical,
+`tools/check_patches_apply.sh BanjoKazooie` green); the libultraship gitlink is
+unchanged (`62e973ae`) and Torch moved to `72960ca1` with the base. Upstream's CI
+`main.yml` changed only workflow plumbing (triggers/outputs/artifact naming), not
+the apt build-deps the Dockerfile mirrors. BUILD + play-test pending (maintainer's).
 
 ## Scripts
 

@@ -171,10 +171,11 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   build/AppImage/run-verified at the prior pin, host re-verify pending. Details:
   `n64/OcarinaOfTime/CLAUDE.md`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
-  (https://github.com/HarbourMasters/2ship2harkinian), pin `e8757c14`
-  (bumped from 04a1a4319 2026-10-08). One patch (the 64-bit audio/scheduler
-  fixes; the BUILDING.md audio-libs patch was dropped — upstream absorbed it);
-  build/run + AppImage verified at the prior pin, host re-verify pending.
+  (https://github.com/HarbourMasters/2ship2harkinian), pin `f1dda4c2`
+  (re-bumped from e8757c14 2026-10-19; before that 04a1a4319 2026-10-08). One
+  patch (the 64-bit audio/scheduler fixes; the BUILDING.md audio-libs patch was
+  dropped — upstream absorbed it); replays clean at the new pin (gate green, LUS
+  gitlink unchanged 7f9b86a5); build/run re-verify pending (maintainer's).
   Details: `n64/MajorasMask/CLAUDE.md`.
 - `n64/SuperMario64/` — Ghostship (https://github.com/HarbourMasters/Ghostship),
   pin `40eef138` (bumped from 49c5312a 2026-10-08). 46-patch upstream-bound `standard-c` stream (assembly-isms →
@@ -183,9 +184,11 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   (`SuperMario64/book/`). Details:
   `n64/SuperMario64/CLAUDE.md`.
 - `n64/BanjoKazooie/` — Lighthouse
-  (https://github.com/HarbourMasters/Lighthouse), pin `5c948c59` (bumped from 6d30df9a 2026-10-08). 4-patch
-  `fixOnFedora` series (a submitted upstream PR); builds and runs; podman build.
-  Details: `n64/BanjoKazooie/CLAUDE.md`.
+  (https://github.com/HarbourMasters/Lighthouse), pin `4e8dfd23` (re-bumped from
+  5c948c59 2026-10-19; before that 6d30df9a 2026-10-08). 4-patch `fixOnFedora`
+  series (a submitted upstream PR); replays clean at the new pin (gate green, LUS
+  gitlink unchanged 62e973ae); build/run re-verify pending (maintainer's). Podman
+  build. Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
   pin `1.0.2` (`b721efd6`, bumped from 1.0.1 2026-10-08). 3-patch series on two lanes (2026-09-22): game
   tree — CLI ROM import on Linux + a precise refusal of unsupported ROMs;

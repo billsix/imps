@@ -178,7 +178,14 @@ old-applied-vs-new-applied is dominated by real upstream changes and is not the 
 `standard-c` byte-identity against the *new* pin's pristine tree —
 `asmdiff_tree.sh <new-pin> <new-pin+standard-c>`; and (2) prove the rename re-cut changed no code —
 `asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`. Both need the configured build; a nested
-`make`-configure of the project supplies `compile_commands.json`.
+`make`-configure of the project supplies `compile_commands.json`. **Caveat (OoT, 2026-10-20):** when
+the maintainer's *host* build tree (`build-cmake/`, `bldInstall/`) is bind-mounted into the sandbox,
+a fresh in-sandbox `build.sh` fails — cmake refuses the host-path `CMakeCache.txt` (`the current
+CMakeCache.txt directory … is different than the directory … where CMakeCache.txt was created`), and
+clearing it would destroy the host cache. So run the asmdiff gate **on the host** (where `build-cmake/`
+is valid), or configure into a *separate* sandbox-only build dir (`cmake -S <checkout> -B build-asmdiff
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON …`) and point `ASMDIFF_BUILD` at that — never clear the bind-mounted
+`build-cmake/`.
 
 **The comment-only gate** proves a doc/marker stream (`docs`/`book`) changes nothing the compiler sees —
 the invariant behind the docs-only carriers (and n64's `book/` markers). One shared, family-agnostic entry

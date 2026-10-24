@@ -1,13 +1,16 @@
-# SuperMario64: upstream a container-based CI (Dockerfile + workflow patch)
+# BanjoKazooie: upstream a container-based CI (Dockerfile + workflow patch)
 
-**Status:** proposed — FUTURE, not for the 2026-09-01 batch (William Emerison Six <billsix@gmail.com>:
-"this work is not to happen yet, it is just to keep in mind")
+**Status:** SUPERSEDED 2026-10-26 by `tasks/n64-upstreamable-appimage-make-target.md`, which consolidates
+all five N64 ports' CI-rewire work (and adds PaperMario). This per-port task is archived; do the work there.
+
+(Historical status: proposed — FUTURE, not for the 2026-09-01 batch — William Emerison Six <billsix@gmail.com>:
+"this work is not to happen yet, it is just to keep in mind".)
 **Priority:** 6
 **Difficulty:** 5
 
 ## BLUF
 
-Upstream a container-based Linux build for Ghostship as a standalone
+Upstream a container-based Linux build for Lighthouse as a standalone
 patch adding **three in-repo files**: a **Makefile** (the full imps
 target set — `image`/`build`/`appimage`/`image-export`/`image-import`/
 `shell`/`run`/`clean`, minus the fetch/apply machinery, since the source
@@ -22,9 +25,10 @@ the goal.
 
 ## Context
 
-- Upstream CI file: `Ghostship/.github/workflows/main.yml` — the build-linux job runs on ubuntu-latest, cpack -G External. Scope is
+- Upstream CI file: `Lighthouse/.github/workflows/main.yml` — the build-linux job runs on ubuntu-latest. Scope is
   the **Linux job only**; Windows/macOS/Switch jobs stay untouched.
-- The imps Dockerfile this would upstream: **shipped and host-verified** (`n64/SuperMario64/Dockerfile`); its build task is archived at `tasks/archive/mario64/2026/09/01/mario64-podman-appimage-build.md`.
+- The imps Dockerfile this would upstream: shipped, verified end to end incl. a host run (`n64/BanjoKazooie/Dockerfile`). This task depends
+  on that Dockerfile existing and being verified; sequence after it.
 - **The patch adds three in-repo files:**
   - a **`Makefile`** — the full imps target set (`image`, `build`,
     `appimage`, `image-export`/`image-import`, `shell`, `run`, `clean`,
@@ -32,10 +36,11 @@ the goal.
     local ergonomics, **minus `fetch.sh`/`apply.sh`**: the build context
     is the repo root (`-f <dir>/Dockerfile .`), not an external checkout,
     and `make appimage` builds the working tree as-is. Derive it from the
-    imps `n64/SuperMario64/Makefile` by removing the fetch auto-call and
+    imps `n64/BanjoKazooie/Makefile` by removing the fetch auto-call and
     re-rooting `$(SRC)`/context to `.`.
-  - the **`Dockerfile`** it drives — from the imps `n64/SuperMario64/Dockerfile`
-    (now `COPY`-based and host-build-clean as of 2026-09-01).
+  - the **`Dockerfile`** it drives — from the imps `n64/BanjoKazooie/Dockerfile`
+    (it inlines its apt list rather than reading a deps file, so it never
+    had the build-time-bind-mount SELinux issue the other three did).
   - the **CI workflow** — the existing Linux job reduced to
     `checkout → make appimage → upload-artifact`, the upload step kept
     identical so upstream sees a drop-in. This **settles the old
@@ -45,7 +50,7 @@ the goal.
   podman on his systems; docker is fine where they use it — GitHub
   runners ship Docker, so `make appimage` runs in CI unchanged). e.g.
   `CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)`.
-  imps's own `n64/SuperMario64/Makefile` hardcodes `podman` — the upstreamed
+  imps's own `n64/BanjoKazooie/Makefile` hardcodes `podman` — the upstreamed
   one must not.
 - Design points still open at execution: where the image lives for CI
   (built in-workflow from the committed Dockerfile — simplest, fully

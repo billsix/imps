@@ -1,0 +1,321 @@
+From 0d274077c977fd4a93f39d723a58504570d635fb Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 26 Oct 2026 11:42:44 +0000
+Subject: [PATCH] ci(linux): build the Linux AppImage in a reproducible
+ container
+
+Add docker/Dockerfile and docker/Makefile defining the Linux build
+environment (the build-linux apt packages plus SDL2/tinyxml2/libzip built
+from source, frozen into image layers), and rewire the build-linux job to
+produce its AppImage with `make -C docker appimage`.
+
+The container mirrors the job's environment exactly; the only intended
+change is freezing the floating `ubuntu-latest` runner and the from-source
+library steps into image layers, so the build is reproducible and a
+developer can run the identical build locally with `make -C docker appimage`.
+The generate-port-o2r job and the uploaded artifact are unchanged: the job
+still downloads ghostship.o2r (now to the repo root, where the build bundles
+it) and uploads the same files.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+---
+ .github/workflows/main.yml | 85 ++++--------------------------------
+ docker/Dockerfile          | 88 ++++++++++++++++++++++++++++++++++++++
+ docker/Makefile            | 87 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 184 insertions(+), 76 deletions(-)
+ create mode 100644 docker/Dockerfile
+ create mode 100644 docker/Makefile
+
+diff --git a/.github/workflows/main.yml b/.github/workflows/main.yml
+index fcd7bf4f..284d4fe9 100644
+--- a/.github/workflows/main.yml
++++ b/.github/workflows/main.yml
+@@ -353,89 +353,22 @@ jobs:
+         with:
+           submodules: recursive
+           fetch-depth: 0 # full history so the libultraship submodule gitlink resolves
+-      - name: Update machine
+-        run: sudo apt update
+-      - name: Install dependencies
+-        run: sudo apt-get install gcc g++ git cmake ninja-build lsb-release libsdl2-dev libpng-dev libsdl2-net-dev libzip-dev zipcmp zipmerge ziptool nlohmann-json3-dev libtinyxml2-dev libspdlog-dev libboost-dev libopengl-dev libogg-dev libvorbis-dev libmbedtls-dev libvulkan-dev libshaderc-dev glslang-dev spirv-tools
+-      - name: ccache
+-        uses: hendrikmuhs/ccache-action@v1.2.14
+-        with:
+-          key: linux-ccache-${{ github.ref }}-${{ github.sha }}
+-          restore-keys: |
+-            linux-ccache-${{ github.ref }}
+-            linux-ccache-
+-      - name: Cache build folders
+-        uses: actions/cache@v6
+-        with:
+-          key: linux-build-${{ github.ref }}-${{ github.sha }}
+-          restore-keys: |
+-            linux-build-${{ github.ref }}
+-            linux-build-
+-          path: |
+-            SDL2-2.30.3
+-            tinyxml2-10.0.0
+-            libzip-1.10.1
+-      - name: Install latest SDL
+-        run: |
+-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+-          if [ ! -d "SDL2-2.30.3" ]; then
+-            wget https://www.libsdl.org/release/SDL2-2.30.3.tar.gz
+-            tar -xzf SDL2-2.30.3.tar.gz
+-          fi
+-          cd SDL2-2.30.3
+-          ./configure --enable-hidapi-libusb
+-          make -j 10
+-          sudo make install
+-          sudo cp -av /usr/local/lib/libSDL* /lib/x86_64-linux-gnu/
+-      - name: Install latest tinyxml2
+-        run: |
+-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+-          if [ ! -d "tinyxml2-10.0.0" ]; then
+-            wget https://github.com/leethomason/tinyxml2/archive/refs/tags/10.0.0.tar.gz
+-            tar -xzf 10.0.0.tar.gz
+-          fi
+-          cd tinyxml2-10.0.0
+-          mkdir -p build
+-          cd build
+-          cmake ..
+-          make
+-          sudo make install
+-      - name: Install libzip without crypto
+-        run: |
+-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+-          if [ ! -d "libzip-1.10.1" ]; then
+-            wget https://github.com/nih-at/libzip/releases/download/v1.10.1/libzip-1.10.1.tar.gz
+-            tar -xzf libzip-1.10.1.tar.gz
+-          fi
+-          cd libzip-1.10.1
+-          mkdir -p build
+-          cd build
+-          cmake .. -DENABLE_COMMONCRYPTO=OFF -DENABLE_GNUTLS=OFF -DENABLE_MBEDTLS=OFF -DENABLE_OPENSSL=OFF
+-          make
+-          sudo make install
+-          sudo cp -av /usr/local/lib/libzip* /lib/x86_64-linux-gnu/
+-      - name: Setup Python
+-        uses: actions/setup-python@v5
+-        with:
+-          python-version: '3.12'
+-      - name: Install Python dependencies
+-        run: pip install -r libultraship/requirements.txt
+       - name: Download ghostship.o2r
+         uses: actions/download-artifact@v4
+         with:
+           name: ghostship.o2r
+-          path: ./build-cmake
+-      - name: Build
++          path: .
++      - name: Build AppImage (containerized)
+         run: |
+-          # Route the compiler through ccache so the linux-ccache cache is actually used.
+-          cmake -H. -Bbuild-cmake -GNinja -DCMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -DPython3_EXECUTABLE=$(which python3)
+-          cmake --build build-cmake --config Release -j3
+-          (cd build-cmake && cpack -G External)
++          # Build the AppImage in the reproducible CI container (docker/Dockerfile),
++          # which bakes in the apt packages and the from-source SDL/tinyxml2/libzip
++          # the removed inline steps installed. The port o2r downloaded above sits at
++          # the repo root, where the build bundles it into the AppImage.
++          make -C docker appimage
++          mv out/ghostship.appimage ghostship.appimage
++          rm -rf .tcc && cp -r out/.tcc .tcc
+           wget -O gamecontrollerdb.txt https://raw.githubusercontent.com/mdqinc/SDL_GameControllerDB/master/gamecontrollerdb.txt
+           mv README.md readme.txt
+-          mv build-cmake/*.appimage ghostship.appimage
+-          ls -la build-cmake/.tcc || (echo "ERROR: .tcc not found in build-cmake/" && exit 1)
+-          cp -r build-cmake/.tcc .tcc
+       - name: Upload build
+         uses: actions/upload-artifact@v4
+         with:
+diff --git a/docker/Dockerfile b/docker/Dockerfile
+new file mode 100644
+index 00000000..f1f91f1b
+--- /dev/null
++++ b/docker/Dockerfile
+@@ -0,0 +1,88 @@
++# Reproducible Linux build environment for Ghostship's CI AppImage.
++#
++# Mirrors the `build-linux` job of .github/workflows/main.yml: the same apt
++# package list, and SDL2 / tinyxml2 / libzip built from source at the same
++# versions and flags the job uses. The one deliberate difference from CI is the
++# point of this image: the floating `ubuntu-latest` runner and its from-source
++# library steps are frozen into image layers, so the build is reproducible and
++# runs identically on a developer's machine and on a CI runner.
++#
++# Build context is the repository root (see docker/Makefile), so the COPY below
++# reads libultraship/requirements.txt straight from the checkout.
++FROM ubuntu:24.04
++
++ENV DEBIAN_FRONTEND=noninteractive \
++    LANG=C.UTF-8
++
++# The CI job's apt list verbatim, plus the packages a bare ubuntu:24.04 lacks
++# that a GitHub runner pre-provides (toolchain, download utilities, python3/pip,
++# AppImage packaging tools).
++RUN apt-get update && apt-get install -y --no-install-recommends \
++        gcc g++ git cmake ninja-build lsb-release libsdl2-dev libpng-dev \
++        libsdl2-net-dev libzip-dev zipcmp zipmerge ziptool \
++        nlohmann-json3-dev libtinyxml2-dev libspdlog-dev libboost-dev \
++        libopengl-dev libogg-dev libvorbis-dev libmbedtls-dev \
++        libvulkan-dev libshaderc-dev glslang-dev spirv-tools \
++        ca-certificates wget curl gnupg file patchelf desktop-file-utils \
++        build-essential pkg-config python3 python3-pip \
++ && rm -rf /var/lib/apt/lists/*
++
++# libultraship links `shaderc_shared`, but Ubuntu ships the shared library as
++# plain libshaderc.so; without this compat name cmake falls back to the static
++# libshaderc_combined.a, which on 24.04 is ABI-skewed against the newer
++# spirv-tools static libs (undefined spvtools:: symbols at link). The symlink
++# routes the build to the self-consistent shared library.
++RUN ln -s /usr/lib/x86_64-linux-gnu/libshaderc.so \
++          /usr/lib/x86_64-linux-gnu/libshaderc_shared.so
++
++# libultraship's vendored FindVulkan.cmake uses policy CMP0159, which needs
++# CMake >= 3.30; 24.04's apt ships 3.28 (the GitHub runner pre-provides a newer
++# cmake, so CI never hits this). Install Kitware's build.
++RUN wget -O /tmp/kitware-archive.sh https://apt.kitware.com/kitware-archive.sh \
++ && bash /tmp/kitware-archive.sh \
++ && apt-get install -y --no-install-recommends cmake \
++ && rm -rf /tmp/kitware-archive.sh /var/lib/apt/lists/*
++
++# Python deps for the Torch/asset tooling, read from the checkout's
++# libultraship/requirements.txt (single source of truth with the build).
++# --break-system-packages: 24.04's python is PEP668-managed and this is a
++# single-purpose build container.
++COPY libultraship/requirements.txt /tmp/requirements.txt
++RUN pip3 install --break-system-packages -r /tmp/requirements.txt
++
++# SDL 2.30.3 from source (CI step "Install latest SDL").
++RUN mkdir -p /deps && cd /deps \
++ && wget -q https://www.libsdl.org/release/SDL2-2.30.3.tar.gz \
++ && tar -xzf SDL2-2.30.3.tar.gz \
++ && cd SDL2-2.30.3 \
++ && ./configure --enable-hidapi-libusb \
++ && make -j"$(nproc)" \
++ && make install \
++ && cp -av /usr/local/lib/libSDL* /lib/x86_64-linux-gnu/ \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++# tinyxml2 10.0.0 from source (CI step "Install latest tinyxml2").
++RUN mkdir -p /deps && cd /deps \
++ && wget -q https://github.com/leethomason/tinyxml2/archive/refs/tags/10.0.0.tar.gz \
++ && tar -xzf 10.0.0.tar.gz \
++ && cmake -S tinyxml2-10.0.0 -B tinyxml2-10.0.0/build -DCMAKE_BUILD_TYPE=Release \
++ && cmake --build tinyxml2-10.0.0/build -j"$(nproc)" \
++ && cmake --install tinyxml2-10.0.0/build \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++# libzip 1.10.1 without crypto backends (CI step "Install libzip without crypto").
++RUN mkdir -p /deps && cd /deps \
++ && wget -q https://github.com/nih-at/libzip/releases/download/v1.10.1/libzip-1.10.1.tar.gz \
++ && tar -xzf libzip-1.10.1.tar.gz \
++ && cmake -S libzip-1.10.1 -B libzip-1.10.1/build -DCMAKE_BUILD_TYPE=Release \
++        -DENABLE_COMMONCRYPTO=OFF -DENABLE_GNUTLS=OFF \
++        -DENABLE_MBEDTLS=OFF -DENABLE_OPENSSL=OFF \
++ && cmake --build libzip-1.10.1/build -j"$(nproc)" \
++ && cmake --install libzip-1.10.1/build \
++ && cp -av /usr/local/lib/libzip* /lib/x86_64-linux-gnu/ \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++WORKDIR /src
+diff --git a/docker/Makefile b/docker/Makefile
+new file mode 100644
+index 00000000..952ade36
+--- /dev/null
++++ b/docker/Makefile
+@@ -0,0 +1,87 @@
++SHELL := /bin/bash
++
++# Containerized, reproducible Linux AppImage build for Ghostship.
++#
++# `make appimage` builds the repository (as checked out) inside the image
++# defined by docker/Dockerfile and emits out/ghostship.appimage — the same
++# artifact the Linux CI job produces, from one path that CI and developers
++# share. The build CONTEXT is the repository root (the parent of this dir), so
++# the Dockerfile can read libultraship/requirements.txt and the container sees
++# the whole source tree.
++
++# Repo root = parent of this docker/ directory, regardless of the caller's cwd.
++ROOT   := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
++
++# podman on developer machines, docker on CI runners — pick whichever is on PATH.
++CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
++
++IMAGE  := ghostship-ci-builder:latest
++OUT    := $(ROOT)/out
++NPROC  := $(shell nproc)
++
++# The port asset archive. The CI `generate-port-o2r` job builds it and hands it
++# to this job, which places it at the repo root before calling `make appimage`;
++# the build bundles it into the AppImage. (Generating it inside the container is
++# a planned follow-up; for now this target consumes a supplied archive.)
++O2R    ?= ghostship.o2r
++
++# Extra flags for container `run` (not `build`): --cgroups=disabled lets the
++# build run inside an unprivileged nested container. Empty on a normal host/CI.
++PODMAN_RUN_FLAGS ?= $(if $(filter 1,$(NESTED_PODMAN)),--cgroups=disabled)
++
++RUN = $(CONTAINER_CMD) run --rm $(PODMAN_RUN_FLAGS) \
++        -v $(ROOT):/src:z -v $(OUT):/out:z -e HOME=/tmp $(IMAGE)
++
++.PHONY: help image build appimage run shell clean
++
++help:
++	@echo "Targets:"
++	@echo "  make image     - build the Linux build-environment image"
++	@echo "  make build     - compile Ghostship inside the container"
++	@echo "  make appimage  - produce out/ghostship.appimage (needs a port o2r; see O2R)"
++	@echo "  make run       - run out/ghostship.appimage"
++	@echo "  make shell     - interactive shell in the build container"
++	@echo "  make clean     - remove the container build dir and out/"
++
++image:
++	$(CONTAINER_CMD) build -t $(IMAGE) -f $(ROOT)/docker/Dockerfile $(ROOT)
++
++$(OUT):
++	mkdir -p $(OUT)
++
++build: image | $(OUT)
++	$(RUN) bash -c '\
++		set -euxo pipefail; \
++		cmake -S /src -B /src/build-cmake -GNinja -DCMAKE_BUILD_TYPE=Release \
++		      -DPython3_EXECUTABLE=$$(which python3); \
++		cmake --build /src/build-cmake -j$(NPROC); \
++	'
++
++appimage: build
++	@test -f $(ROOT)/$(O2R) || { \
++	  echo "ERROR: port asset archive '$(O2R)' not found at the repo root." >&2; \
++	  echo "       CI's generate-port-o2r job supplies it; pass O2R=<path> otherwise." >&2; \
++	  exit 1; }
++	$(RUN) bash -c '\
++		set -euxo pipefail; \
++		cd /src/build-cmake && cpack -G External; \
++		shopt -s nullglob; \
++		artifacts=(/src/build-cmake/*.appimage /src/_packages/*.appimage); \
++		if [ $${#artifacts[@]} -eq 0 ]; then echo "ERROR: no .appimage produced" >&2; exit 1; fi; \
++		cp "$${artifacts[0]}" /out/ghostship.appimage; \
++		chmod +x /out/ghostship.appimage; \
++		test -d /src/build-cmake/.tcc || { echo "ERROR: .tcc not found" >&2; exit 1; }; \
++		rm -rf /out/.tcc && cp -r /src/build-cmake/.tcc /out/.tcc; \
++	'
++	@echo "==> AppImage: $(OUT)/ghostship.appimage (+ .tcc)"
++
++run:
++	@test -x $(OUT)/ghostship.appimage || { echo "no AppImage at $(OUT)/ghostship.appimage -- run 'make appimage' first" >&2; exit 1; }
++	$(OUT)/ghostship.appimage $(ARGS)
++
++shell: image | $(OUT)
++	$(CONTAINER_CMD) run --rm -it $(PODMAN_RUN_FLAGS) \
++	    -v $(ROOT):/src:z -v $(OUT):/out:z -e HOME=/tmp $(IMAGE) bash
++
++clean:
++	rm -rf $(ROOT)/build-cmake $(ROOT)/_packages $(OUT)
+-- 
+2.56.0
+

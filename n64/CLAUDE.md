@@ -57,15 +57,22 @@ another's via `git am`/rebase. On a game pin bump, replay BOTH lanes.
 each lane, patches are NOT one numbered series but are grouped into
 **purpose streams** — subfolders by intent:
 
+- `patches/upstreamable-<slug>/` — an **upstreamable unit = one PR** (2026-10-27).
+  Each folder is one submission-ready unit (own reviewer-facing commits, no
+  entanglement with personal changes), possibly many bite-sized patches. Live
+  units: `upstreamable-standard-c` (SM64 46, OoT 36 — codegen-identical
+  assembly-ism rewrites, listed FIRST in each `ORDER` so the personal streams sit
+  on it); `upstreamable-rename-decomp` (OoT, the 490-patch decomp rename, re-cut
+  on top of standard-c, `DEPENDS upstreamable-standard-c`); `upstreamable-ci-appimage`
+  (every port, the `docker/` AppImage build); `upstreamable-fixonfedora` (Banjo,
+  the 4-patch JeodC-reviewed PR); `upstreamable-audio-64bit` (MM);
+  `upstreamable-fedora-shaderc-deps` (SM64); `upstreamable-rom-cli-import`
+  (PaperMario, the 2-patch PaperBoat PR). **Invariant: an upstreamable unit depends
+  only on pristine upstream and other upstreamable units — never on
+  cheats/book/personal**; cross-unit prerequisites go in `patches/<slug>/DEPENDS`.
+  Apply/build one in isolation with `tools/apply_unit.sh <Project> <slug>`; the gate
+  is `tools/check_upstreamable_applies.sh`.
 - `patches/cheats/` — personal gameplay cheats/enhancements (SuperMario64).
-- `patches/standard-c/` — upstream-bound code-quality rewrites of the decomp's
-  assembly-isms, every patch proven codegen-identical (SuperMario64 46 patches,
-  OcarinaOfTime 36 patches, 2026-09-22; listed FIRST in each `ORDER` so the
-  personal streams sit on it — OoT's 489-patch rename stream was re-cut on top).
-- `patches/upstream-candidates/` — fixes shaped for upstream submission
-  (MM audio + doc fixes; Banjo's fixOnFedora PR; SM64's libshaderc doc fix).
-- `patches/personal/` — personal refactors not bound for upstream
-  (Ocarina's decomp rename).
 - `patches/book/` — comment-only `doc-region` markers for a game's book
   `literalinclude` (grows per chapter). Same subfolders under
   `patches-libultraship/` for the LUS lane.
@@ -96,8 +103,8 @@ checkout is at the pin, and refuses if an interrupted `git am` left
 stream:** rebuild just that stream's commits and `git format-patch --base=<pin>`
 them into their subfolder — the others are untouched.
 
-The live ORDER cases (OcarinaOfTime's standard-c-then-rename, SuperMario64's
-standard-c-first and cheats-before-book) and the `apply.sh` internals:
+The live ORDER cases (OcarinaOfTime's `upstreamable-standard-c`-then-`upstreamable-rename-decomp`,
+SuperMario64's `upstreamable-standard-c`-first and cheats-before-book) and the `apply.sh` internals:
 `tasks/reference/imps/patch-streams-design.md`.
 
 ### The series must still apply — gated across all projects
@@ -164,9 +171,9 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
 
 - `n64/OcarinaOfTime/` — Ship of Harkinian
   (https://github.com/HarbourMasters/Shipwright), pin `41ae6cd3` (develop HEAD,
-  bumped from ecd889c2/9.3.0 2026-10-20). 36-patch upstream-bound `standard-c`
-  stream (assembly-isms → standard C) under the 490-patch decomp-rename series
-  (re-cut onto the new base 2026-10-20: 2 conflicts / 8 blocks mechanical, 0 by
+  bumped from ecd889c2/9.3.0 2026-10-20). 36-patch upstream-bound
+  `upstreamable-standard-c` stream (assembly-isms → standard C) under the 490-patch
+  `upstreamable-rename-decomp` series (re-cut onto the new base 2026-10-20: 2 conflicts / 8 blocks mechanical, 0 by
   hand; +2 tail patches reconciling new-at-pin references). `check_renames all`
   + `check_patches_apply` green (526 patches from the bare pin); LUS
   `62e973ae`→`da6daf1a`. **asmdiff codegen re-gate + build + play-test pending**
@@ -179,8 +186,8 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   gitlink unchanged 7f9b86a5); build/run re-verify pending (maintainer's).
   Details: `n64/MajorasMask/CLAUDE.md`.
 - `n64/SuperMario64/` — Ghostship (https://github.com/HarbourMasters/Ghostship),
-  pin `40eef138` (bumped from 49c5312a 2026-10-08). 46-patch upstream-bound `standard-c` stream (assembly-isms →
-  standard C, all codegen-identical, 2026-09-22) + 3-patch cheat series +
+  pin `40eef138` (bumped from 49c5312a 2026-10-08). 46-patch upstream-bound `upstreamable-standard-c`
+  stream (assembly-isms → standard C, all codegen-identical, 2026-09-22) + 3-patch cheat series +
   libshaderc doc fix; fully verified; podman build; carries a Sphinx book
   (`SuperMario64/book/`). Details:
   `n64/SuperMario64/CLAUDE.md`.

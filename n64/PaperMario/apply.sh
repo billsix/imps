@@ -3,8 +3,8 @@
 # apply.sh — apply the imps patch STREAMS on top of the pristine pinned checkout.
 # Run after fetch.sh (or after build.sh's first-run fetch).
 #
-# Patches are grouped into purpose STREAMS (subfolders): upstream-candidates,
-# personal, etc. WITHIN a stream, order matters (numbered). ACROSS streams it
+# Patches are grouped into purpose STREAMS (subfolders): upstreamable-<slug>
+# units (one PR each), etc. WITHIN a stream, order matters (numbered). ACROSS streams it
 # usually does NOT — the streams touch disjoint files and therefore commute.
 # Where one stream MUST precede the others, patches/ORDER pins the sequence
 # (see n64/CLAUDE.md). See PaperMario/CLAUDE.md for what each patch does.

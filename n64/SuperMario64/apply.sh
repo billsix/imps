@@ -4,7 +4,7 @@
 # Run after fetch.sh (or after build.sh's first-run fetch).
 #
 # Patches are grouped into purpose STREAMS (subfolders): cheats, book (doc-region
-# markers), upstream-candidates, etc. WITHIN a stream, order matters (numbered).
+# markers), upstreamable-<slug> (one PR each), etc. WITHIN a stream, order matters (numbered).
 # ACROSS streams it usually does NOT — the streams touch disjoint files and
 # therefore commute. Where one stream MUST precede the others, patches/ORDER
 # pins the sequence (see n64/CLAUDE.md). See SuperMario64/CLAUDE.md.

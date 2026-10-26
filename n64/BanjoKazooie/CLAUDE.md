@@ -39,20 +39,26 @@ is the review round), so when it merges the series retires at the next pin bump.
 Export & verification history:
 `../../tasks/reference/imps/game-port-history.md`.
 
-- `0001-fix-build-dependencies-in-instructions-for-Fedora.patch` —
+- `0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch` —
+  **upstream-bound CI patch** (`../../tasks/n64-upstreamable-appimage-make-target.md`): adds
+  `docker/Dockerfile` + `docker/Makefile` (CI-mirror ubuntu-24.04 build env, inline apt list,
+  `make -C docker appimage`) and rewires the `build-linux` job of `main.yml` to call it; the
+  generate-port-o2r job, the build-name output and the artifact are unchanged. Apply-gate green;
+  nested `make -C docker appimage` build **verified** 2026-10-27 (13 MB x86-64 ELF AppImage).
+- `0002-fix-build-dependencies-in-instructions-for-Fedora.patch` —
   `docs/BUILDING.md`: adds SDL2_net to the Fedora gcc dnf line.
-- `0002-CMakeLists-stamp-bk.o2r-with-the-project-version-in-.patch` —
+- `0003-CMakeLists-stamp-bk.o2r-with-the-project-version-in-.patch` —
   passes `-u ${PROJECT_VERSION}` to `torch o2r` in `ExtractAssets` so
   `bk.o2r` records a portVersion and `VerifyArchiveVersion()` stops
   forcing a re-extract on every launch.
-- `0003-core1-graphics_thread-fix-post-import-freeze-from-OS.patch` —
+- `0004-core1-graphics_thread-fix-post-import-freeze-from-OS.patch` —
   **the freeze fix**: thread5's event-vs-task discriminator read
   `msg.ptr`, but on 64-bit hosts `OS_MESG_32()` leaves the OSMesg union's
   high bytes uninitialized, so SP events looked like task pointers and
   were dropped, hanging the game right after ROM import. Reads
   `msg.data32` instead. Investigation log:
   [`../../tasks/reference/banjo/freeze-after-rom-import.md`](../../tasks/reference/banjo/freeze-after-rom-import.md).
-- `0004-shortened-comments-per-request-from-JeodC.patch` — collapses the
+- `0005-shortened-comments-per-request-from-JeodC.patch` — collapses the
   two long explanatory comments per upstream review.
 
 ## Version notes

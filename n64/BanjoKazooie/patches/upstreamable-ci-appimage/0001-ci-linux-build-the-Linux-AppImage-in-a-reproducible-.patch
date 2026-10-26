@@ -1,0 +1,275 @@
+From 30ed6969273a5825bc2dc91cfa0053b42b23d12a Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 26 Oct 2026 12:09:39 +0000
+Subject: [PATCH] ci(linux): build the Linux AppImage in a reproducible
+ container
+
+Add docker/Dockerfile and docker/Makefile defining the Linux build
+environment (the build-linux apt packages plus SDL2/tinyxml2/libzip built from
+source, frozen into image layers) and rewire the build-linux job to produce
+its AppImage with `make -C docker appimage`.
+
+The container mirrors the job's environment exactly; the only intended change
+is freezing the floating `ubuntu-latest` runner and the from-source library
+steps into image layers, so the build is reproducible and a developer can run
+the identical build locally. The generate-port-o2r job, the build-name output,
+and the uploaded artifact are unchanged: the job still downloads lighthouse.o2r
+into build-cmake, where the build bundles it.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+---
+ .github/workflows/main.yml | 71 ++++----------------------------
+ docker/Dockerfile          | 62 ++++++++++++++++++++++++++++
+ docker/Makefile            | 83 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 152 insertions(+), 64 deletions(-)
+ create mode 100644 docker/Dockerfile
+ create mode 100644 docker/Makefile
+
+diff --git a/.github/workflows/main.yml b/.github/workflows/main.yml
+index db89f4d8..4b1c08b8 100644
+--- a/.github/workflows/main.yml
++++ b/.github/workflows/main.yml
+@@ -136,76 +136,19 @@ jobs:
+       - uses: actions/checkout@v7
+         with:
+           submodules: recursive
+-      - name: Update machine
+-        run: sudo apt update
+-      - name: Install dependencies
+-        run: sudo apt-get install gcc g++ git cmake ninja-build lsb-release libsdl2-dev libpng-dev libsdl2-net-dev libzip-dev zipcmp zipmerge ziptool nlohmann-json3-dev libtinyxml2-dev libspdlog-dev libboost-dev libopengl-dev libogg-dev libvorbis-dev
+-      - name: ccache
+-        uses: hendrikmuhs/ccache-action@v1.2.23
+-        with:
+-          key: linux-ccache-${{ github.ref }}-${{ github.sha }}
+-          restore-keys: |
+-            linux-ccache-${{ github.ref }}
+-            linux-ccache-
+-      - name: Cache build folders
+-        uses: actions/cache@v5
+-        with:
+-          key: linux-build-${{ github.ref }}-${{ github.sha }}
+-          restore-keys: |
+-            linux-build-${{ github.ref }}
+-            linux-build-
+-          path: |
+-            SDL2-2.30.3
+-            tinyxml2-10.0.0
+-            libzip-1.10.1
+-      - name: Install latest SDL
+-        run: |
+-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+-          if [ ! -d "SDL2-2.30.3" ]; then
+-            wget https://www.libsdl.org/release/SDL2-2.30.3.tar.gz
+-            tar -xzf SDL2-2.30.3.tar.gz
+-          fi
+-          cd SDL2-2.30.3
+-          ./configure --enable-hidapi-libusb
+-          make -j 10
+-          sudo make install
+-          sudo cp -av /usr/local/lib/libSDL* /lib/x86_64-linux-gnu/
+-      - name: Install latest tinyxml2
+-        run: |
+-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+-          wget https://github.com/leethomason/tinyxml2/archive/refs/tags/10.0.0.tar.gz
+-          tar -xzf 10.0.0.tar.gz
+-          cd tinyxml2-10.0.0
+-          mkdir -p build
+-          cd build
+-          cmake ..
+-          make
+-          sudo make install
+-      - name: Install libzip without crypto
+-        run: |
+-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+-          if [ ! -d "libzip-1.10.1" ]; then
+-            wget https://github.com/nih-at/libzip/releases/download/v1.10.1/libzip-1.10.1.tar.gz
+-            tar -xzf libzip-1.10.1.tar.gz
+-          fi
+-          cd libzip-1.10.1
+-          mkdir -p build
+-          cd build
+-          cmake .. -DENABLE_COMMONCRYPTO=OFF -DENABLE_GNUTLS=OFF -DENABLE_MBEDTLS=OFF -DENABLE_OPENSSL=OFF
+-          make
+-          sudo make install
+-          sudo cp -av /usr/local/lib/libzip* /lib/x86_64-linux-gnu/
+       - name: Download lighthouse.o2r
+         uses: actions/download-artifact@v8
+         with:
+           name: lighthouse.o2r
+           path: ./build-cmake
+-      - name: Build
++      - name: Build AppImage (containerized)
+         run: |
+-          cmake -H. -Bbuild-cmake -GNinja -DCMAKE_BUILD_TYPE=Release
+-          cmake --build build-cmake --config Release -j3
+-          (cd build-cmake && cpack -G External)
+-          mv build-cmake/*.appimage lighthouse.appimage
++          # Build the AppImage in the reproducible CI container (docker/Dockerfile),
++          # which bakes in the apt packages and the from-source SDL/tinyxml2/libzip
++          # the removed inline steps installed. The lighthouse.o2r downloaded above
++          # (into build-cmake) is bundled into the AppImage.
++          make -C docker appimage
++          mv out/lighthouse.appimage lighthouse.appimage
+       - name: Read build name
+         id: build-name
+         run: echo "name=$(sed -n 's/^PROJECT_BUILD_NAME:STRING=//p' build-cmake/CMakeCache.txt)" >> "$GITHUB_OUTPUT"
+diff --git a/docker/Dockerfile b/docker/Dockerfile
+new file mode 100644
+index 00000000..378f6497
+--- /dev/null
++++ b/docker/Dockerfile
+@@ -0,0 +1,62 @@
++# Reproducible Linux build environment for Lighthouse's CI AppImage.
++#
++# Mirrors the `build-linux` job of .github/workflows/main.yml: the same apt
++# package list (inlined — Lighthouse has no apt-deps.txt), and SDL2 / tinyxml2 /
++# libzip built from source at the same versions and flags the job uses. The one
++# deliberate difference from CI is the point of this image: the floating
++# `ubuntu-latest` runner and those from-source library steps are frozen into
++# image layers, so the build is reproducible and a developer can run the
++# identical build locally.
++FROM ubuntu:24.04
++
++ENV DEBIAN_FRONTEND=noninteractive \
++    LANG=C.UTF-8
++
++# The CI job's "Install dependencies" apt list, plus the packages a bare
++# ubuntu:24.04 lacks that a GitHub runner pre-provides (toolchain, download
++# utilities, AppImage packaging).
++RUN apt-get update && apt-get install -y --no-install-recommends \
++        gcc g++ git cmake ninja-build lsb-release libsdl2-dev libpng-dev \
++        libsdl2-net-dev libzip-dev zipcmp zipmerge ziptool \
++        nlohmann-json3-dev libtinyxml2-dev libspdlog-dev libboost-dev \
++        libopengl-dev libogg-dev libvorbis-dev \
++        ca-certificates wget curl file patchelf desktop-file-utils \
++        build-essential pkg-config python3 \
++ && rm -rf /var/lib/apt/lists/*
++
++# SDL 2.30.3 from source (CI step "Install latest SDL").
++RUN mkdir -p /deps && cd /deps \
++ && wget -q https://www.libsdl.org/release/SDL2-2.30.3.tar.gz \
++ && tar -xzf SDL2-2.30.3.tar.gz \
++ && cd SDL2-2.30.3 \
++ && ./configure --enable-hidapi-libusb \
++ && make -j"$(nproc)" \
++ && make install \
++ && cp -av /usr/local/lib/libSDL* /lib/x86_64-linux-gnu/ \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++# tinyxml2 10.0.0 from source (CI leaves the apt one installed and shadows it).
++RUN mkdir -p /deps && cd /deps \
++ && wget -q https://github.com/leethomason/tinyxml2/archive/refs/tags/10.0.0.tar.gz \
++ && tar -xzf 10.0.0.tar.gz \
++ && cmake -S tinyxml2-10.0.0 -B tinyxml2-10.0.0/build -DCMAKE_BUILD_TYPE=Release \
++ && cmake --build tinyxml2-10.0.0/build -j"$(nproc)" \
++ && cmake --install tinyxml2-10.0.0/build \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++# libzip 1.10.1 without crypto backends (CI step "Install libzip without crypto").
++RUN mkdir -p /deps && cd /deps \
++ && wget -q https://github.com/nih-at/libzip/releases/download/v1.10.1/libzip-1.10.1.tar.gz \
++ && tar -xzf libzip-1.10.1.tar.gz \
++ && cmake -S libzip-1.10.1 -B libzip-1.10.1/build -DCMAKE_BUILD_TYPE=Release \
++        -DENABLE_COMMONCRYPTO=OFF -DENABLE_GNUTLS=OFF \
++        -DENABLE_MBEDTLS=OFF -DENABLE_OPENSSL=OFF \
++ && cmake --build libzip-1.10.1/build -j"$(nproc)" \
++ && cmake --install libzip-1.10.1/build \
++ && cp -av /usr/local/lib/libzip* /lib/x86_64-linux-gnu/ \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++WORKDIR /src
+diff --git a/docker/Makefile b/docker/Makefile
+new file mode 100644
+index 00000000..350222f7
+--- /dev/null
++++ b/docker/Makefile
+@@ -0,0 +1,83 @@
++SHELL := /bin/bash
++
++# Containerized, reproducible Linux AppImage build for Lighthouse.
++#
++# `make appimage` builds the repository (as checked out) inside the image
++# defined by docker/Dockerfile and emits out/lighthouse.appimage — the same
++# artifact the Linux CI job produces, from one path CI and developers share.
++# The build CONTEXT is the repository root (the parent of this dir), so the
++# container sees the whole source tree.
++
++# Repo root = parent of this docker/ directory, regardless of the caller's cwd.
++ROOT   := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
++
++# podman on developer machines, docker on CI runners — pick whichever is on PATH.
++CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
++
++IMAGE  := lighthouse-ci-builder:latest
++OUT    := $(ROOT)/out
++NPROC  := $(shell nproc)
++
++# The port asset archive. The CI `generate-port-o2r` job builds lighthouse.o2r
++# and the Linux job downloads it to build-cmake/ before calling `make appimage`;
++# the build bundles it into the AppImage. (Generating it inside the container is
++# a planned follow-up; for now this target consumes the supplied archive.)
++O2R    ?= build-cmake/lighthouse.o2r
++
++# Extra flags for container `run` (not `build`): --cgroups=disabled lets the
++# build run inside an unprivileged nested container. Empty on a normal host/CI.
++PODMAN_RUN_FLAGS ?= $(if $(filter 1,$(NESTED_PODMAN)),--cgroups=disabled)
++
++RUN = $(CONTAINER_CMD) run --rm $(PODMAN_RUN_FLAGS) \
++        -v $(ROOT):/src:z -v $(OUT):/out:z -e HOME=/tmp $(IMAGE)
++
++.PHONY: help image build appimage run shell clean
++
++help:
++	@echo "Targets:"
++	@echo "  make image     - build the Linux build-environment image"
++	@echo "  make build     - compile Lighthouse inside the container"
++	@echo "  make appimage  - produce out/lighthouse.appimage (needs a port o2r; see O2R)"
++	@echo "  make run       - run out/lighthouse.appimage"
++	@echo "  make shell     - interactive shell in the build container"
++	@echo "  make clean     - remove the container build dir and out/"
++
++image:
++	$(CONTAINER_CMD) build -t $(IMAGE) -f $(ROOT)/docker/Dockerfile $(ROOT)
++
++$(OUT):
++	mkdir -p $(OUT)
++
++build: image | $(OUT)
++	$(RUN) bash -c '\
++		set -euxo pipefail; \
++		cmake -S /src -B /src/build-cmake -GNinja -DCMAKE_BUILD_TYPE=Release; \
++		cmake --build /src/build-cmake --config Release -j$(NPROC); \
++	'
++
++appimage: build
++	@test -f $(ROOT)/$(O2R) || { \
++	  echo "ERROR: port asset archive '$(O2R)' not found under the repo root." >&2; \
++	  echo "       CI's generate-port-o2r job supplies it; pass O2R=<path> otherwise." >&2; \
++	  exit 1; }
++	$(RUN) bash -c '\
++		set -euxo pipefail; \
++		cd /src/build-cmake && cpack -G External; \
++		shopt -s nullglob; \
++		artifacts=(/src/build-cmake/*.appimage /src/_packages/*.appimage); \
++		if [ $${#artifacts[@]} -eq 0 ]; then echo "ERROR: no .appimage produced" >&2; exit 1; fi; \
++		cp "$${artifacts[0]}" /out/lighthouse.appimage; \
++		chmod +x /out/lighthouse.appimage; \
++	'
++	@echo "==> AppImage: $(OUT)/lighthouse.appimage"
++
++run:
++	@test -x $(OUT)/lighthouse.appimage || { echo "no AppImage at $(OUT)/lighthouse.appimage -- run 'make appimage' first" >&2; exit 1; }
++	$(OUT)/lighthouse.appimage $(ARGS)
++
++shell: image | $(OUT)
++	$(CONTAINER_CMD) run --rm -it $(PODMAN_RUN_FLAGS) \
++	    -v $(ROOT):/src:z -v $(OUT):/out:z -e HOME=/tmp $(IMAGE) bash
++
++clean:
++	rm -rf $(ROOT)/build-cmake $(ROOT)/_packages $(OUT)
+-- 
+2.56.0
+

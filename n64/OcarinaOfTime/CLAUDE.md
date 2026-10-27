@@ -99,7 +99,7 @@ symbols that no longer exist. Stream folders stay separate regardless (keeps eac
   `../../tasks/reference/imps/game-port-history.md`.
 
 - `patches/upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch`
-  — **upstream-bound CI patch** (`../../tasks/n64-upstreamable-appimage-make-target.md`), its own
+  — **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`), its own
   `upstreamable-ci-appimage` unit (unlisted in `ORDER`, so it applies last; disjoint from
   `upstreamable-standard-c`/`upstreamable-rename-decomp` — only `docker/`,
   `.github/workflows/generate-builds.yml`, and a `!docker/Makefile`

@@ -27,7 +27,7 @@ the libultraship gitlink is unchanged (`7f9b86a5`). BUILD + play-test pending.
 ## Patches
 
 - `patches/upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch`
-  — **upstream-bound CI patch** (`../../tasks/n64-upstreamable-appimage-make-target.md`): adds
+  — **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`): adds
   `docker/Dockerfile` + `docker/Makefile` (CI-mirror ubuntu-22.04/gcc-12 build env, `make -C docker
   appimage`) and rewires the `build-linux` job to call it; the generate-2ship-otr job + artifact
   unchanged. Apply-gate green; nested `make -C docker appimage` build **verified**

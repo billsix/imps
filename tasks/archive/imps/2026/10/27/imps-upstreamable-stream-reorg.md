@@ -30,7 +30,7 @@ many proven patches); this generalized that shape to every upstream-bound unit.
 
 Related: master `CLAUDE.md` ("Patch philosophy"), `n64/CLAUDE.md` (the stream contract + `ORDER`),
 `tasks/reference/imps/patch-streams-design.md` (the durable "why"), and
-`tasks/n64-upstreamable-appimage-make-target.md` (the CI-AppImage work whose patch became each port's
+`tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md` (the CI-AppImage work whose patch became each port's
 `upstreamable-ci-appimage` unit).
 
 ## Decisions (maintainer, William Emerison Six <billsix@gmail.com>, 2026-10-27)
@@ -79,7 +79,7 @@ Final stream layout — 12 upstreamable units across the five ports, with `cheat
   `ORDER` discussion, projects index), all five per-project `CLAUDE.md` patch lists, all five `apply.sh`
   header comments, the root `README.md` (new "Upstreamable units" section + isolate recipe) and
   PaperMario `README.md`, `tasks/reference/imps/patch-streams-design.md` (durable rationale), and
-  `tasks/n64-upstreamable-appimage-make-target.md` (repointed to `upstreamable-ci-appimage`).
+  `tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md` (repointed to `upstreamable-ci-appimage`).
 
 ## Proofs
 
@@ -98,5 +98,5 @@ Final stream layout — 12 upstreamable units across the five ports, with `cheat
 - **Tier-2 doc sweep** — split out to `tasks/imps-tier2-stream-rename-doc-sweep.md` (proposed): historical
   mario64/ocarina task docs and several reference docs still name streams `standard-c`/`personal`/
   `upstream-candidates`. Non-blocking; a separate pass.
-- **Archive this task** after the maintainer's work commit (its own commit, per the three-commit
-  lifecycle), harvesting nothing further (the durable rationale is already in `patch-streams-design.md`).
+- Archived to `tasks/archive/imps/2026/10/27/` on 2026-10-27 at the maintainer's request; the durable
+  rationale lives in `tasks/reference/imps/patch-streams-design.md`.

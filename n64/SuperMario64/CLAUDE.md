@@ -73,7 +73,7 @@ units are unlisted (docker/ + docs only, disjoint) and apply last.
   (`gEnhancements.DisableSkybox`): a listener cancelling upstream's
   `SkyboxRender` event (already wired into `level_geo.c`) plus the menu widget.
 - `patches/upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch`
-  — **upstream-bound CI patch** (`../../tasks/n64-upstreamable-appimage-make-target.md`): adds
+  — **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`): adds
   `docker/Dockerfile` + `docker/Makefile` (CI-mirror ubuntu-24.04 build env with the Vulkan/shaderc
   set + shaderc_shared symlink, `make -C docker appimage`) and rewires the `build-linux` job of
   `main.yml` to call it; generate-port-o2r job + artifact unchanged. Apply-gate green, and the nested

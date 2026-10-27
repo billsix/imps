@@ -3,7 +3,7 @@
 **Status:** done 2026-10-27 — all five ports carry the `upstreamable-ci-appimage` patch and all five
 AppImages are build-verified (Results table). Go-ahead 2026-10-26 (William Emerison Six
 <billsix@gmail.com>: "go ahead with your recommendations"). The streams were later reorganized under the
-`upstreamable-<slug>` convention (`tasks/imps-upstreamable-stream-reorg.md`).
+`upstreamable-<slug>` convention (`tasks/archive/imps/2026/10/27/imps-upstreamable-stream-reorg.md`).
 **Priority:** 5 **Difficulty:** 6
 **Created:** 2026-10-24 (William Emerison Six <billsix@gmail.com>). Requested: "for all of the n64
 projects, make a patch that is intended to be upstreamed that looks at the CICD for making the linux
@@ -59,7 +59,7 @@ container build at all — first gets the imps-side Dockerfile/Makefile it's mis
   patches/upstreamable-ci-appimage/`, stage in imps, gate with `tools/check_patches_apply.sh <Game>` (and
   the isolation gate `tools/check_upstreamable_applies.sh <Game> upstreamable-ci-appimage`), and note it
   in the per-project `CLAUDE.md` patch list. (The streams were reorganized under the `upstreamable-<slug>`
-  convention 2026-10-27 — `tasks/imps-upstreamable-stream-reorg.md`.)
+  convention 2026-10-27 — `tasks/archive/imps/2026/10/27/imps-upstreamable-stream-reorg.md`.)
 - **The imps-side container template (the "normal contract" to mirror in the patch):** the MM reference
   `Makefile` exposes `help image image-export image-import build appimage run shell clean distclean`;
   `image` builds with context = the checkout; `build` runs `cmake -S /src -B /src/build-cmake -GNinja
@@ -148,7 +148,7 @@ is green for all five.
 
 The CI patch is its own **`upstreamable-ci-appimage` unit** in every port (the streams were reorganized
 under the one-PR-per-`upstreamable-<slug>`-stream convention 2026-10-27,
-`tasks/imps-upstreamable-stream-reorg.md`; it had briefly been `upstream-candidates/0001` after a
+`tasks/archive/imps/2026/10/27/imps-upstreamable-stream-reorg.md`; it had briefly been `upstream-candidates/0001` after a
 2026-10-26 renumber). It is `0001-` and the sole patch in that unit, disjoint (only `docker/` + the workflow)
 so the applied tree is unchanged and `check_patches_apply` stayed green for all five.
 
@@ -179,10 +179,10 @@ The per-port patches were written from the SuperMario64 template, and at the mai
 (William Emerison Six <billsix@gmail.com>, 2026-10-26: "just go ahead and do all of them, note that I
 haven't confirmed") were completed BEFORE their builds ran. The four remaining nested
 `make -C docker appimage` builds (MM, Banjo, OoT, PaperMario) were then run from scratch, sequentially,
-by `tasks/adhoc/n64-appimage-verify/verify.sh` — **all four produced valid x86-64 ELF AppImages**
-(`VERIFY_OK`), so the shared template carries no replicated bug. The full run log is
-`tasks/adhoc/n64-appimage-verify/run.log` (transient, not committed). Per the derived-artifact-drift
-rule, re-verify at every pin bump.
+by a one-shot harness — **all four produced valid x86-64 ELF AppImages** (`VERIFY_OK`), so the shared
+template carries no replicated bug. That harness was **promoted to `tools/verify_appimage_builds.sh`**
+(generalized to all five ports, logs to `/tmp/verify-appimage-<Port>.log`); re-run it at every pin bump
+(the derived-artifact-drift rule).
 
 Notes from the run:
 - **MM / Banjo** are accept-only: the harness injected the port-o2r (ROM-free port assets) from each

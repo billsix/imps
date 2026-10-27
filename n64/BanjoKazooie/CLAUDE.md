@@ -40,7 +40,7 @@ Export & verification history:
 `../../tasks/reference/imps/game-port-history.md`.
 
 - `0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch` —
-  **upstream-bound CI patch** (`../../tasks/n64-upstreamable-appimage-make-target.md`): adds
+  **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`): adds
   `docker/Dockerfile` + `docker/Makefile` (CI-mirror ubuntu-24.04 build env, inline apt list,
   `make -C docker appimage`) and rewires the `build-linux` job of `main.yml` to call it; the
   generate-port-o2r job, the build-name output and the artifact are unchanged. Apply-gate green;

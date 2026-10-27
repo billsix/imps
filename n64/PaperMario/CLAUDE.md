@@ -62,7 +62,7 @@ CI build) and `patches/upstreamable-rom-cli-import/` (the 2-patch PaperBoat PR,
 touching only `src/port/Engine.cpp` and `src/port/extractor/GameExtractor.cpp`):
 
 - `upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch` —
-  **upstream-bound CI patch** (`../../tasks/n64-upstreamable-appimage-make-target.md`), and the
+  **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`), and the
   **step-0 work**: PaperBoat had no container build, so one was created from scratch — `docker/Dockerfile`
   + `docker/Makefile` (CI-mirror ubuntu-24.04/gcc-14 env with the Vulkan/shaderc set + shaderc_shared
   symlink, `make -C docker appimage`) — and `build.yml`'s `build-linux` job rewired to call it

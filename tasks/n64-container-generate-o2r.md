@@ -1,6 +1,6 @@
 # Follow-up: have the upstream `make appimage` generate the port o2r itself (not accept a CI-supplied one)
 
-**Status:** proposed — needs go-ahead (follow-up to `tasks/n64-upstreamable-appimage-make-target.md`)
+**Status:** proposed — needs go-ahead (follow-up to `tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`)
 **Priority:** 7 **Difficulty:** 5
 **Created:** 2026-10-26 (William Emerison Six <billsix@gmail.com>, decision during the appimage-make-target
 work: "accept the CI-supplied [o2r] for now, make a follow up task to generate it itself").
@@ -8,7 +8,7 @@ work: "accept the CI-supplied [o2r] for now, make a follow up task to generate i
 ## BLUF
 
 The upstreamable `make appimage` target delivered by
-`tasks/n64-upstreamable-appimage-make-target.md` **accepts** each port's asset archive (`ghostship.o2r`,
+`tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md` **accepts** each port's asset archive (`ghostship.o2r`,
 `soh.otr`/`.o2r`, …) as an input — for ports whose CI builds that archive in a **separate** job and
 hands it to the Linux build job (SuperMario64's `generate-port-o2r` is the clear case). That keeps the
 first patch a minimal, CI-faithful refactor. This follow-up makes `make appimage` **self-contained**:
@@ -37,7 +37,7 @@ download step, or keep the job and let it call `make`), still emitting an identi
   the task is really about SuperMario64 / MajorasMask / BanjoKazooie (the ports whose build verification
   needed the port-o2r injected), and PaperMario already self-generates too. Start by diffing what OoT's
   build does (the `GenerateSohOtr`/equivalent target wired as a build dependency) against the others.
-- **Depends on:** `tasks/n64-upstreamable-appimage-make-target.md` landing first (this edits the
+- **Depends on:** `tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md` landing first (this edits the
   Makefile/CI it adds).
 
 ## Open questions

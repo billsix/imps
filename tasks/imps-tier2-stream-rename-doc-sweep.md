@@ -6,7 +6,7 @@
 
 ## BLUF
 
-The 2026-10-27 stream reorg (`tasks/imps-upstreamable-stream-reorg.md`) renamed the patch streams
+The 2026-10-27 stream reorg (`tasks/archive/imps/2026/10/27/imps-upstreamable-stream-reorg.md`) renamed the patch streams
 (`standard-c` → `upstreamable-standard-c`, `personal` → `upstreamable-rename-decomp`, and
 `upstream-candidates/` split into one `upstreamable-<slug>/` per PR). The convention + operational docs
 were updated in that change; this task is the **deferred Tier-2 pass** over the remaining historical task

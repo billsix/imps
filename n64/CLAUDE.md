@@ -151,6 +151,9 @@ derived artifact against its source** (part of the pin-bump operation in the
 master `CLAUDE.md` agent contract). The full artifact↔source drift table:
 `tasks/reference/imps/derived-artifact-drift.md`.
 
+**Verify the AppImage builds** with `tools/verify_appimage_builds.sh` (nested, from-scratch
+`make -C docker appimage` for all five ports → a valid ELF AppImage each; re-run at every pin bump).
+
 ## libultraship — the shared engine
 
 `libultraship` is the shared engine under all four N64 ports

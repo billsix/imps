@@ -31,6 +31,22 @@ Two goals, in order:
   patch carries only what must change upstream's own files. The full
   doc-structure contract is in `CLAUDE.md`.
 
+## Upstreamable units — one PR per stream
+
+Work bound for upstream is carried as `patches/upstreamable-<slug>/` streams — one
+PR's worth each (possibly many bite-sized, reviewer-facing patches). Each unit stays
+submittable **in isolation**: it depends only on pristine upstream and other
+upstreamable units, never on my personal patches (cross-unit prerequisites go in
+`patches/<slug>/DEPENDS`). To build or submit one on its own:
+
+```sh
+tools/apply_unit.sh <Project> <slug>                 # reset to the pin, apply just that unit
+make -C n64/<Project>/<checkout>/docker appimage      # build the PR as upstream would see it
+tools/check_upstreamable_applies.sh                  # gate: every unit applies in isolation
+```
+
+Full rationale and mechanics: `tasks/reference/imps/patch-streams-design.md`.
+
 ## License
 
 MIT (see `LICENSE`) for the original content of this repo — the scripts,
@@ -113,11 +129,12 @@ sudo ./installdependencies.sh   # Fedora: dnf install the build deps (once)
   version — git history is the time axis, and
   `tasks/reference/libultraship/crawl.md` is the protocol + log a
   future pin bump reopens.
+- Every port now carries an **`upstreamable-ci-appimage` unit** that replaces its
+  upstream CI Linux job with the `docker/` AppImage build — all five AppImages
+  build (verified 2026-10-27); submitting the PRs is the maintainer's call.
 - **Planned** (all tasked under `tasks/`): save-generator story-flag
-  fidelity (blocked on reference saves I provide); replacing each
-  project's upstream CI Linux job with the Dockerfile build (future,
-  upstream-submission oriented); mario64 cheat research stubs; the
-  long-running decomp-rename cleanups.
+  fidelity (blocked on reference saves I provide); mario64 cheat research
+  stubs; the long-running decomp-rename cleanups.
 
 ## OpenStax — moved to the sibling repo `impo`
 

@@ -2,7 +2,7 @@
 #
 # apply.sh — apply the imps patch STREAMS on top of the pristine pinned checkout.
 # Run after fetch.sh. Patches are grouped into purpose STREAMS (subfolders, e.g.
-# cheats/, upstream-candidates/, personal/, book/): WITHIN a stream order matters
+# upstreamable-<slug>/ (one PR each), cheats/, book/): WITHIN a stream order matters
 # (numbered); ACROSS streams it does not, because the streams touch disjoint files
 # and commute — no total ordering to maintain. See n64/CLAUDE.md.
 #

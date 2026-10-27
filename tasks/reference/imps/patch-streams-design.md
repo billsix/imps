@@ -19,9 +19,9 @@ both lanes in a later pass.)
 (Family contract, William Emerison Six <billsix@gmail.com>, 2026-09-06.)
 
 **Why streams exist at all: so a stream can be submitted upstream on its own.**
-`upstream-candidates/` is a set of patches shaped for a PR; `cheats/` and
-`personal/` never will be. Keeping them in separate folders means an upstream
-submission is "send this folder", not "untangle a series". **Grouping is
+An `upstreamable-<slug>/` stream is one PR's worth of patches shaped for a PR;
+`cheats/` and `book/` never will be. Keeping them in separate folders means an
+upstream submission is "send this unit", not "untangle a series". **Grouping is
 therefore not negotiable — do not merge streams to solve an ordering problem**
 (see `ORDER` below, which solves ordering without touching grouping).
 
@@ -42,14 +42,56 @@ The mechanism also exists for `patches-libultraship/ORDER`.
 mechanism briefly existed only in OcarinaOfTime while this section already
 described it family-wide).
 
+## Upstreamable units — one PR per `upstreamable-<slug>/` stream (2026-10-27)
+
+(William Emerison Six <billsix@gmail.com>, 2026-10-27.) The currency of
+upstreaming is a *unit of work* — one thing upstream accepts as a single PR — not a
+patch file. A unit can be many patches on purpose (the OcarinaOfTime decomp rename
+is ~488, sliced into bite-sized reviewable commits so a reviewer walks the history
+in chunks). Each such unit is carried as its own `patches/upstreamable-<slug>/`
+stream, one PR's worth per folder. This generalizes the original `standard-c`
+precedent and replaces the coarse `upstream-candidates/` grab-bag, which conflated
+several distinct PRs in one folder (e.g. MM's audio fix and its CI patch).
+
+**The invariant that makes a unit submittable:** an `upstreamable-<slug>` unit
+depends only on **pristine upstream** and **other upstreamable units** — never on a
+`personal`/`cheats`/`book` patch. A candidate that needs your cheats to apply is not
+upstreamable; that dependency is the bug. Upstreamable units form a DAG whose every
+node is upstream-bound; a unit with no prerequisites applies on the bare pin.
+
+**DEPENDS vs ORDER.** `ORDER` is the cross-stream apply order for the *full* series
+(your personal stack). A unit's upstreamable prerequisites are declared separately
+in `patches/<slug>/DEPENDS` (one upstreamable stream per line; absent = stands on the
+bare pin) — the *per-unit closure* for isolated apply. They must stay consistent: a
+DEPENDS edge implies an ORDER edge. Today only `upstreamable-rename-decomp/DEPENDS`
+has an entry (`upstreamable-standard-c`).
+
+**The isolated build IS the real upstream test.** `tools/apply_unit.sh <Project>
+<slug>` resets the checkout to the pin and applies only the unit's DEPENDS closure
+(prerequisites first, then the slug), leaving branch `imps-<slug>` to build
+(`make -C <checkout>/docker appimage`) and cut a PR from. That build answers "will
+this PR build on upstream by itself"; the full-series build (`apply.sh` /
+`check_patches_apply.sh`) answers the different question "does my whole stack build".
+The gate `tools/check_upstreamable_applies.sh` proves every upstreamable unit applies
+in isolation AND enforces the invariant (each unit's DEPENDS closure contains only
+`upstreamable-*` streams); `--build` also runs the container AppImage build. Both are
+host-side (git only) unless `--build`.
+
 ## Two live cases
+
+> **Naming note (2026-10-27):** the streams below were renamed when every
+> upstream-bound unit took the `upstreamable-` prefix — `standard-c` →
+> `upstreamable-standard-c`, `personal` → `upstreamable-rename-decomp`, and
+> `upstream-candidates/` split into one `upstreamable-<slug>/` per PR. The
+> historical narrative keeps the old names; the current ORDER-listing claims below
+> use the new ones.
 
 Two live cases (William Emerison Six <billsix@gmail.com>, 2026-09-07):
 
 - **OcarinaOfTime** — its `personal` stream renames ~206 decomp symbols and 18
   files, so **every later stream must be written against the renamed tree**; a
   `book/` stream added later would otherwise sort first and try to patch symbols
-  that no longer exist under those names. `patches/ORDER` lists `personal`.
+  that no longer exist under those names. `patches/ORDER` lists `upstreamable-rename-decomp`.
 - **SuperMario64** — `cheats` and `book` **both touch `src/game/mario.c`**, so
   that project's streams are not disjoint. They do not collide today (the hunks
   sit ~370 lines apart), but the book grows a doc-region per chapter and covers
@@ -64,7 +106,7 @@ Two live cases (William Emerison Six <billsix@gmail.com>, 2026-09-07):
   is meant to be merged upstream, it must be the BASE the personal streams sit
   on — then the personal patches apply to the code as upstream would see it
   after merging, and any conflict surfaces here, on our side, rather than in a
-  rebase we cannot do. `patches/ORDER` lists `standard-c`, `cheats`, `book`
+  rebase we cannot do. `patches/ORDER` lists `upstreamable-standard-c`, `cheats`, `book`
   (rationale inline in the file); `tasks/archive/mario64/2026/09/23/mario64-assembly-isms-to-standard-c.md`
   Phase C is the replay that keeps the personal streams applying on top.
 - **OcarinaOfTime, `standard-c` UNDER `personal`** (2026-09-22): the same
@@ -79,7 +121,7 @@ Two live cases (William Emerison Six <billsix@gmail.com>, 2026-09-07):
   needed it. Proof the re-cut changed nothing: `tools/check_renames.py`
   (series/traceable/declarations) on the new tree, and an assembly gate of every
   file that differs between the old applied tree and the new one. `ORDER` lists
-  `standard-c`, `personal`. Method: `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`.
+  `upstreamable-standard-c`, `upstreamable-rename-decomp`. Method: `tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`.
 
 ## apply.sh internals
 

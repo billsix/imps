@@ -34,14 +34,15 @@ cheat ships with upstream and needs no patch.
 
 ## Patches
 
-**Stream order is pinned — `standard-c`, then `cheats`, then `book`**
-(`patches/ORDER`, with the rationale inline). `standard-c` is upstream-bound and
-touches many decomp files, so it is the base the personal streams sit on (a
-conflict then surfaces here, not in a rebase we cannot do); `cheats` and `book`
-both touch `src/game/mario.c`, and the markers belong on the cheated tree.
-`upstream-candidates` is unlisted (docs only, disjoint) and applies last.
+**Stream order is pinned — `upstreamable-standard-c`, then `cheats`, then `book`**
+(`patches/ORDER`, with the rationale inline). `upstreamable-standard-c` is
+upstream-bound and touches many decomp files, so it is the base the personal
+streams sit on (a conflict then surfaces here, not in a rebase we cannot do);
+`cheats` and `book` both touch `src/game/mario.c`, and the markers belong on the
+cheated tree. The `upstreamable-ci-appimage` and `upstreamable-fedora-shaderc-deps`
+units are unlisted (docker/ + docs only, disjoint) and apply last.
 
-- `patches/standard-c/0001..0046` (46 patches, 2026-09-22; **upstream-bound**) —
+- `patches/upstreamable-standard-c/0001..0046` (46 patches, 2026-09-22; **upstream-bound**) —
   rewrites the decomp's assembly-isms into standard C, one class per patch, per
   directory: `register` removal, matching residue (lone `;`, `do{}while(0)`,
   one-line-to-match), `goto`→`break`/`return`, redundant `else if`, `== TRUE`/
@@ -71,7 +72,13 @@ both touch `src/game/mario.c`, and the markers belong on the cheated tree.
 - `patches/cheats/0003-disable-skybox.patch` — "Disable Skybox"
   (`gEnhancements.DisableSkybox`): a listener cancelling upstream's
   `SkyboxRender` event (already wired into `level_geo.c`) plus the menu widget.
-- `patches/upstream-candidates/0001-...libshaderc...` (upstream candidate) —
+- `patches/upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch`
+  — **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`): adds
+  `docker/Dockerfile` + `docker/Makefile` (CI-mirror ubuntu-24.04 build env with the Vulkan/shaderc
+  set + shaderc_shared symlink, `make -C docker appimage`) and rewires the `build-linux` job of
+  `main.yml` to call it; generate-port-o2r job + artifact unchanged. Apply-gate green, and the nested
+  `make -C docker appimage` build is **verified** (produces a valid AppImage).
+- `patches/upstreamable-fedora-shaderc-deps/0001-...libshaderc...` (upstream candidate) —
   adds `libshaderc-devel` to both Fedora dnf lines in `docs/building.md` (the
   LUS Vulkan backend includes `shaderc/shaderc.hpp`; found the hard way,
   2026-09-01). Doc fix to upstream's own file, hence a patch.
@@ -174,7 +181,7 @@ Migrated cheat-idea stubs from the old fork, all `mario64-`-prefixed under
 `../../tasks/`: decomp-rename-and-cleanup, endless-stairs-wallkick-unlock,
 infinite-wall-kicks, one-hit-ko, rubber-mario, time-scale-bullet-time. Plus
 (2026-09-22) `mario64-assembly-isms-to-standard-c` — the upstream-first
-`patches/standard-c/` stream that rewrites the decomp's assembly-isms into
+`patches/upstreamable-standard-c/` stream that rewrites the decomp's assembly-isms into
 standard C, proved with an assembly-diff gate; its patterns reference is
 `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
 The archived moon-gravity and ice-everywhere tasks were deliberately left

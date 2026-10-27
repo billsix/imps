@@ -1,7 +1,10 @@
 # SuperMario64: upstream a container-based CI (Dockerfile + workflow patch)
 
-**Status:** proposed — FUTURE, not for the 2026-09-01 batch (William Emerison Six <billsix@gmail.com>:
-"this work is not to happen yet, it is just to keep in mind")
+**Status:** SUPERSEDED 2026-10-26 by `tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`, which consolidates
+all five N64 ports' CI-rewire work (and adds PaperMario). This per-port task is archived; do the work there.
+
+(Historical status: proposed — FUTURE, not for the 2026-09-01 batch — William Emerison Six <billsix@gmail.com>:
+"this work is not to happen yet, it is just to keep in mind".)
 **Priority:** 6
 **Difficulty:** 5
 

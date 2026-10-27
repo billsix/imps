@@ -1,30 +1,34 @@
-# OcarinaOfTime: upstream a container-based CI (Dockerfile + workflow patch)
+# MajorasMask: upstream a container-based CI (Dockerfile + workflow patch)
 
-**Status:** proposed — FUTURE, not for the 2026-09-01 batch (William Emerison Six <billsix@gmail.com>:
-"this work is not to happen yet, it is just to keep in mind")
+**Status:** SUPERSEDED 2026-10-26 by `tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`, which consolidates
+all five N64 ports' CI-rewire work (and adds PaperMario). This per-port task is archived; do the work there.
+
+(Historical status: proposed — FUTURE, not for the 2026-09-01 batch — William Emerison Six <billsix@gmail.com>:
+"this work is not to happen yet, it is just to keep in mind".)
 **Priority:** 6
 **Difficulty:** 5
 
 ## BLUF
 
-Upstream a container-based Linux build for Shipwright as a standalone
-patch adding **three in-repo files**: a **Makefile** (the full imps
-target set — `image`/`build`/`appimage`/`image-export`/`image-import`/
-`shell`/`run`/`clean`, minus the fetch/apply machinery, since the source
-now ships in the same tree), the **Dockerfile** it drives, and the Linux
-CI job refactored to **just call `make appimage`**. Local dev and CI then
-run one identical path, and the build is as repeatable/offline as
-possible (deps frozen in image layers instead of apt-installed and built
-from source on every ephemeral runner). All three files are **standalone
-upstream-bound patches** in this project's series, per the
-patch-philosophy section of the master CLAUDE.md — upstreaming them IS
-the goal.
+Upstream a container-based Linux build for 2ship2harkinian as a
+standalone patch adding **three in-repo files**: a **Makefile** (the full
+imps target set — `image`/`build`/`appimage`/`image-export`/
+`image-import`/`shell`/`run`/`clean`, minus the fetch/apply machinery,
+since the source now ships in the same tree), the **Dockerfile** it
+drives, and the Linux CI job refactored to **just call `make appimage`**.
+Local dev and CI then run one identical path, and the build is as
+repeatable/offline as possible (deps frozen in image layers instead of
+apt-installed and built from source on every ephemeral runner). All three
+files are **standalone upstream-bound patches** in this project's series,
+per the patch-philosophy section of the master CLAUDE.md — upstreaming
+them IS the goal.
 
 ## Context
 
-- Upstream CI file: `Shipwright/.github/workflows/generate-builds.yml` — the Linux job runs on ubuntu-22.04. Scope is
+- Upstream CI file: `2ship2harkinian/.github/workflows/main.yml` — the build-linux job runs on ubuntu-latest. Scope is
   the **Linux job only**; Windows/macOS/Switch jobs stay untouched.
-- The imps Dockerfile this would upstream: **shipped and host-verified** (`n64/OcarinaOfTime/Dockerfile`); its build task is archived at `tasks/archive/ocarina/2026/09/01/ocarina-podman-appimage-build.md`.
+- The imps Dockerfile this would upstream: shipped and host-verified (`n64/MajorasMask/Dockerfile`, two variants). This task depends
+  on that Dockerfile existing and being verified; sequence after it.
 - **The patch adds three in-repo files:**
   - a **`Makefile`** — the full imps target set (`image`, `build`,
     `appimage`, `image-export`/`image-import`, `shell`, `run`, `clean`,
@@ -32,10 +36,15 @@ the goal.
     local ergonomics, **minus `fetch.sh`/`apply.sh`**: the build context
     is the repo root (`-f <dir>/Dockerfile .`), not an external checkout,
     and `make appimage` builds the working tree as-is. Derive it from the
-    imps `n64/OcarinaOfTime/Makefile` by removing the fetch auto-call and
+    imps `n64/MajorasMask/Makefile` by removing the fetch auto-call and
     re-rooting `$(SRC)`/context to `.`.
-  - the **`Dockerfile`** it drives — from the imps `n64/OcarinaOfTime/Dockerfile`
-    (now `COPY`-based and host-build-clean as of 2026-09-01).
+  - the **`Dockerfile`** it drives — the imps `n64/MajorasMask/Dockerfile`
+    **`VARIANT=ci` (ubuntu-22.04) variant ONLY** (William Emerison Six <billsix@gmail.com>, 2026-09-01:
+    "for right now I just want the one that matches the existing GitHub
+    CI/CD"). The `2604` variant is a local convenience, not for upstream;
+    the upstreamed Makefile drops the `VARIANT` switch and ships the
+    single `ci` Dockerfile. It is `COPY`-based and host-build-clean as of
+    2026-09-01.
   - the **CI workflow** — the existing Linux job reduced to
     `checkout → make appimage → upload-artifact`, the upload step kept
     identical so upstream sees a drop-in. This **settles the old
@@ -45,7 +54,7 @@ the goal.
   podman on his systems; docker is fine where they use it — GitHub
   runners ship Docker, so `make appimage` runs in CI unchanged). e.g.
   `CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)`.
-  imps's own `n64/OcarinaOfTime/Makefile` hardcodes `podman` — the upstreamed
+  imps's own `n64/MajorasMask/Makefile` hardcodes `podman` — the upstreamed
   one must not.
 - Design points still open at execution: where the image lives for CI
   (built in-workflow from the committed Dockerfile — simplest, fully
@@ -73,5 +82,6 @@ the goal.
 None block starting. **Settled 2026-09-01:** the CI workflow just calls
 `make appimage` (not a bare `container:` job); the Makefile carries the
 full imps target set minus fetch/apply; `CONTAINER_CMD` auto-detects
-podman→docker. Remaining choices are the execution-time design points in
-Context.
+podman→docker; upstream gets the **`VARIANT=ci` Dockerfile only** (the
+`2604` variant stays imps-local). Remaining choices are the execution-time
+design points in Context.

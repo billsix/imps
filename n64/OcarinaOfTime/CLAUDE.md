@@ -25,15 +25,17 @@ the whole delta.
 
 ## Patches
 
-**Stream order is pinned here — `standard-c`, then `personal`** (`patches/ORDER`,
-rationale inline; `apply.sh` honours it). `standard-c` is upstream-bound, so it is
-the base the renames sit on; the renames touch 3,781 symbols and 18 filenames, so
-**any stream added later must be written against the renamed tree** — without
-the pin a future `book/` stream would sort alphabetically ahead of `personal/`
-and try to patch symbols that no longer exist. Stream folders stay separate
-regardless (keeps `upstream-candidates/` submittable on its own; see `../CLAUDE.md`).
+**Stream order is pinned here — `upstreamable-standard-c`, then
+`upstreamable-rename-decomp`** (`patches/ORDER`, rationale inline; `apply.sh` honours
+it; the dependency is also recorded in `upstreamable-rename-decomp/DEPENDS`).
+`upstreamable-standard-c` is upstream-bound, so it is the base the renames sit on;
+the renames touch 3,781 symbols and 18 filenames, so **any stream added later must
+be written against the renamed tree** — without the pin a future `book/` stream
+would sort alphabetically ahead of `upstreamable-rename-decomp` and try to patch
+symbols that no longer exist. Stream folders stay separate regardless (keeps each
+`upstreamable-*` unit submittable on its own; see `../CLAUDE.md`).
 
-- `patches/standard-c/0001…0036-*.patch` (36 patches, 2026-09-22; **upstream-
+- `patches/upstreamable-standard-c/0001…0036-*.patch` (36 patches, 2026-09-22; **upstream-
   bound**) — rewrites the decomp's assembly-isms into standard C, one class per
   patch: `== true` on boolean-valued operands, the 72 empty `if (x) {}` matching
   artefacts, `goto`→`return`/`continue`, self-assignments / fake temps / dead
@@ -64,8 +66,8 @@ regardless (keeps `upstream-candidates/` submittable on its own; see `../CLAUDE.
   Catalogue + per-batch log: `../../tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`;
   patterns: `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
   Checkout branch `imps-standard-c`; at a pin bump replay AND re-run the gate.
-- `patches/personal/0001…0490-*.patch` — the decomp rename series, originally
-  **re-cut 2026-09-22 against the `standard-c` tree**, **re-cut 2026-10-07 onto the
+- `patches/upstreamable-rename-decomp/0001…0490-*.patch` — the decomp rename series, originally
+  **re-cut 2026-09-22 against the `upstreamable-standard-c` tree**, **re-cut 2026-10-07 onto the
   `9.3.0` pin's `standard-c` tip**, and **re-cut again 2026-10-20 onto develop HEAD
   `41ae6cd3`'s `standard-c` tip `2feabad0`** (`resolve_rename_conflicts.py` resolved
   the rename-conflict blocks mechanically — our side + that patch's renames + its
@@ -95,6 +97,17 @@ regardless (keeps `upstream-candidates/` submittable on its own; see `../CLAUDE.
   patches, provenance counts, the original fork port, container/on-host
   build-and-run verification, the illegible-save-text oddity):
   `../../tasks/reference/imps/game-port-history.md`.
+
+- `patches/upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch`
+  — **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`), its own
+  `upstreamable-ci-appimage` unit (unlisted in `ORDER`, so it applies last; disjoint from
+  `upstreamable-standard-c`/`upstreamable-rename-decomp` — only `docker/`,
+  `.github/workflows/generate-builds.yml`, and a `!docker/Makefile`
+  `.gitignore` line). Adds `docker/Dockerfile` + `docker/Makefile` (CI-mirror ubuntu-22.04/gcc-12 env,
+  arch-generic for the x86_64/aarch64 matrix, `make -C docker appimage`) and rewires the Linux job to
+  call it; generate-soh-otr job + artifacts unchanged. Apply-gate green (527 patches); nested
+  `make -C docker appimage` build **verified** 2026-10-27 (24 MB x86-64 ELF AppImage; the build
+  self-generated `build-cmake/soh/soh.o2r`, so no supplied o2r was needed).
 
 ## Version notes
 
@@ -144,7 +157,7 @@ details against the pinned checkout.
   decomp-rename task.
 - [`assembly-isms-in-soh.md`](../../tasks/reference/ocarina/assembly-isms-in-soh.md) —
   what SoH's decomp has that SM64's does not (matching blocks, `s32 pad;`,
-  `PARAMS_GET_*`, the angle macros), what the `standard-c` stream rewrote, the
+  `PARAMS_GET_*`, the angle macros), what the `upstreamable-standard-c` stream rewrote, the
   gate results that surprised, and what remains (naming, explained diffs, bugs).
   Tooling map: `../../tasks/reference/imps/standard-c-tooling.md`; how the rename
   stream was re-cut under it: `../../tasks/reference/imps/recutting-a-stream-under-a-new-base.md`.

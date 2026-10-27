@@ -1,0 +1,345 @@
+From 52ea534cdfce7258a0a4ef3d73ada3e1653b23c2 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Mon, 26 Oct 2026 12:17:14 +0000
+Subject: [PATCH] ci(linux): build the Linux AppImage in a reproducible
+ container
+
+Add docker/Dockerfile and docker/Makefile defining the Linux build
+environment (the linux-build-deps/apt.txt packages plus SDL2/SDL2_net/tinyxml2/
+libzip built from source, frozen into image layers) and rewire the Linux job of
+generate-builds.yml to produce its AppImage with `make -C docker appimage`.
+
+The container mirrors the job's ubuntu-22.04 / gcc-12 environment exactly,
+folding in the install-sdl2-net and install-tinyxml2 composite-action steps; it
+is arch-generic so both legs of the x86_64/aarch64 build matrix are preserved.
+The only intended change is freezing those from-source library steps into image
+layers, so the build is reproducible and a developer can run the identical build
+locally. The generate-soh-otr job and the uploaded artifacts are unchanged: each
+matrix leg still downloads soh.o2r into build-cmake/soh, where the build bundles
+it.
+
+The .gitignore gains `!docker/Makefile`: the repo's blanket CMake `Makefile`
+ignore would otherwise hide the new committed file.
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+---
+ .github/workflows/generate-builds.yml | 84 +++----------------------
+ .gitignore                            |  1 +
+ docker/Dockerfile                     | 91 +++++++++++++++++++++++++++
+ docker/Makefile                       | 86 +++++++++++++++++++++++++
+ 4 files changed, 187 insertions(+), 75 deletions(-)
+ create mode 100644 docker/Dockerfile
+ create mode 100644 docker/Makefile
+
+diff --git a/.github/workflows/generate-builds.yml b/.github/workflows/generate-builds.yml
+index d030e62b7..3c27ecfb1 100644
+--- a/.github/workflows/generate-builds.yml
++++ b/.github/workflows/generate-builds.yml
+@@ -102,92 +102,26 @@ jobs:
+       uses: actions/checkout@v7
+       with:
+         submodules: true
+-    - name: Install dependencies
+-      run: |
+-        sudo apt-get update
+-        sudo apt-get install -y $(cat linux-build-deps/apt.txt)
+-    - name: Configure ccache
+-      uses: hendrikmuhs/ccache-action@v1.2.23
+-      with:
+-        max-size: "2G"
+-        evict-old-files: job
+-        save: ${{ github.ref_name == github.event.repository.default_branch }}
+-        key: ${{ runner.os }}-${{ matrix.arch }}-ccache-${{ github.ref }}-${{ github.sha }}
+-        restore-keys: |
+-          ${{ runner.os }}-${{ matrix.arch }}-ccache-${{ github.ref }}
+-          ${{ runner.os }}-${{ matrix.arch }}-ccache
+-    - name: Restore Cached deps folder
+-      id: restore-cache-deps
+-      uses: actions/cache/restore@v5
+-      with:
+-        key: ${{ runner.os }}-${{ matrix.arch }}-deps-${{ github.ref }}-${{ github.sha }}
+-        restore-keys: |
+-          ${{ runner.os }}-${{ matrix.arch }}-deps-${{ github.ref }}-
+-          ${{ runner.os }}-${{ matrix.arch }}-deps-
+-        path: deps
+-    - name: Create deps folder
+-      run: mkdir -p deps
+-    - name: Add ccache to PATH
+-      run: |
+-        echo "/usr/lib/ccache" >> "$GITHUB_PATH"
+-        echo "/usr/local/opt/ccache/libexec" >> "$GITHUB_PATH"
+-    - name: Install latest SDL
+-      run: |
+-        if [ ! -d "deps/SDL2-2.30.3" ]; then
+-          wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.3/SDL2-2.30.3.tar.gz
+-          tar -xzf SDL2-2.30.3.tar.gz -C deps
+-        fi
+-        cd deps/SDL2-2.30.3
+-        ./configure --enable-hidapi-libusb
+-        make -j 10
+-        sudo make install
+-        sudo cp -av /usr/local/lib/libSDL* /lib/${{ matrix.arch }}-linux-gnu/
+-    - uses: ./.github/actions/install-sdl2-net
+-    - name: Copy SDL libs to multiarch dir
+-      run: sudo cp -av /usr/local/lib/libSDL* /lib/${{ matrix.arch }}-linux-gnu/
+-    - name: Remove distro tinyxml2
+-      run: sudo apt-get remove libtinyxml2-dev
+-    - uses: ./.github/actions/install-tinyxml2
+-    - name: Install libzip without crypto
+-      run: |
+-        sudo apt-get remove -y libzip-dev
+-        if [ ! -d "deps/libzip-1.10.1" ]; then
+-          wget https://github.com/nih-at/libzip/releases/download/v1.10.1/libzip-1.10.1.tar.gz
+-          tar -xzf libzip-1.10.1.tar.gz -C deps
+-        fi
+-        cd deps/libzip-1.10.1
+-        mkdir -p build
+-        cd build
+-        cmake .. -DENABLE_COMMONCRYPTO=OFF -DENABLE_GNUTLS=OFF -DENABLE_MBEDTLS=OFF -DENABLE_OPENSSL=OFF
+-        make
+-        sudo make install
+-        sudo cp -av /usr/local/lib/libzip* /lib/${{ matrix.arch }}-linux-gnu/
+     - name: Download soh.o2r
+       uses: actions/download-artifact@v8
+       with:
+         name: soh.o2r
+         path: build-cmake/soh
+-    - name: Build SoH
++    - name: Build AppImage (containerized)
+       run: |
+-        cmake --no-warn-unused-cli -H. -Bbuild-cmake -GNinja -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_REMOTE_CONTROL=1
+-        cmake --build build-cmake --config Release -j4
+-        (cd build-cmake && cpack -G External)
+-
+-        mv build-cmake/*.appimage soh.appimage
+-      env:
+-        CC: gcc-12
+-        CXX: g++-12
++        # Build the AppImage in the reproducible CI container (docker/Dockerfile),
++        # which bakes in linux-build-deps/apt.txt and the from-source
++        # SDL/SDL2_net/tinyxml2/libzip the removed inline steps (and the
++        # install-sdl2-net / install-tinyxml2 actions) installed. The image is
++        # arch-generic, so this runs on both matrix legs. The soh.o2r downloaded
++        # above (into build-cmake/soh) is bundled into the AppImage.
++        make -C docker appimage
++        mv out/soh.appimage soh.appimage
+     - name: Upload build
+       uses: actions/upload-artifact@v7
+       with:
+         name: soh-linux-${{ matrix.arch }}
+         path: soh.appimage
+-    - name: Save Cache deps folder
+-      if: ${{ github.ref_name == github.event.repository.default_branch }}
+-      uses: actions/cache/save@v5
+-      with:
+-        key: ${{ steps.restore-cache-deps.outputs.cache-primary-key }}
+-        path: deps
+ 
+   build-windows:
+     needs: generate-soh-otr
+diff --git a/.gitignore b/.gitignore
+index 987a859c1..1fd13ac17 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -444,6 +444,7 @@ CMakeFiles
+ CMakeScripts
+ Testing
+ Makefile
++!docker/Makefile
+ cmake_install.cmake
+ install_manifest.txt
+ compile_commands.json
+diff --git a/docker/Dockerfile b/docker/Dockerfile
+new file mode 100644
+index 000000000..7cf7d0399
+--- /dev/null
++++ b/docker/Dockerfile
+@@ -0,0 +1,91 @@
++# Reproducible Linux build environment for Ship of Harkinian's CI AppImage.
++#
++# Mirrors the Linux job of .github/workflows/generate-builds.yml: ubuntu-22.04
++# with gcc-12, the apt list from linux-build-deps/apt.txt, and SDL2 / SDL2_net /
++# tinyxml2 / libzip built from source at the same versions and flags the job
++# uses (its local install-sdl2-net / install-tinyxml2 composite actions). The
++# one deliberate difference from CI is the point of this image: those
++# from-source library steps and the runner image are frozen into layers, so the
++# build is reproducible and a developer can run the identical build locally.
++#
++# Arch-generic: `ubuntu:22.04` is a multi-arch manifest, so this builds natively
++# on both the x86_64 and the aarch64 runner of the CI matrix; the multiarch
++# library copies below use $(uname -m) rather than a hardcoded triplet.
++#
++# Build context is the repository root (see docker/Makefile), so the COPY reads
++# linux-build-deps/apt.txt — the SAME file CI installs from.
++FROM ubuntu:22.04
++
++ENV DEBIAN_FRONTEND=noninteractive \
++    LANG=C.UTF-8
++
++# The CI apt list (linux-build-deps/apt.txt) plus the packages a bare
++# ubuntu:22.04 lacks that a GitHub runner pre-provides: toolchain, download
++# utilities, python3 for the asset extractor, imagemagick (the cmake configure
++# runs `convert` on sohIcon.png and fails without it), and AppImage packaging.
++COPY linux-build-deps/apt.txt /tmp/apt.txt
++RUN apt-get update && apt-get install -y --no-install-recommends \
++        $(cat /tmp/apt.txt) \
++        ca-certificates wget curl gnupg git file patchelf desktop-file-utils \
++        build-essential gcc g++ pkg-config python3 imagemagick \
++ && rm -rf /var/lib/apt/lists/*
++
++# The project requires CMake >= 3.26; jammy ships 3.22 (the GitHub runner
++# pre-provides a newer cmake, so CI never hits this). Install Kitware's build.
++RUN wget -O /tmp/kitware-archive.sh https://apt.kitware.com/kitware-archive.sh \
++ && bash /tmp/kitware-archive.sh \
++ && apt-get install -y --no-install-recommends cmake \
++ && rm -rf /tmp/kitware-archive.sh /var/lib/apt/lists/*
++
++# SDL 2.30.3 from source (CI step "Install latest SDL").
++RUN mkdir -p /deps && cd /deps \
++ && wget -q https://github.com/libsdl-org/SDL/releases/download/release-2.30.3/SDL2-2.30.3.tar.gz \
++ && tar -xzf SDL2-2.30.3.tar.gz \
++ && cd SDL2-2.30.3 \
++ && ./configure --enable-hidapi-libusb \
++ && make -j"$(nproc)" \
++ && make install \
++ && cp -av /usr/local/lib/libSDL* /lib/"$(uname -m)"-linux-gnu/ \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++# SDL2_net 2.2.0 from source (CI's install-sdl2-net composite action).
++RUN mkdir -p /deps && cd /deps \
++ && curl -fsSL https://www.libsdl.org/projects/SDL_net/release/SDL2_net-2.2.0.tar.gz | tar xz \
++ && cd SDL2_net-2.2.0 \
++ && ./configure \
++ && make -j"$(nproc)" \
++ && make install \
++ && cp -av /usr/local/lib/libSDL* /lib/"$(uname -m)"-linux-gnu/ \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++# tinyxml2 10.0.0 from source, shadowing the apt one (CI removes it first).
++RUN apt-get update && apt-get remove -y libtinyxml2-dev \
++ && rm -rf /var/lib/apt/lists/* \
++ && mkdir -p /deps && cd /deps \
++ && wget -q https://github.com/leethomason/tinyxml2/archive/refs/tags/10.0.0.tar.gz \
++ && tar -xzf 10.0.0.tar.gz \
++ && cmake -S tinyxml2-10.0.0 -B tinyxml2-10.0.0/build -DCMAKE_BUILD_TYPE=Release \
++ && cmake --build tinyxml2-10.0.0/build -j"$(nproc)" \
++ && cmake --install tinyxml2-10.0.0/build \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++# libzip 1.10.1 without crypto backends, shadowing the apt one (CI step
++# "Install libzip without crypto" removes libzip-dev first).
++RUN apt-get update && apt-get remove -y libzip-dev \
++ && rm -rf /var/lib/apt/lists/* \
++ && mkdir -p /deps && cd /deps \
++ && wget -q https://github.com/nih-at/libzip/releases/download/v1.10.1/libzip-1.10.1.tar.gz \
++ && tar -xzf libzip-1.10.1.tar.gz \
++ && cmake -S libzip-1.10.1 -B libzip-1.10.1/build -DCMAKE_BUILD_TYPE=Release \
++        -DENABLE_COMMONCRYPTO=OFF -DENABLE_GNUTLS=OFF \
++        -DENABLE_MBEDTLS=OFF -DENABLE_OPENSSL=OFF \
++ && cmake --build libzip-1.10.1/build -j"$(nproc)" \
++ && cmake --install libzip-1.10.1/build \
++ && cp -av /usr/local/lib/libzip* /lib/"$(uname -m)"-linux-gnu/ \
++ && ldconfig \
++ && cd / && rm -rf /deps
++
++WORKDIR /src
+diff --git a/docker/Makefile b/docker/Makefile
+new file mode 100644
+index 000000000..ce3fd5a27
+--- /dev/null
++++ b/docker/Makefile
+@@ -0,0 +1,86 @@
++SHELL := /bin/bash
++
++# Containerized, reproducible Linux AppImage build for Ship of Harkinian.
++#
++# `make appimage` builds the repository (as checked out) inside the image
++# defined by docker/Dockerfile and emits out/soh.appimage — the same artifact
++# the Linux CI job produces, from one path CI and developers share. The image is
++# arch-generic, so the same target builds on both the x86_64 and the aarch64 CI
++# runner. The build CONTEXT is the repository root (the parent of this dir), so
++# the Dockerfile can read linux-build-deps/apt.txt and the container sees the
++# whole source tree.
++
++# Repo root = parent of this docker/ directory, regardless of the caller's cwd.
++ROOT   := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
++
++# podman on developer machines, docker on CI runners — pick whichever is on PATH.
++CONTAINER_CMD ?= $(shell command -v podman >/dev/null 2>&1 && echo podman || echo docker)
++
++IMAGE  := soh-ci-builder:latest
++OUT    := $(ROOT)/out
++NPROC  := $(shell nproc)
++
++# The port asset archive. The CI `generate-soh-otr` job builds soh.o2r and the
++# Linux job downloads it to build-cmake/soh before calling `make appimage`; the
++# build bundles it into the AppImage. (Generating it inside the container is a
++# planned follow-up; for now this target consumes the supplied archive.)
++O2R    ?= build-cmake/soh/soh.o2r
++
++# Extra flags for container `run` (not `build`): --cgroups=disabled lets the
++# build run inside an unprivileged nested container. Empty on a normal host/CI.
++PODMAN_RUN_FLAGS ?= $(if $(filter 1,$(NESTED_PODMAN)),--cgroups=disabled)
++
++RUN = $(CONTAINER_CMD) run --rm $(PODMAN_RUN_FLAGS) \
++        -v $(ROOT):/src:z -v $(OUT):/out:z -e HOME=/tmp $(IMAGE)
++
++.PHONY: help image build appimage run shell clean
++
++help:
++	@echo "Targets:"
++	@echo "  make image     - build the Linux build-environment image"
++	@echo "  make build     - compile SoH inside the container"
++	@echo "  make appimage  - produce out/soh.appimage (needs a port o2r; see O2R)"
++	@echo "  make run       - run out/soh.appimage"
++	@echo "  make shell     - interactive shell in the build container"
++	@echo "  make clean     - remove the container build dir and out/"
++
++image:
++	$(CONTAINER_CMD) build -t $(IMAGE) -f $(ROOT)/docker/Dockerfile $(ROOT)
++
++$(OUT):
++	mkdir -p $(OUT)
++
++build: image | $(OUT)
++	$(RUN) bash -c '\
++		set -euxo pipefail; \
++		cmake --no-warn-unused-cli -S /src -B /src/build-cmake -GNinja \
++		      -DCMAKE_BUILD_TYPE=Release -DBUILD_REMOTE_CONTROL=1; \
++		cmake --build /src/build-cmake --config Release -j$(NPROC); \
++	'
++
++appimage: build
++	@test -f $(ROOT)/$(O2R) || { \
++	  echo "ERROR: port asset archive '$(O2R)' not found under the repo root." >&2; \
++	  echo "       CI's generate-soh-otr job supplies it; pass O2R=<path> otherwise." >&2; \
++	  exit 1; }
++	$(RUN) bash -c '\
++		set -euxo pipefail; \
++		cd /src/build-cmake && cpack -G External; \
++		shopt -s nullglob; \
++		artifacts=(/src/build-cmake/*.appimage /src/_packages/*.appimage); \
++		if [ $${#artifacts[@]} -eq 0 ]; then echo "ERROR: no .appimage produced" >&2; exit 1; fi; \
++		cp "$${artifacts[0]}" /out/soh.appimage; \
++		chmod +x /out/soh.appimage; \
++	'
++	@echo "==> AppImage: $(OUT)/soh.appimage"
++
++run:
++	@test -x $(OUT)/soh.appimage || { echo "no AppImage at $(OUT)/soh.appimage -- run 'make appimage' first" >&2; exit 1; }
++	$(OUT)/soh.appimage $(ARGS)
++
++shell: image | $(OUT)
++	$(CONTAINER_CMD) run --rm -it $(PODMAN_RUN_FLAGS) \
++	    -v $(ROOT):/src:z -v $(OUT):/out:z -e HOME=/tmp $(IMAGE) bash
++
++clean:
++	rm -rf $(ROOT)/build-cmake $(ROOT)/_packages $(OUT)
+
+base-commit: 41ae6cd3b68c7cf1855bd865f3d00bd2013667da
+-- 
+2.56.0
+

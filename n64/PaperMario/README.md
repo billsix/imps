@@ -22,9 +22,10 @@ rm -rf PaperBoat        # add runDir to also wipe saves + the extracted pm64.o2r
 
 - Upstream: <https://github.com/HarbourMasters/PaperBoat>, pinned in
   `fetch.sh` (`PIN_SHA`) at the stable release tag `1.0.1`.
-- Patches: `patches/upstream-candidates/` (game tree) and
-  `patches-libultraship/upstream-candidates/` (the LUS submodule) — what each
-  does, and the verification record: `CLAUDE.md` → "Patches".
+- Patches (two upstreamable units, game-tree lane only):
+  `patches/upstreamable-ci-appimage/` (the `docker/` AppImage build) and
+  `patches/upstreamable-rom-cli-import/` (the ROM-import PR) — what each does, and
+  the verification record: `CLAUDE.md` → "Patches".
 - The game binary runs from the **build tree**
   (`PaperBoat/build/ninja-release/Paperboat`); the port asset archive
   `paperboat.o2r` and `assets/` are copied next to it at build time.

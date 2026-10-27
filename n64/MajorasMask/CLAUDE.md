@@ -26,7 +26,13 @@ the libultraship gitlink is unchanged (`7f9b86a5`). BUILD + play-test pending.
 
 ## Patches
 
-- `patches/upstream-candidates/0001-Fix-silent-SFX-and-several-64-bit-host-audio-crashes.patch` —
+- `patches/upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch`
+  — **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`): adds
+  `docker/Dockerfile` + `docker/Makefile` (CI-mirror ubuntu-22.04/gcc-12 build env, `make -C docker
+  appimage`) and rewires the `build-linux` job to call it; the generate-2ship-otr job + artifact
+  unchanged. Apply-gate green; nested `make -C docker appimage` build **verified**
+  2026-10-27 (16 MB x86-64 ELF AppImage).
+- `patches/upstreamable-audio-64bit/0001-Fix-silent-SFX-and-several-64-bit-host-audio-crashes.patch` —
   8 files in the audio stack + scheduler. Fixes, per its commit message:
   (a) removes a `(uintptr_t)parentLayer < 0x7FFFFFFF` port guard in
   `AudioPlayback_ProcessNotes` that silently skipped ALL note playback in

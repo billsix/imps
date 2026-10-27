@@ -57,16 +57,25 @@ produced the series: `../../tasks/reference/papermario/rom-import-investigation.
 
 ## Patches
 
-Game-tree lane, stream `patches/upstream-candidates/` (both shaped for a
-PaperBoat PR; they touch only `src/port/Engine.cpp` and
-`src/port/extractor/GameExtractor.cpp`):
+Game-tree lane, two upstreamable units — `patches/upstreamable-ci-appimage/` (the
+CI build) and `patches/upstreamable-rom-cli-import/` (the 2-patch PaperBoat PR,
+touching only `src/port/Engine.cpp` and `src/port/extractor/GameExtractor.cpp`):
 
-- `0001-extractor-honour-a-ROM-path-on-the-command-line-on-L.patch` —
+- `upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch` —
+  **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`), and the
+  **step-0 work**: PaperBoat had no container build, so one was created from scratch — `docker/Dockerfile`
+  + `docker/Makefile` (CI-mirror ubuntu-24.04/gcc-14 env with the Vulkan/shaderc set + shaderc_shared
+  symlink, `make -C docker appimage`) — and `build.yml`'s `build-linux` job rewired to call it
+  (release.yml reuses build.yml, so it inherits the change). Unlike the other ports there is no o2r job:
+  the build self-generates `paperboat.o2r` (GeneratePortO2R) and cpacks. Apply-gate green;
+  nested `make -C docker appimage` build **verified** 2026-10-27 (21 MB x86-64 static-pie ELF
+  AppImage; o2r self-generated).
+- `upstreamable-rom-cli-import/0001-extractor-honour-a-ROM-path-on-the-command-line-on-L.patch` —
   `RunExtract` collected argv but only the Windows-only `ES_WINDOWS` branch
   ever moved to `ES_EXTRACT_ARGS`; on Linux/macOS `Paperboat rom.z64` silently
   fell into the interactive prompts. Take the same branch on the non-Windows
   path. This is what `run.sh <ROM>` relies on.
-- `0002-extractor-refuse-a-picked-ROM-that-matches-no-config.patch`
+- `upstreamable-rom-cli-import/0002-extractor-refuse-a-picked-ROM-that-matches-no-config.patch`
   — the file dialog's `LoadRomFromPath` accepted any readable file; an
   unsupported one made Torch log "No config found" and return without an
   archive, and the user got the generic "No ROM O2R file detected". Check

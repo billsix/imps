@@ -126,6 +126,22 @@ Two goals, ranked:
    personal tweaks carried in the same series and replayed onto newer pins (the
    pin-bump operation).
 
+**Upstreamable units — one `upstreamable-<slug>/` stream per PR** (William Emerison Six
+<billsix@gmail.com>, 2026-10-27). The currency of upstreaming is a *unit of work* (one PR), which may
+be many patches on purpose (sliced into bite-sized reviewable commits). Carry each such unit as its own
+`upstreamable-<slug>/` stream — one PR's worth per folder, with reviewer-facing commits and no
+entanglement with personal changes — so it can be worked on, built, and submitted in isolation.
+**Invariant: an upstreamable unit depends only on pristine upstream and other upstreamable units — never
+on a `personal`/`cheats`/`book` patch** (a candidate that needs your cheats to apply is not
+upstreamable; that dependency is the bug). Declare any cross-unit prerequisite in
+`patches/<slug>/DEPENDS` (one upstreamable stream per line; absent = stands on the bare pin). Two tools
+serve this: **`tools/apply_unit.sh <Project> <slug>`** resets to the pin and applies ONLY that unit's
+closure (so `make -C <checkout>/docker appimage` builds the PR as upstream would see it), and
+**`tools/check_upstreamable_applies.sh`** is the gate — proving every upstreamable unit applies in
+isolation and the invariant holds. This generalizes the original `standard-c` precedent and replaces the
+old coarse `upstream-candidates/` grab-bag. Stream mechanics: `n64/CLAUDE.md`; full rationale:
+`tasks/reference/imps/patch-streams-design.md`.
+
 **Do NOT apply the shared C coding standard — or any formatting / C-style /
 modern-C-idiom sweep — to imps-carried code** (William Emerison Six
 <billsix@gmail.com>, 2026-10-20). Because the goal for imps projects is to

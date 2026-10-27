@@ -2,7 +2,7 @@
 #
 # apply.sh — apply the imps patch STREAMS on top of the pristine pinned checkout.
 # Run after fetch.sh. Patches are grouped into purpose STREAMS (subfolders, e.g.
-# cheats/, upstream-candidates/, personal/, book/): WITHIN a stream order matters
+# upstreamable-<slug>/ (one PR each), cheats/, book/): WITHIN a stream order matters
 # (numbered); ACROSS streams it does not, because the streams touch disjoint files
 # and commute — no total ordering to maintain. See n64/CLAUDE.md.
 #
@@ -30,7 +30,7 @@ fi
 
 # Stream apply order. Normally irrelevant (streams commute), but a project may
 # pin an order in patches/ORDER when one stream must precede the others -- for
-# Ocarina that is `personal`, whose decomp renames every later stream is written
+# Ocarina that is `upstreamable-rename-decomp`, whose decomp renames every later stream is written
 # against. Listed streams come first, in file order; the rest follow
 # alphabetically.
 ordered_streams() {

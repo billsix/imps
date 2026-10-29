@@ -1,6 +1,6 @@
 # Convert imps' logic-heavy shell tools to Python
 
-**Status:** in progress
+**Status:** done (2026-10-29; both tools converted, proven byte-identical, committed `2d43ce88`)
 **Priority:** 6
 **Difficulty:** 4
 

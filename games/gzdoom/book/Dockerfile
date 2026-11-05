@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:44
+FROM registry.fedoraproject.org/fedora:45
 
 # Sphinx book toolchain: HTML (furo), EPUB, and PDF via LuaLaTeX (needed for
 # the Unicode math the source and notes use). Graphviz renders the diagrams.

@@ -9,7 +9,7 @@
 # the arith parser (arith_yacc.c) is hand-written and committed, so no yacc/lex
 # is needed. libedit is optional (--with-libedit) and left off — a bare build
 # needs only a C compiler and the autotools.
-FROM registry.fedoraproject.org/fedora:44
+FROM registry.fedoraproject.org/fedora:45
 
 # The dnf cache idiom (keepcache so the --mount cache is populated), then the
 # toolchain: gcc + make to compile, autoconf/automake (aclocal, autoheader,

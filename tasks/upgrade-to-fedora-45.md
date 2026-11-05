@@ -1,30 +1,23 @@
-# Upgrade the container base from Fedora 44 to Fedora 45
+# Upgrade the container base from Fedora 44 to Fedora 45 (done)
 
-**Status:** in progress
-**Priority:** 4
-**Difficulty:** 7
+Done 2026-11-05 (William Emerison Six <billsix@gmail.com>). Part of a fleet-wide
+Fedora 44 -> 45 bump.
 
-## BLUF
-Bump all six tracked Dockerfiles to `fedora:45` and build each nested as far as
-it goes. The six are heterogeneous: `games/gzdoom/` (C++), `games/gzdoom/book/`
-(Sphinx), `n64/SuperMario64/book/` (Sphinx), `unixutils/ripgrep/` (Rust),
-`unixutils/dash/` (C), `android/fossify/` (Android/gradle). "Done" = each builds
-on 45, with any that can't complete nested (fossify gradle, game data) documented.
+## What changed
 
-## Context
-Fleet-wide Fedora 44 → 45 bump (William Emerison Six <billsix@gmail.com>,
-2026-11-05). Fedora 45: GCC 16.2 / clang LLVM 23, Python 3.15, Rust, glibc 2.44.
-Risk spans C++/C compiles (gzdoom, dash), Rust (ripgrep), Sphinx/Python (the two
-books), and a heavy Android gradle build (fossify) that may not finish nested.
+- Bumped all six tracked Dockerfiles to `fedora:45`:
+  `games/gzdoom/`, `games/gzdoom/book/`, `n64/SuperMario64/book/`,
+  `unixutils/ripgrep/`, `unixutils/dash/`, `android/fossify/`.
 
-**CRITICAL gpg note (per maintainer memory):** imps must NEVER be left with
-`commit.gpgsign=false`. It is set false only transiently to commit; it MUST be
-restored to `true` at completion and verified. Do not let false leak.
+No source changes. All six `make image` builds green nested on the 45 base:
+- **unixutils/dash** (C) and **unixutils/ripgrep** (Rust): clean.
+- **games/gzdoom/book** and **n64/SuperMario64/book**: Sphinx docs toolchains.
+- **games/gzdoom** (C++): the GZDoom source build compiled clean under GCC 16 /
+  clang LLVM 23 (needs game data only to RUN, which is not part of the image build).
+- **android/fossify**: the Android SDK/gradle build completed on 45 (SDK licenses
+  accepted + build-tools installed in-image).
 
-## Plan
-1. Bump all six FROM lines. 2. Build each nested (`build + smoke as far as it
-goes`); document the unbuildable ones. 3. Fix toolchain breakage minimally
-(discretion; log here). 4. Stage by path; archive. 5. Restore gpgsign=true; verify.
-
-## Notes / findings
-(appended as each build runs)
+## Note
+`commit.gpgsign` was set false only transiently to make these commits and has
+been restored to `true` (verified) -- per the standing rule that imps must never
+be left unsigned.

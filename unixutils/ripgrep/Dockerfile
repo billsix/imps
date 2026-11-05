@@ -12,7 +12,7 @@
 # ripgrep's OWN source is (re)built from the bind-mounted checkout at runtime.
 #
 # github.com/BurntSushi/ripgrep — pinned at tag 14.1.1 by fetch.sh.
-FROM registry.fedoraproject.org/fedora:44
+FROM registry.fedoraproject.org/fedora:45
 
 # The pin to warm the Cargo cache against. MUST match fetch.sh's PIN_SHA (the
 # commit tag 14.1.1 peels to) — the runtime bind-mounted checkout is that same

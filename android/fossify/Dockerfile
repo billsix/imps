@@ -17,7 +17,7 @@
 # serve (dead jcenter.bintray.com transitive / a 404'd version), which fails
 # online too. The warm treats the apps as best-effort so this image still
 # builds; see CLAUDE.md "Build status" and entrypoint/warm-gradle-cache.sh.
-FROM registry.fedoraproject.org/fedora:44
+FROM registry.fedoraproject.org/fedora:45
 
 # --- Toolchain versions (override with --build-arg to track a pin bump) -------
 # Commons 6.2.0 (the deepest-documented repo) builds with: Gradle 9.6.1 (its

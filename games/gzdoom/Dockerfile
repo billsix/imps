@@ -5,7 +5,7 @@
 # only the CMake/C++ toolchain and GZDoom's Linux build dependencies — the
 # sources are NOT baked in: the imps checkout/ is bind-mounted by the Makefile at
 # run time, so host edits and applied patches propagate without an image rebuild.
-FROM registry.fedoraproject.org/fedora:44
+FROM registry.fedoraproject.org/fedora:45
 
 # dnf cache mounts + keepcache: speed re-builds without bloating the image layer.
 # The install list is GZDoom's Linux build deps:

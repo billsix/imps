@@ -19,8 +19,10 @@ Two goals, in order:
 ## Layout
 
 - `<family>/` — projects are grouped into family folders by the kind of
-  thing they patch (currently `n64/` for the HarbourMasters game ports).
-  Each family folder has its own `CLAUDE.md`.
+  thing they patch: `n64/` for the HarbourMasters game ports, and `games/`
+  for other open-source game/engine builds (`games/gzdoom/`,
+  `games/mineclonia/`; each folder's `README.md` has its commands). Each
+  family folder has its own `CLAUDE.md`.
 - `<family>/<Project>/` — scripts (`fetch.sh`, `apply.sh`, `build.sh`,
   `run.sh`), `patches/` (**code changes only**), and that project's
   `CLAUDE.md`.

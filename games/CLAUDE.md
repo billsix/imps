@@ -68,3 +68,9 @@ are in each game's tier-3 `games/<Game>/CLAUDE.md`; deep dives in
   Fedora-44 container; carries a comment-only `patches/book/` doc-region stream
   feeding the Sphinx book *How a Doom Engine Works* (`games/gzdoom/book/`), and a
   CLI-WAD-loading fix is the planned code stream. Details: `games/gzdoom/CLAUDE.md`.
+- `games/mineclonia/` — Mineclonia, a Minecraft-like Lua game
+  (https://codeberg.org/mineclonia/mineclonia, pin `0.124.1`), on the Luanti engine
+  (https://github.com/luanti-org/luanti, pin `5.18.0`). **Pinned build, no patch
+  series** (no `apply.sh`/`patches/`). Builds natively or in a Fedora-45 container;
+  `make smoke` (headless server load of every mod) is the gate. Details:
+  `games/mineclonia/CLAUDE.md`.

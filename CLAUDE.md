@@ -304,8 +304,9 @@ contract and its per-project index; open it when working in that family.
   `n64/CLAUDE.md`.
 - **`games/`** — buildable open-source game/engine ports (a code-patch family
   like `n64/`): **GZDoom**, the Doom-engine source port (built with its ZMusic
-  dependency), natively on the host or in a Fedora-44 container. Contract +
-  project index: `games/CLAUDE.md`.
+  dependency), and **Mineclonia** on the Luanti engine (a pinned build with no
+  patch series), natively on the host or in a container. Contract + project
+  index: `games/CLAUDE.md`.
 
 ### Documentation-only carrier families (landing 2026-09-20)
 

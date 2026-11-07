@@ -1,6 +1,6 @@
 # Add Mineclonia (a Luanti game) to the `games/` family
 
-**Status:** proposed — needs go-ahead (William Emerison Six <billsix@gmail.com>, 2026-11-07)
+**Status:** proposed — scope decided 2026-11-07; implementation awaits go-ahead (William Emerison Six <billsix@gmail.com>, 2026-11-07)
 **Priority:** 6
 **Difficulty:** 5
 
@@ -52,10 +52,8 @@ container, plus a headless smoke run, the tier-3 `games/mineclonia/CLAUDE.md`, a
    `CLAUDE.md` family blurb, and a `tasks/reference/mineclonia/` dir only if something non-obvious
    comes up.
 
-## Open questions
+## Decision (William Emerison Six <billsix@gmail.com>, 2026-11-07)
 
-1. What should imps carry for Mineclonia: (a) **just a pinned, reproducible build** (no patches
-   for now), (b) a **code patch stream** for a specific change you want in the game or engine, or
-   (c) a **documentation carrier** (comment-only `patches/docs/` + a Sphinx book, like gzdoom's
-   *How a Doom Engine Works*)? *Recommend (a) first. (c) fits Mineclonia well, since Lua game logic
-   is readable teaching material, and can follow.*
+**A pinned, reproducible build only:** no `patches/`, no `apply.sh`, no documentation stream.
+This makes it the first unpatched project in `games/`, so `games/CLAUDE.md`'s index line should
+say "pinned build, no patch series". A code or docs stream can be added later as its own task.

@@ -8,7 +8,7 @@ against the source if the pin moves.
 ## Build (what works)
 
 Two build paths share this dependency set: the **native host scripts**
-(`installdependencies.sh` → `build.sh`, the primary path) and the **Fedora-44
+(`installdependencies.sh` → `build.sh`, the primary path) and the **Fedora-45
 container** (`games/gzdoom/Dockerfile` + `make build`). Build deps that were
 actually needed to configure + compile GZDoom 4.14.2 + ZMusic 1.3.0 (all
 installed cleanly, no CMake "not found" iterations after this set):

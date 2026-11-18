@@ -1,4 +1,4 @@
-# Fedora-44 image carrying an Android/Gradle/JDK toolchain, just enough to
+# Fedora-45 image carrying an Android/Gradle/JDK toolchain, just enough to
 # COMPILE Fossify modules so the comment-only doc patches can be proven to
 # change nothing the Kotlin compiler sees (see the `check-comment-only` target
 # in the Makefile and the family contract in ../CLAUDE.md).
@@ -52,7 +52,7 @@ ENV LANG=C.UTF-8 \
 # compile target, removing the "off-target JDK" uncertainty the Phase-A pass had
 # with Fedora's JDK 25. Gradle 9.6.1 and 8.11.1 both run on a JDK-17 daemon (17
 # is Gradle 9's minimum), so no separate toolchain-vs-daemon split is needed;
-# keep it simple. Fedora 44 ships NO java-17-openjdk package, hence Temurin 17.
+# keep it simple. Fedora 45 ships NO java-17-openjdk package, hence Temurin 17.
 COPY entrypoint/adoptium.repo /etc/yum.repos.d/adoptium.repo
 RUN --mount=type=cache,target=/var/cache/libdnf5 \
     --mount=type=cache,target=/var/lib/dnf \

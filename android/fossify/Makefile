@@ -47,7 +47,7 @@ fetch: ## Clone all upstreams in `repos` at their pins (host git)
 apply: ## Apply each repo's comment-only doc/book patch streams (host git)
 	./apply.sh
 
-image: ## Build the Fedora-44 Android/Gradle/JDK builder image
+image: ## Build the Fedora-45 Android/Gradle/JDK builder image
 	podman build -t $(IMAGE) -f Dockerfile .
 
 image-export: ## Save the built image to a timestamped tar here

@@ -48,7 +48,7 @@ git -C checkout/<repo> format-patch --no-cover-letter --base="$PIN" \
 
 ```sh
 make help              # list targets
-make image             # build the Fedora-44 Android/Gradle/JDK image (~4 GB, warms the cache)
+make image             # build the Fedora-45 Android/Gradle/JDK image (~4 GB, warms the cache)
 make build             # compile Commons OFFLINE (REPO=Commons GRADLE_MODULE=:commons)
 make shell             # interactive shell in the builder container
 ```

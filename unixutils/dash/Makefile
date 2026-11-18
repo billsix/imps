@@ -38,7 +38,7 @@ fetch:  ## Clone dash into checkout/ and detach at the pin
 apply:  ## git am the comment-only doc streams onto the pinned checkout
 	./apply.sh
 
-image:  ## Build the Fedora-44 dash build-toolchain image
+image:  ## Build the Fedora-45 dash build-toolchain image
 	podman build -t $(IMAGE) -f Dockerfile .
 
 image-export:  ## Save the built image to a timestamped tar here

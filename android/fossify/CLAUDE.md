@@ -24,7 +24,7 @@ fossify/
 ├── repos                     # the manifest (URL  pin  # tag date)
 ├── fetch.sh apply.sh         # loop the manifest; per-repo clone / am
 ├── check-comment-only.sh     # the comment-only gate (host, fast)
-├── Dockerfile Makefile       # Fedora-44 Android/Gradle/JDK image (heavy build)
+├── Dockerfile Makefile       # Fedora-45 Android/Gradle/JDK image (heavy build)
 ├── checkout/<repo>/          # gitignored pristine checkouts at their pins
 └── patches/<repo>/{docs,book}/  + patches/ORDER
 ```
@@ -132,7 +132,7 @@ Verified 2026-09-20, nested (`NESTED_PODMAN=1`), after the JDK-17 + Gradle-offli
 hardening (`../../tasks/fossify-jdk-toolchain-and-gradle-offline.md`):
 
 - **JDK: Adoptium/Temurin 17** (`temurin-17-jdk`, GPG-verified via the Adoptium
-  dnf repo — `entrypoint/adoptium.repo`; Fedora 44 ships no `java-17-openjdk`).
+  dnf repo — `entrypoint/adoptium.repo`; Fedora 45 ships no `java-17-openjdk`).
   Rationale: AGP 9.0+ requires **JDK 17 minimum**, and Commons' `libs.versions.toml`
   sets `app-build-javaVersion=VERSION_17` + `kotlinJVMTarget=17`, so JDK 17 both
   satisfies AGP's floor and matches the compile target — removing the off-target
@@ -140,7 +140,7 @@ hardening (`../../tasks/fossify-jdk-toolchain-and-gradle-offline.md`):
   8.10.1 aborted with the bare version string `25.0.4.1`; JDK 17 fixes that.) One
   JDK-17 daemon runs both Gradle 9.6.1 (Commons) and 8.11.1 (the apps), so no
   toolchain-vs-daemon split is needed.
-- **`make image`** builds the Fedora-44 image (~4 GB): Temurin 17, Android SDK
+- **`make image`** builds the Fedora-45 image (~4 GB): Temurin 17, Android SDK
   platform-tools + **platforms 34 & 36** + **build-tools 35.0.0 & 36.0.0** (Commons
   wants 36; the apps want 34 + build-tools 35), licenses accepted, then the Gradle
   cache is **warmed at build time** (see next bullet).

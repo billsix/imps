@@ -36,7 +36,7 @@ prove the doc patches are comment-only, and to host the book).
 - `apply.sh` — `git am --3way` the `patches/docs/` (then `patches/book/`) streams onto the checkout,
   guarded to run only when HEAD is exactly at the pin (read the pin out of `fetch.sh`). Copy an `n64/`
   `apply.sh` shape.
-- `Makefile` + `Dockerfile` — a Fedora-44 image (the maintainer's container template: `PODMAN_RUN_FLAGS`
+- `Makefile` + `Dockerfile` — a Fedora-45 image (the maintainer's container template: `PODMAN_RUN_FLAGS`
   threaded into every `run`, a `shell`/`shell-exec` pair, `##`-documented `help`) carrying the tool's
   **build toolchain**, so the tool can be compiled by `make build`. Targets: `fetch`, `apply`, `image`,
   `build` (compile the checkout), and `check-comment-only` (the family gate — calls the shared

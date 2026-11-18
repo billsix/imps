@@ -62,7 +62,7 @@ should be pointed at `nodetypes` + `nodes.c.pat` instead (documented in the
 
 ## Build + gate (Makefile)
 
-- `make image` — Fedora-44 image with the C toolchain (gcc, make, autoconf,
+- `make image` — Fedora-45 image with the C toolchain (gcc, make, autoconf,
   automake) + git/gcc for the gate. `PODMAN_RUN_FLAGS` is threaded into every
   `run` (auto `--cgroups=disabled` when nested), never into `build`.
 - `make build` — compile the checkout in the container (autotools) and smoke-run

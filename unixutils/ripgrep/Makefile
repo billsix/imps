@@ -33,7 +33,7 @@ fetch:  ## Clone ripgrep into checkout/ and detach at the pinned tag (host).
 apply:  ## git am the comment-only patch streams onto the checkout (host).
 	./apply.sh
 
-image:  ## Build the Fedora-44 + Rust builder image.
+image:  ## Build the Fedora-45 + Rust builder image.
 	$(CONTAINER_CMD) build -t $(IMAGE) -f Dockerfile .
 
 # Compile the checkout inside the container, OFFLINE against the Cargo registry

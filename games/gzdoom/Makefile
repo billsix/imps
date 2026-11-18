@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-# --- imps GZDoom carrier: build GZDoom (+ its ZMusic dep) in a Fedora-44 podman
+# --- imps GZDoom carrier: build GZDoom (+ its ZMusic dep) in a Fedora-45 podman
 # container. Native imps files (Dockerfile/Makefile are not patches). `make
 # build` compiles whatever state checkout/ is in — normally the pin plus the
 # applied patch series (fetch.sh then apply.sh). ---
@@ -62,7 +62,7 @@ fetch: ## Clone GZDoom @ g4.14.2 + ZMusic @ 1.3.0 into checkout/ (idempotent)
 apply: ## git am the patches/ series onto the GZDoom checkout (guarded at the pin)
 	./apply.sh
 
-image: ## Build the Fedora-44 builder image
+image: ## Build the Fedora-45 builder image
 	$(CONTAINER_CMD) build -t $(IMAGE) -f Dockerfile .
 
 image-export: ## Save the built image to a timestamped tar here

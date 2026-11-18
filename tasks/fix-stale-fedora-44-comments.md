@@ -1,28 +1,18 @@
-# Fix stale "Fedora 44" mentions in comments and docs
+# Fix stale "Fedora 44" mentions in comments and docs (done)
 
-**Status:** open
-**Priority:** 6
-**Difficulty:** 1
-**Started:** 2026-11-18 (William Emerison Six <billsix@gmail.com>)
+**Done:** 2026-11-18 (William Emerison Six <billsix@gmail.com>)
 
-## BLUF
+Every Dockerfile was already `FROM registry.fedoraproject.org/fedora:45`, but comments, `##`
+help strings and docs still said "Fedora 44". They were changed to 45 in the
+`android/fossify`, `games/gzdoom`, `unixutils/dash` and `unixutils/ripgrep` Dockerfiles,
+Makefiles, CLAUDE.md and README files, the `android/`, `games/` and `unixutils/` CLAUDE.md
+summaries, and `tasks/reference/gzdoom/build-and-cli-wad-repro.md`'s description of the
+container path. The "Fedora 44/45 ships no `java-17-openjdk`" statements in `android/fossify`
+were checked against Fedora 45 (`dnf repoquery --releasever=45` lists only java-25 and
+java-latest), so they are still true.
 
-Every Dockerfile here is already `FROM registry.fedoraproject.org/fedora:45`, but comments,
-`##` help strings and docs still say "Fedora 44". Change them to 45. Done = `git grep` finds no
-Fedora 44 mention outside `tasks/archive/`.
-
-## Files
-
-- `android/fossify/CLAUDE.md`
-- `android/fossify/Dockerfile`
-- `android/fossify/Makefile`
-- `android/fossify/README.md`
-- `games/gzdoom/CLAUDE.md`
-- `games/gzdoom/Dockerfile`
-- `games/gzdoom/Makefile`
-- `games/gzdoom/README.md`
-- `unixutils/dash/CLAUDE.md`
-- `unixutils/dash/Dockerfile`
-- `unixutils/dash/Makefile`
-- `unixutils/ripgrep/Dockerfile`
-- `unixutils/ripgrep/Makefile`
+Left as written on purpose, because each records what was true on its date: the n64 CLAUDE.md
+"verified in a fedora:44 container" lines, the `fedora44Fixes` fork-branch name, the
+MajorasMask patch header, the PaperMario host-build notes, dated environment lines in
+`tasks/reference/`, and the status lines of the open `tasks/fossify-refdocs-and-book.md` and
+`tasks/gzdoom-port-and-cli-wad-patch.md`.

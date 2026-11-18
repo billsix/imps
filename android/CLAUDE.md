@@ -27,7 +27,7 @@ departs from the single-repo `unixutils/` shape.
   at that repo's pin (a **released tag** where one exists, for stable anchors; SHA + date commented). Set
   `commit.gpgsign false` in each checkout. Idempotent.
 - `apply.sh` — per repo, `git am --3way` its `docs/` (then `book/`) stream, guarded at that repo's pin.
-- `Makefile` + `Dockerfile` — Fedora-44 image (maintainer's template conventions: `PODMAN_RUN_FLAGS`,
+- `Makefile` + `Dockerfile` — Fedora-45 image (maintainer's template conventions: `PODMAN_RUN_FLAGS`,
   `shell`/`shell-exec`, `##` help) with the Android/Gradle/JDK toolchain. **Building a full Android app is
   heavy (SDK, Gradle, license acceptance) — set the Dockerfile up correctly but treat a green app build as
   best-effort; the comment-only proof for Kotlin can also be a compile-before/after or comment-strip diff

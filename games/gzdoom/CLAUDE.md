@@ -46,13 +46,13 @@ The four host-runnable scripts (the imps native-build baseline — see the maste
 `bldInstall/<BUILD_TYPE>/`, builds under `build-cmake/<BUILD_TYPE>/` — both
 gitignored.
 
-**Podman (Fedora-44, optional):** `Dockerfile` + `Makefile` are native imps
+**Podman (Fedora-45, optional):** `Dockerfile` + `Makefile` are native imps
 files. The image carries the toolchain + GZDoom's Linux build deps; the source is
 **bind-mounted** at `/work` (never baked), so host edits/patches propagate without
 an image rebuild.
 
 ```sh
-make image          # build the Fedora-44 builder image
+make image          # build the Fedora-45 builder image
 make build          # ZMusic then GZDoom -> install/Release/  (Release default)
 make build BUILD_TYPE=Debug   # a debug build, into build/Debug + install/Debug
 make version        # print the built gzdoom's version (headless; proves it links)

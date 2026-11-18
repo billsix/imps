@@ -1,4 +1,4 @@
-# Fedora-44 builder for GZDoom + ZMusic.
+# Fedora-45 builder for GZDoom + ZMusic.
 #
 # GZDoom (github.com/ZDoom/gzdoom @ g4.14.2) links against ZMusic
 # (github.com/ZDoom/ZMusic @ 1.3.0), which is built first. This image carries

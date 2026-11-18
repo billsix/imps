@@ -1,4 +1,4 @@
-# dash build toolchain — Fedora 44.
+# dash build toolchain — Fedora 45.
 #
 # dash is documentation-only in imps: this image exists ONLY to compile the
 # pinned source, so `make check-comment-only` can PROVE the doc-comment /

@@ -24,7 +24,7 @@ so config and saves land there, not in `$HOME`.
 ## Podman build (container — optional)
 
 ```sh
-make image                        # build the Fedora-44 builder image (~few min first time)
+make image                        # build the Fedora-45 builder image (~few min first time)
 make build                        # ZMusic then GZDoom -> install/Release/bin/gzdoom
 make version                      # print the built gzdoom's version (headless)
 make run WAD=/path/to/DOOM2.WAD   # launch with a CLI WAD (X11/Wayland display)

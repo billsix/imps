@@ -65,7 +65,7 @@ are in each game's tier-3 `games/<Game>/CLAUDE.md`; deep dives in
   (https://github.com/ZDoom/gzdoom, pin `g4.14.2`), built with its ZMusic
   dependency (https://github.com/ZDoom/ZMusic, pin `1.3.0`). Builds + launches
   natively on the host (`installdependencies.sh`/`build.sh`/`run.sh`) or in a
-  Fedora-44 container; carries a comment-only `patches/book/` doc-region stream
+  Fedora-45 container; carries a comment-only `patches/book/` doc-region stream
   feeding the Sphinx book *How a Doom Engine Works* (`games/gzdoom/book/`), and a
   CLI-WAD-loading fix is the planned code stream. Details: `games/gzdoom/CLAUDE.md`.
 - `games/mineclonia/` — Mineclonia, a Minecraft-like Lua game

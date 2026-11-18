@@ -1,4 +1,4 @@
-# Fedora-44 image carrying the Rust toolchain, used only to BUILD the pinned
+# Fedora-45 image carrying the Rust toolchain, used only to BUILD the pinned
 # ripgrep checkout so the docs-only patch streams can be proven comment-only
 # (see check-comment-only.sh). This carrier documents ripgrep; it does not
 # change or ship it, so the image needs nothing but a compiler and git.

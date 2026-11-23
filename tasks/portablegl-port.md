@@ -52,9 +52,9 @@ example and regression test** in the upstream tree, in **debug** and in **releas
 - **Upstream's own rules.** Upstream has an `AGENTS.md`: do not edit files before being told to, do not
   strip comments, keep scripting paths relative, and use asserts for invariants instead of
   always-on checks. It matters only if a patch is ever upstreamed; the imps scripts are the maintainer's.
-- **Where it lives.** `games/` is described as buildable open-source games and engines; PortableGL is a
-  graphics library with demos, so it is a stretch (open question 1). The tier-2 `games/CLAUDE.md` index and
-  the master `CLAUDE.md` family index get a line either way.
+- **Where it lives.** A new top-level family `graphics/` (see Decisions): PortableGL is a graphics library with
+  demos, which fits neither `games/` nor the documentation-only families. The master `CLAUDE.md` "Families"
+  list gets a line and `graphics/CLAUDE.md` is new.
 
 ## Plan
 
@@ -65,7 +65,7 @@ example and regression test** in the upstream tree, in **debug** and in **releas
    extra libraries, and the first error for each that fails. The Makefiles are generated and committed, so
    a fresh premake5 run is not needed for Linux (the upstream tree ships premake5 binaries for Windows and
    Mac only; do not add a premake dependency unless the committed Makefiles prove broken).
-2. **The folder `games/portablegl/`** (or the family chosen in question 1): `fetch.sh` (URL, pinned full
+2. **The folder `graphics/portablegl/`**, with the new family doc `graphics/CLAUDE.md` and the master index line: `fetch.sh` (URL, pinned full
    SHA with tag and date comment, `commit.gpgsign false` repo-locally), `installdependencies.sh` (host
    package manager, inline package list, fails loudly if none), `build.sh`, `run.sh`, `README.md`
    (commands first), `CLAUDE.md` (tier-3: upstream, pin, build facts, index of reference docs),
@@ -91,20 +91,26 @@ example and regression test** in the upstream tree, in **debug** and in **releas
    the first thing to compare: PortableGL has assert-based invariants that only fire in debug.
 7. **Docs.** Reference doc from step 1, the tier-2 and master index lines, and `README.md` of the project.
 
+## Decisions (maintainer, 2026-11-22)
+
+1. **Location (corrected 2026-11-22):** a new top-level family **`graphics/`**, not a folder under `games/`. The
+   project folder is `graphics/portablegl/`. A new family needs its tier-2 `graphics/CLAUDE.md` (the family's
+   build contract and a one-line project index; copy the shape of `games/CLAUDE.md`, minus the game-data rules)
+   and a line in the master `CLAUDE.md` "Families" list, so step 2 of the plan also creates those two files.
+2. **Pin:** the release tag `0.100.0`, commit `63a55db75ab07619797a93ff9bf3909355d27950`.
+3. **"All demos" means `examples/` and `demos/`.** `backends/` and the `testing/` performance programs
+   are out of the default build. The regression program `run_tests` (needs only a C++ compiler) stays in
+   as the smoke gate in step 6, because it is the cheapest proof that debug and release both work.
+
 ## Open questions
 
-1. Should it live under `games/portablegl/` (the closest existing family), or does a software-renderer
-   library with demos deserve its own family folder? I recommend `games/portablegl/`, because it needs no
-   new tier-2 document and the build contract matches.
-2. Which pin: the release tag `0.100.0` (`63a55db75ab07619797a93ff9bf3909355d27950`, a stable named point) or
-   the current `master` head? I recommend the tag.
-3. Does "all demos" include the `backends/` hello-triangle programs (x11, wayland, gtk, qt, fltk, win32) and
-   the performance programs in `testing/`, or only `examples/` and `demos/` plus the regression tests? I
-   recommend `examples/`, `demos/` and the regression tests as "all", and `backends/` as an opt-in group
-   (`./build.sh release backends`) since each pulls a whole toolkit.
+None. Steps 1 to 7 above already carry the answers; the `backends` group is not part of `build.sh`'s default and
+stays an opt-in argument only if it is cheap to keep.
 
 ## History
 
-- 2026-11-22: created at the maintainer's request. Facts about PortableGL (tags, SHAs, build layout,
+- 2026-11-22: created at the maintainer's request.
+- 2026-11-22: the maintainer answered the three questions (see Decisions), then corrected the location to a
+  top-level `graphics/` family. Facts about PortableGL (tags, SHAs, build layout,
   dependencies) were read from the upstream repository's README, Makefiles and API on the same day; nothing
   has been built yet.

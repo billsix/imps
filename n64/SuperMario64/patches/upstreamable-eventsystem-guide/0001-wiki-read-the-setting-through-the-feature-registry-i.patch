@@ -1,0 +1,61 @@
+From deaf37ee04a174022f891bdd0b1ed94f7b6d8041 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Thu, 26 Nov 2026 14:16:25 +0000
+Subject: [PATCH 1/2] wiki: read the setting through the feature registry in
+ the event guide
+
+The listener example in step 4 of wiki/EventSystem.md checks its setting
+with CVarGetInteger. Since romhack support (#300) the project's rule is
+the opposite: docs/romhacks/DESIGN.md ("Feature rules") says "Code reads
+a lockable setting through the registry instead of CVarGet*", and
+docs/scripting.md and the header comment of src/port/features/Features.h
+say the same. #300 changed the listeners in
+src/port/mods/PortEnhancements.cpp accordingly, including the one this
+guide is based on, which now reads
+
+    Port_FeatureInt("cheats.pause_exit_whenever", 0)
+
+but the guide was not updated.
+
+A contributor who follows the guide as written adds a cheat or
+enhancement that ignores the disable and force rules of the active
+romhack and of mounted mods, which is the case the registry exists for.
+
+Change the example to the registry read, say why in one paragraph with a
+link to the Feature rules section, and mention that a new setting needs
+its row in sDefs in src/port/features/Features.cpp.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+---
+ wiki/EventSystem.md | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/wiki/EventSystem.md b/wiki/EventSystem.md
+index 58a75b6f..6bec3416 100644
+--- a/wiki/EventSystem.md
++++ b/wiki/EventSystem.md
+@@ -58,14 +58,16 @@ CALL_CANCELLABLE_EVENT(RenderPauseCourseOptions, &canPause) {
+ ---
+ 
+ ## 4. Create the Listener (Callback)
+-Implement the logic that reacts to the event. This is usually where you check for CVars or custom mod logic.
++Implement the logic that reacts to the event. This is usually where you check a setting or custom mod logic.
++
++Read a setting through the feature registry (`Port_FeatureInt`), not through its CVar. A romhack or mod can disable a feature or force its value, and only a read through the registry honours that; see [Feature rules](../docs/romhacks/DESIGN.md#feature-rules). A new setting also needs its row in `sDefs` in `src/port/features/Features.cpp`.
+ 
+ **File:** `src/port/mods/PortEnhancements.c`
+ 
+ ```c
+ void OnRenderPauseCourseOptions(IEvent* event) {
+-    // Only apply the logic if the specific CVar is enabled
+-    if (CVarGetInteger("gPauseExitWhenever", 0) == 0) {
++    // Only apply the logic if the feature is enabled
++    if (Port_FeatureInt("cheats.pause_exit_whenever", 0) == 0) {
+         return;
+     }
+ 
+
+base-commit: aefb89b85e7b78daff62b491ebb2669d2d9270f0
+-- 
+2.56.1
+

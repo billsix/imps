@@ -1,55 +1,34 @@
-# SuperMario64 — upstream a fix to Ghostship's event-system guide (its listener example still reads a CVar)
+# SuperMario64 — wrote the upstream fix to Ghostship's event-system guide (its listener example read a CVar)
 
-**Status:** ready — scope decided 2026-11-26; the pin bump it depended on is done
-**Priority:** 5
-**Difficulty:** 2 (one Markdown file; the work is a reviewer-ready commit message)
-**Depends on:** `tasks/archive/mario64/2026/11/26/mario64-bump-pin-port-cheats-to-feature-registry.md` (the patch is written against the new pin, where the mismatch exists; that bump was done on 2026-11-26, pin `aefb89b8`)
-**Created:** 2026-11-26 (William Emerison Six <billsix@gmail.com>: "make a task that I intend to upstream to fix [the guide's step 4] … That is a perfect task to make a patch to upstream, with the commit message listing the reasoning and referencing the documents!").
+**Done 2026-11-26** (agent; William Emerison Six <billsix@gmail.com>, 2026-11-26: "make a task that I intend to upstream to fix [the guide's step 4] … That is a perfect task to make a patch to upstream, with the commit message listing the reasoning and referencing the documents!"). The patch is written and carried; **opening the pull request is the maintainer's and has not been done.**
 
-## BLUF
+## What this was
 
-Ghostship's guide for writing events, `wiki/EventSystem.md`, teaches a listener that reads its setting with `CVarGetInteger`. Since upstream commit `365df69f` ("Implemented romhack support (#300)") the project's own rule is to read a lockable setting through `Port_FeatureInt`, and upstream changed its own listeners but not the guide. This task writes a documentation patch that brings the guide in line, carried as its own upstreamable unit for the maintainer to submit as a pull request. Done means `n64/SuperMario64/patches/upstreamable-eventsystem-guide/` holds the patch, it applies on the bare pin, and the commit message gives the reasoning and cites the documents.
+Ghostship's guide for writing events, `wiki/EventSystem.md`, taught a listener that reads its setting with `CVarGetInteger`. Since upstream commit `365df69f` ("Implemented romhack support (#300)") the project's own rule is to read a lockable setting through `Port_FeatureInt`, so that a romhack or mod can disable or force it. Upstream changed its own listeners, including the one the guide says it is based on, and did not change the guide. The maintainer's three cheats had been written from that guide, which is how the mismatch was noticed during the pin bump (`tasks/archive/mario64/2026/11/26/mario64-bump-pin-port-cheats-to-feature-registry.md`).
 
-## Context
+## Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-26)
 
-**Read first:** `CLAUDE.md` ("Patch philosophy": an upstreamable unit is one PR's worth in its own `upstreamable-<slug>/` stream, depends only on pristine upstream, reviewer-facing commits) and `n64/CLAUDE.md` (streams, `tools/apply_unit.sh`, `tools/check_upstreamable_applies.sh`). Paths below are inside the Ghostship checkout, `n64/SuperMario64/Ghostship/`, at upstream `aefb89b8`.
+1. **Make it an upstream patch**, with the commit message giving the reasoning and citing the documents.
+2. **Scope (b): one pull request, two commits.** The agent had found three older differences between the guide's example and the code and offered (a) fixing only the feature-registry read or (b) fixing those too. The maintainer chose (b), split so a reviewer can take the first commit alone.
 
-**The mismatch, verified at `aefb89b8`:**
+## What was built
 
-- `wiki/EventSystem.md`, step 4 ("Create the Listener"), shows:
-  ```c
-  if (CVarGetInteger("gPauseExitWhenever", 0) == 0) {
-      return;
-  }
-  ```
-  and introduces it with "This is usually where you check for CVars or custom mod logic."
-- The code the guide says it is based on, the `RenderPauseCourseOptions` listener in `src/port/mods/PortEnhancements.cpp`, now reads:
-  ```cpp
-  if (Port_FeatureInt("cheats.pause_exit_whenever", 0) == 0) {
-      return;
-  }
-  ```
-- The rule is stated in `docs/romhacks/DESIGN.md`, section "Feature rules": "Code reads a lockable setting through the registry instead of `CVarGet*`", and "To make another setting lockable, add it to `sDefs` in Features.cpp with its vanilla value, and change every read of its CVar outside the menus to `Port_FeatureInt`." The same is said in `docs/scripting.md` ("From C, read a lockable setting through the registry rather than its console variable") and in the header comment of `src/port/features/Features.h`.
-- `wiki/EventSystem.md` is byte-identical at `40eef138` and `aefb89b8`: `365df69f` changed the listeners and added the design doc, and did not touch the guide. A contributor who follows the guide today writes a cheat that a romhack cannot disable, which is the case the feature registry exists for. (That is how the maintainer's own three cheats were written, from this guide.)
+A new upstreamable unit, `n64/SuperMario64/patches/upstreamable-eventsystem-guide/`, two patches against the bare pin `aefb89b8`, touching only `wiki/EventSystem.md` (21 lines added, 11 removed in total):
 
-**Three older differences between the guide and the code**, present before `365df69f` too:
+- **0001 "wiki: read the setting through the feature registry in the event guide".** Step 4's example now reads `Port_FeatureInt("cheats.pause_exit_whenever", 0)`, which is what the real `RenderPauseCourseOptions` listener in `src/port/mods/PortEnhancements.cpp` does. One added paragraph says why (only a read through the registry honours a romhack's or mod's disable and force rules), links the "Feature rules" section of `docs/romhacks/DESIGN.md`, and says a new setting needs its row in `sDefs` in `src/port/features/Features.cpp`. The commit message quotes the rule from `docs/romhacks/DESIGN.md` and cites `docs/scripting.md`, the header comment of `src/port/features/Features.h`, and the listener.
+- **0002 "wiki: bring the rest of the event guide's example in line with the code".** The file is named `PortEnhancements.cpp` (the guide said `.c`, three times); `REGISTER_LISTENER` takes the priority second and the callback last (the guide had them reversed); the lambda form the file mostly uses is shown beside the guide's named function; the C++ code fences are marked `cpp`.
 
-- The guide names the file `src/port/mods/PortEnhancements.c`; it is `PortEnhancements.cpp`.
-- The guide registers a named function, `REGISTER_LISTENER(RenderPauseCourseOptions, OnRenderPauseCourseOptions, EVENT_PRIORITY_NORMAL)`. The code and `src/port/events/EVENTS.md` put the priority second and pass a lambda: `REGISTER_LISTENER(RenderPauseCourseOptions, EVENT_PRIORITY_NORMAL, [](IEvent* event) { … })`.
-- The guide's setting name `gPauseExitWhenever` was never the real one (`gCheats.PauseExitWhenever`, feature id `cheats.pause_exit_whenever`).
+The guide's named-function listener was kept, not replaced by a lambda: both forms are in the tree, and keeping it made the second patch smaller.
 
-## Plan
+## Checks
 
-1. After the pin bump, branch at the bare pin in the checkout and edit `wiki/EventSystem.md`: step 4 reads the setting with `Port_FeatureInt`, its lead-in sentence mentions the feature registry, and one added sentence (or short step) says a new setting needs its row in `sDefs`, linking `docs/romhacks/DESIGN.md#feature-rules`. That is commit 1. Commit 2 fixes the three older differences listed above (the `.cpp` file name, the `REGISTER_LISTENER` form with the priority second and a lambda, the real setting name), so the whole example matches the code.
-2. Write each commit message for a reviewer; for commit 1: what the guide showed, what the code does since `365df69f`, why it matters (a listener written from the guide ignores `disable`/`force` rules), and the documents it relies on (`docs/romhacks/DESIGN.md` "Feature rules", `docs/scripting.md`, `src/port/features/Features.h`, the `RenderPauseCourseOptions` listener in `src/port/mods/PortEnhancements.cpp`). Match upstream's commit style (`git log` in the checkout).
-3. `git format-patch --no-cover-letter --base=<pin>` into `n64/SuperMario64/patches/upstreamable-eventsystem-guide/`; no `DEPENDS` (it stands on the bare pin and touches only the guide).
-4. Gates: `tools/check_upstreamable_applies.sh SuperMario64`, `tools/check_patches_apply.sh SuperMario64`. A Markdown-only patch needs no codegen or comment-only proof.
-5. List the unit in `n64/SuperMario64/CLAUDE.md` and `n64/CLAUDE.md` as an upstream candidate. Stage; the maintainer commits and opens the pull request.
+- The claims in the commit messages were checked against the tree at `aefb89b8`: no `REGISTER_LISTENER` call puts the priority last (0 of 52), and 12 calls register a named function.
+- `tools/check_upstreamable_applies.sh SuperMario64`: the unit applies on pristine upstream (three units OK).
+- `tools/check_patches_apply.sh SuperMario64`: 53 patches applied to the game tree, 1 to libultraship.
+- `tools/check_comment_only_streams.sh SuperMario64`: unchanged, both book streams proven.
+- No build was made: the unit changes one Markdown file and the pin did not move, so the clean-build rule for syncs (`CLAUDE.md`) did not apply.
 
-## Decision (William Emerison Six <billsix@gmail.com>, 2026-11-26)
+## Where things are
 
-Scope (b): one pull request with two commits. The first fixes the feature-registry read in step 4 and explains it; the second brings the rest of the example in line with the code. A reviewer can take the first alone.
-
-## Open questions
-
-None.
+- The unit: `n64/SuperMario64/patches/upstreamable-eventsystem-guide/`; it has no `DEPENDS` and is not in `patches/ORDER` (disjoint from every other stream). Listed in `n64/SuperMario64/CLAUDE.md` and `n64/CLAUDE.md`.
+- To submit: `tools/apply_unit.sh SuperMario64 upstreamable-eventsystem-guide` puts the checkout on pristine upstream plus this unit, ready to push to a fork branch.

@@ -1,0 +1,90 @@
+From a035e73aa3d016402e742cca62bd5328b48c2b07 Mon Sep 17 00:00:00 2001
+From: William Emerison Six <billsix@gmail.com>
+Date: Thu, 26 Nov 2026 14:16:25 +0000
+Subject: [PATCH 2/2] wiki: bring the rest of the event guide's example in line
+ with the code
+
+Three details of the worked example in wiki/EventSystem.md do not match
+the code it describes:
+
+- The file is src/port/mods/PortEnhancements.cpp, not PortEnhancements.c
+  (named in steps 2, 4 and 5).
+- REGISTER_LISTENER takes the priority second and the callback last:
+  REGISTER_LISTENER(Event, EVENT_PRIORITY_NORMAL, callback). The guide
+  had them the other way round, which is not how any call in the tree or
+  the snippet in src/port/events/EVENTS.md is written.
+- PortEnhancements.cpp registers most listeners as lambdas written in
+  place. The guide keeps its named function, which is equally valid (the
+  draw-distance listeners are registered that way), and now shows the
+  lambda form beside it.
+
+The code fences for the C++ snippets are marked cpp.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+---
+ wiki/EventSystem.md | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/wiki/EventSystem.md b/wiki/EventSystem.md
+index 6bec3416..d8328b0f 100644
+--- a/wiki/EventSystem.md
++++ b/wiki/EventSystem.md
+@@ -22,11 +22,11 @@ DEFINE_EVENT(RenderPauseCourseOptions,
+ ## 2. Register the Event
+ The system must register the event ID during the engine's registration phase.
+ 
+-**File:** `src/port/mods/PortEnhancements.c`
++**File:** `src/port/mods/PortEnhancements.cpp`
+ 
+ Add your event to the `PortEnhancements_Register` function:
+ 
+-```c
++```cpp
+ void PortEnhancements_Register() {
+     // ...
+     REGISTER_EVENT(RenderPauseCourseOptions);
+@@ -62,9 +62,9 @@ Implement the logic that reacts to the event. This is usually where you check a
+ 
+ Read a setting through the feature registry (`Port_FeatureInt`), not through its CVar. A romhack or mod can disable a feature or force its value, and only a read through the registry honours that; see [Feature rules](../docs/romhacks/DESIGN.md#feature-rules). A new setting also needs its row in `sDefs` in `src/port/features/Features.cpp`.
+ 
+-**File:** `src/port/mods/PortEnhancements.c`
++**File:** `src/port/mods/PortEnhancements.cpp`
+ 
+-```c
++```cpp
+ void OnRenderPauseCourseOptions(IEvent* event) {
+     // Only apply the logic if the feature is enabled
+     if (Port_FeatureInt("cheats.pause_exit_whenever", 0) == 0) {
+@@ -84,17 +84,25 @@ void OnRenderPauseCourseOptions(IEvent* event) {
+ ## 5. Register the Listener
+ Finally, tell the system to execute your callback when the event is triggered.
+ 
+-**File:** `src/port/mods/PortEnhancements.c`
++**File:** `src/port/mods/PortEnhancements.cpp`
+ 
+-Inside `PortEnhancements_Init`, use `REGISTER_LISTENER`:
++Inside `PortEnhancements_Init`, use `REGISTER_LISTENER`. The priority comes second, the callback last:
+ 
+-```c
++```cpp
+ void PortEnhancements_Init() {
+     // ...
+-    REGISTER_LISTENER(RenderPauseCourseOptions, OnRenderPauseCourseOptions, EVENT_PRIORITY_NORMAL);
++    REGISTER_LISTENER(RenderPauseCourseOptions, EVENT_PRIORITY_NORMAL, OnRenderPauseCourseOptions);
+ }
+ ```
+ 
++The callback can also be written in place as a lambda, which is how `PortEnhancements.cpp` registers most of its listeners:
++
++```cpp
++REGISTER_LISTENER(RenderPauseCourseOptions, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
++    // ...
++});
++```
++
+ ---
+ 
+ ## Summary of Macros
+-- 
+2.56.1
+

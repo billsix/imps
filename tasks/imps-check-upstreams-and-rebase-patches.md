@@ -1,6 +1,6 @@
 # imps — check upstreams for updates and rebase our patch series onto them
 
-**Status:** proposed — needs go-ahead (filed 2026-10-07 at the maintainer's request).
+**Status:** ready — third sweep approved 2026-11-26, starts on the maintainer's word (recon and decisions at the end of this file; no pin moved). Sweeps one and two (2026-10-07/08, 2026-10-19/20) are done and logged below.
 **Priority:** 5
 **Difficulty:** 6 (the N64 decomp ports carry most of it; a HarbourMasters bump can be a large refactor, not line drift)
 **Created:** 2026-10-07 (William Emerison Six <billsix@gmail.com>: "look to see for updates to upstream sources, see what's changed, and see if we can rebase our local patches on top. … some of the projects may have taken part of my github pull requests … use your discretion")
@@ -249,3 +249,75 @@ derived artifacts re-checked, docs refreshed. Everything else is up-to-date, or 
 above (OoT standard-c re-cut; PaperMario fresh-clone tag bump). The commits are the agent's under the
 maintainer's unattended-batch authorization (per-command `commit.gpgsign=false`, never written to
 imps's `.git/config`).
+
+## Recon 2026-11-26 (agent, read-only; no pin moved, no checkout touched)
+
+Asked for by William Emerison Six <billsix@gmail.com>, 2026-11-26 ("do the recon for both"). Method:
+`git ls-remote` against each pin; for the develop-pinned games a blobless bare clone outside the repo,
+for `git rev-list --count <pin>..develop` and `git diff --name-only`. Tag-pinned projects are compared
+with the newest release tag (version-sorted, pre-releases excluded), not with a branch head.
+
+### Behind
+
+| Project | Pin | Upstream now | Behind by | What it carries (patches per stream) | Kind of work |
+|---|---|---|---|---|---|
+| OcarinaOfTime (Shipwright `develop`) | `41ae6cd3` | `64df9cb8` (2026-11-23) | 20 commits, 46 files | standard-c 36, rename-decomp 490, ci-appimage 1 | rebase; the rename stream is re-cut (`tools/resolve_rename_conflicts.py`), then both asmdiff checks |
+| MajorasMask (2ship2harkinian `develop`) | `f1dda4c2` | `7e3d051b` (2026-11-23) | 26 commits, 119 files | audio-64bit 1, ci-appimage 1 | rebase |
+| SuperMario64 (Ghostship `develop`) | `40eef138` | `aefb89b8` (2026-10-27) | 11 commits, 211 files | standard-c 46, cheats 3, book 2, ci-appimage 1, fedora-shaderc-deps 1 | rebase, then asmdiff for standard-c and the comment-only proof for book |
+| BanjoKazooie (Lighthouse `develop`) | `4e8dfd23` | `f757b547` (2026-11-16) | 48 commits, 570 files | fixonfedora 4, ci-appimage 1 | rebase; the largest upstream change of the four |
+| ripgrep (tag-pinned) | `e89fff89` (15.2.0) | 16.0.0 (`669cb4c7`) | a major release | docs 3 | rebase, then the comment-only proof; the pin also lives in the Dockerfile's `RIPGREP_PIN` |
+| dash (tag-pinned, kernel.org) | `037bbdfd` (v0.5.13.5) | v0.5.13.6 (`0a896bfc`) | one release | docs and book, 6 in all | rebase, then the comment-only proof. `unixutils/dash/fetch.sh` cites `tasks/reference/dash/`, which does not exist yet (`tasks/dash-refdocs-and-book.md` is open) |
+| fossify (18 repos, each pinned to a release tag) | see below | see below | 11 of 18 behind | 7 in all, comment-only | per repo: rebase where it has a stream, sync where its streams are empty |
+
+fossify, the eleven behind (pinned tag → newest tag): Commons 6.2.0 → 7.1.3; Gallery 1.3.0 → 1.14.3;
+Phone 1.5.0 → 1.11.1; Messages 1.2.0 → 1.10.3; Keyboard 1.2.0 → 1.9.1; Calendar 1.11.0 → 1.12.2;
+Documents 1.0.1 → 1.2.2; File-Manager 1.6.1 → 1.6.5; Music-Player 1.8.1 → 1.8.6; Thank-You 1.3.0 →
+1.4.2; Voice-Recorder 1.7.1 → 1.7.5. The first five are the documented ones, and they are far behind
+(Gallery by eleven minor releases), so their reference docs and doc-region spans will move with them.
+`tasks/fossify-bump-app-pins.md` (proposed) already asks for Gallery and Phone to move, because they do
+not build at their pinned tags; this recon supplies the current tags for it.
+
+### Current
+
+PaperMario (1.0.3, `7f038b85`); gzdoom (g4.14.2) and ZMusic (1.3.0); mineclonia's pair (Luanti 5.18.0,
+Mineclonia 0.124.1); seven fossify repos (Calculator, Camera, Clock, Contacts, Launcher, Notes, Paint).
+The standalone
+libultraship carrier is not a rebase target; upstream `HEAD` is `759b1340`, unchanged since 2026-10-07.
+
+### Carried over from sweep two, still open as far as this file records
+
+- SuperMario64: the standard-c codegen-identity check (`tools/asmdiff.sh`) was pending at `40eef138`.
+- OcarinaOfTime: the asmdiff gate, build and play-test were pending at `41ae6cd3` (its `fetch.sh` says so).
+- Build and play-test of BanjoKazooie, MajorasMask and PaperMario at their current pins: the maintainer's.
+
+Bumping now skips those checks at the old pins; they are then run at the new ones.
+
+### What the agent can do, and what stays with the maintainer
+
+The agent: the replay (`git am --3way` on a branch at the new commit), dropping a patch upstream has
+absorbed, regenerating the series, `tools/check_patches_apply.sh`, `tools/check_upstreamable_applies.sh`,
+`tools/check_comment_only_streams.sh`, the derived-artifact check
+(`tasks/reference/imps/derived-artifact-drift.md`), and the asmdiff checks in a sandbox-only build
+directory (never the bind-mounted `build-cmake/`). Changes are **staged, not committed**: imps is never
+configured unsigned. The maintainer: build and play-test, and the commits.
+
+"Sync" for a project with no patches (mineclonia; the fossify repos with empty streams) means moving the
+pin and checking that the project's own scripts still fetch and build (`CLAUDE.md`, "Staying current
+with upstream").
+
+### Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-26)
+
+- **The third sweep goes ahead** under the 2026-10-07 contract (bump what replays cleanly, stop and log
+  what needs judgment), in this order: MajorasMask, BanjoKazooie, SuperMario64, dash, ripgrep, then
+  OcarinaOfTime. The agent stages each unit; the maintainer commits. It starts when the maintainer says so.
+- **fossify is not part of this sweep.** Its eleven bumps are their own job:
+  `tasks/fossify-sync-upstream-pins.md`.
+
+- **Commit `da20e784` stays as it is.** The agent made it unsigned on 2026-11-26, against the rule in
+  `CLAUDE.md`, and it was already pushed; the maintainer chose not to re-sign it.
+- **Nothing that fails is left as a remark.** An upstream that does not answer, or a project that cannot
+  be brought to its new pin in this sweep, gets its own task (`CLAUDE.md`, "Staying current with upstream").
+
+### Open questions (2026-11-26)
+
+None.

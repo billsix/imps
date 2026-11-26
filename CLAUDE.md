@@ -255,12 +255,24 @@ above, applied across all projects). Two things make it more than a mechanical b
 - **The fossify carrier should stay complete** — new Fossify apps appear in the FossifyOrg org;
   carrying them is the same manifest-line + pinned-release-tag pattern as the existing apps.
 
+**"Rebase" and "sync" name the same request** (William Emerison Six <billsix@gmail.com>, 2026-11-26):
+bring every project up to its current upstream and prove it still works. Where a project carries
+patches, that is the pin-bump operation above (replay the series, re-run its gates). Where it carries
+none (`games/mineclonia`, the fossify apps with empty streams), it is a sync: move the pin, then check
+that the project's own scripts still fetch and build.
+
+**Whatever a sync cannot resolve gets a task** (William Emerison Six <billsix@gmail.com>, 2026-11-26): an upstream that
+no longer answers, a pin that can no longer be fetched, a project that does not build at its new pin. A
+line in the sweep log is not enough; file `tasks/<slug>.md` for it, `blocked` if it waits on something
+outside the sandbox. (The sibling repo impo lost an upstream this way on 2026-11-26.)
+
 Recon is read-only; moving any pin is a deliberate act that waits for the maintainer's go-ahead,
 after which the sweep runs **autonomously on the clean bulk, stopping to log an open question in
 the task on any item that needs a real judgment call** (a conflicting rebase, a standard-c re-cut,
 a large upstream refactor, an ambiguous "did upstream absorb this patch?"). Current sweep tasks:
-`tasks/imps-check-upstreams-and-rebase-patches.md` (all families) and
-`tasks/fossify-add-remaining-apps.md` (the missing Fossify apps).
+`tasks/imps-check-upstreams-and-rebase-patches.md` (all families except fossify),
+and `tasks/fossify-sync-upstream-pins.md` (the fossify pins). The apps missing from the suite were
+added on 2026-10-08 (`tasks/archive/fossify/2026/10/08/fossify-add-remaining-apps.md`).
 
 ## Rules
 

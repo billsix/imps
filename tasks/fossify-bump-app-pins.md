@@ -61,6 +61,10 @@ a different viewpager dep) — or (C) for both if the per-app build isn't worth 
 2. If (A): acceptable that a newer tag may have more Compose migration and need doc-patch re-anchoring?
 
 ## Related
+- [fossify-sync-upstream-pins.md](fossify-sync-upstream-pins.md) (filed 2026-11-26) moves all eleven
+  out-of-date fossify pins to their newest release tags, Gallery and Phone among them. That is option (A)
+  here, applied to both apps. Decided (William Emerison Six <billsix@gmail.com>, 2026-11-26): if both apps build at their
+  newest tags, this task is closed and archived with that one.
 - Surfaced by: [fossify-jdk-toolchain-and-gradle-offline.md](archive/imps/2026/09/20/fossify-jdk-toolchain-and-gradle-offline.md)
   (DONE for Commons). Carrier: `android/fossify/` (`CLAUDE.md`, `repos`, `entrypoint/warm-gradle-cache.sh`).
 - Umbrella: [fossify-refdocs-and-book.md](fossify-refdocs-and-book.md) — Phase B per-app chapters depend on

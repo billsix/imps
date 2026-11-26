@@ -10,14 +10,19 @@ extracted in-app to `bk.o2r`; port assets ship in `lighthouse.o2r`.
 
 Managed by imps: `Lighthouse/` here is a pristine clone of
 https://github.com/HarbourMasters/Lighthouse, pinned by `fetch.sh` at
-`4e8dfd23` (tip of upstream `develop`; re-bumped from `5c948c59` on 2026-10-19,
-which was itself bumped from `6d30df9a` on 2026-10-08), with the maintainer's
-patches applied by `apply.sh`. Not a fork; the patch series is the whole delta.
-The 4-patch series replays **clean** at `4e8dfd23` (content byte-identical,
-`tools/check_patches_apply.sh BanjoKazooie` green); the libultraship gitlink is
-unchanged (`62e973ae`) and Torch moved to `72960ca1` with the base. Upstream's CI
-`main.yml` changed only workflow plumbing (triggers/outputs/artifact naming), not
-the apt build-deps the Dockerfile mirrors. BUILD + play-test pending (maintainer's).
+`f757b547` (tip of upstream `develop` on 2026-11-16, project version 1.2.2;
+bumped from `4e8dfd23` on 2026-11-26, which was bumped from `5c948c59` on
+2026-10-19), with the maintainer's patches applied by `apply.sh`. Not a fork;
+the patch series is the whole delta. The 4-patch `fixonfedora` series replays
+**clean** at `f757b547`. The ci-appimage patch needed one hand resolution in
+`.github/workflows/main.yml`: upstream added a "Fetch commit history" step
+directly above the inline dependency steps the patch deletes; the new step is
+kept and the deletion stands. `tools/check_patches_apply.sh BanjoKazooie` and
+`tools/check_upstreamable_applies.sh BanjoKazooie` are green. The libultraship
+gitlink moved `62e973ae` → `92ed57bc` and Torch `72960ca1` → `7f5d55f9`. The
+build-linux job's apt list and from-source library versions, which the
+Dockerfile mirrors, are unchanged, and so is `docs/BUILDING.md`. BUILD +
+play-test pending (maintainer's).
 
 ## Scripts
 
@@ -63,9 +68,10 @@ Export & verification history:
 
 ## Version notes
 
-- Submodules at the pin: **libultraship `62e973ae`** (was `2917d0f4`/1.3.1-482 at
-  the old pin; moved with the develop bump, URL unchanged) and Torch (moves with
-  the bump too). Asset extraction is Torch-based (like ocarina's pin, unlike mm's
+- Submodules at the pin: **libultraship `92ed57bc`** (1.3.1-518) and Torch
+  `7f5d55f9`. At this pin `.gitmodules` takes libultraship from the **JeodC fork**
+  (https://github.com/JeodC/libultraship, branch `bk-lighthouse`), no longer from
+  Kenix3's mainline, as PaperBoat does. Asset extraction is Torch-based (like ocarina's pin, unlike mm's
   ZAPD pipeline).
 - `ExtractAssets` (the build-time extraction) wants `baserom.z64` in the
   `Lighthouse/` source root — out of imps' scope; in-app extraction is the

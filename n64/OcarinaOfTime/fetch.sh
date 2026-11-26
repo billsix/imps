@@ -14,14 +14,13 @@ cd "$(dirname "$0")"
 UPSTREAM=https://github.com/HarbourMasters/Shipwright.git
 
 # The pinned base commit: tip of upstream's 'develop' branch.
-# Bumped from 9.3.0 (ecd889c2, 2026-10-06) -> develop HEAD 41ae6cd3 on 2026-10-20
-# (agent resync, ../../tasks/imps-check-upstreams-and-rebase-patches.md). The
-# standard-c stream (36) replays byte-clean onto the new base; the rename stream
-# was RE-CUT onto it (resolve_rename_conflicts.py: 2 conflicts / 8 blocks, all
-# mechanical) + a new tail patch reconciling one develop-new reference
-# (func_800FA0B4 -> Audio_GetActiveSeqId). check_renames all green,
-# check_patches_apply green. asmdiff codegen gate + build + play-test pending.
-PIN_SHA=41ae6cd3b68c7cf1855bd865f3d00bd2013667da
+# Bumped 41ae6cd3 -> develop HEAD 64df9cb8 (2026-11-23) on 2026-11-26 (third
+# sweep, ../../tasks/imps-check-upstreams-and-rebase-patches.md). All three
+# streams replay with no conflict: standard-c (36), the rename stream (490, on
+# the standard-c tip) and ci-appimage (1). check_renames all, check_patches_apply
+# and check_upstreamable_applies green; the standard-c asmdiff tree gate is green
+# (486/486 identical). Build + play-test pending. (Was 41ae6cd3, bumped 2026-10-20 from 9.3.0 / ecd889c2.)
+PIN_SHA=64df9cb8e3cd1ad0bcae17d6db2cf98b5d3027eb
 
 if [ ! -d Shipwright ]; then
     git clone "$UPSTREAM" Shipwright

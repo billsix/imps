@@ -19,12 +19,12 @@ UPSTREAM=https://github.com/HarbourMasters/Lighthouse.git
 # per-OS workflow files into main.yml -- the Dockerfile already mirrors main.yml's
 # build-linux job, whose Linux apt list is unchanged) and bumped the project
 # version 1.0.0 -> 1.1.0. BUILD + play-test pending (the maintainer's).
-# Re-bumped to the current develop HEAD on 2026-10-19 (agent resync,
-# tasks/imps-check-upstreams-and-rebase-patches.md): the 4-patch upstream-candidates
-# series still replays clean (tools/check_patches_apply.sh BanjoKazooie green); the
-# libultraship submodule gitlink is unchanged (62e973ae). BUILD + play-test pending.
-# (Was 5c948c59, the 2026-10-03 develop HEAD; before that 6d30df9a.)
-PIN_SHA=4e8dfd23c64b143eb93ae9ee9fbae832cae2a2ef
+# Bumped to the develop HEAD of 2026-11-16 on 2026-11-26 (agent sweep,
+# tasks/imps-check-upstreams-and-rebase-patches.md): both streams apply
+# (tools/check_patches_apply.sh BanjoKazooie green); the libultraship gitlink moved
+# 62e973ae -> 92ed57bc and Torch 72960ca1 -> 7f5d55f9; the project version is 1.2.2.
+# BUILD + play-test pending. (Was 4e8dfd23, bumped 2026-10-19; before that 5c948c59.)
+PIN_SHA=f757b547c8996ad0d67647560098c76bac0898a6
 
 if [ ! -d Lighthouse ]; then
     git clone "$UPSTREAM" Lighthouse

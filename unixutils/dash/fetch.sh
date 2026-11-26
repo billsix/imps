@@ -19,10 +19,10 @@ cd "$(dirname "$0")"
 UPSTREAM_KERNEL=https://git.kernel.org/pub/scm/utils/dash/dash.git
 UPSTREAM_MIRROR=https://github.com/tklauser/dash.git
 
-# The pinned base commit: release tag v0.5.13.5 (the newest dash release as
-# of 2026-09-20; tip of upstream master at that time). Documentation and the
+# The pinned base commit: release tag v0.5.13.6 (the newest dash release as
+# of 2026-11-26; bumped from v0.5.13.5 that day). Documentation and the
 # file:line anchors in tasks/reference/dash/ are written against this commit.
-PIN_SHA=037bbdfd330017c368caf6242f977974123239b5   # v0.5.13.5
+PIN_SHA=0a896bfccbefdd5e79ae8ef6061f7e17e20c03f4   # v0.5.13.6
 
 if [ ! -d checkout/.git ]; then
     if ! git clone "$UPSTREAM_KERNEL" checkout; then

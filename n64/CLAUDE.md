@@ -173,19 +173,19 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
 `tasks/reference/imps/game-port-history.md`.
 
 - `n64/OcarinaOfTime/` — Ship of Harkinian
-  (https://github.com/HarbourMasters/Shipwright), pin `41ae6cd3` (develop HEAD,
-  bumped from ecd889c2/9.3.0 2026-10-20). 36-patch upstream-bound
+  (https://github.com/HarbourMasters/Shipwright), pin `64df9cb8` (develop HEAD of 2026-11-23,
+  bumped from 41ae6cd3 2026-11-26). 36-patch upstream-bound
   `upstreamable-standard-c` stream (assembly-isms → standard C) under the 490-patch
-  `upstreamable-rename-decomp` series (re-cut onto the new base 2026-10-20: 2 conflicts / 8 blocks mechanical, 0 by
-  hand; +2 tail patches reconciling new-at-pin references). `check_renames all`
-  + `check_patches_apply` green (526 patches from the bare pin); LUS
-  `62e973ae`→`da6daf1a`. **asmdiff codegen re-gate + build + play-test pending**
+  `upstreamable-rename-decomp` series, plus the ci-appimage patch; all replayed onto the
+  new pin with no conflict. `check_renames all`, `check_patches_apply` (527 patches from
+  the bare pin) and `check_upstreamable_applies` green; standard-c asmdiff tree gate
+  green (486/486); LUS gitlink unchanged (`da6daf1a`). **build + play-test pending**
   (the maintainer's). Details: `n64/OcarinaOfTime/CLAUDE.md`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
-  (https://github.com/HarbourMasters/2ship2harkinian), pin `f1dda4c2`
-  (re-bumped from e8757c14 2026-10-19; before that 04a1a4319 2026-10-08). One
-  patch (the 64-bit audio/scheduler fixes; the BUILDING.md audio-libs patch was
-  dropped — upstream absorbed it); replays clean at the new pin (gate green, LUS
+  (https://github.com/HarbourMasters/2ship2harkinian), pin `7e3d051b`
+  (bumped from f1dda4c2 2026-11-26; before that e8757c14 2026-10-19). Two
+  patches, one per upstreamable stream (the 64-bit audio/scheduler fixes; the
+  containerized AppImage CI build); both apply at the new pin (gates green, LUS
   gitlink unchanged 7f9b86a5); build/run re-verify pending (maintainer's).
   Details: `n64/MajorasMask/CLAUDE.md`.
 - `n64/SuperMario64/` — Ghostship (https://github.com/HarbourMasters/Ghostship),
@@ -195,10 +195,11 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   (`SuperMario64/book/`). Details:
   `n64/SuperMario64/CLAUDE.md`.
 - `n64/BanjoKazooie/` — Lighthouse
-  (https://github.com/HarbourMasters/Lighthouse), pin `4e8dfd23` (re-bumped from
-  5c948c59 2026-10-19; before that 6d30df9a 2026-10-08). 4-patch `fixOnFedora`
-  series (a submitted upstream PR); replays clean at the new pin (gate green, LUS
-  gitlink unchanged 62e973ae); build/run re-verify pending (maintainer's). Podman
+  (https://github.com/HarbourMasters/Lighthouse), pin `f757b547` (bumped from
+  4e8dfd23 2026-11-26; before that 5c948c59 2026-10-19). 4-patch `fixOnFedora`
+  series (a submitted upstream PR) plus the ci-appimage patch; both apply at the
+  new pin (gates green; LUS gitlink 62e973ae → 92ed57bc, now from the JeodC
+  fork); build/run re-verify pending (maintainer's). Podman
   build. Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
   pin `1.0.3` (`7f038b85`, bumped from 1.0.2 2026-10-20). 2-patch game-tree series

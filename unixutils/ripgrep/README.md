@@ -5,7 +5,7 @@ A pinned checkout of [ripgrep](https://github.com/BurntSushi/ripgrep) carrying
 `doc-region` markers later). ripgrep is documented here, not changed.
 
 ```sh
-./fetch.sh                 # clone upstream into checkout/, detach at tag 14.1.1
+./fetch.sh                 # clone upstream into checkout/, detach at tag 16.0.0
 ./apply.sh                 # git am the comment-only streams (docs, then book)
 make build                 # cargo build the checkout OFFLINE (baked crate cache)
 make check-comment-only    # prove the docs stream is comment-only (host: git + python3)

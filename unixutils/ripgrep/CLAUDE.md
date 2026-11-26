@@ -10,18 +10,19 @@ repo-root `../../CLAUDE.md` (the carrier model) first.
 ## Pin
 
 - Upstream: <https://github.com/BurntSushi/ripgrep>, license MIT OR Unlicense.
-- `PIN_SHA` (in `fetch.sh`) = `e89fff89ac9af12e8d4ce9d5fd07beb408ca730f`, the
-  commit tag **15.2.0** points at, the latest stable release (bumped from 14.1.1
-  on 2026-10-08 — a major-version jump; the 3 comment-only docs patches replay,
-  patch 0003's `glue.rs` doc comment re-placed after upstream inserted a
-  `consume_remaining()` method 14->15). Pinned to a released tag's commit so
+- `PIN_SHA` (in `fetch.sh`) = `669cb4c755db20b26c3af3d923c042ae224c7496`, the
+  commit tag **16.0.0** points at, the latest stable release (bumped from 15.2.0
+  on 2026-11-26 — a major-version jump; the 3 comment-only docs patches replay
+  with no conflict and the comment-only gate is green). Pinned to a released tag's commit so
   reference-doc `file:line` anchors and (later) book doc-region spans stay valid.
-  - `15.2.0` is an **annotated** tag: `PIN_SHA` is the commit it peels to
-    (`git rev-parse 15.2.0^{}`), NOT the tag-object SHA `6ec72de…`. `git rev-parse
+  - `16.0.0` is an **annotated** tag: `PIN_SHA` is the commit it peels to
+    (`git rev-parse 16.0.0^{}`), NOT the tag-object SHA `68069f8…`. `git rev-parse
     HEAD` equals `PIN_SHA`, so `apply.sh`'s pin guard matches.
   - **The pin lives twice** — also `RIPGREP_PIN` in the `Dockerfile` (kept in
-    sync, 2026-10-08). After a bump, rebuild `make image` to re-warm the offline
+    sync, 2026-11-26). After a bump, rebuild `make image` to re-warm the offline
     Cargo cache for the new `Cargo.lock` (NOT yet done at this bump — pending).
+    16.0.0 raises the workspace `rust-version` from 1.85 to 1.96, so the image's
+    Rust toolchain must be at least 1.96 for the build to work.
 
 ## Scripts & build
 

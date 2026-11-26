@@ -20,13 +20,13 @@
 FROM registry.fedoraproject.org/fedora:45
 
 # --- Toolchain versions (override with --build-arg to track a pin bump) -------
-# Commons 6.2.0 (the deepest-documented repo) builds with: Gradle 9.6.1 (its
+# Commons 7.1.3 (the deepest-documented repo) builds with: Gradle 9.7.0 (its
 # wrapper — we do NOT install Gradle, each repo's wrapper fetches its own), Kotlin
-# 2.3.10, AGP 9.3.1, compileSdk/targetSdk 36, kotlinJVMTarget 17. The exemplar
-# APPS pin OLDER toolchains — Gallery/Phone use Gradle 8.11.1, AGP 8.10.x, Kotlin
-# 2.1.21, and compileSdk 34 — so this image installs BOTH SDK platforms (34 + 36)
-# and BOTH default build-tools (35.0.0 for AGP 8.10, 36.0.0 for AGP 9.3.1). Read
-# these out of each repo's gradle/libs.versions.toml at a pin bump.
+# 2.3.10, AGP 9.3.1, compileSdk/targetSdk 36, kotlinJVMTarget 17. Gallery 1.14.3
+# uses Gradle 9.5.1 / AGP 9.2.1 and Phone 1.11.1 Gradle 8.13 / AGP 8.11.1, both
+# with compileSdk 36. Platform 34 and build-tools 35.0.0 are kept for an app tag
+# that still wants them. Read these out of each repo's gradle/libs.versions.toml
+# at a pin bump.
 ARG ANDROID_SDK_PLATFORMS="platforms;android-36 platforms;android-34"
 ARG ANDROID_BUILD_TOOLS="build-tools;36.0.0 build-tools;35.0.0"
 # Google's command-line tools package (the sdkmanager). 11076708 = cmdline-tools

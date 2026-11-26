@@ -20,7 +20,7 @@ rm -rf checkout
 
 - **Upstream:** <https://git.kernel.org/pub/scm/utils/dash/dash.git> (mirror
   <https://github.com/tklauser/dash>), pinned in `fetch.sh` (`PIN_SHA`) at release
-  tag **v0.5.13.5**. `fetch.sh` tries kernel.org first, falls back to the mirror.
+  tag **v0.5.13.6**. `fetch.sh` tries kernel.org first, falls back to the mirror.
 - **Documentation-only:** no `run.sh`, no code changes. `patches/docs/` adds C doc
   comments to the shell-pipeline spine (memalloc/mknodes/parser/expand/eval/exec);
   `patches/book/` will add Sphinx doc-region markers later.

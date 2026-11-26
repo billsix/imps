@@ -193,7 +193,10 @@ configured, pass `ASMDIFF_CMD_FROM=<pre-rename path>` so it reuses that file's r
 old-applied-vs-new-applied is dominated by real upstream changes and is not the gate): (1) re-prove
 `standard-c` byte-identity against the *new* pin's pristine tree —
 `asmdiff_tree.sh <new-pin> <new-pin+standard-c>`; and (2) prove the rename re-cut changed no code —
-`asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`. Both need the configured build; a nested
+`asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`. **Check (2) cannot pass as written** (first run 2026-11-26):
+it compares code before the renames with code after them, so every renamed symbol differs and old
+sources do not compile against the renamed headers. Until `tasks/ocarina-rename-stream-codegen-check-across-renames.md`
+is done, the stand-in is a conflict-free replay plus `check_renames.py all`. Both need the configured build; a nested
 `make`-configure of the project supplies `compile_commands.json`. **Caveat (OoT, 2026-10-20):** when
 the maintainer's *host* build tree (`build-cmake/`, `bldInstall/`) is bind-mounted into the sandbox,
 a fresh in-sandbox `build.sh` fails — cmake refuses the host-path `CMakeCache.txt` (`the current
@@ -238,7 +241,10 @@ tradeoff, and the patch-lifecycle consequence:
   patches, and refresh the pin references and provenance banners in the
   docs — one unit, staged together. **Re-verify every derived artifact
   against its source at each bump** — the family `CLAUDE.md` lists the
-  drift pairs (e.g. the drift table in `n64/CLAUDE.md`).
+  drift pairs (e.g. the drift table in `n64/CLAUDE.md`). **Read
+  `tasks/reference/imps/replaying-a-series-onto-a-new-pin.md` before a bump**: never resolve a
+  conflicted code hunk with patch fuzz, the ci-appimage conflict and its standard resolution, how to
+  regenerate without leaving stale patch files, and what each gate needs.
 
 ### Staying current with upstream — the pin-bump sweep
 

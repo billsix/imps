@@ -7,12 +7,16 @@ Ship of Harkinian family — same shape as SoH (see
 
 Managed by imps: `2ship2harkinian/` here is a pristine clone of
 https://github.com/HarbourMasters/2ship2harkinian, pinned by `fetch.sh` at
-`f1dda4c2` (tip of upstream `develop`; re-bumped from `e8757c14` 2026-10-19,
-which was bumped from `04a1a4319` 2026-10-08), with the maintainer's patches
-applied by `apply.sh`. Not a fork; the patch series is the whole delta. The
-1-patch audio series replays **clean** at `f1dda4c2` (content byte-identical,
-`tools/check_patches_apply.sh MajorasMask` green; upstream has not absorbed it);
-the libultraship gitlink is unchanged (`7f9b86a5`). BUILD + play-test pending.
+`7e3d051b` (tip of upstream `develop` on 2026-11-23; bumped from `f1dda4c2` on
+2026-11-26, which was bumped from `e8757c14` 2026-10-19), with the maintainer's
+patches applied by `apply.sh`. Not a fork; the patch series is the whole delta.
+The audio patch replays **clean** at `7e3d051b` (upstream has not absorbed it).
+The ci-appimage patch needed one hand resolution in `.github/workflows/main.yml`:
+upstream quieted the build-log output of the inline dependency steps that the
+patch deletes, so the deletion stands and upstream's edits to the other job are
+kept. `tools/check_patches_apply.sh MajorasMask` and
+`tools/check_upstreamable_applies.sh MajorasMask` are green; the libultraship
+gitlink is unchanged (`7f9b86a5`). BUILD + play-test pending.
 
 ## Scripts
 

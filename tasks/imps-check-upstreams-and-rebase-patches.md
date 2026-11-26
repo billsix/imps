@@ -1,6 +1,6 @@
 # imps — check upstreams for updates and rebase our patch series onto them
 
-**Status:** ready — third sweep approved 2026-11-26, starts on the maintainer's word (recon and decisions at the end of this file; no pin moved). Sweeps one and two (2026-10-07/08, 2026-10-19/20) are done and logged below.
+**Status:** standing log of the upstream sweeps. Sweep three (2026-11-26) is done except SuperMario64, which has its own task; its account is the last section. Sweeps one and two (2026-10-07/08, 2026-10-19/20) are logged above it as they were written.
 **Priority:** 5
 **Difficulty:** 6 (the N64 decomp ports carry most of it; a HarbourMasters bump can be a large refactor, not line drift)
 **Created:** 2026-10-07 (William Emerison Six <billsix@gmail.com>: "look to see for updates to upstream sources, see what's changed, and see if we can rebase our local patches on top. … some of the projects may have taken part of my github pull requests … use your discretion")
@@ -250,16 +250,22 @@ above (OoT standard-c re-cut; PaperMario fresh-clone tag bump). The commits are 
 maintainer's unattended-batch authorization (per-command `commit.gpgsign=false`, never written to
 imps's `.git/config`).
 
-## Recon 2026-11-26 (agent, read-only; no pin moved, no checkout touched)
+## Sweep three, 2026-11-26 (agent; the maintainer committed the result)
 
-Asked for by William Emerison Six <billsix@gmail.com>, 2026-11-26 ("do the recon for both"). Method:
-`git ls-remote` against each pin; for the develop-pinned games a blobless bare clone outside the repo,
-for `git rev-list --count <pin>..develop` and `git diff --name-only`. Tag-pinned projects are compared
-with the newest release tag (version-sorted, pre-releases excluded), not with a branch head.
+One account of the day, in order: the recon, the decisions, the bumps, and what was left open.
 
-### Behind
+### 1. Recon (read-only)
 
-| Project | Pin | Upstream now | Behind by | What it carries (patches per stream) | Kind of work |
+William Emerison Six <billsix@gmail.com> asked for a recon of both carriers ("do the recon for both"), and
+defined the request: "rebase" and "sync" mean the same thing, and where a project has no patches a sync is
+moving the pin and checking that the project still works. That definition went into `CLAUDE.md` ("Staying
+current with upstream").
+
+The recon compared each pin with upstream using `git ls-remote`; for the develop-pinned games it counted
+commits and files with a blobless bare clone kept outside the repo. Tag-pinned projects were compared with
+the newest release tag (version-sorted, pre-releases excluded), not with a branch head. It found:
+
+| Project | Pin | Upstream now | Behind by | What it carried (patches per stream) | Work the recon expected |
 |---|---|---|---|---|---|
 | OcarinaOfTime (Shipwright `develop`) | `41ae6cd3` | `64df9cb8` (2026-11-23) | 20 commits, 46 files | standard-c 36, rename-decomp 490, ci-appimage 1 | rebase; the rename stream is re-cut (`tools/resolve_rename_conflicts.py`), then both asmdiff checks |
 | MajorasMask (2ship2harkinian `develop`) | `f1dda4c2` | `7e3d051b` (2026-11-23) | 26 commits, 119 files | audio-64bit 1, ci-appimage 1 | rebase |
@@ -269,55 +275,63 @@ with the newest release tag (version-sorted, pre-releases excluded), not with a 
 | dash (tag-pinned, kernel.org) | `037bbdfd` (v0.5.13.5) | v0.5.13.6 (`0a896bfc`) | one release | docs and book, 6 in all | rebase, then the comment-only proof. `unixutils/dash/fetch.sh` cites `tasks/reference/dash/`, which does not exist yet (`tasks/dash-refdocs-and-book.md` is open) |
 | fossify (18 repos, each pinned to a release tag) | see below | see below | 11 of 18 behind | 7 in all, comment-only | per repo: rebase where it has a stream, sync where its streams are empty |
 
-fossify, the eleven behind (pinned tag → newest tag): Commons 6.2.0 → 7.1.3; Gallery 1.3.0 → 1.14.3;
-Phone 1.5.0 → 1.11.1; Messages 1.2.0 → 1.10.3; Keyboard 1.2.0 → 1.9.1; Calendar 1.11.0 → 1.12.2;
-Documents 1.0.1 → 1.2.2; File-Manager 1.6.1 → 1.6.5; Music-Player 1.8.1 → 1.8.6; Thank-You 1.3.0 →
-1.4.2; Voice-Recorder 1.7.1 → 1.7.5. The first five are the documented ones, and they are far behind
-(Gallery by eleven minor releases), so their reference docs and doc-region spans will move with them.
-`tasks/fossify-bump-app-pins.md` (proposed) already asks for Gallery and Phone to move, because they do
-not build at their pinned tags; this recon supplies the current tags for it.
+The recon's patch counts had two errors, found later during the replays: SuperMario64's `book` stream is one
+patch stored in two files, not two patches, and its `cheats` stream is 3 as listed.
 
-### Current
+Already current: PaperMario (1.0.3, `7f038b85`), gzdoom (g4.14.2) with ZMusic (1.3.0), mineclonia (Luanti
+5.18.0, Mineclonia 0.124.1), and seven fossify repos (Calculator, Camera, Clock, Contacts, Launcher, Notes,
+Paint). The standalone libultraship carrier was not a target; upstream `HEAD` was `759b1340`, unchanged since
+2026-10-07.
 
-PaperMario (1.0.3, `7f038b85`); gzdoom (g4.14.2) and ZMusic (1.3.0); mineclonia's pair (Luanti 5.18.0,
-Mineclonia 0.124.1); seven fossify repos (Calculator, Camera, Clock, Contacts, Launcher, Notes, Paint).
-The standalone
-libultraship carrier is not a rebase target; upstream `HEAD` is `759b1340`, unchanged since 2026-10-07.
+Two checks were still pending from sweep two as far as this file recorded: the standard-c codegen check for
+SuperMario64 at `40eef138` and for OcarinaOfTime at `41ae6cd3`.
 
-### Carried over from sweep two, still open as far as this file records
+### 2. Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-26, in the order they were made)
 
-- SuperMario64: the standard-c codegen-identity check (`tools/asmdiff.sh`) was pending at `40eef138`.
-- OcarinaOfTime: the asmdiff gate, build and play-test were pending at `41ae6cd3` (its `fetch.sh` says so).
-- Build and play-test of BanjoKazooie, MajorasMask and PaperMario at their current pins: the maintainer's.
+1. **The third sweep went ahead** under the 2026-10-07 contract (bump what replays cleanly, stop and log what
+   needs judgment), in the order MajorasMask, BanjoKazooie, SuperMario64, dash, ripgrep, OcarinaOfTime. The
+   agent staged each unit; the maintainer committed.
+2. **fossify was taken out of the sweep** and made its own job, `tasks/fossify-sync-upstream-pins.md`,
+   because moving five documented apps many releases looked like a documentation refresh more than a pin
+   bump. (It turned out to replay with no conflict; that task has the record.)
+3. **Commit `da20e784` stayed unsigned.** The agent had made it earlier that day with signing switched off
+   in imps's own config, against the rule in `CLAUDE.md`; the override was removed, and since the commit was
+   already pushed the maintainer chose not to re-sign it.
+4. **Whatever a sync cannot resolve gets a task**, not a line in a log. This came from the sibling repo impo
+   losing an upstream the same day, and went into `CLAUDE.md` ("Staying current with upstream"). It is why
+   SuperMario64 and the rename-stream check below each have their own task.
 
-Bumping now skips those checks at the old pins; they are then run at the new ones.
+### 3. The bumps
 
-### What the agent can do, and what stays with the maintainer
+Each bump was done in the project's checkout on scratch branches and regenerated into `patches/`. The agent
+committed nothing in imps. The scripts are in `tasks/adhoc/imps-third-sweep/`.
 
-The agent: the replay (`git am --3way` on a branch at the new commit), dropping a patch upstream has
-absorbed, regenerating the series, `tools/check_patches_apply.sh`, `tools/check_upstreamable_applies.sh`,
-`tools/check_comment_only_streams.sh`, the derived-artifact check
-(`tasks/reference/imps/derived-artifact-drift.md`), and the asmdiff checks in a sandbox-only build
-directory (never the bind-mounted `build-cmake/`). Changes are **staged, not committed**: imps is never
-configured unsigned. The maintainer: build and play-test, and the commits.
+| Project | Old pin | New pin | Result |
+|---|---|---|---|
+| MajorasMask | `f1dda4c2` | `7e3d051b` | **Bumped.** The audio patch replays as it is. The ci-appimage patch conflicted in `.github/workflows/main.yml`: upstream quieted the log output (`-qq`, `--quiet`) of the inline dependency steps the patch deletes. Resolved by hand: the deletion stands, upstream's edits to the other job are kept. libultraship gitlink unchanged (`7f9b86a5`). `check_patches_apply` and `check_upstreamable_applies` green. |
+| BanjoKazooie | `4e8dfd23` | `f757b547` | **Bumped.** The 4 fixonfedora patches replay as they are. The ci-appimage patch conflicted in `.github/workflows/main.yml`: upstream added a "Fetch commit history" step directly above the block the patch deletes. Resolved by hand: the new step is kept, the deletion stands. libultraship gitlink `62e973ae` → `92ed57bc`, now taken from the JeodC fork (branch `bk-lighthouse`); Torch `72960ca1` → `7f5d55f9`; project version 1.2.2. The build-linux apt list and `docs/BUILDING.md` are unchanged. Both gates green. |
+| SuperMario64 | `40eef138` | (not moved) | **Stopped and logged.** Upstream rewrote how cheats are configured (a feature registry), so the three `cheats/` patches need a port, not a replay. Own task: `tasks/mario64-bump-pin-port-cheats-to-feature-registry.md`, which also records what the trial replay found for the other streams and two defects in the series at the current pin. The checkout is back on the full series at `40eef138`. |
+| dash | v0.5.13.5 | v0.5.13.6 (`0a896bfc`) | **Bumped.** The 6 docs patches replay with no conflict; comment-only gate green. |
+| ripgrep | 15.2.0 | 16.0.0 (`669cb4c7`) | **Bumped.** The 3 docs patches replay with no conflict; comment-only gate green. `RIPGREP_PIN` in the Dockerfile moved with it. Not done: `make image` to re-warm the offline Cargo cache. 16.0.0 raises `rust-version` from 1.85 to 1.96, so the image's toolchain must be at least that. |
+| OcarinaOfTime | `41ae6cd3` | `64df9cb8` | **Bumped.** standard-c (36), the rename stream (490, on the standard-c tip) and ci-appimage (1) all replay with no conflict; `tools/resolve_rename_conflicts.py` was not needed. 21 patch files changed in content (moved context: 19 rename patches, standard-c 0032 and 0036), the rest only in hashes. `check_renames.py all`, `check_patches_apply` (527) and `check_upstreamable_applies` green. libultraship gitlink unchanged (`da6daf1a`); upstream's workflows changed only their runner images. Assembly check 1 (standard-c against the new pin, `tools/asmdiff_tree.sh`): **486 of 486 files identical, none skipped**, against a cmake tree configured in a sandbox-only directory at the standard-c tip. Assembly check 2 (the rename stream) cannot pass as documented and has its own task, `tasks/ocarina-rename-stream-codegen-check-across-renames.md`; the stand-in is the conflict-free replay plus `check_renames.py all`. |
 
-"Sync" for a project with no patches (mineclonia; the fossify repos with empty streams) means moving the
-pin and checking that the project's own scripts still fetch and build (`CLAUDE.md`, "Staying current
-with upstream").
+No patch had been absorbed by upstream. Build and play-test of every bumped project were left to the
+maintainer.
 
-### Decisions (William Emerison Six <billsix@gmail.com>, 2026-11-26)
+What the replays taught is in `tasks/reference/imps/replaying-a-series-onto-a-new-pin.md`, written from
+this sweep: a fuzz retry (`patch -F3`) misplaced one of SuperMario64's cheat blocks without any complaint, so
+the script that did it was deleted and conflicts in code are resolved by reading them; the ci-appimage patch
+conflicts whenever upstream edits near the workflow block it deletes (three projects in this sweep, one
+standard resolution); a regenerated patch can leave a stale file behind; and the assembly gate skips files
+its configured tree does not list.
 
-- **The third sweep goes ahead** under the 2026-10-07 contract (bump what replays cleanly, stop and log
-  what needs judgment), in this order: MajorasMask, BanjoKazooie, SuperMario64, dash, ripgrep, then
-  OcarinaOfTime. The agent stages each unit; the maintainer commits. It starts when the maintainer says so.
-- **fossify is not part of this sweep.** Its eleven bumps are their own job:
-  `tasks/fossify-sync-upstream-pins.md`.
+### 4. Left open, each with its own task
 
-- **Commit `da20e784` stays as it is.** The agent made it unsigned on 2026-11-26, against the rule in
-  `CLAUDE.md`, and it was already pushed; the maintainer chose not to re-sign it.
-- **Nothing that fails is left as a remark.** An upstream that does not answer, or a project that cannot
-  be brought to its new pin in this sweep, gets its own task (`CLAUDE.md`, "Staying current with upstream").
-
-### Open questions (2026-11-26)
-
-None.
+- **SuperMario64** was not bumped: `tasks/mario64-bump-pin-port-cheats-to-feature-registry.md`. Later the same
+  day the maintainer decided the three cheats go into upstream's feature registry, and asked for an upstream
+  documentation patch found on the way, `tasks/mario64-upstream-eventsystem-guide-feature-reads.md`.
+- **The rename stream's codegen check** cannot pass as `CLAUDE.md` described it:
+  `tasks/ocarina-rename-stream-codegen-check-across-renames.md`. The maintainer chose a rename-aware
+  comparison; until it exists, a conflict-free replay plus `check_renames.py all` stands in.
+- **SuperMario64's standard-c codegen check**, pending since sweep two, moved into the SuperMario64 task.
+  OcarinaOfTime's was settled at the new pin (486 of 486 identical, in the table above).

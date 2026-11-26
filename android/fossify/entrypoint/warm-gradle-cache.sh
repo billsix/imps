@@ -30,21 +30,13 @@
 # so the compile task is flavor-qualified (compileFossReleaseKotlin), NOT the
 # bare compileReleaseKotlin a flavorless module would have.
 #
-# REQUIRED vs BEST-EFFORT (verified 2026-09-20): Commons is REQUIRED — it is the
-# documentation centre of gravity and it warms/builds cleanly, so a Commons warm
-# failure FAILS the image build. The two apps are BEST-EFFORT: at their pinned
-# RELEASED tags they have upstream build rot that fails online too, so a failure
-# is LOGGED and warming continues (an unbuildable app must not block the image's
-# achievable Commons offline capability). Known state at the current pins:
-#   * Gallery 1.3.0 — UNBUILDABLE online OR offline. Its published dependency
-#     org.fossify:commons:3dd1f7f33e transitively needs
-#     com.github.duolingo:rtl-viewpager:940f12724f, whose own JitPack build fails
-#     (it needs gradle-bintray-plugin from the shut-down jcenter.bintray.com), so
-#     the artifact 404s permanently. Nothing to warm — not a network/JDK issue.
-#   * Phone 1.5.0 — builds on JDK 17 (its AGP 8.10.1 rejected the Phase-A JDK 25,
-#     failing with the bare version string "25.0.4.1"); warms here.
-# Re-check both at a pin bump: a newer app tag may drop the dead transitive / lift
-# the AGP-JDK floor.
+# REQUIRED vs BEST-EFFORT: Commons is REQUIRED — it is the documentation centre
+# of gravity, so a Commons warm failure FAILS the image build. The two apps are
+# BEST-EFFORT: a released app tag can depend on a published artifact that no
+# longer resolves anywhere (Gallery 1.3.0 and Phone 1.5.0 did), so an app failure
+# is LOGGED and warming continues. At the current pins (Commons 7.1.3, Gallery
+# 1.14.3, Phone 1.11.1; verified 2026-11-26) all three warm and build.
+# Re-check at a pin bump.
 #
 # Usage (from the Dockerfile, network on):
 #   warm-gradle-cache.sh <manifest-path> <scratch-dir>

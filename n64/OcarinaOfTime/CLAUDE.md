@@ -8,8 +8,8 @@ central glue), and the **libultraship** runtime (`libultraship/` submodule).
 
 Managed by imps: `Shipwright/` here is a pristine clone of
 https://github.com/HarbourMasters/Shipwright, pinned by `fetch.sh` at
-`41ae6cd3` (tip of upstream `develop`, bumped from `ecd889c2`/9.3.0 on
-2026-10-20), with the maintainer's patches applied by
+`64df9cb8` (tip of upstream `develop` on 2026-11-23; bumped from `41ae6cd3` on
+2026-11-26, which was bumped from `ecd889c2`/9.3.0 on 2026-10-20), with the maintainer's patches applied by
 `apply.sh`. It is not a fork and has no personal branches — the patch series is
 the whole delta.
 
@@ -58,9 +58,13 @@ symbols that no longer exist. Stream folders stay separate regardless (keeps eac
   `../../tasks/ocarina-standard-c-explained-diffs.md`** ("Accepted IN the stream"
   section) — so the invariant at 9.3.0 is "byte-identical OR a behavior-equivalent
   diff explained there". Re-run the tree gate at the next bump. **Re-applied onto
-  develop HEAD `41ae6cd3` 2026-10-20** — the 36 replay with no conflict (`git am`),
-  but the asmdiff codegen re-gate at this pin is **PENDING** (needs a configured
-  Shipwright build; see the imps master `CLAUDE.md` asmdiff note). Also not in
+  develop HEAD `64df9cb8` 2026-11-26** (and before that onto `41ae6cd3`,
+  2026-10-20) — the 36 replay with no conflict (`git am`),
+  and the asmdiff tree gate at this pin is **green: 486 of 486 files compile to
+  identical assembly, none skipped** (`tools/asmdiff_tree.sh 64df9cb8 <standard-c tip>`,
+  2026-11-26, against a cmake tree configured in a sandbox-only directory with the
+  checkout at the standard-c tip, so the address-named files the rename stream
+  later renames are in `compile_commands.json`). Also not in
   the stream: rewrites whose codegen differs (same doc, the 18-item excluded list)
   and the naming classes (stack-slot locals, `argN`, per-actor `params` macros).
   Catalogue + per-batch log: `../../tasks/archive/ocarina/2026/09/23/ocarina-de-disassemble-ugly-c.md`;
@@ -72,7 +76,10 @@ symbols that no longer exist. Stream folders stay separate regardless (keeps eac
   `41ae6cd3`'s `standard-c` tip `2feabad0`** (`resolve_rename_conflicts.py` resolved
   the rename-conflict blocks mechanically — our side + that patch's renames + its
   provenance tags; the 2026-10-20 re-cut had 2 conflicts / 8 blocks, all mechanical,
-  0 by hand; `check_renames all` green). Still **one file per patch** (0001 renames
+  0 by hand; `check_renames all` green). **Replayed 2026-11-26 onto develop HEAD
+  `64df9cb8`'s `standard-c` tip with no conflict at all** (19 patches changed in
+  content through moved context, the rest only in hashes; `check_renames all`
+  green, so no reference new at this pin still uses an old name). Still **one file per patch** (0001 renames
   the 18 address-named `soh/src/code/code_<addr>.c` files, each other patch names the
   address-named symbols in one definition file), **plus two tail patches**: **0489**
   reconciles the renamed cutscene symbols with call sites new at the `9.3.0` pin

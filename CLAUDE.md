@@ -193,7 +193,10 @@ configured, pass `ASMDIFF_CMD_FROM=<pre-rename path>` so it reuses that file's r
 old-applied-vs-new-applied is dominated by real upstream changes and is not the gate): (1) re-prove
 `standard-c` byte-identity against the *new* pin's pristine tree —
 `asmdiff_tree.sh <new-pin> <new-pin+standard-c>`; and (2) prove the rename re-cut changed no code —
-`asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`. Both need the configured build; a nested
+`asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`. **Check (2) cannot pass as written** (first run 2026-11-26):
+it compares code before the renames with code after them, so every renamed symbol differs and old
+sources do not compile against the renamed headers. Until `tasks/ocarina-rename-stream-codegen-check-across-renames.md`
+is done, the stand-in is a conflict-free replay plus `check_renames.py all`. Both need the configured build; a nested
 `make`-configure of the project supplies `compile_commands.json`. **Caveat (OoT, 2026-10-20):** when
 the maintainer's *host* build tree (`build-cmake/`, `bldInstall/`) is bind-mounted into the sandbox,
 a fresh in-sandbox `build.sh` fails — cmake refuses the host-path `CMakeCache.txt` (`the current
@@ -238,7 +241,10 @@ tradeoff, and the patch-lifecycle consequence:
   patches, and refresh the pin references and provenance banners in the
   docs — one unit, staged together. **Re-verify every derived artifact
   against its source at each bump** — the family `CLAUDE.md` lists the
-  drift pairs (e.g. the drift table in `n64/CLAUDE.md`).
+  drift pairs (e.g. the drift table in `n64/CLAUDE.md`). **Read
+  `tasks/reference/imps/replaying-a-series-onto-a-new-pin.md` before a bump**: never resolve a
+  conflicted code hunk with patch fuzz, the ci-appimage conflict and its standard resolution, how to
+  regenerate without leaving stale patch files, and what each gate needs.
 
 ### Staying current with upstream — the pin-bump sweep
 
@@ -255,12 +261,24 @@ above, applied across all projects). Two things make it more than a mechanical b
 - **The fossify carrier should stay complete** — new Fossify apps appear in the FossifyOrg org;
   carrying them is the same manifest-line + pinned-release-tag pattern as the existing apps.
 
+**"Rebase" and "sync" name the same request** (William Emerison Six <billsix@gmail.com>, 2026-11-26):
+bring every project up to its current upstream and prove it still works. Where a project carries
+patches, that is the pin-bump operation above (replay the series, re-run its gates). Where it carries
+none (`games/mineclonia`, the fossify apps with empty streams), it is a sync: move the pin, then check
+that the project's own scripts still fetch and build.
+
+**Whatever a sync cannot resolve gets a task** (William Emerison Six <billsix@gmail.com>, 2026-11-26): an upstream that
+no longer answers, a pin that can no longer be fetched, a project that does not build at its new pin. A
+line in the sweep log is not enough; file `tasks/<slug>.md` for it, `blocked` if it waits on something
+outside the sandbox. (The sibling repo impo lost an upstream this way on 2026-11-26.)
+
 Recon is read-only; moving any pin is a deliberate act that waits for the maintainer's go-ahead,
 after which the sweep runs **autonomously on the clean bulk, stopping to log an open question in
 the task on any item that needs a real judgment call** (a conflicting rebase, a standard-c re-cut,
 a large upstream refactor, an ambiguous "did upstream absorb this patch?"). Current sweep tasks:
-`tasks/imps-check-upstreams-and-rebase-patches.md` (all families) and
-`tasks/fossify-add-remaining-apps.md` (the missing Fossify apps).
+`tasks/imps-check-upstreams-and-rebase-patches.md` (all families except fossify),
+and `tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md` (the fossify pins). The apps missing from the suite were
+added on 2026-10-08 (`tasks/archive/fossify/2026/10/08/fossify-add-remaining-apps.md`).
 
 ## Rules
 

@@ -35,11 +35,11 @@ Read from the `github`-style upstream at the tag; re-verify on a pin bump.
 
 | repo     | tag   | pin SHA (commit) | commit date | UI stack notes |
 |----------|-------|------------------|-------------|----------------|
-| Commons  | 6.2.0 | `70c2c6eab9e61b7a38f6d232ca1e326a51ce1353` | 2026-07-31 | mixed Views + Compose (`compose/` package present) |
-| Gallery  | 1.3.0 | `7c11d0a2ffac25902b4007ca1f45d05080fa8f52` | 2025-05-31 | mostly classic Views/XML |
-| Phone    | 1.5.0 | `572590d3b0909a124038197ea95baa17a2bb25a6` | 2025-06-06 | classic Views/XML |
-| Messages | 1.2.0 | `fa05eb582b54a8d22a25a714676c5cc9b0a71c22` | 2025-06-04 | classic Views/XML |
-| Keyboard | 1.2.0 | `cc016c06bf6e4ef5dfe8ab150f65449f3140b967` | 2025-06-03 | classic Views/XML |
+| Commons  | 7.1.3 | `227e7d3cdea2343679eb0863bb597fc7a9200b4d` | 2026-10-10 | mixed Views + Compose (`compose/` package present) |
+| Gallery  | 1.14.3 | `b286bf52f755474bc4f8fdf1d68e17765d4316d4` | 2026-11-21 | mostly classic Views/XML |
+| Phone    | 1.11.1 | `7de52a31a4d3cfc53e6cbc298a17ffca4e69141e` | 2026-02-03 | classic Views/XML |
+| Messages | 1.10.3 | `60f3557be0cb5d8dfe472f2434a224236eb6620a` | 2026-11-21 | classic Views/XML |
+| Keyboard | 1.9.1 | `1a2ecdff4e07826d8673576c82637541abbe5264` | 2026-02-02 | classic Views/XML |
 
 Compose/Views migration is mid-flight suite-wide, so pins are deliberately at
 released tags; note in a doc which UI stack the code you anchor uses (open
@@ -56,27 +56,33 @@ present; documentation depth is the refdocs task's call, not a fetch concern
 | repo | tag | commit date |
 |------|-----|-------------|
 | Calculator | 1.4.0 | 2026-01-30 |
-| Calendar | 1.11.0 | 2026-09-23 |
+| Calendar | 1.12.2 | 2026-11-07 |
 | Camera | 1.5.0 | 2026-01-30 |
 | Clock | 1.6.0 | 2026-01-30 |
 | Contacts | 1.6.0 | 2026-01-30 |
-| Documents | 1.0.1 | 2026-08-01 |
-| File-Manager | 1.6.1 | 2026-02-17 |
+| Documents | 1.2.2 | 2026-11-21 |
+| File-Manager | 1.6.5 | 2026-11-21 |
 | Launcher | 1.10.0 | 2026-02-17 |
-| Music-Player | 1.8.1 | 2026-02-17 |
+| Music-Player | 1.8.6 | 2026-11-21 |
 | Notes | 1.7.0 | 2026-01-30 |
 | Paint | 1.4.0 | 2026-01-30 |
-| Thank-You | 1.3.0 | 2026-01-30 |
-| Voice-Recorder | 1.7.1 | 2026-02-17 |
+| Thank-You | 1.4.2 | 2026-11-07 |
+| Voice-Recorder | 1.7.5 | 2026-11-21 |
 
 SHAs are in the [`repos`](repos) manifest. **Flashlight** is omitted — it has no
 released tag yet; add it when it cuts a release. Not-yet-cloned: run `./fetch.sh`
 to pull all (the comment-only gate skips un-cloned repos; the 13 SHAs were
 confirmed to exist via `git ls-remote` when added).
 
-Commons 6.2.0 build toolchain (from `gradle/libs.versions.toml`): Gradle 9.6.1
+Commons 7.1.3 build toolchain (from `gradle/libs.versions.toml`): Gradle 9.7.0
 (project wrapper), Kotlin 2.3.10, AGP 9.3.1, compileSdk/targetSdk 36,
-kotlinJVMTarget 17.
+kotlinJVMTarget 17. Gallery 1.14.3: Gradle 9.5.1, AGP 9.2.1, published Commons
+7.1.3. Phone 1.11.1: Gradle 8.13, AGP 8.11.1, Kotlin 2.3.0, published Commons
+6.1.0. All three use compileSdk 36.
+
+All pins were moved to each repo's newest release tag on 2026-11-26
+(`../../tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md`); the seven doc patches replayed
+with no conflict.
 
 ## Doc streams (`patches/<repo>/docs/`) — comment-only KDoc
 
@@ -126,9 +132,9 @@ than the earlier per-hunk "is every changed line a comment?" check — it proves
 token identity of what the compiler sees. It needs no Android SDK (git + python3
 only), so run it host-side before staging regenerated patches.
 
-## Build status — image + Commons OFFLINE build VERIFIED (JDK 17, baked cache)
+## Build status — image + Commons, Gallery, Phone OFFLINE builds VERIFIED (JDK 17, baked cache)
 
-Verified 2026-09-20, nested (`NESTED_PODMAN=1`), after the JDK-17 + Gradle-offline
+Toolchain verified 2026-09-20, nested (`NESTED_PODMAN=1`), after the JDK-17 + Gradle-offline
 hardening (`../../tasks/fossify-jdk-toolchain-and-gradle-offline.md`):
 
 - **JDK: Adoptium/Temurin 17** (`temurin-17-jdk`, GPG-verified via the Adoptium
@@ -138,11 +144,11 @@ hardening (`../../tasks/fossify-jdk-toolchain-and-gradle-offline.md`):
   satisfies AGP's floor and matches the compile target — removing the off-target
   uncertainty the Phase-A JDK 25 had. (JDK 25 also literally broke Phone: its AGP
   8.10.1 aborted with the bare version string `25.0.4.1`; JDK 17 fixes that.) One
-  JDK-17 daemon runs both Gradle 9.6.1 (Commons) and 8.11.1 (the apps), so no
+  JDK-17 daemon runs every repo's Gradle wrapper (9.7.0 Commons, 9.5.1 Gallery, 8.13 Phone), so no
   toolchain-vs-daemon split is needed.
 - **`make image`** builds the Fedora-45 image (~4 GB): Temurin 17, Android SDK
-  platform-tools + **platforms 34 & 36** + **build-tools 35.0.0 & 36.0.0** (Commons
-  wants 36; the apps want 34 + build-tools 35), licenses accepted, then the Gradle
+  platform-tools + **platforms 34 & 36** + **build-tools 35.0.0 & 36.0.0** (all three
+  documented repos use compileSdk 36 at the current pins; 34 and build-tools 35 remain from the older app pins), licenses accepted, then the Gradle
   cache is **warmed at build time** (see next bullet).
 - **Offline-self-contained (the mvp `/venv` analogue).** At image-build,
   `entrypoint/warm-gradle-cache.sh` clones each documented repo at its manifest pin
@@ -156,28 +162,32 @@ hardening (`../../tasks/fossify-jdk-toolchain-and-gradle-offline.md`):
   now met for Commons. (Comment-only proof is independent: `check-comment-only.sh`
   runs host-side and stays the real gate.)
 
-### The two exemplar apps DON'T build at their pins — upstream JitPack/Bintray rot
+### All three documented repos build at the current pins, online and offline
 
-Both Gallery and Phone fail to build **online AND offline** at their pinned RELEASED
-tags, because each depends on an *old published* `org.fossify:commons` that JitPack
-can no longer serve (this is orthogonal to the JDK/offline work — warming can't cache
-what won't resolve anywhere). The warm treats them as **best-effort** (a failure is
-logged, Commons is the only required warm), so the image still builds:
+Verified 2026-11-26, nested, after every pin moved to its newest release tag
+(`../../tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md`). `make image`
+warmed all three (`BUILD SUCCESSFUL` for Commons 7.1.3, Gallery 1.14.3 and
+Phone 1.11.1), and each then compiled with the doc patches applied under
+`--network=none` (`./gradlew --no-daemon --offline`): Commons
+`:commons:compileReleaseKotlin`, Gallery and Phone `:app:compileFossReleaseKotlin`.
+The image export/import roundtrip was not repeated at these pins.
 
-- **Gallery 1.3.0** → published `org.fossify:commons:3dd1f7f33e` → transitive
-  `com.github.duolingo:rtl-viewpager:940f12724f`, whose **own** JitPack build fails
-  (it needs `gradle-bintray-plugin` from the shut-down `jcenter.bintray.com`), so the
-  artifact 404s permanently. Offline it fails with "No cached version … for offline
-  mode" — same missing dep.
-- **Phone 1.5.0** → published `org.fossify:commons:3.0.3`, which **404s** on JitPack
-  (both `.pom` and `.aar`). (JDK 17 got Phone past the JDK-25 abort; the dep is just
-  gone.)
-
-Fix path when the maintainer wants an app built: **bump Gallery/Phone to newer tags**
-whose published-Commons dependency still resolves (re-check at the bump), or substitute
-the locally-checked-out Commons for the published artifact. Messages/Keyboard were not
-attempted (undocumented, not warmed). The comment-only invariant does **not** depend on
+Gallery and Phone did **not** build at their previous pins (1.3.0, 1.5.0): each
+depended on an old published `org.fossify:commons` artifact that JitPack no longer
+serves. The newer tags depend on published Commons 7.1.3 and 6.1.0, which resolve.
+The warm still treats the two apps as **best-effort** (a failure is logged, Commons
+is the only required warm), so a future tag with a dead dependency cannot block the
+image. Messages/Keyboard were not attempted (undocumented, not warmed). The comment-only invariant does **not** depend on
 any app build; `check-comment-only.sh` is the real, verified gate for all seven streams.
+
+## Moving the pins
+
+`../../tools/sync_fossify_pins.sh [<repo> …]` moves every pin in `repos` to its repo's newest release tag
+(pre-releases excluded). For a repo with a docs stream it replays the stream onto the new tag first and
+moves that repo's line only when the replay is clean; a conflicting repo is reported and left alone. Then:
+`make fetch apply`, `make check-comment-only`, `make image` (it warms the Gradle cache at the new pins), and
+refresh the pins tables above. Last run 2026-11-26:
+`../../tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md`.
 
 ## Conventions
 

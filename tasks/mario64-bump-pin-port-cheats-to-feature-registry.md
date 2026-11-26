@@ -1,64 +1,66 @@
-# SuperMario64 — bump the pin to Ghostship `aefb89b8`, porting the cheats to upstream's feature registry
+# SuperMario64 — bumped the pin to Ghostship `aefb89b8`, with the cheats ported to upstream's feature registry
 
-**Status:** ready — decision recorded 2026-11-26; starts on the maintainer's word
-**Priority:** 4
-**Difficulty:** 5 (the replay is mostly done and understood; the cheats need a small port to a new upstream API, and the build files changed a lot)
-**Created:** 2026-11-26 (agent, third upstream sweep; stopped and logged under the sweep contract in `tasks/imps-check-upstreams-and-rebase-patches.md`. Filed as its own task because a sync item that does not resolve gets a task: `CLAUDE.md`, "Staying current with upstream").
+**Done 2026-11-26** (agent; William Emerison Six <billsix@gmail.com>, 2026-11-26: "put them in the feature table", then "start the SuperMario64 bump"). The maintainer committed the bump, then the clean build and the CI-patch fix it led to. The play-test was left to the maintainer; the cheats in particular need one.
 
-## BLUF
+## Why it was its own task
 
-The third sweep did not bump SuperMario64: upstream Ghostship rewrote how cheats and enhancements are configured, and the three `cheats/` patches cannot be replayed onto it mechanically. The pin stays at `40eef138` and the checkout is back on the full series there (`tools/check_patches_apply.sh SuperMario64` green). Done means the pin is `aefb89b8` (or the head at that time), all streams apply, the standard-c stream is proven codegen-identical at the new pin, the book stream is proven comment-only, and the derived build files match upstream's.
+The third upstream sweep (`tasks/imps-check-upstreams-and-rebase-patches.md`) stopped at SuperMario64. Upstream Ghostship had moved `40eef138` → `aefb89b8` (11 commits, 211 files; head dated 2026-10-27), and commit `365df69f` "Implemented romhack support (#300)" reorganised `src/port/mods/PortEnhancements.cpp`, the file all three cheat patches edit. A fuzz retry of the conflicted hunks placed one listener block inside another listener's lambda without complaint, so the replay was discarded and the bump was filed here. The lesson is in `tasks/reference/imps/replaying-a-series-onto-a-new-pin.md`.
 
-## Context
+## Decisions, in the order they were made (William Emerison Six <billsix@gmail.com>, 2026-11-26)
 
-**Read first:** `n64/SuperMario64/CLAUDE.md`, `n64/CLAUDE.md` (streams, `ORDER`, the two lanes), `tasks/reference/imps/standard-c-tooling.md` (the asmdiff gate) and `tasks/reference/imps/derived-artifact-drift.md`.
+1. **Port the cheats, do not just re-place them.** The agent offered (a) upstream's feature registry or (b) the smallest change that keeps the direct CVar reads; the maintainer chose to port.
+2. **Find the event-system document the cheats were written from, before deciding the form.** It is `wiki/EventSystem.md` in Ghostship, and it is byte-identical at both pins: the event system did not change. Upstream added a second layer beside it, the feature registry (`docs/romhacks/DESIGN.md`, "Feature rules"; `src/port/features/Features.h`), whose rule is: add the setting to `sDefs` in `Features.cpp` with its vanilla value, and change every read of its CVar outside the menus to `Port_FeatureInt`.
+3. **The cheats go into the feature table**, so a romhack or mod can disable or force them like upstream's own cheats. The alternative, leaving them outside the table so they always work, was declined.
+4. **The guide's stale listener example gets an upstream patch**: `tasks/mario64-upstream-eventsystem-guide-feature-reads.md` (a separate task; it stands on this pin).
 
-**Upstream moved** `40eef138` → `aefb89b8` (11 commits, 211 files, +18058 −1603; head dated 2026-10-27). The commit that matters is `365df69f` "Implemented romhack support (#300)". The libultraship gitlink moved `93a1a417` → `37daaa66` and Torch `106621f0` → `f83dfb3b`.
+5. **Every sync or rebase ends with a clean build made by the agent.** Ruled after the bump was committed (`CLAUDE.md`, "Every sync or rebase ends with a clean build"). It is why this record has a build section, and it found the defect described there.
 
-**What the trial replay found (2026-11-26, in the checkout on a scratch branch, then discarded):**
+Choices the agent made during the work:
+
+6. **The cheats' rows were also added to the id table in `docs/romhacks/DESIGN.md`**, because upstream keeps that table in step with `sDefs`.
+7. **The fedora-shaderc-deps docs patch was dropped.** Its reason was that the build failed on Fedora without `libshaderc-devel`. Upstream commit `15e73cbe` now documents `vulkan-loader-devel vulkan-headers libshaderc-devel` as optional packages for the Vulkan renderer and builds without that renderer when they are missing, so the patch had nothing left to fix.
+8. **`installdependencies.sh` gained `vulkan-loader-devel vulkan-headers`**, to follow upstream's new optional line and keep the Vulkan renderer in the maintainer's builds.
+
+## What was done, per stream
 
 | Stream | Patches | Result at `aefb89b8` |
 |---|---|---|
-| `upstreamable-standard-c` | 46 | 45 apply as they are. Patch 0030 (remove `UNUSED u8 filler[]` padding) conflicts in `src/game/behaviors/piranha_bubbles.inc.c`: upstream changed the line above the one the patch deletes (`curAnim->loopEnd` became `obj_cur_anim(parent)->loopEnd`). Resolution: keep upstream's line, delete the padding line. |
-| `cheats` | 3 | **Does not replay.** All three touch `src/port/mods/PortEnhancements.cpp`, which upstream rewrote (below). |
-| `book` | 1 (see "Duplicate file") | One marker pair needs re-anchoring: `sine_lookup` in `src/engine/math_util.h`, where upstream changed `sins`/`coss` to cast through `s32`. The markers go around the new lines. The book text that quotes the old macros needs the same update. |
-| `upstreamable-ci-appimage` | 1 | Conflicts in `.github/workflows/main.yml`, not examined further. On MajorasMask and BanjoKazooie the same patch conflicted because upstream edited next to the block the patch deletes. |
-| `upstreamable-fedora-shaderc-deps` | 1 | Not reached. |
-| `patches-libultraship/book` | 1 | Not tried; it is keyed to the libultraship gitlink, which moved. |
+| `upstreamable-standard-c` | 46 | 45 replayed as they were. Patch 0030 conflicted in `src/game/behaviors/piranha_bubbles.inc.c` (upstream changed the line above the padding line the patch deletes); resolved by hand: upstream's line kept, the padding line deleted. |
+| `cheats` | 3 | Ported, one commit each, authorship and dates kept. Events, `CALL_…EVENT` sites and menu widgets replayed unchanged. In `PortEnhancements.cpp` each listener was placed at a named anchor and reads `Port_FeatureInt("cheats.super_jump" / "cheats.infinite_air_jumps" / "enhancements.disable_skybox", 0)`. Each cheat has its row in `sDefs` and in the design doc's table. Patch 0001 no longer adds the stray conflict-marker lines it used to carry (0002 used to remove them), so each patch now compiles on its own. |
+| `book` | 1 | Replayed; the `sine_lookup` markers in `src/engine/math_util.h` were re-anchored around upstream's changed `sins`/`coss` macros (they now cast through `s32`). The stale duplicate file `0001-doc-region-markers.patch` was removed, so the stream is one file for its one commit. `book/docs/appendix-binary-angles.rst` gained a sentence about the new cast. |
+| `upstreamable-ci-appimage` | 1 | Conflicted in `.github/workflows/main.yml`: upstream added two lines (`max-size`, `save`) to the ccache step inside the block the patch deletes. Resolved the standard way: the deletion stands, upstream's edits elsewhere are kept. Changed again after the clean build (below). |
+| `upstreamable-fedora-shaderc-deps` | 1 → 0 | Dropped (decision 7); the stream folder is gone. |
+| `patches-libultraship/book` | 1 | Replayed with no conflict onto libultraship `37daaa66`; regenerated under its subject's file name, the old short-named file removed. |
 
-**The cheats and the feature registry.** At the old pin a cheat read its setting with `CVarGetInteger("gCheats.AlwaysFlyTripleJump", 0)`. At the new pin upstream reads it with `Port_FeatureInt("cheats.always_fly_triple_jump", 0)`, and a table in `src/port/features/Features.cpp` maps each feature id to its CVar (`{ "cheats.always_fly_triple_jump", CVAR_CHEAT("AlwaysFlyTripleJump"), Kind::Toggle, 0 }`). The menu in `src/port/ui/GhostshipMenuEnhancements.cpp` still binds widgets to CVars. The maintainer's three patches (high jump, infinite jumps, disable skybox) add listeners that call `CVarGetInteger("gCheats.SuperJump", …)` and the like, and add menu widgets.
+The pin is `aefb89b85e7b78daff62b491ebb2669d2d9270f0`. Submodules moved with it: libultraship `93a1a417` → `37daaa66` (URL unchanged, Kenix3) and Torch `106621f0` → `f83dfb3b`.
 
-**The event system itself did not change.** The guide the cheats were written from, `wiki/EventSystem.md` in Ghostship ("Implementing New Events in the Event System": `DEFINE_EVENT`, `REGISTER_EVENT`, `CALL_CANCELLABLE_EVENT`, a listener, `REGISTER_LISTENER`), is byte-identical at `40eef138` and `aefb89b8`. Its companion `src/port/events/EVENTS.md` only gained 68 lines (the "Game Data" and "Net" events). The feature registry is a second layer beside the events, documented in Ghostship's `docs/romhacks/DESIGN.md` ("Feature rules") and `src/port/features/Features.h`. Its rule, quoted from the design doc: "To make another setting lockable, add it to `sDefs` in Features.cpp with its vanilla value, and change every read of its CVar outside the menus to `Port_FeatureInt`." Upstream has not added any of the three cheats itself (no `MarioHighJump`, `MarioAirborneActionUpdate`, `SuperJump`, `InfiniteAirJumps` or `DisableSkybox` at `aefb89b8`). The guide's step 4 still shows a listener reading `CVarGetInteger`; fixing that upstream is `tasks/mario64-upstream-eventsystem-guide-feature-reads.md`.
+## Checks
 
-**A trap found on the way:** retrying the conflicted cheat hunks with `patch -F3` placed the high-jump listener block inside another listener's lambda (before its closing `});`). It applied without complaint and would not have compiled. The cheats must be placed by hand. The fuzz-retry script was deleted, and the rule is in `tasks/reference/imps/replaying-a-series-onto-a-new-pin.md`: a conflicted hunk in code is resolved by reading it.
+- **`tools/check_patches_apply.sh SuperMario64`:** 51 patches applied to the game tree, 1 to libultraship.
+- **`tools/check_upstreamable_applies.sh SuperMario64`:** both units (ci-appimage 1, standard-c 46) apply on pristine upstream.
+- **`tools/check_comment_only_streams.sh SuperMario64`:** both book streams proven comment-only.
+- **standard-c codegen, the check pending since sweep two: 104 of 104 touched files compile to identical assembly.** `tools/asmdiff_tree.sh <pin> <standard-c tip>` reported 47 identical and 57 skipped; the 57 are `*.inc.c` files, which the tree gate skips because they have no compile command of their own. Each was then run through `tools/asmdiff.sh`, which handles included files, and all 57 were identical. The cmake tree was configured in a sandbox-only directory, after `git submodule update` to the new gitlinks and installing `mbedtls-devel` in the sandbox.
+- **Compile check of the ported cheats:** `PortEnhancements.cpp`, `Features.cpp`, `GhostshipMenuEnhancements.cpp`, `mario.c`, `mario_actions_airborne.c` and `skybox.c` pass `-fsyntax-only` with their recorded flags at the cheats tip; `PortEnhancements.cpp`, `mario.c` and `mario_actions_airborne.c` also pass at each of the two earlier cheat commits, so each patch stands on its own. This is a syntax and type check, not a link or a run.
+- **Not done:** any play-test.
 
-**Two things already wrong at the current pin** (found during the trial, independent of the bump):
+## The clean build, and the defect it found
 
-- *Duplicate file.* `n64/SuperMario64/patches/book/` holds two files numbered 0001 with the same subject and the same markers: `0001-doc-region-markers.patch` and `0001-docs-add-doc-region-markers-for-the-book-s-literalin.patch`. `git am --3way` applies the first and finds the second already applied, so the stream is one commit, not two. The 2026-10-08 bump regenerated the patch under the longer name and left the old file. Regenerating the stream at the bump removes the stale one.
-- *Conflict markers inside a patch.* `patches/cheats/0001-cheat-high-jump.patch` adds the literal lines `=======` and `>>>>>>> 69c176ec (cheat - high jump)` to `PortEnhancements.cpp`, plus a second copy of two `REGISTER_EVENT` lines; `0002-cheat-infinite-jumps.patch` removes them again. The tree with the whole series applied is fine, but patch 0001 alone does not compile. Porting the cheats is the moment to fix it.
+`tools/verify_appimage_builds.sh SuperMario64` built the image and the game from scratch (decision 5).
 
-**Derived artifacts that need a re-check at the bump:** `CMakeLists.txt` changed by 308 lines and `.github/workflows/main.yml` by 80, so `n64/SuperMario64/Dockerfile`, `build.sh`, the `Makefile` targets and `installdependencies.sh` must be compared with upstream's; `docs/BUILDING.md` did not change.
+- **First run:** all 696 build steps compiled and linked, the ported cheats included, and `cpack` then failed: `file INSTALL cannot find "/src/build-cmake/ghostship.o2r"`.
+- **Cause:** the `upstreamable-ci-appimage` patch, not the bump. Unlike the other ports' patches, SuperMario64's moved the CI download of `ghostship.o2r` to the repo root and defaulted `O2R` there, while upstream's `CMakeLists.txt` installs the archive from the build directory, at the old pin as at the new one.
+- **Fix:** the patch keeps upstream's `path: ./build-cmake` and defaults `O2R` to `build-cmake/ghostship.o2r`; its commit message was corrected; the verifier's SuperMario64 row injects the archive there, as it does for the other accept-only ports. `tools/check_patches_apply.sh` and `tools/check_upstreamable_applies.sh` were rerun and stayed green.
+- **Second run:** a valid AppImage (15 MB, x86-64 ELF).
+- **Limit:** the bundled `ghostship.o2r` was the checkout-root copy from 2026-10-26, not regenerated at this pin (`tasks/n64-container-generate-o2r.md`).
 
-## Plan
+## Derived artifacts
 
-1. Replay `upstreamable-standard-c` (the one hand resolution above), then prove it at the new pin: `tools/asmdiff_tree.sh <new pin> <new pin + standard-c>` against a configured tree in a sandbox-only build directory (never the bind-mounted `build-cmake/`).
-2. Port the three cheats onto the feature registry (see Decision), fixing the conflict-marker lines in patch 0001:
-   - Keep each cheat's events and listeners (`DEFINE_EVENT`, `REGISTER_EVENT`, the `CALL_…EVENT` sites, `REGISTER_LISTENER`); place the listener blocks by hand in the reorganised `src/port/mods/PortEnhancements.cpp`.
-   - Add three rows to `sDefs` in `src/port/features/Features.cpp`, each `Kind::Toggle` with vanilla value 0: `cheats.super_jump` (`CVAR_CHEAT("SuperJump")`), `cheats.infinite_air_jumps` (`CVAR_CHEAT("InfiniteAirJumps")`), `enhancements.disable_skybox` (`CVAR_ENHANCEMENT("DisableSkybox")`). Confirm each CVar name against the patch's menu widget.
-   - Change each listener's `CVarGetInteger("gCheats.…", 0)` to `Port_FeatureInt("<feature id>", 0)`.
-   - Leave the menu widgets in `src/port/ui/GhostshipMenuEnhancements.cpp` bound to their CVars; the menu greys a locked widget by itself.
-   - Compile-check `Features.cpp` and `PortEnhancements.cpp` against the configured tree from step 1 before regenerating the patches.
-3. Replay `book` with the `sine_lookup` markers re-anchored; run `tools/check_comment_only_streams.sh SuperMario64`; update the book chapter that quotes `sins`/`coss`.
-4. Replay `upstreamable-ci-appimage` and `upstreamable-fedora-shaderc-deps` on the bare pin; run `tools/check_upstreamable_applies.sh SuperMario64`.
-5. Replay `patches-libultraship/book` onto libultraship `37daaa66`.
-6. Regenerate every stream, set `PIN_SHA`, run `tools/check_patches_apply.sh SuperMario64`.
-7. Re-derive the build files (Dockerfile, `build.sh`, Makefile, `installdependencies.sh`) from upstream's; refresh `n64/SuperMario64/CLAUDE.md`, `n64/CLAUDE.md`, the pin comment in `fetch.sh`, and the libultraship crawl note if the engine pin matters to it.
-8. Stage as one unit. Build and play-test are the maintainer's; the cheats in particular need a play-test.
+- `Dockerfile`: upstream's build-linux apt list did not change between the pins; only the pin named in the header comment was updated.
+- `build.sh` and the `Makefile`: the targets they use (`GeneratePortO2R`, `cpack -G External`, the `.tcc` directory) still exist; `CMakeLists.txt` changed by 308 lines, mostly new platforms (Xbox UWP, iOS caching) and options.
+- `installdependencies.sh`: decision 8. Upstream's `docs/building.md` changed (the optional Vulkan line, an Xbox section, `sf64.o2r` corrected to `sm64.o2r`); the stopped trial had reported it unchanged because it looked for `docs/BUILDING.md`, which is not this project's file name.
+- Docs refreshed: `n64/SuperMario64/CLAUDE.md` (pin, streams, cheats, submodules, how to add a cheat), `n64/CLAUDE.md` (the family index and the list of upstreamable units), the pin comment in `fetch.sh`.
 
-## Decision (William Emerison Six <billsix@gmail.com>, 2026-11-26)
+## Where things are
 
-"port them … put them in the feature table": the three cheats go into upstream's feature registry, so a romhack or mod can disable or force them like upstream's own cheats. The alternative, leaving them outside the table with direct CVar reads so they always work, was declined.
-
-## Open questions
-
-None.
+- Script: `tasks/adhoc/mario64-bump-pin-port-cheats-to-feature-registry/port_cheats.py` replayed the three cheat patches with their `PortEnhancements.cpp` hunks excluded and inserted the listeners, `REGISTER_EVENT` lines and feature rows at anchors that must each occur exactly once. It is tied to this pin: one-shot, to be removed at archive.
+- The libultraship reference crawl (`tasks/reference/libultraship/`) still describes engine commit `c151cc91`; a re-crawl at `37daaa66` remains a future task, as before.

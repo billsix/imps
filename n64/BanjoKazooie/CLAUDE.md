@@ -21,8 +21,10 @@ kept and the deletion stands. `tools/check_patches_apply.sh BanjoKazooie` and
 `tools/check_upstreamable_applies.sh BanjoKazooie` are green. The libultraship
 gitlink moved `62e973ae` → `92ed57bc` and Torch `72960ca1` → `7f5d55f9`. The
 build-linux job's apt list and from-source library versions, which the
-Dockerfile mirrors, are unchanged, and so is `docs/BUILDING.md`. BUILD +
-play-test pending (maintainer's).
+Dockerfile mirrors, are unchanged, and so is `docs/BUILDING.md`. A from-scratch
+AppImage build at this pin is verified (2026-11-26,
+`tools/verify_appimage_builds.sh BanjoKazooie`: a 13 MB x86-64 ELF, port o2r
+injected from the checkout-root copy); play-test pending (maintainer's).
 
 ## Scripts
 

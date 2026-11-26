@@ -72,6 +72,9 @@ block, keep them by hand.
 
 ## The gates, and what each one needs
 
+The last gate is a clean build at the new pin, made by the agent (`CLAUDE.md`, "Every sync or rebase ends
+with a clean build"). The table lists the checks that come before it.
+
 | Gate | Needs | Notes |
 |---|---|---|
 | `tools/check_patches_apply.sh <Project>` | the checkout, with the new pin fetched | resets the checkout and runs the real `apply.sh`; also the way to put the checkout back on the full series after any experiment |
@@ -85,6 +88,12 @@ any file that is not in the tree's `compile_commands.json`. A tree configured wi
 stream applied does not list the eight address-named files that stream renames, so the gate reported "478
 identical, 8 skipped" and exited 0. Configured with the checkout at the `standard-c` tip, it covered all 486.
 Read the skipped count; a green exit with skips is not the whole proof.
+
+**The tree gate also skips every included file.** A `*.inc.c` file has no compile command of its own, so
+`tools/asmdiff_tree.sh` logs it as `SKIP (not compiled)`. `tools/asmdiff.sh` does handle included files (it
+recompiles every translation unit that includes one), so run it on each skipped file:
+`bash tools/asmdiff.sh <file> <pin>`. SuperMario64, 2026-11-26: the tree gate covered 47 of 104 files; the
+other 57 were `*.inc.c` and were proven one by one.
 
 **A sandbox-only configure is enough and is quick.** `cmake -S <checkout> -B <a directory outside the
 project> -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON` took about 70 seconds for
@@ -112,5 +121,5 @@ After the replay, before staging (the full table is `tasks/reference/imps/derive
 ## Scripts from the sweep
 
 `tasks/adhoc/imps-third-sweep/` holds the scripts this sweep used (independent streams, stacked streams, a
-docs stream, the rename re-cut loop). They stay there while the SuperMario64 bump is open and are candidates
-for `tools/` when it closes. The fuzz-retry script written during the sweep was deleted on purpose.
+docs stream, the rename re-cut loop). They are candidates for `tools/`. The SuperMario64 bump that followed
+the sweep was done by hand and with a one-shot port script, not with them. The fuzz-retry script written during the sweep was deleted on purpose.

@@ -1,6 +1,6 @@
 # imps — check upstreams for updates and rebase our patch series onto them
 
-**Status:** standing log of the upstream sweeps. Sweep three (2026-11-26) is done except SuperMario64, which has its own task; its account is the last section. Sweeps one and two (2026-10-07/08, 2026-10-19/20) are logged above it as they were written.
+**Status:** standing log of the upstream sweeps. Sweep three (2026-11-26) is done: every project was bumped and clean-built that day, SuperMario64 in its own task. Its account is the last section. Sweeps one and two (2026-10-07/08, 2026-10-19/20) are logged above it as they were written.
 **Priority:** 5
 **Difficulty:** 6 (the N64 decomp ports carry most of it; a HarbourMasters bump can be a large refactor, not line drift)
 **Created:** 2026-10-07 (William Emerison Six <billsix@gmail.com>: "look to see for updates to upstream sources, see what's changed, and see if we can rebase our local patches on top. … some of the projects may have taken part of my github pull requests … use your discretion")
@@ -300,6 +300,10 @@ SuperMario64 at `40eef138` and for OcarinaOfTime at `41ae6cd3`.
 4. **Whatever a sync cannot resolve gets a task**, not a line in a log. This came from the sibling repo impo
    losing an upstream the same day, and went into `CLAUDE.md` ("Staying current with upstream"). It is why
    SuperMario64 and the rename-stream check below each have their own task.
+5. **Every sync or rebase ends with a clean build made by the agent.** Ruled after the sweep and the
+   SuperMario64 bump were committed, when the maintainer pointed out that the carrier has everything needed
+   to build. It went into `CLAUDE.md` ("Every sync or rebase ends with a clean build") and was applied the
+   same day to every project bumped (section 5). Until then the sweeps had left the build to the maintainer.
 
 ### 3. The bumps
 
@@ -312,26 +316,41 @@ committed nothing in imps. The scripts are in `tasks/adhoc/imps-third-sweep/`.
 | BanjoKazooie | `4e8dfd23` | `f757b547` | **Bumped.** The 4 fixonfedora patches replay as they are. The ci-appimage patch conflicted in `.github/workflows/main.yml`: upstream added a "Fetch commit history" step directly above the block the patch deletes. Resolved by hand: the new step is kept, the deletion stands. libultraship gitlink `62e973ae` → `92ed57bc`, now taken from the JeodC fork (branch `bk-lighthouse`); Torch `72960ca1` → `7f5d55f9`; project version 1.2.2. The build-linux apt list and `docs/BUILDING.md` are unchanged. Both gates green. |
 | SuperMario64 | `40eef138` | (not moved) | **Stopped and logged.** Upstream rewrote how cheats are configured (a feature registry), so the three `cheats/` patches need a port, not a replay. Own task: `tasks/mario64-bump-pin-port-cheats-to-feature-registry.md`, which also records what the trial replay found for the other streams and two defects in the series at the current pin. The checkout is back on the full series at `40eef138`. |
 | dash | v0.5.13.5 | v0.5.13.6 (`0a896bfc`) | **Bumped.** The 6 docs patches replay with no conflict; comment-only gate green. |
-| ripgrep | 15.2.0 | 16.0.0 (`669cb4c7`) | **Bumped.** The 3 docs patches replay with no conflict; comment-only gate green. `RIPGREP_PIN` in the Dockerfile moved with it. Not done: `make image` to re-warm the offline Cargo cache. 16.0.0 raises `rust-version` from 1.85 to 1.96, so the image's toolchain must be at least that. |
+| ripgrep | 15.2.0 | 16.0.0 (`669cb4c7`) | **Bumped.** The 3 docs patches replay with no conflict; comment-only gate green. `RIPGREP_PIN` in the Dockerfile moved with it. The sweep did not rebuild the image; 16.0.0 raises `rust-version` from 1.85 to 1.96. The rebuild and an offline compile were done later the same day (section 5). |
 | OcarinaOfTime | `41ae6cd3` | `64df9cb8` | **Bumped.** standard-c (36), the rename stream (490, on the standard-c tip) and ci-appimage (1) all replay with no conflict; `tools/resolve_rename_conflicts.py` was not needed. 21 patch files changed in content (moved context: 19 rename patches, standard-c 0032 and 0036), the rest only in hashes. `check_renames.py all`, `check_patches_apply` (527) and `check_upstreamable_applies` green. libultraship gitlink unchanged (`da6daf1a`); upstream's workflows changed only their runner images. Assembly check 1 (standard-c against the new pin, `tools/asmdiff_tree.sh`): **486 of 486 files identical, none skipped**, against a cmake tree configured in a sandbox-only directory at the standard-c tip. Assembly check 2 (the rename stream) cannot pass as documented and has its own task, `tasks/ocarina-rename-stream-codegen-check-across-renames.md`; the stand-in is the conflict-free replay plus `check_renames.py all`. |
 
-No patch had been absorbed by upstream. Build and play-test of every bumped project were left to the
-maintainer.
+No patch had been absorbed by upstream. The sweep left build and play-test to the maintainer, as the two
+earlier sweeps had; that changed later the same day (decision 5, section 5).
 
 What the replays taught is in `tasks/reference/imps/replaying-a-series-onto-a-new-pin.md`, written from
 this sweep: a fuzz retry (`patch -F3`) misplaced one of SuperMario64's cheat blocks without any complaint, so
 the script that did it was deleted and conflicts in code are resolved by reading them; the ci-appimage patch
-conflicts whenever upstream edits near the workflow block it deletes (three projects in this sweep, one
-standard resolution); a regenerated patch can leave a stale file behind; and the assembly gate skips files
-its configured tree does not list.
+conflicts whenever upstream edits near the workflow block it deletes (three projects that day, one standard
+resolution); a regenerated patch can leave a stale file behind; and the assembly gate skips files its
+configured tree does not list, and every `*.inc.c` file.
 
-### 4. Left open, each with its own task
+### 4. What the sweep stopped on
 
-- **SuperMario64** was not bumped: `tasks/mario64-bump-pin-port-cheats-to-feature-registry.md`. Later the same
-  day the maintainer decided the three cheats go into upstream's feature registry, and asked for an upstream
-  documentation patch found on the way, `tasks/mario64-upstream-eventsystem-guide-feature-reads.md`.
-- **The rename stream's codegen check** cannot pass as `CLAUDE.md` described it:
+- **SuperMario64** was not bumped in the sweep. Upstream had reorganised the file all three cheat patches
+  edit, so it was filed as `tasks/mario64-bump-pin-port-cheats-to-feature-registry.md`. Its standard-c
+  codegen check, pending since sweep two, moved into that task with it.
+- **The rename stream's codegen check** could not pass as `CLAUDE.md` described it:
   `tasks/ocarina-rename-stream-codegen-check-across-renames.md`. The maintainer chose a rename-aware
   comparison; until it exists, a conflict-free replay plus `check_renames.py all` stands in.
-- **SuperMario64's standard-c codegen check**, pending since sweep two, moved into the SuperMario64 task.
-  OcarinaOfTime's was settled at the new pin (486 of 486 identical, in the table above).
+
+### 5. Afterwards, the same day
+
+1. **The SuperMario64 bump.** The maintainer decided the three cheats go into upstream's feature registry
+   and asked for an upstream documentation patch found on the way
+   (`tasks/mario64-upstream-eventsystem-guide-feature-reads.md`). The bump was then done as its own task:
+   pin `aefb89b8`, all gates green, standard-c codegen identical for 104 of 104 files.
+2. **Clean builds of everything bumped** (decision 5). MajorasMask, BanjoKazooie and OcarinaOfTime each
+   produced a valid AppImage from scratch (`tools/verify_appimage_builds.sh`). dash compiled and its shell
+   ran. ripgrep's image was rebuilt and 16.0.0 compiled offline, which closed the image rebuild the sweep had
+   left open. fossify had been built in its own task. SuperMario64's first build failed at packaging because
+   of a defect in its ci-appimage patch that predated the bump (the patch put the asset archive at the repo
+   root; cpack reads it from the build directory); the patch was fixed and the second build passed. Its task
+   has the detail.
+3. **What the builds did not cover.** The game builds bundled each port's existing asset archive, generated
+   at an earlier pin (`tasks/n64-container-generate-o2r.md`), and nothing was play-tested; play-tests stayed
+   with the maintainer.

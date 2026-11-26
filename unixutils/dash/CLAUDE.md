@@ -15,7 +15,8 @@ document it. The only patch streams are **comment-only**.
 - **Pin (`PIN_SHA` in `fetch.sh`):** `0a896bfccbefdd5e79ae8ef6061f7e17e20c03f4` —
   release tag **v0.5.13.6** (the newest dash release as of 2026-11-26; bumped from
   v0.5.13.5 that day, the 6 docs patches replayed with no conflict and the
-  comment-only gate is green). Pinned to
+  comment-only gate is green; `make build` compiles it and the built `./src/dash`
+  runs, 2026-11-26). Pinned to
   a released tag so the reference set's `file:line` anchors stay stable.
 - **Build:** GNU autotools, in-tree: `./autogen.sh && ./configure && make`. The
   arith parser (`arith_yacc.c`) is hand-written and committed, so **no yacc/lex**

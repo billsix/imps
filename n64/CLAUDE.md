@@ -66,7 +66,7 @@ each lane, patches are NOT one numbered series but are grouped into
   on top of standard-c, `DEPENDS upstreamable-standard-c`); `upstreamable-ci-appimage`
   (every port, the `docker/` AppImage build); `upstreamable-fixonfedora` (Banjo,
   the 4-patch JeodC-reviewed PR); `upstreamable-audio-64bit` (MM);
-  `upstreamable-fedora-shaderc-deps` (SM64); `upstreamable-rom-cli-import`
+  `upstreamable-rom-cli-import`
   (PaperMario, the 2-patch PaperBoat PR). **Invariant: an upstreamable unit depends
   only on pristine upstream and other upstreamable units — never on
   cheats/book/personal**; cross-unit prerequisites go in `patches/<slug>/DEPENDS`.
@@ -179,27 +179,28 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   `upstreamable-rename-decomp` series, plus the ci-appimage patch; all replayed onto the
   new pin with no conflict. `check_renames all`, `check_patches_apply` (527 patches from
   the bare pin) and `check_upstreamable_applies` green; standard-c asmdiff tree gate
-  green (486/486); LUS gitlink unchanged (`da6daf1a`). **build + play-test pending**
+  green (486/486); LUS gitlink unchanged (`da6daf1a`). AppImage build verified 2026-11-26; **play-test pending**
   (the maintainer's). Details: `n64/OcarinaOfTime/CLAUDE.md`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
   (https://github.com/HarbourMasters/2ship2harkinian), pin `7e3d051b`
   (bumped from f1dda4c2 2026-11-26; before that e8757c14 2026-10-19). Two
   patches, one per upstreamable stream (the 64-bit audio/scheduler fixes; the
   containerized AppImage CI build); both apply at the new pin (gates green, LUS
-  gitlink unchanged 7f9b86a5); build/run re-verify pending (maintainer's).
+  gitlink unchanged 7f9b86a5); AppImage build verified 2026-11-26; play-test pending (maintainer's).
   Details: `n64/MajorasMask/CLAUDE.md`.
 - `n64/SuperMario64/` — Ghostship (https://github.com/HarbourMasters/Ghostship),
-  pin `40eef138` (bumped from 49c5312a 2026-10-08). 46-patch upstream-bound `upstreamable-standard-c`
-  stream (assembly-isms → standard C, all codegen-identical, 2026-09-22) + 3-patch cheat series +
-  libshaderc doc fix; fully verified; podman build; carries a Sphinx book
-  (`SuperMario64/book/`). Details:
+  pin `aefb89b8` (bumped from 40eef138 2026-11-26). 46-patch upstream-bound `upstreamable-standard-c`
+  stream (assembly-isms → standard C, codegen-identical at this pin: 104 of 104 files) + 3-patch cheat
+  series (in upstream's feature registry since this bump) + the ci-appimage patch + the book markers
+  in both lanes; all gates green; LUS gitlink 93a1a417 → 37daaa66; AppImage build verified 2026-11-26;
+  play-test pending (maintainer's); podman build; carries a Sphinx book (`SuperMario64/book/`). Details:
   `n64/SuperMario64/CLAUDE.md`.
 - `n64/BanjoKazooie/` — Lighthouse
   (https://github.com/HarbourMasters/Lighthouse), pin `f757b547` (bumped from
   4e8dfd23 2026-11-26; before that 5c948c59 2026-10-19). 4-patch `fixOnFedora`
   series (a submitted upstream PR) plus the ci-appimage patch; both apply at the
   new pin (gates green; LUS gitlink 62e973ae → 92ed57bc, now from the JeodC
-  fork); build/run re-verify pending (maintainer's). Podman
+  fork); AppImage build verified 2026-11-26; play-test pending (maintainer's). Podman
   build. Details: `n64/BanjoKazooie/CLAUDE.md`.
 - `n64/PaperMario/` — PaperBoat (https://github.com/HarbourMasters/PaperBoat),
   pin `1.0.3` (`7f038b85`, bumped from 1.0.2 2026-10-20). 2-patch game-tree series

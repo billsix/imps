@@ -19,7 +19,8 @@ UPSTREAM=https://github.com/HarbourMasters/Shipwright.git
 # streams replay with no conflict: standard-c (36), the rename stream (490, on
 # the standard-c tip) and ci-appimage (1). check_renames all, check_patches_apply
 # and check_upstreamable_applies green; the standard-c asmdiff tree gate is green
-# (486/486 identical). Build + play-test pending. (Was 41ae6cd3, bumped 2026-10-20 from 9.3.0 / ecd889c2.)
+# (486/486 identical). AppImage build verified 2026-11-26 (it generates its own
+# soh.o2r); play-test pending. (Was 41ae6cd3, bumped 2026-10-20 from 9.3.0 / ecd889c2.)
 PIN_SHA=64df9cb8e3cd1ad0bcae17d6db2cf98b5d3027eb
 
 if [ ! -d Shipwright ]; then

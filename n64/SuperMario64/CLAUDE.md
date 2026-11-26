@@ -8,9 +8,10 @@ runtime + **Torch** asset extractor as submodules.
 
 Managed by imps: `Ghostship/` here is a pristine clone of
 https://github.com/HarbourMasters/Ghostship, pinned by `fetch.sh` at
-`40eef138` (tip of upstream `develop` as of 2026-09-10; bumped from `49c5312a`
-on 2026-10-08 — all 51 game-tree patches + the libultraship doc-region lane
-replay clean; derived artifacts unchanged), with the maintainer's patches
+`aefb89b8` (tip of upstream `develop` as of 2026-10-27; bumped from `40eef138`
+on 2026-11-26 — 51 game-tree patches + the libultraship doc-region lane; the
+replay needed real work, recorded in
+`../../tasks/mario64-bump-pin-port-cheats-to-feature-registry.md`), with the maintainer's patches
 applied by `apply.sh`. Not a fork; the patch series is the whole delta. The pin
 was chosen deliberately modern because
 upstream had merged the maintainer's always-fly-on-triple-jump cheat
@@ -39,8 +40,8 @@ cheat ships with upstream and needs no patch.
 upstream-bound and touches many decomp files, so it is the base the personal
 streams sit on (a conflict then surfaces here, not in a rebase we cannot do);
 `cheats` and `book` both touch `src/game/mario.c`, and the markers belong on the
-cheated tree. The `upstreamable-ci-appimage` and `upstreamable-fedora-shaderc-deps`
-units are unlisted (docker/ + docs only, disjoint) and apply last.
+cheated tree. The `upstreamable-ci-appimage` unit is unlisted (`docker/` and the
+workflow file only, disjoint) and applies last.
 
 - `patches/upstreamable-standard-c/0001..0046` (46 patches, 2026-09-22; **upstream-bound**) —
   rewrites the decomp's assembly-isms into standard C, one class per patch, per
@@ -60,29 +61,39 @@ units are unlisted (docker/ + docs only, disjoint) and apply last.
   the patterns: `../../tasks/reference/mario64/assembly-isms-in-the-decomp.md`.
   Rebuilt on the checkout branch `imps-standard-c` (exported with
   `git format-patch --base=<pin>`); at a pin bump replay AND re-run the gate.
+  **At `aefb89b8` (2026-11-26): 104 of 104 touched files identical** — 47 through
+  `../../tools/asmdiff_tree.sh` and the 57 `*.inc.c` files one by one through
+  `../../tools/asmdiff.sh`, because the tree gate skips included files.
+- **All three cheats are in upstream's feature registry** (ported 2026-11-26): each
+  has a row in `sDefs` (`src/port/features/Features.cpp`) and in the id table of
+  `docs/romhacks/DESIGN.md`, and its listener reads the setting with
+  `Port_FeatureInt("<feature id>", 0)`, so a romhack or mod can disable or force it
+  like upstream's own cheats. The menu widgets stay bound to the CVars.
 - `patches/cheats/0001-cheat-high-jump.patch` — "Super Jump"
-  (`gCheats.SuperJump`): all upward jumps launch 3× higher via a
+  (feature `cheats.super_jump`, CVar `gCheats.SuperJump`): all upward jumps launch 3× higher via a
   `MarioHighJumpLaunch` event in `set_mario_action_airborne`, with a
   `MarioHighJumpFallHeight` event correcting effective fall height so the
   boosted jumps don't cause fall damage / stuck-in-ground.
 - `patches/cheats/0002-cheat-infinite-jumps.patch` — "Infinite Air Jumps"
-  (`gCheats.InfiniteAirJumps`): pressing A while airborne re-jumps, via a
+  (feature `cheats.infinite_air_jumps`, CVar `gCheats.InfiniteAirJumps`): pressing A while airborne re-jumps, via a
   cancellable `MarioAirborneActionUpdate` event wrapping
   `mario_execute_airborne_action`.
 - `patches/cheats/0003-disable-skybox.patch` — "Disable Skybox"
-  (`gEnhancements.DisableSkybox`): a listener cancelling upstream's
+  (feature `enhancements.disable_skybox`, CVar `gEnhancements.DisableSkybox`): a listener cancelling upstream's
   `SkyboxRender` event (already wired into `level_geo.c`) plus the menu widget.
 - `patches/upstreamable-ci-appimage/0001-ci-linux-build-the-Linux-AppImage-in-a-reproducible-.patch`
   — **upstream-bound CI patch** (`../../tasks/archive/imps/2026/10/27/n64-upstreamable-appimage-make-target.md`): adds
   `docker/Dockerfile` + `docker/Makefile` (CI-mirror ubuntu-24.04 build env with the Vulkan/shaderc
   set + shaderc_shared symlink, `make -C docker appimage`) and rewires the `build-linux` job of
-  `main.yml` to call it; generate-port-o2r job + artifact unchanged. Apply-gate green, and the nested
-  `make -C docker appimage` build is **verified** (produces a valid AppImage).
-- `patches/upstreamable-fedora-shaderc-deps/0001-...libshaderc...` (upstream candidate) —
-  adds `libshaderc-devel` to both Fedora dnf lines in `docs/building.md` (the
-  LUS Vulkan backend includes `shaderc/shaderc.hpp`; found the hard way,
-  2026-09-01). Doc fix to upstream's own file, hence a patch.
-- `patches/book/0001-doc-region-markers.patch` — comment-only
+  `main.yml` to call it; generate-port-o2r job + artifact unchanged. The job downloads
+  `ghostship.o2r` into `build-cmake/`, as upstream's does, and `O2R` defaults to
+  `build-cmake/ghostship.o2r`: cpack installs the archive from the build directory. (Until
+  2026-11-26 the patch put it at the repo root, which cpack never read; the clean build at the
+  `aefb89b8` bump caught it.) Apply-gate green, and the from-scratch nested
+  `make -C docker appimage` build is **verified at `aefb89b8`** (2026-11-26,
+  `tools/verify_appimage_builds.sh SuperMario64`: a 15 MB x86-64 ELF, port o2r injected from
+  the checkout-root copy).
+- `patches/book/0001-docs-add-doc-region-markers-for-the-book-s-literalin.patch` — comment-only
   (**gated**: `tools/check_comment_only_streams.sh SuperMario64` proves both
   book streams change nothing the compiler sees; see `../CLAUDE.md`)
   `// doc-region-begin/end <name>` markers so the book's `literalinclude` pulls
@@ -93,21 +104,28 @@ Cheat-series porting history (the old fork's `highjump`/`infiniteJump`/`noSkybox
 branches linearized across upstream's hooks→events restructure, per-patch port
 notes): `../../tasks/reference/imps/game-port-history.md`. How to add a cheat:
 DEFINE_EVENT, CALL_EVENT at the game-code seam, REGISTER_EVENT +
-REGISTER_LISTENER gated on a CVar in `src/port/mods/PortEnhancements.cpp`, and a
-widget in `src/port/ui/GhostshipMenuEnhancements.cpp` (upstream's
-`src/port/events/EVENTS.md` documents the layer — read it first).
+REGISTER_LISTENER in `src/port/mods/PortEnhancements.cpp` gated on
+`Port_FeatureInt`, a row in `sDefs` (`src/port/features/Features.cpp`), and a
+widget in `src/port/ui/GhostshipMenuEnhancements.cpp`. Upstream documents the
+event layer in `wiki/EventSystem.md` and `src/port/events/EVENTS.md`, and the
+feature registry in `docs/romhacks/DESIGN.md` ("Feature rules") — read them first.
+The fedora-shaderc-deps docs patch carried until 2026-11-26 was dropped: upstream
+now lists `libshaderc-devel` itself, as an optional Vulkan dependency.
 
 ## Version notes
 
-- Submodules at the pin: **libultraship `93a1a417`** (was `c151cc91`/1.3.1-544 at
-  the old pin; moved with the develop bump, URL unchanged — Kenix3/libultraship)
-  and Torch (moves with the bump too). The LUS doc-region lane replays clean onto
-  `93a1a417`. The crawl's docs at `../../tasks/reference/libultraship/` describe the
-  old `c151cc91` pin (iteration 18); a re-crawl at `93a1a417` is a future task.
+- Submodules at the pin: **libultraship `37daaa66`** (was `93a1a417`; moved with
+  the develop bump, URL unchanged — Kenix3/libultraship) and Torch `f83dfb3b`. The
+  LUS doc-region lane replays clean onto `37daaa66`. The crawl's docs at
+  `../../tasks/reference/libultraship/` describe the older `c151cc91` pin
+  (iteration 18); a re-crawl at the current engine commit is a future task.
   Fork-topology detail: `../../tasks/reference/imps/game-port-history.md`.
 - Sandbox note: building in the runClaudeInContainer sandbox needs
   `mbedtls-devel` (ixwebsocket's cmake configure) and `libshaderc-devel`
-  (the new LUS Vulkan backend) installed — neither is in the base image.
+  (the new LUS Vulkan backend) installed — neither is in the base image. At
+  `aefb89b8` upstream made the Vulkan renderer optional (it builds without it when
+  Vulkan or shaderc is missing) and lists `vulkan-loader-devel vulkan-headers
+  libshaderc-devel` for it; `installdependencies.sh` installs all three.
 - **The Vulkan backend hangs at this pin on the maintainer's GPU**
   (RADV Radeon 610M, 2026-09-01): the game goes silent right after
   "Vulkan device:" in the log, before any window. The cause is that
@@ -206,7 +224,7 @@ draws its detail from `../../tasks/reference/mario64/`. Design + status:
 ### libultraship doc-region lane (`patches-libultraship/`)
 
 The book also `literalinclude`s libultraship code, so a SECOND patch lane
-lives in `patches-libultraship/` (streamed the same way — `patches-libultraship/book/`) (base = the submodule pin `93a1a417`),
+lives in `patches-libultraship/` (streamed the same way — `patches-libultraship/book/`) (base = the submodule pin `37daaa66`),
 applied INSIDE `Ghostship/libultraship/`. `patches-libultraship/book/0001-...` adds comment-only
 doc-region markers (currently `combiner_input_to_glsl`, `set_combine_mode`,
 `light_dir_to_normal_space`, `tile_wrap_modes`), verified to `git am` clean onto

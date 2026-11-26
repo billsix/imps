@@ -1,4 +1,4 @@
-From 0d274077c977fd4a93f39d723a58504570d635fb Mon Sep 17 00:00:00 2001
+From 13c9ab5f442610f96feb0a3e9884c5d2eff79984 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Mon, 26 Oct 2026 11:42:44 +0000
 Subject: [PATCH] ci(linux): build the Linux AppImage in a reproducible
@@ -14,23 +14,23 @@ change is freezing the floating `ubuntu-latest` runner and the from-source
 library steps into image layers, so the build is reproducible and a
 developer can run the identical build locally with `make -C docker appimage`.
 The generate-port-o2r job and the uploaded artifact are unchanged: the job
-still downloads ghostship.o2r (now to the repo root, where the build bundles
-it) and uploads the same files.
+still downloads ghostship.o2r into build-cmake, where cpack picks it up, and
+uploads the same files.
 
 Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
 ---
  .github/workflows/main.yml | 85 ++++--------------------------------
  docker/Dockerfile          | 88 ++++++++++++++++++++++++++++++++++++++
- docker/Makefile            | 87 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 184 insertions(+), 76 deletions(-)
+ docker/Makefile            | 88 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 184 insertions(+), 77 deletions(-)
  create mode 100644 docker/Dockerfile
  create mode 100644 docker/Makefile
 
 diff --git a/.github/workflows/main.yml b/.github/workflows/main.yml
-index fcd7bf4f..284d4fe9 100644
+index 754969f1..4ced1585 100644
 --- a/.github/workflows/main.yml
 +++ b/.github/workflows/main.yml
-@@ -353,89 +353,22 @@ jobs:
+@@ -421,91 +421,22 @@ jobs:
          with:
            submodules: recursive
            fetch-depth: 0 # full history so the libultraship submodule gitlink resolves
@@ -41,6 +41,8 @@ index fcd7bf4f..284d4fe9 100644
 -      - name: ccache
 -        uses: hendrikmuhs/ccache-action@v1.2.14
 -        with:
+-          max-size: 2G
+-          save: ${{ github.ref_name == github.event.repository.default_branch }}
 -          key: linux-ccache-${{ github.ref }}-${{ github.sha }}
 -          restore-keys: |
 -            linux-ccache-${{ github.ref }}
@@ -105,9 +107,8 @@ index fcd7bf4f..284d4fe9 100644
          uses: actions/download-artifact@v4
          with:
            name: ghostship.o2r
--          path: ./build-cmake
+           path: ./build-cmake
 -      - name: Build
-+          path: .
 +      - name: Build AppImage (containerized)
          run: |
 -          # Route the compiler through ccache so the linux-ccache cache is actually used.
@@ -116,8 +117,8 @@ index fcd7bf4f..284d4fe9 100644
 -          (cd build-cmake && cpack -G External)
 +          # Build the AppImage in the reproducible CI container (docker/Dockerfile),
 +          # which bakes in the apt packages and the from-source SDL/tinyxml2/libzip
-+          # the removed inline steps installed. The port o2r downloaded above sits at
-+          # the repo root, where the build bundles it into the AppImage.
++          # the removed inline steps installed. The ghostship.o2r downloaded above
++          # (into build-cmake) is bundled into the AppImage.
 +          make -C docker appimage
 +          mv out/ghostship.appimage ghostship.appimage
 +          rm -rf .tcc && cp -r out/.tcc .tcc
@@ -225,10 +226,10 @@ index 00000000..f1f91f1b
 +WORKDIR /src
 diff --git a/docker/Makefile b/docker/Makefile
 new file mode 100644
-index 00000000..952ade36
+index 00000000..aa3f0252
 --- /dev/null
 +++ b/docker/Makefile
-@@ -0,0 +1,87 @@
+@@ -0,0 +1,88 @@
 +SHELL := /bin/bash
 +
 +# Containerized, reproducible Linux AppImage build for Ghostship.
@@ -251,10 +252,11 @@ index 00000000..952ade36
 +NPROC  := $(shell nproc)
 +
 +# The port asset archive. The CI `generate-port-o2r` job builds it and hands it
-+# to this job, which places it at the repo root before calling `make appimage`;
-+# the build bundles it into the AppImage. (Generating it inside the container is
-+# a planned follow-up; for now this target consumes a supplied archive.)
-+O2R    ?= ghostship.o2r
++# to this job, which downloads it into build-cmake/ before calling
++# `make appimage`; cpack installs it from there into the AppImage. (Generating
++# it inside the container is a planned follow-up; for now this target consumes
++# a supplied archive.)
++O2R    ?= build-cmake/ghostship.o2r
 +
 +# Extra flags for container `run` (not `build`): --cgroups=disabled lets the
 +# build run inside an unprivileged nested container. Empty on a normal host/CI.
@@ -290,7 +292,7 @@ index 00000000..952ade36
 +
 +appimage: build
 +	@test -f $(ROOT)/$(O2R) || { \
-+	  echo "ERROR: port asset archive '$(O2R)' not found at the repo root." >&2; \
++	  echo "ERROR: port asset archive '$(O2R)' not found under the repo root." >&2; \
 +	  echo "       CI's generate-port-o2r job supplies it; pass O2R=<path> otherwise." >&2; \
 +	  exit 1; }
 +	$(RUN) bash -c '\
@@ -316,6 +318,8 @@ index 00000000..952ade36
 +
 +clean:
 +	rm -rf $(ROOT)/build-cmake $(ROOT)/_packages $(OUT)
+
+base-commit: aefb89b85e7b78daff62b491ebb2669d2d9270f0
 -- 
-2.56.0
+2.56.1
 

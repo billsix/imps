@@ -1,9 +1,9 @@
 # SuperMario64 — upstream a fix to Ghostship's event-system guide (its listener example still reads a CVar)
 
-**Status:** ready — scope decided 2026-11-26; waits on the pin bump it depends on
+**Status:** ready — scope decided 2026-11-26; the pin bump it depended on is done
 **Priority:** 5
 **Difficulty:** 2 (one Markdown file; the work is a reviewer-ready commit message)
-**Depends on:** `tasks/mario64-bump-pin-port-cheats-to-feature-registry.md` (the patch is written against the new pin, where the mismatch exists)
+**Depends on:** `tasks/mario64-bump-pin-port-cheats-to-feature-registry.md` (the patch is written against the new pin, where the mismatch exists; that bump was done on 2026-11-26, pin `aefb89b8`)
 **Created:** 2026-11-26 (William Emerison Six <billsix@gmail.com>: "make a task that I intend to upstream to fix [the guide's step 4] … That is a perfect task to make a patch to upstream, with the commit message listing the reasoning and referencing the documents!").
 
 ## BLUF

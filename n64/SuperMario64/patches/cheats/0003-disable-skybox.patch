@@ -1,32 +1,58 @@
-From 87a992a57b9354aa016948c9b739e3db0abb9216 Mon Sep 17 00:00:00 2001
+From 82e250be60a7e9ead090ab01f2fdb24be599c7ca Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Sat, 23 May 2026 18:29:35 -0400
 Subject: [PATCH 3/3] disable skybox
 
 ---
+ docs/romhacks/DESIGN.md                   | 1 +
+ src/port/features/Features.cpp            | 1 +
  src/port/mods/PortEnhancements.cpp        | 6 ++++++
  src/port/ui/GhostshipMenuEnhancements.cpp | 7 +++++++
- 2 files changed, 13 insertions(+)
+ 4 files changed, 15 insertions(+)
 
+diff --git a/docs/romhacks/DESIGN.md b/docs/romhacks/DESIGN.md
+index 037542b6..b8ffc831 100644
+--- a/docs/romhacks/DESIGN.md
++++ b/docs/romhacks/DESIGN.md
+@@ -240,6 +240,7 @@ To make another setting lockable, add it to `sDefs` in [Features.cpp](../../src/
+ | `enhancements.fix_heave_ho_sinking` | `gEnhancements.FixHeaveHoSinkingThroughFloor` | 0 |
+ | `enhancements.fix_yoshi_dialogue_typo` | `gEnhancements.FixYoshiDialogueTypo` | 0 |
+ | `enhancements.fix_file_select_button_tilt` | `gEnhancements.FixFileSelectButtonTilt` | 0 |
++| `enhancements.disable_skybox` | `gEnhancements.DisableSkybox` | 0 |
+ | `camera.default_mode` / `camera.alternate_mode` | `gEnhancements.Camera.DefaultMode` / `AlternateMode` | 0 |
+ | `camera.improved_c_buttons` | `gEnhancements.Camera.ImprovedCButtonCamera` | 0 |
+ | `camera.horizontal_analog` / `camera.vertical_analog` | `gEnhancements.Camera.HorizontalAnalog` / `VerticalAnalog` | 0 |
+diff --git a/src/port/features/Features.cpp b/src/port/features/Features.cpp
+index 6537b267..8a7a26e6 100644
+--- a/src/port/features/Features.cpp
++++ b/src/port/features/Features.cpp
+@@ -55,6 +55,7 @@ static const Def sDefs[] = {
+     { "enhancements.fix_heave_ho_sinking", CVAR_ENHANCEMENT("FixHeaveHoSinkingThroughFloor"), Kind::Toggle, 0 },
+     { "enhancements.fix_yoshi_dialogue_typo", CVAR_ENHANCEMENT("FixYoshiDialogueTypo"), Kind::Toggle, 0 },
+     { "enhancements.fix_file_select_button_tilt", CVAR_ENHANCEMENT("FixFileSelectButtonTilt"), Kind::Toggle, 0 },
++    { "enhancements.disable_skybox", CVAR_ENHANCEMENT("DisableSkybox"), Kind::Toggle, 0 },
+ 
+     { "camera.default_mode", CVAR_ENHANCEMENT("Camera.DefaultMode"), Kind::Int, 0 },
+     { "camera.alternate_mode", CVAR_ENHANCEMENT("Camera.AlternateMode"), Kind::Int, 0 },
 diff --git a/src/port/mods/PortEnhancements.cpp b/src/port/mods/PortEnhancements.cpp
-index 89b59818..6c35b09c 100644
+index 06eff574..485b0705 100644
 --- a/src/port/mods/PortEnhancements.cpp
 +++ b/src/port/mods/PortEnhancements.cpp
-@@ -86,6 +86,12 @@ void PortEnhancements_Init() {
+@@ -88,6 +88,12 @@ void PortEnhancements_Init() {
          RenderPauseCourseOptions* ev = (RenderPauseCourseOptions*)event;
          *ev->render = true;
      });
 +    REGISTER_LISTENER(SkyboxRender, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
-+        if (CVarGetInteger("gEnhancements.DisableSkybox", 0) == 0) {
++        if (Port_FeatureInt("enhancements.disable_skybox", 0) == 0) {
 +            return;
 +        }
 +        event->Cancelled = true;
 +    });
  
      REGISTER_LISTENER(LevelInitFromSaveFile, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
-         if (CVarGetInteger("gEnhancements.DisableLakituCutscene", 0)) {
+         if (Port_FeatureInt("enhancements.disable_lakitu_cutscene", 0)) {
 diff --git a/src/port/ui/GhostshipMenuEnhancements.cpp b/src/port/ui/GhostshipMenuEnhancements.cpp
-index d2c50d2e..2f590e28 100644
+index 75ae1e9a..add5e754 100644
 --- a/src/port/ui/GhostshipMenuEnhancements.cpp
 +++ b/src/port/ui/GhostshipMenuEnhancements.cpp
 @@ -49,6 +49,13 @@ void GhostshipMenu::AddMenuEnhancements() {
@@ -44,5 +70,5 @@ index d2c50d2e..2f590e28 100644
  
      AddWidget(path, "Disable Draw Distance", WIDGET_CVAR_CHECKBOX)
 -- 
-2.55.0
+2.56.1
 

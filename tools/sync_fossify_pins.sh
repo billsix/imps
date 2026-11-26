@@ -5,7 +5,7 @@
 # is clean. A conflicting repo is reported, its `git am` aborted, and its line left alone.
 # Idempotent: a repo already at its newest tag is reported as current.
 #
-#   bash tasks/adhoc/fossify-sync-upstream-pins/sync_pins.sh [<repo> ...]   # default: all
+#   bash tools/sync_fossify_pins.sh [<repo> ...]   # default: all
 set -uo pipefail
 cd "$(git -C "$(dirname "$0")" rev-parse --show-toplevel)/android/fossify" || exit 1
 

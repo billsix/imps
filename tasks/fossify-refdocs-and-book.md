@@ -13,10 +13,9 @@ Messages & Keyboard cloned but not yet documented. **Phase B** (`tasks/reference
 (the Sphinx book) were gated on the follow-ups, now **DONE** (2026-09-20):
 [fossify-jdk-toolchain-and-gradle-offline.md](archive/imps/2026/09/20/fossify-jdk-toolchain-and-gradle-offline.md) ✅ (Commons
 builds offline) and [generalize-comment-only-gate.md](archive/imps/2026/09/20/generalize-comment-only-gate.md) ✅ (shared gate).
-**Phase B/C are now UNBLOCKED** for the Commons-centred material. **Caveat:** the per-app chapters
-(Gallery/Phone) are gated on [fossify-bump-app-pins.md](fossify-bump-app-pins.md) — those apps don't build
-at their pins (upstream JitPack rot), so build-dependent per-app work waits on that; Commons + the shared
-skeleton (the bulk of Phase B) are ready now. Scoped autonomously
+**Phase B/C are UNBLOCKED**, the per-app chapters included: Gallery and Phone build at the pins set on
+2026-11-26 ([fossify-bump-app-pins.md](archive/fossify/2026/11/26/fossify-bump-app-pins.md) ✅,
+[fossify-sync-upstream-pins.md](archive/fossify/2026/11/26/fossify-sync-upstream-pins.md) ✅). Scoped autonomously
 2026-09-19. One of FOUR sibling documentation-only initiatives — see [ripgrep](ripgrep-refdocs-and-book.md)
 for the shared recipe + family decision, plus [coreutils](coreutils-refdocs-and-book.md),
 [dash](dash-refdocs-and-book.md).

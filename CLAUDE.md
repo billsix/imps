@@ -277,7 +277,7 @@ after which the sweep runs **autonomously on the clean bulk, stopping to log an 
 the task on any item that needs a real judgment call** (a conflicting rebase, a standard-c re-cut,
 a large upstream refactor, an ambiguous "did upstream absorb this patch?"). Current sweep tasks:
 `tasks/imps-check-upstreams-and-rebase-patches.md` (all families except fossify),
-and `tasks/fossify-sync-upstream-pins.md` (the fossify pins). The apps missing from the suite were
+and `tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md` (the fossify pins). The apps missing from the suite were
 added on 2026-10-08 (`tasks/archive/fossify/2026/10/08/fossify-add-remaining-apps.md`).
 
 ## Rules

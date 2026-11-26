@@ -26,7 +26,7 @@ Calculator, Camera, Clock, Contacts, Launcher, Notes and Paint were already at t
 
 1. **Its own job, not part of the third upstream sweep.** The recon in `tasks/imps-check-upstreams-and-rebase-patches.md` found the eleven repos behind; the agent recommended a separate task because five documented apps had moved many releases, and the maintainer agreed.
 2. **The pin target stayed "newest release tag"**, never a branch tip, as `android/fossify/repos` already required; this was not reopened.
-3. **If Gallery and Phone built at their newest tags, `tasks/fossify-bump-app-pins.md` would be closed** ("sure"). They did, so it was.
+3. **If Gallery and Phone built at their newest tags, `tasks/archive/fossify/2026/11/26/fossify-bump-app-pins.md` would be closed** ("sure"). They did, so it was.
 4. **A doc patch that no longer applied would be rewritten against the new code, not dropped** ("a"). No patch needed it.
 5. The order was Commons first (every app depends on it), then Gallery and Phone, then the eight repos with empty streams. In practice one script run moved all eleven.
 
@@ -40,12 +40,12 @@ Calculator, Camera, Clock, Contacts, Launcher, Notes and Paint were already at t
 
 ## Consequences
 
-- **Gallery and Phone build now.** At their old tags they depended on published Commons artifacts JitPack no longer serves; the new tags depend on published Commons 7.1.3 and 6.1.0, which resolve. That closes `tasks/fossify-bump-app-pins.md` (its option (A), applied to both apps), as decided on 2026-11-26.
+- **Gallery and Phone build now.** At their old tags they depended on published Commons artifacts JitPack no longer serves; the new tags depend on published Commons 7.1.3 and 6.1.0, which resolve. That closes `tasks/archive/fossify/2026/11/26/fossify-bump-app-pins.md` (its option (A), applied to both apps), as decided on 2026-11-26.
 - **Toolchains at the new pins:** Commons Gradle 9.7.0 / AGP 9.3.1; Gallery Gradle 9.5.1 / AGP 9.2.1; Phone Gradle 8.13 / AGP 8.11.1; all three compileSdk 36 and JDK 17. The image needed no change.
 - **UI stack:** Gallery 1.14.3 still has no Compose sources, so its entry in the pins table ("mostly classic Views/XML") stands; Phone, Messages and Keyboard were not re-examined beyond a search that found no `setContent {` call.
 
 ## Where things are
 
 - Manifest: `android/fossify/repos`. Pins tables, toolchain note and "Build status": `android/fossify/CLAUDE.md`.
-- Script: `tasks/adhoc/fossify-sync-upstream-pins/sync_pins.sh` (moves every pin to its newest tag, replaying a docs stream first; idempotent, a second run reports every repo current). It is reusable for the next sync; the maintainer approved promoting it to `tools/` at archive time.
+- Script: `tools/sync_fossify_pins.sh` (moves every pin to its newest tag, replaying a docs stream first; idempotent, a second run reports every repo current). It is reusable for the next sync, so at archive it was promoted from `tasks/adhoc/` to `tools/`.
 - Umbrella still open: `tasks/fossify-refdocs-and-book.md`. Its per-app chapters can now reference apps that build.

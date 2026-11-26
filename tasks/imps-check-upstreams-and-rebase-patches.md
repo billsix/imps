@@ -291,7 +291,7 @@ SuperMario64 at `40eef138` and for OcarinaOfTime at `41ae6cd3`.
 1. **The third sweep went ahead** under the 2026-10-07 contract (bump what replays cleanly, stop and log what
    needs judgment), in the order MajorasMask, BanjoKazooie, SuperMario64, dash, ripgrep, OcarinaOfTime. The
    agent staged each unit; the maintainer committed.
-2. **fossify was taken out of the sweep** and made its own job, `tasks/fossify-sync-upstream-pins.md`,
+2. **fossify was taken out of the sweep** and made its own job, `tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md`,
    because moving five documented apps many releases looked like a documentation refresh more than a pin
    bump. (It turned out to replay with no conflict; that task has the record.)
 3. **Commit `da20e784` stayed unsigned.** The agent had made it earlier that day with signing switched off

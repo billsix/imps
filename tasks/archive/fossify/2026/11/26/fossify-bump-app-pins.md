@@ -1,6 +1,6 @@
 # Fossify — bumped the exemplar app pins (Gallery/Phone) so they build
 
-**Done 2026-11-26.** Filed 2026-09-20 (William Emerison Six <billsix@gmail.com>) as the follow-up to `tasks/archive/imps/2026/09/20/fossify-jdk-toolchain-and-gradle-offline.md`. Closed by `tasks/fossify-sync-upstream-pins.md`, as the maintainer decided on 2026-11-26 ("sure": close this task if both apps build at their newest tags). The maintainer committed the work the same day.
+**Done 2026-11-26.** Filed 2026-09-20 (William Emerison Six <billsix@gmail.com>) as the follow-up to `tasks/archive/imps/2026/09/20/fossify-jdk-toolchain-and-gradle-offline.md`. Closed by `tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md`, as the maintainer decided on 2026-11-26 ("sure": close this task if both apps build at their newest tags). The maintainer committed the work the same day.
 
 ## The problem
 

@@ -81,7 +81,7 @@ kotlinJVMTarget 17. Gallery 1.14.3: Gradle 9.5.1, AGP 9.2.1, published Commons
 6.1.0. All three use compileSdk 36.
 
 All pins were moved to each repo's newest release tag on 2026-11-26
-(`../../tasks/fossify-sync-upstream-pins.md`); the seven doc patches replayed
+(`../../tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md`); the seven doc patches replayed
 with no conflict.
 
 ## Doc streams (`patches/<repo>/docs/`) — comment-only KDoc
@@ -165,7 +165,7 @@ hardening (`../../tasks/fossify-jdk-toolchain-and-gradle-offline.md`):
 ### All three documented repos build at the current pins, online and offline
 
 Verified 2026-11-26, nested, after every pin moved to its newest release tag
-(`../../tasks/fossify-sync-upstream-pins.md`). `make image`
+(`../../tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md`). `make image`
 warmed all three (`BUILD SUCCESSFUL` for Commons 7.1.3, Gallery 1.14.3 and
 Phone 1.11.1), and each then compiled with the doc patches applied under
 `--network=none` (`./gradlew --no-daemon --offline`): Commons
@@ -179,6 +179,15 @@ The warm still treats the two apps as **best-effort** (a failure is logged, Comm
 is the only required warm), so a future tag with a dead dependency cannot block the
 image. Messages/Keyboard were not attempted (undocumented, not warmed). The comment-only invariant does **not** depend on
 any app build; `check-comment-only.sh` is the real, verified gate for all seven streams.
+
+## Moving the pins
+
+`../../tools/sync_fossify_pins.sh [<repo> …]` moves every pin in `repos` to its repo's newest release tag
+(pre-releases excluded). For a repo with a docs stream it replays the stream onto the new tag first and
+moves that repo's line only when the replay is clean; a conflicting repo is reported and left alone. Then:
+`make fetch apply`, `make check-comment-only`, `make image` (it warms the Gradle cache at the new pins), and
+refresh the pins tables above. Last run 2026-11-26:
+`../../tasks/archive/fossify/2026/11/26/fossify-sync-upstream-pins.md`.
 
 ## Conventions
 

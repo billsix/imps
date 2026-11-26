@@ -342,7 +342,7 @@ configured tree does not list, and every `*.inc.c` file.
 
 1. **The SuperMario64 bump.** The maintainer decided the three cheats go into upstream's feature registry
    and asked for an upstream documentation patch found on the way
-   (`tasks/mario64-upstream-eventsystem-guide-feature-reads.md`). The bump was then done as its own task:
+   (`tasks/archive/mario64/2026/11/26/mario64-upstream-eventsystem-guide-feature-reads.md`). The bump was then done as its own task:
    pin `aefb89b8`, all gates green, standard-c codegen identical for 104 of 104 files.
 2. **Clean builds of everything bumped** (decision 5). MajorasMask, BanjoKazooie and OcarinaOfTime each
    produced a valid AppImage from scratch (`tools/verify_appimage_builds.sh`). dash compiled and its shell

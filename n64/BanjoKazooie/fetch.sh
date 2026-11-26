@@ -23,7 +23,8 @@ UPSTREAM=https://github.com/HarbourMasters/Lighthouse.git
 # tasks/imps-check-upstreams-and-rebase-patches.md): both streams apply
 # (tools/check_patches_apply.sh BanjoKazooie green); the libultraship gitlink moved
 # 62e973ae -> 92ed57bc and Torch 72960ca1 -> 7f5d55f9; the project version is 1.2.2.
-# BUILD + play-test pending. (Was 4e8dfd23, bumped 2026-10-19; before that 5c948c59.)
+# AppImage build verified 2026-11-26; play-test pending. (Was 4e8dfd23, bumped
+# 2026-10-19; before that 5c948c59.)
 PIN_SHA=f757b547c8996ad0d67647560098c76bac0898a6
 
 if [ ! -d Lighthouse ]; then

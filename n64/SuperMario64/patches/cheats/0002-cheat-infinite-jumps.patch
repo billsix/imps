@@ -1,16 +1,30 @@
-From 10f228669a80313713ff36af01df9bf352489786 Mon Sep 17 00:00:00 2001
+From b946a072d8249c2facf661143b2baa7be377be66 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Sat, 23 May 2026 19:26:25 -0400
 Subject: [PATCH 2/3] cheat - infinite jumps
 
 ---
+ docs/romhacks/DESIGN.md                   |  1 +
  src/game/mario.h                          |  8 ++++++++
  src/game/mario_actions_airborne.c         |  4 +++-
  src/port/events/list/PlayerEvent.h        |  6 ++++++
- src/port/mods/PortEnhancements.cpp        | 24 ++++++++++++++++++-----
+ src/port/features/Features.cpp            |  1 +
+ src/port/mods/PortEnhancements.cpp        | 18 ++++++++++++++++++
  src/port/ui/GhostshipMenuEnhancements.cpp |  4 ++++
- 5 files changed, 40 insertions(+), 6 deletions(-)
+ 7 files changed, 41 insertions(+), 1 deletion(-)
 
+diff --git a/docs/romhacks/DESIGN.md b/docs/romhacks/DESIGN.md
+index c6c1c132..037542b6 100644
+--- a/docs/romhacks/DESIGN.md
++++ b/docs/romhacks/DESIGN.md
+@@ -227,6 +227,7 @@ To make another setting lockable, add it to `sDefs` in [Features.cpp](../../src/
+ | `cheats.pause_exit_whenever` | `gCheats.PauseExitWhenever` | 0 |
+ | `cheats.play_in_demo` | `gCheats.PlayInDemo` | 0 |
+ | `cheats.super_jump` | `gCheats.SuperJump` | 0 |
++| `cheats.infinite_air_jumps` | `gCheats.InfiniteAirJumps` | 0 |
+ | `enhancements.disable_draw_distance` | `gEnhancements.DisableDrawDistance` | 0 |
+ | `enhancements.disable_lod` | `gEnhancements.DisableLOD` | 0 |
+ | `enhancements.disable_lakitu_cutscene` | `gEnhancements.DisableLakituCutscene` | 0 |
 diff --git a/src/game/mario.h b/src/game/mario.h
 index 402da3a5..b42b71f5 100644
 --- a/src/game/mario.h
@@ -76,8 +90,20 @@ index 288e086a..31a42fbb 100644
 +DEFINE_EVENT(MarioAirborneActionUpdate,
 +    struct MarioState* m;
 +);
+diff --git a/src/port/features/Features.cpp b/src/port/features/Features.cpp
+index 07d8a7c2..6537b267 100644
+--- a/src/port/features/Features.cpp
++++ b/src/port/features/Features.cpp
+@@ -41,6 +41,7 @@ static const Def sDefs[] = {
+     { "cheats.pause_exit_whenever", CVAR_CHEAT("PauseExitWhenever"), Kind::Toggle, 0 },
+     { "cheats.play_in_demo", CVAR_CHEAT("PlayInDemo"), Kind::Toggle, 0 },
+     { "cheats.super_jump", CVAR_CHEAT("SuperJump"), Kind::Toggle, 0 },
++    { "cheats.infinite_air_jumps", CVAR_CHEAT("InfiniteAirJumps"), Kind::Toggle, 0 },
+ 
+     { "enhancements.disable_draw_distance", CVAR_ENHANCEMENT("DisableDrawDistance"), Kind::Toggle, 0 },
+     { "enhancements.disable_lod", CVAR_ENHANCEMENT("DisableLOD"), Kind::Toggle, 0 },
 diff --git a/src/port/mods/PortEnhancements.cpp b/src/port/mods/PortEnhancements.cpp
-index cb734f68..89b59818 100644
+index 2e622e3c..06eff574 100644
 --- a/src/port/mods/PortEnhancements.cpp
 +++ b/src/port/mods/PortEnhancements.cpp
 @@ -4,6 +4,7 @@
@@ -88,12 +114,12 @@ index cb734f68..89b59818 100644
  #include "game/level_update.h"
  #include "game/game_init.h"
  #include "port/events/Events.h"
-@@ -113,6 +114,22 @@ void PortEnhancements_Init() {
+@@ -115,6 +116,22 @@ void PortEnhancements_Init() {
          FlyingTripleJumpLaunch* ev = (FlyingTripleJumpLaunch*)event;
          *ev->launchVelocity = 246.0f;
      });
 +    REGISTER_LISTENER(MarioAirborneActionUpdate, EVENT_PRIORITY_NORMAL, [](IEvent* event) {
-+        if (CVarGetInteger("gCheats.InfiniteAirJumps", 0) == 0) {
++        if (Port_FeatureInt("cheats.infinite_air_jumps", 0) == 0) {
 +            return;
 +        }
 +        MarioAirborneActionUpdate* ev = (MarioAirborneActionUpdate*)event;
@@ -111,7 +137,7 @@ index cb734f68..89b59818 100644
  
      static bool sHighJumpActive = false;
      static f32 sHighJumpStartHeight = 0.0f;
-@@ -216,6 +233,7 @@ void PortEnhancements_Register() {
+@@ -227,6 +244,7 @@ void PortEnhancements_Register() {
      REGISTER_EVENT(FlyingTripleJumpLaunch);
      REGISTER_EVENT(MarioHighJumpLaunch);
      REGISTER_EVENT(MarioHighJumpFallHeight);
@@ -119,29 +145,11 @@ index cb734f68..89b59818 100644
      REGISTER_EVENT(PlayerCheckCommonAirborneCancels);
      REGISTER_EVENT(PlayerLanded);
      REGISTER_EVENT(PlayerHit);
-@@ -243,10 +261,6 @@ void PortEnhancements_Register() {
-     REGISTER_EVENT(PlayerFloorTypeChange);
-     REGISTER_EVENT(PlayerQuicksandSink);
-     REGISTER_EVENT(PlayerWindForce);
--=======
--    REGISTER_EVENT(MarioHighJumpLaunch);
--    REGISTER_EVENT(MarioHighJumpFallHeight);
-->>>>>>> 69c176ec (cheat - high jump)
- 
-     // Register Rando Events
-     REGISTER_EVENT(ItemCollected);
-@@ -297,4 +311,4 @@ void PortEnhancements_Register() {
- 
-     Rando::Init();
-     LoadGuiTextures();
--}
-\ No newline at end of file
-+}
 diff --git a/src/port/ui/GhostshipMenuEnhancements.cpp b/src/port/ui/GhostshipMenuEnhancements.cpp
-index 46fdca5b..d2c50d2e 100644
+index 091e51f8..75ae1e9a 100644
 --- a/src/port/ui/GhostshipMenuEnhancements.cpp
 +++ b/src/port/ui/GhostshipMenuEnhancements.cpp
-@@ -266,6 +266,10 @@ void GhostshipMenu::AddMenuEnhancements() {
+@@ -271,6 +271,10 @@ void GhostshipMenu::AddMenuEnhancements() {
          .CVar(CVAR_CHEAT("PlayInDemo"))
          .RaceDisable(false)
          .Options(CheckboxOptions().Tooltip("Allows normal gameplay when a demo is playing."));
@@ -153,5 +161,5 @@ index 46fdca5b..d2c50d2e 100644
          .CVar(CVAR_CHEAT("AlwaysFlyTripleJump"))
          .RaceDisable(false)
 -- 
-2.55.0
+2.56.1
 

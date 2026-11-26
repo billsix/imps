@@ -246,6 +246,26 @@ tradeoff, and the patch-lifecycle consequence:
   conflicted code hunk with patch fuzz, the ci-appimage conflict and its standard resolution, how to
   regenerate without leaving stale patch files, and what each gate needs.
 
+### Every sync or rebase ends with a clean build, made by the agent
+
+(William Emerison Six <billsix@gmail.com>, 2026-11-26.) A pin bump is not done when the patches apply; it
+is done when the project **builds from scratch at the new pin with the series applied**. The agent makes
+that build itself, nested, as part of the bump, before reporting it finished. The carrier has
+everything needed (`fetch.sh`, the checkout, `apply.sh`, each project's container build). What stays with
+the maintainer is the play-test, and the builds on his own host.
+
+- `n64/`: `tools/verify_appimage_builds.sh <Project> …` (a from-scratch `make -C docker appimage`; it
+  wipes the build directory inside the checkout, never the bind-mounted `build-cmake/` beside it).
+- `games/`: the project's container build (`make image`, then its build target).
+- `unixutils/`: `make -C unixutils/<project> build` (rebuilds the image, so the offline dependency
+  cache is warmed at the new pin).
+- `android/fossify`: `make -C android/fossify image` (it warms and compiles Commons, Gallery and Phone),
+  then each documented repo offline under `--network=none`.
+
+A build that fails means the bump is not finished: fix it if the cause is ours (a patch, a derived
+Dockerfile or dependency list), otherwise stop and file a task. Record the build result in the task and in
+the project's `CLAUDE.md`; "build pending" is no longer an acceptable state to hand over.
+
 ### Staying current with upstream — the pin-bump sweep
 
 A recurring upkeep job the maintainer asks for: **periodically check every carried upstream for

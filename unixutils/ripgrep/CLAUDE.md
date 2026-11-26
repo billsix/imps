@@ -20,9 +20,10 @@ repo-root `../../CLAUDE.md` (the carrier model) first.
     HEAD` equals `PIN_SHA`, so `apply.sh`'s pin guard matches.
   - **The pin lives twice** — also `RIPGREP_PIN` in the `Dockerfile` (kept in
     sync, 2026-11-26). After a bump, rebuild `make image` to re-warm the offline
-    Cargo cache for the new `Cargo.lock` (NOT yet done at this bump — pending).
-    16.0.0 raises the workspace `rust-version` from 1.85 to 1.96, so the image's
-    Rust toolchain must be at least 1.96 for the build to work.
+    Cargo cache for the new `Cargo.lock`. Done at this bump: `make build` rebuilt
+    the image and compiled 16.0.0 with the docs patches applied (2026-11-26).
+    16.0.0 raises the workspace `rust-version` from 1.85 to 1.96; the image's
+    Fedora toolchain satisfies it.
 
 ## Scripts & build
 

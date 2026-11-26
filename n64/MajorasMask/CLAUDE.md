@@ -16,7 +16,9 @@ upstream quieted the build-log output of the inline dependency steps that the
 patch deletes, so the deletion stands and upstream's edits to the other job are
 kept. `tools/check_patches_apply.sh MajorasMask` and
 `tools/check_upstreamable_applies.sh MajorasMask` are green; the libultraship
-gitlink is unchanged (`7f9b86a5`). BUILD + play-test pending.
+gitlink is unchanged (`7f9b86a5`). A from-scratch AppImage build at this pin
+is verified (2026-11-26, `tools/verify_appimage_builds.sh MajorasMask`: a 16 MB
+x86-64 ELF, port o2r injected from the checkout-root copy); play-test pending.
 
 ## Scripts
 

@@ -15,7 +15,8 @@ UPSTREAM=https://github.com/HarbourMasters/2ship2harkinian.git
 # The pinned base commit: tip of upstream's 'develop' branch (unversioned — no tag).
 # Bumped to the develop HEAD of 2026-11-23 on 2026-11-26 (agent sweep,
 # ../../tasks/imps-check-upstreams-and-rebase-patches.md); the libultraship gitlink
-# is unchanged (7f9b86a5). BUILD + play-test pending (the maintainer's).
+# is unchanged (7f9b86a5). AppImage build verified 2026-11-26; play-test pending
+# (the maintainer's).
 # (Was f1dda4c2, bumped 2026-10-19; before that e8757c14.)
 PIN_SHA=7e3d051be3f344df026d44f3dee140e76cf226a8
 

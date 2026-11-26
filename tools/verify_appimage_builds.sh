@@ -34,7 +34,7 @@ ROOT=$PWD
 
 # Project|checkout|builddir(rel checkout)|O2R(rel checkout; empty=self-gen)|root-o2r(rel checkout)
 ALL=(
-  "SuperMario64|Ghostship|build-cmake|ghostship.o2r|ghostship.o2r"
+  "SuperMario64|Ghostship|build-cmake|build-cmake/ghostship.o2r|ghostship.o2r"
   "MajorasMask|2ship2harkinian|build-cmake|build-cmake/mm/2ship.o2r|2ship.o2r"
   "BanjoKazooie|Lighthouse|build-cmake|build-cmake/lighthouse.o2r|lighthouse.o2r"
   "OcarinaOfTime|Shipwright|build-cmake|build-cmake/soh/soh.o2r|soh.o2r"

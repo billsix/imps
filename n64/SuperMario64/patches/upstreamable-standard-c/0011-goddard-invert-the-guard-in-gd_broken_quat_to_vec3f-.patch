@@ -1,4 +1,4 @@
-From 61da955d496812812f9ae9b31cc3d47941995d48 Mon Sep 17 00:00:00 2001
+From 05b82136376805bb034dbd4fa33183e53804a0f5 Mon Sep 17 00:00:00 2001
 From: William Emerison Six <billsix@gmail.com>
 Date: Tue, 22 Sep 2026 12:14:13 +0000
 Subject: [PATCH 11/46] goddard: invert the guard in gd_broken_quat_to_vec3f
@@ -13,8 +13,8 @@ with the port's own flags (asmdiff over compile_commands.json).
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 ---
- src/goddard/gd_math.c | 27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+ src/goddard/gd_math.c | 31 ++++++++++++++-----------------
+ 1 file changed, 14 insertions(+), 17 deletions(-)
 
 diff --git a/src/goddard/gd_math.c b/src/goddard/gd_math.c
 index cae7804a..5c8c498e 100644
@@ -26,21 +26,15 @@ index cae7804a..5c8c498e 100644
  
 -    if (run < 0) {
 -        goto end;
--    }
 +    if (run >= 0) {
 +        if ((j = i + 1) >= 4) {
 +            j = 1;
 +        }
- 
--    if ((j = i + 1) >= 4) {
--        j = 1;
--    }
++
 +        if ((k = j + 1) >= 4) {
 +            k = 1;
 +        }
- 
--    if ((k = j + 1) >= 4) {
--        k = 1;
++
 +        jVal = quat[j];
 +        kVal = quat[k];
 +        uVec.x = quat[0];
@@ -48,6 +42,14 @@ index cae7804a..5c8c498e 100644
 +        uVec.z = zHalf + zHalf;
      }
  
+-    if ((j = i + 1) >= 4) {
+-        j = 1;
+-    }
+-
+-    if ((k = j + 1) >= 4) {
+-        k = 1;
+-    }
+-
 -    jVal = quat[j];
 -    kVal = quat[k];
 -    uVec.x = quat[0];
@@ -59,5 +61,5 @@ index cae7804a..5c8c498e 100644
      vec->y = tVec.y;
      vec->z = tVec.z;
 -- 
-2.55.0
+2.56.1
 

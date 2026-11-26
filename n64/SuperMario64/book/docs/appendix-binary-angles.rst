@@ -14,7 +14,9 @@ a 16-bit angle. Here is the trick in full — it is a small marvel of packing.
 Three things to notice. The angle is cast **unsigned** and shifted right by four
 bits, so a full turn (``0x10000``) indexes ``0x1000`` = 4096 entries — and
 because it is unsigned, an angle that runs past the end wraps to the start for
-free. Cosine is the **same table** read ``0x400`` entries later, because
+free. (The ``(s32)`` in front is the port's, not the original game's: the angle
+goes through a signed 32-bit integer before it is narrowed to 16 bits, which the
+port added to stop out-of-bounds table reads on arm64.) Cosine is the **same table** read ``0x400`` entries later, because
 ``cos θ = sin(θ + 90°)`` and 90° is a quarter of 4096. And the two tables
 deliberately **overlap in memory** — the sine table is cut short and cosine's
 reads spill into shared storage — a byte-exact quirk carried from the ROM. A

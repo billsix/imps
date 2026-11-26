@@ -79,7 +79,11 @@ symbols that no longer exist. Stream folders stay separate regardless (keeps eac
   0 by hand; `check_renames all` green). **Replayed 2026-11-26 onto develop HEAD
   `64df9cb8`'s `standard-c` tip with no conflict at all** (19 patches changed in
   content through moved context, the rest only in hashes; `check_renames all`
-  green, so no reference new at this pin still uses an old name). Still **one file per patch** (0001 renames
+  green, so no reference new at this pin still uses an old name). **The stream is
+  proven to change no code at this pin:** `../../tools/asmdiff_across_renames.py`
+  compared the `standard-c` tip with the rename tip: 479 of 487 files (455 C, 32
+  C++) identical once the old side's symbols are renamed, 8 skipped (libultra files
+  the port does not build), none differing (2026-11-26). Still **one file per patch** (0001 renames
   the 18 address-named `soh/src/code/code_<addr>.c` files, each other patch names the
   address-named symbols in one definition file), **plus two tail patches**: **0489**
   reconciles the renamed cutscene symbols with call sites new at the `9.3.0` pin

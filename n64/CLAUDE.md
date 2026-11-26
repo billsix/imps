@@ -179,7 +179,7 @@ facts are in each game's tier-3 `n64/<Game>/CLAUDE.md`; the detailed patch-count
   `upstreamable-rename-decomp` series, plus the ci-appimage patch; all replayed onto the
   new pin with no conflict. `check_renames all`, `check_patches_apply` (527 patches from
   the bare pin) and `check_upstreamable_applies` green; standard-c asmdiff tree gate
-  green (486/486); LUS gitlink unchanged (`da6daf1a`). AppImage build verified 2026-11-26; **play-test pending**
+  green (486/486) and the rename stream proven codegen-neutral (479/487, 8 not built); LUS gitlink unchanged (`da6daf1a`). AppImage build verified 2026-11-26; **play-test pending**
   (the maintainer's). Details: `n64/OcarinaOfTime/CLAUDE.md`.
 - `n64/MajorasMask/` — 2 Ship 2 Harkinian
   (https://github.com/HarbourMasters/2ship2harkinian), pin `7e3d051b`

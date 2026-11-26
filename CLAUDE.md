@@ -193,10 +193,10 @@ configured, pass `ASMDIFF_CMD_FROM=<pre-rename path>` so it reuses that file's r
 old-applied-vs-new-applied is dominated by real upstream changes and is not the gate): (1) re-prove
 `standard-c` byte-identity against the *new* pin's pristine tree —
 `asmdiff_tree.sh <new-pin> <new-pin+standard-c>`; and (2) prove the rename re-cut changed no code —
-`asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`. **Check (2) cannot pass as written** (first run 2026-11-26):
-it compares code before the renames with code after them, so every renamed symbol differs and old
-sources do not compile against the renamed headers. Until `tasks/ocarina-rename-stream-codegen-check-across-renames.md`
-is done, the stand-in is a conflict-free replay plus `check_renames.py all`. Both need the configured build; a nested
+`tools/asmdiff_across_renames.py … <new-standard-c-tip> <re-cut-tip>` (since 2026-11-26; `asmdiff_tree.sh`
+cannot do this one, because across a rename stream every renamed symbol differs and old sources do not
+compile against the renamed headers; the new tool compiles each side in its own worktree and renames the
+old side's assembly). Both need the configured build; a nested
 `make`-configure of the project supplies `compile_commands.json`. **Caveat (OoT, 2026-10-20):** when
 the maintainer's *host* build tree (`build-cmake/`, `bldInstall/`) is bind-mounted into the sandbox,
 a fresh in-sandbox `build.sh` fails — cmake refuses the host-path `CMakeCache.txt` (`the current

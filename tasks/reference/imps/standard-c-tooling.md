@@ -45,6 +45,40 @@ ASMDIFF_PROJECT=SuperMario64|OcarinaOfTime  ASMDIFF_BUILD=<configured cmake tree
   `math_util.c`; SoH: 199 lines on `z_actor.c`). Re-run the pair after any change to the
   normaliser.
 
+## `tools/asmdiff_across_renames.py` — the codegen gate for a pure-rename stream
+
+```sh
+python3 tools/asmdiff_across_renames.py --project OcarinaOfTime --build <configured tree> --patches n64/OcarinaOfTime/patches/upstreamable-rename-decomp <standard-c tip> <rename tip>
+```
+
+`asmdiff.sh` compiles the old and the new version of a file inside one tree. Across a rename stream that
+cannot work: the old source calls names the new headers no longer declare (most files fail to compile), and
+where both sides compile every renamed symbol is a difference. This tool gives each side its own temporary
+worktree (old source with old headers, new source with new headers), compiles both with the file's recorded
+command, normalises them with `asmdiff_normalise.py`, rewrites the identifiers in the old side's assembly
+with the stream's rename pairs (read from the patch bodies, `  * old -> new`, chains followed), and
+compares. The checkout itself is not touched.
+
+- **What it needs:** a configured cmake tree (`compile_commands.json`); it does not matter whether the tree
+  was configured before or after the renames, since a renamed file is looked up under either path. The
+  checkout's submodules must be at the commits the refs expect (include paths for submodules keep pointing
+  at the checkout).
+- **Renamed files** are paired by git's rename detection; a short file that falls under git's similarity
+  threshold is paired through the file renames the stream declares (`  * old.c -> new.c`).
+- **Output:** `N files, I identical, D diff, E error, S skip`; exit 3 if any file is DIFF or ERROR. SKIP
+  means the build does not compile the file, or it exists on one side only. Read the skips.
+- **Scope:** every `.c` and `.cpp` file of the game's own tree (`soh/` for OoT) that differs between the
+  refs, so the C++ call sites a rename reaches are compared too.
+- **Proven both ways (OoT, 2026-11-26, pin `64df9cb8`):** the real stream is 479 of 487 files identical
+  (455 C, 32 C++) with 8 skipped, all libultra files the port does not build and nothing includes. With the
+  C files alone: one flipped operator on top of the rename tip was reported as a DIFF in exactly that file,
+  and with the rename pairs withheld 421 files differed.
+- **Limits:** only translation units are compiled, so an included file is covered only through a unit that
+  itself changed. OoT's stream touches two (`z_camera_data.inc`, `z_onepointdemo_data.inc`), and both of
+  their includers changed and were compared. SuperMario64's `*.inc.c` files would need `asmdiff.sh`'s
+  includer handling added. A rename inside a string whose *length* the assembly records would show as a
+  DIFF; none occurred.
+
 ## `tools/asmdiff_tree.sh` — the gate over every file that differs between two refs
 
 ```sh

@@ -1,48 +1,51 @@
-# OcarinaOfTime — the rename stream's codegen check at a pin bump cannot pass as documented
+# OcarinaOfTime — built a codegen check that works across the rename stream
 
-**Status:** ready — decision recorded 2026-11-26
-**Priority:** 6
-**Difficulty:** 4 (a rename-aware normalisation step for `tools/asmdiff.sh`, plus making the old side compile)
-**Created:** 2026-11-26 (agent, third upstream sweep; a sync item that did not resolve gets a task: `CLAUDE.md`, "Staying current with upstream").
+**Done 2026-11-26** (agent; William Emerison Six <billsix@gmail.com>, 2026-11-26: "your recommendation is fine", then "do the ocarina rename check task").
 
-## BLUF
+## The problem
 
-The master `CLAUDE.md` says a pin bump needs two codegen checks for OcarinaOfTime, and the second is "prove the rename re-cut changed no code — `asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`". Run for the first time on 2026-11-26, that command cannot pass: it compares code before the renames with code after them, so every renamed symbol shows up as a difference. Done means either the tool can compare across renames and the check is green, or the docs say what replaces it.
+The master `CLAUDE.md` asked for two codegen checks at an OcarinaOfTime pin bump. The second was "prove the rename re-cut changed no code — `asmdiff_tree.sh <new-standard-c-tip> <re-cut-tip>`". Run for the first time during the third upstream sweep, at pin `64df9cb8`, it reported 457 files, 17 identical, 411 "differ", 29 skipped, and none of the 411 was a finding:
 
-## Context
+- `tools/asmdiff.sh` compiles the working-tree file and the old ref's copy of it inside one tree. For 259 files the old source did not compile, because it calls the old names and the tree's headers declare only the new ones.
+- For the 152 that compiled on both sides, every renamed symbol was a difference (`func_80002384` against `Assert_Fail`, and so on).
 
-**Read first:** `CLAUDE.md` ("What the asmdiff gate actually needs"), `tasks/reference/imps/standard-c-tooling.md`, `tasks/reference/imps/recutting-a-stream-under-a-new-base.md` (step 5, the re-cut gate) and `tools/asmdiff.sh`.
-
-**What ran (2026-11-26, pin `64df9cb8`, a cmake tree configured in a sandbox-only directory):**
-
-- Check 1, `asmdiff_tree.sh <pin> <standard-c tip>`: green, see the sweep log in `tasks/imps-check-upstreams-and-rebase-patches.md`.
-- Check 2, `asmdiff_tree.sh <standard-c tip> <rename tip>`: 457 files, 17 identical, 411 "differ", 29 skipped.
-
-**Why the 411 are not findings.** `tools/asmdiff.sh` compiles the working-tree file and the old ref's copy of the same file with the same recorded command, inside the working tree. For the rename stream:
-
-- 152 files compile on both sides and differ only in symbol names, for example `func_80002384` against `Assert_Fail` in `soh/src/boot/is_debug.c` (`.globl`, `.type`, the label and `.size`: 8 lines).
-- 259 files fail to compile on the old side: the old source calls the old names, and the headers in the working tree declare only the new ones.
-
-**Why the re-cut gate in the reference doc did work.** Step 5 of the re-cut method compares the *old applied* tree with the *new applied* tree. Both carry the renames, so names agree and only resolution mistakes can differ (OoT, 2026-09-22: 496/496). That comparison is valid when the base is the same. At a pin bump the base moved, so old-applied against new-applied is dominated by upstream's changes, which is why `CLAUDE.md` substituted the command that does not work.
-
-**What stands in for it today.** In this sweep the rename stream replayed with no conflict, so there was no hand or tool resolution to get wrong, and `n64/OcarinaOfTime/tools/check_renames.py all` passed (every rename claimed by its commit and total). That argues the stream is still pure renames; it is not a codegen proof.
-
-## Options
-
-- **(a) Rename-aware comparison.** Teach `tools/asmdiff.sh` (or `tools/asmdiff_normalise.py`) to apply the stream's `old -> new` map (the pairs `tools/resolve_rename_conflicts.py` already reads from the patch bodies) to the old side's assembly, and compile the old side against the old ref's headers (a second worktree at the standard-c tip with its own configured tree) instead of the working tree's.
-- **(b) Per-patch check.** A pure-rename patch can be checked alone: compile each touched file before and after that patch in two worktrees and compare after substituting that patch's pairs. Slower (490 patches), but it localises a failure.
-- **(c) Drop the second check from the docs** and state that `check_renames.py all` plus a conflict-free replay is the gate, with the codegen comparison required only when a replay needed resolutions.
-
-## Plan
-
-1. Decide the option (question 1).
-2. Implement it; prove it on the current pin (expected: every file identical).
-3. Correct `CLAUDE.md` and `tasks/reference/imps/standard-c-tooling.md` to describe the check that exists.
+The re-cut method in `tasks/reference/imps/recutting-a-stream-under-a-new-base.md` had never hit this, because it compares the old applied tree with the new applied tree, and both carry the renames. That comparison is only valid on the same base; at a pin bump the base moves.
 
 ## Decision (William Emerison Six <billsix@gmail.com>, 2026-11-26)
 
-Option (a): build the rename-aware comparison across two worktrees. Until it exists, the rule in `CLAUDE.md` holds: a conflict-free replay plus `check_renames.py all` stands in, and a replay that needed resolutions is not accepted without the codegen comparison.
+Of three options — (a) a rename-aware comparison across two worktrees, (b) a per-patch check, (c) dropping the codegen check for conflict-free replays — the maintainer took the agent's recommendation, (a). Until it existed, a conflict-free replay plus `check_renames.py all` stood in.
 
-## Open questions
+## What was built
 
-None.
+`tools/asmdiff_across_renames.py`. For every `.c` and `.cpp` file of the game's own tree that differs between two refs, it compiles each side in its own temporary worktree (old source with old headers, new source with new headers) with the file's recorded compile command, normalises both with `tools/asmdiff_normalise.py`, rewrites the identifiers in the old side's assembly with the stream's rename pairs, and compares. The pairs are read from the patch bodies through `tools/resolve_rename_conflicts.py`'s `renames_of`, with chains followed to the final name. The checkout is not touched, and the worktrees are removed afterwards.
+
+Things that came up while building it, in order:
+
+1. **The recorded command names its own source as `-c`'s value.** The first run failed every file with "cannot specify -o with -c, -S or -E with multiple files"; `-c` is now dropped together with its value.
+2. **Three short renamed files were not paired by git.** `code_800A9F30.c`, `code_800C3C20.c` and `code_800D31A0.c` fell under git's rename-similarity threshold and showed as a deletion and an addition each. They are now paired through the file renames the stream declares (`  * old.c -> new.c` in patch 0001).
+3. **The first green run covered only `.c` files under `soh/src`**, as `asmdiff_tree.sh` does. The stream also touches 32 C++ files (call sites in `soh/soh/`), 23 headers and two `.inc` data files. The scope was widened to every `.c` and `.cpp` under `soh/`.
+4. **The C++ files then differed in one line each**, a `__FILE__` string holding the temporary worktree's path, which the normaliser does not canonicalise for C++ paths. The tool replaces the worktree root with a constant in both outputs.
+
+## Result at pin `64df9cb8`
+
+`standard-c` tip against the rename tip: **487 files, 479 identical (455 C, 32 C++), 0 differing, 0 errors, 8 skipped.** The 8 are libultra files the port does not build; nothing includes them and they are not in `compile_commands.json`. The two `.inc` files the stream touches are covered through `z_camera.c` and `z_onepointdemo.c`, which both changed and were compared.
+
+So the rename stream is proven to change no code at this pin, which closes the second codegen check that had been open since the stream was first re-cut onto a moved base (2026-10-20).
+
+## Proof that the check can fail
+
+Run with the C files only, before the scope was widened (the comparison logic did not change afterwards):
+
+- **One flipped operator.** A throwaway commit on top of the rename tip changed `(actor->bgCheckFlags & 1)` to `|` in `soh/src/code/z_actor.c`. The tool reported a DIFF in exactly that file and 445 identical.
+- **Rename pairs withheld.** Pointed at an empty patch directory, it reported 421 files differing and 22 identical, which shows the identical verdicts depend on the rename map and are not vacuous.
+
+## Limits
+
+- Only translation units are compiled. An included file is covered only through a unit that itself changed; SuperMario64's `*.inc.c` files would need `tools/asmdiff.sh`'s includer handling added before the tool is used there.
+- A rename inside a string whose length the assembly records would show as a DIFF. None occurred.
+- The checkout's submodules must be at the commits the refs expect, since include paths for submodules keep pointing at the checkout.
+
+## Where things are
+
+- The tool: `tools/asmdiff_across_renames.py` (ruff-clean). Usage, what it needs, and these limits: `tasks/reference/imps/standard-c-tooling.md`.
+- `CLAUDE.md` (the asmdiff note) and `tasks/reference/imps/replaying-a-series-onto-a-new-pin.md` now name this tool for check (2). The result is recorded in `n64/OcarinaOfTime/CLAUDE.md` and `n64/CLAUDE.md`.

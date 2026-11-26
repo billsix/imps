@@ -82,6 +82,7 @@ with a clean build"). The table lists the checks that come before it.
 | `tools/check_comment_only_streams.sh <project>` | git and python3 (gcc for C) | for `docs`/`book` streams |
 | `n64/OcarinaOfTime/tools/check_renames.py all` | the checkout on the applied series | "every rename is total" also proves no reference new at the pin still uses an old name |
 | `tools/asmdiff_tree.sh <pin> <standard-c tip>` | a **configured** cmake tree | see below |
+| `tools/asmdiff_across_renames.py … <standard-c tip> <rename tip>` | the same configured tree | OcarinaOfTime's rename stream; see below |
 
 **The assembly gate needs its tree configured at the commit being checked.** `tools/asmdiff_tree.sh` skips
 any file that is not in the tree's `compile_commands.json`. A tree configured with OcarinaOfTime's rename
@@ -101,9 +102,10 @@ Shipwright and needs no build. Never configure into the bind-mounted `build-cmak
 note). The gate itself then compiles each changed file twice (the run for OcarinaOfTime's
 486 files was not timed).
 
-**The rename stream has no codegen gate at a pin bump yet.** Comparing the `standard-c` tip with the rename
-tip cannot pass, because the renamed symbols differ by design:
-`tasks/ocarina-rename-stream-codegen-check-across-renames.md`.
+**The rename stream has its own codegen gate, `tools/asmdiff_across_renames.py`.** `asmdiff_tree.sh` cannot
+compare the `standard-c` tip with the rename tip (the renamed symbols differ by design, and old sources do
+not compile against renamed headers); the rename-aware tool compiles each side in its own worktree. Usage
+and limits: `tasks/reference/imps/standard-c-tooling.md`.
 
 ## What moves with the pin
 

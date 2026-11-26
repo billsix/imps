@@ -336,7 +336,8 @@ configured tree does not list, and every `*.inc.c` file.
   codegen check, pending since sweep two, moved into that task with it.
 - **The rename stream's codegen check** could not pass as `CLAUDE.md` described it:
   `tasks/ocarina-rename-stream-codegen-check-across-renames.md`. The maintainer chose a rename-aware
-  comparison; until it exists, a conflict-free replay plus `check_renames.py all` stands in.
+  comparison; it was built the same day (`tools/asmdiff_across_renames.py`) and the stream passed at the
+  new pin: 479 of 487 files identical, 8 not built, none differing.
 
 ### 5. Afterwards, the same day
 

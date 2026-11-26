@@ -30,7 +30,7 @@ that case takes a minute. So:
 - Read the conflict. Decide what upstream changed and what the patch wants.
 - If upstream reorganised the file, the patch needs a port, which is a judgment call: stop and log it
   (`CLAUDE.md`, "Staying current with upstream"), as SuperMario64 was
-  (`tasks/mario64-bump-pin-port-cheats-to-feature-registry.md`).
+  (`tasks/archive/mario64/2026/11/26/mario64-bump-pin-port-cheats-to-feature-registry.md`).
 - After any hand resolution in code, compile the file (a configured tree is enough; see below) before
   regenerating the patch.
 

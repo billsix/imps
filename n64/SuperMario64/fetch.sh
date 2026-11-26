@@ -14,7 +14,7 @@ UPSTREAM=https://github.com/HarbourMasters/Ghostship.git
 
 # The pinned base commit: tip of upstream's 'develop' branch. Bumped to the
 # 2026-10-27 develop HEAD on 2026-11-26 (third sweep,
-# tasks/mario64-bump-pin-port-cheats-to-feature-registry.md): standard-c (46) replays
+# tasks/archive/mario64/2026/11/26/mario64-bump-pin-port-cheats-to-feature-registry.md): standard-c (46) replays
 # with one hand resolution and is proven codegen-identical at this pin (104 of 104
 # files); the three cheats were ported onto upstream's feature registry; the book
 # markers were re-anchored in math_util.h; ci-appimage needed the usual workflow

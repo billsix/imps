@@ -62,5 +62,5 @@ The pin is `aefb89b85e7b78daff62b491ebb2669d2d9270f0`. Submodules moved with it:
 
 ## Where things are
 
-- Script: `tasks/adhoc/mario64-bump-pin-port-cheats-to-feature-registry/port_cheats.py` replayed the three cheat patches with their `PortEnhancements.cpp` hunks excluded and inserted the listeners, `REGISTER_EVENT` lines and feature rows at anchors that must each occur exactly once. It is tied to this pin: one-shot, to be removed at archive.
+- Script: a one-shot `port_cheats.py` replayed the three cheat patches with their `PortEnhancements.cpp` hunks excluded and inserted the listeners, `REGISTER_EVENT` lines and feature rows at anchors that each had to occur exactly once. It was tied to this pin and was removed at archive; it is in git history under `tasks/adhoc/mario64-bump-pin-port-cheats-to-feature-registry/`.
 - The libultraship reference crawl (`tasks/reference/libultraship/`) still describes engine commit `c151cc91`; a re-crawl at `37daaa66` remains a future task, as before.

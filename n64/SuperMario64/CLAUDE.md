@@ -11,7 +11,7 @@ https://github.com/HarbourMasters/Ghostship, pinned by `fetch.sh` at
 `aefb89b8` (tip of upstream `develop` as of 2026-10-27; bumped from `40eef138`
 on 2026-11-26 — 51 game-tree patches + the libultraship doc-region lane; the
 replay needed real work, recorded in
-`../../tasks/mario64-bump-pin-port-cheats-to-feature-registry.md`), with the maintainer's patches
+`../../tasks/archive/mario64/2026/11/26/mario64-bump-pin-port-cheats-to-feature-registry.md`), with the maintainer's patches
 applied by `apply.sh`. Not a fork; the patch series is the whole delta. The pin
 was chosen deliberately modern because
 upstream had merged the maintainer's always-fly-on-triple-jump cheat

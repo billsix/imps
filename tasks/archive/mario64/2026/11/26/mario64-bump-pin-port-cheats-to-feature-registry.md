@@ -11,7 +11,7 @@ The third upstream sweep (`tasks/imps-check-upstreams-and-rebase-patches.md`) st
 1. **Port the cheats, do not just re-place them.** The agent offered (a) upstream's feature registry or (b) the smallest change that keeps the direct CVar reads; the maintainer chose to port.
 2. **Find the event-system document the cheats were written from, before deciding the form.** It is `wiki/EventSystem.md` in Ghostship, and it is byte-identical at both pins: the event system did not change. Upstream added a second layer beside it, the feature registry (`docs/romhacks/DESIGN.md`, "Feature rules"; `src/port/features/Features.h`), whose rule is: add the setting to `sDefs` in `Features.cpp` with its vanilla value, and change every read of its CVar outside the menus to `Port_FeatureInt`.
 3. **The cheats go into the feature table**, so a romhack or mod can disable or force them like upstream's own cheats. The alternative, leaving them outside the table so they always work, was declined.
-4. **The guide's stale listener example gets an upstream patch**: `tasks/mario64-upstream-eventsystem-guide-feature-reads.md` (a separate task; it stands on this pin).
+4. **The guide's stale listener example gets an upstream patch**: `tasks/archive/mario64/2026/11/26/mario64-upstream-eventsystem-guide-feature-reads.md` (a separate task; it stands on this pin).
 
 5. **Every sync or rebase ends with a clean build made by the agent.** Ruled after the bump was committed (`CLAUDE.md`, "Every sync or rebase ends with a clean build"). It is why this record has a build section, and it found the defect described there.
 

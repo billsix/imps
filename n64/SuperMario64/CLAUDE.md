@@ -9,7 +9,7 @@ runtime + **Torch** asset extractor as submodules.
 Managed by imps: `Ghostship/` here is a pristine clone of
 https://github.com/HarbourMasters/Ghostship, pinned by `fetch.sh` at
 `aefb89b8` (tip of upstream `develop` as of 2026-10-27; bumped from `40eef138`
-on 2026-11-26 — 51 game-tree patches + the libultraship doc-region lane; the
+on 2026-11-26 — 53 game-tree patches + the libultraship doc-region lane; the
 replay needed real work, recorded in
 `../../tasks/archive/mario64/2026/11/26/mario64-bump-pin-port-cheats-to-feature-registry.md`), with the maintainer's patches
 applied by `apply.sh`. Not a fork; the patch series is the whole delta. The pin
@@ -40,8 +40,9 @@ cheat ships with upstream and needs no patch.
 upstream-bound and touches many decomp files, so it is the base the personal
 streams sit on (a conflict then surfaces here, not in a rebase we cannot do);
 `cheats` and `book` both touch `src/game/mario.c`, and the markers belong on the
-cheated tree. The `upstreamable-ci-appimage` unit is unlisted (`docker/` and the
-workflow file only, disjoint) and applies last.
+cheated tree. The `upstreamable-ci-appimage` and `upstreamable-eventsystem-guide`
+units are unlisted (`docker/` plus the workflow file, and `wiki/EventSystem.md`;
+disjoint from everything else) and apply last.
 
 - `patches/upstreamable-standard-c/0001..0046` (46 patches, 2026-09-22; **upstream-bound**) —
   rewrites the decomp's assembly-isms into standard C, one class per patch, per
@@ -93,6 +94,13 @@ workflow file only, disjoint) and applies last.
   `make -C docker appimage` build is **verified at `aefb89b8`** (2026-11-26,
   `tools/verify_appimage_builds.sh SuperMario64`: a 15 MB x86-64 ELF, port o2r injected from
   the checkout-root copy).
+- `patches/upstreamable-eventsystem-guide/0001..0002` (2 patches, 2026-11-26; **upstream
+  candidate, one pull request**) — documentation only, `wiki/EventSystem.md`. 0001 changes the
+  guide's listener example from `CVarGetInteger` to `Port_FeatureInt`, as upstream's own listeners
+  read settings since its romhack support (#300), and says why with a link to the "Feature rules"
+  section of `docs/romhacks/DESIGN.md`. 0002 brings the rest of the example in line with the code
+  (the `.cpp` file name, `REGISTER_LISTENER` with the priority second, the lambda form). A reviewer
+  can take 0001 alone. Not yet submitted; opening the pull request is the maintainer's.
 - `patches/book/0001-docs-add-doc-region-markers-for-the-book-s-literalin.patch` — comment-only
   (**gated**: `tools/check_comment_only_streams.sh SuperMario64` proves both
   book streams change nothing the compiler sees; see `../CLAUDE.md`)
